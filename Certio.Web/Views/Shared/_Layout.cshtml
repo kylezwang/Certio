@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Certio AI Legal Assistant</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Certio.Web.styles.css" asp-append-version="true" />
+    <style>
+        /* Temporary inline styles to test */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 56px);
+            background-color: #ffffff;
+        }
+        .ai-message-bubble {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+            max-width: 95%;
+        }
+        .message-avatar {
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+        .avatar-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b35, #ff8c42);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.1rem;
+            box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+        }
+        .message-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .message-text {
+            background-color: #f9fafb;
+            padding: 0.875rem 1rem;
+            border-radius: 18px;
+            border-top-left-radius: 4px;
+            line-height: 1.5;
+            color: #374151;
+            font-size: 0.95rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen bg-gradient-subtle">
+        <!-- Desktop Sidebar -->
+        <div class="d-none d-lg-block fixed top-0 start-0 h-100 sidebar-desktop">
+            <div class="d-flex flex-column h-100 bg-white px-4 pb-4 shadow-soft">
+                <!-- Logo Section -->
+                <div class="d-flex align-items-center py-4">
+                    <i class="fas fa-balance-scale me-3" style="font-size: 2rem; color: #ff6b35;"></i>
+                    <span class="text-xl fw-semibold" style="color: #1f2937;">
+                        Certio
+                    </span>
+                </div>
+                
+                <!-- Navigation -->
+                <nav class="flex-fill">
+                    <ul class="list-unstyled d-flex flex-column gap-2">
+                        <li>
+                            <a asp-controller="Home" asp-action="Projects" 
+                               class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["action"]?.ToString() == "Projects" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")">
+                                <i class="fas fa-briefcase fs-5"></i>
+                                <span class="fw-medium">Projects</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Chat" asp-action="Index" 
+                               class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["controller"]?.ToString() == "Chat" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")">
+                                <i class="fas fa-comments fs-5"></i>
+                                <span class="fw-medium">Services</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Home" asp-action="Documents" 
+                               class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["action"]?.ToString() == "Documents" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")">
+                                <i class="fas fa-file-alt fs-5"></i>
+                                <span class="fw-medium">Documents</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                
+                <!-- Logout Button -->
+                <div class="mt-auto pt-3 border-top">
+                    <form asp-controller="Home" asp-action="Logout" method="post" class="d-inline">
+                        <button type="submit" class="logout-button nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth w-100 text-muted-foreground hover-text-foreground hover-bg-secondary">
+                            <i class="fas fa-sign-out-alt fs-5"></i>
+                            <span class="fw-medium">Logout</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Header -->
+        <div class="d-lg-none">
+            <div class="sticky-top d-flex align-items-center gap-3 border-bottom bg-white px-4 py-3 shadow-soft">
+                <button class="btn btn-ghost p-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar">
+                    <i class="fas fa-bars fs-5"></i>
+                </button>
+                
+                <div class="flex-fill text-sm fw-semibold">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-balance-scale me-2 fs-5" style="color: #ff6b35;"></i>
+                        <span style="color: #1f2937;">
+                            Certio
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile Sidebar Offcanvas -->
+            <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileSidebar">
+                <div class="offcanvas-header">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-balance-scale me-3 fs-4" style="color: #ff6b35;"></i>
+                        <span class="text-xl fw-semibold" style="color: #1f2937;">
+                            Certio
+                        </span>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+                </div>
+                <div class="offcanvas-body">
+                    <nav>
+                        <ul class="list-unstyled d-flex flex-column gap-2">
+                            <li>
+                                <a asp-controller="Home" asp-action="Projects" 
+                                   class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["action"]?.ToString() == "Projects" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")"
+                                   data-bs-dismiss="offcanvas">
+                                    <i class="fas fa-briefcase fs-5"></i>
+                                    <span class="fw-medium">Projects</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a asp-controller="Chat" asp-action="Index" 
+                                   class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["controller"]?.ToString() == "Chat" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")"
+                                   data-bs-dismiss="offcanvas">
+                                    <i class="fas fa-comments fs-5"></i>
+                                    <span class="fw-medium">Services</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a asp-controller="Home" asp-action="Documents" 
+                                   class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["action"]?.ToString() == "Documents" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")"
+                                   data-bs-dismiss="offcanvas">
+                                    <i class="fas fa-file-alt fs-5"></i>
+                                    <span class="fw-medium">Documents</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                    
+                    <!-- Logout Button -->
+                    <div class="mt-auto pt-3 border-top">
+                        <form asp-controller="Home" asp-action="Logout" method="post" class="d-inline">
+                            <button type="submit" class="logout-button nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth w-100 text-muted-foreground hover-text-foreground hover-bg-secondary">
+                                <i class="fas fa-sign-out-alt fs-5"></i>
+                                <span class="fw-medium">Logout</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="px-4 py-8">
+                @RenderBody()
+            </div>
+        </main>
+
+        <!-- Resize handle -->
+        <div class="resize-handle" id="resizeHandle"></div>
+
+        <!-- Chat panel (right side) -->
+        <div class="chat-panel" id="chatPanel">
+            <!-- Chat tabs positioned at the very top, spanning full width -->
+            <div class="chat-tabs-container">
+                <div class="conversation-tabs" id="conversationTabs">
+                    <div class="tab-list">
+                        <!-- Conversation tabs will be populated by JavaScript -->
+                    </div>
+                    <button class="btn btn-primary btn-sm new-conversation-btn" data-bs-toggle="modal" data-bs-target="#newConversationModal">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chat content area -->
+            <div class="chat-content">
+                <!-- Mobile Header -->
+                <div class="mobile-header" id="mobileHeader" style="display: none;">
+                    <button class="btn btn-link" id="backButton">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <div class="header-info">
+                        <h5>Certio AI Assistant</h5>
+                        <span class="status-indicator">Online</span>
+                    </div>
+                    <button class="btn btn-link" id="menuButton">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                </div>
+
+                <!-- AI Insights Panel -->
+                <div class="ai-insights-panel" id="aiInsightsPanel" style="display: none;">
+                    <div class="ai-insights-header">
+                        <h6><i class="fas fa-robot"></i> AI Insights</h6>
+                        <button class="btn btn-sm btn-outline-secondary" id="toggleInsights">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                    </div>
+                    <div class="ai-insights-content" id="aiInsightsContent">
+                        <!-- AI insights will be populated here -->
+                    </div>
+                </div>
+
+                <div class="chat-header" id="desktopHeader">
+                    <div class="chat-header-content">
+                        <div class="ai-assistant-info">
+                            <div class="ai-avatar">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="ai-details">
+                                <h5 id="chatHeader">AI Assistant</h5>
+                                <div class="status-indicator">
+                                    <span class="status-dot"></span>
+                                    <span class="status-text">Online</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Welcome message -->
+                    <div class="welcome-message" id="welcomeMessage">
+                        <div class="ai-message-bubble">
+                            <div class="message-avatar">
+                                <div class="avatar-icon">C</div>
+                            </div>
+                            <div class="message-content">
+                                <div class="message-header">
+                                    <span class="sender-name">Certio</span>
+                                    <span class="ai-badge">AI Agent</span>
+                                    <span class="timestamp">Just now</span>
+                                </div>
+                                <div class="message-text">
+                                    Hi! I'm Certio, your AI legal assistant. How can I help you today?
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-input" style="display: none;">
+                    <div class="input-container">
+                        <input type="text" class="message-input" id="messageInput" placeholder="Reply to Certio...">
+                        <button class="send-button" id="sendButton">
+                            <i class="fas fa-arrow-up"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="border-top footer text-muted main-content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-6">
+                    &copy; 2025 - Certio AI Legal Assistant
+                </div>
+                <div class="col-md-6 text-end">
+                    <a asp-controller="Home" asp-action="Privacy">Privacy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- New Conversation Modal -->
+    <div class="modal fade" id="newConversationModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Start New Conversation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form asp-controller="Chat" asp-action="CreateConversation" method="post" id="createConversationForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="title" name="title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Start Conversation</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Clarity Modal -->
+    <div class="modal fade" id="clarityModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-question-circle"></i> Legal Language Clarity</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="clarityText" class="form-label">Text to Explain</label>
+                        <textarea class="form-control" id="clarityText" rows="4" placeholder="Paste legal text or complex language here..."></textarea>
+                    </div>
+                    <div id="clarityResult" style="display: none;">
+                        <h6>Simplified Explanation:</h6>
+                        <div class="alert alert-info" id="clarityExplanation"></div>
+                        <h6>Key Terms:</h6>
+                        <div id="clarityKeyTerms"></div>
+                        <h6>Implications:</h6>
+                        <div id="clarityImplications"></div>
+                        <h6>Risk Level:</h6>
+                        <span id="clarityRiskLevel" class="badge"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="requestClarity">Get Clarity</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Suggestions Modal -->
+    <div class="modal fade" id="suggestionsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-lightbulb"></i> AI Reply Suggestions</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="suggestionsContent">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading suggestions...</span>
+                            </div>
+                            <p>AI is analyzing the conversation and generating suggestions...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success" id="useSuggestion" style="display: none;">Use This Suggestion</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/signalr/dist/browser/signalr.js"></script>
+    <script src="~/js/chat.js"></script>
+
+    <script>
+        // Initialize conversations on all pages
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load conversations for the global chat panel
+            loadConversationsForPanel();
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

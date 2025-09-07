@@ -1,0 +1,253 @@
+@model Certio.Web.ViewModels.ProjectsViewModel
+@{
+    ViewData["Title"] = "Projects";
+}
+
+<div class="projects-container">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="display-4 fw-bold text-dark mb-2">Projects</h1>
+            <p class="lead text-muted">Manage and track your legal projects</p>
+        </div>
+        <button class="btn btn-primary btn-lg shadow-sm">
+            <i class="fas fa-plus me-2"></i>New Project
+        </button>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-5">
+        <div class="col-md-3 mb-3">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="p-3 bg-primary bg-opacity-10 rounded-3 me-3">
+                            <i class="fas fa-play-circle text-primary fs-4"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted mb-1 small">Active Projects</p>
+                            <h3 class="fw-bold text-dark mb-0">@Model.ActiveProjectsCount</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="p-3 bg-warning bg-opacity-10 rounded-3 me-3">
+                            <i class="fas fa-exclamation-circle text-warning fs-4"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted mb-1 small">In Review</p>
+                            <h3 class="fw-bold text-dark mb-0">@Model.InReviewProjectsCount</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="p-3 bg-success bg-opacity-10 rounded-3 me-3">
+                            <i class="fas fa-check-circle text-success fs-4"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted mb-1 small">Completed</p>
+                            <h3 class="fw-bold text-dark mb-0">@Model.CompletedProjectsCount</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="p-3 bg-info bg-opacity-10 rounded-3 me-3">
+                            <i class="fas fa-users text-info fs-4"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted mb-1 small">Team Members</p>
+                            <h3 class="fw-bold text-dark mb-0">@Model.TeamMembersCount</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Projects Grid -->
+    <div class="row">
+        @foreach (var project in Model.Projects)
+        {
+            <div class="col-lg-6 mb-4">
+                <div class="card h-100 shadow-sm border-0 project-card">
+                    <div class="card-header bg-transparent border-0 pb-0">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h5 class="card-title fw-bold text-dark mb-2">@project.Title</h5>
+                                <p class="card-text text-muted small">@project.Description</p>
+                            </div>
+                            <span class="badge @GetPriorityClass(project.Priority)">@project.Priority</span>
+                        </div>
+                    </div>
+                    <div class="card-body pt-2">
+                        <!-- Status and Category -->
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <i class="@GetStatusIcon(project.Status)"></i>
+                            <span class="badge @GetStatusClass(project.Status)">@project.Status</span>
+                            <span class="badge bg-secondary">@project.Category</span>
+                        </div>
+
+                        <!-- Progress -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-muted small">Progress</span>
+                                <span class="fw-medium small">@project.TasksCompleted/@project.TotalTasks tasks</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-gradient-primary" 
+                                     style="width: @((double)project.TasksCompleted / project.TotalTasks * 100)%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Meta Info -->
+                        <div class="d-flex justify-content-between align-items-center text-muted small mb-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-calendar me-1"></i>
+                                <span>Due @project.DueDate.ToString("MMM dd, yyyy")</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-users me-1"></i>
+                                <span>@project.Assignees.Count assignees</span>
+                            </div>
+                        </div>
+
+                        <!-- Assignees -->
+                        <div class="d-flex align-items-center">
+                            <span class="text-muted small me-2">Team:</span>
+                            <div class="d-flex">
+                                @for (int i = 0; i < Math.Min(project.Assignees.Count, 3); i++)
+                                {
+                                    <div class="assignee-avatar me-1">
+                                        @GetInitials(project.Assignees[i])
+                                    </div>
+                                }
+                                @if (project.Assignees.Count > 3)
+                                {
+                                    <div class="assignee-avatar me-1 bg-muted text-muted">
+                                        +@(project.Assignees.Count - 3)
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@functions {
+    string GetPriorityClass(string priority)
+    {
+        return priority switch
+        {
+            "High" => "bg-danger text-white",
+            "Medium" => "bg-primary text-white",
+            "Low" => "bg-secondary text-white",
+            _ => "bg-secondary text-white"
+        };
+    }
+
+    string GetStatusClass(string status)
+    {
+        return status switch
+        {
+            "Completed" => "bg-success text-white",
+            "In Progress" => "bg-primary text-white",
+            "Review" => "bg-warning text-dark",
+            "Planning" => "bg-secondary text-white",
+            _ => "bg-secondary text-white"
+        };
+    }
+
+    string GetStatusIcon(string status)
+    {
+        return status switch
+        {
+            "Completed" => "fas fa-check-circle text-success",
+            "In Progress" => "fas fa-play-circle text-primary",
+            "Review" => "fas fa-exclamation-circle text-warning",
+            "Planning" => "fas fa-clock text-muted",
+            _ => "fas fa-clock text-muted"
+        };
+    }
+
+    string GetInitials(string name)
+    {
+        var parts = name.Split(' ');
+        return parts.Length >= 2 ? $"{parts[0][0]}{parts[1][0]}" : name.Substring(0, Math.Min(2, name.Length));
+    }
+}
+
+<style>
+    .projects-container {
+        max-width: 100%;
+        margin: 0 auto;
+        padding: 0;
+    }
+
+    .project-card {
+        transition: all 0.3s ease;
+        border-radius: 12px;
+    }
+
+    .project-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+    }
+
+    .assignee-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ff6b35, #ff8c42);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border: 2px solid white;
+    }
+
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #ff6b35, #ff8c42) !important;
+    }
+
+    .card {
+        border-radius: 12px;
+    }
+
+    .badge {
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .progress {
+        border-radius: 4px;
+        background-color: #e9ecef;
+    }
+
+    .progress-bar {
+        border-radius: 4px;
+    }
+</style>

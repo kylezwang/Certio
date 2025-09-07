@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fallback Message Test</title>
+    <style>
+        .intelligent-ai.service-unavailable {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border-left: 4px solid #ffc107;
+            box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2);
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .intelligent-ai.service-unavailable .ai-thinking {
+            color: #856404;
+            background: rgba(255, 193, 7, 0.1);
+            border-radius: 8px;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .intelligent-ai.service-unavailable .ai-thinking i {
+            color: #ffc107;
+        }
+
+        .intelligent-ai.service-unavailable .response-content {
+            color: #856404;
+        }
+
+        .intelligent-ai.service-unavailable .response-content strong {
+            color: #856404;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <h2>New Fallback Message Preview</h2>
+    
+    <div class="intelligent-ai service-unavailable">
+        <div class="intelligent-response">
+            <div class="ai-thinking">
+                <i class="fas fa-exclamation-triangle">⚠️</i>
+                <span>Service Status</span>
+            </div>
+            <div class="response-content">
+                <strong>AI Services Temporarily Unavailable</strong><br><br>
+                Our intelligent AI agents are currently offline for maintenance. 
+                While we work to restore full AI functionality, you can still:<br><br>
+                • Send messages to your legal team<br>
+                • Access previous conversations<br>
+                • Use basic chat features<br><br>
+                We apologize for any inconvenience. Our AI services will be back online shortly!
+            </div>
+        </div>
+    </div>
+</body>
+</html>

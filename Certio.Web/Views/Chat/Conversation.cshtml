@@ -1,0 +1,125 @@
+@model List<Certio.Domain.Services.ChatMessage>
+@{
+    ViewData["Title"] = "Conversation";
+    var conversationId = Model.FirstOrDefault()?.ConversationId ?? "";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar with AI agents -->
+        <div class="col-md-3 sidebar">
+            <h5>AI Agents</h5>
+            <div class="ai-agents">
+                <div class="agent-card" id="summaryAgent">
+                    <div class="agent-icon">📝</div>
+                    <div class="agent-info">
+                        <h6>Chat Summarizer</h6>
+                        <p>Summarizes conversation and extracts key points</p>
+                    </div>
+                </div>
+                <div class="agent-card" id="goalsAgent">
+                    <div class="agent-icon">🎯</div>
+                    <div class="agent-info">
+                        <h6>Goal Extractor</h6>
+                        <p>Identifies client business and legal goals</p>
+                    </div>
+                </div>
+                <div class="agent-card" id="replyAgent">
+                    <div class="agent-icon">💬</div>
+                    <div class="agent-info">
+                        <h6>Reply Suggester</h6>
+                        <p>Suggests professional replies for SeedJura team</p>
+                    </div>
+                </div>
+                <div class="agent-card" id="clarityAgent">
+                    <div class="agent-icon">🔍</div>
+                    <div class="agent-info">
+                        <h6>Clarity Agent</h6>
+                        <p>Explains legal language in simple terms</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main chat area -->
+        <div class="col-md-9" id="mainChatArea">
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h5>Conversation</h5>
+                    <div class="chat-actions">
+                        <button class="btn btn-outline-info btn-sm" id="toggleInsights">
+                            <i class="fas fa-brain"></i> AI Insights
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm" id="exportChat">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                    </div>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    @foreach (var message in Model)
+                    {
+                        <div class="message @(message.IsFromAI ? "ai-message" : "user-message")" data-message-type="@message.MessageType">
+                            <div class="message-header">
+                                <span class="user-type">@message.UserType</span>
+                                @if (message.IsFromAI)
+                                {
+                                    <span class="ai-agent">@message.AIAgentType</span>
+                                }
+                                <span class="timestamp">@message.CreatedAt.ToString("HH:mm")</span>
+                            </div>
+                            <div class="message-content">
+                                @if (message.MessageType.StartsWith("AI_"))
+                                {
+                                    <div class="ai-result">
+                                        <pre>@message.Content</pre>
+                                    </div>
+                                }
+                                else
+                                {
+                                    @message.Content
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="chat-input">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="messageInput" placeholder="Type your message...">
+                        <button class="btn btn-primary" id="sendButton">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                        <button class="btn btn-outline-secondary" id="clarityButton" title="Request Clarity">
+                            <i class="fas fa-question-circle"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Insights Panel -->
+        <div class="col-md-3 d-none" id="aiInsightsPanel">
+            <div class="ai-insights-header">
+                <h6>
+                    <i class="fas fa-brain text-primary"></i> AI Insights
+                    <button class="btn btn-sm btn-outline-secondary float-right" id="loadAIInsights">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </h6>
+            </div>
+            <div id="aiInsightsContent">
+                <div class="text-center text-muted">
+                    <i class="fas fa-spinner fa-spin"></i> Loading AI insights...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/signalr/dist/browser/signalr.js"></script>
+    <script src="~/js/chat.js"></script>
+    <script>
+        const conversationId = '@conversationId';
+        initializeChat(conversationId);
+    </script>
+}
