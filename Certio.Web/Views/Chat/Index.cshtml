@@ -1,0 +1,28 @@
+@model List<Certio.Domain.Services.Conversation>
+@{
+    ViewData["Title"] = "Services - AI-Powered Chat";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex align-items-center justify-content-center" style="min-height: 60vh;">
+                <div class="text-center">
+                    <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">AI Chat Assistant</h4>
+                    <p class="text-muted">Select a conversation from the right panel to start chatting with Certio, your AI legal assistant.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Chat page specific initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            // Additional chat page specific logic can go here
+            console.log('Chat page loaded');
+        });
+    </script>
+}

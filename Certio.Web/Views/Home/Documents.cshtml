@@ -1,0 +1,214 @@
+@model Certio.Web.ViewModels.DocumentsViewModel
+@{
+    ViewData["Title"] = "Documents";
+}
+
+<div class="documents-container" style="max-width: 100%; margin: 0 auto; padding: 0;">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="display-4 fw-bold text-dark mb-2">Documents</h1>
+            <p class="lead text-muted">Manage and organize your legal documents</p>
+        </div>
+        <button class="btn upload-btn btn-lg shadow-sm">
+            <i class="fas fa-upload me-2"></i>Upload Document
+        </button>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="position-relative">
+                <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                <input type="text" class="form-control document-search ps-5" placeholder="Search documents..." />
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="d-flex gap-2">
+                <button class="btn filter-btn btn-sm">
+                    <i class="fas fa-filter me-2"></i>Filter
+                </button>
+                <button class="btn filter-btn btn-sm">
+                    <i class="fas fa-calendar me-2"></i>Date Range
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Sidebar - Folders and Storage -->
+        <div class="col-lg-3 mb-4">
+            <!-- Folders Card -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <h5 class="card-title fw-bold text-dark mb-1">Folders</h5>
+                    <p class="text-muted small mb-0">Organize by category</p>
+                </div>
+                <div class="card-body pt-2">
+                    @foreach (var folder in Model.Folders)
+                    {
+                        <div class="d-flex align-items-center justify-content-between p-3 rounded-3 folder-item">
+                            <div class="d-flex align-items-center">
+                                <div class="p-2 bg-primary bg-opacity-10 rounded-2 me-3">
+                                    <i class="@GetFolderIcon(folder.Icon) text-primary"></i>
+                                </div>
+                                <span class="fw-medium text-dark">@folder.Name</span>
+                            </div>
+                            <span class="badge bg-secondary">@folder.Count</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Storage Card -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <h5 class="card-title fw-bold text-dark mb-1">Storage</h5>
+                </div>
+                <div class="card-body pt-2">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between text-sm mb-2">
+                            <span class="text-muted">Used</span>
+                            <span class="fw-medium">@Model.Storage.UsedGB GB of @Model.Storage.TotalGB GB</span>
+                        </div>
+                        <div class="progress storage-progress">
+                            <div class="progress-bar" 
+                                 style="width: @Model.Storage.UsagePercentage%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="pt-3 border-top">
+                        <div class="d-flex justify-content-between text-sm mb-2">
+                            <span class="text-muted">Documents</span>
+                            <span class="fw-medium">@Model.Storage.DocumentCount</span>
+                        </div>
+                        <div class="d-flex justify-content-between text-sm mb-2">
+                            <span class="text-muted">Shared</span>
+                            <span class="fw-medium">@Model.Storage.SharedCount</span>
+                        </div>
+                        <div class="d-flex justify-content-between text-sm">
+                            <span class="text-muted">Recent</span>
+                            <span class="fw-medium">@Model.Storage.RecentCount</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content - Documents List -->
+        <div class="col-lg-9">
+            <div class="documents-list">
+                @foreach (var doc in Model.Documents)
+                {
+                    <div class="card shadow-sm border-0 document-card mb-3">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-start justify-content-between">
+                                <div class="d-flex align-items-start flex-grow-1">
+                                    <div class="p-3 bg-primary bg-opacity-10 rounded-3 me-4">
+                                        <i class="@GetDocumentIcon(doc.Icon) text-primary fs-5"></i>
+                                    </div>
+                                    
+                                    <div class="flex-grow-1 min-width-0">
+                                        <h5 class="fw-semibold text-dark mb-1 text-truncate">@doc.Name</h5>
+                                        <p class="text-muted small mb-3">@doc.Type</p>
+                                        
+                                        <div class="d-flex flex-wrap gap-2 mb-3">
+                                            @foreach (var tag in doc.Tags)
+                                            {
+                                                <span class="document-tag">@tag</span>
+                                            }
+                                        </div>
+                                        
+                                        <div class="d-flex align-items-center gap-4 text-muted small">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-user me-1"></i>
+                                                <span>@doc.Author</span>
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-calendar me-1"></i>
+                                                <span>Modified @doc.Modified.ToString("yyyy-MM-dd")</span>
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <i class="@GetVisibilityIcon(doc.Visibility) me-1"></i>
+                                                <span>@doc.Visibility</span>
+                                            </div>
+                                            <span>@doc.Size</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex flex-column align-items-end gap-3">
+                                    <span class="badge @GetStatusClass(doc.Status)">@doc.Status</span>
+                                    
+                                    <div class="d-flex align-items-center gap-1 document-actions">
+                                        <button class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-share"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-ellipsis-h"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetFolderIcon(string icon)
+    {
+        return icon switch
+        {
+            "FileText" => "fas fa-file-alt",
+            "File" => "fas fa-file",
+            "Archive" => "fas fa-archive",
+            _ => "fas fa-file"
+        };
+    }
+
+    string GetDocumentIcon(string icon)
+    {
+        return icon switch
+        {
+            "FileText" => "fas fa-file-alt",
+            "File" => "fas fa-file",
+            "Image" => "fas fa-image",
+            "Video" => "fas fa-video",
+            "Archive" => "fas fa-archive",
+            _ => "fas fa-file"
+        };
+    }
+
+    string GetVisibilityIcon(string visibility)
+    {
+        return visibility switch
+        {
+            "Public" => "fas fa-globe",
+            "Team" => "fas fa-users",
+            "Private" => "fas fa-lock",
+            _ => "fas fa-lock"
+        };
+    }
+
+    string GetStatusClass(string status)
+    {
+        return status switch
+        {
+            "Final" or "Published" or "Active" => "bg-success text-white",
+            "Draft" => "bg-primary text-white",
+            "Review" => "bg-warning text-dark",
+            _ => "bg-secondary text-white"
+        };
+    }
+}
+
