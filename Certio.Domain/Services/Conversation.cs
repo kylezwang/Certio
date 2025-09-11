@@ -8,7 +8,7 @@ public class Conversation
     public string Description { get; set; } = "";
     public string Status { get; set; } = "Active"; // Active, Closed, Archived
     public string? ClientId { get; set; }
-    public string? SeedJuraId { get; set; }
+    public string? CertioId { get; set; }
     public string? LawyerId { get; set; }
     public string? BusinessId { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

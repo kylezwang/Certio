@@ -19,14 +19,14 @@ public class ChatService : IChatService
         _aiBackgroundService = aiBackgroundService;
     }
 
-    public async Task<Conversation> CreateConversationAsync(string title, string description, string clientId, string? seedJuraId = null, string? lawyerId = null, string? businessId = null)
+    public async Task<Conversation> CreateConversationAsync(string title, string description, string clientId, string? certioId = null, string? lawyerId = null, string? businessId = null)
     {
         var conversation = new Conversation
         {
             Title = title,
             Description = description,
             ClientId = clientId,
-            SeedJuraId = seedJuraId,
+            CertioId = certioId,
             LawyerId = lawyerId,
             BusinessId = businessId,
             CreatedAt = DateTime.UtcNow,
@@ -84,7 +84,7 @@ public class ChatService : IChatService
     public async Task<List<Conversation>> GetUserConversationsAsync(string userId)
     {
         return await _context.Conversations
-            .Where(c => c.ClientId == userId || c.SeedJuraId == userId || c.LawyerId == userId || c.BusinessId == userId)
+            .Where(c => c.ClientId == userId || c.CertioId == userId || c.LawyerId == userId || c.BusinessId == userId)
             .OrderByDescending(c => c.LastMessageAt)
             .ToListAsync();
     }
@@ -278,7 +278,7 @@ public class ChatService : IChatService
     {
         // Analyze conversation to determine user type
         var clientMessages = messages.Count(m => m.UserType == "Client" || m.UserType == "Business");
-        var seedJuraMessages = messages.Count(m => m.UserType == "SeedJura");
+        var certioMessages = messages.Count(m => m.UserType == "Certio");
         var lawyerMessages = messages.Count(m => m.UserType == "Lawyer");
 
         // If this is a new conversation, try to infer from message content
@@ -291,10 +291,10 @@ public class ChatService : IChatService
         }
 
         // Return the most common user type in the conversation
-        if (clientMessages >= seedJuraMessages && clientMessages >= lawyerMessages)
+        if (clientMessages > certioMessages && clientMessages >= lawyerMessages)
             return "Client";
-        else if (seedJuraMessages >= lawyerMessages)
-            return "SeedJura";
+        else if (certioMessages >= lawyerMessages)
+            return "Certio";
         else
             return "Lawyer";
     }
