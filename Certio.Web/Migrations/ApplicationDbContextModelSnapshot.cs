@@ -178,7 +178,7 @@ namespace Certio.Web.Migrations
                     b.Property<string>("Priority")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("SeedJuraId")
+                    b.Property<string>("CertioId")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Status")
