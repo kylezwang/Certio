@@ -1430,6 +1430,9 @@ async function loadConversationsForPanel() {
                     `;
                     tabList.appendChild(tab);
                 });
+                
+                // Restore the last selected conversation after loading
+                restoreSelectedConversation();
             } else {
                 // Create a default conversation tab if no conversations exist
                 createDefaultConversationTab();
@@ -1457,6 +1460,9 @@ function createDefaultConversationTab() {
             </button>
         `;
         tabList.appendChild(tab);
+        
+        // Restore the last selected conversation after creating default tab
+        restoreSelectedConversation();
     }
 }
 
@@ -1527,6 +1533,9 @@ function initializeResizeHandle() {
 function loadConversation(conversationId) {
     console.log('loadConversation called with ID:', conversationId);
     currentConversationId = conversationId;
+    
+    // Save the selected conversation to localStorage for persistence
+    saveSelectedConversation(conversationId);
     
     // Update conversation selection
     document.querySelectorAll('.conversation-tab').forEach(tab => {
@@ -1624,6 +1633,7 @@ function deleteConversation(conversationId) {
                 // If this was the active conversation, clear the chat area
                 if (currentConversationId === conversationId) {
                     currentConversationId = null;
+                    clearSelectedConversation(); // Clear the saved selection
                     document.getElementById('chatMessages').innerHTML = '';
                     document.getElementById('chatHeader').textContent = 'AI Assistant';
                     document.querySelector('.chat-input').style.display = 'none';
@@ -1788,6 +1798,53 @@ function testTabScroll() {
         console.log('New scrollLeft:', tabList.scrollLeft);
     } else {
         console.error('Tab list not found for testing');
+    }
+}
+
+// Chat Selection Persistence Functions
+function saveSelectedConversation(conversationId) {
+    try {
+        localStorage.setItem('selectedConversationId', conversationId);
+        console.log('Saved selected conversation:', conversationId);
+    } catch (error) {
+        console.error('Error saving selected conversation:', error);
+    }
+}
+
+function getSelectedConversation() {
+    try {
+        return localStorage.getItem('selectedConversationId');
+    } catch (error) {
+        console.error('Error getting selected conversation:', error);
+        return null;
+    }
+}
+
+function clearSelectedConversation() {
+    try {
+        localStorage.removeItem('selectedConversationId');
+        console.log('Cleared selected conversation');
+    } catch (error) {
+        console.error('Error clearing selected conversation:', error);
+    }
+}
+
+function restoreSelectedConversation() {
+    const savedConversationId = getSelectedConversation();
+    console.log('Attempting to restore conversation:', savedConversationId);
+    
+    if (savedConversationId) {
+        // Check if the conversation tab exists
+        const conversationTab = document.querySelector(`[data-conversation-id="${savedConversationId}"]`);
+        if (conversationTab) {
+            console.log('Restoring conversation:', savedConversationId);
+            loadConversation(savedConversationId);
+        } else {
+            console.log('Saved conversation not found in current tabs, clearing selection');
+            clearSelectedConversation();
+        }
+    } else {
+        console.log('No saved conversation to restore');
     }
 }
 

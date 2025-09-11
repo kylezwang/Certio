@@ -30,8 +30,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>ov8vnnx9zg</Fingerprint>
-      <Integrity>tMEcEqjTxk9iQB8bIFHjxcesB1qhrITTjxbPTQHKXk4=</Integrity>
+      <Fingerprint>wuvlqrsv0k</Fingerprint>
+      <Integrity>eEWH2+wYLczqokcIeXL/Pt7DdmX8nISjGOogCnEMxOg=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\login.css'))</OriginalItemSpec>
@@ -48,8 +48,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>5vkxjbzn0w</Fingerprint>
-      <Integrity>HyllI7mTONvbS5EXFHXC/fvrjwCAwkVLGfQohJc7cJY=</Integrity>
+      <Fingerprint>036jk5u1iv</Fingerprint>
+      <Integrity>dHK8sfojodbkz/2WNq5kmoOM1kGBJKRfE3WuioiXsDU=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\site.css'))</OriginalItemSpec>
@@ -72,6 +72,42 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\favicon.ico'))</OriginalItemSpec>
     </StaticWebAsset>
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\images\Certio-No-Logo-Transparent.png'))">
+      <SourceType>Package</SourceType>
+      <SourceId>Certio.Web</SourceId>
+      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
+      <BasePath>_content/Certio.Web</BasePath>
+      <RelativePath>images/Certio-No-Logo-Transparent.png</RelativePath>
+      <AssetKind>All</AssetKind>
+      <AssetMode>All</AssetMode>
+      <AssetRole>Primary</AssetRole>
+      <RelatedAsset></RelatedAsset>
+      <AssetTraitName></AssetTraitName>
+      <AssetTraitValue></AssetTraitValue>
+      <Fingerprint>rcf9d5oav1</Fingerprint>
+      <Integrity>BenrvD3CkPDeuwWJ85yF0pKxzBuqOw6kxeI+YPkCm+k=</Integrity>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\images\Certio-No-Logo-Transparent.png'))</OriginalItemSpec>
+    </StaticWebAsset>
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\images\Certio_Transparent.png'))">
+      <SourceType>Package</SourceType>
+      <SourceId>Certio.Web</SourceId>
+      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
+      <BasePath>_content/Certio.Web</BasePath>
+      <RelativePath>images/Certio_Transparent.png</RelativePath>
+      <AssetKind>All</AssetKind>
+      <AssetMode>All</AssetMode>
+      <AssetRole>Primary</AssetRole>
+      <RelatedAsset></RelatedAsset>
+      <AssetTraitName></AssetTraitName>
+      <AssetTraitValue></AssetTraitValue>
+      <Fingerprint>vrsra1xgbi</Fingerprint>
+      <Integrity>a8iWsGrhY9Zi176twBm2YbA6FyUP4vwpBsX82QVsa2M=</Integrity>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\images\Certio_Transparent.png'))</OriginalItemSpec>
+    </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\chat.js'))">
       <SourceType>Package</SourceType>
       <SourceId>Certio.Web</SourceId>
@@ -84,8 +120,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>2mxquoabtr</Fingerprint>
-      <Integrity>qspfCp8DF3V+VfBnj59rW17nh50VT4uOFY28BAFyU88=</Integrity>
+      <Fingerprint>rfd42jgk01</Fingerprint>
+      <Integrity>+XT9KRm2Ej3iNbCRb51g+XHjCv5TVPnYM5ChrJeNEkA=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\chat.js'))</OriginalItemSpec>
