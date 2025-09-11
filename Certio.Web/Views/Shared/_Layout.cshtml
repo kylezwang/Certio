@@ -6,9 +6,24 @@
     <title>@ViewData["Title"] - Certio AI Legal Assistant</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Certio.Web.styles.css" asp-append-version="true" />
     <style>
+        /* Logo image styling */
+        .logo-image {
+            width: 4rem;
+            height: 4rem;
+            object-fit: contain;
+            transition: transform 0.2s ease;
+        }
+        
+        .logo-image:hover {
+            transform: scale(1.05);
+        }
+        
         /* Temporary inline styles to test */
         .chat-container {
             display: flex;
@@ -30,7 +45,7 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #ff6b35, #ff8c42);
+            background: linear-gradient(135deg, #0b365e, #0b365e);
             color: white;
             display: flex;
             align-items: center;
@@ -55,17 +70,18 @@
         }
     </style>
 </head>
-<body>
+<body class="@ViewData["BodyClass"]">
     <div class="min-h-screen bg-gradient-subtle">
         <!-- Desktop Sidebar -->
         <div class="d-none d-lg-block fixed top-0 start-0 h-100 sidebar-desktop">
-            <div class="d-flex flex-column h-100 bg-white px-4 pb-4 shadow-soft">
+            <div class="d-flex flex-column h-100 px-4 pb-4 shadow-soft" style="background: rgba(11, 54, 94, 0.05);">
                 <!-- Logo Section -->
-                <div class="d-flex align-items-center py-4">
-                    <i class="fas fa-balance-scale me-3" style="font-size: 2rem; color: #ff6b35;"></i>
-                    <span class="text-xl fw-semibold" style="color: #1f2937;">
-                        Certio
-                    </span>
+                <div class="py-4 text-center">
+                    <div class="d-flex align-items-center justify-content-center">
+                        <span class="fw-semibold" style="color: #0b365e; font-family: 'Righteous', sans-serif; font-size: 2.6rem;">
+                            Certio
+                        </span>
+                    </div>
                 </div>
                 
                 <!-- Navigation -->
@@ -79,8 +95,8 @@
                             </a>
                         </li>
                         <li>
-                            <a asp-controller="Chat" asp-action="Index" 
-                               class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["controller"]?.ToString() == "Chat" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")">
+                            <a asp-controller="Home" asp-action="Services" 
+                               class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["action"]?.ToString() == "Services" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")">
                                 <i class="fas fa-comments fs-5"></i>
                                 <span class="fw-medium">Services</span>
                             </a>
@@ -90,6 +106,20 @@
                                class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["action"]?.ToString() == "Documents" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")">
                                 <i class="fas fa-file-alt fs-5"></i>
                                 <span class="fw-medium">Documents</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Home" asp-action="Teams" 
+                               class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["action"]?.ToString() == "Teams" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")">
+                                <i class="fas fa-users fs-5"></i>
+                                <span class="fw-medium">Teams</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Settings" asp-action="Index" 
+                               class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")">
+                                <i class="fas fa-cog fs-5"></i>
+                                <span class="fw-medium">Settings</span>
                             </a>
                         </li>
                     </ul>
@@ -114,10 +144,9 @@
                     <i class="fas fa-bars fs-5"></i>
                 </button>
                 
-                <div class="flex-fill text-sm fw-semibold">
-                    <div class="d-flex align-items-center">
-                        <i class="fas fa-balance-scale me-2 fs-5" style="color: #ff6b35;"></i>
-                        <span style="color: #1f2937;">
+                <div class="flex-fill text-sm fw-semibold text-center">
+                    <div class="d-flex align-items-center justify-content-center">
+                        <span style="color: #0b365e; font-family: 'Righteous', sans-serif; font-size: 2.6rem; line-height: 0.5;">
                             Certio
                         </span>
                     </div>
@@ -127,9 +156,8 @@
             <!-- Mobile Sidebar Offcanvas -->
             <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileSidebar">
                 <div class="offcanvas-header">
-                    <div class="d-flex align-items-center">
-                        <i class="fas fa-balance-scale me-3 fs-4" style="color: #ff6b35;"></i>
-                        <span class="text-xl fw-semibold" style="color: #1f2937;">
+                    <div class="d-flex align-items-center justify-content-center" style="margin-left: -0.75rem;">
+                        <span class="fw-semibold" style="color: #0b365e; font-family: 'Righteous', sans-serif; font-size: 2.6rem;">
                             Certio
                         </span>
                     </div>
@@ -147,8 +175,8 @@
                                 </a>
                             </li>
                             <li>
-                                <a asp-controller="Chat" asp-action="Index" 
-                                   class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["controller"]?.ToString() == "Chat" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")"
+                                <a asp-controller="Home" asp-action="Services" 
+                                   class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["action"]?.ToString() == "Services" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")"
                                    data-bs-dismiss="offcanvas">
                                     <i class="fas fa-comments fs-5"></i>
                                     <span class="fw-medium">Services</span>
@@ -160,6 +188,22 @@
                                    data-bs-dismiss="offcanvas">
                                     <i class="fas fa-file-alt fs-5"></i>
                                     <span class="fw-medium">Documents</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a asp-controller="Home" asp-action="Teams" 
+                                   class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["action"]?.ToString() == "Teams" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")"
+                                   data-bs-dismiss="offcanvas">
+                                    <i class="fas fa-users fs-5"></i>
+                                    <span class="fw-medium">Teams</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a asp-controller="Settings" asp-action="Index" 
+                                   class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")"
+                                   data-bs-dismiss="offcanvas">
+                                    <i class="fas fa-cog fs-5"></i>
+                                    <span class="fw-medium">Settings</span>
                                 </a>
                             </li>
                         </ul>
@@ -262,7 +306,7 @@
                                     <span class="timestamp">Just now</span>
                                 </div>
                                 <div class="message-text">
-                                    Hi! I'm Certio, your AI legal assistant. How can I help you today?
+                                    Hi! I'm Certio, your AI legal assistant. Please select/add a chat above to get started!
                                 </div>
                             </div>
                         </div>

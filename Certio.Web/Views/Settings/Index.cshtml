@@ -1,0 +1,1086 @@
+@{
+    ViewData["Title"] = "Settings";
+    ViewData["BodyClass"] = "settings-page";
+}
+
+<div class="settings-container">
+    <!-- Header -->
+    <div class="settings-header">
+        <div>
+            <h1 class="settings-title">Settings</h1>
+            <p class="settings-subtitle">
+                Manage your account, organization, and application preferences
+            </p>
+        </div>
+    </div>
+
+    <div class="settings-layout">
+        <!-- Navigation Sidebar -->
+        <div class="settings-sidebar">
+            <nav class="settings-nav">
+                <a href="#account" class="settings-nav-item active" data-tab="account">
+                    <i class="fas fa-user"></i>
+                    <span>Account</span>
+                </a>
+                <a href="#security" class="settings-nav-item" data-tab="security">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Security</span>
+                </a>
+                <a href="#organization" class="settings-nav-item" data-tab="organization">
+                    <i class="fas fa-building"></i>
+                    <span>Organization</span>
+                </a>
+                <a href="#notifications" class="settings-nav-item" data-tab="notifications">
+                    <i class="fas fa-bell"></i>
+                    <span>Notifications</span>
+                </a>
+                <a href="#projects" class="settings-nav-item" data-tab="projects">
+                    <i class="fas fa-folder"></i>
+                    <span>Projects & Services</span>
+                </a>
+                <a href="#documents" class="settings-nav-item" data-tab="documents">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Documents</span>
+                </a>
+                <a href="#integrations" class="settings-nav-item" data-tab="integrations">
+                    <i class="fas fa-link"></i>
+                    <span>Integrations</span>
+                </a>
+                <a href="#privacy" class="settings-nav-item" data-tab="privacy">
+                    <i class="fas fa-eye"></i>
+                    <span>Privacy & Compliance</span>
+                </a>
+                <a href="#billing" class="settings-nav-item" data-tab="billing">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Billing & Plan</span>
+                </a>
+                <a href="#ai" class="settings-nav-item" data-tab="ai">
+                    <i class="fas fa-brain"></i>
+                    <span>AI Settings</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Content Area -->
+        <div class="settings-content">
+            <div class="settings-content-inner">
+                <!-- Account Settings -->
+                <div id="account-content" class="settings-tab-content active">
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Profile Information</h3>
+                            <p>Update your personal information</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="profile-avatar-section">
+                                <div class="profile-avatar">
+                                    <div class="avatar-placeholder">
+                                        <span>JD</span>
+                                    </div>
+                                </div>
+                                <div class="avatar-actions">
+                                    <button class="btn btn-outline-secondary btn-sm">Change Avatar</button>
+                                    <p class="avatar-hint">JPG, PNG up to 10MB</p>
+                                </div>
+                            </div>
+                            <hr class="settings-divider">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="fullName" class="form-label">Full Name</label>
+                                    <input type="text" class="form-control" id="fullName" value="John Doe">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" value="john.doe@company.com">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="phone" class="form-label">Phone</label>
+                                    <input type="tel" class="form-control" id="phone" value="+1 (555) 123-4567">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="timezone" class="form-label">Timezone</label>
+                                    <select class="form-select" id="timezone">
+                                        <option value="est" selected>Eastern Time (EST)</option>
+                                        <option value="cst">Central Time (CST)</option>
+                                        <option value="mst">Mountain Time (MST)</option>
+                                        <option value="pst">Pacific Time (PST)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="language" class="form-label">Language</label>
+                                    <select class="form-select" id="language">
+                                        <option value="en" selected>English</option>
+                                        <option value="es">Spanish</option>
+                                        <option value="fr">French</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="theme" class="form-label">Theme</label>
+                                    <select class="form-select" id="theme">
+                                        <option value="light" selected>Light</option>
+                                        <option value="dark">Dark</option>
+                                        <option value="system">System</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Security</h3>
+                            <p>Manage your password and account security</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <button class="btn btn-outline-secondary mb-3">
+                                <i class="fas fa-key me-2"></i>
+                                Change Password
+                            </button>
+                            <hr class="settings-divider">
+                            <button class="btn btn-outline-danger">
+                                <i class="fas fa-trash me-2"></i>
+                                Delete Account
+                            </button>
+                            <p class="text-muted small mt-2">
+                                This action cannot be undone. All your data will be permanently deleted.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Settings -->
+                <div id="security-content" class="settings-tab-content">
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Two-Factor Authentication</h3>
+                            <p>Add an extra layer of security to your account</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Two-Factor Authentication</label>
+                                    <p class="settings-row-description">Secure your account with 2FA</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="twoFactorEnabled">
+                                </div>
+                            </div>
+                            <hr class="settings-divider">
+                            <h5 class="mb-3">Authentication Methods</h5>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Authenticator App</label>
+                                    <p class="settings-row-description">Use TOTP apps like Google Authenticator</p>
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm">Setup</button>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">SMS Fallback</label>
+                                    <p class="settings-row-description">Receive codes via text message</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="smsEnabled">
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">WebAuthn/Passkeys</label>
+                                    <p class="settings-row-description">Use biometric or hardware keys</p>
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm">Add</button>
+                            </div>
+                            <hr class="settings-divider">
+                            <button class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-download me-2"></i>
+                                Download Backup Codes
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Sessions & Devices</h3>
+                            <p>Manage your active login sessions</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="session-list">
+                                <div class="session-item">
+                                    <div class="session-info">
+                                        <div class="session-icon">
+                                            <i class="fas fa-laptop"></i>
+                                        </div>
+                                        <div class="session-details">
+                                            <h6 class="session-device">MacBook Pro</h6>
+                                            <p class="session-location">New York, US</p>
+                                        </div>
+                                        <span class="badge bg-primary">Current</span>
+                                    </div>
+                                </div>
+                                <div class="session-item">
+                                    <div class="session-info">
+                                        <div class="session-icon">
+                                            <i class="fas fa-mobile-alt"></i>
+                                        </div>
+                                        <div class="session-details">
+                                            <h6 class="session-device">iPhone 15</h6>
+                                            <p class="session-location">New York, US</p>
+                                        </div>
+                                        <button class="btn btn-outline-secondary btn-sm">Revoke</button>
+                                    </div>
+                                </div>
+                                <div class="session-item">
+                                    <div class="session-info">
+                                        <div class="session-icon">
+                                            <i class="fas fa-desktop"></i>
+                                        </div>
+                                        <div class="session-details">
+                                            <h6 class="session-device">Chrome Browser</h6>
+                                            <p class="session-location">Chicago, IL</p>
+                                        </div>
+                                        <button class="btn btn-outline-secondary btn-sm">Revoke</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-outline-danger btn-sm mt-3">Sign Out All Devices</button>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Security Preferences</h3>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Login Alerts</label>
+                                    <p class="settings-row-description">Get notified of new device logins</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="loginAlerts" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Require Re-authentication</label>
+                                    <p class="settings-row-description">For sensitive actions like changing password</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="reauthRequired" checked>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Organization Settings -->
+                <div id="organization-content" class="settings-tab-content">
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Organization Profile</h3>
+                            <p>Manage your organization information</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="orgName" class="form-label">Organization Name</label>
+                                    <input type="text" class="form-control" id="orgName" value="Acme Legal Group">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="subdomain" class="form-label">Subdomain</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="subdomain" value="acme-legal">
+                                        <span class="input-group-text">.legaltech.com</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Organization Logo</label>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="org-logo-placeholder">
+                                        <i class="fas fa-building"></i>
+                                    </div>
+                                    <button class="btn btn-outline-secondary btn-sm">Upload Logo</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Team Management</h3>
+                            <p>Control who can invite and access your organization</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Who can invite team members</label>
+                                </div>
+                                <select class="form-select" style="width: 200px;">
+                                    <option value="legal-only" selected>Legal team only</option>
+                                    <option value="client-legal">Client & legal teams</option>
+                                    <option value="everyone">Everyone</option>
+                                </select>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">External sharing defaults</label>
+                                </div>
+                                <select class="form-select" style="width: 200px;">
+                                    <option value="client-only" selected>Client only</option>
+                                    <option value="participants">All participants</option>
+                                    <option value="restricted">Restricted</option>
+                                </select>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Counterparty label</label>
+                                    <p class="settings-row-description">How to refer to external parties</p>
+                                </div>
+                                <input type="text" class="form-control" value="Other Party" style="width: 200px;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notifications Settings -->
+                <div id="notifications-content" class="settings-tab-content">
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Notification Channels</h3>
+                            <p>Choose how you want to receive notifications</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Email notifications</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Push notifications</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="pushNotifications" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">SMS notifications</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="smsNotifications">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Event Notifications</h3>
+                            <p>Get notified about important events</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">@@Mentions</label>
+                                    <p class="settings-row-description">When someone mentions you</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="mentions" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Document shared</label>
+                                    <p class="settings-row-description">When documents are shared with you</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="documentShared" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">E-sign events</label>
+                                    <p class="settings-row-description">Signature requests and completions</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="esignEvents" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Task due/overdue</label>
+                                    <p class="settings-row-description">Deadline reminders</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="taskDue" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Status changes</label>
+                                    <p class="settings-row-description">Project and matter updates</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="statusChanges">
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Filing updates</label>
+                                    <p class="settings-row-description">Court filing notifications</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="filingUpdates" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">AI summaries</label>
+                                    <p class="settings-row-description">Weekly AI-generated summaries</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="aiSummaries">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Quiet Hours</h3>
+                            <p>Set times when notifications should be paused</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Enable quiet hours</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="quietHours">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="quietStart" class="form-label">Start time</label>
+                                    <input type="time" class="form-control" id="quietStart" value="18:00">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="quietEnd" class="form-label">End time</label>
+                                    <input type="time" class="form-control" id="quietEnd" value="08:00">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Projects Settings -->
+                <div id="projects-content" class="settings-tab-content">
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Default Templates</h3>
+                            <p>Set up templates for different practice areas</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Real Estate template</label>
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm">Configure</button>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Corporate template</label>
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm">Configure</button>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Litigation template</label>
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm">Configure</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Required Metadata</h3>
+                            <p>Define mandatory fields for new matters</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Matter number required</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="matterNumberRequired" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Client reference required</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="clientReferenceRequired" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Jurisdiction required</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="jurisdictionRequired">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>SLA & Reminder Defaults</h3>
+                            <p>Set default reminder schedules</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="settings-row">
+                                        <div class="settings-row-content">
+                                            <label class="settings-row-label">7-day reminder</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="reminder7day" checked>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="settings-row">
+                                        <div class="settings-row-content">
+                                            <label class="settings-row-label">3-day reminder</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="reminder3day" checked>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="settings-row">
+                                        <div class="settings-row-content">
+                                            <label class="settings-row-label">1-day reminder</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="reminder1day" checked>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Documents Settings -->
+                <div id="documents-content" class="settings-tab-content">
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Document Versioning</h3>
+                            <p>Control how document versions are handled</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Enable versioning</label>
+                                    <p class="settings-row-description">Track changes and maintain version history</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="versioningEnabled" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Redline defaults</label>
+                                    <p class="settings-row-description">Show tracked changes by default</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="redlineDefaults">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Download & Sharing Permissions</h3>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Default download permission</label>
+                                </div>
+                                <select class="form-select" style="width: 200px;">
+                                    <option value="view-only">View only</option>
+                                    <option value="watermark" selected>Watermark downloads</option>
+                                    <option value="allow">Allow downloads</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Retention & Legal Hold</h3>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Default retention period</label>
+                                </div>
+                                <select class="form-select" style="width: 200px;">
+                                    <option value="3-years">3 years</option>
+                                    <option value="5-years">5 years</option>
+                                    <option value="7-years" selected>7 years</option>
+                                    <option value="permanent">Permanent</option>
+                                </select>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Legal hold toggle</label>
+                                    <p class="settings-row-description">Enable legal hold for litigation</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="legalHoldToggle">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>File Naming Convention</h3>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="mb-3">
+                                <label for="namingTemplate" class="form-label">Naming template</label>
+                                <input type="text" class="form-control" id="namingTemplate" value="{client}-{matter}-{date}" placeholder="Use tokens like {client}, {matter}, {date}">
+                            </div>
+                            <p class="text-muted small">
+                                Available tokens: <code>{client}</code>, <code>{matter}</code>, <code>{date}</code>, <code>{type}</code>, <code>{version}</code>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Integrations Settings -->
+                <div id="integrations-content" class="settings-tab-content">
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Calendar Integration</h3>
+                            <p>Connect your calendar applications</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Google Calendar</label>
+                                </div>
+                                <span class="badge bg-secondary">Coming Soon</span>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Microsoft Outlook</label>
+                                </div>
+                                <span class="badge bg-secondary">Coming Soon</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Cloud Storage</h3>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Google Drive</label>
+                                </div>
+                                <span class="badge bg-secondary">Coming Soon</span>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Microsoft OneDrive</label>
+                                </div>
+                                <span class="badge bg-secondary">Coming Soon</span>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Box</label>
+                                </div>
+                                <span class="badge bg-secondary">Coming Soon</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>E-Signature</h3>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">DocuSign</label>
+                                </div>
+                                <span class="badge bg-secondary">Coming Soon</span>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Adobe Sign</label>
+                                </div>
+                                <span class="badge bg-secondary">Coming Soon</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Email Integration</h3>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Gmail</label>
+                                </div>
+                                <span class="badge bg-secondary">Coming Soon</span>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Outlook</label>
+                                </div>
+                                <span class="badge bg-secondary">Coming Soon</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Privacy Settings -->
+                <div id="privacy-content" class="settings-tab-content">
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Data Export</h3>
+                            <p>Download your data</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Export my data</label>
+                                    <p class="settings-row-description">Download all personal data</p>
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-download me-2"></i>
+                                    Export
+                                </button>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Export matter data</label>
+                                    <p class="settings-row-description">Download specific matter information</p>
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-download me-2"></i>
+                                    Export
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Audit Log</h3>
+                            <p>View system activity and changes</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <button class="btn btn-outline-secondary">
+                                <i class="fas fa-eye me-2"></i>
+                                View Audit Log
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>PII/DLP Guardrails</h3>
+                            <p>Protect sensitive information</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Mask SSN/EIN in UI</label>
+                                    <p class="settings-row-description">Hide sensitive ID numbers</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="maskSSNUI" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Mask SSN/EIN in exports</label>
+                                    <p class="settings-row-description">Redact from downloaded files</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="maskSSNExport" checked>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Legal Hold</h3>
+                            <p>Litigation hold management</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Enable legal hold per matter</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="legalHoldPerMatter">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Billing Settings -->
+                <div id="billing-content" class="settings-tab-content">
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Current Plan</h3>
+                            <p>Manage your subscription</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-1">Professional Plan</h5>
+                                    <p class="text-muted mb-0">$99/month • 10 users included</p>
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm">Change Plan</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Payment Method</h3>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="d-flex justify-content-between align-items-center p-3 border rounded">
+                                <div class="d-flex align-items-center gap-3">
+                                    <i class="fas fa-credit-card"></i>
+                                    <div>
+                                        <h6 class="mb-1">•••• 4242</h6>
+                                        <p class="text-muted small mb-0">Expires 12/25</p>
+                                    </div>
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm">Update</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Usage & Billing</h3>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Team seats</label>
+                                    <p class="settings-row-description">8/10 seats used</p>
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm">Add Seats</button>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Storage used</label>
+                                    <p class="settings-row-description">45GB / 100GB</p>
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm">Upgrade</button>
+                            </div>
+                            <button class="btn btn-outline-secondary">
+                                <i class="fas fa-download me-2"></i>
+                                Download Invoices
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Settings -->
+                <div id="ai-content" class="settings-tab-content">
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>AI Content Access</h3>
+                            <p>Control what AI can analyze</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Allow AI to read client content</label>
+                                    <p class="settings-row-description">Enable AI analysis of documents and communications</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="aiContentAccess" checked>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Redaction Rules</h3>
+                            <p>Automatically protect sensitive information</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Mask email addresses</label>
+                                    <p class="settings-row-description">Hide emails in AI processing</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="maskEmails" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Mask SSN by default</label>
+                                    <p class="settings-row-description">Automatically redact social security numbers</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="maskSSN" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Mask phone numbers</label>
+                                    <p class="settings-row-description">Hide phone numbers from AI</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="maskPhones">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>AI Model Selection</h3>
+                            <p>Choose AI capabilities for your organization</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">AI model tier</label>
+                                </div>
+                                <select class="form-select" style="width: 200px;">
+                                    <option value="basic">Basic</option>
+                                    <option value="advanced" selected>Advanced</option>
+                                    <option value="premium">Premium</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>AI Capabilities by Role</h3>
+                            <p>Define what AI can do for different team roles</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <h5 class="mb-3">Legal Team Permissions</h5>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Document summarization</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="legalSummarization" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Draft generation</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="legalDraftGeneration" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Auto-assign tasks</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="legalAutoAssign">
+                                </div>
+                            </div>
+                            <hr class="settings-divider">
+                            <h5 class="mb-3">Client Team Permissions</h5>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Document summarization</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="clientSummarization" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Draft generation</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="clientDraftGeneration">
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Auto-assign tasks</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="clientAutoAssign">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab switching functionality
+            const navItems = document.querySelectorAll('.settings-nav-item');
+            const tabContents = document.querySelectorAll('.settings-tab-content');
+
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all nav items and tab contents
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Add active class to clicked nav item
+                    this.classList.add('active');
+                    
+                    // Show corresponding tab content
+                    const tabId = this.getAttribute('data-tab');
+                    const targetContent = document.getElementById(tabId + '-content');
+                    if (targetContent) {
+                        targetContent.classList.add('active');
+                    }
+                });
+            });
+        });
+    </script>
+}
