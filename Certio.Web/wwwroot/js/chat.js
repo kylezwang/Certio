@@ -1385,9 +1385,8 @@ function initializeChatLayout() {
         resizeHandle.style.right = chatPanelWidth + 'px';
     }
     
-    // Adjust main content width to account for chat panel
+    // Adjust main content margin to account for chat panel
     if (mainContent) {
-        mainContent.style.width = `calc(100% - 240px - ${chatPanelWidth}px)`;
         mainContent.style.marginRight = chatPanelWidth + 'px';
     }
 }
@@ -1508,7 +1507,6 @@ function initializeResizeHandle() {
             chatPanel.style.width = newWidth + 'px';
             resizeHandle.style.right = newWidth + 'px';
             mainContent.style.marginRight = newWidth + 'px';
-            mainContent.style.width = `calc(100% - 240px - ${newWidth}px)`;
             
             // Save to localStorage
             localStorage.setItem('chatPanelWidth', newWidth);

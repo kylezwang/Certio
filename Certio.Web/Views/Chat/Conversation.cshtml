@@ -1,7 +1,7 @@
 @model List<Certio.Domain.Services.ChatMessage>
 @{
     ViewData["Title"] = "Conversation";
-    var conversationId = Model.FirstOrDefault()?.ConversationId ?? "";
+    var conversationId = Model.FirstOrDefault()?.ConversationId.ToString() ?? "";
 }
 
 <div class="container-fluid">

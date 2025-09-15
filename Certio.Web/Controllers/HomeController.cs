@@ -2,8 +2,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Certio.Web.ViewModels;
+using Certio.Web.Services;
 using Certio.Domain.Projects;
 using Certio.Domain.Documents;
+using Certio.Web.Data;
+using Microsoft.EntityFrameworkCore;
+using Certio.Domain.Users;
 
 namespace Certio.Web.Controllers
 {
@@ -11,21 +15,74 @@ namespace Certio.Web.Controllers
     {
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly ITwoFactorService _twoFactorService;
+        private readonly ApplicationDbContext _context;
+        private readonly IJoinCodeService _joinCodeService;
 
-        public HomeController(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager)
+        public HomeController(
+            SignInManager<IdentityUser> signInManager, 
+            UserManager<IdentityUser> userManager,
+            ITwoFactorService twoFactorService,
+            ApplicationDbContext context,
+            IJoinCodeService joinCodeService)
         {
             _signInManager = signInManager;
             _userManager = userManager;
+            _twoFactorService = twoFactorService;
+            _context = context;
+            _joinCodeService = joinCodeService;
         }
 
         public IActionResult Index()
         {
-            // If user is already logged in, redirect to Projects
-            if (User.Identity.IsAuthenticated)
+            // Debug: Log authentication state
+            Console.WriteLine("Authentication State: IsAuthenticated=" + (User.Identity?.IsAuthenticated ?? false));
+            Console.WriteLine("User Name: " + (User.Identity?.Name ?? "null"));
+            Console.WriteLine("Authentication Type: " + (User.Identity?.AuthenticationType ?? "null"));
+            
+            // Check if user is actually authenticated with proper claims AND session validation
+            var hasValidIdentity = User.Identity?.IsAuthenticated == true && 
+                                  !string.IsNullOrEmpty(User.Identity.Name) &&
+                                  User.Identity.AuthenticationType == "Identity.Application";
+            
+            // Additional session-based validation for incognito isolation
+            var hasValidSession = false;
+            try
             {
-                return RedirectToAction("Projects");
+                var sessionUserId = HttpContext.Session.GetString("UserId");
+                var sessionAuthTime = HttpContext.Session.GetString("AuthTime");
+                hasValidSession = !string.IsNullOrEmpty(sessionUserId) && !string.IsNullOrEmpty(sessionAuthTime);
             }
+            catch (InvalidOperationException)
+            {
+                // Session not available, rely only on identity
+                hasValidSession = true; // Allow if session is not configured
+            }
+            
+            var isAuthenticated = hasValidIdentity && hasValidSession;
+            
+            // If user is already logged in, redirect to Projects
+            if (isAuthenticated)
+            {
+                Console.WriteLine("User is properly authenticated with session validation, redirecting to Projects");
+                return RedirectToAction("Index", "Project");
+            }
+            
+            Console.WriteLine("User is not authenticated or session invalid, showing login page");
             return View();
+        }
+
+        [HttpGet]
+        public IActionResult DebugAuth()
+        {
+            var debugInfo = new
+            {
+                IsAuthenticated = User.Identity?.IsAuthenticated ?? false,
+                UserName = User.Identity?.Name ?? "null",
+                AuthenticationType = User.Identity?.AuthenticationType ?? "null",
+                Claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList()
+            };
+            return Json(debugInfo);
         }
 
         [HttpPost]
@@ -41,7 +98,23 @@ namespace Certio.Web.Controllers
             
             if (result.Succeeded)
             {
-                return RedirectToAction("Projects");
+                // Set session data for proper incognito isolation
+                try
+                {
+                    var user = await _userManager.FindByEmailAsync(email);
+                    if (user != null)
+                    {
+                        HttpContext.Session.SetString("UserId", user.Id);
+                        HttpContext.Session.SetString("AuthTime", DateTime.UtcNow.ToString("O"));
+                        HttpContext.Session.SetString("UserEmail", email);
+                    }
+                }
+                catch (InvalidOperationException)
+                {
+                    // Session not available, continue without session data
+                }
+                
+                return RedirectToAction("Index", "Project");
             }
             else
             {
@@ -50,46 +123,431 @@ namespace Certio.Web.Controllers
             }
         }
 
-        public IActionResult Register()
+        public IActionResult Register(int? step)
         {
+            // Check if we're on a specific step
+            if (step.HasValue)
+            {
+                ViewBag.Step = step.Value;
+                
+                // Pass registration data to the view for JavaScript
+                if (step.Value == 2)
+                {
+                    var email = TempData["RegistrationEmail"]?.ToString();
+                    if (!string.IsNullOrEmpty(email))
+                    {
+                        ViewBag.RegistrationEmail = email;
+                        // Keep the data for the next request
+                        TempData.Keep("RegistrationEmail");
+                        TempData.Keep("VerificationCode");
+                        TempData.Keep("CodeExpiry");
+                    }
+                }
+                else if (step.Value == 3)
+                {
+                    var email = TempData["RegistrationEmail"]?.ToString();
+                    var phone = TempData["RegistrationPhone"]?.ToString();
+                    if (!string.IsNullOrEmpty(email))
+                    {
+                        ViewBag.RegistrationEmail = email;
+                    }
+                    if (!string.IsNullOrEmpty(phone))
+                    {
+                        ViewBag.RegistrationPhone = phone;
+                    }
+                    // Keep the data for the next request
+                    TempData.Keep("RegistrationEmail");
+                    TempData.Keep("RegistrationPhone");
+                    TempData.Keep("IsVerified");
+                }
+            }
+            
             return View();
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Register(string email, string password, string confirmPassword)
+        [Authorize]
+        [HttpGet]
+        public IActionResult AddPeople()
         {
-            if (password != confirmPassword)
+            return View(new Certio.Web.ViewModels.AddPeopleViewModel());
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddPeople(Certio.Web.ViewModels.AddPeopleViewModel model, CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
             {
-                TempData["Error"] = "Passwords do not match";
-                return View();
+                return View(model);
             }
 
-            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+            // Resolve custom user from middleware
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
             {
-                TempData["Error"] = "Please fill in all fields";
-                return View();
+                TempData["Error"] = "Unable to resolve current user.";
+                return View(model);
             }
 
-            var user = new IdentityUser { UserName = email, Email = email };
-            var result = await _userManager.CreateAsync(user, password);
-
-            if (result.Succeeded)
+            // Only allow creating join codes if permitted
+            if (!customUser.CanCreateJoinCodes())
             {
-                await _signInManager.SignInAsync(user, isPersistent: false);
-                return RedirectToAction("Projects");
+                TempData["Error"] = "You do not have permission to create join codes.";
+                return View(model);
             }
-            else
+
+            // Validate dependent type selection
+            if (model.UserType == UserType.Client && model.ClientType == null)
             {
-                TempData["Error"] = "Registration failed. Please try again.";
-                return View();
+                ModelState.AddModelError(nameof(model.ClientType), "Client type is required for Client user type.");
+                return View(model);
+            }
+            if (model.UserType == UserType.External && model.ExternalType == null)
+            {
+                ModelState.AddModelError(nameof(model.ExternalType), "External type is required for External user type.");
+                return View(model);
+            }
+
+            // Generate join code (1 use, 7 days TTL). teamName not used for now.
+            var join = await _joinCodeService.GenerateAsync(
+                organizationId: customUser.OrganizationId,
+                createdByUserId: customUser.Id,
+                invitedUserType: model.UserType,
+                invitedClientType: model.UserType == UserType.Client ? model.ClientType : null,
+                invitedExternalType: model.UserType == UserType.External ? model.ExternalType : null,
+                teamName: null,
+                maxUses: 1,
+                ttl: TimeSpan.FromDays(7),
+                ct: ct);
+
+            // Output to debug terminal
+            Console.WriteLine($"✅ Generated Join Code for {model.Email} → {join.Code}");
+
+            ViewBag.JoinCode = join.Code;
+            TempData["Success"] = "Join code generated.";
+            return View(new Certio.Web.ViewModels.AddPeopleViewModel
+            {
+                UserType = model.UserType,
+                ClientType = model.ClientType,
+                ExternalType = model.ExternalType
+            });
+        }
+
+        /// <summary>
+        /// Step 1: Start registration with email
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> StartRegistration(string email, string? joinCode)
+        {
+            if (string.IsNullOrEmpty(email) || !IsValidEmail(email))
+            {
+                TempData["Error"] = "Please enter a valid email address";
+                return View("Register");
+            }
+
+            // Check if user already exists
+            var existingUser = await _userManager.FindByEmailAsync(email);
+            if (existingUser != null)
+            {
+                TempData["Error"] = "An account with this email already exists. Please sign in instead.";
+                return View("Register");
+            }
+
+            // Generate verification code
+            var verificationCode = await _twoFactorService.GenerateVerificationCodeAsync();
+            Console.WriteLine($"🎯 Generated verification code: {verificationCode}");
+            
+            // Send verification code via email
+            var emailSent = await _twoFactorService.SendEmailVerificationAsync(email, verificationCode);
+            Console.WriteLine($"📤 Email sent result: {emailSent}");
+            
+            if (!emailSent)
+            {
+                TempData["Error"] = "Failed to send verification code. Please try again.";
+                return View("Register");
+            }
+
+            // Store registration data in TempData with Keep() to persist across redirects
+            TempData["RegistrationEmail"] = email;
+            TempData["VerificationCode"] = verificationCode;
+            TempData["CodeExpiry"] = DateTime.UtcNow.AddMinutes(10).ToString("O");
+            if (!string.IsNullOrWhiteSpace(joinCode))
+            {
+                TempData["JoinCode"] = joinCode.Trim();
+                TempData.Keep("JoinCode");
+            }
+            TempData.Keep("RegistrationEmail");
+            TempData.Keep("VerificationCode");
+            TempData.Keep("CodeExpiry");
+
+            return RedirectToAction("Register", new { step = 2 });
+        }
+
+        private bool IsValidEmail(string email)
+        {
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch
+            {
+                return false;
             }
         }
 
+        /// <summary>
+        /// Step 2: Verify 2FA code
+        /// </summary>
         [HttpPost]
-        public async Task<IActionResult> Logout()
+        public IActionResult VerifyTwoFactor(string verificationCode, string verificationMethod, string phoneNumber)
         {
-            await _signInManager.SignOutAsync();
-            return RedirectToAction("Index");
+            if (string.IsNullOrEmpty(verificationCode))
+            {
+                TempData["Error"] = "Please enter the verification code";
+                return RedirectToAction("Register", new { step = 2 });
+            }
+
+            // Get stored verification data
+            var storedEmail = TempData["RegistrationEmail"]?.ToString();
+            var storedCode = TempData["VerificationCode"]?.ToString();
+            var codeExpiryStr = TempData["CodeExpiry"]?.ToString();
+
+            if (string.IsNullOrEmpty(storedEmail) || string.IsNullOrEmpty(storedCode) || string.IsNullOrEmpty(codeExpiryStr))
+            {
+                TempData["Error"] = "Verification session expired. Please start over.";
+                return RedirectToAction("Register");
+            }
+
+            var codeExpiry = DateTime.Parse(codeExpiryStr);
+
+            // Verify the code
+            var isValid = _twoFactorService.VerifyCode(verificationCode, storedCode, codeExpiry);
+            if (!isValid)
+            {
+                TempData["Error"] = "Invalid or expired verification code. Please try again.";
+                return RedirectToAction("Register", new { step = 2 });
+            }
+
+            // Store verified data for next step with Keep() to persist across redirects
+            TempData["RegistrationEmail"] = storedEmail;
+            TempData["RegistrationPhone"] = phoneNumber;
+            TempData["IsVerified"] = "true";
+            TempData.Keep("RegistrationEmail");
+            TempData.Keep("RegistrationPhone");
+            TempData.Keep("IsVerified");
+
+            return RedirectToAction("Register", new { step = 3 });
+        }
+
+        /// <summary>
+        /// Step 3: Complete registration
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> CompleteRegistration(string firstName, string lastName, string password, string confirmPassword, string email, string phoneNumber)
+        {
+            // Basic validation
+            if (string.IsNullOrEmpty(firstName) || string.IsNullOrEmpty(lastName) || 
+                string.IsNullOrEmpty(password) || string.IsNullOrEmpty(confirmPassword))
+            {
+                TempData["Error"] = "Please fill in all required fields";
+                return RedirectToAction("Register", new { step = 3 });
+            }
+
+            if (password != confirmPassword)
+            {
+                TempData["Error"] = "Passwords do not match";
+                return RedirectToAction("Register", new { step = 3 });
+            }
+
+            if (password.Length < 6)
+            {
+                TempData["Error"] = "Password must be at least 6 characters long";
+                return RedirectToAction("Register", new { step = 3 });
+            }
+
+            // Verify the user is still in a valid registration session
+            var isVerified = TempData["IsVerified"]?.ToString() == "true";
+            var storedEmail = TempData["RegistrationEmail"]?.ToString();
+            
+            if (!isVerified || string.IsNullOrEmpty(storedEmail))
+            {
+                TempData["Error"] = "Verification session expired. Please start over.";
+                return RedirectToAction("Register");
+            }
+
+            try
+            {
+                // Resolve optional join code
+                var joinCode = TempData["JoinCode"]?.ToString();
+                Certio.Domain.Organizations.OrganizationJoinCode? validJoin = null;
+                if (!string.IsNullOrWhiteSpace(joinCode))
+                {
+                    var joinSvc = HttpContext.RequestServices.GetService<Certio.Web.Services.IJoinCodeService>();
+                    if (joinSvc != null)
+                    {
+                        validJoin = await joinSvc.GetValidAsync(joinCode);
+                    }
+                }
+                // Create Identity user
+                var identityUser = new IdentityUser 
+                { 
+                    UserName = storedEmail, 
+                    Email = storedEmail,
+                    PhoneNumber = phoneNumber
+                };
+                
+                var result = await _userManager.CreateAsync(identityUser, password);
+                if (!result.Succeeded)
+                {
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                    TempData["Error"] = $"Failed to create account: {errors}";
+                    return RedirectToAction("Register", new { step = 3 });
+                }
+
+                // Determine organization and role
+                int organizationId;
+                bool isPersonal = false;
+                var userType = Certio.Domain.Users.UserType.Client;
+                Certio.Domain.Users.ClientType? clientType = null;
+                Certio.Domain.Users.ExternalType? externalType = null;
+
+                if (validJoin != null)
+                {
+                    organizationId = validJoin.OrganizationId;
+                    userType = validJoin.InvitedUserType;
+                    clientType = validJoin.InvitedClientType;
+                    externalType = validJoin.InvitedExternalType;
+                }
+                else
+                {
+                    // Auto-create personal organization (temporary owner, set after user is created)
+                    var org = new Certio.Domain.Organizations.Organization
+                    {
+                        Name = $"{firstName} {lastName}",
+                        Description = "Personal Organization",
+                        OwnerId = 0,
+                        IsPersonal = true,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    _context.Organizations.Add(org);
+                    await _context.SaveChangesAsync();
+                    organizationId = org.Id;
+                    isPersonal = true;
+                    userType = Certio.Domain.Users.UserType.Client;
+                    clientType = Certio.Domain.Users.ClientType.Owner;
+                }
+
+                // Create custom User record
+                var customUser = new Certio.Domain.Users.User
+                {
+                    FirstName = firstName,
+                    LastName = lastName,
+                    Email = storedEmail,
+                    PhoneNumber = phoneNumber,
+                    UserType = userType,
+                    ClientType = clientType,
+                    ExternalType = externalType,
+                    OrganizationId = organizationId,
+                    IsPersonalOrganization = isPersonal,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    Color = GetRandomColor()
+                };
+
+                _context.Users.Add(customUser);
+                await _context.SaveChangesAsync();
+
+                // If personal org, set ownerId to the just-created user
+                if (isPersonal)
+                {
+                    var org = await _context.Organizations.FindAsync(organizationId);
+                    if (org != null)
+                    {
+                        org.OwnerId = customUser.Id;
+                        await _context.SaveChangesAsync();
+                    }
+                }
+
+                // If joined via code, consume code and add to team if specified
+                if (validJoin != null)
+                {
+                    var joinSvc = HttpContext.RequestServices.GetService<Certio.Web.Services.IJoinCodeService>();
+                    if (joinSvc != null)
+                    {
+                        await joinSvc.ConsumeAsync(validJoin.Code);
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(validJoin.TeamName))
+                    {
+                        var team = await _context.Teams.FirstOrDefaultAsync(t => t.OrganizationId == organizationId && t.Name == validJoin.TeamName);
+                        if (team == null)
+                        {
+                            team = new Certio.Domain.Teams.Team
+                            {
+                                Name = validJoin.TeamName!,
+                                OrganizationId = organizationId,
+                                TeamType = Certio.Domain.Teams.TeamType.Client,
+                                IsActive = true,
+                                CreatedAt = DateTime.UtcNow
+                            };
+                            _context.Teams.Add(team);
+                            await _context.SaveChangesAsync();
+                        }
+
+                        _context.TeamMemberships.Add(new Certio.Domain.Teams.TeamMembership
+                        {
+                            TeamId = team.Id,
+                            UserId = customUser.Id,
+                            Role = "Member",
+                            Status = "Active",
+                            JoinedAt = DateTime.UtcNow
+                        });
+                        await _context.SaveChangesAsync();
+                    }
+                }
+
+                // Sign in the user
+                await _signInManager.SignInAsync(identityUser, isPersistent: false);
+
+                // Set session data for proper authentication
+                try
+                {
+                    HttpContext.Session.SetString("UserId", identityUser.Id);
+                    HttpContext.Session.SetString("AuthTime", DateTime.UtcNow.ToString("O"));
+                    HttpContext.Session.SetString("UserEmail", storedEmail);
+                }
+                catch (InvalidOperationException)
+                {
+                    // Session not available, continue without session data
+                }
+
+                TempData["Success"] = "Account created successfully! Welcome to Certio.";
+                return RedirectToAction("Index", "Project");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Registration error: {ex.Message}");
+                TempData["Error"] = "An error occurred during registration. Please try again.";
+                return RedirectToAction("Register", new { step = 3 });
+            }
+        }
+
+        /// <summary>
+        /// Get a random color for the user avatar
+        /// </summary>
+        private string GetRandomColor()
+        {
+            var colors = new[]
+            {
+                "#007bff", "#28a745", "#dc3545", "#ffc107", "#17a2b8",
+                "#6f42c1", "#e83e8c", "#fd7e14", "#20c997", "#6c757d"
+            };
+            
+            var random = new Random();
+            return colors[random.Next(colors.Length)];
         }
 
         public IActionResult ForgotPassword()
@@ -125,77 +583,8 @@ namespace Certio.Web.Controllers
             return View();
         }
 
-        public IActionResult Projects()
-        {
-            // Sample data - in a real application, this would come from a service/repository
-            var projects = new List<Project>
-            {
-                new Project
-                {
-                    Id = 1,
-                    Title = "Contract Review Automation",
-                    Description = "AI-powered contract analysis and risk assessment system",
-                    Status = "In Progress",
-                    Priority = "High",
-                    DueDate = new DateTime(2024, 2, 15),
-                    Assignees = new List<string> { "Sarah Johnson", "Mike Chen" },
-                    TasksCompleted = 8,
-                    TotalTasks = 12,
-                    Category = "AI/ML"
-                },
-                new Project
-                {
-                    Id = 2,
-                    Title = "Client Portal Dashboard",
-                    Description = "Secure client access portal with document sharing capabilities",
-                    Status = "Review",
-                    Priority = "Medium",
-                    DueDate = new DateTime(2024, 2, 28),
-                    Assignees = new List<string> { "Alex Rodriguez", "Emily Davis" },
-                    TasksCompleted = 15,
-                    TotalTasks = 18,
-                    Category = "Frontend"
-                },
-                new Project
-                {
-                    Id = 3,
-                    Title = "Compliance Tracking System",
-                    Description = "Automated regulatory compliance monitoring and reporting",
-                    Status = "Planning",
-                    Priority = "High",
-                    DueDate = new DateTime(2024, 3, 10),
-                    Assignees = new List<string> { "David Wilson" },
-                    TasksCompleted = 3,
-                    TotalTasks = 20,
-                    Category = "Backend"
-                },
-                new Project
-                {
-                    Id = 4,
-                    Title = "Legal Research Assistant",
-                    Description = "Natural language processing for legal document search",
-                    Status = "Completed",
-                    Priority = "Medium",
-                    DueDate = new DateTime(2024, 1, 30),
-                    Assignees = new List<string> { "Sarah Johnson", "Mike Chen", "Alex Rodriguez" },
-                    TasksCompleted = 25,
-                    TotalTasks = 25,
-                    Category = "AI/ML"
-                }
-            };
 
-            var viewModel = new ProjectsViewModel
-            {
-                Projects = projects,
-                ActiveProjectsCount = projects.Count(p => p.Status == "In Progress"),
-                CompletedProjectsCount = projects.Count(p => p.Status == "Completed"),
-                InReviewProjectsCount = projects.Count(p => p.Status == "Review"),
-                TeamMembersCount = projects.SelectMany(p => p.Assignees).Distinct().Count()
-            };
-
-            return View(viewModel);
-        }
-
+        [Authorize]
         public IActionResult Documents()
         {
             // Sample data - in a real application, this would come from a service/repository
@@ -206,9 +595,8 @@ namespace Certio.Web.Controllers
                     Id = 1,
                     Name = "Morrison Industries - Service Agreement",
                     Type = "Contract",
-                    Size = "2.4 MB",
-                    Modified = new DateTime(2024, 1, 15),
-                    Author = "Sarah Johnson",
+                    FileSize = "2.4 MB",
+                    LastModifiedDate = new DateTime(2024, 1, 15),
                     Status = "Final",
                     Visibility = "Private",
                     Tags = new List<string> { "Contract", "Client", "Morrison" },
@@ -219,9 +607,8 @@ namespace Certio.Web.Controllers
                     Id = 2,
                     Name = "Compliance Audit Report Q4 2023",
                     Type = "Report",
-                    Size = "5.1 MB",
-                    Modified = new DateTime(2024, 1, 12),
-                    Author = "Emily Davis",
+                    FileSize = "5.1 MB",
+                    LastModifiedDate = new DateTime(2024, 1, 12),
                     Status = "Published",
                     Visibility = "Team",
                     Tags = new List<string> { "Compliance", "Audit", "Q4" },
@@ -232,9 +619,8 @@ namespace Certio.Web.Controllers
                     Id = 3,
                     Name = "Legal Research - AI Regulations",
                     Type = "Research",
-                    Size = "1.8 MB",
-                    Modified = new DateTime(2024, 1, 10),
-                    Author = "Mike Chen",
+                    FileSize = "1.8 MB",
+                    LastModifiedDate = new DateTime(2024, 1, 10),
                     Status = "Draft",
                     Visibility = "Private",
                     Tags = new List<string> { "Research", "AI", "Regulations" },
@@ -245,9 +631,8 @@ namespace Certio.Web.Controllers
                     Id = 4,
                     Name = "Client Onboarding Presentation",
                     Type = "Presentation",
-                    Size = "12.3 MB",
-                    Modified = new DateTime(2024, 1, 8),
-                    Author = "Alex Rodriguez",
+                    FileSize = "12.3 MB",
+                    LastModifiedDate = new DateTime(2024, 1, 8),
                     Status = "Review",
                     Visibility = "Public",
                     Tags = new List<string> { "Presentation", "Onboarding" },
@@ -258,9 +643,8 @@ namespace Certio.Web.Controllers
                     Id = 5,
                     Name = "Contract Template Library",
                     Type = "Templates",
-                    Size = "8.7 MB",
-                    Modified = new DateTime(2024, 1, 5),
-                    Author = "David Wilson",
+                    FileSize = "8.7 MB",
+                    LastModifiedDate = new DateTime(2024, 1, 5),
                     Status = "Active",
                     Visibility = "Team",
                     Tags = new List<string> { "Templates", "Contracts" },
@@ -296,6 +680,7 @@ namespace Certio.Web.Controllers
             return View(viewModel);
         }
 
+        [Authorize]
         public IActionResult Teams()
         {
             // Sample data - in a real application, this would come from a service/repository
@@ -417,6 +802,7 @@ namespace Certio.Web.Controllers
             return View(viewModel);
         }
 
+        [Authorize]
         public IActionResult Services()
         {
             // Sample data - in a real application, this would come from a service/repository
@@ -683,6 +1069,65 @@ namespace Certio.Web.Controllers
 
             return View(viewModel);
         }
+
+        [HttpPost]
+        public async Task<IActionResult> Logout()
+        {
+            // Sign out the user
+            await _signInManager.SignOutAsync();
+            
+            // Clear all authentication cookies manually for maximum security
+            Response.Cookies.Delete("CertioAuth");
+            Response.Cookies.Delete(".AspNetCore.Identity.Application");
+            Response.Cookies.Delete(".AspNetCore.Antiforgery");
+            
+            // Clear any session data (if session is available)
+            try
+            {
+                HttpContext.Session.Clear();
+            }
+            catch (InvalidOperationException)
+            {
+                // Session not configured, ignore
+            }
+            
+            // Add security headers to prevent caching of sensitive pages
+            Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+            Response.Headers["Pragma"] = "no-cache";
+            Response.Headers["Expires"] = "0";
+            
+            return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ClearAuth()
+        {
+            // Sign out the user
+            await _signInManager.SignOutAsync();
+            
+            // Clear all authentication cookies manually for maximum security
+            Response.Cookies.Delete("CertioAuth");
+            Response.Cookies.Delete(".AspNetCore.Identity.Application");
+            Response.Cookies.Delete(".AspNetCore.Antiforgery");
+            
+            // Clear any session data (if session is available)
+            try
+            {
+                HttpContext.Session.Clear();
+            }
+            catch (InvalidOperationException)
+            {
+                // Session not configured, ignore
+            }
+            
+            // Add security headers to prevent caching of sensitive pages
+            Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+            Response.Headers["Pragma"] = "no-cache";
+            Response.Headers["Expires"] = "0";
+            
+            return RedirectToAction("Index");
+        }
+
 
         public IActionResult Privacy()
         {

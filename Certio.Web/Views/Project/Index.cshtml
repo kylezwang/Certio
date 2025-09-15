@@ -10,10 +10,10 @@
             <h1 class="display-6 fw-bold text-dark mb-2">Projects</h1>
             <p class="lead text-muted">Manage and track your legal projects</p>
         </div>
-        <button class="btn btn-primary d-flex align-items-center gap-2">
+        <a href="@Url.Action("Create", "Project")" class="btn btn-primary d-flex align-items-center gap-2">
             <i class="fas fa-plus"></i>
             New Project
-        </button>
+        </a>
     </div>
 
     <!-- Search and Filters -->
@@ -141,7 +141,7 @@
                             </div>
                             <div class="progress" style="height: 8px;">
                                 <div class="progress-bar bg-gradient-primary" 
-                                     style="width: @((double)project.TasksCompleted / project.TotalTasks * 100)%"></div>
+                                     style="width: @(project.TotalTasks > 0 ? (double)project.TasksCompleted / project.TotalTasks * 100 : 0)%"></div>
                             </div>
                         </div>
 
@@ -149,11 +149,11 @@
                         <div class="d-flex justify-content-between align-items-center text-muted small mb-3">
                             <div class="d-flex align-items-center">
                                 <i class="fas fa-calendar me-1"></i>
-                                <span>Due @project.DueDate.ToString("MMM dd, yyyy")</span>
+                                <span>Due @(project.DueDate?.ToString("MMM dd, yyyy") ?? "No due date")</span>
                             </div>
                             <div class="d-flex align-items-center">
                                 <i class="fas fa-users me-1"></i>
-                                <span>@project.Assignees.Count assignees</span>
+                                <span>@project.Assignments.Count assignees</span>
                             </div>
                         </div>
 
@@ -161,16 +161,19 @@
                         <div class="d-flex align-items-center">
                             <span class="text-muted small me-2">Team:</span>
                             <div class="d-flex">
-                                @for (int i = 0; i < Math.Min(project.Assignees.Count, 3); i++)
+                                @{
+                                    var assignees = project.Assignments.Take(3).ToList();
+                                }
+                                @for (int i = 0; i < assignees.Count; i++)
                                 {
                                     <div class="assignee-avatar me-1">
-                                        @GetInitials(project.Assignees[i])
+                                        @GetInitials(assignees[i].User.FirstName + " " + assignees[i].User.LastName)
                                     </div>
                                 }
-                                @if (project.Assignees.Count > 3)
+                                @if (project.Assignments.Count > 3)
                                 {
                                     <div class="assignee-avatar me-1 bg-muted text-muted">
-                                        +@(project.Assignees.Count - 3)
+                                        +@(project.Assignments.Count - 3)
                                     </div>
                                 }
                             </div>

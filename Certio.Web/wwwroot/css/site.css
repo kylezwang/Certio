@@ -1937,6 +1937,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  flex: 1;
 }
 
 /* Main content area adjustment for chat panel */
@@ -1955,9 +1956,9 @@ body {
     margin-left: 240px;
     padding-left: 0;
     min-height: 100vh;
-    width: calc(100% - 240px - 320px); /* Account for sidebar and chat panel (320px default) */
-    margin-right: 320px; /* Reserve space for chat panel (320px default) */
-    transition: width 0.2s ease, margin-right 0.2s ease;
+    flex: 1;
+    min-width: 0; /* Allow flex item to shrink below content size */
+    transition: margin-right 0.2s ease;
   }
 }
 
@@ -2285,9 +2286,6 @@ body {
 }
 
 /* Sidebar Navigation Styles */
-.min-h-screen {
-  min-height: 100vh;
-}
 
 .bg-gradient-subtle {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
@@ -2512,8 +2510,8 @@ body {
 }
 
 .py-8 {
-  padding-top: 2rem;
-  padding-bottom: 2rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
 }
 
 @media (min-width: 992px) {
@@ -2523,36 +2521,15 @@ body {
   }
   
   .py-8 {
-    padding-top: 2rem;
-    padding-bottom: 2rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
   }
 }
 
 /* Ensure main content is properly positioned */
 .main-content .px-4 {
-  max-width: 1200px;
-  margin: 0 auto;
   width: 100%;
-}
-
-@media (min-width: 992px) {
-  .main-content .px-4 {
-    max-width: calc(100vw - 240px - 320px - 4rem);
-    margin: 0 auto;
-    width: 100%;
-  }
-}
-
-/* Ensure the main content area is visible */
-.main-content {
-  position: relative;
-  z-index: 1;
-  background-color: #ffffff;
-  min-height: 100vh;
-}
-
-/* Ensure main content is visible and properly positioned */
-.main-content .px-4 {
+  padding: 1rem;
   background-color: #ffffff;
   min-height: 100vh;
   position: relative;
@@ -2768,8 +2745,8 @@ body {
 }
 
 .py-8 {
-  padding-top: 2rem !important;
-  padding-bottom: 2rem !important;
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
 }
 
 .px-8 {
@@ -2777,9 +2754,6 @@ body {
   padding-right: 2rem !important;
 }
 
-.min-h-screen {
-  min-height: 100vh !important;
-}
 
 .h-100 {
   height: 100% !important;
@@ -3148,11 +3122,15 @@ body {
   border-radius: 0.5rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Override main content padding for services page */
 body.services-page .main-content .px-4 {
   padding: 0 !important;
+  height: 100vh;
+  min-height: 100vh;
 }
 
 /* Hide footer on services page to prevent scrolling */
@@ -3160,8 +3138,21 @@ body.services-page .footer {
   display: none !important;
 }
 
+/* Ensure services page body takes full height */
+body.services-page {
+  height: 100vh;
+  overflow: hidden;
+}
+
+body.services-page .main-content {
+  height: 100vh;
+  min-height: 100vh;
+}
+
 .services-layout {
   display: flex;
+  flex: 1;
+  min-height: 0;
   height: 100%;
 }
 
@@ -3502,6 +3493,9 @@ body.services-page .footer {
   flex-direction: column;
   background: rgba(255, 255, 255, 0.5);
   backdrop-filter: blur(8px);
+  min-height: 0;
+  height: 100%;
+  position: relative;
 }
 
 /* Services Page - Chat Header */
@@ -3553,11 +3547,71 @@ body.services-page .footer {
   flex: 1;
   padding: 0 1rem;
   overflow-y: auto;
+  min-height: 0;
+  max-height: 100%;
+  position: relative;
 }
 
 /* Services Page - Messages List */
 .services-container .messages-list {
   padding: 1rem 0;
+  min-height: 100%;
+}
+
+/* Ensure messages container has proper scrolling behavior */
+.services-container .messages-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.services-container .messages-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
+
+.services-container .messages-container::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+}
+
+.services-container .messages-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* Scroll to bottom button */
+.services-container .scroll-to-bottom-btn {
+  position: absolute;
+  bottom: 5rem;
+  right: 1.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: none;
+  border-radius: 50%;
+  background: #3b82f6;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 10;
+}
+
+.services-container .scroll-to-bottom-btn:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.15);
+}
+
+.services-container .scroll-to-bottom-btn.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.services-container .scroll-to-bottom-btn i {
+  font-size: 0.875rem;
 }
 
 .services-container .message-item {
@@ -4142,6 +4196,215 @@ body.services-page .footer {
   background: #2563eb;
   transform: translateY(-1px);
   box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.15);
+}
+
+/* Multi-Step Project Creation Form Styles */
+.min-h-screen {
+  min-height: 100vh;
+}
+
+.bg-gradient-subtle {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+/* Progress Indicator */
+.progress-step {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 2px solid #e5e7eb;
+  color: #6b7280;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.progress-step.active {
+  background: #0b365e;
+  border-color: #0b365e;
+  color: white;
+}
+
+.progress-step-label {
+  margin-left: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  transition: all 0.3s ease;
+}
+
+.progress-step-label.active {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.progress-line {
+  flex: 1;
+  height: 1px;
+  background: #e5e7eb;
+  margin: 0 1rem;
+}
+
+/* Form Styling */
+.shadow-elegant {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.form-control-lg {
+  height: 3rem;
+  font-size: 1rem;
+  padding: 0.75rem 1rem;
+}
+
+.form-select-lg {
+  height: 3rem;
+  font-size: 1rem;
+  padding: 0.75rem 1rem;
+}
+
+/* Project Preview */
+.project-preview .card {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e5e7eb;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Project Review */
+.project-review .form-control-plaintext {
+  background: #f8fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0;
+  color: #374151;
+}
+
+/* Button Styling */
+.btn-lg {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid #e5e7eb;
+  color: #6b7280;
+  transition: all 0.2s ease;
+}
+
+.btn-ghost:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  color: #374151;
+}
+
+/* Utility Classes */
+.flex-1 {
+  flex: 1;
+}
+
+.max-w-2xl {
+  max-width: 42rem;
+}
+
+.w-25 {
+  width: 25%;
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}
+
+.gap-5 {
+  gap: 3rem;
+}
+
+.gap-6 {
+  gap: 1.5rem;
+}
+
+.mb-6 {
+  margin-bottom: 1.5rem;
+}
+
+.mb-8 {
+  margin-bottom: 2rem;
+}
+
+.py-8 {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.py-4 {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* Responsive adjustments for project creation form */
+@media (max-width: 768px) {
+  .d-flex.gap-5 {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .w-25 {
+    width: 100%;
+  }
+  
+  .progress-line {
+    margin: 0 0.5rem;
+  }
+  
+  .progress-step-label {
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+  }
+  
+  .display-4 {
+    font-size: 2rem;
+  }
+  
+  .lead {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .gap-5 {
+    gap: 2rem;
+  }
+  
+  .w-25 {
+    width: 30%;
+  }
 }
 
 /* Responsive Design */

@@ -1,0 +1,66 @@
+# Cursor AI Rules for Certio Project
+
+## Project Overview
+This is a .NET 9.0 web application with AI agents integration. The project uses:
+- .NET 9.0 for the main web application
+- .NET 8.0 for other projects
+- Python 3.11 for AI agents
+- SQLite for local development
+- Azure SQL Database for production
+- Redis for caching
+
+## Code Style and Conventions
+
+### C# (.NET)
+- Use C# 12 features where appropriate
+- Follow async/await patterns for I/O operations
+- Use dependency injection
+- Implement proper error handling with try-catch
+- Use Entity Framework Core for data access
+- Follow Clean Architecture principles
+
+### Python (AI Agents)
+- Use type hints
+- Follow PEP 8 style guidelines
+- Use async/await for async operations
+- Implement proper error handling
+- Use dataclasses for data models
+- Follow the existing project structure
+
+## Database Guidelines
+- Use Entity Framework migrations for schema changes
+- Always use parameterized queries
+- Implement proper connection string management
+- Use transactions for multi-step operations
+- Follow the existing DbContext patterns
+
+## AI Integration
+- Use the existing AI service interfaces
+- Implement proper error handling for AI API calls
+- Use the background service pattern for AI processing
+- Follow the existing cost optimization patterns
+
+## File Structure
+- Controllers go in Controllers/
+- Services go in Services/
+- Models go in Domain/ or ViewModels/
+- AI agents go in ai_agents/
+- Configuration goes in appsettings.json
+
+## Testing
+- Write unit tests for business logic
+- Use integration tests for API endpoints
+- Mock external dependencies
+- Follow AAA pattern (Arrange, Act, Assert)
+
+## Security
+- Validate all inputs
+- Use proper authentication and authorization
+- Sanitize data before database operations
+- Follow OWASP guidelines
+
+## Performance
+- Use async operations where possible
+- Implement proper caching strategies
+- Optimize database queries
+- Use background services for heavy operations

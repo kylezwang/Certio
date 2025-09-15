@@ -1,40 +1,33 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Projects\\Certio\\Certio.Web\\Certio.Web.csproj": {}
+    "/Users/chloetang/Documents/Certio/Certio.Web/Certio.Web.csproj": {}
   },
   "projects": {
-    "C:\\Projects\\Certio\\Certio.Application\\Certio.Application.csproj": {
+    "/Users/chloetang/Documents/Certio/Certio.Application/Certio.Application.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Projects\\Certio\\Certio.Application\\Certio.Application.csproj",
+        "projectUniqueName": "/Users/chloetang/Documents/Certio/Certio.Application/Certio.Application.csproj",
         "projectName": "Certio.Application",
-        "projectPath": "C:\\Projects\\Certio\\Certio.Application\\Certio.Application.csproj",
-        "packagesPath": "C:\\Users\\wangz\\.nuget\\packages\\",
-        "outputPath": "C:\\Projects\\Certio\\Certio.Application\\obj\\",
+        "projectPath": "/Users/chloetang/Documents/Certio/Certio.Application/Certio.Application.csproj",
+        "packagesPath": "/Users/chloetang/.nuget/packages/",
+        "outputPath": "/Users/chloetang/Documents/Certio/Certio.Application/obj/",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\wangz\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/Users/chloetang/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "C:\\Projects\\Certio\\Certio.Domain\\Certio.Domain.csproj": {
-                "projectPath": "C:\\Projects\\Certio\\Certio.Domain\\Certio.Domain.csproj"
+              "/Users/chloetang/Documents/Certio/Certio.Domain/Certio.Domain.csproj": {
+                "projectPath": "/Users/chloetang/Documents/Certio/Certio.Domain/Certio.Domain.csproj"
               }
             }
           }
@@ -49,7 +42,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.200"
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net8.0": {
@@ -79,38 +72,41 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[8.0.20, 8.0.20]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[8.0.20, 8.0.20]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.201/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.305/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\Projects\\Certio\\Certio.Domain\\Certio.Domain.csproj": {
+    "/Users/chloetang/Documents/Certio/Certio.Domain/Certio.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Projects\\Certio\\Certio.Domain\\Certio.Domain.csproj",
+        "projectUniqueName": "/Users/chloetang/Documents/Certio/Certio.Domain/Certio.Domain.csproj",
         "projectName": "Certio.Domain",
-        "projectPath": "C:\\Projects\\Certio\\Certio.Domain\\Certio.Domain.csproj",
-        "packagesPath": "C:\\Users\\wangz\\.nuget\\packages\\",
-        "outputPath": "C:\\Projects\\Certio\\Certio.Domain\\obj\\",
+        "projectPath": "/Users/chloetang/Documents/Certio/Certio.Domain/Certio.Domain.csproj",
+        "packagesPath": "/Users/chloetang/.nuget/packages/",
+        "outputPath": "/Users/chloetang/Documents/Certio/Certio.Domain/obj/",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\wangz\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/Users/chloetang/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -129,7 +125,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.200"
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net8.0": {
@@ -145,46 +141,49 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[8.0.20, 8.0.20]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[8.0.20, 8.0.20]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.201/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.305/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\Projects\\Certio\\Certio.Infrastructure\\Certio.Infrastructure.csproj": {
+    "/Users/chloetang/Documents/Certio/Certio.Infrastructure/Certio.Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Projects\\Certio\\Certio.Infrastructure\\Certio.Infrastructure.csproj",
+        "projectUniqueName": "/Users/chloetang/Documents/Certio/Certio.Infrastructure/Certio.Infrastructure.csproj",
         "projectName": "Certio.Infrastructure",
-        "projectPath": "C:\\Projects\\Certio\\Certio.Infrastructure\\Certio.Infrastructure.csproj",
-        "packagesPath": "C:\\Users\\wangz\\.nuget\\packages\\",
-        "outputPath": "C:\\Projects\\Certio\\Certio.Infrastructure\\obj\\",
+        "projectPath": "/Users/chloetang/Documents/Certio/Certio.Infrastructure/Certio.Infrastructure.csproj",
+        "packagesPath": "/Users/chloetang/.nuget/packages/",
+        "outputPath": "/Users/chloetang/Documents/Certio/Certio.Infrastructure/obj/",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\wangz\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/Users/chloetang/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "C:\\Projects\\Certio\\Certio.Domain\\Certio.Domain.csproj": {
-                "projectPath": "C:\\Projects\\Certio\\Certio.Domain\\Certio.Domain.csproj"
+              "/Users/chloetang/Documents/Certio/Certio.Domain/Certio.Domain.csproj": {
+                "projectPath": "/Users/chloetang/Documents/Certio/Certio.Domain/Certio.Domain.csproj"
               }
             }
           }
@@ -199,7 +198,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.200"
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net8.0": {
@@ -215,49 +214,52 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[8.0.20, 8.0.20]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[8.0.20, 8.0.20]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.201/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.305/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\Projects\\Certio\\Certio.Web\\Certio.Web.csproj": {
+    "/Users/chloetang/Documents/Certio/Certio.Web/Certio.Web.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Projects\\Certio\\Certio.Web\\Certio.Web.csproj",
+        "projectUniqueName": "/Users/chloetang/Documents/Certio/Certio.Web/Certio.Web.csproj",
         "projectName": "Certio.Web",
-        "projectPath": "C:\\Projects\\Certio\\Certio.Web\\Certio.Web.csproj",
-        "packagesPath": "C:\\Users\\wangz\\.nuget\\packages\\",
-        "outputPath": "C:\\Projects\\Certio\\Certio.Web\\obj\\",
+        "projectPath": "/Users/chloetang/Documents/Certio/Certio.Web/Certio.Web.csproj",
+        "packagesPath": "/Users/chloetang/.nuget/packages/",
+        "outputPath": "/Users/chloetang/Documents/Certio/Certio.Web/obj/",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\wangz\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/Users/chloetang/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
-              "C:\\Projects\\Certio\\Certio.Application\\Certio.Application.csproj": {
-                "projectPath": "C:\\Projects\\Certio\\Certio.Application\\Certio.Application.csproj"
+              "/Users/chloetang/Documents/Certio/Certio.Application/Certio.Application.csproj": {
+                "projectPath": "/Users/chloetang/Documents/Certio/Certio.Application/Certio.Application.csproj"
               },
-              "C:\\Projects\\Certio\\Certio.Infrastructure\\Certio.Infrastructure.csproj": {
-                "projectPath": "C:\\Projects\\Certio\\Certio.Infrastructure\\Certio.Infrastructure.csproj"
+              "/Users/chloetang/Documents/Certio/Certio.Infrastructure/Certio.Infrastructure.csproj": {
+                "projectPath": "/Users/chloetang/Documents/Certio/Certio.Infrastructure/Certio.Infrastructure.csproj"
               }
             }
           }
@@ -272,7 +274,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.200"
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net9.0": {
@@ -303,6 +305,10 @@
             "Microsoft.EntityFrameworkCore.SqlServer": {
               "target": "Package",
               "version": "[9.0.8, )"
+            },
+            "Microsoft.EntityFrameworkCore.Sqlite": {
+              "target": "Package",
+              "version": "[9.0.9, )"
             },
             "Microsoft.EntityFrameworkCore.Tools": {
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
@@ -342,7 +348,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.201/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.305/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

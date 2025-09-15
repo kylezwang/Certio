@@ -1,0 +1,132 @@
+@model Certio.Web.ViewModels.AddPeopleViewModel
+@{
+    ViewData["Title"] = "Add People";
+}
+
+<div class="min-h-screen bg-gradient-subtle py-8">
+    <div class="container-fluid">
+        <div class="mb-4">
+            <a href="@Url.Action("Teams", "Home")" class="btn btn-ghost d-flex align-items-center gap-2 text-decoration-none">
+                <i class="fas fa-arrow-left"></i>
+                Back to Teams
+            </a>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card shadow-elegant border-0">
+                    <div class="card-body p-4">
+                        <h1 class="display-6 fw-bold text-dark mb-2">Add people</h1>
+                        <p class="lead text-muted" style="font-size: 1.1rem;">Invite a new person to your organization by generating a join code.</p>
+
+                        @if (TempData["Error"] != null)
+                        {
+                            <div class="alert alert-danger">@TempData["Error"]</div>
+                        }
+                        @if (TempData["Success"] != null)
+                        {
+                            <div class="alert alert-success">@TempData["Success"]</div>
+                        }
+                        @if (ViewBag.JoinCode != null)
+                        {
+                            <div class="alert alert-info d-flex align-items-center gap-2">
+                                <i class="fas fa-key"></i>
+                                <div>
+                                    <div class="fw-bold">Join Code</div>
+                                    <div>@ViewBag.JoinCode</div>
+                                </div>
+                            </div>
+                        }
+
+                        <form asp-action="AddPeople" asp-controller="Home" method="post">
+                            <div class="mb-4">
+                                <label asp-for="Email" class="form-label fw-bold text-dark">Email <span class="text-danger">*</span></label>
+                                <input asp-for="Email" class="form-control form-control-lg" placeholder="name@example.com" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-4">
+                                <label asp-for="UserType" class="form-label fw-bold text-dark">User Type <span class="text-danger">*</span></label>
+                                <select asp-for="UserType" class="form-select form-select-lg" id="userTypeSelect">
+                                    <option value="@Certio.Domain.Users.UserType.Client">Client</option>
+                                    <option value="@Certio.Domain.Users.UserType.External">External</option>
+                                </select>
+                                <span asp-validation-for="UserType" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-4" id="clientTypeGroup" style="display:none;">
+                                <label asp-for="ClientType" class="form-label fw-bold text-dark">Client Type</label>
+                                <select asp-for="ClientType" class="form-select form-select-lg">
+                                    <option value="">Select client type</option>
+                                    @foreach (var ct in Enum.GetValues(typeof(Certio.Domain.Users.ClientType)))
+                                    {
+                                        <option value="@ct">@ct</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="ClientType" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-4" id="externalTypeGroup" style="display:none;">
+                                <label asp-for="ExternalType" class="form-label fw-bold text-dark">External Type</label>
+                                <select asp-for="ExternalType" class="form-select form-select-lg">
+                                    <option value="">Select external type</option>
+                                    @foreach (var et in Enum.GetValues(typeof(Certio.Domain.Users.ExternalType)))
+                                    {
+                                        <option value="@et">@et</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="ExternalType" class="text-danger"></span>
+                            </div>
+
+                            <div class="d-flex justify-content-end">
+                                <button type="submit" class="btn btn-primary btn-lg d-flex align-items-center gap-2">
+                                    <span>Generate Join Code</span>
+                                    <i class="fas fa-key"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-3">
+                        <h5 class="fw-bold text-dark mb-2">Invitation Info</h5>
+                        <p class="text-muted mb-4">Select the appropriate user type and subtype. We'll show the join code here after generation and log it to the debug console.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const userTypeSelect = document.getElementById('userTypeSelect');
+            const clientTypeGroup = document.getElementById('clientTypeGroup');
+            const externalTypeGroup = document.getElementById('externalTypeGroup');
+
+            function updateVisibility() {
+                const val = userTypeSelect.value;
+                if (val === 'Client') {
+                    clientTypeGroup.style.display = '';
+                    externalTypeGroup.style.display = 'none';
+                } else if (val === 'External') {
+                    clientTypeGroup.style.display = 'none';
+                    externalTypeGroup.style.display = '';
+                } else {
+                    clientTypeGroup.style.display = 'none';
+                    externalTypeGroup.style.display = 'none';
+                }
+            }
+
+            updateVisibility();
+            userTypeSelect.addEventListener('change', updateVisibility);
+        });
+    </script>
+}
+
+
