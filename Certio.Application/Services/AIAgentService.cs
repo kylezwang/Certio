@@ -63,10 +63,10 @@ public class AIAgentService : IAIAgentService
             return new ChatSummary
             {
                 Summary = "Unable to process conversation summary at this time.",
-                KeyPoints = new List<string>(),
+                KeyPoints = JsonSerializer.Serialize(new List<string>()),
                 Sentiment = "Neutral",
                 Urgency = "Medium",
-                SuggestedActions = new List<string>()
+                SuggestedActions = JsonSerializer.Serialize(new List<string>())
             };
         }
     }
@@ -113,12 +113,12 @@ public class AIAgentService : IAIAgentService
             return new ClientGoal
             {
                 PrimaryGoal = "Unable to extract goals at this time.",
-                SecondaryGoals = new List<string>(),
+                SecondaryGoals = JsonSerializer.Serialize(new List<string>()),
                 BusinessType = "Unknown",
                 LegalArea = "General",
                 Timeline = "Not specified",
                 Budget = "Not specified",
-                RequiredDocuments = new List<string>()
+                RequiredDocuments = JsonSerializer.Serialize(new List<string>())
             };
         }
     }
@@ -168,7 +168,7 @@ public class AIAgentService : IAIAgentService
                 SuggestedReply = "I'll review this and get back to you shortly.",
                 Tone = "Professional",
                 Purpose = "Acknowledgment",
-                KeyPoints = new List<string>(),
+                KeyPoints = JsonSerializer.Serialize(new List<string>()),
                 RequiresLegalReview = true
             };
         }
@@ -207,10 +207,10 @@ public class AIAgentService : IAIAgentService
             {
                 OriginalText = text,
                 SimplifiedExplanation = "Unable to process this text at the moment.",
-                KeyTerms = new List<string>(),
-                Implications = new List<string>(),
+                KeyTerms = JsonSerializer.Serialize(new List<string>()),
+                Implications = JsonSerializer.Serialize(new List<string>()),
                 RiskLevel = "Unknown",
-                RecommendedActions = new List<string>()
+                RecommendedActions = JsonSerializer.Serialize(new List<string>())
             };
         }
     }

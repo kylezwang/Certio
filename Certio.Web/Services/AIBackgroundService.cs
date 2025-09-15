@@ -71,7 +71,7 @@ public class AIBackgroundService : BackgroundService
                 var summaryMessage = new ChatMessage
                 {
                     ConversationId = conversationId,
-                    UserId = "AI",
+                    UserId = null, // AI messages don't have a user ID
                     UserType = "AI",
                     Content = summaryJson,
                     MessageType = "AI_Summary",
@@ -89,7 +89,7 @@ public class AIBackgroundService : BackgroundService
                 var goalsMessage = new ChatMessage
                 {
                     ConversationId = conversationId,
-                    UserId = "AI",
+                    UserId = null, // AI messages don't have a user ID
                     UserType = "AI",
                     Content = goalsJson,
                     MessageType = "AI_Goal",
@@ -107,7 +107,7 @@ public class AIBackgroundService : BackgroundService
                 var replyMessage = new ChatMessage
                 {
                     ConversationId = conversationId,
-                    UserId = "AI",
+                    UserId = null, // AI messages don't have a user ID
                     UserType = "AI",
                     Content = replyJson,
                     MessageType = "AI_Reply",

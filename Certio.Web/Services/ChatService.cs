@@ -215,7 +215,7 @@ public class ChatService : IChatService
             var aiMessage = new ChatMessage
             {
                 ConversationId = conversationId,
-                UserId = "AI",
+                UserId = null, // AI messages don't have a user ID
                 UserType = "AI",
                 Content = aiResponse,
                 MessageType = "AI_Response", // Changed to AI_Response for proper formatting
@@ -258,7 +258,7 @@ public class ChatService : IChatService
             var fallbackMessage = new ChatMessage
             {
                 ConversationId = conversationId,
-                UserId = "AI",
+                UserId = null, // AI messages don't have a user ID
                 UserType = "AI",
                 Content = GenerateIntelligentFallbackResponse(userMessage),
                 MessageType = "AI_Response", // Use AI_Response for proper formatting

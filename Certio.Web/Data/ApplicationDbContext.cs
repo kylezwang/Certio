@@ -2,39 +2,600 @@
 using Microsoft.EntityFrameworkCore;
 using Certio.Domain.Projects;
 using Certio.Domain.Services;
+using Certio.Domain.Users;
+using Certio.Domain.Teams;
+using Certio.Domain.Documents;
+using Certio.Domain.AIAgents;
+using Certio.Domain.Workflows;
+using Certio.Domain.Notifications;
+using Certio.Domain.Audit;
+using Certio.Domain.Organizations;
 
 namespace Certio.Web.Data
 {
     public class ApplicationDbContext : IdentityDbContext
     {
-        private readonly TenantContext _tenant;
-
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, TenantContext tenant)
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
-            _tenant = tenant;
         }
 
+        // Core Entities
+        public new DbSet<User> Users => Set<User>();
+        public DbSet<Organization> Organizations => Set<Organization>();
+        public DbSet<OrganizationJoinCode> OrganizationJoinCodes => Set<OrganizationJoinCode>();
+        public DbSet<Team> Teams => Set<Team>();
+        public DbSet<TeamMembership> TeamMemberships => Set<TeamMembership>();
+        
+        // Project Entities
         public DbSet<Project> Projects => Set<Project>();
+        public DbSet<ProjectAssignment> ProjectAssignments => Set<ProjectAssignment>();
+        public DbSet<StatusItem> StatusItems => Set<StatusItem>();
+        public DbSet<StatusItemDependency> StatusItemDependencies => Set<StatusItemDependency>();
+        public DbSet<StatusItemAssignment> StatusItemAssignments => Set<StatusItemAssignment>();
+        public DbSet<StatusItemComment> StatusItemComments => Set<StatusItemComment>();
+        
+        // Document Entities
+        public DbSet<Document> Documents => Set<Document>();
+        public DbSet<DocumentVersion> DocumentVersions => Set<DocumentVersion>();
+        public DbSet<DocumentReview> DocumentReviews => Set<DocumentReview>();
+        public DbSet<DocumentComment> DocumentComments => Set<DocumentComment>();
+        public DbSet<DocumentSignature> DocumentSignatures => Set<DocumentSignature>();
+        
+        // Service Entities
+        public DbSet<ServiceRequest> ServiceRequests => Set<ServiceRequest>();
+        public DbSet<ServiceRequestMessage> ServiceRequestMessages => Set<ServiceRequestMessage>();
+        public DbSet<ServiceRequestAttachment> ServiceRequestAttachments => Set<ServiceRequestAttachment>();
+        
+        // Chat Entities
         public DbSet<Conversation> Conversations => Set<Conversation>();
         public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+        public DbSet<ConversationParticipant> ConversationParticipants => Set<ConversationParticipant>();
+        
+        // AI Agent Entities
+        public DbSet<AIAgent> AIAgents => Set<AIAgent>();
+        public DbSet<AIAgentExecution> AIAgentExecutions => Set<AIAgentExecution>();
+        public DbSet<AIAgentResult> AIAgentResults => Set<AIAgentResult>();
+        public DbSet<ChatSummary> ChatSummaries => Set<ChatSummary>();
+        public DbSet<ClientGoal> ClientGoals => Set<ClientGoal>();
+        public DbSet<ReplySuggestion> ReplySuggestions => Set<ReplySuggestion>();
+        public DbSet<ClarityExplanation> ClarityExplanations => Set<ClarityExplanation>();
+        
+        // Workflow Entities
+        public DbSet<Workflow> Workflows => Set<Workflow>();
+        public DbSet<WorkflowInstance> WorkflowInstances => Set<WorkflowInstance>();
+        
+        // Notification Entities
+        public DbSet<Notification> Notifications => Set<Notification>();
+        public DbSet<NotificationTemplate> NotificationTemplates => Set<NotificationTemplate>();
+        
+        // Audit Entities
+        public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            builder.Entity<Project>().HasIndex(p => new { p.TenantId, p.CreatedAt });
-            builder.Entity<Conversation>().HasIndex(c => new { c.TenantId, c.CreatedAt });
+            
+            // Configure indexes for performance
+            builder.Entity<Project>().HasIndex(p => p.CreatedAt);
+            builder.Entity<Conversation>().HasIndex(c => c.CreatedAt);
             builder.Entity<ChatMessage>().HasIndex(m => new { m.ConversationId, m.CreatedAt });
+            builder.Entity<User>().HasIndex(u => u.Email);
+            builder.Entity<Document>().HasIndex(d => d.CreatedAt);
+            builder.Entity<ServiceRequest>().HasIndex(sr => sr.CreatedAt);
+            builder.Entity<StatusItem>().HasIndex(si => si.ProjectId);
+            builder.Entity<Notification>().HasIndex(n => new { n.UserId, n.IsRead });
+            builder.Entity<AuditLog>().HasIndex(a => new { a.EntityType, a.EntityId });
+            
+            // Configure relationships
+            ConfigureOrganizationRelationships(builder);
+            ConfigureUserRelationships(builder);
+            ConfigureProjectRelationships(builder);
+            ConfigureDocumentRelationships(builder);
+            ConfigureServiceRelationships(builder);
+            ConfigureChatRelationships(builder);
+            ConfigureAIAgentRelationships(builder);
+            ConfigureWorkflowRelationships(builder);
+            ConfigureNotificationRelationships(builder);
+        }
+
+        private void ConfigureOrganizationRelationships(ModelBuilder builder)
+        {
+            // Organization -> Owner relationship
+            builder.Entity<Organization>()
+                .HasOne(o => o.Owner)
+                .WithMany()
+                .HasForeignKey(o => o.OwnerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Organization -> Teams relationship
+            builder.Entity<Organization>()
+                .HasMany(o => o.Teams)
+                .WithOne(t => t.Organization)
+                .HasForeignKey(t => t.OrganizationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Organization -> Members relationship
+            builder.Entity<Organization>()
+                .HasMany(o => o.Members)
+                .WithOne(u => u.Organization)
+                .HasForeignKey(u => u.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Organization -> JoinCodes relationship
+            builder.Entity<Organization>()
+                .HasMany(o => o.JoinCodes)
+                .WithOne(jc => jc.Organization)
+                .HasForeignKey(jc => jc.OrganizationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // OrganizationJoinCode -> CreatedBy relationship
+            builder.Entity<OrganizationJoinCode>()
+                .HasOne(jc => jc.CreatedBy)
+                .WithMany(u => u.CreatedJoinCodes)
+                .HasForeignKey(jc => jc.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure indexes for performance
+            builder.Entity<Organization>().HasIndex(o => o.OwnerId);
+            builder.Entity<OrganizationJoinCode>().HasIndex(jc => jc.Code).IsUnique();
+            builder.Entity<OrganizationJoinCode>().HasIndex(jc => jc.ExpiresAt);
+        }
+
+        private void ConfigureUserRelationships(ModelBuilder builder)
+        {
+            builder.Entity<User>()
+                .HasMany(u => u.TeamMemberships)
+                .WithOne(tm => tm.User)
+                .HasForeignKey(tm => tm.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
+
+        private void ConfigureProjectRelationships(ModelBuilder builder)
+        {
+            builder.Entity<Project>()
+                .HasMany(p => p.StatusItems)
+                .WithOne(si => si.Project)
+                .HasForeignKey(si => si.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Project>()
+                .HasMany(p => p.Assignments)
+                .WithOne(pa => pa.Project)
+                .HasForeignKey(pa => pa.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure User relationships for Project
+            builder.Entity<Project>()
+                .HasOne(p => p.Client)
+                .WithMany()
+                .HasForeignKey(p => p.ClientId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Configure Team relationship for Project
+            builder.Entity<Project>()
+                .HasOne(p => p.Team)
+                .WithMany()
+                .HasForeignKey(p => p.TeamId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Configure self-referencing relationships for StatusItem
+            builder.Entity<StatusItem>()
+                .HasOne(si => si.ParentStatusItem)
+                .WithMany(si => si.SubStatusItems)
+                .HasForeignKey(si => si.ParentStatusItemId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<StatusItem>()
+                .HasMany(si => si.Dependencies)
+                .WithOne(sid => sid.StatusItem)
+                .HasForeignKey(sid => sid.StatusItemId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<StatusItem>()
+                .HasMany(si => si.DependentItems)
+                .WithOne(sid => sid.DependsOnStatusItem)
+                .HasForeignKey(sid => sid.DependsOnStatusItemId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure StatusItemAssignment relationships
+            builder.Entity<StatusItemAssignment>()
+                .HasOne(sia => sia.StatusItem)
+                .WithMany(si => si.Assignments)
+                .HasForeignKey(sia => sia.StatusItemId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<StatusItemAssignment>()
+                .HasOne(sia => sia.User)
+                .WithMany()
+                .HasForeignKey(sia => sia.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure StatusItemComment relationships
+            builder.Entity<StatusItemComment>()
+                .HasOne(sic => sic.StatusItem)
+                .WithMany(si => si.Comments)
+                .HasForeignKey(sic => sic.StatusItemId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<StatusItemComment>()
+                .HasOne(sic => sic.User)
+                .WithMany()
+                .HasForeignKey(sic => sic.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure ProjectAssignment relationships
+            builder.Entity<ProjectAssignment>()
+                .HasOne(pa => pa.User)
+                .WithMany()
+                .HasForeignKey(pa => pa.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
+
+        private void ConfigureDocumentRelationships(ModelBuilder builder)
+        {
+            builder.Entity<Document>()
+                .HasMany(d => d.Versions)
+                .WithOne(dv => dv.Document)
+                .HasForeignKey(dv => dv.DocumentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Document>()
+                .HasMany(d => d.Reviews)
+                .WithOne(dr => dr.Document)
+                .HasForeignKey(dr => dr.DocumentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Document>()
+                .HasMany(d => d.Comments)
+                .WithOne(dc => dc.Document)
+                .HasForeignKey(dc => dc.DocumentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Document>()
+                .HasMany(d => d.Signatures)
+                .WithOne(ds => ds.Document)
+                .HasForeignKey(ds => ds.DocumentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure User relationships for Document
+            builder.Entity<Document>()
+                .HasOne(d => d.CreatedBy)
+                .WithMany()
+                .HasForeignKey(d => d.CreatedById)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Configure Project relationship for Document
+            builder.Entity<Document>()
+                .HasOne(d => d.Project)
+                .WithMany()
+                .HasForeignKey(d => d.ProjectId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Configure StatusItem relationship for Document
+            builder.Entity<Document>()
+                .HasOne(d => d.StatusItem)
+                .WithMany(si => si.RelatedDocuments)
+                .HasForeignKey(d => d.StatusItemId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Configure DocumentVersion relationships
+            builder.Entity<DocumentVersion>()
+                .HasOne(dv => dv.CreatedBy)
+                .WithMany()
+                .HasForeignKey(dv => dv.CreatedById)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Configure DocumentReview relationships
+            builder.Entity<DocumentReview>()
+                .HasOne(dr => dr.Reviewer)
+                .WithMany()
+                .HasForeignKey(dr => dr.ReviewerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure DocumentComment relationships
+            builder.Entity<DocumentComment>()
+                .HasOne(dc => dc.User)
+                .WithMany()
+                .HasForeignKey(dc => dc.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure self-referencing relationships for DocumentComment
+            builder.Entity<DocumentComment>()
+                .HasOne(dc => dc.ParentComment)
+                .WithMany(dc => dc.Replies)
+                .HasForeignKey(dc => dc.ParentCommentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure DocumentSignature relationships
+            builder.Entity<DocumentSignature>()
+                .HasOne(ds => ds.Signer)
+                .WithMany()
+                .HasForeignKey(ds => ds.SignerId)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
+
+        private void ConfigureServiceRelationships(ModelBuilder builder)
+        {
+            builder.Entity<ServiceRequest>()
+                .HasMany(sr => sr.Messages)
+                .WithOne(srm => srm.ServiceRequest)
+                .HasForeignKey(srm => srm.ServiceRequestId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<ServiceRequest>()
+                .HasMany(sr => sr.Attachments)
+                .WithOne(sra => sra.ServiceRequest)
+                .HasForeignKey(sra => sra.ServiceRequestId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Configure User relationships for ServiceRequest
+            builder.Entity<ServiceRequest>()
+                .HasOne(sr => sr.Client)
+                .WithMany()
+                .HasForeignKey(sr => sr.ClientId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            builder.Entity<ServiceRequest>()
+                .HasOne(sr => sr.AssignedTo)
+                .WithMany()
+                .HasForeignKey(sr => sr.AssignedToId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Configure Project relationship for ServiceRequest
+            builder.Entity<ServiceRequest>()
+                .HasOne(sr => sr.Project)
+                .WithMany()
+                .HasForeignKey(sr => sr.ProjectId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Configure self-referencing relationships for ServiceRequestMessage
+            builder.Entity<ServiceRequestMessage>()
+                .HasOne(srm => srm.ParentMessage)
+                .WithMany(srm => srm.Replies)
+                .HasForeignKey(srm => srm.ParentMessageId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure User relationship for ServiceRequestMessage
+            builder.Entity<ServiceRequestMessage>()
+                .HasOne(srm => srm.User)
+                .WithMany()
+                .HasForeignKey(srm => srm.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure User relationship for ServiceRequestAttachment
+            builder.Entity<ServiceRequestAttachment>()
+                .HasOne(sra => sra.UploadedBy)
+                .WithMany()
+                .HasForeignKey(sra => sra.UploadedById)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Configure ServiceRequestMessage relationship for ServiceRequestAttachment
+            builder.Entity<ServiceRequestAttachment>()
+                .HasOne(sra => sra.Message)
+                .WithMany()
+                .HasForeignKey(sra => sra.MessageId)
+                .OnDelete(DeleteBehavior.SetNull);
+        }
+
+        private void ConfigureChatRelationships(ModelBuilder builder)
+        {
+            // Note: ConversationId is string in ChatMessage but int in Conversation, so we'll ignore this relationship for now
+            // TODO: Fix data type mismatch between ChatMessage.ConversationId (string) and Conversation.Id (int)
+
+            builder.Entity<Conversation>()
+                .HasMany(c => c.Participants)
+                .WithOne(cp => cp.Conversation)
+                .HasForeignKey(cp => cp.ConversationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure User relationship for Conversation
+            builder.Entity<Conversation>()
+                .HasOne(c => c.CreatedBy)
+                .WithMany()
+                .HasForeignKey(c => c.CreatedById)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Configure Project relationship for Conversation
+            builder.Entity<Conversation>()
+                .HasOne(c => c.Project)
+                .WithMany()
+                .HasForeignKey(c => c.ProjectId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Configure ServiceRequest relationship for Conversation
+            builder.Entity<Conversation>()
+                .HasOne(c => c.ServiceRequest)
+                .WithMany()
+                .HasForeignKey(c => c.ServiceRequestId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Configure User relationship for ConversationParticipant
+            builder.Entity<ConversationParticipant>()
+                .HasOne(cp => cp.User)
+                .WithMany()
+                .HasForeignKey(cp => cp.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure self-referencing relationships for ChatMessage
+            builder.Entity<ChatMessage>()
+                .HasOne(cm => cm.ParentMessage)
+                .WithMany(cm => cm.ChildMessages)
+                .HasForeignKey(cm => cm.ParentMessageId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<ChatMessage>()
+                .HasOne(cm => cm.ReplyToMessage)
+                .WithMany(cm => cm.Replies)
+                .HasForeignKey(cm => cm.ReplyToMessageId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure User relationship for ChatMessage
+            // Note: UserId is string in ChatMessage but int in User, so we'll ignore this relationship for now
+            // TODO: Fix data type mismatch between ChatMessage.UserId (string) and User.Id (int)
+        }
+
+        private void ConfigureAIAgentRelationships(ModelBuilder builder)
+        {
+            builder.Entity<AIAgent>()
+                .HasMany(aa => aa.Executions)
+                .WithOne(aae => aae.AIAgent)
+                .HasForeignKey(aae => aae.AIAgentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure User relationship for AIAgentExecution
+            builder.Entity<AIAgentExecution>()
+                .HasOne(aae => aae.TriggeredBy)
+                .WithMany()
+                .HasForeignKey(aae => aae.TriggeredById)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Configure AIAgentResult relationships
+            builder.Entity<AIAgentResult>()
+                .HasOne(aar => aar.Conversation)
+                .WithMany()
+                .HasForeignKey(aar => aar.ConversationId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<AIAgentResult>()
+                .HasOne(aar => aar.Project)
+                .WithMany()
+                .HasForeignKey(aar => aar.ProjectId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<AIAgentResult>()
+                .HasOne(aar => aar.Document)
+                .WithMany()
+                .HasForeignKey(aar => aar.DocumentId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<AIAgentResult>()
+                .HasOne(aar => aar.ServiceRequest)
+                .WithMany()
+                .HasForeignKey(aar => aar.ServiceRequestId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<AIAgentResult>()
+                .HasOne(aar => aar.ReviewedBy)
+                .WithMany()
+                .HasForeignKey(aar => aar.ReviewedById)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Configure ChatSummary relationships
+            builder.Entity<ChatSummary>()
+                .HasOne(cs => cs.Conversation)
+                .WithMany()
+                .HasForeignKey(cs => cs.ConversationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure ClientGoal relationships
+            builder.Entity<ClientGoal>()
+                .HasOne(cg => cg.Conversation)
+                .WithMany()
+                .HasForeignKey(cg => cg.ConversationId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<ClientGoal>()
+                .HasOne(cg => cg.Project)
+                .WithMany()
+                .HasForeignKey(cg => cg.ProjectId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<ClientGoal>()
+                .HasOne(cg => cg.ServiceRequest)
+                .WithMany()
+                .HasForeignKey(cg => cg.ServiceRequestId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Configure ReplySuggestion relationships
+            builder.Entity<ReplySuggestion>()
+                .HasOne(rs => rs.Conversation)
+                .WithMany()
+                .HasForeignKey(rs => rs.ConversationId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<ReplySuggestion>()
+                .HasOne(rs => rs.ServiceRequest)
+                .WithMany()
+                .HasForeignKey(rs => rs.ServiceRequestId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Configure ClarityExplanation relationships
+            builder.Entity<ClarityExplanation>()
+                .HasOne(ce => ce.Document)
+                .WithMany()
+                .HasForeignKey(ce => ce.DocumentId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<ClarityExplanation>()
+                .HasOne(ce => ce.Conversation)
+                .WithMany()
+                .HasForeignKey(ce => ce.ConversationId)
+                .OnDelete(DeleteBehavior.SetNull);
+        }
+
+        private void ConfigureWorkflowRelationships(ModelBuilder builder)
+        {
+            builder.Entity<Workflow>()
+                .HasMany(w => w.Instances)
+                .WithOne(wi => wi.Workflow)
+                .HasForeignKey(wi => wi.WorkflowId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure User relationship for WorkflowInstance
+            builder.Entity<WorkflowInstance>()
+                .HasOne(wi => wi.StartedBy)
+                .WithMany()
+                .HasForeignKey(wi => wi.StartedById)
+                .OnDelete(DeleteBehavior.SetNull);
+        }
+
+        private void ConfigureNotificationRelationships(ModelBuilder builder)
+        {
+            builder.Entity<Notification>()
+                .HasOne(n => n.User)
+                .WithMany()
+                .HasForeignKey(n => n.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure Project relationship for Notification
+            builder.Entity<Notification>()
+                .HasOne(n => n.Project)
+                .WithMany()
+                .HasForeignKey(n => n.ProjectId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Configure Document relationship for Notification
+            builder.Entity<Notification>()
+                .HasOne(n => n.Document)
+                .WithMany()
+                .HasForeignKey(n => n.DocumentId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Configure ServiceRequest relationship for Notification
+            builder.Entity<Notification>()
+                .HasOne(n => n.ServiceRequest)
+                .WithMany()
+                .HasForeignKey(n => n.ServiceRequestId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Configure StatusItem relationship for Notification
+            builder.Entity<Notification>()
+                .HasOne(n => n.StatusItem)
+                .WithMany()
+                .HasForeignKey(n => n.StatusItemId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Configure Conversation relationship for Notification
+            builder.Entity<Notification>()
+                .HasOne(n => n.Conversation)
+                .WithMany()
+                .HasForeignKey(n => n.ConversationId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
 
         public override int SaveChanges()
         {
-            foreach (var e in ChangeTracker.Entries<Project>().Where(e => e.State == EntityState.Added))
-                e.Entity.TenantId = _tenant.CurrentTenant;
-            foreach (var e in ChangeTracker.Entries<Conversation>().Where(e => e.State == EntityState.Added))
-                e.Entity.TenantId = _tenant.CurrentTenant;
-            foreach (var e in ChangeTracker.Entries<ChatMessage>().Where(e => e.State == EntityState.Added))
-                e.Entity.TenantId = _tenant.CurrentTenant;
             return base.SaveChanges();
         }
     }

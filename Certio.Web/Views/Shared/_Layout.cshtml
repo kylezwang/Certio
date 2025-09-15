@@ -88,8 +88,8 @@
                 <nav class="flex-fill">
                     <ul class="list-unstyled d-flex flex-column gap-2">
                         <li>
-                            <a asp-controller="Home" asp-action="Projects" 
-                               class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["action"]?.ToString() == "Projects" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")">
+                            <a asp-controller="Project" asp-action="Index" 
+                               class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["controller"]?.ToString() == "Project" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")">
                                 <i class="fas fa-briefcase fs-5"></i>
                                 <span class="fw-medium">Projects</span>
                             </a>
@@ -167,8 +167,8 @@
                     <nav>
                         <ul class="list-unstyled d-flex flex-column gap-2">
                             <li>
-                                <a asp-controller="Home" asp-action="Projects" 
-                                   class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["action"]?.ToString() == "Projects" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")"
+                                <a asp-controller="Project" asp-action="Index" 
+                                   class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["controller"]?.ToString() == "Project" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")"
                                    data-bs-dismiss="offcanvas">
                                     <i class="fas fa-briefcase fs-5"></i>
                                     <span class="fw-medium">Projects</span>

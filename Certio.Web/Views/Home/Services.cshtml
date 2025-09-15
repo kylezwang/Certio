@@ -187,6 +187,11 @@
                 </div>
             </div>
 
+            <!-- Scroll to bottom button -->
+            <button class="scroll-to-bottom-btn" id="scrollToBottomBtn" title="Scroll to bottom">
+                <i class="fas fa-arrow-down"></i>
+            </button>
+
             <!-- Message Input -->
             <div class="message-input-container">
                 <div class="message-input-wrapper">
@@ -289,6 +294,63 @@
                     messageInput.style.height = 'auto';
                 }
             });
+
+            // Auto-scroll to bottom of messages
+            function scrollToBottom() {
+                const messagesContainer = document.querySelector('.messages-container');
+                if (messagesContainer) {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }
+            }
+
+            // Smooth scroll to bottom
+            function smoothScrollToBottom() {
+                const messagesContainer = document.querySelector('.messages-container');
+                if (messagesContainer) {
+                    messagesContainer.scrollTo({
+                        top: messagesContainer.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+
+            // Scroll to bottom on page load (instant, no animation)
+            scrollToBottom();
+            // Also scroll after a short delay to ensure all content is rendered
+            setTimeout(scrollToBottom, 100);
+            // Final scroll after images and other content might load
+            setTimeout(scrollToBottom, 500);
+
+            // Make scrollToBottom available globally for future use
+            window.scrollToBottom = scrollToBottom;
+            window.smoothScrollToBottom = smoothScrollToBottom;
+
+            // Scroll to bottom button functionality
+            const scrollToBottomBtn = document.getElementById('scrollToBottomBtn');
+            const messagesContainer = document.querySelector('.messages-container');
+            
+            if (scrollToBottomBtn && messagesContainer) {
+                // Show/hide scroll to bottom button based on scroll position
+                function toggleScrollButton() {
+                    const isAtBottom = messagesContainer.scrollTop + messagesContainer.clientHeight >= messagesContainer.scrollHeight - 10;
+                    if (isAtBottom) {
+                        scrollToBottomBtn.classList.remove('show');
+                    } else {
+                        scrollToBottomBtn.classList.add('show');
+                    }
+                }
+
+                // Listen for scroll events
+                messagesContainer.addEventListener('scroll', toggleScrollButton);
+
+                // Click handler for scroll to bottom button
+                scrollToBottomBtn.addEventListener('click', function() {
+                    smoothScrollToBottom();
+                });
+
+                // Initial check
+                toggleScrollButton();
+            }
         });
     </script>
 }
