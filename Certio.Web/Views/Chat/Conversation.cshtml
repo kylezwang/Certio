@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Conversation";
     var conversationId = Model.FirstOrDefault()?.ConversationId.ToString() ?? "";
+    Layout = "_ClientLayout";
 }
 
 <div class="container-fluid">

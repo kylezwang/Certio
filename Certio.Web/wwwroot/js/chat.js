@@ -1375,6 +1375,7 @@ function initializeChatLayout() {
     
     const chatPanel = document.getElementById('chatPanel');
     const mainContent = document.querySelector('.main-content');
+    const mainContentWrapper = document.querySelector('.client-main-content-wrapper');
     const resizeHandle = document.getElementById('resizeHandle');
     
     if (chatPanel) {
@@ -1385,9 +1386,15 @@ function initializeChatLayout() {
         resizeHandle.style.right = chatPanelWidth + 'px';
     }
     
-    // Adjust main content margin to account for chat panel
-    if (mainContent) {
-        mainContent.style.marginRight = chatPanelWidth + 'px';
+    // Adjust main content wrapper to account for chat panel
+    if (mainContentWrapper) {
+        mainContentWrapper.style.right = chatPanelWidth + 'px';
+    }
+    
+    // Also set the initial header width
+    const topHeader = document.querySelector('.top-header');
+    if (topHeader) {
+        topHeader.style.marginRight = chatPanelWidth + 'px';
     }
 }
 
@@ -1478,8 +1485,10 @@ function initializeResizeHandle() {
     const resizeHandle = document.getElementById('resizeHandle');
     const chatPanel = document.getElementById('chatPanel');
     const mainContent = document.querySelector('.main-content');
+    const mainContentWrapper = document.querySelector('.client-main-content-wrapper');
+    const topHeader = document.querySelector('.top-header');
     
-    if (!resizeHandle || !chatPanel || !mainContent) return;
+    if (!resizeHandle || !chatPanel || !mainContent || !mainContentWrapper) return;
     
     let isResizing = false;
     let startX = 0;
@@ -1506,7 +1515,12 @@ function initializeResizeHandle() {
         if (newWidth >= minWidth && newWidth <= maxWidth) {
             chatPanel.style.width = newWidth + 'px';
             resizeHandle.style.right = newWidth + 'px';
-            mainContent.style.marginRight = newWidth + 'px';
+            mainContentWrapper.style.right = newWidth + 'px';
+            
+            // Also adjust the top header width
+            if (topHeader) {
+                topHeader.style.marginRight = newWidth + 'px';
+            }
             
             // Save to localStorage
             localStorage.setItem('chatPanelWidth', newWidth);
