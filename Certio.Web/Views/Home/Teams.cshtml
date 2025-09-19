@@ -5,7 +5,7 @@
 
 <div class="min-h-screen">
     <!-- Header -->
-    <div class="d-flex align-items-center justify-content-between mb-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
         <div>
             <h1 class="display-6 fw-bold mb-2">People</h1>
             <p class="lead text-muted">
@@ -55,9 +55,9 @@
             </div>
             <div class="row g-3">
                 <div class="col-md-6 col-lg-3">
-                    <div class="card project-folder-card border-0 shadow-sm">
-                        <div class="card-body p-3">
-                            <div class="d-flex align-items-center">
+                    <div class="card project-folder-card border-0 ">
+                        <div class="card-body">
+                            <div class="project-folder-content">
                                 <div class="flex-grow-1" style="padding-left: 0.3rem;">
                                     <h6 class="fw-semibold text-dark mb-0">Contract Review Automation</h6>
                                     <div class="d-flex align-items-baseline gap-2">
@@ -73,9 +73,9 @@
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-3">
-                    <div class="card project-folder-card border-0 shadow-sm">
-                        <div class="card-body p-3">
-                            <div class="d-flex align-items-center">
+                    <div class="card project-folder-card border-0 ">
+                        <div class="card-body">
+                            <div class="project-folder-content">
                                 <div class="flex-grow-1" style="padding-left: 0.3rem;">
                                     <h6 class="fw-semibold text-dark mb-0">Client Portal Dashboard</h6>
                                     <div class="d-flex align-items-baseline gap-2">
@@ -91,9 +91,9 @@
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-3">
-                    <div class="card project-folder-card border-0 shadow-sm">
-                        <div class="card-body p-3">
-                            <div class="d-flex align-items-center">
+                    <div class="card project-folder-card border-0 ">
+                        <div class="card-body">
+                            <div class="project-folder-content">
                                 <div class="flex-grow-1" style="padding-left: 0.3rem;">
                                     <h6 class="fw-semibold text-dark mb-0">Compliance Tracking System</h6>
                                     <div class="d-flex align-items-baseline gap-2">
@@ -109,9 +109,9 @@
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-3">
-                    <div class="card project-folder-card border-0 shadow-sm">
-                        <div class="card-body p-3">
-                            <div class="d-flex align-items-center">
+                    <div class="card project-folder-card border-0 ">
+                        <div class="card-body">
+                            <div class="project-folder-content">
                                 <div class="flex-grow-1" style="padding-left: 0.3rem;">
                                     <h6 class="fw-semibold text-dark mb-0">Legal Research Assistant</h6>
                                     <div class="d-flex align-items-baseline gap-2">
@@ -164,7 +164,7 @@
                         @foreach (var member in teamMembers)
                         {
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 team-member-card" data-name="@member.Name.ToLower()" data-role="@member.Role.ToLower()">
-                                <div class="card h-100 border-0 shadow-sm hover-shadow transition-smooth cursor-pointer">
+                                <div class="card h-100 border-0  hover-shadow transition-smooth cursor-pointer">
                                     <div class="card-body d-flex flex-column align-items-center text-center p-4">
                                         <!-- Avatar -->
                                         <div class="mb-3">

@@ -25,22 +25,83 @@ body {
 
 /* Project Folders Styles */
 .project-folder-card {
-  background-color: #eef1f3;
+  background-color: #ffffff;
   border-radius: 12px;
   transition: all 0.2s ease-in-out;
   cursor: pointer;
+  height: 100px; /* Fixed height for all cards */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .project-folder-card:hover {
-  background-color: #dee2e6;
+  background-color: #eef1f3;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Ensure card body content is vertically centered */
+.project-folder-card .card-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100px; /* Match card height */
+  padding: 1rem;
+}
+
+/* Ensure the main content container is properly centered */
+.project-folder-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Ensure text content is vertically centered within its container */
+.project-folder-content .flex-grow-1 {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  text-align: left;
+}
+
+/* Ensure all cards in the row have equal height */
+.row.g-3 .col-md-6.col-lg-3 {
+  display: flex;
+}
+
+.project-folder-card {
+  flex: 1;
+}
+
+/* Projects page stats cards vertical centering */
+.row.mb-4 .col-md-3.mb-3 {
+  display: flex;
+}
+
+.row.mb-4 .col-md-3.mb-3 .card {
+  flex: 1;
+  height: 120px; /* Fixed height for stats cards */
+}
+
+.row.mb-4 .col-md-3.mb-3 .card .card-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 120px; /* Match card height */
+  padding: 1rem;
+}
+
+.row.mb-4 .col-md-3.mb-3 .card .card-body .d-flex {
+  width: 100%;
+  justify-content: center;
 }
 
 /* Teams Page Styles */
 .team-member-card {
   transition: all 0.2s ease-in-out;
-  background-color: #eef1f3; /* unified default surface */
+  background-color: rgba(248, 250, 252, 0.4); /* white background */
 }
 
 .team-member-card:hover {
@@ -617,7 +678,7 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 1rem;
-  background-color: #eef1f3;
+  background-color: #ffffff;
   border-bottom: 1px solid #dee2e6;
 }
 
@@ -1465,14 +1526,14 @@ body {
   transition: all 0.3s ease;
   border-radius: 12px;
   border: 1px solid #e5e7eb;
-  background: #eef1f3; /* unified default surface */
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  background: #ffffff; /* default to white */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .project-card:hover {
-  background-color: #dee2e6; /* unified hover surface */
+  background-color: #eef1f3; /* softer hover */
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.2) !important;
   border-color: #0b365e;
 }
 
@@ -1509,7 +1570,7 @@ body {
 .card {
   border-radius: 12px;
   border: 1px solid #e5e7eb;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .badge {
@@ -1524,13 +1585,13 @@ body {
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
   transition: all 0.3s ease;
 }
 
 .stats-card:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.2);
 }
 
 /* Project Status Colors */
@@ -1659,14 +1720,14 @@ body {
 .document-card {
   transition: all 0.3s ease;
   border: 1px solid #e5e7eb;
-  background: #eef1f3; /* unified default surface */
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  background: #ffffff; /* default to white */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .document-card:hover {
-  background-color: #dee2e6; /* unified hover surface */
+  background-color: #eef1f3; /* softer hover */
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.2) !important;
   border-color: #0b365e;
 }
 
@@ -1903,15 +1964,16 @@ body {
 .projects-container .project-card,
 .projects-container .stats-card {
   transition: all 0.3s ease;
-  background: #eef1f3; /* unified default surface */
+  background: #ffffff; /* default to white */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .projects-container .card:hover,
 .projects-container .project-card:hover,
 .projects-container .stats-card:hover {
-  background-color: #dee2e6; /* unified hover surface */
+  background-color: #eef1f3; /* softer hover */
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.2) !important;
   border-color: #0b365e;
 }
 
