@@ -4,6 +4,7 @@ using Certio.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Certio.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250920012718_MultiOrganizationSupport")]
+    partial class MultiOrganizationSupport
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -675,8 +678,10 @@ namespace Certio.Web.Migrations
                     b.Property<DateTime>("ExpiresAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("InvitedRole")
-                        .HasMaxLength(20)
+                    b.Property<int?>("InvitedClientType")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("InvitedExternalType")
                         .HasColumnType("int");
 
                     b.Property<int>("InvitedUserType")
@@ -760,9 +765,6 @@ namespace Certio.Web.Migrations
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
-
-                    b.Property<int>("OrganizationId")
-                        .HasColumnType("int");
 
                     b.Property<string>("Priority")
                         .IsRequired()
@@ -1787,6 +1789,12 @@ namespace Certio.Web.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<int?>("CertioType")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ClientType")
+                        .HasColumnType("int");
+
                     b.Property<string>("Color")
                         .IsRequired()
                         .HasMaxLength(7)
@@ -1811,6 +1819,9 @@ namespace Certio.Web.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<int?>("ExternalType")
+                        .HasColumnType("int");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -1849,6 +1860,10 @@ namespace Certio.Web.Migrations
                     b.PrimitiveCollection<string>("ProjectIds")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserType")
+                        .HasMaxLength(20)
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -1896,10 +1911,6 @@ namespace Certio.Web.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserType")
-                        .HasMaxLength(20)
                         .HasColumnType("int");
 
                     b.HasKey("Id");

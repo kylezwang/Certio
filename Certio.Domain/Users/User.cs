@@ -40,18 +40,13 @@ namespace Certio.Domain.Users
         [StringLength(100)]
         public string? Location { get; set; }
         
-        [Required]
-        [StringLength(20)]
-        public UserType UserType { get; set; } = UserType.Client;
-        
-        public ClientType? ClientType { get; set; }
-        public ExternalType? ExternalType { get; set; }
-        public CertioType? CertioType { get; set; }
+        // Removed global UserType, ClientType, ExternalType, CertioType
+        // These are now handled at the organization level in UserOrganization
 
         public List<int> ProjectIds { get; set; } = new();
         
-        [Required]
-        public int OrganizationId { get; set; }
+        // Removed single OrganizationId - now using many-to-many relationship
+        // public int OrganizationId { get; set; }  // DELETED
         
         public bool IsPersonalOrganization { get; set; } = false;
 
@@ -68,7 +63,7 @@ namespace Certio.Domain.Users
         public DateTime? LastLoginDate { get; set; }
         
         // Navigation properties
-        public virtual Organization Organization { get; set; } = null!;
+        public virtual ICollection<UserOrganization> UserOrganizations { get; set; } = new List<UserOrganization>();
         public virtual ICollection<TeamMembership> TeamMemberships { get; set; } = new List<TeamMembership>();
         public virtual ICollection<ProjectAssignment> ProjectAssignments { get; set; } = new List<ProjectAssignment>();
         public virtual ICollection<ServiceRequest> ServiceRequests { get; set; } = new List<ServiceRequest>();
@@ -80,57 +75,107 @@ namespace Certio.Domain.Users
         public List<string> CustomPermissions { get; set; } = new();
         
         // Helper methods
-        public bool HasProjectAccess(int projectId)
+        public bool IsInOrganization(int organizationId)
         {
-            if (UserType == UserType.Certio)
+            return UserOrganizations.Any(uo => uo.OrganizationId == organizationId && uo.IsActive);
+        }
+        
+        public UserOrganization? GetOrganizationMembership(int organizationId)
+        {
+            return UserOrganizations.FirstOrDefault(uo => uo.OrganizationId == organizationId && uo.IsActive);
+        }
+        
+        public bool IsOrganizationOwner(int organizationId)
+        {
+            var membership = GetOrganizationMembership(organizationId);
+            return membership?.Role == OrganizationRole.Owner;
+        }
+        
+        public bool IsOrganizationAdmin(int organizationId)
+        {
+            var membership = GetOrganizationMembership(organizationId);
+            return membership?.Role == OrganizationRole.Admin || membership?.Role == OrganizationRole.Owner;
+        }
+        
+        public bool IsCertioStaff(int organizationId)
+        {
+            var membership = GetOrganizationMembership(organizationId);
+            return membership?.UserType == UserType.Certio;
+        }
+        
+        public bool IsClient(int organizationId)
+        {
+            var membership = GetOrganizationMembership(organizationId);
+            return membership?.UserType == UserType.Client;
+        }
+        
+        public bool IsExternal(int organizationId)
+        {
+            var membership = GetOrganizationMembership(organizationId);
+            return membership?.UserType == UserType.External;
+        }
+        
+        public UserOrganization? GetPrimaryOrganization()
+        {
+            return UserOrganizations.FirstOrDefault(uo => uo.IsPrimary && uo.IsActive);
+        }
+        
+        public bool HasProjectAccess(int projectId, int organizationId)
+        {
+            var membership = GetOrganizationMembership(organizationId);
+            if (membership == null) return false;
+            
+            if (membership.UserType == UserType.Certio)
                 return true; // Certio staff have access to all projects
                 
-            if (UserType == UserType.Client && ClientType == Domain.Users.ClientType.Owner)
-                return true; // Client owners have access to all their org's projects
-                
+            // Check if user has access through their organization membership
             return ProjectIds.Contains(projectId);
         }
         
-        public bool IsOrganizationOwner()
+        public bool CanCreateJoinCodes(int organizationId)
         {
-            return UserType == UserType.Client && ClientType == Domain.Users.ClientType.Owner;
+            var membership = GetOrganizationMembership(organizationId);
+            if (membership == null) return false;
+            
+            return membership.UserType == UserType.Certio || 
+                   (membership.UserType == UserType.Client && 
+                    (membership.Role == OrganizationRole.Owner || membership.Role == OrganizationRole.Manager || membership.Role == OrganizationRole.Lawyer));
         }
         
-        public bool CanCreateJoinCodes()
+        public bool CanInviteUserType(UserType userType, int organizationId)
         {
-            return UserType == UserType.Certio || 
-                   (UserType == UserType.Client && 
-                    (ClientType == Domain.Users.ClientType.Owner || ClientType == Domain.Users.ClientType.Manager || ClientType == Domain.Users.ClientType.Lawyer));
-        }
-        
-        public bool CanInviteUserType(UserType userType)
-        {
-            if (UserType == UserType.Certio)
+            var membership = GetOrganizationMembership(organizationId);
+            if (membership == null) return false;
+            
+            if (membership.UserType == UserType.Certio)
                 return true; // Certio can invite anyone
                 
-            if (UserType == UserType.Client)
+            if (membership.UserType == UserType.Client)
             {
-                if (ClientType == Domain.Users.ClientType.Owner)
+                if (membership.Role == OrganizationRole.Owner)
                     return true; // Owners can invite anyone
                     
-                if (ClientType == Domain.Users.ClientType.Manager)
+                if (membership.Role == OrganizationRole.Manager)
                     return userType == UserType.Client || userType == UserType.External; // Managers can invite clients and externals
                     
-                if (ClientType == Domain.Users.ClientType.Lawyer)
+                if (membership.Role == OrganizationRole.Lawyer)
                     return userType == UserType.External; // Lawyers can only invite externals
             }
             
             return false;
         }
         
-        public List<Permission> GetEffectivePermissions(int? projectId = null)
+        public List<Permission> GetEffectivePermissions(int organizationId, int? projectId = null)
         {
-            var basePermissions = GetBasePermissions();
+            var membership = GetOrganizationMembership(organizationId);
+            if (membership == null) return new List<Permission>();
+            
+            var basePermissions = GetBasePermissions(membership);
             var customPermissions = CustomPermissions.Select(p => Enum.Parse<Permission>(p)).ToList();
             var effectivePermissions = basePermissions.Union(customPermissions).ToList();
             
             // Project-specific permission filtering
-            if (projectId.HasValue && !HasProjectAccess(projectId.Value))
+            if (projectId.HasValue && !HasProjectAccess(projectId.Value, organizationId))
             {
                 return new List<Permission>(); // No permissions if no project access
             }
@@ -138,64 +183,42 @@ namespace Certio.Domain.Users
             return effectivePermissions;
         }
         
-        private List<Permission> GetBasePermissions()
+        private List<Permission> GetBasePermissions(UserOrganization membership)
         {
-            return UserType switch
+            return membership.UserType switch
             {
-                UserType.Client => ClientType switch
+                UserType.Client => membership.Role switch
                 {
-                    Domain.Users.ClientType.Owner => PermissionSets.ClientOwner,
-                    Domain.Users.ClientType.Manager => PermissionSets.ClientManager,
-                    Domain.Users.ClientType.Member => PermissionSets.ClientMember,
-                    Domain.Users.ClientType.Lawyer => PermissionSets.ClientLawyer,
+                    OrganizationRole.Owner => PermissionSets.ClientOwner,
+                    OrganizationRole.Manager => PermissionSets.ClientManager,
+                    OrganizationRole.Member => PermissionSets.ClientMember,
+                    OrganizationRole.Lawyer => PermissionSets.ClientLawyer,
                     _ => new List<Permission>()
                 },
-                UserType.External => ExternalType switch
+                UserType.External => membership.Role switch
                 {
-                    Domain.Users.ExternalType.OpposingCounsel => PermissionSets.OpposingCounsel,
-                    Domain.Users.ExternalType.ExpertWitness => PermissionSets.ExpertWitness,
-                    Domain.Users.ExternalType.CourtPersonnel => PermissionSets.CourtPersonnel,
-                    Domain.Users.ExternalType.RegulatoryBody => PermissionSets.RegulatoryBody,
-                    Domain.Users.ExternalType.Other => PermissionSets.Other,
+                    OrganizationRole.OpposingCounsel => PermissionSets.OpposingCounsel,
+                    OrganizationRole.ExpertWitness => PermissionSets.ExpertWitness,
+                    OrganizationRole.CourtPersonnel => PermissionSets.CourtPersonnel,
+                    OrganizationRole.RegulatoryBody => PermissionSets.RegulatoryBody,
+                    OrganizationRole.Other => PermissionSets.Other,
                     _ => new List<Permission>()
                 },
-                UserType.Certio => PermissionSets.CertioAdmin, // Full access
+                UserType.Certio => membership.Role switch
+                {
+                    OrganizationRole.Admin => PermissionSets.CertioAdmin,
+                    OrganizationRole.ProjectManager => PermissionSets.CertioProjectManager,
+                    OrganizationRole.Support => PermissionSets.CertioSupport,
+                    OrganizationRole.Legal => PermissionSets.CertioLegal,
+                    _ => PermissionSets.CertioAdmin // Default to admin for Certio
+                },
                 _ => new List<Permission>()
             };
         }
     }
     
-    public enum UserType
-    {
-        Client,
-        External,
-        Certio
-    }
-
-    public enum ClientType
-    {
-        Owner,        // (full access to all projects)
-        Manager,      // (full access to assigned projects)
-        Member,       // (limited access to assigned projects)
-        Lawyer        // (oversight role for legal work)
-    }
-
-    public enum ExternalType
-    {
-        OpposingCounsel,     // Opposing party's lawyers 
-        ExpertWitness,       // Expert witnesses 
-        CourtPersonnel,      // Judges, clerks, court staff 
-        RegulatoryBody,      // Government agencies 
-        Other               // Catch-all for other external parties 
-    }
-
-    public enum CertioType
-    {
-        Admin,              // System administrators
-        ProjectManager,     // Project management
-        Support,            // Certio Customer support
-        Legal              // Certio Legal team
-    }
+    // UserType, ClientType, ExternalType, and CertioType enums moved to UserOrganization.cs
+    // All user types and roles are now organization-specific
 
 public enum Permission
 {
@@ -323,6 +346,38 @@ public static class PermissionSets
         Permission.ViewMessages, Permission.SendMessages, Permission.DeleteMessages,
         Permission.ManageThreads,
         Permission.ViewAuditLogs, Permission.ManageSystemSettings, Permission.AccessAdminPanel
+    };
+
+    // Certio Project Manager - Project management access
+    public static readonly List<Permission> CertioProjectManager = new()
+    {
+        Permission.ViewDocuments, Permission.DownloadDocuments, Permission.UploadDocuments,
+        Permission.CommentOnDocuments,
+        Permission.ViewProjects, Permission.CreateProjects, Permission.EditProjects,
+        Permission.ManageProjectSettings,
+        Permission.InviteUsers, Permission.RemoveUsers,
+        Permission.ViewMessages, Permission.SendMessages, Permission.ManageThreads,
+        Permission.ViewAuditLogs
+    };
+
+    // Certio Support - Customer support access
+    public static readonly List<Permission> CertioSupport = new()
+    {
+        Permission.ViewDocuments, Permission.DownloadDocuments,
+        Permission.ViewProjects,
+        Permission.ViewMessages, Permission.SendMessages,
+        Permission.ViewAuditLogs
+    };
+
+    // Certio Legal - Legal team access
+    public static readonly List<Permission> CertioLegal = new()
+    {
+        Permission.ViewDocuments, Permission.DownloadDocuments, Permission.UploadDocuments,
+        Permission.CommentOnDocuments,
+        Permission.ViewProjects, Permission.EditProjects, Permission.ManageProjectSettings,
+        Permission.InviteUsers, Permission.RemoveUsers,
+        Permission.ViewMessages, Permission.SendMessages, Permission.ManageThreads,
+        Permission.ViewAuditLogs
     };
 }
 }

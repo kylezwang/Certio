@@ -31,6 +31,9 @@ public class Project
     [StringLength(20)]
     public string ProjectType { get; set; } = "Legal"; // Legal, Business, Compliance, etc.
     
+    [Required]
+    public int OrganizationId { get; set; }
+    
     public int? TeamId { get; set; }
     public int? ClientId { get; set; }
     

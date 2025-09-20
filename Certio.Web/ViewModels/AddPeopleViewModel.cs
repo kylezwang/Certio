@@ -12,9 +12,8 @@ namespace Certio.Web.ViewModels
         [Required]
         public UserType UserType { get; set; } = UserType.Client;
 
-        public ClientType? ClientType { get; set; }
-
-        public ExternalType? ExternalType { get; set; }
+        [Required]
+        public OrganizationRole Role { get; set; } = OrganizationRole.Member;
     }
 }
 

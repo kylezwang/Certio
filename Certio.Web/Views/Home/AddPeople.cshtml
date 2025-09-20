@@ -51,32 +51,21 @@
                                 <select asp-for="UserType" class="form-select form-select-lg" id="userTypeSelect">
                                     <option value="@Certio.Domain.Users.UserType.Client">Client</option>
                                     <option value="@Certio.Domain.Users.UserType.External">External</option>
+                                    <option value="@Certio.Domain.Users.UserType.Certio">Certio</option>
                                 </select>
                                 <span asp-validation-for="UserType" class="text-danger"></span>
                             </div>
 
-                            <div class="mb-4" id="clientTypeGroup" style="display:none;">
-                                <label asp-for="ClientType" class="form-label fw-bold text-dark">Client Type</label>
-                                <select asp-for="ClientType" class="form-select form-select-lg">
-                                    <option value="">Select client type</option>
-                                    @foreach (var ct in Enum.GetValues(typeof(Certio.Domain.Users.ClientType)))
+                            <div class="mb-4">
+                                <label asp-for="Role" class="form-label fw-bold text-dark">Role <span class="text-danger">*</span></label>
+                                <select asp-for="Role" class="form-select form-select-lg" id="roleSelect">
+                                    <option value="">Select role</option>
+                                    @foreach (var role in Enum.GetValues(typeof(Certio.Domain.Users.OrganizationRole)))
                                     {
-                                        <option value="@ct">@ct</option>
+                                        <option value="@role">@role</option>
                                     }
                                 </select>
-                                <span asp-validation-for="ClientType" class="text-danger"></span>
-                            </div>
-
-                            <div class="mb-4" id="externalTypeGroup" style="display:none;">
-                                <label asp-for="ExternalType" class="form-label fw-bold text-dark">External Type</label>
-                                <select asp-for="ExternalType" class="form-select form-select-lg">
-                                    <option value="">Select external type</option>
-                                    @foreach (var et in Enum.GetValues(typeof(Certio.Domain.Users.ExternalType)))
-                                    {
-                                        <option value="@et">@et</option>
-                                    }
-                                </select>
-                                <span asp-validation-for="ExternalType" class="text-danger"></span>
+                                <span asp-validation-for="Role" class="text-danger"></span>
                             </div>
 
                             <div class="d-flex justify-content-end">
@@ -107,25 +96,41 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const userTypeSelect = document.getElementById('userTypeSelect');
-            const clientTypeGroup = document.getElementById('clientTypeGroup');
-            const externalTypeGroup = document.getElementById('externalTypeGroup');
+            const roleSelect = document.getElementById('roleSelect');
 
-            function updateVisibility() {
-                const val = userTypeSelect.value;
-                if (val === 'Client') {
-                    clientTypeGroup.style.display = '';
-                    externalTypeGroup.style.display = 'none';
-                } else if (val === 'External') {
-                    clientTypeGroup.style.display = 'none';
-                    externalTypeGroup.style.display = '';
-                } else {
-                    clientTypeGroup.style.display = 'none';
-                    externalTypeGroup.style.display = 'none';
+            function updateRoleOptions() {
+                const userType = userTypeSelect.value;
+                const currentRole = roleSelect.value;
+                
+                // Clear existing options except the first one
+                roleSelect.innerHTML = '<option value="">Select role</option>';
+                
+                // Add role options based on user type
+                const allRoles = @Html.Raw(Json.Serialize(Enum.GetValues<Certio.Domain.Users.OrganizationRole>()));
+                
+                allRoles.forEach(function(role) {
+                    const option = document.createElement('option');
+                    option.value = role;
+                    option.textContent = role;
+                    
+                    // Filter roles based on user type
+                    if (userType === 'Client' && ['Owner', 'Manager', 'Member', 'Lawyer'].includes(role)) {
+                        roleSelect.appendChild(option);
+                    } else if (userType === 'External' && ['OpposingCounsel', 'ExpertWitness', 'CourtPersonnel', 'RegulatoryBody', 'Other'].includes(role)) {
+                        roleSelect.appendChild(option);
+                    } else if (userType === 'Certio' && ['Admin', 'ProjectManager', 'Support', 'Legal'].includes(role)) {
+                        roleSelect.appendChild(option);
+                    }
+                });
+                
+                // Restore previous selection if still valid
+                if (currentRole && roleSelect.querySelector(`option[value="${currentRole}"]`)) {
+                    roleSelect.value = currentRole;
                 }
             }
 
-            updateVisibility();
-            userTypeSelect.addEventListener('change', updateVisibility);
+            updateRoleOptions();
+            userTypeSelect.addEventListener('change', updateRoleOptions);
         });
     </script>
 }

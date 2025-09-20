@@ -23,6 +23,7 @@ namespace Certio.Web.Data
         // Core Entities
         public new DbSet<User> Users => Set<User>();
         public DbSet<Organization> Organizations => Set<Organization>();
+        public DbSet<UserOrganization> UserOrganizations => Set<UserOrganization>();
         public DbSet<OrganizationJoinCode> OrganizationJoinCodes => Set<OrganizationJoinCode>();
         public DbSet<Team> Teams => Set<Team>();
         public DbSet<TeamMembership> TeamMemberships => Set<TeamMembership>();
@@ -89,6 +90,7 @@ namespace Certio.Web.Data
             
             // Configure relationships
             ConfigureOrganizationRelationships(builder);
+            ConfigureUserOrganizationRelationships(builder);
             ConfigureUserRelationships(builder);
             ConfigureProjectRelationships(builder);
             ConfigureDocumentRelationships(builder);
@@ -115,12 +117,12 @@ namespace Certio.Web.Data
                 .HasForeignKey(t => t.OrganizationId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Organization -> Members relationship
+            // Organization -> UserOrganizations relationship
             builder.Entity<Organization>()
-                .HasMany(o => o.Members)
-                .WithOne(u => u.Organization)
-                .HasForeignKey(u => u.OrganizationId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .HasMany(o => o.UserOrganizations)
+                .WithOne(uo => uo.Organization)
+                .HasForeignKey(uo => uo.OrganizationId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Organization -> JoinCodes relationship
             builder.Entity<Organization>()
@@ -140,6 +142,36 @@ namespace Certio.Web.Data
             builder.Entity<Organization>().HasIndex(o => o.OwnerId);
             builder.Entity<OrganizationJoinCode>().HasIndex(jc => jc.Code).IsUnique();
             builder.Entity<OrganizationJoinCode>().HasIndex(jc => jc.ExpiresAt);
+        }
+
+        private void ConfigureUserOrganizationRelationships(ModelBuilder builder)
+        {
+            // UserOrganization -> User relationship
+            builder.Entity<UserOrganization>()
+                .HasOne(uo => uo.User)
+                .WithMany(u => u.UserOrganizations)
+                .HasForeignKey(uo => uo.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // UserOrganization -> Organization relationship
+            builder.Entity<UserOrganization>()
+                .HasOne(uo => uo.Organization)
+                .WithMany(o => o.UserOrganizations)
+                .HasForeignKey(uo => uo.OrganizationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Composite unique index to prevent duplicate memberships
+            builder.Entity<UserOrganization>()
+                .HasIndex(uo => new { uo.UserId, uo.OrganizationId })
+                .IsUnique();
+
+            // Index for performance
+            builder.Entity<UserOrganization>()
+                .HasIndex(uo => new { uo.OrganizationId, uo.IsActive });
+                
+            // Index for primary organization lookup
+            builder.Entity<UserOrganization>()
+                .HasIndex(uo => new { uo.UserId, uo.IsPrimary, uo.IsActive });
         }
 
         private void ConfigureUserRelationships(ModelBuilder builder)
