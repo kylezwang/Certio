@@ -18,23 +18,51 @@ namespace Certio.Domain.Organizations
         [Required]
         public int OwnerId { get; set; }
         
-        public bool IsPersonal { get; set; } = false;
+        // Add organization type for better categorization
+        [Required]
+        [StringLength(20)]
+        public OrganizationType Type { get; set; } = OrganizationType.Business;
         
+        public bool IsPersonal { get; set; } = false;
+        public bool IsActive { get; set; } = true;
+        
+        // Add organization settings
         [StringLength(50)]
         public string? Color { get; set; } = "#007bff";
         
         [StringLength(50)]
         public string? Logo { get; set; }
         
-        public bool IsActive { get; set; } = true;
+        // Add organization preferences
+        public string? Settings { get; set; } // JSON for custom settings
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? LastModifiedDate { get; set; }
         
         // Navigation properties
         public virtual User Owner { get; set; } = null!;
+        public virtual ICollection<UserOrganization> UserOrganizations { get; set; } = new List<UserOrganization>();
         public virtual ICollection<Team> Teams { get; set; } = new List<Team>();
-        public virtual ICollection<User> Members { get; set; } = new List<User>();
         public virtual ICollection<OrganizationJoinCode> JoinCodes { get; set; } = new List<OrganizationJoinCode>();
+        
+        // Helper methods
+        public bool HasUser(int userId)
+        {
+            return UserOrganizations.Any(uo => uo.UserId == userId && uo.IsActive);
+        }
+        
+        public UserOrganization? GetUserMembership(int userId)
+        {
+            return UserOrganizations.FirstOrDefault(uo => uo.UserId == userId && uo.IsActive);
+        }
+    }
+    
+    public enum OrganizationType
+    {
+        Personal,     // Individual user's personal organization
+        Business,     // Business/company organization
+        LawFirm,      // Law firm organization
+        Government,   // Government agency
+        NonProfit     // Non-profit organization
     }
 }

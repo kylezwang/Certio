@@ -21,8 +21,9 @@ namespace Certio.Domain.Organizations
         [StringLength(20)]
         public UserType InvitedUserType { get; set; }
         
-        public ClientType? InvitedClientType { get; set; }
-        public ExternalType? InvitedExternalType { get; set; }
+        [Required]
+        [StringLength(20)]
+        public OrganizationRole InvitedRole { get; set; } = OrganizationRole.Member;
         
         [StringLength(100)]
         public string? TeamName { get; set; }

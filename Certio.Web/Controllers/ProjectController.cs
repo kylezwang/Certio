@@ -20,7 +20,21 @@ namespace Certio.Web.Controllers
         // GET: Project
         public async Task<IActionResult> Index()
         {
+            // Get current user and their organization
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            var primaryOrg = customUser.GetPrimaryOrganization();
+            if (primaryOrg == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
             var projects = await _context.Projects
+                .Where(p => p.OrganizationId == primaryOrg.OrganizationId)
                 .Include(p => p.Assignments)
                     .ThenInclude(a => a.User)
                 .ToListAsync();
@@ -38,6 +52,7 @@ namespace Certio.Web.Controllers
                         Priority = "High",
                         Category = "AI/ML",
                         ProjectType = "Contract Management",
+                        OrganizationId = primaryOrg.OrganizationId,
                         DueDate = new DateTime(2024, 2, 15),
                         CreatedAt = DateTime.UtcNow,
                         LastModifiedDate = DateTime.UtcNow
@@ -50,6 +65,7 @@ namespace Certio.Web.Controllers
                         Priority = "Medium",
                         Category = "Frontend",
                         ProjectType = "Client Portal",
+                        OrganizationId = primaryOrg.OrganizationId,
                         DueDate = new DateTime(2024, 2, 28),
                         CreatedAt = DateTime.UtcNow,
                         LastModifiedDate = DateTime.UtcNow
@@ -62,6 +78,7 @@ namespace Certio.Web.Controllers
                         Priority = "High",
                         Category = "Backend",
                         ProjectType = "Compliance Tracking",
+                        OrganizationId = primaryOrg.OrganizationId,
                         DueDate = new DateTime(2024, 3, 10),
                         CreatedAt = DateTime.UtcNow,
                         LastModifiedDate = DateTime.UtcNow
@@ -74,6 +91,7 @@ namespace Certio.Web.Controllers
                         Priority = "Medium",
                         Category = "AI/ML",
                         ProjectType = "Legal Research",
+                        OrganizationId = primaryOrg.OrganizationId,
                         DueDate = new DateTime(2024, 1, 30),
                         CreatedAt = DateTime.UtcNow,
                         LastModifiedDate = DateTime.UtcNow
@@ -85,6 +103,7 @@ namespace Certio.Web.Controllers
                 
                 // Reload projects from database
                 projects = await _context.Projects
+                    .Where(p => p.OrganizationId == primaryOrg.OrganizationId)
                     .Include(p => p.Assignments)
                         .ThenInclude(a => a.User)
                     .ToListAsync();
@@ -96,7 +115,9 @@ namespace Certio.Web.Controllers
                 ActiveProjectsCount = projects.Count(p => p.Status == "In Progress"),
                 CompletedProjectsCount = projects.Count(p => p.Status == "Completed"),
                 InReviewProjectsCount = projects.Count(p => p.Status == "Review"),
-                TeamMembersCount = await _context.Users.CountAsync()
+                TeamMembersCount = await _context.UserOrganizations
+                    .Where(uo => uo.OrganizationId == primaryOrg.OrganizationId && uo.IsActive)
+                    .CountAsync()
             };
 
             return View(viewModel);
@@ -110,10 +131,24 @@ namespace Certio.Web.Controllers
                 return NotFound();
             }
 
+            // Get current user and their organization
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            var primaryOrg = customUser.GetPrimaryOrganization();
+            if (primaryOrg == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
             var project = await _context.Projects
+                .Where(p => p.Id == id && p.OrganizationId == primaryOrg.OrganizationId)
                 .Include(p => p.Assignments)
                     .ThenInclude(a => a.User)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync();
 
             if (project == null)
             {
@@ -321,21 +356,43 @@ namespace Certio.Web.Controllers
 
         private async Task PopulateClientAndTeamData(ProjectFormViewModel model)
         {
-            // Get clients (users with UserType.Client)
-            var clients = await _context.Users
-                .Where(u => u.UserType == Certio.Domain.Users.UserType.Client && u.IsActive)
-                .Select(u => new ClientOption
+            // Get current user and their organization
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                // If no user context, return empty lists
+                model.Clients = new List<ClientOption>();
+                model.Teams = new List<TeamOption>();
+                return;
+            }
+
+            var primaryOrg = customUser.GetPrimaryOrganization();
+            if (primaryOrg == null)
+            {
+                // If no organization, return empty lists
+                model.Clients = new List<ClientOption>();
+                model.Teams = new List<TeamOption>();
+                return;
+            }
+
+            // Get clients (users with Client role in the same organization)
+            var clients = await _context.UserOrganizations
+                .Where(uo => uo.OrganizationId == primaryOrg.OrganizationId && 
+                            uo.UserType == Certio.Domain.Users.UserType.Client && 
+                            uo.IsActive)
+                .Include(uo => uo.User)
+                .Select(uo => new ClientOption
                 {
-                    Id = u.Id,
-                    Name = $"{u.FirstName} {u.LastName}",
-                    Company = u.Company ?? "No Company",
-                    Email = u.Email
+                    Id = uo.User.Id,
+                    Name = $"{uo.User.FirstName} {uo.User.LastName}",
+                    Company = uo.User.Company ?? "No Company",
+                    Email = uo.User.Email
                 })
                 .ToListAsync();
 
-            // Get teams
+            // Get teams in the same organization
             var teams = await _context.Teams
-                .Where(t => t.IsActive)
+                .Where(t => t.OrganizationId == primaryOrg.OrganizationId && t.IsActive)
                 .Select(t => new TeamOption
                 {
                     Id = t.Id,

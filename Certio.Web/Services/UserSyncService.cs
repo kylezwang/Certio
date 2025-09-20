@@ -172,16 +172,12 @@ namespace Certio.Web.Services
                 }
             }
 
-            // Determine user type based on email domain or other criteria
-            var userType = DetermineUserType(identityUser.Email);
-
             var customUser = new User
             {
                 FirstName = firstName,
                 LastName = lastName,
                 Email = identityUser.Email ?? "",
                 PhoneNumber = identityUser.PhoneNumber,
-                UserType = userType,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 LastLoginDate = DateTime.UtcNow,
@@ -200,31 +196,80 @@ namespace Certio.Web.Services
             {
                 var changed = false;
 
-                // Ensure Organization
-                if (user.OrganizationId == 0)
+                // Check if user already has active organizations
+                var existingOrganizations = await _context.UserOrganizations
+                    .Where(uo => uo.UserId == user.Id && uo.IsActive)
+                    .ToListAsync();
+
+                _logger.LogDebug("User {UserId} has {Count} active organizations", user.Id, existingOrganizations.Count);
+
+                if (existingOrganizations.Count == 0)
                 {
-                    // Create a personal organization for the user
-                    var org = new Certio.Domain.Organizations.Organization
+                    _logger.LogInformation("Creating personal organization for user {UserId}", user.Id);
+                    
+                    // Use a transaction to prevent race conditions
+                    using var transaction = await _context.Database.BeginTransactionAsync();
+                    
+                    try
                     {
-                        Name = $"{user.FirstName} {user.LastName}'s Organization",
-                        OwnerId = user.Id,
-                        CreatedAt = DateTime.UtcNow,
-                        IsActive = true
-                    };
-                    _context.Organizations.Add(org);
-                    await _context.SaveChangesAsync();
+                        // Double-check within transaction to prevent race conditions
+                        var hasOrganizationsInTransaction = await _context.UserOrganizations
+                            .AnyAsync(uo => uo.UserId == user.Id && uo.IsActive);
 
-                    user.OrganizationId = org.Id;
-                    user.IsPersonalOrganization = true;
-                    changed = true;
+                        if (!hasOrganizationsInTransaction)
+                        {
+                            // Create a personal organization for the user
+                            var org = new Certio.Domain.Organizations.Organization
+                            {
+                                Name = $"{user.FirstName} {user.LastName}'s Organization",
+                                OwnerId = user.Id,
+                                Type = Certio.Domain.Organizations.OrganizationType.Personal,
+                                CreatedAt = DateTime.UtcNow,
+                                IsActive = true,
+                                IsPersonal = true
+                            };
+                            _context.Organizations.Add(org);
+                            await _context.SaveChangesAsync();
+
+                            // Add user to organization as owner
+                            var userOrg = new Certio.Domain.Users.UserOrganization
+                            {
+                                UserId = user.Id,
+                                OrganizationId = org.Id,
+                                UserType = Certio.Domain.Users.UserType.Client,
+                                Role = Certio.Domain.Users.OrganizationRole.Owner,
+                                IsPrimary = true,
+                                IsActive = true,
+                                JoinedAt = DateTime.UtcNow
+                            };
+                            _context.UserOrganizations.Add(userOrg);
+                            user.IsPersonalOrganization = true;
+                            changed = true;
+
+                            await _context.SaveChangesAsync();
+                            await transaction.CommitAsync();
+                            
+                            _logger.LogInformation("Successfully created personal organization {OrgId} for user {UserId}", org.Id, user.Id);
+                        }
+                        else
+                        {
+                            _logger.LogDebug("User {UserId} already has organizations within transaction, skipping creation", user.Id);
+                            await transaction.RollbackAsync();
+                        }
+                    }
+                    catch
+                    {
+                        await transaction.RollbackAsync();
+                        throw;
+                    }
                 }
-
-                // Ensure subtype for Client users for permissions
-                if (user.UserType == UserType.Client && user.ClientType == null)
+                else
                 {
-                    user.ClientType = ClientType.Owner;
-                    changed = true;
+                    _logger.LogDebug("User {UserId} already has {Count} organizations, skipping creation", user.Id, existingOrganizations.Count);
                 }
+
+                // ClientType is now handled at the organization level in UserOrganization
+                // No need to set global ClientType anymore
 
                 // No defaults needed for External subtype here
 
@@ -243,24 +288,6 @@ namespace Certio.Web.Services
             }
         }
 
-        /// <summary>
-        /// Determines the appropriate UserType for the user
-        /// </summary>
-        private UserType DetermineUserType(string? email)
-        {
-            if (string.IsNullOrEmpty(email))
-                return UserType.Client;
-
-            // Check for Certio internal domains
-            var certioDomains = new[] { "certio.com", "certio.co", "certio.io" };
-            if (certioDomains.Any(domain => email.EndsWith($"@{domain}", StringComparison.OrdinalIgnoreCase)))
-            {
-                return UserType.Certio;
-            }
-
-            // Default to Client for external users
-            return UserType.Client;
-        }
 
         /// <summary>
         /// Capitalizes the first letter of a string

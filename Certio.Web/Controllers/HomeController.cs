@@ -190,32 +190,30 @@ namespace Certio.Web.Controllers
                 return View(model);
             }
 
+            // Get the primary organization for the user
+            var primaryOrg = customUser.GetPrimaryOrganization();
+            if (primaryOrg == null)
+            {
+                TempData["Error"] = "User must have a primary organization to generate join codes.";
+                return RedirectToAction("Teams");
+            }
+
             // Only allow creating join codes if permitted
-            if (!customUser.CanCreateJoinCodes())
+            if (!customUser.CanCreateJoinCodes(primaryOrg.OrganizationId))
             {
                 TempData["Error"] = "You do not have permission to create join codes.";
                 return View(model);
             }
 
-            // Validate dependent type selection
-            if (model.UserType == UserType.Client && model.ClientType == null)
-            {
-                ModelState.AddModelError(nameof(model.ClientType), "Client type is required for Client user type.");
-                return View(model);
-            }
-            if (model.UserType == UserType.External && model.ExternalType == null)
-            {
-                ModelState.AddModelError(nameof(model.ExternalType), "External type is required for External user type.");
-                return View(model);
-            }
+            // Validate dependent type selection - now handled at organization level
+            // UserType and role validation will be done when creating UserOrganization
 
             // Generate join code (1 use, 7 days TTL). teamName not used for now.
             var join = await _joinCodeService.GenerateAsync(
-                organizationId: customUser.OrganizationId,
+                organizationId: primaryOrg.OrganizationId,
                 createdByUserId: customUser.Id,
                 invitedUserType: model.UserType,
-                invitedClientType: model.UserType == UserType.Client ? model.ClientType : null,
-                invitedExternalType: model.UserType == UserType.External ? model.ExternalType : null,
+                invitedRole: GetOrganizationRoleFromModel(model),
                 teamName: null,
                 maxUses: 1,
                 ttl: TimeSpan.FromDays(7),
@@ -229,8 +227,7 @@ namespace Certio.Web.Controllers
             return View(new Certio.Web.ViewModels.AddPeopleViewModel
             {
                 UserType = model.UserType,
-                ClientType = model.ClientType,
-                ExternalType = model.ExternalType
+                Role = model.Role
             });
         }
 
@@ -410,15 +407,13 @@ namespace Certio.Web.Controllers
                 int organizationId;
                 bool isPersonal = false;
                 var userType = Certio.Domain.Users.UserType.Client;
-                Certio.Domain.Users.ClientType? clientType = null;
-                Certio.Domain.Users.ExternalType? externalType = null;
+                var organizationRole = Certio.Domain.Users.OrganizationRole.Member;
 
                 if (validJoin != null)
                 {
                     organizationId = validJoin.OrganizationId;
                     userType = validJoin.InvitedUserType;
-                    clientType = validJoin.InvitedClientType;
-                    externalType = validJoin.InvitedExternalType;
+                    organizationRole = validJoin.InvitedRole;
                 }
                 else
                 {
@@ -437,7 +432,7 @@ namespace Certio.Web.Controllers
                     organizationId = org.Id;
                     isPersonal = true;
                     userType = Certio.Domain.Users.UserType.Client;
-                    clientType = Certio.Domain.Users.ClientType.Owner;
+                    organizationRole = Certio.Domain.Users.OrganizationRole.Owner;
                 }
 
                 // Create custom User record
@@ -447,10 +442,6 @@ namespace Certio.Web.Controllers
                     LastName = lastName,
                     Email = storedEmail,
                     PhoneNumber = phoneNumber,
-                    UserType = userType,
-                    ClientType = clientType,
-                    ExternalType = externalType,
-                    OrganizationId = organizationId,
                     IsPersonalOrganization = isPersonal,
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow,
@@ -460,6 +451,19 @@ namespace Certio.Web.Controllers
                 _context.Users.Add(customUser);
                 await _context.SaveChangesAsync();
 
+                // Add user to organization
+                var userOrg = new Certio.Domain.Users.UserOrganization
+                {
+                    UserId = customUser.Id,
+                    OrganizationId = organizationId,
+                    UserType = userType,
+                    Role = organizationRole,
+                    IsPrimary = true, // First organization is primary
+                    IsActive = true,
+                    JoinedAt = DateTime.UtcNow
+                };
+                _context.UserOrganizations.Add(userOrg);
+
                 // If personal org, set ownerId to the just-created user
                 if (isPersonal)
                 {
@@ -467,9 +471,10 @@ namespace Certio.Web.Controllers
                     if (org != null)
                     {
                         org.OwnerId = customUser.Id;
-                        await _context.SaveChangesAsync();
                     }
                 }
+                
+                await _context.SaveChangesAsync();
 
                 // If joined via code, consume code and add to team if specified
                 if (validJoin != null)
@@ -1132,6 +1137,12 @@ namespace Certio.Web.Controllers
         public IActionResult Privacy()
         {
             return View();
+        }
+        
+        private OrganizationRole GetOrganizationRoleFromModel(AddPeopleViewModel model)
+        {
+            // Now the model directly contains the OrganizationRole
+            return model.Role;
         }
     }
 }

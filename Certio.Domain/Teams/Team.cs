@@ -30,6 +30,7 @@ namespace Certio.Domain.Teams
         public string? Icon { get; set; } = "fas fa-users";
         
         public bool IsActive { get; set; } = true;
+        public bool IsPrivate { get; set; } = false; // Private teams within organization
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? LastModifiedDate { get; set; }
@@ -38,6 +39,12 @@ namespace Certio.Domain.Teams
         public virtual Organization Organization { get; set; } = null!;
         public virtual ICollection<TeamMembership> Memberships { get; set; } = new List<TeamMembership>();
         public virtual ICollection<Project> Projects { get; set; } = new List<Project>();
+        
+        // Helper methods
+        public bool HasUser(int userId)
+        {
+            return Memberships.Any(tm => tm.UserId == userId && tm.Status == "Active");
+        }
     }
     
     public class TeamMembership
@@ -56,6 +63,7 @@ namespace Certio.Domain.Teams
         
         public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
         public DateTime? LeftAt { get; set; }
+        public DateTime? LastActiveAt { get; set; }
         
         // Navigation properties
         public virtual User User { get; set; } = null!;

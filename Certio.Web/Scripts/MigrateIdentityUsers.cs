@@ -147,16 +147,12 @@ namespace Certio.Web.Scripts
                 }
             }
 
-            // Determine user type based on email domain or other criteria
-            var userType = DetermineUserType(identityUser.Email);
-
             var customUser = new User
             {
                 FirstName = firstName,
                 LastName = lastName,
                 Email = identityUser.Email ?? "",
                 PhoneNumber = identityUser.PhoneNumber,
-                UserType = userType,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 LastLoginDate = DateTime.UtcNow,
@@ -166,24 +162,6 @@ namespace Certio.Web.Scripts
             return Task.FromResult(customUser);
         }
 
-        /// <summary>
-        /// Determines the appropriate UserType for the user
-        /// </summary>
-        private UserType DetermineUserType(string? email)
-        {
-            if (string.IsNullOrEmpty(email))
-                return UserType.Client;
-
-            // Check for Certio internal domains
-            var certioDomains = new[] { "certio.com", "certio.co", "certio.io" };
-            if (certioDomains.Any(domain => email.EndsWith($"@{domain}", StringComparison.OrdinalIgnoreCase)))
-            {
-                return UserType.Certio;
-            }
-
-            // Default to Client for external users
-            return UserType.Client;
-        }
 
         /// <summary>
         /// Capitalizes the first letter of a string

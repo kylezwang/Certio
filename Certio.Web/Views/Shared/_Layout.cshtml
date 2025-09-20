@@ -52,7 +52,7 @@
             margin: 0.25rem 0;
         }
 
-        .global-navbar .nav-link {
+        .global-navbar .global-nav-link {
             color: white;
             padding: 0.75rem 0.25rem;
             text-decoration: none;
@@ -60,36 +60,17 @@
             flex-direction: column;
             align-items: center;
             gap: 0.5rem;
-            transition: all 0.2s ease;
-            border-radius: 0;
             text-align: center;
         }
 
-        .global-navbar .nav-link:hover {
-            background-color: rgba(255,255,255,0.1);
-            color: white;
-        }
 
-        .global-navbar .nav-link:hover i {
-            color: white;
-        }
-
-        .global-navbar .nav-link.active {
-            background-color: rgba(255,255,255,0.2);
-            color: white;
-        }
-
-        .global-navbar .nav-link.active i {
-            color: white;
-        }
-
-        .global-navbar .nav-link i {
+        .global-navbar .global-nav-link i {
             width: 24px;
             text-align: center;
             font-size: 1.2rem;
         }
 
-        .global-navbar .nav-link span {
+        .global-navbar .global-nav-link span {
             font-size: 0.75rem;
             font-weight: 500;
             line-height: 1.2;
@@ -131,20 +112,22 @@
                 flex-shrink: 0;
             }
 
-            .global-navbar .nav-link {
+            .global-navbar .global-nav-link {
                 padding: 1rem 0.75rem;
                 flex-direction: column;
                 text-align: center;
                 min-width: 80px;
                 gap: 0.5rem;
+                margin: 0;
+                width: auto;
             }
 
-            .global-navbar .nav-link i {
+            .global-navbar .global-nav-link i {
                 font-size: 1.2rem;
                 width: 24px;
             }
 
-            .global-navbar .nav-link span {
+            .global-navbar .global-nav-link span {
                 font-size: 0.75rem;
                 line-height: 1.2;
             }
@@ -159,6 +142,152 @@
             margin: 0;
             padding: 0;
         }
+
+        /* Clients Popup Styles */
+        .clients-popup {
+            position: fixed;
+            top: 0;
+            left: 6vw;
+            width: 320px;
+            height: 100vh;
+            background-color: #ffffff;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+            z-index: 999;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            overflow: hidden;
+        }
+
+        .clients-popup.show {
+            transform: translateX(0);
+        }
+
+        .clients-popup-header {
+            background-color: rgba(11, 54, 94, 0.05);
+            color: black;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .clients-popup-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .clients-popup-close {
+            background: none;
+            border: none;
+            color: black;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .clients-popup-close:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .clients-popup-content {
+            padding: 0;
+            height: calc(100vh - 80px);
+            overflow-y: auto;
+        }
+
+        .clients-section-header {
+            padding: 1rem 1rem 0.5rem 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .clients-section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .clients-list {
+            padding: 0.5rem 0;
+        }
+
+        .client-item {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #f3f4f6;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .client-item:hover {
+            background-color: #f9fafb;
+        }
+
+        .client-item:last-child {
+            border-bottom: none;
+        }
+
+        .client-name {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        .client-company {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin: 0;
+        }
+
+        .client-status {
+            color: #6b7280;
+            font-size: 0.8rem;
+            margin: 0;
+        }
+
+        /* Global Nav Button Hover and Selected States - Unified Styling */
+        .global-navbar .global-nav-link {
+            position: relative;
+            margin: 0.25rem 0.5rem;
+            border-radius: 8px;
+            width: calc(100% - 1rem);
+        }
+
+        .global-navbar .global-nav-link:hover,
+        .global-navbar .global-nav-link.active {
+            background-color: rgba(255,255,255,0.15);
+            color: white;
+        }
+
+        .global-navbar .global-nav-link:hover i,
+        .global-navbar .global-nav-link:hover span,
+        .global-navbar .global-nav-link.active i,
+        .global-navbar .global-nav-link.active span {
+            color: white;
+        }
+
+        /* Mobile responsive for clients popup */
+        @@media (max-width: 768px) {
+            .clients-popup {
+                left: 0;
+                width: 100%;
+                transform: translateX(-100%);
+            }
+
+            .clients-popup.show {
+                transform: translateX(0);
+            }
+        }
     </style>
 </head>
 <body class="@ViewData["BodyClass"]">
@@ -170,49 +299,43 @@
         
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link" href="#" title="Account">
+                <a class="global-nav-link" href="#" title="Account">
                     <i class="fas fa-user"></i>
                     <span>Account</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#" title="Dashboard">
+                <a class="global-nav-link" href="#" title="Dashboard">
                     <i class="fas fa-tachometer-alt"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#" title="Clients">
-                    <i class="fas fa-book"></i>
+                <a class="global-nav-link clients-button" href="#" title="Clients" id="clientsButton">
+                    <i class="fas fa-users"></i>
                     <span>Clients</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#" title="Groups">
-                    <i class="fas fa-users"></i>
-                    <span>Groups</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#" title="Calendar">
+                <a class="global-nav-link" href="#" title="Calendar">
                     <i class="fas fa-calendar"></i>
                     <span>Calendar</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#" title="Inbox">
+                <a class="global-nav-link" href="#" title="Inbox">
                     <i class="fas fa-envelope"></i>
                     <span>Inbox</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#" title="History">
+                <a class="global-nav-link" href="#" title="History">
                     <i class="fas fa-clock"></i>
                     <span>History</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#" title="Search">
+                <a class="global-nav-link" href="#" title="Search">
                     <i class="fas fa-search"></i>
                     <span>Search</span>
                 </a>
@@ -225,9 +348,137 @@
         @RenderBody()
     </div>
 
+    <!-- Clients Popup -->
+    <div class="clients-popup" id="clientsPopup">
+        <div class="clients-popup-header">
+            <h3 class="clients-popup-title">Clients</h3>
+            <button class="clients-popup-close" id="clientsPopupClose">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="clients-popup-content">
+            <div class="clients-section-header">
+                <h4 class="clients-section-title">All Clients</h4>
+            </div>
+            <div class="clients-list" id="clientsList">
+                <!-- Client items will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        // Clients Popup Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const clientsButton = document.getElementById('clientsButton');
+            const clientsPopup = document.getElementById('clientsPopup');
+            const clientsPopupClose = document.getElementById('clientsPopupClose');
+            const clientsList = document.getElementById('clientsList');
+
+            // Sample client data
+            const clients = [
+                {
+                    name: "John Smith",
+                    company: "Smith & Associates",
+                    status: "Active"
+                },
+                {
+                    name: "Sarah Johnson",
+                    company: "Johnson Legal Group",
+                    status: "Active"
+                },
+                {
+                    name: "Michael Brown",
+                    company: "Brown & Partners",
+                    status: "Inactive"
+                },
+                {
+                    name: "Emily Davis",
+                    company: "Davis Law Firm",
+                    status: "Active"
+                },
+                {
+                    name: "Robert Wilson",
+                    company: "Wilson & Co.",
+                    status: "Pending"
+                },
+                {
+                    name: "Lisa Anderson",
+                    company: "Anderson Legal",
+                    status: "Active"
+                },
+                {
+                    name: "David Taylor",
+                    company: "Taylor & Associates",
+                    status: "Active"
+                },
+                {
+                    name: "Jennifer Martinez",
+                    company: "Martinez Law",
+                    status: "Inactive"
+                }
+            ];
+
+            // Populate clients list
+            function populateClientsList() {
+                clientsList.innerHTML = '';
+                clients.forEach(client => {
+                    const clientItem = document.createElement('div');
+                    clientItem.className = 'client-item';
+                    clientItem.innerHTML = `
+                        <h5 class="client-name">${client.name}</h5>
+                        <p class="client-company">${client.company}</p>
+                        <p class="client-status">Status: ${client.status}</p>
+                    `;
+                    clientsList.appendChild(clientItem);
+                });
+            }
+
+            // Show clients popup
+            function showClientsPopup() {
+                clientsPopup.classList.add('show');
+                clientsButton.classList.add('active');
+                populateClientsList();
+            }
+
+            // Hide clients popup
+            function hideClientsPopup() {
+                clientsPopup.classList.remove('show');
+                clientsButton.classList.remove('active');
+            }
+
+            // Event listeners
+            clientsButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (clientsPopup.classList.contains('show')) {
+                    hideClientsPopup();
+                } else {
+                    showClientsPopup();
+                }
+            });
+
+            clientsPopupClose.addEventListener('click', function() {
+                hideClientsPopup();
+            });
+
+            // Close popup when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!clientsPopup.contains(e.target) && !clientsButton.contains(e.target)) {
+                    hideClientsPopup();
+                }
+            });
+
+            // Close popup on escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && clientsPopup.classList.contains('show')) {
+                    hideClientsPopup();
+                }
+            });
+        });
+    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
