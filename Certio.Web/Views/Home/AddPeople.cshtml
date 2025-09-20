@@ -60,7 +60,7 @@
                                 <label asp-for="Role" class="form-label fw-bold text-dark">Role <span class="text-danger">*</span></label>
                                 <select asp-for="Role" class="form-select form-select-lg" id="roleSelect">
                                     <option value="">Select role</option>
-                                    @foreach (var role in Enum.GetValues(typeof(Certio.Domain.Users.OrganizationRole)))
+                                    @foreach (var role in Enum.GetValues<Certio.Domain.Users.OrganizationRole>())
                                     {
                                         <option value="@role">@role</option>
                                     }
@@ -102,11 +102,20 @@
                 const userType = userTypeSelect.value;
                 const currentRole = roleSelect.value;
                 
+                console.log('Updating role options for user type:', userType);
+                
                 // Clear existing options except the first one
                 roleSelect.innerHTML = '<option value="">Select role</option>';
                 
-                // Add role options based on user type
-                const allRoles = @Html.Raw(Json.Serialize(Enum.GetValues<Certio.Domain.Users.OrganizationRole>()));
+                // Define all available roles
+                const allRoles = [
+                    'Owner', 'Manager', 'Member', 'Lawyer',
+                    'OpposingCounsel', 'ExpertWitness', 'CourtPersonnel', 'RegulatoryBody', 'Other',
+                    'Admin', 'ProjectManager', 'Support', 'Legal',
+                    'Guest'
+                ];
+                
+                let addedRoles = [];
                 
                 allRoles.forEach(function(role) {
                     const option = document.createElement('option');
@@ -116,12 +125,18 @@
                     // Filter roles based on user type
                     if (userType === 'Client' && ['Owner', 'Manager', 'Member', 'Lawyer'].includes(role)) {
                         roleSelect.appendChild(option);
+                        addedRoles.push(role);
                     } else if (userType === 'External' && ['OpposingCounsel', 'ExpertWitness', 'CourtPersonnel', 'RegulatoryBody', 'Other'].includes(role)) {
                         roleSelect.appendChild(option);
+                        addedRoles.push(role);
                     } else if (userType === 'Certio' && ['Admin', 'ProjectManager', 'Support', 'Legal'].includes(role)) {
                         roleSelect.appendChild(option);
+                        addedRoles.push(role);
                     }
                 });
+                
+                console.log('Added roles for', userType, ':', addedRoles);
+                console.log('Total options in select:', roleSelect.options.length);
                 
                 // Restore previous selection if still valid
                 if (currentRole && roleSelect.querySelector(`option[value="${currentRole}"]`)) {
