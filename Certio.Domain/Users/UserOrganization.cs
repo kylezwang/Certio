@@ -15,11 +15,11 @@ namespace Certio.Domain.Users
         
         [Required]
         [StringLength(20)]
-        public UserType UserType { get; set; } = UserType.Client;
+        public string UserType { get; set; } = "Client";
         
         [Required]
         [StringLength(20)]
-        public OrganizationRole Role { get; set; } = OrganizationRole.Member;
+        public string Role { get; set; } = "Member";
         
         [StringLength(50)]
         public string? Department { get; set; }
@@ -39,25 +39,36 @@ namespace Certio.Domain.Users
         public virtual Organization Organization { get; set; } = null!;
     }
     
-    public enum OrganizationRole
+    // OrganizationRole and UserType are now string constants
+    public static class OrganizationRoles
     {
         // Client roles
-        Owner, Manager, Member, Lawyer,
+        public const string Owner = "Owner";
+        public const string Manager = "Manager";
+        public const string Member = "Member";
+        public const string Lawyer = "Lawyer";
         
         // External roles  
-        OpposingCounsel, ExpertWitness, CourtPersonnel, RegulatoryBody, Other,
+        public const string OpposingCounsel = "OpposingCounsel";
+        public const string ExpertWitness = "ExpertWitness";
+        public const string CourtPersonnel = "CourtPersonnel";
+        public const string RegulatoryBody = "RegulatoryBody";
+        public const string Other = "Other";
         
         // Certio roles
-        Admin, ProjectManager, Support, Legal,
+        public const string Admin = "Admin";
+        public const string ProjectManager = "ProjectManager";
+        public const string Support = "Support";
+        public const string Legal = "Legal";
         
         // General roles
-        Guest
+        public const string Guest = "Guest";
     }
     
-    public enum UserType
+    public static class UserTypes
     {
-        Client,
-        External,
-        Certio
+        public const string Client = "Client";
+        public const string External = "External";
+        public const string Certio = "Certio";
     }
 }

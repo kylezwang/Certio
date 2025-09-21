@@ -406,8 +406,8 @@ namespace Certio.Web.Controllers
                 // Determine organization and role
                 int organizationId;
                 bool isPersonal = false;
-                var userType = Certio.Domain.Users.UserType.Client;
-                var organizationRole = Certio.Domain.Users.OrganizationRole.Member;
+                var userType = Certio.Domain.Users.UserTypes.Client;
+                var organizationRole = Certio.Domain.Users.OrganizationRoles.Member;
 
                 if (validJoin != null)
                 {
@@ -431,8 +431,8 @@ namespace Certio.Web.Controllers
                     await _context.SaveChangesAsync();
                     organizationId = org.Id;
                     isPersonal = true;
-                    userType = Certio.Domain.Users.UserType.Client;
-                    organizationRole = Certio.Domain.Users.OrganizationRole.Owner;
+                    userType = Certio.Domain.Users.UserTypes.Client;
+                    organizationRole = Certio.Domain.Users.OrganizationRoles.Owner;
                 }
 
                 // Create custom User record
@@ -1139,10 +1139,78 @@ namespace Certio.Web.Controllers
             return View();
         }
         
-        private OrganizationRole GetOrganizationRoleFromModel(AddPeopleViewModel model)
+        private string GetOrganizationRoleFromModel(AddPeopleViewModel model)
         {
             // Now the model directly contains the OrganizationRole
             return model.Role;
         }
+
+        [HttpPost]
+        public async Task<IActionResult> ApplyJoinCode([FromBody] ApplyJoinCodeRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(request.JoinCode))
+                {
+                    return Json(new { success = false, message = "Join code is required." });
+                }
+
+                // Resolve custom user from middleware
+                var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+                if (customUser == null)
+                {
+                    return Json(new { success = false, message = "User not authenticated." });
+                }
+
+                // Get the join code details
+                var validJoin = await _joinCodeService.GetValidAsync(request.JoinCode.Trim());
+                if (validJoin == null)
+                {
+                    return Json(new { success = false, message = "Invalid or expired join code." });
+                }
+
+                // Check if user is already a member of this organization
+                var existingMembership = await _context.UserOrganizations
+                    .FirstOrDefaultAsync(uo => uo.UserId == customUser.Id && uo.OrganizationId == validJoin.OrganizationId);
+
+                if (existingMembership != null)
+                {
+                    return Json(new { success = false, message = "You are already a member of this organization." });
+                }
+
+                // Add user to the organization
+                var userOrg = new Certio.Domain.Users.UserOrganization
+                {
+                    UserId = customUser.Id,
+                    OrganizationId = validJoin.OrganizationId,
+                    UserType = validJoin.InvitedUserType,
+                    Role = validJoin.InvitedRole,
+                    JoinedAt = DateTime.UtcNow
+                };
+
+                _context.UserOrganizations.Add(userOrg);
+
+                // Consume the join code
+                await _joinCodeService.ConsumeAsync(validJoin.Code);
+
+                await _context.SaveChangesAsync();
+
+                return Json(new { 
+                    success = true, 
+                    message = "Successfully joined the organization!",
+                    redirectUrl = Url.Action("Index", "Project")
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error applying join code: {ex.Message}");
+                return Json(new { success = false, message = "An error occurred while applying the join code." });
+            }
+        }
+    }
+
+    public class ApplyJoinCodeRequest
+    {
+        public string JoinCode { get; set; } = "";
     }
 }

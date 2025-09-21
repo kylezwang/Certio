@@ -378,7 +378,7 @@ namespace Certio.Web.Controllers
             // Get clients (users with Client role in the same organization)
             var clients = await _context.UserOrganizations
                 .Where(uo => uo.OrganizationId == primaryOrg.OrganizationId && 
-                            uo.UserType == Certio.Domain.Users.UserType.Client && 
+                            uo.UserType == Certio.Domain.Users.UserTypes.Client && 
                             uo.IsActive)
                 .Include(uo => uo.User)
                 .Select(uo => new ClientOption

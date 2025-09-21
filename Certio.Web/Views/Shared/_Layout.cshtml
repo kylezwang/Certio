@@ -156,6 +156,8 @@
             transform: translateX(-100%);
             transition: transform 0.3s ease;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         .clients-popup.show {
@@ -198,7 +200,14 @@
 
         .clients-popup-content {
             padding: 0;
-            height: calc(100vh - 80px);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .clients-scrollable-area {
+            flex: 1;
             overflow-y: auto;
         }
 
@@ -253,6 +262,83 @@
             color: #6b7280;
             font-size: 0.8rem;
             margin: 0;
+        }
+
+        /* Join Code Section Styles */
+        .join-code-section {
+            background-color: #f8fafc;
+            border-top: 1px solid #e5e7eb;
+            padding: 1rem;
+            margin-top: auto;
+        }
+
+        .join-code-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin: 0 0 0.75rem 0;
+        }
+
+        .join-code-form {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .join-code-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .join-code-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .join-code-button {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .join-code-button:hover {
+            background-color: #2563eb;
+        }
+
+        .join-code-button:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .join-code-message {
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+
+        .join-code-message.success {
+            background-color: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .join-code-message.error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
         }
 
         /* Global Nav Button Hover and Selected States - Unified Styling */
@@ -357,11 +443,27 @@
             </button>
         </div>
         <div class="clients-popup-content">
-            <div class="clients-section-header">
-                <h4 class="clients-section-title">All Clients</h4>
+            <div class="clients-scrollable-area">
+                <div class="clients-section-header">
+                    <h4 class="clients-section-title">All Clients</h4>
+                </div>
+                <div class="clients-list" id="clientsList">
+                    <!-- Client items will be populated by JavaScript -->
+                </div>
             </div>
-            <div class="clients-list" id="clientsList">
-                <!-- Client items will be populated by JavaScript -->
+            <div class="join-code-section">
+                <h4 class="join-code-title">Apply Join Code</h4>
+                <form class="join-code-form" id="joinCodeForm">
+                    <input type="text" 
+                           class="join-code-input" 
+                           id="joinCodeInput" 
+                           placeholder="Enter join code..."
+                           maxlength="20">
+                    <button type="submit" class="join-code-button" id="joinCodeButton">
+                        Apply Code
+                    </button>
+                    <div class="join-code-message" id="joinCodeMessage" style="display: none;"></div>
+                </form>
             </div>
         </div>
     </div>
@@ -475,6 +577,70 @@
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape' && clientsPopup.classList.contains('show')) {
                     hideClientsPopup();
+                }
+            });
+
+            // Join Code Functionality
+            const joinCodeForm = document.getElementById('joinCodeForm');
+            const joinCodeInput = document.getElementById('joinCodeInput');
+            const joinCodeButton = document.getElementById('joinCodeButton');
+            const joinCodeMessage = document.getElementById('joinCodeMessage');
+
+            function showJoinCodeMessage(message, isError = false) {
+                joinCodeMessage.textContent = message;
+                joinCodeMessage.className = `join-code-message ${isError ? 'error' : 'success'}`;
+                joinCodeMessage.style.display = 'block';
+                
+                // Hide message after 5 seconds
+                setTimeout(() => {
+                    joinCodeMessage.style.display = 'none';
+                }, 5000);
+            }
+
+            function setJoinCodeLoading(loading) {
+                joinCodeButton.disabled = loading;
+                joinCodeButton.textContent = loading ? 'Applying...' : 'Apply Code';
+            }
+
+            joinCodeForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const code = joinCodeInput.value.trim();
+                if (!code) {
+                    showJoinCodeMessage('Please enter a join code.', true);
+                    return;
+                }
+
+                setJoinCodeLoading(true);
+                joinCodeMessage.style.display = 'none';
+
+                try {
+                    const response = await fetch('/Home/ApplyJoinCode', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                        },
+                        body: JSON.stringify({ joinCode: code })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showJoinCodeMessage(result.message || 'Successfully applied join code!');
+                        joinCodeInput.value = '';
+                        // Optionally refresh the clients list or redirect
+                        if (result.redirectUrl) {
+                            window.location.href = result.redirectUrl;
+                        }
+                    } else {
+                        showJoinCodeMessage(result.message || 'Failed to apply join code.', true);
+                    }
+                } catch (error) {
+                    console.error('Error applying join code:', error);
+                    showJoinCodeMessage('An error occurred while applying the join code.', true);
+                } finally {
+                    setJoinCodeLoading(false);
                 }
             });
         });
