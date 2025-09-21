@@ -19,11 +19,11 @@ namespace Certio.Domain.Organizations
         
         [Required]
         [StringLength(20)]
-        public UserType InvitedUserType { get; set; }
+        public string InvitedUserType { get; set; } = "";
         
         [Required]
         [StringLength(20)]
-        public OrganizationRole InvitedRole { get; set; } = OrganizationRole.Member;
+        public string InvitedRole { get; set; } = "Member";
         
         [StringLength(100)]
         public string? TeamName { get; set; }

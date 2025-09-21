@@ -9,7 +9,7 @@ namespace Certio.Web.Services
 {
     public interface IJoinCodeService
     {
-        Task<OrganizationJoinCode> GenerateAsync(int organizationId, int createdByUserId, UserType invitedUserType, OrganizationRole invitedRole, string? teamName, int maxUses, TimeSpan ttl, CancellationToken ct = default);
+        Task<OrganizationJoinCode> GenerateAsync(int organizationId, int createdByUserId, string invitedUserType, string invitedRole, string? teamName, int maxUses, TimeSpan ttl, CancellationToken ct = default);
         Task<OrganizationJoinCode?> GetValidAsync(string code, CancellationToken ct = default);
         Task<bool> ConsumeAsync(string code, CancellationToken ct = default);
     }
@@ -26,8 +26,8 @@ namespace Certio.Web.Services
         public async Task<OrganizationJoinCode> GenerateAsync(
             int organizationId,
             int createdByUserId,
-            UserType invitedUserType,
-            OrganizationRole invitedRole,
+            string invitedUserType,
+            string invitedRole,
             string? teamName,
             int maxUses,
             TimeSpan ttl,

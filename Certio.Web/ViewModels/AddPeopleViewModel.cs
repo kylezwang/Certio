@@ -10,10 +10,10 @@ namespace Certio.Web.ViewModels
         public string Email { get; set; } = string.Empty;
 
         [Required]
-        public UserType UserType { get; set; } = UserType.Client;
+        public string UserType { get; set; } = UserTypes.Client;
 
         [Required]
-        public OrganizationRole Role { get; set; } = OrganizationRole.Member;
+        public string Role { get; set; } = OrganizationRoles.Member;
     }
 }
 

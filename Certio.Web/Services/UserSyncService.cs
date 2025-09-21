@@ -236,8 +236,8 @@ namespace Certio.Web.Services
                             {
                                 UserId = user.Id,
                                 OrganizationId = org.Id,
-                                UserType = Certio.Domain.Users.UserType.Client,
-                                Role = Certio.Domain.Users.OrganizationRole.Owner,
+                                UserType = Certio.Domain.Users.UserTypes.Client,
+                                Role = Certio.Domain.Users.OrganizationRoles.Owner,
                                 IsPrimary = true,
                                 IsActive = true,
                                 JoinedAt = DateTime.UtcNow
