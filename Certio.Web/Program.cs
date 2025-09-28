@@ -8,6 +8,52 @@ using Certio.Web.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
 
+// Set up environment variables for Windows development
+static void SetupEnvironmentVariables()
+{
+    // Set default environment variables if not already set
+    if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SQL_PASSWORD")))
+    {
+        Environment.SetEnvironmentVariable("SQL_PASSWORD", "YourStrong@Passw0rd", EnvironmentVariableTarget.Process);
+        Console.WriteLine("🔧 Set default SQL_PASSWORD environment variable");
+    }
+    
+    if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("USE_AZURE_SQL")))
+    {
+        Environment.SetEnvironmentVariable("USE_AZURE_SQL", "false", EnvironmentVariableTarget.Process);
+        Console.WriteLine("🔧 Set USE_AZURE_SQL to false for local development");
+    }
+    
+    // Load from .env file if it exists
+    var envFile = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+    if (File.Exists(envFile))
+    {
+        Console.WriteLine("📁 Loading environment variables from .env file...");
+        var lines = File.ReadAllLines(envFile);
+        foreach (var line in lines)
+        {
+            if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#"))
+                continue;
+                
+            var parts = line.Split('=', 2);
+            if (parts.Length == 2)
+            {
+                var key = parts[0].Trim();
+                var value = parts[1].Trim();
+                Environment.SetEnvironmentVariable(key, value, EnvironmentVariableTarget.Process);
+                Console.WriteLine($"🔧 Loaded {key} from .env");
+            }
+        }
+    }
+    else
+    {
+        // .env file not found, using system environment variables
+    }
+}
+
+// Initialize environment variables
+SetupEnvironmentVariables();
+
 // Smart database selection - use local SQL Server by default for reliability
 static async Task<string> GetConnectionStringAsync(IConfiguration configuration)
 {
@@ -99,7 +145,7 @@ static async Task EnsureLocalSqlServerRunningAsync()
                 {
                     FileName = "docker-compose",
                     Arguments = "up -d sqlserver",
-                    WorkingDirectory = "/Users/chloetang/Documents/Certio",
+                    WorkingDirectory = Directory.GetCurrentDirectory(),
                     UseShellExecute = false,
                     CreateNoWindow = true
                 }
