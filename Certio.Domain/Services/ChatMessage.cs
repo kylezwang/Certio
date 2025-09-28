@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Certio.Domain.Users;
-using Certio.Domain.Projects;
+using Certio.Domain.Matters;
 
 namespace Certio.Domain.Services;
 
@@ -8,8 +8,12 @@ public class ChatMessage
 {
     public int Id { get; set; }
     
-    public string ConversationId { get; set; } = "";
-    public string? UserId { get; set; }
+    // Fixed: ConversationId is now int to match Conversation.Id
+    [Required]
+    public int ConversationId { get; set; }
+    
+    // Fixed: UserId is now int to match User.Id
+    public int? UserId { get; set; }
     
     [Required]
     public string Content { get; set; } = "";

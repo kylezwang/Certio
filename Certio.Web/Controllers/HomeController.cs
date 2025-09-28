@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Certio.Web.ViewModels;
 using Certio.Web.Services;
-using Certio.Domain.Projects;
+using Certio.Domain.Matters;
 using Certio.Domain.Documents;
 using Certio.Web.Data;
 using Microsoft.EntityFrameworkCore;
@@ -35,11 +35,6 @@ namespace Certio.Web.Controllers
 
         public IActionResult Index()
         {
-            // Debug: Log authentication state
-            Console.WriteLine("Authentication State: IsAuthenticated=" + (User.Identity?.IsAuthenticated ?? false));
-            Console.WriteLine("User Name: " + (User.Identity?.Name ?? "null"));
-            Console.WriteLine("Authentication Type: " + (User.Identity?.AuthenticationType ?? "null"));
-            
             // Check if user is actually authenticated with proper claims AND session validation
             var hasValidIdentity = User.Identity?.IsAuthenticated == true && 
                                   !string.IsNullOrEmpty(User.Identity.Name) &&
@@ -61,14 +56,21 @@ namespace Certio.Web.Controllers
             
             var isAuthenticated = hasValidIdentity && hasValidSession;
             
-            // If user is already logged in, redirect to Projects
+            // If user is already logged in, redirect to client-scoped Matters
             if (isAuthenticated)
             {
-                Console.WriteLine("User is properly authenticated with session validation, redirecting to Projects");
-                return RedirectToAction("Index", "Project");
+                // Resolve custom user and primary organization to build client route
+                var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+                var orgId = customUser?.GetPrimaryOrganization()?.OrganizationId
+                            ?? customUser?.UserOrganizations.FirstOrDefault(uo => uo.IsActive)?.OrganizationId;
+                if (orgId.HasValue)
+                {
+                    return RedirectToRoute("client_matter", new { orgId = orgId.Value, action = "Index" });
+                }
+                // If no organization found, fall back to home view
+                return View();
             }
             
-            Console.WriteLine("User is not authenticated or session invalid, showing login page");
             return View();
         }
 
@@ -114,7 +116,7 @@ namespace Certio.Web.Controllers
                     // Session not available, continue without session data
                 }
                 
-                return RedirectToAction("Index", "Project");
+                return RedirectToAction("Index", "Matter");
             }
             else
             {
@@ -403,6 +405,21 @@ namespace Certio.Web.Controllers
                     return RedirectToAction("Register", new { step = 3 });
                 }
 
+                // Create custom User record first
+                var customUser = new Certio.Domain.Users.User
+                {
+                    FirstName = firstName,
+                    LastName = lastName,
+                    Email = storedEmail,
+                    PhoneNumber = phoneNumber,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    Color = GetRandomColor()
+                };
+
+                _context.Users.Add(customUser);
+                await _context.SaveChangesAsync();
+
                 // Determine organization and role
                 int organizationId;
                 bool isPersonal = false;
@@ -417,12 +434,12 @@ namespace Certio.Web.Controllers
                 }
                 else
                 {
-                    // Auto-create personal organization (temporary owner, set after user is created)
+                    // Auto-create personal organization with proper owner reference
                     var org = new Certio.Domain.Organizations.Organization
                     {
                         Name = $"{firstName} {lastName}",
                         Description = "Personal Organization",
-                        OwnerId = 0,
+                        OwnerId = customUser.Id, // Now we have the user ID
                         IsPersonal = true,
                         IsActive = true,
                         CreatedAt = DateTime.UtcNow
@@ -433,23 +450,11 @@ namespace Certio.Web.Controllers
                     isPersonal = true;
                     userType = Certio.Domain.Users.UserTypes.Client;
                     organizationRole = Certio.Domain.Users.OrganizationRoles.Owner;
+
+                    // Update user to reflect personal organization
+                    customUser.IsPersonalOrganization = true;
+                    _context.Users.Update(customUser);
                 }
-
-                // Create custom User record
-                var customUser = new Certio.Domain.Users.User
-                {
-                    FirstName = firstName,
-                    LastName = lastName,
-                    Email = storedEmail,
-                    PhoneNumber = phoneNumber,
-                    IsPersonalOrganization = isPersonal,
-                    IsActive = true,
-                    CreatedAt = DateTime.UtcNow,
-                    Color = GetRandomColor()
-                };
-
-                _context.Users.Add(customUser);
-                await _context.SaveChangesAsync();
 
                 // Add user to organization
                 var userOrg = new Certio.Domain.Users.UserOrganization
@@ -463,16 +468,6 @@ namespace Certio.Web.Controllers
                     JoinedAt = DateTime.UtcNow
                 };
                 _context.UserOrganizations.Add(userOrg);
-
-                // If personal org, set ownerId to the just-created user
-                if (isPersonal)
-                {
-                    var org = await _context.Organizations.FindAsync(organizationId);
-                    if (org != null)
-                    {
-                        org.OwnerId = customUser.Id;
-                    }
-                }
                 
                 await _context.SaveChangesAsync();
 
@@ -530,7 +525,7 @@ namespace Certio.Web.Controllers
                 }
 
                 TempData["Success"] = "Account created successfully! Welcome to Certio.";
-                return RedirectToAction("Index", "Project");
+                return RedirectToAction("Index", "Matter");
             }
             catch (Exception ex)
             {
@@ -1198,7 +1193,7 @@ namespace Certio.Web.Controllers
                 return Json(new { 
                     success = true, 
                     message = "Successfully joined the organization!",
-                    redirectUrl = Url.Action("Index", "Project")
+                    redirectUrl = Url.Action("Index", "Matter")
                 });
             }
             catch (Exception ex)

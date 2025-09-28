@@ -6,7 +6,8 @@ using Certio.Domain.Services;
 
 namespace Certio.Web.Controllers;
 
-[Authorize]
+[Authorize(Policy = "OrgMember")]
+[Route("Client/{orgId}/Chat")]
 public class ChatController : Controller
 {
     private readonly IChatService _chatService;
@@ -16,20 +17,22 @@ public class ChatController : Controller
         _chatService = chatService;
     }
 
-    public async Task<IActionResult> Index()
+    [HttpGet("")]
+    [HttpGet("Index")]
+    public async Task<IActionResult> Index(int orgId)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var conversations = await _chatService.GetUserConversationsAsync(userId ?? "");
+        var userId = GetCurrentUserId();
+        var conversations = await _chatService.GetUserConversationsAsync(userId, orgId);
         return View(conversations);
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetConversations()
+    [HttpGet("GetConversations")]
+    public async Task<IActionResult> GetConversations(int orgId)
     {
         try
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var conversations = await _chatService.GetUserConversationsAsync(userId ?? "");
+            var userId = GetCurrentUserId();
+            var conversations = await _chatService.GetUserConversationsAsync(userId, orgId);
             return Json(conversations);
         }
         catch (Exception ex)
@@ -38,61 +41,75 @@ public class ChatController : Controller
         }
     }
 
-    public async Task<IActionResult> Conversation(string id)
+    [HttpGet("Conversation/{id}")]
+    public async Task<IActionResult> Conversation(int orgId, int id)
     {
         var messages = await _chatService.GetConversationMessagesAsync(id);
         return View(messages);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> CreateConversation(string title, string description)
+    [HttpPost("CreateConversation")]
+    public async Task<IActionResult> CreateConversation(int orgId, string title, string description)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "test-user-123";
-        var safeDescription = string.IsNullOrEmpty(description) ? "No description provided" : description;
-        var conversation = await _chatService.CreateConversationAsync(title, safeDescription, userId);
-        return RedirectToAction("Index");
+        try
+        {
+            var userId = GetCurrentUserId();
+            var safeDescription = string.IsNullOrEmpty(description) ? "No description provided" : description;
+            var conversation = await _chatService.CreateConversationAsync(orgId, userId, title, safeDescription);
+            
+            // Return JSON for AJAX requests
+            if (Request.Headers["Content-Type"].ToString().Contains("application/x-www-form-urlencoded"))
+            {
+                return Json(new { success = true, conversationId = conversation.Id, title = conversation.Title });
+            }
+            
+            // Redirect for form submissions
+            return RedirectToAction("Index", new { orgId });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, error = ex.Message });
+        }
     }
 
-    [HttpPost]
-    public async Task<IActionResult> SendMessage(string conversationId, string content, string messageType = "Text")
+    [HttpPost("SendMessage")]
+    public async Task<IActionResult> SendMessage(int orgId, int conversationId, string content, string messageType = "Text")
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "test-user-123";
-        var userType = User.FindFirstValue("UserType") ?? "Client";
+        var userId = GetCurrentUserId();
+        var userType = GetCurrentUserType();
         
         await _chatService.SendMessageAsync(conversationId, userId, userType, content, messageType);
         return Json(new { success = true });
     }
 
-    [HttpPost]
-    public async Task<IActionResult> RequestClarity([FromBody] ClarityRequest request)
+    [HttpPost("RequestClarity")]
+    public async Task<IActionResult> RequestClarity(int orgId, [FromBody] ClarityRequest request)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "test-user-123";
-        var userType = User.FindFirstValue("UserType") ?? "Client";
+        var userType = GetCurrentUserType();
         
         var clarity = await _chatService.RequestClarityAsync(request.ConversationId, request.Text, userType);
         return Json(clarity);
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetMessages(string id)
+    [HttpGet("GetMessages/{id}")]
+    public async Task<IActionResult> GetMessages(int orgId, int id)
     {
         var messages = await _chatService.GetConversationMessagesAsync(id);
         return Json(messages);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> GetSuggestions([FromBody] SuggestionRequest request)
+    [HttpPost("GetSuggestions")]
+    public async Task<IActionResult> GetSuggestions(int orgId, [FromBody] SuggestionRequest request)
     {
         var messages = await _chatService.GetConversationMessagesAsync(request.ConversationId);
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "test-user-123";
-        var userType = User.FindFirstValue("UserType") ?? "Client";
+        var userType = GetCurrentUserType();
         
         var suggestions = await _chatService.GetReplySuggestionsAsync(request.ConversationId, messages, userType);
         return Json(suggestions);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> GenerateAIResponse([FromBody] AIResponseRequest request)
+    [HttpPost("GenerateAIResponse")]
+    public async Task<IActionResult> GenerateAIResponse(int orgId, [FromBody] AIResponseRequest request)
     {
         try
         {
@@ -105,8 +122,8 @@ public class ChatController : Controller
         }
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetAIInsights(string conversationId)
+    [HttpGet("GetAIInsights/{conversationId}")]
+    public async Task<IActionResult> GetAIInsights(int orgId, int conversationId)
     {
         try
         {
@@ -119,8 +136,8 @@ public class ChatController : Controller
         }
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetConversationSummary(string conversationId)
+    [HttpGet("GetConversationSummary/{conversationId}")]
+    public async Task<IActionResult> GetConversationSummary(int orgId, int conversationId)
     {
         try
         {
@@ -133,8 +150,8 @@ public class ChatController : Controller
         }
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetClientGoals(string conversationId)
+    [HttpGet("GetClientGoals/{conversationId}")]
+    public async Task<IActionResult> GetClientGoals(int orgId, int conversationId)
     {
         try
         {
@@ -147,8 +164,8 @@ public class ChatController : Controller
         }
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetLatestReplySuggestion(string conversationId)
+    [HttpGet("GetLatestReplySuggestion/{conversationId}")]
+    public async Task<IActionResult> GetLatestReplySuggestion(int orgId, int conversationId)
     {
         try
         {
@@ -161,12 +178,12 @@ public class ChatController : Controller
         }
     }
 
-    [HttpPost]
-    public async Task<IActionResult> RenameConversation([FromBody] RenameConversationRequest request)
+    [HttpPost("RenameConversation")]
+    public async Task<IActionResult> RenameConversation(int orgId, [FromBody] RenameConversationRequest request)
     {
         try
         {
-            var success = await _chatService.RenameConversationAsync(request.ConversationId, request.NewTitle);
+            var success = await _chatService.RenameConversationAsync(request.ConversationId, orgId, request.NewTitle);
             return Json(new { success = success, error = success ? null : "Failed to rename conversation" });
         }
         catch (Exception ex)
@@ -175,12 +192,12 @@ public class ChatController : Controller
         }
     }
 
-    [HttpPost]
-    public async Task<IActionResult> DeleteConversation([FromBody] DeleteConversationRequest request)
+    [HttpPost("DeleteConversation")]
+    public async Task<IActionResult> DeleteConversation(int orgId, [FromBody] DeleteConversationRequest request)
     {
         try
         {
-            var success = await _chatService.DeleteConversationAsync(request.ConversationId);
+            var success = await _chatService.DeleteConversationAsync(request.ConversationId, orgId);
             return Json(new { success = success, error = success ? null : "Failed to delete conversation" });
         }
         catch (Exception ex)
@@ -188,32 +205,56 @@ public class ChatController : Controller
             return Json(new { success = false, error = ex.Message });
         }
     }
+
+    // Helper methods
+    private int GetCurrentUserId()
+    {
+        // First try to get the custom user ID from context (set by UserSyncMiddleware)
+        if (HttpContext.Items.TryGetValue("CustomUserId", out var customUserId) && customUserId is int userId)
+        {
+            return userId;
+        }
+        
+        // Fallback to claims (for backwards compatibility)
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (int.TryParse(userIdClaim, out int claimUserId))
+        {
+            return claimUserId;
+        }
+        
+        throw new UnauthorizedAccessException("Invalid user ID");
+    }
+
+    private string GetCurrentUserType()
+    {
+        return User.FindFirstValue("UserType") ?? "Client";
+    }
 }
 
 public class ClarityRequest
 {
-    public string ConversationId { get; set; } = "";
+    public int ConversationId { get; set; }
     public string Text { get; set; } = "";
 }
 
 public class SuggestionRequest
 {
-    public string ConversationId { get; set; } = "";
+    public int ConversationId { get; set; }
 }
 
 public class AIResponseRequest
 {
-    public string ConversationId { get; set; } = "";
+    public int ConversationId { get; set; }
     public string UserMessage { get; set; } = "";
 }
 
 public class RenameConversationRequest
 {
-    public string ConversationId { get; set; } = "";
+    public int ConversationId { get; set; }
     public string NewTitle { get; set; } = "";
 }
 
 public class DeleteConversationRequest
 {
-    public string ConversationId { get; set; } = "";
+    public int ConversationId { get; set; }
 }

@@ -1,5 +1,6 @@
 let connection;
 let currentConversationId = null;
+let currentOrganizationId = null;
 let currentMessages = [];
 let aiThinkingInterval = null;
 let lastMessageCount = 0;
@@ -60,13 +61,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle conversation creation form
     document.getElementById('createConversationForm')?.addEventListener('submit', function(e) {
         e.preventDefault();
+        console.log('Form submitted, creating conversation...');
         const formData = new FormData(this);
         
-        fetch('/Chat/CreateConversation', {
+        const orgId = getCurrentOrganizationId();
+        if (!orgId) {
+            console.error('Organization ID not found');
+            return;
+        }
+        
+        console.log('Creating conversation with orgId:', orgId);
+        fetch(`/Client/${orgId}/Chat/CreateConversation`, {
             method: 'POST',
             body: formData
         })
         .then(response => {
+            console.log('Response received:', response.status);
             if (response.ok) {
                 // Close modal
                 const modal = bootstrap.Modal.getInstance(document.getElementById('newConversationModal'));
@@ -76,7 +86,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.reset();
                 
                 // Refresh conversations instead of reloading page
+                console.log('Refreshing conversations...');
                 refreshConversations();
+            } else {
+                console.error('Failed to create conversation:', response.statusText);
             }
         })
         .catch(error => {
@@ -115,7 +128,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function initializeChat(conversationId) {
     currentConversationId = conversationId;
     if (connection && typeof signalR !== 'undefined' && connection.state === signalR.HubConnectionState.Connected) {
-        connection.invoke("JoinConversation", conversationId);
+        connection.invoke("JoinConversation", conversationId.toString());
     }
 }
 
@@ -124,7 +137,13 @@ function initializeChat(conversationId) {
 async function loadConversationMessages(conversationId) {
     console.log('Loading messages for conversation:', conversationId);
     try {
-        const response = await fetch(`/Chat/GetMessages/${conversationId}`);
+        const orgId = getCurrentOrganizationId();
+        if (!orgId) {
+            console.error('Organization ID not found');
+            return;
+        }
+        
+        const response = await fetch(`/Client/${orgId}/Chat/GetMessages/${conversationId}`);
         console.log('Response status:', response.status);
         
         if (!response.ok) {
@@ -155,53 +174,91 @@ async function loadConversationMessages(conversationId) {
     }
 }
 
-// Send message
-function sendMessage() {
-    const messageInput = document.getElementById('messageInput');
-    const message = messageInput.value.trim();
+// Create a new conversation from a message
+async function createNewConversationFromMessage(message) {
+    const orgId = getCurrentOrganizationId();
+    if (!orgId) {
+        console.error('Organization ID not found');
+        return;
+    }
     
-    if (message && currentConversationId) {
-        // Add user message to chat immediately
-        addUserMessageToChat(message);
-        
-        // Show intelligent AI thinking indicator
-        showIntelligentAIThinkingIndicator(message);
-        
-        // Send to server
-        fetch('/Chat/SendMessage', {
+    try {
+        // Create conversation with a title based on the first message
+        const title = message.length > 30 ? message.substring(0, 30) + '...' : message;
+        const response = await fetch(`/Client/${orgId}/Chat/CreateConversation`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: `conversationId=${currentConversationId}&content=${encodeURIComponent(message)}&messageType=Text`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                console.log('Message sent successfully');
-                // Generate intelligent AI response
-                generateAIResponse(message);
-            }
-        })
-        .catch(error => {
-            console.error('Error sending message:', error);
-            hideAIThinkingIndicator();
+            body: `title=${encodeURIComponent(title)}&description=${encodeURIComponent('New conversation started')}`
         });
         
-        messageInput.value = '';
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.conversationId) {
+                // Update the current conversation ID
+                currentConversationId = data.conversationId;
+                
+                // Update the default tab with the real conversation ID
+                const defaultTab = document.querySelector('.conversation-tab[data-conversation-id="default"]');
+                if (defaultTab) {
+                    defaultTab.dataset.conversationId = data.conversationId;
+                    defaultTab.querySelector('.tab-title').textContent = title;
+                }
+                
+                // Now send the message to the new conversation
+                await sendMessageToConversation(message, data.conversationId);
+            } else {
+                console.error('Failed to create conversation:', data.error);
+            }
+        } else {
+            console.error('Failed to create conversation:', response.statusText);
+        }
+    } catch (error) {
+        console.error('Error creating conversation:', error);
+    }
+}
+
+// Send message to a specific conversation
+async function sendMessageToConversation(message, conversationId) {
+    return await sendMessageInternal(message, conversationId);
+}
+
+// Send message
+async function sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    const message = messageInput.value.trim();
+    
+    if (!message) return;
+    
+    // If we don't have a conversation ID, create a new one first
+    if (!currentConversationId) {
+        await createNewConversationFromMessage(message);
+        return;
+    }
+    
+    const success = await sendMessageInternal(message, currentConversationId);
+    if (success) {
+        messageInput.value = ''; // Clear input only on success
     }
 }
 
 // Generate AI response
 async function generateAIResponse(userMessage) {
     try {
-        const response = await fetch('/Chat/GenerateAIResponse', {
+        const orgId = getCurrentOrganizationId();
+        if (!orgId) {
+            console.error('Organization ID not found');
+            return;
+        }
+        
+        const response = await fetch(`/Client/${orgId}/Chat/GenerateAIResponse`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                conversationId: currentConversationId,
+                conversationId: parseInt(currentConversationId),
                 userMessage: userMessage
             })
         });
@@ -231,6 +288,50 @@ async function generateAIResponse(userMessage) {
     } catch (error) {
         console.error('Error generating AI response:', error);
         hideAIThinkingIndicator();
+    }
+}
+
+// Internal function to handle message sending logic
+async function sendMessageInternal(message, conversationId) {
+    try {
+        // Add user message to chat immediately
+        addUserMessageToChat(message);
+        
+        // Show intelligent AI thinking indicator
+        showIntelligentAIThinkingIndicator(message);
+        
+        // Send to server
+        const orgId = getCurrentOrganizationId();
+        if (!orgId) {
+            console.error('Organization ID not found');
+            hideAIThinkingIndicator();
+            return false;
+        }
+        
+        const response = await fetch(`/Client/${orgId}/Chat/SendMessage`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `conversationId=${conversationId}&content=${encodeURIComponent(message)}&messageType=Text`
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            console.log('Message sent successfully');
+            // Generate intelligent AI response
+            await generateAIResponse(message);
+            return true;
+        } else {
+            console.error('Failed to send message:', data.error);
+            hideAIThinkingIndicator();
+            return false;
+        }
+    } catch (error) {
+        console.error('Error sending message:', error);
+        hideAIThinkingIndicator();
+        return false;
     }
 }
 
@@ -281,7 +382,7 @@ function addUserMessageToChat(message) {
     `;
     
     chatMessages.appendChild(messageDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'instant' });
 }
 
 // Request clarity
@@ -290,7 +391,7 @@ function requestClarity() {
     const text = messageInput.value.trim();
     
     if (text && currentConversationId) {
-        connection.invoke("RequestClarity", currentConversationId, text, getCurrentUserType())
+        connection.invoke("RequestClarity", currentConversationId.toString(), text, getCurrentUserType())
             .catch(function (err) {
                 console.error("Request Clarity Error: ", err.toString());
             });
@@ -300,13 +401,38 @@ function requestClarity() {
 // Get current user ID (you'll need to implement this based on your auth system)
 function getCurrentUserId() {
     // This should return the actual user ID from your authentication system
-    return document.querySelector('[data-user-id]')?.dataset.userId || 'anonymous';
+    const userId = document.querySelector('[data-user-id]')?.dataset.userId;
+    return userId ? parseInt(userId) : null;
 }
 
 // Get current user type
 function getCurrentUserType() {
     // This should return the actual user type from your authentication system
     return document.querySelector('[data-user-type]')?.dataset.userType || 'Client';
+}
+
+// Get current organization ID from URL or data attribute
+function getCurrentOrganizationId() {
+    if (currentOrganizationId) {
+        return currentOrganizationId;
+    }
+    
+    // Try to get from URL path (e.g., /Client/123/Chat/... or /Client/123/Matter)
+    const pathMatch = window.location.pathname.match(/\/Client\/(\d+)\/(?:Chat|Matter|Services|Documents|Teams|Settings)/);
+    if (pathMatch) {
+        currentOrganizationId = parseInt(pathMatch[1]);
+        return currentOrganizationId;
+    }
+    
+    // Fallback to data attribute
+    const orgId = document.querySelector('[data-organization-id]')?.dataset.organizationId;
+    if (orgId) {
+        currentOrganizationId = parseInt(orgId);
+        return currentOrganizationId;
+    }
+    
+    console.error('Could not determine organization ID');
+    return null;
 }
 
 // SignalR event handlers (if connection exists)
@@ -372,7 +498,7 @@ function addMessageToChat(message) {
     }
     
     chatMessages.appendChild(messageDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'instant' });
 }
 
 // Format AI message based on message type
@@ -671,7 +797,7 @@ function addClarityToChat(clarity) {
     `;
     
     chatMessages.appendChild(clarityDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'instant' });
 }
 
 // Show error
@@ -872,13 +998,19 @@ async function processClarityRequest() {
     if (!text) return;
     
     try {
-        const response = await fetch('/Chat/RequestClarity', {
+        const orgId = getCurrentOrganizationId();
+        if (!orgId) {
+            console.error('Organization ID not found');
+            return;
+        }
+        
+        const response = await fetch(`/Client/${orgId}/Chat/RequestClarity`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                conversationId: currentConversationId,
+                conversationId: parseInt(currentConversationId),
                 text: text,
                 userType: getCurrentUserType()
             })
@@ -915,13 +1047,19 @@ function getRiskColor(risk) {
 
 async function loadReplySuggestions() {
     try {
-        const response = await fetch('/Chat/GetSuggestions', {
+        const orgId = getCurrentOrganizationId();
+        if (!orgId) {
+            console.error('Organization ID not found');
+            return;
+        }
+        
+        const response = await fetch(`/Client/${orgId}/Chat/GetSuggestions`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                conversationId: currentConversationId,
+                conversationId: parseInt(currentConversationId),
                 userType: getCurrentUserType()
             })
         });
@@ -1033,7 +1171,7 @@ function showAIThinkingIndicator() {
     `;
     
     chatMessages.appendChild(thinkingDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'instant' });
 }
 
 function hideAIThinkingIndicator() {
@@ -1064,7 +1202,13 @@ async function loadAIInsights() {
     }
 
     try {
-        const response = await fetch(`/Chat/GetAIInsights?conversationId=${currentConversationId}`);
+        const orgId = getCurrentOrganizationId();
+        if (!orgId) {
+            console.error('Organization ID not found');
+            return;
+        }
+        
+        const response = await fetch(`/Client/${orgId}/Chat/GetAIInsights?conversationId=${currentConversationId}`);
         const data = await response.json();
         
         if (data.success) {
@@ -1275,7 +1419,7 @@ function showIntelligentAIThinkingIndicator(userMessage) {
     `;
     
     chatMessages.appendChild(thinkingDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'instant' });
 }
 
 // Enhanced message display for intelligent AI responses
@@ -1310,7 +1454,7 @@ function addIntelligentMessageToChat(message) {
     `;
     
     chatMessages.appendChild(messageDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'instant' });
 }
 
 
@@ -1400,19 +1544,34 @@ function initializeChatLayout() {
 
 // Load conversations for the global chat panel
 async function loadConversationsForPanel() {
-    // Check if conversations are already loaded to prevent duplicates
+    console.log('Loading conversations for panel...');
     const tabList = document.querySelector('.tab-list');
-    if (!tabList || tabList.children.length > 0) {
-        console.log('Conversations already loaded or tab list not found');
+    if (!tabList) {
+        console.error('Tab list not found');
         return;
     }
+    
+    // Only skip if we already have conversations loaded
+    if (tabList.children.length > 0) {
+        console.log('Conversations already loaded');
+        return;
+    }
+    
+    console.log('No conversations found, creating default...');
 
     try {
-        const response = await fetch('/Chat/GetConversations');
+        const orgId = getCurrentOrganizationId();
+        if (!orgId) {
+            console.error('Organization ID not found');
+            await createDefaultConversationTab();
+            return;
+        }
+        
+        const response = await fetch(`/Client/${orgId}/Chat/GetConversations`);
         if (!response.ok) {
             console.log('No conversations endpoint available, using fallback');
             // Create a default conversation tab for demo purposes
-            createDefaultConversationTab();
+            await createDefaultConversationTab();
             return;
         }
         
@@ -1426,7 +1585,7 @@ async function loadConversationsForPanel() {
                 conversations.forEach(conversation => {
                     const tab = document.createElement('div');
                     tab.className = 'conversation-tab';
-                    tab.dataset.conversationId = conversation.id;
+                    tab.dataset.conversationId = conversation.id.toString();
                     tab.title = conversation.title;
                     tab.innerHTML = `
                         <span class="tab-title">${conversation.title}</span>
@@ -1441,34 +1600,72 @@ async function loadConversationsForPanel() {
                 restoreSelectedConversation();
             } else {
                 // Create a default conversation tab if no conversations exist
-                createDefaultConversationTab();
+                await createDefaultConversationTab();
             }
         }
     } catch (error) {
         console.error('Error loading conversations:', error);
         // Create a default conversation tab as fallback
-        createDefaultConversationTab();
+        await createDefaultConversationTab();
     }
 }
 
 // Create a default conversation tab
-function createDefaultConversationTab() {
+async function createDefaultConversationTab() {
+    console.log('Creating default conversation tab...');
     const tabList = document.querySelector('.tab-list');
-    if (tabList) {
-        const tab = document.createElement('div');
-        tab.className = 'conversation-tab active';
-        tab.dataset.conversationId = 'default';
-        tab.title = 'New Chat';
-        tab.innerHTML = `
-            <span class="tab-title">New Chat</span>
-            <button class="tab-close" onclick="event.stopPropagation(); deleteConversation('default')">
-                <i class="fas fa-times"></i>
-            </button>
-        `;
-        tabList.appendChild(tab);
+    if (!tabList) {
+        console.error('Tab list not found in createDefaultConversationTab');
+        return;
+    }
+    
+    // Create a real conversation instead of a default one
+    const orgId = getCurrentOrganizationId();
+    if (!orgId) {
+        console.error('Organization ID not found');
+        return;
+    }
+    
+    console.log('Creating conversation with orgId:', orgId);
+    
+    try {
+        const response = await fetch(`/Client/${orgId}/Chat/CreateConversation`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `title=${encodeURIComponent('New Chat')}&description=${encodeURIComponent('New conversation started')}`
+        });
         
-        // Restore the last selected conversation after creating default tab
-        restoreSelectedConversation();
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.conversationId) {
+                // Create tab with real conversation ID
+                const tab = document.createElement('div');
+                tab.className = 'conversation-tab active';
+                tab.dataset.conversationId = data.conversationId;
+                tab.title = data.title;
+                tab.innerHTML = `
+                    <span class="tab-title">${data.title}</span>
+                    <button class="tab-close" onclick="event.stopPropagation(); deleteConversation('${data.conversationId}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                tabList.appendChild(tab);
+                
+                // Set as current conversation
+                currentConversationId = data.conversationId;
+                
+                // Restore the last selected conversation after creating tab
+                restoreSelectedConversation();
+            } else {
+                console.error('Failed to create default conversation:', data.error);
+            }
+        } else {
+            console.error('Failed to create default conversation:', response.statusText);
+        }
+    } catch (error) {
+        console.error('Error creating default conversation:', error);
     }
 }
 
@@ -1544,7 +1741,7 @@ function initializeResizeHandle() {
 // Update conversation selection to work with new tab layout
 function loadConversation(conversationId) {
     console.log('loadConversation called with ID:', conversationId);
-    currentConversationId = conversationId;
+    currentConversationId = parseInt(conversationId);
     
     // Save the selected conversation to localStorage for persistence
     saveSelectedConversation(conversationId);
@@ -1624,13 +1821,19 @@ function showConversationContextMenu(event, conversationItem) {
 // Update delete conversation to work with tabs
 function deleteConversation(conversationId) {
     if (confirm('Are you sure you want to delete this conversation? This action cannot be undone.')) {
-        fetch('/Chat/DeleteConversation', {
+        const orgId = getCurrentOrganizationId();
+        if (!orgId) {
+            console.error('Organization ID not found');
+            return;
+        }
+        
+        fetch(`/Client/${orgId}/Chat/DeleteConversation`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                conversationId: conversationId
+                conversationId: parseInt(conversationId)
             })
         })
         .then(response => response.json())
@@ -1672,13 +1875,19 @@ function deleteConversation(conversationId) {
 function renameConversation(conversationId, currentTitle) {
     const newTitle = prompt('Enter new chat name:', currentTitle);
     if (newTitle && newTitle.trim() !== '' && newTitle !== currentTitle) {
-        fetch('/Chat/RenameConversation', {
+        const orgId = getCurrentOrganizationId();
+        if (!orgId) {
+            console.error('Organization ID not found');
+            return;
+        }
+        
+        fetch(`/Client/${orgId}/Chat/RenameConversation`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                conversationId: conversationId,
+                conversationId: parseInt(conversationId),
                 newTitle: newTitle.trim()
             })
         })

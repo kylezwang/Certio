@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Certio.Domain.Users;
-using Certio.Domain.Projects;
+using Certio.Domain.Matters;
 
 namespace Certio.Domain.Services
 {
@@ -27,7 +27,7 @@ namespace Certio.Domain.Services
         [StringLength(20)]
         public string Priority { get; set; } = "Medium"; // High, Medium, Low, Urgent
         
-        public int? ProjectId { get; set; }
+        public int? MatterId { get; set; }
         public int? ClientId { get; set; }
         public int? AssignedToId { get; set; }
         
@@ -47,7 +47,7 @@ namespace Certio.Domain.Services
         public DateTime? LastModifiedDate { get; set; }
         
         // Navigation properties
-        public virtual Project? Project { get; set; }
+        public virtual Matter? Matter { get; set; }
         public virtual User? Client { get; set; }
         public virtual User? AssignedTo { get; set; }
         public virtual ICollection<ServiceRequestMessage> Messages { get; set; } = new List<ServiceRequestMessage>();

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Certio.Web.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "OrgMember")]
     public class SettingsController : Controller
     {
         public IActionResult Index()
@@ -31,7 +31,7 @@ namespace Certio.Web.Controllers
             return View();
         }
 
-        public IActionResult Projects()
+        public IActionResult Matters()
         {
             return View();
         }

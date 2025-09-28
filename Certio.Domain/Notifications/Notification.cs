@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Certio.Domain.Users;
-using Certio.Domain.Projects;
+using Certio.Domain.Matters;
 using Certio.Domain.Documents;
 using Certio.Domain.Services;
 
@@ -25,9 +25,9 @@ namespace Certio.Domain.Notifications
         
         [Required]
         [StringLength(20)]
-        public string Category { get; set; } = ""; // Project, Document, Service, System, AI
+        public string Category { get; set; } = ""; // Matter, Document, Service, System, AI
         
-        public int? ProjectId { get; set; }
+        public int? MatterId { get; set; }
         public int? DocumentId { get; set; }
         public int? ServiceRequestId { get; set; }
         public int? StatusItemId { get; set; }
@@ -48,7 +48,7 @@ namespace Certio.Domain.Notifications
         
         // Navigation properties
         public virtual User User { get; set; } = null!;
-        public virtual Project? Project { get; set; }
+        public virtual Matter? Matter { get; set; }
         public virtual Document? Document { get; set; }
         public virtual ServiceRequest? ServiceRequest { get; set; }
         public virtual StatusItem? StatusItem { get; set; }
@@ -76,7 +76,7 @@ namespace Certio.Domain.Notifications
         
         [Required]
         [StringLength(20)]
-        public string Category { get; set; } = ""; // Project, Document, Service, System, AI
+        public string Category { get; set; } = ""; // Matter, Document, Service, System, AI
         
         [StringLength(100)]
         public string? ActionUrl { get; set; }

@@ -1,4 +1,4 @@
-// Project Creation Form JavaScript
+// Matter Creation Form JavaScript
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.querySelector('.needs-validation');
     const progressSteps = document.querySelectorAll('.progress-step');
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const inputs = form.querySelectorAll('input, select, textarea');
     
     // Load saved data
-    const savedData = localStorage.getItem('projectFormData');
+    const savedData = localStorage.getItem('matterFormData');
     if (savedData) {
         try {
             const parsedData = JSON.parse(savedData);
@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (input.type !== 'hidden') {
             input.addEventListener('input', function() {
                 formData[this.name] = this.value;
-                localStorage.setItem('projectFormData', JSON.stringify(formData));
+                localStorage.setItem('matterFormData', JSON.stringify(formData));
             });
         }
     });
@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Don't clear data yet, user might go back
         } else if (action === 'create') {
             // Clear saved data on final submission
-            localStorage.removeItem('projectFormData');
+            localStorage.removeItem('matterFormData');
         }
     });
     
@@ -174,19 +174,19 @@ document.addEventListener('DOMContentLoaded', function() {
         charCount.textContent = descriptionField.value.length;
     }
     
-    // Project preview updates
-    function updateProjectPreview() {
-        const title = document.querySelector('input[name="Title"]')?.value || 'Project Title';
-        const description = document.querySelector('textarea[name="Description"]')?.value || 'Project description will appear here...';
+    // Matter preview updates
+    function updateMatterPreview() {
+        const title = document.querySelector('input[name="Title"]')?.value || 'Matter Title';
+        const description = document.querySelector('textarea[name="Description"]')?.value || 'Matter description will appear here...';
         const category = document.querySelector('select[name="Category"]')?.value || 'Category';
         const status = document.querySelector('select[name="Status"]')?.value || 'Status';
         const priority = document.querySelector('select[name="Priority"]')?.value || 'Priority';
         
         // Update preview elements if they exist
-        const previewTitle = document.querySelector('.project-preview .h-4');
-        const previewDescription = document.querySelector('.project-preview .h-3');
-        const previewCategory = document.querySelector('.project-preview .bg-accent');
-        const previewStatus = document.querySelector('.project-preview .bg-secondary');
+        const previewTitle = document.querySelector('.matter-preview .h-4');
+        const previewDescription = document.querySelector('.matter-preview .h-3');
+        const previewCategory = document.querySelector('.matter-preview .bg-accent');
+        const previewStatus = document.querySelector('.matter-preview .bg-secondary');
         
         if (previewTitle) {
             previewTitle.textContent = title;
@@ -205,10 +205,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update preview on input changes
     inputs.forEach(input => {
         if (['Title', 'Description', 'Category', 'Status', 'Priority'].includes(input.name)) {
-            input.addEventListener('input', updateProjectPreview);
+            input.addEventListener('input', updateMatterPreview);
         }
     });
     
     // Initialize preview
-    updateProjectPreview();
+    updateMatterPreview();
 });

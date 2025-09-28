@@ -33,7 +33,7 @@ public class AIBackgroundService : BackgroundService
         try
         {
             var messages = await context.ChatMessages
-                .Where(m => m.ConversationId == conversationId)
+                .Where(m => m.ConversationId == int.Parse(conversationId))
                 .OrderBy(m => m.CreatedAt)
                 .ToListAsync();
 
@@ -70,7 +70,7 @@ public class AIBackgroundService : BackgroundService
                 var summaryJson = System.Text.Json.JsonSerializer.Serialize(results["summary"]);
                 var summaryMessage = new ChatMessage
                 {
-                    ConversationId = conversationId,
+                    ConversationId = int.Parse(conversationId),
                     UserId = null, // AI messages don't have a user ID
                     UserType = "AI",
                     Content = summaryJson,
@@ -88,7 +88,7 @@ public class AIBackgroundService : BackgroundService
                 var goalsJson = System.Text.Json.JsonSerializer.Serialize(results["goals"]);
                 var goalsMessage = new ChatMessage
                 {
-                    ConversationId = conversationId,
+                    ConversationId = int.Parse(conversationId),
                     UserId = null, // AI messages don't have a user ID
                     UserType = "AI",
                     Content = goalsJson,
@@ -106,7 +106,7 @@ public class AIBackgroundService : BackgroundService
                 var replyJson = System.Text.Json.JsonSerializer.Serialize(results["reply_suggestion"]);
                 var replyMessage = new ChatMessage
                 {
-                    ConversationId = conversationId,
+                    ConversationId = int.Parse(conversationId),
                     UserId = null, // AI messages don't have a user ID
                     UserType = "AI",
                     Content = replyJson,

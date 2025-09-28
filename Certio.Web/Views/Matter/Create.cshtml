@@ -1,0 +1,1765 @@
+@model Certio.Web.ViewModels.MatterFormViewModel
+@{
+    ViewData["Title"] = "Create Matter";
+    Layout = "_ClientLayout";
+}
+
+<div class="min-h-screen py-8">
+    <div class="container-fluid">
+        <!-- Back Navigation -->
+        <div class="mb-4">
+            <a href="@Url.Action("Index", "Matter")" class="btn btn-ghost d-flex align-items-center gap-2 text-decoration-none">
+                <i class="fas fa-arrow-left"></i>
+                Back to Matters
+            </a>
+        </div>
+
+        <!-- Progress Steps -->
+        <div class="d-flex align-items-center mb-6">
+            <div class="progress-step @(Model.Step >= 1 ? "active" : "")">
+                1
+            </div>
+            <div class="progress-step-label @(Model.Step >= 1 ? "active" : "")">Basic Information</div>
+            <div class="progress-line"></div>
+            
+            <div class="progress-step @(Model.Step >= 2 ? "active" : "")">
+                2
+            </div>
+            <div class="progress-step-label @(Model.Step >= 2 ? "active" : "")">Matter Settings</div>
+            <div class="progress-line"></div>
+            
+            <div class="progress-step @(Model.Step >= 3 ? "active" : "")">
+                3
+            </div>
+            <div class="progress-step-label @(Model.Step >= 3 ? "active" : "")">Firm & Contacts</div>
+            <div class="progress-line"></div>
+            
+            <div class="progress-step @(Model.Step >= 4 ? "active" : "")">
+                4
+            </div>
+            <div class="progress-step-label @(Model.Step >= 4 ? "active" : "")">Review & Create</div>
+        </div>
+
+        <div class="row">
+            <!-- Left Column - Form -->
+            <div class="col-lg-8">
+                <div class="card shadow-elegant border-0">
+                    <div class="card-body p-4">
+                        @if (Model.Step == 1)
+                        {
+                            <h1 class="display-6 fw-bold text-dark mb-2">Create Your Legal Matter</h1>
+                            <p class="lead text-muted" style="font-size: 1.1rem;">Matters help your legal team stay organized, track progress, and manage tasks efficiently. Let's start with some basic information.</p>
+                        }
+                        else if (Model.Step == 2)
+                        {
+                            <h1 class="display-6 fw-bold text-dark mb-2">Configure Matter Settings</h1>
+                            <p class="lead text-muted" style="font-size: 1.1rem;">Set the timeline, priority, and status for your matter to ensure proper tracking and organization.</p>
+                        }
+                        else if (Model.Step == 3)
+                        {
+                            <h1 class="display-6 fw-bold text-dark mb-2">Assign Relevant Attorneys & Contacts</h1>
+                            <p class="lead text-muted" style="font-size: 1.1rem;">Select the attorneys and staff members who will be working on this matter to ensure proper collaboration and communication.</p>
+                        }
+                        else if (Model.Step == 4)
+                        {
+                            <h1 class="display-6 fw-bold text-dark mb-2">Review & Create</h1>
+                            <p class="lead text-muted" style="font-size: 1.1rem;">Review your matter details to finalize creation.</p>
+                        }
+
+                        <form asp-action="Create" asp-controller="Matter" method="post" id="matterForm">
+                            <input type="hidden" asp-for="Step" />
+                            <!-- Persist values from other steps so full state is posted each time -->
+                            @if (Model.Step != 1)
+                            {
+                                <input type="hidden" asp-for="Title" />
+                                <input type="hidden" asp-for="Description" />
+                                <input type="hidden" asp-for="PracticeArea" />
+                                <input type="hidden" asp-for="MatterType" />
+                            }
+                            @if (Model.Step != 2)
+                            {
+                                <input type="hidden" asp-for="Status" />
+                                <input type="hidden" asp-for="Priority" />
+                                <input type="hidden" asp-for="StartDate" />
+                                <input type="hidden" asp-for="DueDate" />
+                                <input type="hidden" asp-for="PendingDate" />
+                                <input type="hidden" asp-for="StatuteOfLimitationsDate" />
+                            }
+                            @if (Model.Step != 3)
+                            {
+                                @for (int i = 0; i < Model.FirmAssignments.Count; i++)
+                                {
+                                    <input type="hidden" name="FirmAssignments[@i].UserId" value="@Model.FirmAssignments[i].UserId" />
+                                    <input type="hidden" name="FirmAssignments[@i].AssignmentType" value="@Model.FirmAssignments[i].AssignmentType" />
+                                    <input type="hidden" name="FirmAssignments[@i].Role" value="@Model.FirmAssignments[i].Role" />
+                                    <input type="hidden" name="FirmAssignments[@i].IsNotifyRecipient" value="@Model.FirmAssignments[i].IsNotifyRecipient" />
+                                }
+                                @for (int i = 0; i < Model.RelevantContacts.Count; i++)
+                                {
+                                    <input type="hidden" name="RelevantContacts[@i].UserId" value="@Model.RelevantContacts[i].UserId" />
+                                    <input type="hidden" name="RelevantContacts[@i].Involvement" value="@Model.RelevantContacts[i].Involvement" />
+                                    <input type="hidden" name="RelevantContacts[@i].IsNotifyRecipient" value="@Model.RelevantContacts[i].IsNotifyRecipient" />
+                                }
+                            }
+                            @if (Model.Step != 4)
+                            {
+                                <input type="hidden" asp-for="AccessLevel" />
+                            }
+                            
+                            @if (Model.Step == 1)
+                            {
+                                <!-- Basic Information Section -->
+                                <div class="mb-5">
+                                    <div class="d-flex align-items-center mb-4">
+                                        <i class="fas fa-file-alt fs-4 me-3" style="color: #0b365e;"></i>
+                                        <div>
+                                            <h3 class="fw-bold text-dark mb-1">Basic Information</h3>
+                                            <p class="text-muted mb-0">Provide the essential details for your matter.</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-12 mb-4">
+                                            <label asp-for="Title" class="form-label fw-bold text-dark">
+                                                Matter Title <span class="text-danger">*</span>
+                                            </label>
+                                            <input asp-for="Title" class="form-control form-control-lg" 
+                                                   placeholder="e.g., Contract Review Automation" />
+                                            <span asp-validation-for="Title" class="text-danger"></span>
+                                        </div>
+
+                                        <div class="col-12 mb-4">
+                                            <label asp-for="Description" class="form-label fw-bold text-dark">Description</label>
+                                            <textarea asp-for="Description" class="form-control" rows="4" 
+                                                      placeholder="Describe what this matter aims to accomplish..."></textarea>
+                                            <span asp-validation-for="Description" class="text-danger"></span>
+                                        </div>
+
+                                        <div class="col-md-6 mb-4">
+                                            <label asp-for="PracticeArea" class="form-label fw-bold text-dark">
+                                                <i class="fas fa-gem me-2" style="color: #0b365e;"></i>
+                                                Practice Area <span class="text-danger">*</span>
+                                            </label>
+                                            <select asp-for="PracticeArea" class="form-select form-select-lg">
+                                                <option value="">Select practice area</option>
+                                                @foreach (var category in Model.PracticeAreas)
+                                                {
+                                                    <option value="@category">@category</option>
+                                                }
+                                            </select>
+                                            <span asp-validation-for="PracticeArea" class="text-danger"></span>
+                                        </div>
+
+                                        <div class="col-md-6 mb-4">
+                                            <label asp-for="MatterType" class="form-label fw-bold text-dark">
+                                                <i class="fas fa-bars me-2" style="color: #0b365e;"></i>
+                                                Matter Type <span class="text-danger">*</span>
+                                            </label>
+                                            <select asp-for="MatterType" class="form-select form-select-lg">
+                                                <option value="">Select matter type</option>
+                                                @foreach (var matterType in Model.MatterTypes)
+                                                {
+                                                    <option value="@matterType">@matterType</option>
+                                                }
+                                            </select>
+                                            <span asp-validation-for="MatterType" class="text-danger"></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Example Matter Names -->
+                                    <div class="mt-4">
+                                        <h6 class="fw-bold mb-3" style="color: #0b365e;">Example matter names:</h6>
+                                        <p class="text-muted">Contract Review Automation, Client Portal Dashboard, Compliance Tracking System, Legal Research Assistant</p>
+                                    </div>
+                                </div>
+                            }
+                            else if (Model.Step == 2)
+                            {
+                                <!-- Matter Settings Section -->
+                                <div class="mb-5">
+                                    <div class="d-flex align-items-center mb-4">
+                                        <i class="fas fa-cog fs-4 me-3" style="color: #0b365e;"></i>
+                                        <div>
+                                            <h3 class="fw-bold text-dark mb-1">Matter Settings</h3>
+                                            <p class="text-muted mb-0">Configure timeline, priority, and matter status.</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-4">
+                                            <label asp-for="Status" class="form-label fw-bold text-dark">
+                                                <i class="fas fa-clock me-2" style="color: #0b365e;"></i>
+                                                Status <span class="text-danger">*</span>
+                                            </label>
+                                            <select asp-for="Status" class="form-select form-select-lg">
+                                                <option value="">Select matter status</option>
+                                                @foreach (var status in Model.Statuses)
+                                                {
+                                                    <option value="@status">@status</option>
+                                                }
+                                            </select>
+                                            <span asp-validation-for="Status" class="text-danger"></span>
+                                        </div>
+
+                                        <div class="col-md-6 mb-4">
+                                            <label asp-for="Priority" class="form-label fw-bold text-dark">
+                                                <i class="fas fa-flag me-2" style="color: #0b365e;"></i>
+                                                Priority <span class="text-danger">*</span>
+                                            </label>
+                                            <select asp-for="Priority" class="form-select form-select-lg">
+                                                <option value="">Select matter priority</option>
+                                                @foreach (var priority in Model.Priorities)
+                                                {
+                                                    <option value="@priority">@priority</option>
+                                                }
+                                            </select>
+                                            <span asp-validation-for="Priority" class="text-danger"></span>
+                                        </div>
+
+                                        <div class="col-md-6 mb-4">
+                                            <label asp-for="StartDate" class="form-label fw-bold text-dark">
+                                                <i class="fas fa-calendar me-2" style="color: #0b365e;"></i>
+                                                Start Date
+                                            </label>
+                                            <input asp-for="StartDate" type="date" class="form-control form-control-lg" 
+                                                   placeholder="Pick start date" />
+                                            <span asp-validation-for="StartDate" class="text-danger"></span>
+                                        </div>
+
+                                        <div class="col-md-6 mb-4">
+                                            <label asp-for="DueDate" class="form-label fw-bold text-dark">
+                                                <i class="fas fa-calendar me-2" style="color: #0b365e;"></i>
+                                                Due Date
+                                            </label>
+                                            <input asp-for="DueDate" type="date" class="form-control form-control-lg" 
+                                                   placeholder="Pick due date" />
+                                            <span asp-validation-for="DueDate" class="text-danger"></span>
+                                        </div>
+
+                                        <div class="col-md-6 mb-4">
+                                            <label asp-for="PendingDate" class="form-label fw-bold text-dark">
+                                                <i class="fas fa-calendar me-2" style="color: #0b365e;"></i>
+                                                Pending Date
+                                            </label>
+                                            <input asp-for="PendingDate" type="date" class="form-control form-control-lg" 
+                                                   placeholder="Pick pending date" />
+                                            <span asp-validation-for="PendingDate" class="text-danger"></span>
+                                        </div>
+
+                                        <div class="col-md-6 mb-4">
+                                            <label asp-for="StatuteOfLimitationsDate" class="form-label fw-bold text-dark">
+                                                <i class="fas fa-calendar me-2" style="color: #0b365e;"></i>
+                                                Statute of Limitations Date
+                                            </label>
+                                            <input asp-for="StatuteOfLimitationsDate" type="date" class="form-control form-control-lg" 
+                                                   placeholder="Pick statute of limitations date" />
+                                            <span asp-validation-for="StatuteOfLimitationsDate" class="text-danger"></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Matter Timeline Tips -->
+                                    <div class="mt-4">
+                                        <h6 class="fw-bold mb-3" style="color: #0b365e;">Matter timeline tips:</h6>
+                                        <p class="text-muted">Set realistic deadlines based on matter complexity. High priority matters will be highlighted in the dashboard and receive more attention from the team.</p>
+                                    </div>
+                                </div>
+                            }
+                            else if (Model.Step == 3)
+                            {
+                                <!-- Attorney Assignments Section -->
+                                <div class="mb-4">
+                                    <div class="d-flex align-items-center mb-4">
+                                        <i class="fas fa-building-columns fs-4 me-3" style="color: #0b365e;"></i>
+                                        <div>
+                                            <h3 class="fw-bold text-dark mb-1">Firm assignments</h3>
+                                            <p class="text-muted mb-0">Assign attorneys and staff responsible for this matter.</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Firm Assignments -->
+                                    <div id="firm-assignments-container">
+                                        @if (Model.FirmAssignments.Count == 0)
+                                        {
+                                            <!-- Default firm assignment rows -->
+                                            <div class="row">
+                                                <div class="col-md-6 mb-4">
+                                                    <label class="form-label fw-bold text-dark">
+                                                        <i class="fas fa-user-tie me-2" style="color: #0b365e;"></i>
+                                                        Responsible Attorney
+                                                    </label>
+                                                    <select name="FirmAssignments[0].UserId" class="form-select form-select-lg firm-assignment-select" data-assignment-type="ResponsibleAttorney">
+                                                        <option value="">Select responsible attorney</option>
+                                                        @foreach (var member in Model.OrgMembers)
+                                                        {
+                                                            <option value="@member.Id">@member.Name (@member.Email)</option>
+                                                        }
+                                                    </select>
+                                                    <input type="hidden" name="FirmAssignments[0].AssignmentType" value="ResponsibleAttorney" />
+                                                    <input type="hidden" name="FirmAssignments[0].Role" value="Responsible Attorney" />
+                                                    <input type="hidden" name="FirmAssignments[0].IsNotifyRecipient" value="true" />
+                                                </div>
+                                                
+                                                <div class="col-md-6 mb-4">
+                                                    <label class="form-label fw-bold text-dark">
+                                                        <i class="fas fa-user me-2" style="color: #0b365e;"></i>
+                                                        Responsible Staff
+                                                    </label>
+                                                    <select name="FirmAssignments[1].UserId" class="form-select form-select-lg firm-assignment-select" data-assignment-type="ResponsibleStaff">
+                                                        <option value="">Select responsible staff</option>
+                                                        @foreach (var member in Model.OrgMembers)
+                                                        {
+                                                            <option value="@member.Id">@member.Name (@member.Email)</option>
+                                                        }
+                                                    </select>
+                                                    <input type="hidden" name="FirmAssignments[1].AssignmentType" value="ResponsibleStaff" />
+                                                    <input type="hidden" name="FirmAssignments[1].Role" value="Responsible Staff" />
+                                                    <input type="hidden" name="FirmAssignments[1].IsNotifyRecipient" value="true" />
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="row mb-4">
+                                                <div class="col-12 mb-4">
+                                                    <label class="form-label fw-bold text-dark">
+                                                        <i class="fas fa-user-tie me-2" style="color: #0b365e;"></i>
+                                                        Originating Attorney
+                                                    </label>
+                                                    <select name="FirmAssignments[2].UserId" class="form-select form-select-lg firm-assignment-select" data-assignment-type="OriginatingAttorney">
+                                                        <option value="">Select originating attorney</option>
+                                                        @foreach (var member in Model.OrgMembers)
+                                                        {
+                                                            <option value="@member.Id">@member.Name (@member.Email)</option>
+                                                        }
+                                                    </select>
+                                                    <input type="hidden" name="FirmAssignments[2].AssignmentType" value="OriginatingAttorney" />
+                                                    <input type="hidden" name="FirmAssignments[2].Role" value="Originating Attorney" />
+                                                    <input type="hidden" name="FirmAssignments[2].IsNotifyRecipient" value="true" />
+                                                </div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <!-- Render firm assignments in proper order and layout -->
+                                            <div class="row">
+                                                <div class="col-md-6 mb-4">
+                                                    <label class="form-label fw-bold text-dark">
+                                                        <i class="fas fa-user-tie me-2" style="color: #0b365e;"></i>
+                                                        Responsible Attorney
+                                                    </label>
+                                                    <select class="form-select form-select-lg firm-assignment-select" data-assignment-type="ResponsibleAttorney">
+                                                        <option value="">Select responsible attorney</option>
+                                                        @foreach (var member in Model.OrgMembers)
+                                                        {
+                                                            <option value="@member.Id" selected="@(Model.FirmAssignments.FirstOrDefault(fa => fa.AssignmentType == "ResponsibleAttorney")?.UserId == member.Id)">@member.Name (@member.Email)</option>
+                                                        }
+                                                    </select>
+                                                    <input type="hidden" name="FirmAssignments[0].AssignmentType" value="ResponsibleAttorney" />
+                                                    <input type="hidden" name="FirmAssignments[0].Role" value="Responsible Attorney" />
+                                                    <input type="hidden" name="FirmAssignments[0].IsNotifyRecipient" value="true" />
+                                                </div>
+                                                
+                                                <div class="col-md-6 mb-4">
+                                                    <label class="form-label fw-bold text-dark">
+                                                        <i class="fas fa-user me-2" style="color: #0b365e;"></i>
+                                                        Responsible Staff
+                                                    </label>
+                                                    <select class="form-select form-select-lg firm-assignment-select" data-assignment-type="ResponsibleStaff">
+                                                        <option value="">Select responsible staff</option>
+                                                        @foreach (var member in Model.OrgMembers)
+                                                        {
+                                                            <option value="@member.Id" selected="@(Model.FirmAssignments.FirstOrDefault(fa => fa.AssignmentType == "ResponsibleStaff")?.UserId == member.Id)">@member.Name (@member.Email)</option>
+                                                        }
+                                                    </select>
+                                                    <input type="hidden" name="FirmAssignments[1].AssignmentType" value="ResponsibleStaff" />
+                                                    <input type="hidden" name="FirmAssignments[1].Role" value="Responsible Staff" />
+                                                    <input type="hidden" name="FirmAssignments[1].IsNotifyRecipient" value="true" />
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="row mb-4">
+                                                <div class="col-12 mb-4">
+                                                    <label class="form-label fw-bold text-dark">
+                                                        <i class="fas fa-user-tie me-2" style="color: #0b365e;"></i>
+                                                        Originating Attorney
+                                                    </label>
+                                                    <select class="form-select form-select-lg firm-assignment-select" data-assignment-type="OriginatingAttorney">
+                                                        <option value="">Select originating attorney</option>
+                                                        @foreach (var member in Model.OrgMembers)
+                                                        {
+                                                            <option value="@member.Id" selected="@(Model.FirmAssignments.FirstOrDefault(fa => fa.AssignmentType == "OriginatingAttorney")?.UserId == member.Id)">@member.Name (@member.Email)</option>
+                                                        }
+                                                    </select>
+                                                    <input type="hidden" name="FirmAssignments[2].AssignmentType" value="OriginatingAttorney" />
+                                                    <input type="hidden" name="FirmAssignments[2].Role" value="Originating Attorney" />
+                                                    <input type="hidden" name="FirmAssignments[2].IsNotifyRecipient" value="true" />
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+
+                                <!-- Relevant Contacts Section -->
+                                <div class="mb-5">
+                                    <div class="d-flex align-items-center mb-4">
+                                        <i class="fas fa-users fs-4 me-3" style="color: #0b365e;"></i>
+                                        <div>
+                                            <h3 class="fw-bold text-dark mb-1">Relevant contacts</h3>
+                                            <p class="text-muted mb-0">Add contacts who are involved with this matter.</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Information Box -->
+                                    <div class="alert alert-info mb-4">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        Information for relevant contacts appears on the matter dashboard.
+                                    </div>
+
+                                    <!-- Relevant Contacts List -->
+                                    <div id="relevant-contacts-container">
+                                        @if (Model.RelevantContacts.Count == 0)
+                                        {
+                                            <!-- Default empty row -->
+                                            <div class="relevant-contact-row mb-3" data-index="0">
+                                                <div class="container-fluid px-0">
+                                                    <div class="d-flex gap-2 align-items-end">
+                                                        <div class="flex-grow-1 flex-shrink-1" style="flex-basis: 0;">
+                                                            <label class="form-label fw-bold text-dark">Contact</label>
+                                                            <select name="RelevantContacts[0].UserId" class="form-select contact-select" data-index="0">
+                                                                <option value="">What's the contact's name?</option>
+                                                                @foreach (var member in Model.OrgMembers)
+                                                                {
+                                                                    <option value="@member.Id">@member.Name (@member.Email)</option>
+                                                                }
+                                                            </select>
+                                                        </div>
+                                                        <div class="flex-grow-1 flex-shrink-1" style="flex-basis: 0;">
+                                                            <label class="form-label fw-bold text-dark">Involvement</label>
+                                                            <input name="RelevantContacts[0].Involvement" class="form-control" placeholder="e.g., Decision maker, Billing contact" />
+                                                        </div>
+                                                        <div class="flex-shrink-0">
+                                                            <button type="button" class="btn btn-outline-danger remove-contact" data-index="0">
+                                                                <i class="fas fa-times"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row mt-3">
+                                                    <div class="col-12">
+                                                        <div class="form-check">
+                                                            <input name="RelevantContacts[0].IsNotifyRecipient" class="form-check-input" type="checkbox" checked />
+                                                            <label class="form-check-label">
+                                                                Notify recipient
+                                                            </label>
+                                                            <i class="fas fa-question-circle text-primary ms-2" data-bs-toggle="tooltip" title="Send notifications about this matter to this contact"></i>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            @for (int i = 0; i < Model.RelevantContacts.Count; i++)
+                                            {
+                                                <div class="relevant-contact-row mb-3" data-index="@i">
+                                                    <div class="container-fluid px-0">
+                                                        <div class="d-flex gap-2 align-items-end">
+                                                            <div class="flex-grow-1 flex-shrink-1" style="flex-basis: 0;">
+                                                                <label class="form-label fw-bold text-dark">Contact</label>
+                                                                <select asp-for="RelevantContacts[i].UserId" class="form-select contact-select" data-index="@i">
+                                                                    <option value="">What's the contact's name?</option>
+                                                                    @foreach (var member in Model.OrgMembers)
+                                                                    {
+                                                                        <option value="@member.Id">@member.Name (@member.Email)</option>
+                                                                    }
+                                                                </select>
+                                                            </div>
+                                                            <div class="flex-grow-1 flex-shrink-1" style="flex-basis: 0;">
+                                                                <label class="form-label fw-bold text-dark">Involvement</label>
+                                                                <input asp-for="RelevantContacts[i].Involvement" class="form-control" placeholder="e.g., Decision maker, Billing contact" />
+                                                            </div>
+                                                            <div class="flex-shrink-0">
+                                                                <button type="button" class="btn btn-outline-danger remove-contact" data-index="@i">
+                                                                    <i class="fas fa-times"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row mt-3">
+                                                        <div class="col-12">
+                                                            <div class="form-check">
+                                                                <input asp-for="RelevantContacts[i].IsNotifyRecipient" class="form-check-input" type="checkbox" />
+                                                                <label asp-for="RelevantContacts[i].IsNotifyRecipient" class="form-check-label">
+                                                                    Notify recipient
+                                                                </label>
+                                                                <i class="fas fa-question-circle text-primary ms-2" data-bs-toggle="tooltip" title="Send notifications about this matter to this contact"></i>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+                                    </div>
+
+                                    <!-- Add Contact Button -->
+                                    <div class="mt-3">
+                                        <button type="button" id="add-contact-btn" class="btn btn-outline-primary">
+                                            <i class="fas fa-plus me-2"></i>Add contact
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                            else if (Model.Step == 4)
+                            {
+                                <!-- Review & Create Section -->
+                                <div class="mb-5">
+                                    <div class="d-flex align-items-center mb-4">
+                                        <i class="fas fa-eye fs-4 me-3" style="color: #0b365e;"></i>
+                                        <div>
+                                            <h3 class="fw-bold text-dark mb-1">Review & Create</h3>
+                                            <p class="text-muted mb-0">Review your matter details and set permissions before creating.</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Snapshot Container -->
+                                    <div class="mb-5">
+                                        <h5 class="fw-bold text-dark mb-3">Matter Summary</h5>
+                                        <div class="snapshot-container">
+                                            <div class="snapshot-slider">
+                                                <!-- Page 1 Snapshot -->
+                                                <div class="snapshot-card">
+                                                    <div class="card matter-card" style="border: none;">
+                                                        <div class="card-body p-4">
+                                                            <div class="d-flex align-items-center mb-3">
+                                                                <i class="fas fa-file-alt fs-4 me-3" style="color: #0b365e;"></i>
+                                                                <div>
+                                                                    <h6 class="fw-bold text-dark mb-1">Basic Information</h6>
+                                                                    <p class="text-muted mb-0 small">Essential matter details</p>
+                                                                </div>
+                                                            </div>
+                                                            <div class="snapshot-content">
+                                                                <div class="mb-2">
+                                                                    <strong>Title:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.Title) ? "Not specified" : Model.Title)</span>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <strong>Description:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.Description) ? "Not specified" : Model.Description)</span>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <strong>Practice Area:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.PracticeArea) ? "Not specified" : Model.PracticeArea)</span>
+                                                                </div>
+                                                                <div class="mb-0">
+                                                                    <strong>Matter Type:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.MatterType) ? "Not specified" : Model.MatterType)</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Page 2 Snapshot -->
+                                                <div class="snapshot-card">
+                                                    <div class="card matter-card" style="border: none;">
+                                                        <div class="card-body p-4">
+                                                            <div class="d-flex align-items-center mb-3">
+                                                                <i class="fas fa-cog fs-4 me-3" style="color: #0b365e;"></i>
+                                                                <div>
+                                                                    <h6 class="fw-bold text-dark mb-1">Matter Settings</h6>
+                                                                    <p class="text-muted mb-0 small">Timeline and priority settings</p>
+                                                                </div>
+                                                            </div>
+                                                            <div class="snapshot-content">
+                                                                <div class="mb-2">
+                                                                    <strong>Status:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.Status) ? "Not specified" : Model.Status)</span>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <strong>Priority:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.Priority) ? "Not specified" : Model.Priority)</span>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <strong>Start Date:</strong> <span class="text-muted">@(Model.StartDate?.ToString("MMM dd, yyyy") ?? "Not specified")</span>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <strong>Due Date:</strong> <span class="text-muted">@(Model.DueDate?.ToString("MMM dd, yyyy") ?? "Not specified")</span>
+                                                                </div>
+                                                                <div class="mb-0">
+                                                                    <strong>Pending Date:</strong> <span class="text-muted">@(Model.PendingDate?.ToString("MMM dd, yyyy") ?? "Not specified")</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Page 3 Snapshot -->
+                                                <div class="snapshot-card">
+                                                    <div class="card matter-card" style="border: none;">
+                                                        <div class="card-body p-4">
+                                                            <div class="d-flex align-items-center mb-3">
+                                                                <i class="fas fa-building-columns fs-4 me-3" style="color: #0b365e;"></i>
+                                                                <div>
+                                                                    <h6 class="fw-bold text-dark mb-1">Firm & Contacts</h6>
+                                                                    <p class="text-muted mb-0 small">Team assignments and contacts</p>
+                                                                </div>
+                                                            </div>
+                                                            <div class="snapshot-content">
+                                                                @{
+                                                                    var originatingAttorney = Model.FirmAssignments.FirstOrDefault(fa => fa.AssignmentType == "OriginatingAttorney");
+                                                                    var responsibleAttorney = Model.FirmAssignments.FirstOrDefault(fa => fa.AssignmentType == "ResponsibleAttorney");
+                                                                    var responsibleStaff = Model.FirmAssignments.FirstOrDefault(fa => fa.AssignmentType == "ResponsibleStaff");
+                                                                }
+                                                                <div class="mb-2">
+                                                                    <strong>Originating Attorney:</strong> <span class="text-muted">@(originatingAttorney != null ? Model.OrgMembers.FirstOrDefault(m => m.Id == originatingAttorney.UserId)?.Name ?? "Not specified" : "Not specified")</span>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <strong>Responsible Attorney:</strong> <span class="text-muted">@(responsibleAttorney != null ? Model.OrgMembers.FirstOrDefault(m => m.Id == responsibleAttorney.UserId)?.Name ?? "Not specified" : "Not specified")</span>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <strong>Responsible Staff:</strong> <span class="text-muted">@(responsibleStaff != null ? Model.OrgMembers.FirstOrDefault(m => m.Id == responsibleStaff.UserId)?.Name ?? "Not specified" : "Not specified")</span>
+                                                                </div>
+                                                                <div class="mb-0">
+                                                                    <strong>Relevant Contacts:</strong>
+                                                                    <span class="text-muted">
+                                                                        @{
+                                                                            var selectedContacts = Model.RelevantContacts
+                                                                                .Where(rc => rc.UserId.HasValue)
+                                                                                .Select(rc => Model.OrgMembers.FirstOrDefault(m => m.Id == rc.UserId.Value)?.Name)
+                                                                                .Where(name => !string.IsNullOrWhiteSpace(name))
+                                                                                .ToList();
+                                                                        }
+                                                                        @(selectedContacts.Count > 0 ? string.Join(", ", selectedContacts) : "None added")
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Matter Permissions Section -->
+                                    <div class="mb-5">
+                                        <div class="d-flex align-items-center mb-4">
+                                            <i class="fas fa-shield-alt fs-4 me-3" style="color: #0b365e;"></i>
+                                            <div>
+                                                <h3 class="fw-bold text-dark mb-1">Matter Permissions</h3>
+                                                <p class="text-muted mb-0">Control who can access and view this matter.</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-12 mb-4">
+                                                <label class="form-label fw-bold text-dark">
+                                                    <i class="fas fa-users me-2" style="color: #0b365e;"></i>
+                                                    Access Level <span class="text-danger">*</span>
+                                                </label>
+                                                <div class="form-check mb-3 mt-2">
+                                                    <input class="form-check-input" type="radio" name="AccessLevel" id="accessEveryone" value="Everyone" @(Model.AccessLevel == "Everyone" ? "checked" : null)>
+                                                    <label class="form-check-label" for="accessEveryone">
+                                                        <span class="fw-bold">Everyone</span>
+                                                        <small class="text-muted d-block">All organization members can view this matter</small>
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="AccessLevel" id="accessSpecific" value="Specific" @(Model.AccessLevel == "Specific" ? "checked" : null)>
+                                                    <label class="form-check-label" for="accessSpecific">
+                                                        <span class="fw-bold">Specific users or groups</span>
+                                                        <small class="text-muted d-block">Only selected users and groups can view this matter</small>
+                                                    </label>
+                                                </div>
+                                                <span class="text-danger">@Html.ValidationMessage("AccessLevel")</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Find Users or Groups Section (Hidden by default) -->
+                                        <div id="findUsersSection" class="mb-4" style="display: none;">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <i class="fas fa-search fs-4 me-3" style="color: #0b365e;"></i>
+                                                <div>
+                                                    <h5 class="fw-bold text-dark mb-1">Find users or groups</h5>
+                                                    <p class="text-muted mb-0">Search and select specific users for matter access.</p>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-12 mb-3">
+                                                    <label class="form-label fw-bold text-dark">Search Users</label>
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control" id="userSearch" placeholder="Search by name or email...">
+                                                        <button class="btn btn-outline-secondary" type="button" id="searchUsersBtn">
+                                                            <i class="fas fa-search"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Selected Users/Groups Display -->
+                                            <div id="selectedUsersContainer" class="mb-3">
+                                                <label class="form-label fw-bold text-dark">Selected Users/Groups</label>
+                                                <div id="selectedUsersList" class="border rounded p-3" style="min-height: 60px; background-color: #f8f9fa;">
+                                                    <p class="text-muted mb-0 small">No users or groups selected yet.</p>
+                                                </div>
+                                            </div>
+
+                                            <!-- Available Users List -->
+                                            <div id="availableUsersContainer" class="mb-3">
+                                                <label class="form-label fw-bold text-dark">Available Users</label>
+                                                <div id="availableUsersList" class="border rounded" style="max-height: 200px; overflow-y: auto; padding-left: 0.5rem;">
+                                                    @foreach (var member in Model.OrgMembers)
+                                                    {
+                                                        <div class="form-check user-item" data-user-id="@member.Id" data-user-name="@member.Name" data-user-email="@member.Email">
+                                                            <input class="form-check-input user-checkbox" type="checkbox" id="user_@member.Id" value="@member.Id" style="margin-left: 0rem; margin-top: 0.8rem;">
+                                                            <label class="form-check-label" for="user_@member.Id" style="padding-left: 1rem;">
+                                                                <strong>@member.Name</strong>
+                                                                <small class="text-muted d-block">@member.Email</small>
+                                                            </label>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+
+
+                            <!-- Navigation Buttons -->
+                            <div class="d-flex justify-content-between">
+                                @if (Model.Step > 1)
+                                {
+                                    <button type="submit" name="action" value="previous" class="btn btn-outline-secondary btn-lg d-flex align-items-center gap-2">
+                                        <i class="fas fa-arrow-left"></i>
+                                        Back
+                                    </button>
+                                }
+                                else
+                                {
+                                    <div></div>
+                                }
+                                
+                                <button type="submit" name="action" value="@(Model.Step < 4 ? "next" : "create")" class="btn btn-primary btn-lg d-flex align-items-center gap-2">
+                                    @if (Model.Step < 4)
+                                    {
+                                        <span>Continue</span>
+                                        <i class="fas fa-arrow-right" style="margin-top: 0rem;"></i>
+                                    }
+                                    else
+                                    {
+                                        <span>Create Matter</span>
+                                        <i class="fas fa-check" style="margin-top: 0rem;"></i>
+                                    }
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Matter Preview -->
+            <div class="col-lg-4" style="padding-left: 0rem;">
+                <div class="card  border-0">
+                    <div class="card-body p-3" st>
+                        <h5 class="fw-bold text-dark mb-2">Matter Preview</h5>
+                        <p class="text-muted mb-4">See how your matter will appear</p>
+
+                        <!-- Matter Card Preview -->
+                        <div class="card  border-0 matter-card" style="padding-top: 0.5rem;">
+                            <div class="card-header bg-transparent border-0 pb-0">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="d-flex align-items-start flex-grow-1" style="min-width: 0;">
+                                        <div class="me-3">
+                                            <i class="fas fa-gavel fs-4" style="color: rgba(11, 54, 94, 0.7);"></i>
+                                        </div>
+                                        <div class="flex-grow-1" style="min-width: 0;">
+                                            <h5 class="card-title fw-bold mb-2" style="color: #0b365e; font-size: 1rem; word-wrap: break-word;">
+                                                @(string.IsNullOrEmpty(Model.Title) ? "Your Matter Title" : Model.Title)
+                                            </h5>
+                                            <p class="card-text text-muted small mb-2" style="font-size: 0.8rem; line-height: 1.3; word-wrap: break-word;">
+                                                @(string.IsNullOrEmpty(Model.Description) ? "Matter description will appear here..." : Model.Description)
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="flex-shrink-0 ms-2">
+                                        <span class="badge @GetPriorityClass(Model.Priority)" style="font-size: 0.7rem; padding: 0.25rem 0.5rem; white-space: nowrap;">
+                                            @(string.IsNullOrEmpty(Model.Priority) ? "Medium" : Model.Priority)
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body pt-2 pb-3">
+                                <!-- Status and PracticeArea -->
+                                <div class="d-flex align-items-baseline gap-2 mb-2">
+                                    <i class="@GetStatusIcon(Model.Status)"></i>
+                                    <span class="badge @GetStatusClass(Model.Status) status-badge" style="font-size: 0.7rem; padding: 0.25rem 0.5rem;">
+                                        @(string.IsNullOrEmpty(Model.Status) ? "Planning" : Model.Status)
+                                    </span>
+                                    <span class="badge bg-secondary category-badge" style="font-size: 0.7rem; padding: 0.25rem 0.5rem;">
+                                        @(string.IsNullOrEmpty(Model.PracticeArea) ? "PracticeArea" : Model.PracticeArea)
+                                    </span>
+                                </div>
+
+                                <!-- Progress -->
+                                <div class="mb-2">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="text-muted small" style="font-size: 0.75rem;">Progress</span>
+                                        <span class="fw-medium small" style="font-size: 0.75rem;">0/0 tasks</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-gradient-primary" style="width: 0%"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Meta Info -->
+                                <div class="d-flex justify-content-between align-items-center text-muted small mb-2" style="font-size: 0.75rem;">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        <span class="due-date-text">@(Model.DueDate?.ToString("MMM dd, yyyy") ?? "No due date set")</span>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-users me-1"></i>
+                                        <span class="assignees-count-text">0 assignees</span>
+                                    </div>
+                                </div>
+
+                                <!-- Team Placeholder -->
+                                <div class="d-flex align-items-center">
+                                    <span class="text-muted small me-2" style="font-size: 0.75rem;">Team:</span>
+                                    <div class="d-flex team-avatars">
+                                        <div class="assignee-avatar me-1 bg-muted text-muted" style="width: 24px; height: 24px; font-size: 0.6rem;">+0</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <p class="text-muted small" style="font-size: 0.8rem;">Your matter will be added to the dashboard with tracking capabilities, team assignments, and progress monitoring.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .matter-card {
+        transition: all 0.3s ease;
+        border-radius: 12px;
+        background: #ffffff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        max-height: none;
+        height: auto;
+        overflow: hidden;
+    }
+
+    .matter-card:hover {
+        background-color: #eef1f3;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+    }
+
+    .assignee-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #0b365e, #0b365e);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #0b365e, #0b365e) !important;
+    }
+
+    .progress {
+        border-radius: 4px;
+        background-color:rgb(244, 246, 248);
+        height: 8px;
+    }
+
+    .progress-bar {
+        border-radius: 4px;
+        background: linear-gradient(135deg, #0b365e, #0b365e) !important;
+    }
+
+    .card {
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .badge {
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        padding: 0.375rem 0.75rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #0b365e, #0b365e);
+        border: none;
+        box-shadow: 0 2px 4px rgba(11, 54, 94, 0.3);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #0b365e, #0b365e);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(11, 54, 94, 0.4);
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #0b365e;
+        box-shadow: 0 0 0 0.2rem rgba(11, 54, 94, 0.25);
+    }
+
+    .progress-step {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+        font-weight: 600;
+        border: 2px solid #e5e7eb;
+        color: #6b7280;
+        background: white;
+        transition: all 0.3s ease;
+    }
+
+    .progress-step.active {
+        background: #0b365e;
+        border-color: #0b365e;
+        color: white;
+    }
+
+    .progress-step-label {
+        margin-left: 0.75rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #6b7280;
+        transition: all 0.3s ease;
+    }
+
+    .progress-step-label.active {
+        color: #1f2937;
+        font-weight: 600;
+    }
+
+    .progress-line {
+        flex: 1;
+        height: 1px;
+        background: #e5e7eb;
+        margin: 0 1rem;
+    }
+
+    .shadow-elegant {
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-control-lg {
+        height: 3rem;
+        font-size: 1rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .form-select-lg {
+        height: 3rem;
+        font-size: 1rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .btn-lg {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .btn-ghost {
+        background: transparent;
+        border: 1px solid #e5e7eb;
+        color: #6b7280;
+        transition: all 0.2s ease;
+    }
+
+    .btn-ghost:hover {
+        background: #f3f4f6;
+        border-color: #d1d5db;
+        color: #374151;
+    }
+
+    /* Snapshot Container Styles */
+    .snapshot-container {
+        overflow-x: auto;
+        padding: 0.5rem;
+    }
+
+    .snapshot-slider {
+        display: flex;
+        gap: 1rem;
+        min-width: max-content;
+    }
+
+    .snapshot-card {
+        flex: 0 0 300px;
+        min-width: 300px;
+    }
+
+    .snapshot-card .card {
+        height: 100%;
+        transition: all 0.3s ease;
+    }
+
+    .snapshot-card .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+    }
+
+    .snapshot-content {
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+
+    .snapshot-content strong {
+        color: #0b365e;
+        font-weight: 600;
+    }
+
+    /* User Selection Styles */
+    .user-item {
+        padding: 0.5rem;
+        border-radius: 6px;
+        transition: background-color 0.2s ease;
+    }
+
+    .user-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .user-item.selected {
+        background-color: #e3f2fd;
+        border: 1px solid #2196f3;
+    }
+
+    .selected-user-badge {
+        display: inline-flex;
+        align-items: center;
+        background-color: #0b365e;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        margin: 0.125rem;
+    }
+
+    .selected-user-badge .remove-user {
+        margin-left: 0.5rem;
+        cursor: pointer;
+        opacity: 0.8;
+    }
+
+    .selected-user-badge .remove-user:hover {
+        opacity: 1;
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .d-flex.gap-5 {
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .progress-line {
+            margin: 0 0.5rem;
+        }
+        
+        .progress-step-label {
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+        }
+        
+        .display-4 {
+            font-size: 2rem;
+        }
+        
+        .lead {
+            font-size: 1rem;
+        }
+
+        .snapshot-card {
+            flex: 0 0 280px;
+            min-width: 280px;
+        }
+    }
+</style>
+
+@functions {
+    string GetPriorityClass(string priority)
+    {
+        return priority switch
+        {
+            "High" => "bg-danger text-white",
+            "Medium" => "bg-primary text-white",
+            "Low" => "bg-secondary text-white",
+            "Critical" => "bg-danger text-white",
+            _ => "bg-primary text-white"
+        };
+    }
+
+    string GetStatusClass(string status)
+    {
+        return status switch
+        {
+            "Completed" => "bg-success text-white",
+            "In Progress" => "bg-primary text-white",
+            "Review" => "bg-warning text-dark",
+            "Planning" => "bg-secondary text-white",
+            "On Hold" => "bg-secondary text-white",
+            _ => "bg-secondary text-white"
+        };
+    }
+
+    string GetStatusIcon(string status)
+    {
+        return status switch
+        {
+            "Completed" => "fas fa-check-circle text-success",
+            "In Progress" => "fas fa-play-circle text-primary",
+            "Review" => "fas fa-exclamation-circle text-warning",
+            "Planning" => "fas fa-clock text-muted",
+            "On Hold" => "fas fa-pause-circle text-muted",
+            _ => "fas fa-clock text-muted"
+        };
+    }
+}
+
+@section Scripts {
+    <script>
+        // Real-time preview updates
+        document.addEventListener('DOMContentLoaded', function() {
+            const orgMembers = @Html.Raw(Json.Serialize(Model.OrgMembers));
+            const initialRelevantContacts = @Html.Raw(Json.Serialize(Model.RelevantContacts));
+            // Store current values to maintain state across steps
+            let currentValues = {
+                title: @Html.Raw(Json.Serialize(Model.Title ?? "")),
+                description: @Html.Raw(Json.Serialize(Model.Description ?? "")),
+                category: @Html.Raw(Json.Serialize(Model.PracticeArea ?? "")),
+                matterType: @Html.Raw(Json.Serialize(Model.MatterType ?? "")),
+                status: @Html.Raw(Json.Serialize(Model.Status ?? "")),
+                priority: @Html.Raw(Json.Serialize(Model.Priority ?? "")),
+                dueDate: @Html.Raw(Json.Serialize(Model.DueDate?.ToString("yyyy-MM-dd") ?? "")),
+                startDate: @Html.Raw(Json.Serialize(Model.StartDate?.ToString("yyyy-MM-dd") ?? "")),
+                pendingDate: @Html.Raw(Json.Serialize(Model.PendingDate?.ToString("yyyy-MM-dd") ?? "")),
+                statuteOfLimitationsDate: @Html.Raw(Json.Serialize(Model.StatuteOfLimitationsDate?.ToString("yyyy-MM-dd") ?? "")),
+                firmAssignments: @Html.Raw(Json.Serialize(Model.FirmAssignments.Select(fa => new { 
+                    AssignmentType = fa.AssignmentType, 
+                    UserId = fa.UserId?.ToString() ?? "", 
+                    Role = fa.Role ?? "" 
+                })))
+            };
+            
+            const previewTitle = document.querySelector('.card-title');
+            const previewDescription = document.querySelector('.card-text');
+            const previewPracticeArea = document.querySelector('.category-badge');
+            const previewStatus = document.querySelector('.status-badge');
+            const previewPriority = document.querySelector('.card-header .badge');
+            const previewDueDate = document.querySelector('.due-date-text');
+            const previewAssigneesCount = document.querySelector('.assignees-count-text');
+            const teamAvatars = document.querySelector('.team-avatars');
+            
+            function updatePreview() {
+                // Update title
+                if (previewTitle) {
+                    previewTitle.textContent = currentValues.title || 'Your Matter Title';
+                }
+                
+                // Update description
+                if (previewDescription) {
+                    previewDescription.textContent = currentValues.description || 'Matter description will appear here...';
+                }
+                
+                // Update category
+                if (previewPracticeArea) {
+                    previewPracticeArea.textContent = currentValues.category || 'PracticeArea';
+                }
+                
+                // Update status
+                updateStatusBadge(currentValues.status || 'Planning');
+                
+                // Update priority
+                updatePriorityBadge(currentValues.priority || 'Medium');
+                
+                // Update due date
+                updateDueDate(currentValues.dueDate);
+                
+                // Update team avatar and assignees count
+                updateTeamAvatarAndAssignees();
+            }
+            
+            function updateValue(fieldName, value) {
+                currentValues[fieldName] = value;
+                updatePreview();
+            }
+            
+            function clearCurrentStepData(step) {
+                if (step === 2) {
+                    // Clear Step 2 data when going back from Step 2 to Step 1
+                    currentValues.status = '';
+                    currentValues.priority = '';
+                    currentValues.dueDate = '';
+                    currentValues.startDate = '';
+                    currentValues.pendingDate = '';
+                    currentValues.statuteOfLimitationsDate = '';
+                } else if (step === 3) {
+                    // Clear Step 3 data when going back from Step 3 to Step 2
+                    currentValues.firmAssignments = [];
+                    currentValues.clientId = '';
+                    currentValues.teamId = '';
+                }
+                updatePreview();
+            }
+            
+            function updateStatusBadge(status) {
+                if (!previewStatus) return;
+                
+                previewStatus.textContent = status;
+                previewStatus.className = 'badge ' + getStatusClass(status) + ' status-badge';
+                
+                // Also update the status icon - target the icon in the status/category row
+                const statusIcon = document.querySelector('.card-body .d-flex.align-items-baseline i');
+                if (statusIcon) {
+                    statusIcon.className = getStatusIcon(status);
+                }
+            }
+            
+            function updatePriorityBadge(priority) {
+                if (!previewPriority) return;
+                
+                previewPriority.textContent = priority;
+                previewPriority.className = 'badge ' + getPriorityClass(priority);
+            }
+            
+            function updateDueDate(dueDate) {
+                if (!previewDueDate) return;
+                
+                if (dueDate) {
+                    const date = new Date(dueDate);
+                    const formattedDate = date.toLocaleDateString('en-US', { 
+                        year: 'numeric', 
+                        month: 'short', 
+                        day: '2-digit' 
+                    });
+                    previewDueDate.textContent = `Due ${formattedDate}`;
+                } else {
+                    previewDueDate.textContent = 'No due date set';
+                }
+            }
+            
+            function getInitials(fullName) {
+                if (!fullName) return '?';
+                const parts = fullName.trim().split(/\s+/);
+                if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+                return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+            }
+
+            function findMemberById(id) {
+                if (!id) return null;
+                return orgMembers.find(m => String(m.id) === String(id)) || null;
+            }
+
+            function countRelevantContactsSelected() {
+                // If on step 3, read from DOM; otherwise use initial model data
+                const container = document.getElementById('relevant-contacts-container');
+                if (container) {
+                    const selects = container.querySelectorAll('select.contact-select');
+                    let cnt = 0;
+                    selects.forEach(s => { if (s.value && s.value.trim() !== '') cnt++; });
+                    return cnt;
+                }
+                if (Array.isArray(initialRelevantContacts)) {
+                    return initialRelevantContacts.filter(rc => rc && rc.userId).length;
+                }
+                return 0;
+            }
+
+            function updateTeamAvatarAndAssignees() {
+                // Render avatars for: ResponsibleAttorney, OriginatingAttorney, ResponsibleStaff, plus each selected relevant contact
+                if (teamAvatars) {
+                    teamAvatars.innerHTML = '';
+
+                    const addedIds = new Set();
+                    const avatars = [];
+
+                    // Role members first (preserve order)
+                    const roleIds = currentValues.firmAssignments
+                        .filter(fa => fa.UserId && String(fa.UserId).trim() !== '')
+                        .map(fa => fa.UserId);
+
+                    roleIds.forEach(id => {
+                        const key = String(id);
+                        if (addedIds.has(key)) return;
+                        const m = findMemberById(id);
+                        if (!m) return;
+                        addedIds.add(key);
+                        const el = document.createElement('div');
+                        el.className = 'assignee-avatar me-1';
+                        el.textContent = getInitials(m.name);
+                        avatars.push(el);
+                    });
+
+                    // Then contacts, skipping any already added
+                    const container = document.getElementById('relevant-contacts-container');
+                    if (container) {
+                        const selects = container.querySelectorAll('select.contact-select');
+                        selects.forEach(s => {
+                            const id = s.value;
+                            const key = String(id || '');
+                            if (!id || key.trim() === '' || addedIds.has(key)) return;
+                            const m = findMemberById(id);
+                            if (!m) return;
+                            addedIds.add(key);
+                            const el = document.createElement('div');
+                            el.className = 'assignee-avatar me-1';
+                            el.textContent = getInitials(m.name);
+                            avatars.push(el);
+                        });
+                    } else if (Array.isArray(initialRelevantContacts)) {
+                        initialRelevantContacts.forEach(rc => {
+                            if (!rc || !rc.userId) return;
+                            const key = String(rc.userId);
+                            if (addedIds.has(key)) return;
+                            const m = findMemberById(rc.userId);
+                            if (!m) return;
+                            addedIds.add(key);
+                            const el = document.createElement('div');
+                            el.className = 'assignee-avatar me-1';
+                            el.textContent = getInitials(m.name);
+                            avatars.push(el);
+                        });
+                    }
+
+                    // If none selected, show placeholder +0
+                    if (avatars.length === 0) {
+                        const placeholder = document.createElement('div');
+                        placeholder.className = 'assignee-avatar me-1 bg-muted text-muted';
+                        placeholder.style.width = '24px';
+                        placeholder.style.height = '24px';
+                        placeholder.style.fontSize = '0.6rem';
+                        placeholder.textContent = '+0';
+                        teamAvatars.appendChild(placeholder);
+                    } else {
+                        avatars.forEach(a => teamAvatars.appendChild(a));
+                    }
+                }
+
+                // Count distinct assignees: firm assignments plus relevant contacts
+                const allIds = [];
+                currentValues.firmAssignments
+                    .forEach(fa => { if (fa.UserId && String(fa.UserId).trim() !== '') allIds.push(String(fa.UserId)); });
+                const container = document.getElementById('relevant-contacts-container');
+                if (container) {
+                    const selects = container.querySelectorAll('select.contact-select');
+                    selects.forEach(s => { if (s.value && s.value.trim() !== '') allIds.push(String(s.value)); });
+                } else if (Array.isArray(initialRelevantContacts)) {
+                    initialRelevantContacts.forEach(rc => { if (rc && rc.userId) allIds.push(String(rc.userId)); });
+                }
+                const totalAssignees = Array.from(new Set(allIds)).length;
+
+                if (previewAssigneesCount) {
+                    previewAssigneesCount.textContent = totalAssignees === 1 ? '1 assignee' : `${totalAssignees} assignees`;
+                }
+            }
+            
+            function getStatusClass(status) {
+                switch(status) {
+                    case 'Completed': return 'bg-success text-white';
+                    case 'In Progress': return 'bg-primary text-white';
+                    case 'Review': return 'bg-warning text-dark';
+                    case 'Planning': return 'bg-secondary text-white';
+                    case 'On Hold': return 'bg-secondary text-white';
+                    default: return 'bg-secondary text-white';
+                }
+            }
+            
+            function getPriorityClass(priority) {
+                switch(priority) {
+                    case 'High': return 'bg-danger text-white';
+                    case 'Medium': return 'bg-primary text-white';
+                    case 'Low': return 'bg-secondary text-white';
+                    case 'Critical': return 'bg-danger text-white';
+                    default: return 'bg-primary text-white';
+                }
+            }
+            
+            function getStatusIcon(status) {
+                switch(status) {
+                    case 'Completed': return 'fas fa-check-circle text-success';
+                    case 'In Progress': return 'fas fa-play-circle text-primary';
+                    case 'Review': return 'fas fa-exclamation-circle text-warning';
+                    case 'Planning': return 'fas fa-clock text-muted';
+                    case 'On Hold': return 'fas fa-pause-circle text-muted';
+                    default: return 'fas fa-clock text-muted';
+                }
+            }
+            
+            // Initialize preview with current values
+            updatePreview();
+            
+            // Add event listeners for current step fields
+            const titleInput = document.querySelector('input[name="Title"]');
+            const descriptionInput = document.querySelector('textarea[name="Description"]');
+            const categorySelect = document.querySelector('select[name="PracticeArea"]');
+            const matterTypeSelect = document.querySelector('select[name="MatterType"]');
+            const statusSelect = document.querySelector('select[name="Status"]');
+            const prioritySelect = document.querySelector('select[name="Priority"]');
+            const dueDateInput = document.querySelector('input[name="DueDate"]');
+            const startDateInput = document.querySelector('input[name="StartDate"]');
+            const pendingDateInput = document.querySelector('input[name="PendingDate"]');
+            const statuteOfLimitationsDateInput = document.querySelector('input[name="StatuteOfLimitationsDate"]');
+            const firmAssignmentSelects = document.querySelectorAll('select.firm-assignment-select');
+            const clientSelect = document.querySelector('select[name="ClientId"]');
+            const teamSelect = document.querySelector('select[name="TeamId"]');
+            
+            if (titleInput) {
+                titleInput.addEventListener('input', function() {
+                    updateValue('title', this.value);
+                });
+            }
+            
+            if (descriptionInput) {
+                descriptionInput.addEventListener('input', function() {
+                    updateValue('description', this.value);
+                });
+            }
+            
+            if (categorySelect) {
+                categorySelect.addEventListener('change', function() {
+                    updateValue('category', this.value);
+                });
+            }
+            
+            if (matterTypeSelect) {
+                matterTypeSelect.addEventListener('change', function() {
+                    updateValue('matterType', this.value);
+                });
+            }
+            
+            if (statusSelect) {
+                statusSelect.addEventListener('change', function() {
+                    updateValue('status', this.value);
+                });
+            }
+            
+            if (prioritySelect) {
+                prioritySelect.addEventListener('change', function() {
+                    updateValue('priority', this.value);
+                });
+            }
+            
+            if (dueDateInput) {
+                dueDateInput.addEventListener('change', function() {
+                    updateValue('dueDate', this.value);
+                });
+            }
+            
+            if (startDateInput) {
+                startDateInput.addEventListener('change', function() {
+                    updateValue('startDate', this.value);
+                });
+            }
+            
+            if (pendingDateInput) {
+                pendingDateInput.addEventListener('change', function() {
+                    updateValue('pendingDate', this.value);
+                });
+            }
+            
+            if (statuteOfLimitationsDateInput) {
+                statuteOfLimitationsDateInput.addEventListener('change', function() {
+                    updateValue('statuteOfLimitationsDate', this.value);
+                });
+            }
+            
+            firmAssignmentSelects.forEach(select => {
+                select.addEventListener('change', function() {
+                    const assignmentType = this.getAttribute('data-assignment-type');
+                    const roleMap = {
+                        'ResponsibleAttorney': 'Responsible Attorney',
+                        'ResponsibleStaff': 'Responsible Staff',
+                        'OriginatingAttorney': 'Originating Attorney'
+                    };
+                    const role = roleMap[assignmentType] || '';
+                    
+                    const existingAssignment = currentValues.firmAssignments.find(fa => fa.AssignmentType === assignmentType);
+                    if (existingAssignment) {
+                        existingAssignment.UserId = this.value;
+                        existingAssignment.Role = role;
+                    } else {
+                        currentValues.firmAssignments.push({
+                            AssignmentType: assignmentType,
+                            UserId: this.value,
+                            Role: role,
+                            IsNotifyRecipient: true
+                        });
+                    }
+                    
+                    // Update the hidden Role field
+                    const roleInput = this.parentElement.querySelector('input[name*="Role"]');
+                    if (roleInput) {
+                        roleInput.value = role;
+                    }
+                    
+                    updatePreview();
+                });
+            });
+            
+            if (clientSelect) {
+                clientSelect.addEventListener('change', function() {
+                    updateValue('clientId', this.value);
+                });
+            }
+            
+            if (teamSelect) {
+                teamSelect.addEventListener('change', function() {
+                    updateValue('teamId', this.value);
+                });
+            }
+            
+            // If on step 3, also update preview when relevant contacts change
+            if (@Model.Step === 3) {
+                document.addEventListener('change', function(e) {
+                    if (e.target && e.target.matches('select.contact-select')) {
+                        updateTeamAvatarAndAssignees();
+                    }
+                });
+            }
+            
+            // Back button now posts with action=previous; client-side handler removed
+        });
+
+        // Relevant Contacts Management
+        if (@Model.Step === 3) {
+            let contactIndex = @Model.RelevantContacts.Count > 0 ? @Model.RelevantContacts.Count : 1;
+            
+            // Add contact functionality
+            document.getElementById('add-contact-btn')?.addEventListener('click', function() {
+                const container = document.getElementById('relevant-contacts-container');
+                const orgMembers = @Html.Raw(Json.Serialize(Model.OrgMembers));
+                
+                const newRow = document.createElement('div');
+                newRow.className = 'relevant-contact-row mb-3';
+                newRow.setAttribute('data-index', contactIndex);
+                
+                let optionsHtml = '<option value="">What\'s the contact\'s name?</option>';
+                orgMembers.forEach(member => {
+                    optionsHtml += `<option value="${member.id}">${member.name} (${member.email})</option>`;
+                });
+                
+                newRow.innerHTML = `
+                    <div class="container-fluid px-0">
+                        <div class="d-flex gap-2 align-items-end">
+                            <div class="flex-grow-1 flex-shrink-1" style="flex-basis: 0;">
+                                <label class="form-label fw-bold text-dark">Contact</label>
+                                <select name="RelevantContacts[${contactIndex}].UserId" class="form-select contact-select" data-index="${contactIndex}">
+                                    ${optionsHtml}
+                                </select>
+                            </div>
+                            <div class="flex-grow-1 flex-shrink-1" style="flex-basis: 0;">
+                                <label class="form-label fw-bold text-dark">Involvement</label>
+                                <input name="RelevantContacts[${contactIndex}].Involvement" class="form-control" placeholder="e.g., Decision maker, Billing contact" />
+                            </div>
+                            <div class="flex-shrink-0">
+                                <button type="button" class="btn btn-outline-danger remove-contact" data-index="${contactIndex}">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input name="RelevantContacts[${contactIndex}].IsNotifyRecipient" class="form-check-input" type="checkbox" checked />
+                                <label class="form-check-label">
+                                    Notify recipient
+                                </label>
+                                <i class="fas fa-question-circle text-primary ms-2" data-bs-toggle="tooltip" title="Send notifications about this matter to this contact"></i>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(newRow);
+                contactIndex++;
+                
+                // Initialize tooltips for the new row
+                const tooltipTriggerList = [].slice.call(newRow.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+            });
+            
+            // Remove contact functionality
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.remove-contact')) {
+                    const button = e.target.closest('.remove-contact');
+                    const row = button.closest('.relevant-contact-row');
+                    row.remove();
+                }
+            });
+        }
+
+        // Matter Permissions Management (Step 4)
+        if (@Model.Step === 4) {
+            const accessEveryoneRadio = document.getElementById('accessEveryone');
+            const accessSpecificRadio = document.getElementById('accessSpecific');
+            const findUsersSection = document.getElementById('findUsersSection');
+            const userSearchInput = document.getElementById('userSearch');
+            const searchUsersBtn = document.getElementById('searchUsersBtn');
+            const availableUsersList = document.getElementById('availableUsersList');
+            const selectedUsersList = document.getElementById('selectedUsersList');
+            const form = document.getElementById('matterForm');
+            const userCheckboxes = document.querySelectorAll('.user-checkbox');
+            
+            let selectedUsers = new Set();
+            
+            // Handle access level radio button changes
+            function handleAccessLevelChange() {
+                if (accessSpecificRadio.checked) {
+                    findUsersSection.style.display = 'block';
+                } else {
+                    findUsersSection.style.display = 'none';
+                    selectedUsers.clear();
+                    updateSelectedUsersDisplay();
+                }
+            }
+            
+            // Build a stable lookup map from the current DOM to resolve user info
+            function buildUserLookup() {
+                const map = new Map();
+                const items = availableUsersList.querySelectorAll('.user-item');
+                items.forEach(el => {
+                    const id = String(el.getAttribute('data-user-id') || '');
+                    const name = el.getAttribute('data-user-name') || '';
+                    const email = el.getAttribute('data-user-email') || '';
+                    if (id) map.set(id, { name, email });
+                });
+                return map;
+            }
+
+            // Update selected users display
+            function updateSelectedUsersDisplay() {
+                const userLookup = buildUserLookup();
+                if (selectedUsers.size === 0) {
+                    selectedUsersList.innerHTML = '<p class="text-muted mb-0 small">No users or groups selected yet.</p>';
+                } else {
+                    const badgesHtml = Array.from(selectedUsers).map(userId => {
+                        const userIdentification = userLookup.get(String(userId));
+                        const userName = (userIdentification && userIdentification.name) ? userIdentification.name : 'Unknown User';
+                        const userEmail = (userIdentification && userIdentification.email) ? userIdentification.email : '';
+                        return `
+                            <span class="selected-user-badge">
+                                ${userName}
+                                <span class="remove-user" data-user-id="${userId}">
+                                    <i class="fas fa-times"></i>
+                                </span>
+                            </span>
+                        `;
+                    }).join('');
+                    selectedUsersList.innerHTML = badgesHtml;
+                }
+            }
+            
+            // Handle user checkbox changes
+            function handleUserCheckboxChange(checkbox) {
+                const userId = checkbox.value;
+                const userItem = checkbox.closest('.user-item');
+                
+                if (checkbox.checked) {
+                    selectedUsers.add(userId);
+                    userItem.classList.add('selected');
+                } else {
+                    selectedUsers.delete(userId);
+                    userItem.classList.remove('selected');
+                }
+                
+                updateSelectedUsersDisplay();
+            }
+            
+            // Handle user search
+            function handleUserSearch() {
+                const searchTerm = userSearchInput.value.toLowerCase();
+                const userItems = document.querySelectorAll('.user-item');
+                
+                userItems.forEach(item => {
+                    const userName = item.getAttribute('data-user-name').toLowerCase();
+                    const userEmail = item.getAttribute('data-user-email').toLowerCase();
+                    
+                    if (userName.includes(searchTerm) || userEmail.includes(searchTerm)) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            }
+            
+            // Handle remove user from selected list
+            function handleRemoveUser(userId) {
+                selectedUsers.delete(userId);
+                const checkbox = document.getElementById(`user_${userId}`);
+                if (checkbox) {
+                    checkbox.checked = false;
+                    checkbox.closest('.user-item').classList.remove('selected');
+                }
+                updateSelectedUsersDisplay();
+            }
+            
+            // Event listeners
+            accessEveryoneRadio.addEventListener('change', handleAccessLevelChange);
+            accessSpecificRadio.addEventListener('change', handleAccessLevelChange);
+            
+            userCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    handleUserCheckboxChange(this);
+                });
+            });
+            
+            userSearchInput.addEventListener('input', handleUserSearch);
+            searchUsersBtn.addEventListener('click', handleUserSearch);
+            
+            // Handle remove user clicks
+            selectedUsersList.addEventListener('click', function(e) {
+                if (e.target.closest('.remove-user')) {
+                    const userId = e.target.closest('.remove-user').getAttribute('data-user-id');
+                    handleRemoveUser(userId);
+                }
+            });
+            
+            // On submit, write hidden inputs for selected users
+            form.addEventListener('submit', function(e) {
+                // Only when creating on step 4
+                const createAction = e.submitter && e.submitter.name === 'action' && e.submitter.value === 'create';
+                if (!createAction) return;
+                
+                // Clear existing hidden inputs
+                const existing = form.querySelectorAll('input[name^="PermissionUserIds["]');
+                existing.forEach(el => el.remove());
+                
+                // Write new hidden inputs
+                Array.from(selectedUsers).forEach((id, index) => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = `PermissionUserIds[${index}]`;
+                    input.value = id;
+                    form.appendChild(input);
+                });
+            });
+
+            // Initialize
+            handleAccessLevelChange();
+        }
+
+    </script>
+}

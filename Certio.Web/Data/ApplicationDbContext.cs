@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Certio.Domain.Projects;
+using Certio.Domain.Matters;
 using Certio.Domain.Services;
 using Certio.Domain.Users;
 using Certio.Domain.Teams;
@@ -27,10 +27,12 @@ namespace Certio.Web.Data
         public DbSet<OrganizationJoinCode> OrganizationJoinCodes => Set<OrganizationJoinCode>();
         public DbSet<Team> Teams => Set<Team>();
         public DbSet<TeamMembership> TeamMemberships => Set<TeamMembership>();
+        public DbSet<UserDeletionRequest> UserDeletionRequests => Set<UserDeletionRequest>();
         
-        // Project Entities
-        public DbSet<Project> Projects => Set<Project>();
-        public DbSet<ProjectAssignment> ProjectAssignments => Set<ProjectAssignment>();
+        // Matter Entities
+        public DbSet<Matter> Matters => Set<Matter>();
+        public DbSet<MatterAssignment> MatterAssignments => Set<MatterAssignment>();
+        public DbSet<MatterPermission> MatterPermissions => Set<MatterPermission>();
         public DbSet<StatusItem> StatusItems => Set<StatusItem>();
         public DbSet<StatusItemDependency> StatusItemDependencies => Set<StatusItemDependency>();
         public DbSet<StatusItemAssignment> StatusItemAssignments => Set<StatusItemAssignment>();
@@ -78,13 +80,13 @@ namespace Certio.Web.Data
             base.OnModelCreating(builder);
             
             // Configure indexes for performance
-            builder.Entity<Project>().HasIndex(p => p.CreatedAt);
+            builder.Entity<Matter>().HasIndex(p => p.CreatedAt);
             builder.Entity<Conversation>().HasIndex(c => c.CreatedAt);
             builder.Entity<ChatMessage>().HasIndex(m => new { m.ConversationId, m.CreatedAt });
             builder.Entity<User>().HasIndex(u => u.Email);
             builder.Entity<Document>().HasIndex(d => d.CreatedAt);
             builder.Entity<ServiceRequest>().HasIndex(sr => sr.CreatedAt);
-            builder.Entity<StatusItem>().HasIndex(si => si.ProjectId);
+            builder.Entity<StatusItem>().HasIndex(si => si.MatterId);
             builder.Entity<Notification>().HasIndex(n => new { n.UserId, n.IsRead });
             builder.Entity<AuditLog>().HasIndex(a => new { a.EntityType, a.EntityId });
             
@@ -92,13 +94,14 @@ namespace Certio.Web.Data
             ConfigureOrganizationRelationships(builder);
             ConfigureUserOrganizationRelationships(builder);
             ConfigureUserRelationships(builder);
-            ConfigureProjectRelationships(builder);
+            ConfigureMatterRelationships(builder);
             ConfigureDocumentRelationships(builder);
             ConfigureServiceRelationships(builder);
             ConfigureChatRelationships(builder);
             ConfigureAIAgentRelationships(builder);
             ConfigureWorkflowRelationships(builder);
             ConfigureNotificationRelationships(builder);
+            ConfigureUserDeletionRequestRelationships(builder);
         }
 
         private void ConfigureOrganizationRelationships(ModelBuilder builder)
@@ -183,29 +186,29 @@ namespace Certio.Web.Data
                 .OnDelete(DeleteBehavior.Cascade);
         }
 
-        private void ConfigureProjectRelationships(ModelBuilder builder)
+        private void ConfigureMatterRelationships(ModelBuilder builder)
         {
-            builder.Entity<Project>()
+            builder.Entity<Matter>()
                 .HasMany(p => p.StatusItems)
-                .WithOne(si => si.Project)
-                .HasForeignKey(si => si.ProjectId)
+                .WithOne(si => si.Matter)
+                .HasForeignKey(si => si.MatterId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.Entity<Project>()
+            builder.Entity<Matter>()
                 .HasMany(p => p.Assignments)
-                .WithOne(pa => pa.Project)
-                .HasForeignKey(pa => pa.ProjectId)
+                .WithOne(pa => pa.Matter)
+                .HasForeignKey(pa => pa.MatterId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Configure User relationships for Project
-            builder.Entity<Project>()
+            // Configure User relationships for Matter
+            builder.Entity<Matter>()
                 .HasOne(p => p.Client)
                 .WithMany()
                 .HasForeignKey(p => p.ClientId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            // Configure Team relationship for Project
-            builder.Entity<Project>()
+            // Configure Team relationship for Matter
+            builder.Entity<Matter>()
                 .HasOne(p => p.Team)
                 .WithMany()
                 .HasForeignKey(p => p.TeamId)
@@ -241,7 +244,7 @@ namespace Certio.Web.Data
                 .HasOne(sia => sia.User)
                 .WithMany()
                 .HasForeignKey(sia => sia.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Configure StatusItemComment relationships
             builder.Entity<StatusItemComment>()
@@ -254,14 +257,40 @@ namespace Certio.Web.Data
                 .HasOne(sic => sic.User)
                 .WithMany()
                 .HasForeignKey(sic => sic.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
-            // Configure ProjectAssignment relationships
-            builder.Entity<ProjectAssignment>()
+            // Configure MatterAssignment relationships
+            builder.Entity<MatterAssignment>()
                 .HasOne(pa => pa.User)
                 .WithMany()
                 .HasForeignKey(pa => pa.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // Configure MatterPermission relationships
+            builder.Entity<MatterPermission>()
+                .HasOne(mp => mp.Matter)
+                .WithMany(m => m.Permissions)
+                .HasForeignKey(mp => mp.MatterId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<MatterPermission>()
+                .HasOne(mp => mp.User)
+                .WithMany()
+                .HasForeignKey(mp => mp.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<MatterPermission>()
+                .HasOne(mp => mp.GrantedBy)
+                .WithMany()
+                .HasForeignKey(mp => mp.GrantedById)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<MatterPermission>()
+                .HasOne(mp => mp.RevokedBy)
+                .WithMany()
+                .HasForeignKey(mp => mp.RevokedById)
+                .OnDelete(DeleteBehavior.Restrict);
         }
 
         private void ConfigureDocumentRelationships(ModelBuilder builder)
@@ -297,11 +326,11 @@ namespace Certio.Web.Data
                 .HasForeignKey(d => d.CreatedById)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            // Configure Project relationship for Document
+            // Configure Matter relationship for Document
             builder.Entity<Document>()
-                .HasOne(d => d.Project)
+                .HasOne(d => d.Matter)
                 .WithMany()
-                .HasForeignKey(d => d.ProjectId)
+                .HasForeignKey(d => d.MatterId)
                 .OnDelete(DeleteBehavior.SetNull);
 
             // Configure StatusItem relationship for Document
@@ -323,14 +352,14 @@ namespace Certio.Web.Data
                 .HasOne(dr => dr.Reviewer)
                 .WithMany()
                 .HasForeignKey(dr => dr.ReviewerId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Configure DocumentComment relationships
             builder.Entity<DocumentComment>()
                 .HasOne(dc => dc.User)
                 .WithMany()
                 .HasForeignKey(dc => dc.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Configure self-referencing relationships for DocumentComment
             builder.Entity<DocumentComment>()
@@ -344,7 +373,7 @@ namespace Certio.Web.Data
                 .HasOne(ds => ds.Signer)
                 .WithMany()
                 .HasForeignKey(ds => ds.SignerId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
         }
 
         private void ConfigureServiceRelationships(ModelBuilder builder)
@@ -374,11 +403,11 @@ namespace Certio.Web.Data
                 .HasForeignKey(sr => sr.AssignedToId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            // Configure Project relationship for ServiceRequest
+            // Configure Matter relationship for ServiceRequest
             builder.Entity<ServiceRequest>()
-                .HasOne(sr => sr.Project)
+                .HasOne(sr => sr.Matter)
                 .WithMany()
-                .HasForeignKey(sr => sr.ProjectId)
+                .HasForeignKey(sr => sr.MatterId)
                 .OnDelete(DeleteBehavior.SetNull);
 
             // Configure self-referencing relationships for ServiceRequestMessage
@@ -393,7 +422,7 @@ namespace Certio.Web.Data
                 .HasOne(srm => srm.User)
                 .WithMany()
                 .HasForeignKey(srm => srm.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Configure User relationship for ServiceRequestAttachment
             builder.Entity<ServiceRequestAttachment>()
@@ -412,27 +441,39 @@ namespace Certio.Web.Data
 
         private void ConfigureChatRelationships(ModelBuilder builder)
         {
-            // Note: ConversationId is string in ChatMessage but int in Conversation, so we'll ignore this relationship for now
-            // TODO: Fix data type mismatch between ChatMessage.ConversationId (string) and Conversation.Id (int)
+            // Configure Organization relationship for Conversation
+            builder.Entity<Conversation>()
+                .HasOne(c => c.Organization)
+                .WithMany()
+                .HasForeignKey(c => c.OrganizationId)
+                .OnDelete(DeleteBehavior.Cascade);
 
+            // Configure User relationship for Conversation (CreatedBy)
+            builder.Entity<Conversation>()
+                .HasOne(c => c.CreatedBy)
+                .WithMany()
+                .HasForeignKey(c => c.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure Conversation -> Messages relationship
+            builder.Entity<Conversation>()
+                .HasMany(c => c.Messages)
+                .WithOne(cm => cm.Conversation)
+                .HasForeignKey(cm => cm.ConversationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure Conversation -> Participants relationship
             builder.Entity<Conversation>()
                 .HasMany(c => c.Participants)
                 .WithOne(cp => cp.Conversation)
                 .HasForeignKey(cp => cp.ConversationId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Configure User relationship for Conversation
+            // Configure Matter relationship for Conversation
             builder.Entity<Conversation>()
-                .HasOne(c => c.CreatedBy)
+                .HasOne(c => c.Matter)
                 .WithMany()
-                .HasForeignKey(c => c.CreatedById)
-                .OnDelete(DeleteBehavior.SetNull);
-
-            // Configure Project relationship for Conversation
-            builder.Entity<Conversation>()
-                .HasOne(c => c.Project)
-                .WithMany()
-                .HasForeignKey(c => c.ProjectId)
+                .HasForeignKey(c => c.MatterId)
                 .OnDelete(DeleteBehavior.SetNull);
 
             // Configure ServiceRequest relationship for Conversation
@@ -447,7 +488,14 @@ namespace Certio.Web.Data
                 .HasOne(cp => cp.User)
                 .WithMany()
                 .HasForeignKey(cp => cp.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure User relationship for ChatMessage
+            builder.Entity<ChatMessage>()
+                .HasOne(cm => cm.User)
+                .WithMany(u => u.ChatMessages)
+                .HasForeignKey(cm => cm.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             // Configure self-referencing relationships for ChatMessage
             builder.Entity<ChatMessage>()
@@ -462,9 +510,15 @@ namespace Certio.Web.Data
                 .HasForeignKey(cm => cm.ReplyToMessageId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Configure User relationship for ChatMessage
-            // Note: UserId is string in ChatMessage but int in User, so we'll ignore this relationship for now
-            // TODO: Fix data type mismatch between ChatMessage.UserId (string) and User.Id (int)
+            // Add indexes for performance
+            builder.Entity<Conversation>()
+                .HasIndex(c => new { c.OrganizationId, c.CreatedById });
+            
+            builder.Entity<Conversation>()
+                .HasIndex(c => new { c.OrganizationId, c.CreatedAt });
+            
+            builder.Entity<ChatMessage>()
+                .HasIndex(cm => new { cm.ConversationId, cm.CreatedAt });
         }
 
         private void ConfigureAIAgentRelationships(ModelBuilder builder)
@@ -490,9 +544,9 @@ namespace Certio.Web.Data
                 .OnDelete(DeleteBehavior.SetNull);
 
             builder.Entity<AIAgentResult>()
-                .HasOne(aar => aar.Project)
+                .HasOne(aar => aar.Matter)
                 .WithMany()
-                .HasForeignKey(aar => aar.ProjectId)
+                .HasForeignKey(aar => aar.MatterId)
                 .OnDelete(DeleteBehavior.SetNull);
 
             builder.Entity<AIAgentResult>()
@@ -528,9 +582,9 @@ namespace Certio.Web.Data
                 .OnDelete(DeleteBehavior.SetNull);
 
             builder.Entity<ClientGoal>()
-                .HasOne(cg => cg.Project)
+                .HasOne(cg => cg.Matter)
                 .WithMany()
-                .HasForeignKey(cg => cg.ProjectId)
+                .HasForeignKey(cg => cg.MatterId)
                 .OnDelete(DeleteBehavior.SetNull);
 
             builder.Entity<ClientGoal>()
@@ -588,13 +642,13 @@ namespace Certio.Web.Data
                 .HasOne(n => n.User)
                 .WithMany()
                 .HasForeignKey(n => n.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
-            // Configure Project relationship for Notification
+            // Configure Matter relationship for Notification
             builder.Entity<Notification>()
-                .HasOne(n => n.Project)
+                .HasOne(n => n.Matter)
                 .WithMany()
-                .HasForeignKey(n => n.ProjectId)
+                .HasForeignKey(n => n.MatterId)
                 .OnDelete(DeleteBehavior.SetNull);
 
             // Configure Document relationship for Notification
@@ -626,8 +680,44 @@ namespace Certio.Web.Data
                 .OnDelete(DeleteBehavior.SetNull);
         }
 
+        private void ConfigureUserDeletionRequestRelationships(ModelBuilder builder)
+        {
+            builder.Entity<UserDeletionRequest>()
+                .HasOne(udr => udr.User)
+                .WithMany()
+                .HasForeignKey(udr => udr.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<UserDeletionRequest>()
+                .HasOne(udr => udr.ProcessedBy)
+                .WithMany()
+                .HasForeignKey(udr => udr.ProcessedById)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Add indexes for performance
+            builder.Entity<UserDeletionRequest>()
+                .HasIndex(udr => new { udr.UserId, udr.IsProcessed });
+
+            builder.Entity<UserDeletionRequest>()
+                .HasIndex(udr => udr.RequestedAt);
+        }
+
+        // Query optimization for active users
+        public IQueryable<User> ActiveUsers => Users.Where(u => !u.IsDeleted);
+
         public override int SaveChanges()
         {
+            // Handle soft delete for Users
+            foreach (var entry in ChangeTracker.Entries<User>())
+            {
+                if (entry.State == EntityState.Deleted)
+                {
+                    entry.State = EntityState.Modified;
+                    entry.Entity.IsDeleted = true;
+                    entry.Entity.DeletedAt = DateTime.UtcNow;
+                    // Note: DeletedById should be set by the service layer
+                }
+            }
             return base.SaveChanges();
         }
     }

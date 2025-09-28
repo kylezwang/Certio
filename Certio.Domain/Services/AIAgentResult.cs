@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Certio.Domain.Users;
-using Certio.Domain.Projects;
+using Certio.Domain.Matters;
 using Certio.Domain.Documents;
 
 namespace Certio.Domain.Services;
@@ -26,7 +26,7 @@ public class AIAgentResult
     public string? Metadata { get; set; } // JSON string for flexible data
     
     public int? ConversationId { get; set; }
-    public int? ProjectId { get; set; }
+    public int? MatterId { get; set; }
     public int? DocumentId { get; set; }
     public int? ServiceRequestId { get; set; }
     
@@ -40,7 +40,7 @@ public class AIAgentResult
     
     // Navigation properties
     public virtual Conversation? Conversation { get; set; }
-    public virtual Project? Project { get; set; }
+    public virtual Matter? Matter { get; set; }
     public virtual Document? Document { get; set; }
     public virtual ServiceRequest? ServiceRequest { get; set; }
     public virtual User? ReviewedBy { get; set; }
@@ -76,7 +76,7 @@ public class ClientGoal
     public int Id { get; set; }
     
     public int? ConversationId { get; set; }
-    public int? ProjectId { get; set; }
+    public int? MatterId { get; set; }
     public int? ServiceRequestId { get; set; }
     
     [Required]
@@ -102,7 +102,7 @@ public class ClientGoal
     
     // Navigation properties
     public virtual Conversation? Conversation { get; set; }
-    public virtual Project? Project { get; set; }
+    public virtual Matter? Matter { get; set; }
     public virtual ServiceRequest? ServiceRequest { get; set; }
 }
 

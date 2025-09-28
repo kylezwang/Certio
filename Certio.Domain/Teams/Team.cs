@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Certio.Domain.Users;
-using Certio.Domain.Projects;
+using Certio.Domain.Matters;
 using Certio.Domain.Organizations;
 
 namespace Certio.Domain.Teams
@@ -38,7 +38,7 @@ namespace Certio.Domain.Teams
         // Navigation properties
         public virtual Organization Organization { get; set; } = null!;
         public virtual ICollection<TeamMembership> Memberships { get; set; } = new List<TeamMembership>();
-        public virtual ICollection<Project> Projects { get; set; } = new List<Project>();
+        public virtual ICollection<Matter> Matters { get; set; } = new List<Matter>();
         
         // Helper methods
         public bool HasUser(int userId)

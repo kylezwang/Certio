@@ -17,57 +17,25 @@ public class AIAgentService : IAIAgentService
         
         // Configure the HTTP client for the Python AI service
         var aiServiceUrl = _configuration["AIService:BaseUrl"] ?? "http://localhost:8000";
+        var timeout = _configuration.GetValue<int>("AIService:TimeoutSeconds", 30);
+        
         _httpClient.BaseAddress = new Uri(aiServiceUrl);
+        _httpClient.Timeout = TimeSpan.FromSeconds(timeout);
+        _httpClient.DefaultRequestHeaders.Add("User-Agent", "Certio-AIService/1.0");
     }
 
     public async Task<ChatSummary> SummarizeConversationAsync(string conversationId, List<ChatMessage> messages)
     {
         try
         {
-            var request = new
-            {
-                conversation_id = conversationId,
-                messages = messages.Select(m => new
-                {
-                    id = m.Id,
-                    conversation_id = m.ConversationId,
-                    user_id = m.UserId,
-                    user_type = m.UserType,
-                    content = m.Content,
-                    message_type = m.MessageType,
-                    is_from_ai = m.IsFromAI,
-                    ai_agent_type = m.AIAgentType,
-                    created_at = m.CreatedAt.ToString("O"),
-                    is_read = m.IsRead
-                }).ToList()
-            };
-
-            var json = JsonSerializer.Serialize(request);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PostAsync("/agents/summarize", content);
-            response.EnsureSuccessStatusCode();
-
-            var responseContent = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<ChatSummary>(responseContent, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-
-            return result ?? new ChatSummary();
+            var request = CreateAIRequest(conversationId, messages);
+            var result = await CallAIServiceAsync<ChatSummary>("/agents/summarize", request);
+            return result ?? CreateDefaultChatSummary();
         }
         catch (Exception ex)
         {
-            // Log error and return default summary
-            Console.WriteLine($"Error calling AI service: {ex.Message}");
-            return new ChatSummary
-            {
-                Summary = "Unable to process conversation summary at this time.",
-                KeyPoints = JsonSerializer.Serialize(new List<string>()),
-                Sentiment = "Neutral",
-                Urgency = "Medium",
-                SuggestedActions = JsonSerializer.Serialize(new List<string>())
-            };
+            Console.WriteLine($"Error calling AI summarization service: {ex.Message}");
+            return CreateDefaultChatSummary();
         }
     }
 
@@ -75,51 +43,14 @@ public class AIAgentService : IAIAgentService
     {
         try
         {
-            var request = new
-            {
-                conversation_id = conversationId,
-                messages = messages.Select(m => new
-                {
-                    id = m.Id,
-                    conversation_id = m.ConversationId,
-                    user_id = m.UserId,
-                    user_type = m.UserType,
-                    content = m.Content,
-                    message_type = m.MessageType,
-                    is_from_ai = m.IsFromAI,
-                    ai_agent_type = m.AIAgentType,
-                    created_at = m.CreatedAt.ToString("O"),
-                    is_read = m.IsRead
-                }).ToList()
-            };
-
-            var json = JsonSerializer.Serialize(request);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PostAsync("/agents/extract-goals", content);
-            response.EnsureSuccessStatusCode();
-
-            var responseContent = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<ClientGoal>(responseContent, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-
-            return result ?? new ClientGoal();
+            var request = CreateAIRequest(conversationId, messages);
+            var result = await CallAIServiceAsync<ClientGoal>("/agents/extract-goals", request);
+            return result ?? CreateDefaultClientGoal();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error calling AI service: {ex.Message}");
-            return new ClientGoal
-            {
-                PrimaryGoal = "Unable to extract goals at this time.",
-                SecondaryGoals = JsonSerializer.Serialize(new List<string>()),
-                BusinessType = "Unknown",
-                LegalArea = "General",
-                Timeline = "Not specified",
-                Budget = "Not specified",
-                RequiredDocuments = JsonSerializer.Serialize(new List<string>())
-            };
+            Console.WriteLine($"Error calling AI goal extraction service: {ex.Message}");
+            return CreateDefaultClientGoal();
         }
     }
 
@@ -127,50 +58,14 @@ public class AIAgentService : IAIAgentService
     {
         try
         {
-            var request = new
-            {
-                conversation_id = conversationId,
-                messages = messages.Select(m => new
-                {
-                    id = m.Id,
-                    conversation_id = m.ConversationId,
-                    user_id = m.UserId,
-                    user_type = m.UserType,
-                    content = m.Content,
-                    message_type = m.MessageType,
-                    is_from_ai = m.IsFromAI,
-                    ai_agent_type = m.AIAgentType,
-                    created_at = m.CreatedAt.ToString("O"),
-                    is_read = m.IsRead
-                }).ToList(),
-                user_type = userType
-            };
-
-            var json = JsonSerializer.Serialize(request);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PostAsync("/agents/suggest-reply", content);
-            response.EnsureSuccessStatusCode();
-
-            var responseContent = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<ReplySuggestion>(responseContent, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-
-            return result ?? new ReplySuggestion();
+            var request = CreateAIRequest(conversationId, messages, userType: userType);
+            var result = await CallAIServiceAsync<ReplySuggestion>("/agents/suggest-reply", request);
+            return result ?? CreateDefaultReplySuggestion();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error calling AI service: {ex.Message}");
-            return new ReplySuggestion
-            {
-                SuggestedReply = "I'll review this and get back to you shortly.",
-                Tone = "Professional",
-                Purpose = "Acknowledgment",
-                KeyPoints = JsonSerializer.Serialize(new List<string>()),
-                RequiresLegalReview = true
-            };
+            Console.WriteLine($"Error calling AI reply suggestion service: {ex.Message}");
+            return CreateDefaultReplySuggestion();
         }
     }
 
@@ -219,26 +114,8 @@ public class AIAgentService : IAIAgentService
     {
         try
         {
-            var request = new
-            {
-                conversation_id = conversationId,
-                messages = messages.Select(m => new
-                {
-                    id = m.Id,
-                    conversation_id = m.ConversationId,
-                    user_id = m.UserId,
-                    user_type = m.UserType,
-                    content = m.Content,
-                    message_type = m.MessageType,
-                    is_from_ai = m.IsFromAI,
-                    ai_agent_type = m.AIAgentType,
-                    created_at = m.CreatedAt.ToString("O"),
-                    is_read = m.IsRead
-                }).ToList(),
-                user_message = userMessage,
-                user_type = "Client" // Default user type, can be enhanced later
-            };
-
+            var request = CreateAIRequest(conversationId, messages, userMessage);
+            
             var json = JsonSerializer.Serialize(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
@@ -250,9 +127,7 @@ public class AIAgentService : IAIAgentService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error calling AI service for conversational response: {ex.Message}");
-            
-            // Fallback response based on message content
+            Console.WriteLine($"Error calling AI conversational service: {ex.Message}");
             return GenerateFallbackResponse(userMessage);
         }
     }
@@ -305,14 +180,96 @@ public class AIAgentService : IAIAgentService
         }
     }
 
+    private object CreateAIRequest(string conversationId, List<ChatMessage> messages, string? userMessage = null, string userType = "Client")
+    {
+        var request = new
+        {
+            conversation_id = conversationId,
+            messages = messages.Select(m => new
+            {
+                id = m.Id,
+                conversation_id = m.ConversationId,
+                user_id = m.UserId,
+                user_type = m.UserType,
+                content = m.Content,
+                message_type = m.MessageType,
+                is_from_ai = m.IsFromAI,
+                ai_agent_type = m.AIAgentType,
+                created_at = m.CreatedAt.ToString("O"),
+                is_read = m.IsRead
+            }).ToList(),
+            user_type = userType
+        };
+
+        return userMessage != null ? new { request.conversation_id, request.messages, request.user_type, user_message = userMessage } : request;
+    }
+
+    private async Task<T?> CallAIServiceAsync<T>(string endpoint, object request) where T : class
+    {
+        var json = JsonSerializer.Serialize(request);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await _httpClient.PostAsync(endpoint, content);
+        response.EnsureSuccessStatusCode();
+
+        var responseContent = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<T>(responseContent, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        });
+    }
+
+    private static ChatSummary CreateDefaultChatSummary()
+    {
+        return new ChatSummary
+        {
+            Summary = "Unable to process conversation summary at this time.",
+            KeyPoints = JsonSerializer.Serialize(new List<string>()),
+            Sentiment = "Neutral",
+            Urgency = "Medium",
+            SuggestedActions = JsonSerializer.Serialize(new List<string>())
+        };
+    }
+
+    private static ClientGoal CreateDefaultClientGoal()
+    {
+        return new ClientGoal
+        {
+            PrimaryGoal = "Unable to extract goals at this time.",
+            SecondaryGoals = JsonSerializer.Serialize(new List<string>()),
+            BusinessType = "Unknown",
+            LegalArea = "General",
+            Timeline = "Not specified",
+            Budget = "Not specified",
+            RequiredDocuments = JsonSerializer.Serialize(new List<string>())
+        };
+    }
+
+    private static ReplySuggestion CreateDefaultReplySuggestion()
+    {
+        return new ReplySuggestion
+        {
+            SuggestedReply = "I'll review this and get back to you shortly.",
+            Tone = "Professional",
+            Purpose = "Acknowledgment",
+            KeyPoints = JsonSerializer.Serialize(new List<string>()),
+            RequiresLegalReview = true
+        };
+    }
+
     private string GenerateFallbackResponse(string userMessage)
     {
-        return "<strong>🤖 AI Services Temporarily Unavailable</strong><br><br>" +
-               "Our intelligent AI agents are currently offline for maintenance. " +
-               "While we work to restore full AI functionality, you can still:<br><br>" +
-               "• Send messages to your legal team<br>" +
-               "• Access previous conversations<br>" +
-               "• Use basic chat features<br><br>" +
-               "We apologize for any inconvenience. Our AI services will be back online shortly!";
+        // Analyze message for context
+        var messageLower = userMessage.ToLower();
+        var contextHint = "";
+        
+        if (messageLower.Contains("contract") || messageLower.Contains("agreement"))
+            contextHint = "I understand you're asking about contracts. ";
+        else if (messageLower.Contains("legal") || messageLower.Contains("law"))
+            contextHint = "I see you need legal guidance. ";
+        
+        return $"<strong>🤖 AI Assistant Temporarily Unavailable</strong><br><br>" +
+               $"{contextHint}Our AI services are being updated. You can continue chatting with your legal team, " +
+               "and I'll be back online shortly to provide intelligent assistance!";
     }
 }

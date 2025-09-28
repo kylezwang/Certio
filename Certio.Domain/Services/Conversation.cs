@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Certio.Domain.Users;
-using Certio.Domain.Projects;
+using Certio.Domain.Matters;
+using Certio.Domain.Organizations;
 
 namespace Certio.Domain.Services;
 
@@ -19,11 +20,19 @@ public class Conversation
     public string Status { get; set; } = "Active"; // Active, Archived, Closed
     
     [StringLength(20)]
-    public string ConversationType { get; set; } = "General"; // General, Project, Service, Support
+    public string ConversationType { get; set; } = "General"; // General, Matter, Service, Support
     
-    public int? ProjectId { get; set; }
+    // Organization scoping - REQUIRED
+    [Required]
+    public int OrganizationId { get; set; }
+    
+    // User who created the conversation - REQUIRED
+    [Required]
+    public int CreatedById { get; set; }
+    
+    // Optional matter/service request associations
+    public int? MatterId { get; set; }
     public int? ServiceRequestId { get; set; }
-    public int? CreatedById { get; set; }
     
     public bool IsPrivate { get; set; } = false;
     public bool IsArchived { get; set; } = false;
@@ -32,21 +41,11 @@ public class Conversation
     public DateTime? LastMessageAt { get; set; }
     public DateTime? ArchivedAt { get; set; }
     
-    // Legacy fields for backward compatibility
-    public string TenantId { get; set; } = "default";
-    public string? ClientId { get; set; }
-    public string? CertioId { get; set; }
-    public string? LawyerId { get; set; }
-    public string? BusinessId { get; set; }
-    public string? AI_Summary { get; set; }
-    public string? Client_Goals { get; set; }
-    public string? Priority { get; set; } = "Medium"; // Low, Medium, High, Urgent
-    public string? Category { get; set; } = "General"; // Legal, Business, Technical, etc.
-    
     // Navigation properties
-    public virtual Project? Project { get; set; }
+    public virtual Organization Organization { get; set; } = null!;
+    public virtual User CreatedBy { get; set; } = null!;
+    public virtual Matter? Matter { get; set; }
     public virtual ServiceRequest? ServiceRequest { get; set; }
-    public virtual User? CreatedBy { get; set; }
     public virtual ICollection<ChatMessage> Messages { get; set; } = new List<ChatMessage>();
     public virtual ICollection<ConversationParticipant> Participants { get; set; } = new List<ConversationParticipant>();
 }
