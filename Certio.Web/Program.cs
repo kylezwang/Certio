@@ -3,7 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using Certio.Web.Data;
 using Certio.Web.Hubs;
 using Certio.Web.Middleware;
+using Certio.Web.Security;
+using Certio.Web.Services;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 
 // Smart database selection - use local SQL Server by default for reliability
 static async Task<string> GetConnectionStringAsync(IConfiguration configuration)
@@ -21,7 +24,13 @@ static async Task<string> GetConnectionStringAsync(IConfiguration configuration)
         Console.WriteLine("📱 Using local SQL Server (default)");
         // Start local SQL Server if not running
         await EnsureLocalSqlServerRunningAsync();
-        return "Server=localhost,1433;Database=CertioLocal;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;";
+        var localPassword = Environment.GetEnvironmentVariable("SQL_PASSWORD");
+        if (string.IsNullOrEmpty(localPassword))
+        {
+            throw new InvalidOperationException("SQL_PASSWORD environment variable is required for local development");
+        }
+        
+        return $"Server=localhost,1433;Database=CertioLocal;User Id=sa;Password={localPassword};TrustServerCertificate=true;";
     }
 }
 
@@ -42,8 +51,13 @@ static async Task<bool> HasInternetConnectivityAsync()
         }
         
         // Now try to connect to Azure SQL with a very short timeout
-        using var connection = new Microsoft.Data.SqlClient.SqlConnection(
-            "Server=tcp:your-server.database.windows.net,1433;Initial Catalog=Certio;Persist Security Info=False;User ID=sql-login;Password=F1r3B@ll2025;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=3;");
+        var azureConnectionString = Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION_STRING");
+        if (string.IsNullOrEmpty(azureConnectionString))
+        {
+            return false;
+        }
+        
+        using var connection = new Microsoft.Data.SqlClient.SqlConnection(azureConnectionString);
         
         await connection.OpenAsync();
         return true;
@@ -107,6 +121,8 @@ static async Task EnsureLocalSqlServerRunningAsync()
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration.AddEnvironmentVariables();
+
 // Smart database selection based on internet connectivity
 var connectionString = await GetConnectionStringAsync(builder.Configuration);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -167,15 +183,28 @@ builder.Services.AddRazorPages();
 
 // Join code service
 builder.Services.AddScoped<Certio.Web.Services.IJoinCodeService, Certio.Web.Services.JoinCodeService>();
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.WriteIndented = true;
+    });
 builder.Services.AddSignalR();
 
 // swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// per-request tenant
-builder.Services.AddScoped<TenantContext>();
+// Client context + authorization
+builder.Services.AddScoped<IClientContextAccessor, ClientContextAccessor>();
+builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, AuthorizationNotFoundMiddleware>();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("OrgMember", policy =>
+        policy.RequireAuthenticatedUser()
+              .AddRequirements(new OrgMemberRequirement()));
+});
+builder.Services.AddScoped<IAuthorizationHandler, OrgMemberAuthorizationHandler>();
 
 // AI Services
 builder.Services.AddHttpClient<Certio.Application.Services.IAIAgentService, Certio.Application.Services.AIAgentService>();
@@ -184,6 +213,12 @@ builder.Services.AddSingleton<Certio.Web.Services.AIBackgroundService>();
 
 // User Sync Services
 builder.Services.AddScoped<Certio.Web.Services.IUserSyncService, Certio.Web.Services.UserSyncService>();
+
+// User Deletion Services
+// Configure anonymization settings
+builder.Services.Configure<Certio.Web.Configuration.AnonymizationSettings>(builder.Configuration.GetSection("AnonymizationSettings"));
+
+builder.Services.AddScoped<Certio.Web.Services.IUserDeletionService, Certio.Web.Services.UserDeletionService>();
 
 // 2FA Services
 builder.Services.AddScoped<Certio.Web.Services.ITwoFactorService, Certio.Web.Services.TwoFactorService>();
@@ -211,19 +246,25 @@ app.UseStaticFiles();
 app.UseSession();
 app.UseRouting();
 
-// tenant middleware
-app.Use(async (ctx, next) =>
-{
-    var tenant = ctx.Request.Headers["X-Tenant"].FirstOrDefault() ?? "default";
-    ctx.RequestServices.GetRequiredService<TenantContext>().CurrentTenant = tenant;
-    await next();
-});
-
 app.UseAuthentication();
 app.UseUserSync(); // Automatically sync Identity users with custom User records
+
+// Build client context AFTER user sync so CustomUser is available
+app.UseMiddleware<ClientContextMiddleware>();
+
 app.UseAuthorization();
 
 app.MapRazorPages();
+// Client-scoped routes needed for MatterController (Create/Edit/etc.) under /Client/{orgId}/Matter
+app.MapControllerRoute(
+    name: "client_matter",
+    pattern: "Client/{orgId:int}/Matter/{action=Index}/{id?}",
+    defaults: new { controller = "Matter" });
+// Client-scoped routes for ChatController under /Client/{orgId}/Chat
+app.MapControllerRoute(
+    name: "client_chat",
+    pattern: "Client/{orgId:int}/Chat/{action=Index}/{id?}",
+    defaults: new { controller = "Chat" });
 app.MapControllerRoute(
     name: "admin",
     pattern: "admin/{controller=Admin}/{action=UserMigration}/{id?}");
@@ -235,8 +276,6 @@ app.MapHub<Certio.Web.Hubs.ChatHub>("/hubs/chat");
 app.MapGet("/healthz", () => Results.Ok(new { ok = true }));
 
 app.Run();
-
-public class TenantContext { public string CurrentTenant { get; set; } = "default"; }
 
 public class AIServiceOptions
 {

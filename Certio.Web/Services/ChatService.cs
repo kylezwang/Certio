@@ -19,16 +19,16 @@ public class ChatService : IChatService
         _aiBackgroundService = aiBackgroundService;
     }
 
-    public async Task<Conversation> CreateConversationAsync(string title, string description, string clientId, string? certioId = null, string? lawyerId = null, string? businessId = null)
+    public async Task<Conversation> CreateConversationAsync(int organizationId, int userId, string title, string description, int? matterId = null, int? serviceRequestId = null)
     {
         var conversation = new Conversation
         {
+            OrganizationId = organizationId,
+            CreatedById = userId,
             Title = title,
             Description = description,
-            ClientId = clientId,
-            CertioId = certioId,
-            LawyerId = lawyerId,
-            BusinessId = businessId,
+            MatterId = matterId,
+            ServiceRequestId = serviceRequestId,
             CreatedAt = DateTime.UtcNow,
             LastMessageAt = DateTime.UtcNow
         };
@@ -39,7 +39,7 @@ public class ChatService : IChatService
         return conversation;
     }
 
-    public async Task<ChatMessage> SendMessageAsync(string conversationId, string userId, string userType, string content, string messageType = "Text")
+    public async Task<ChatMessage> SendMessageAsync(int conversationId, int? userId, string userType, string content, string messageType = "Text")
     {
         var message = new ChatMessage
         {
@@ -56,7 +56,7 @@ public class ChatService : IChatService
 
         // Update conversation last message time
         var conversation = await _context.Conversations
-            .FirstOrDefaultAsync(c => c.Id.ToString() == conversationId);
+            .FirstOrDefaultAsync(c => c.Id == conversationId);
         if (conversation != null)
         {
             conversation.LastMessageAt = DateTime.UtcNow;
@@ -67,13 +67,13 @@ public class ChatService : IChatService
         // Only process AI agents if the message is meaningful and not a simple greeting
         if (ShouldProcessAIAgents(content))
         {
-            _ = _aiBackgroundService.ProcessAIAgentsAsync(conversationId);
+            _ = _aiBackgroundService.ProcessAIAgentsAsync(conversationId.ToString());
         }
 
         return message;
     }
 
-    public async Task<List<ChatMessage>> GetConversationMessagesAsync(string conversationId)
+    public async Task<List<ChatMessage>> GetConversationMessagesAsync(int conversationId)
     {
         return await _context.ChatMessages
             .Where(m => m.ConversationId == conversationId)
@@ -81,26 +81,47 @@ public class ChatService : IChatService
             .ToListAsync();
     }
 
-    public async Task<List<Conversation>> GetUserConversationsAsync(string userId)
+    public async Task<List<Conversation>> GetUserConversationsAsync(int userId, int organizationId)
     {
         return await _context.Conversations
-            .Where(c => c.ClientId == userId || c.CertioId == userId || c.LawyerId == userId || c.BusinessId == userId)
+            .Where(c => c.OrganizationId == organizationId && c.CreatedById == userId)
+            .OrderByDescending(c => c.LastMessageAt)
+            .ToListAsync();
+    }
+
+    public async Task<Conversation?> GetConversationAsync(int conversationId, int organizationId)
+    {
+        return await _context.Conversations
+            .FirstOrDefaultAsync(c => c.Id == conversationId && c.OrganizationId == organizationId);
+    }
+
+    public async Task<List<Conversation>> GetOrganizationConversationsAsync(int organizationId, int? userId = null)
+    {
+        var query = _context.Conversations
+            .Where(c => c.OrganizationId == organizationId);
+
+        if (userId.HasValue)
+        {
+            query = query.Where(c => c.CreatedById == userId.Value);
+        }
+
+        return await query
             .OrderByDescending(c => c.LastMessageAt)
             .ToListAsync();
     }
 
 
-    public async Task<ClarityExplanation> RequestClarityAsync(string conversationId, string text, string userType)
+    public async Task<ClarityExplanation> RequestClarityAsync(int conversationId, string text, string userType)
     {
         return await _aiAgentService.ExplainLegalLanguageAsync(text, userType);
     }
 
-    public async Task<ReplySuggestion> GetReplySuggestionsAsync(string conversationId, List<ChatMessage> messages, string userType)
+    public async Task<ReplySuggestion> GetReplySuggestionsAsync(int conversationId, List<ChatMessage> messages, string userType)
     {
-        return await _aiAgentService.SuggestReplyAsync(conversationId, messages, userType);
+        return await _aiAgentService.SuggestReplyAsync(conversationId.ToString(), messages, userType);
     }
 
-    public async Task<Dictionary<string, object>> GetAIInsightsAsync(string conversationId)
+    public async Task<Dictionary<string, object>> GetAIInsightsAsync(int conversationId)
     {
         try
         {
@@ -135,7 +156,7 @@ public class ChatService : IChatService
         }
     }
 
-    public async Task<ChatSummary?> GetConversationSummaryAsync(string conversationId)
+    public async Task<ChatSummary?> GetConversationSummaryAsync(int conversationId)
     {
         try
         {
@@ -156,7 +177,7 @@ public class ChatService : IChatService
         }
     }
 
-    public async Task<ClientGoal?> GetClientGoalsAsync(string conversationId)
+    public async Task<ClientGoal?> GetClientGoalsAsync(int conversationId)
     {
         try
         {
@@ -177,7 +198,7 @@ public class ChatService : IChatService
         }
     }
 
-    public async Task<ReplySuggestion?> GetLatestReplySuggestionAsync(string conversationId)
+    public async Task<ReplySuggestion?> GetLatestReplySuggestionAsync(int conversationId)
     {
         try
         {
@@ -198,7 +219,7 @@ public class ChatService : IChatService
         }
     }
 
-    public async Task<ChatMessage> GenerateAIResponseAsync(string conversationId, string userMessage)
+    public async Task<ChatMessage> GenerateAIResponseAsync(int conversationId, string userMessage)
     {
         try
         {
@@ -209,44 +230,21 @@ public class ChatService : IChatService
             var userType = DetermineUserType(messages, userMessage);
             
             // Generate intelligent conversational response
-            var aiResponse = await _aiAgentService.GenerateConversationalResponseAsync(conversationId, messages, userMessage);
+            var aiResponse = await _aiAgentService.GenerateConversationalResponseAsync(
+                conversationId.ToString(), messages, userMessage);
             
             // Create AI message with enhanced metadata
-            var aiMessage = new ChatMessage
+            var aiMessage = CreateAIMessage(conversationId, aiResponse, "AI_Response", "IntelligentAI", new
             {
-                ConversationId = conversationId,
-                UserId = null, // AI messages don't have a user ID
-                UserType = "AI",
-                Content = aiResponse,
-                MessageType = "AI_Response", // Changed to AI_Response for proper formatting
-                IsFromAI = true,
-                AIAgentType = "IntelligentAI",
-                CreatedAt = DateTime.UtcNow,
-                Metadata = System.Text.Json.JsonSerializer.Serialize(new
-                {
-                    user_type_detected = userType,
-                    response_type = "intelligent_conversational",
-                    processing_time = DateTime.UtcNow,
-                    message_length = userMessage.Length,
-                    conversation_length = messages.Count
-                })
-            };
+                user_type_detected = userType,
+                response_type = "intelligent_conversational",
+                processing_time = DateTime.UtcNow,
+                message_length = userMessage.Length,
+                conversation_length = messages.Count
+            });
 
-            // Save to database
-            _context.ChatMessages.Add(aiMessage);
-            
-            // Update conversation last message time
-            var conversation = await _context.Conversations
-                .FirstOrDefaultAsync(c => c.Id.ToString() == conversationId);
-            if (conversation != null)
-            {
-                conversation.LastMessageAt = DateTime.UtcNow;
-            }
-
-            await _context.SaveChangesAsync();
-
-            // Temporarily disable background processing to avoid rate limits
-            // _ = _aiBackgroundService.ProcessAIAgentsAsync(conversationId);
+            // Save message and update conversation
+            await SaveAIMessageAsync(aiMessage, conversationId);
 
             return aiMessage;
         }
@@ -254,49 +252,33 @@ public class ChatService : IChatService
         {
             Console.WriteLine($"Error generating AI response: {ex.Message}");
             
-            // Return a more intelligent fallback response
-            var fallbackMessage = new ChatMessage
-            {
-                ConversationId = conversationId,
-                UserId = null, // AI messages don't have a user ID
-                UserType = "AI",
-                Content = GenerateIntelligentFallbackResponse(userMessage),
-                MessageType = "AI_Response", // Use AI_Response for proper formatting
-                IsFromAI = true,
-                AIAgentType = "ServiceUnavailable",
-                CreatedAt = DateTime.UtcNow
-            };
+            // Return intelligent fallback response
+            var fallbackMessage = CreateAIMessage(conversationId, 
+                GenerateIntelligentFallbackResponse(userMessage), 
+                "AI_Response", "ServiceUnavailable");
 
-            _context.ChatMessages.Add(fallbackMessage);
-            await _context.SaveChangesAsync();
-
+            await SaveAIMessageAsync(fallbackMessage, conversationId);
             return fallbackMessage;
         }
     }
 
     private string DetermineUserType(List<ChatMessage> messages, string userMessage)
     {
-        // Analyze conversation to determine user type
-        var clientMessages = messages.Count(m => m.UserType == "Client" || m.UserType == "Business");
-        var certioMessages = messages.Count(m => m.UserType == "Certio");
-        var lawyerMessages = messages.Count(m => m.UserType == "Lawyer");
-
-        // If this is a new conversation, try to infer from message content
+        // If this is a new conversation, infer from message content
         if (messages.Count == 0)
         {
             var messageLower = userMessage.ToLower();
-            if (messageLower.Contains("business") || messageLower.Contains("company") || messageLower.Contains("startup"))
-                return "Business";
-            return "Client";
+            return messageLower.Contains("business") || messageLower.Contains("company") || messageLower.Contains("startup") 
+                ? "Business" : "Client";
         }
 
-        // Return the most common user type in the conversation
-        if (clientMessages > certioMessages && clientMessages >= lawyerMessages)
-            return "Client";
-        else if (certioMessages >= lawyerMessages)
-            return "Certio";
-        else
-            return "Lawyer";
+        // Analyze conversation to determine most common user type
+        var userTypeCounts = messages
+            .Where(m => !m.IsFromAI)
+            .GroupBy(m => m.UserType)
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        return userTypeCounts.OrderByDescending(kvp => kvp.Value).FirstOrDefault().Key ?? "Client";
     }
 
     private bool ShouldProcessAIAgents(string content)
@@ -346,23 +328,64 @@ public class ChatService : IChatService
         return true;
     }
 
-    private string GenerateIntelligentFallbackResponse(string userMessage)
+    private ChatMessage CreateAIMessage(int conversationId, string content, string messageType, string agentType, object? metadata = null)
     {
-        return "<strong>🤖 AI Services Temporarily Unavailable</strong><br><br>" +
-               "Our intelligent AI agents are currently offline for maintenance. " +
-               "While we work to restore full AI functionality, you can still:<br><br>" +
-               "• Send messages to your legal team<br>" +
-               "• Access previous conversations<br>" +
-               "• Use basic chat features<br><br>" +
-               "We apologize for any inconvenience. Our AI services will be back online shortly!";
+        return new ChatMessage
+        {
+            ConversationId = conversationId,
+            UserId = null, // AI messages don't have a user ID
+            UserType = "AI",
+            Content = content,
+            MessageType = messageType,
+            IsFromAI = true,
+            AIAgentType = agentType,
+            CreatedAt = DateTime.UtcNow,
+            Metadata = metadata != null ? System.Text.Json.JsonSerializer.Serialize(metadata) : null
+        };
     }
 
-    public async Task<bool> RenameConversationAsync(string conversationId, string newTitle)
+    private async Task SaveAIMessageAsync(ChatMessage aiMessage, int conversationId)
+    {
+        _context.ChatMessages.Add(aiMessage);
+        
+        // Update conversation last message time
+        var conversation = await _context.Conversations
+            .FirstOrDefaultAsync(c => c.Id == conversationId);
+        if (conversation != null)
+        {
+            conversation.LastMessageAt = DateTime.UtcNow;
+        }
+
+        await _context.SaveChangesAsync();
+    }
+
+    private string GenerateIntelligentFallbackResponse(string userMessage)
+    {
+        // Provide a contextual fallback based on the user message
+        var messageLower = userMessage.ToLower();
+        var contextualResponse = "";
+        
+        if (messageLower.Contains("contract") || messageLower.Contains("agreement"))
+            contextualResponse = "I understand you have questions about contracts. ";
+        else if (messageLower.Contains("legal") || messageLower.Contains("law"))
+            contextualResponse = "I see you need legal assistance. ";
+        else if (messageLower.Contains("business") || messageLower.Contains("company"))
+            contextualResponse = "I understand you have business-related questions. ";
+        
+        return $"<strong>🤖 AI Assistant Temporarily Unavailable</strong><br><br>" +
+               $"{contextualResponse}While our AI services are being updated, you can still:<br><br>" +
+               "• Continue messaging with your legal team<br>" +
+               "• Access all previous conversations<br>" +
+               "• Use all chat features normally<br><br>" +
+               "Our AI assistant will be back online shortly to provide intelligent responses!";
+    }
+
+    public async Task<bool> RenameConversationAsync(int conversationId, int organizationId, string newTitle)
     {
         try
         {
             var conversation = await _context.Conversations
-                .FirstOrDefaultAsync(c => c.Id.ToString() == conversationId);
+                .FirstOrDefaultAsync(c => c.Id == conversationId && c.OrganizationId == organizationId);
             
             if (conversation == null)
             {
@@ -381,7 +404,7 @@ public class ChatService : IChatService
         }
     }
 
-    public async Task<bool> DeleteConversationAsync(string conversationId)
+    public async Task<bool> DeleteConversationAsync(int conversationId, int organizationId)
     {
         try
         {
@@ -394,7 +417,7 @@ public class ChatService : IChatService
             
             // Then delete the conversation itself
             var conversation = await _context.Conversations
-                .FirstOrDefaultAsync(c => c.Id.ToString() == conversationId);
+                .FirstOrDefaultAsync(c => c.Id == conversationId && c.OrganizationId == organizationId);
             
             if (conversation != null)
             {

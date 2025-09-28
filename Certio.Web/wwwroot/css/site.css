@@ -19,12 +19,12 @@ html {
 
 body {
   margin-bottom: 60px;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background: #f1f5f9;
   min-height: 100vh;
 }
 
-/* Project Folders Styles */
-.project-folder-card {
+/* Matter Folders Styles */
+.matter-folder-card {
   background-color: #ffffff;
   border-radius: 12px;
   transition: all 0.2s ease-in-out;
@@ -33,14 +33,14 @@ body {
   box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
-.project-folder-card:hover {
+.matter-folder-card:hover {
   background-color: #eef1f3;
   transform: translateY(-1px);
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2) !important;
 }
 
 /* Ensure card body content is vertically centered */
-.project-folder-card .card-body {
+.matter-folder-card .card-body {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -49,7 +49,7 @@ body {
 }
 
 /* Ensure the main content container is properly centered */
-.project-folder-content {
+.matter-folder-content {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -58,7 +58,7 @@ body {
 }
 
 /* Ensure text content is vertically centered within its container */
-.project-folder-content .flex-grow-1 {
+.matter-folder-content .flex-grow-1 {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -71,11 +71,11 @@ body {
   display: flex;
 }
 
-.project-folder-card {
+.matter-folder-card {
   flex: 1;
 }
 
-/* Projects page stats cards vertical centering */
+/* Matters page stats cards vertical centering */
 .row.mb-4 .col-md-3.mb-3 {
   display: flex;
 }
@@ -1515,14 +1515,14 @@ body {
   font-size: 12px;
 }
 
-/* Projects Page Styles */
-.projects-container {
+/* Matters Page Styles */
+.matters-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem 1rem;
 }
 
-.project-card {
+.matter-card {
   transition: all 0.3s ease;
   border-radius: 12px;
   border: 1px solid #e5e7eb;
@@ -1530,11 +1530,10 @@ body {
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-.project-card:hover {
+.matter-card:hover {
   background-color: #eef1f3; /* softer hover */
   transform: translateY(-2px);
   box-shadow: 0 10px 24px rgba(0,0,0,0.2) !important;
-  border-color: #0b365e;
 }
 
 .assignee-avatar {
@@ -1594,7 +1593,7 @@ body {
   box-shadow: 0 10px 24px rgba(0,0,0,0.2);
 }
 
-/* Project Status Colors */
+/* Matter Status Colors */
 .badge-status-completed {
   background-color: #10b981;
   color: white;
@@ -1652,13 +1651,13 @@ body {
   color: #3b82f6;
 }
 
-/* Responsive adjustments for Projects page */
+/* Responsive adjustments for Matters page */
 @media (max-width: 768px) {
-  .projects-container {
+  .matters-container {
     padding: 1rem 0.5rem;
   }
   
-  .project-card {
+  .matter-card {
     margin-bottom: 1rem;
   }
   
@@ -1678,7 +1677,7 @@ body {
   }
 }
 
-/* Animation for project cards */
+/* Animation for matter cards */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -1690,14 +1689,14 @@ body {
   }
 }
 
-.project-card {
+.matter-card {
   animation: fadeInUp 0.6s ease-out;
 }
 
-.project-card:nth-child(1) { animation-delay: 0.1s; }
-.project-card:nth-child(2) { animation-delay: 0.2s; }
-.project-card:nth-child(3) { animation-delay: 0.3s; }
-.project-card:nth-child(4) { animation-delay: 0.4s; }
+.matter-card:nth-child(1) { animation-delay: 0.1s; }
+.matter-card:nth-child(2) { animation-delay: 0.2s; }
+.matter-card:nth-child(3) { animation-delay: 0.3s; }
+.matter-card:nth-child(4) { animation-delay: 0.4s; }
 
 /* Documents Page Styles */
 .documents-container {
@@ -1957,20 +1956,20 @@ body {
 .document-card:nth-child(4) { animation-delay: 0.4s; }
 
 /* -------------------------------------------------------
-   Projects Page – match Documents/Teams card interactions
-   (scoped so only Projects page cards are affected)
+   Matters Page – match Documents/Teams card interactions
+   (scoped so only Matters page cards are affected)
 -------------------------------------------------------- */
-.projects-container .card,
-.projects-container .project-card,
-.projects-container .stats-card {
+.matters-container .card,
+.matters-container .matter-card,
+.matters-container .stats-card {
   transition: all 0.3s ease;
   background: #ffffff; /* default to white */
   box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
-.projects-container .card:hover,
-.projects-container .project-card:hover,
-.projects-container .stats-card:hover {
+.matters-container .card:hover,
+.matters-container .matter-card:hover,
+.matters-container .stats-card:hover {
   background-color: #eef1f3; /* softer hover */
   transform: translateY(-2px);
   box-shadow: 0 10px 24px rgba(0,0,0,0.2) !important;
@@ -1978,9 +1977,9 @@ body {
 }
 
 /* Apply same fade-in animation used for document cards */
-.projects-container .card,
-.projects-container .project-card,
-.projects-container .stats-card {
+.matters-container .card,
+.matters-container .matter-card,
+.matters-container .stats-card {
   animation: fadeInUp 0.6s ease-out;
 }
 .document-card:nth-child(5) { animation-delay: 0.5s; }
@@ -1989,7 +1988,7 @@ body {
 body {
   margin: 0;
   padding: 0;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background: #f1f5f9;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -4263,7 +4262,7 @@ body.services-page .main-content {
   box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.15);
 }
 
-/* Multi-Step Project Creation Form Styles */
+/* Multi-Step Matter Creation Form Styles */
 .min-h-screen {
   min-height: 100vh;
 }
@@ -4331,8 +4330,8 @@ body.services-page .main-content {
   padding: 0.75rem 1rem;
 }
 
-/* Project Preview */
-.project-preview .card {
+/* Matter Preview */
+.matter-preview .card {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   border: 1px solid #e5e7eb;
 }
@@ -4350,8 +4349,8 @@ body.services-page .main-content {
   }
 }
 
-/* Project Review */
-.project-review .form-control-plaintext {
+/* Matter Review */
+.matter-review .form-control-plaintext {
   background: #f8fafb;
   border: 1px solid #e5e7eb;
   border-radius: 0.375rem;
@@ -4433,7 +4432,7 @@ body.services-page .main-content {
   padding-right: 1rem;
 }
 
-/* Responsive adjustments for project creation form */
+/* Responsive adjustments for matter creation form */
 @media (max-width: 768px) {
   .d-flex.gap-5 {
     flex-direction: column;

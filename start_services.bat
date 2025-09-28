@@ -2,6 +2,19 @@
 echo Starting Certio AI-Powered Chat System...
 echo.
 
+REM Load environment variables from .env file if it exists
+if exist .env (
+    echo Loading environment variables from .env file...
+    for /f "usebackq tokens=1,2 delims==" %%a in (.env) do (
+        if not "%%a"=="" if not "%%a:~0,1%"=="#" (
+            set %%a=%%b
+        )
+    )
+) else (
+    echo Warning: .env file not found. Make sure environment variables are set.
+)
+echo.
+
 echo Starting Python AI Service on port 8000...
 start "AI Service" cmd /k "cd ai_agents && python main.py"
 

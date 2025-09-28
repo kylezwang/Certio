@@ -2,13 +2,13 @@ using System.ComponentModel.DataAnnotations;
 using Certio.Domain.Users;
 using Certio.Domain.Documents;
 
-namespace Certio.Domain.Projects
+namespace Certio.Domain.Matters
 {
     public class StatusItem
     {
         public int Id { get; set; }
         
-        public int ProjectId { get; set; }
+        public int MatterId { get; set; }
         
         [Required]
         [StringLength(200)]
@@ -39,7 +39,7 @@ namespace Certio.Domain.Projects
         public DateTime? LastModifiedDate { get; set; }
         
         // Navigation properties
-        public virtual Project Project { get; set; } = null!;
+        public virtual Matter Matter { get; set; } = null!;
         public virtual StatusItem? ParentStatusItem { get; set; }
         public virtual ICollection<StatusItem> SubStatusItems { get; set; } = new List<StatusItem>();
         public virtual ICollection<StatusItemDependency> Dependencies { get; set; } = new List<StatusItemDependency>();

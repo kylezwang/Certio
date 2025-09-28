@@ -108,7 +108,7 @@
                 const allRoles = [
                     'Owner', 'Manager', 'Member', 'Lawyer',
                     'OpposingCounsel', 'ExpertWitness', 'CourtPersonnel', 'RegulatoryBody', 'Other',
-                    'Admin', 'ProjectManager', 'Support', 'Legal',
+                    'Admin', 'MatterManager', 'Support', 'Legal',
                     'Guest'
                 ];
                 
@@ -126,7 +126,7 @@
                     } else if (userType === 'External' && ['OpposingCounsel', 'ExpertWitness', 'CourtPersonnel', 'RegulatoryBody', 'Other'].includes(role)) {
                         roleSelect.appendChild(option);
                         addedRoles.push(role);
-                    } else if (userType === 'Certio' && ['Admin', 'ProjectManager', 'Support', 'Legal'].includes(role)) {
+                    } else if (userType === 'Certio' && ['Admin', 'MatterManager', 'Support', 'Legal'].includes(role)) {
                         roleSelect.appendChild(option);
                         addedRoles.push(role);
                     }

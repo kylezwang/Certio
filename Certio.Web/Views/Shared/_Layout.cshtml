@@ -480,63 +480,47 @@
             const clientsPopupClose = document.getElementById('clientsPopupClose');
             const clientsList = document.getElementById('clientsList');
 
-            // Sample client data
-            const clients = [
-                {
-                    name: "John Smith",
-                    company: "Smith & Associates",
-                    status: "Active"
-                },
-                {
-                    name: "Sarah Johnson",
-                    company: "Johnson Legal Group",
-                    status: "Active"
-                },
-                {
-                    name: "Michael Brown",
-                    company: "Brown & Partners",
-                    status: "Inactive"
-                },
-                {
-                    name: "Emily Davis",
-                    company: "Davis Law Firm",
-                    status: "Active"
-                },
-                {
-                    name: "Robert Wilson",
-                    company: "Wilson & Co.",
-                    status: "Pending"
-                },
-                {
-                    name: "Lisa Anderson",
-                    company: "Anderson Legal",
-                    status: "Active"
-                },
-                {
-                    name: "David Taylor",
-                    company: "Taylor & Associates",
-                    status: "Active"
-                },
-                {
-                    name: "Jennifer Martinez",
-                    company: "Martinez Law",
-                    status: "Inactive"
-                }
-            ];
-
             // Populate clients list
-            function populateClientsList() {
+            async function populateClientsList() {
                 clientsList.innerHTML = '';
-                clients.forEach(client => {
-                    const clientItem = document.createElement('div');
-                    clientItem.className = 'client-item';
-                    clientItem.innerHTML = `
-                        <h5 class="client-name">${client.name}</h5>
-                        <p class="client-company">${client.company}</p>
-                        <p class="client-status">Status: ${client.status}</p>
-                    `;
-                    clientsList.appendChild(clientItem);
-                });
+                try {
+                    const response = await fetch('/Client/List', { credentials: 'include' });
+                    const result = await response.json();
+                    if (!result.success) {
+                        const msg = document.createElement('div');
+                        msg.className = 'client-item';
+                        msg.innerHTML = `<p class="client-status">${result.message || 'Unable to load clients.'}</p>`;
+                        clientsList.appendChild(msg);
+                        return;
+                    }
+                    const orgs = result.organizations || [];
+                    if (orgs.length === 0) {
+                        const empty = document.createElement('div');
+                        empty.className = 'client-item';
+                        empty.innerHTML = `<p class="client-status">No clients yet. Use a join code below to add one.</p>`;
+                        clientsList.appendChild(empty);
+                        return;
+                    }
+                    orgs.forEach(o => {
+                        const ownerName = `${o.ownerFirstName} ${o.ownerLastName}`.trim();
+                        const clientItem = document.createElement('div');
+                        clientItem.className = 'client-item';
+                        clientItem.innerHTML = `
+                            <h5 class="client-name">${ownerName}</h5>
+                            <p class="client-company">${o.organizationName}</p>
+                            <p class="client-status">${o.isPrimary ? 'Primary' : (o.isPersonal ? 'Personal' : 'Active')}</p>
+                        `;
+                        clientItem.addEventListener('click', () => {
+                            window.location.href = `/Client/${o.organizationId}/Matter`;
+                        });
+                        clientsList.appendChild(clientItem);
+                    });
+                } catch (e) {
+                    const err = document.createElement('div');
+                    err.className = 'client-item';
+                    err.innerHTML = `<p class="client-status">Error loading clients.</p>`;
+                    clientsList.appendChild(err);
+                }
             }
 
             // Show clients popup

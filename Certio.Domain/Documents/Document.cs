@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Certio.Domain.Users;
-using Certio.Domain.Projects;
+using Certio.Domain.Matters;
 
 namespace Certio.Domain.Documents
 {
@@ -31,7 +31,7 @@ namespace Certio.Domain.Documents
         [StringLength(100)]
         public string? MimeType { get; set; }
         
-        public int? ProjectId { get; set; }
+        public int? MatterId { get; set; }
         public int? StatusItemId { get; set; }
         public int? CreatedById { get; set; }
         
@@ -67,7 +67,7 @@ namespace Certio.Domain.Documents
     public string Size => FileSize;
     
     // Navigation properties
-    public virtual Project? Project { get; set; }
+    public virtual Matter? Matter { get; set; }
     public virtual StatusItem? StatusItem { get; set; }
     public virtual User? CreatedBy { get; set; }
     public virtual ICollection<DocumentVersion> Versions { get; set; } = new List<DocumentVersion>();

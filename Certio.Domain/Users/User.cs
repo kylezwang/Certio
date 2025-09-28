@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Certio.Domain.Teams;
-using Certio.Domain.Projects;
+using Certio.Domain.Matters;
 using Certio.Domain.Services;
 using Certio.Domain.Documents;
 using Certio.Domain.Organizations;
@@ -43,7 +43,7 @@ namespace Certio.Domain.Users
         // Removed global UserType, ClientType, ExternalType, CertioType
         // These are now handled at the organization level in UserOrganization
 
-        public List<int> ProjectIds { get; set; } = new();
+        public List<int> MatterIds { get; set; } = new();
         
         // Removed single OrganizationId - now using many-to-many relationship
         // public int OrganizationId { get; set; }  // DELETED
@@ -62,10 +62,16 @@ namespace Certio.Domain.Users
         public DateTime? LastModifiedDate { get; set; }
         public DateTime? LastLoginDate { get; set; }
         
+        // Soft delete properties
+        public bool IsDeleted { get; set; } = false;
+        public DateTime? DeletedAt { get; set; }
+        public int? DeletedById { get; set; }
+        public string? DeletionReason { get; set; }
+        
         // Navigation properties
         public virtual ICollection<UserOrganization> UserOrganizations { get; set; } = new List<UserOrganization>();
         public virtual ICollection<TeamMembership> TeamMemberships { get; set; } = new List<TeamMembership>();
-        public virtual ICollection<ProjectAssignment> ProjectAssignments { get; set; } = new List<ProjectAssignment>();
+        public virtual ICollection<MatterAssignment> MatterAssignments { get; set; } = new List<MatterAssignment>();
         public virtual ICollection<ServiceRequest> ServiceRequests { get; set; } = new List<ServiceRequest>();
         public virtual ICollection<Document> CreatedDocuments { get; set; } = new List<Document>();
         public virtual ICollection<ChatMessage> ChatMessages { get; set; } = new List<ChatMessage>();
@@ -120,16 +126,16 @@ namespace Certio.Domain.Users
             return UserOrganizations.FirstOrDefault(uo => uo.IsPrimary && uo.IsActive);
         }
         
-        public bool HasProjectAccess(int projectId, int organizationId)
+        public bool HasMatterAccess(int matterId, int organizationId)
         {
             var membership = GetOrganizationMembership(organizationId);
             if (membership == null) return false;
             
             if (membership.UserType == UserTypes.Certio)
-                return true; // Certio staff have access to all projects
+                return true; // Certio staff have access to all matters
                 
             // Check if user has access through their organization membership
-            return ProjectIds.Contains(projectId);
+            return MatterIds.Contains(matterId);
         }
         
         public bool CanCreateJoinCodes(int organizationId)
@@ -165,7 +171,7 @@ namespace Certio.Domain.Users
             return false;
         }
         
-        public List<Permission> GetEffectivePermissions(int organizationId, int? projectId = null)
+        public List<Permission> GetEffectivePermissions(int organizationId, int? matterId = null)
         {
             var membership = GetOrganizationMembership(organizationId);
             if (membership == null) return new List<Permission>();
@@ -174,10 +180,10 @@ namespace Certio.Domain.Users
             var customPermissions = CustomPermissions.Select(p => Enum.Parse<Permission>(p)).ToList();
             var effectivePermissions = basePermissions.Union(customPermissions).ToList();
             
-            // Project-specific permission filtering
-            if (projectId.HasValue && !HasProjectAccess(projectId.Value, organizationId))
+            // Matter-specific permission filtering
+            if (matterId.HasValue && !HasMatterAccess(matterId.Value, organizationId))
             {
-                return new List<Permission>(); // No permissions if no project access
+                return new List<Permission>(); // No permissions if no matter access
             }
             
             return effectivePermissions;
@@ -207,7 +213,7 @@ namespace Certio.Domain.Users
                 UserTypes.Certio => membership.Role switch
                 {
                     OrganizationRoles.Admin => PermissionSets.CertioAdmin,
-                    OrganizationRoles.ProjectManager => PermissionSets.CertioProjectManager,
+                    OrganizationRoles.MatterManager => PermissionSets.CertioMatterManager,
                     OrganizationRoles.Support => PermissionSets.CertioSupport,
                     OrganizationRoles.Legal => PermissionSets.CertioLegal,
                     _ => PermissionSets.CertioAdmin // Default to admin for Certio
@@ -229,12 +235,12 @@ public enum Permission
     DeleteDocuments,
     CommentOnDocuments,
     
-    // Project permissions
-    ViewProjects,
-    CreateProjects,
-    EditProjects,
-    DeleteProjects,
-    ManageProjectSettings,
+    // Matter permissions
+    ViewMatters,
+    CreateMatters,
+    EditMatters,
+    DeleteMatters,
+    ManageMatterSettings,
     
     // User management permissions
     InviteUsers,
@@ -255,24 +261,24 @@ public enum Permission
 
 public static class PermissionSets
 {
-    // Client Owner - Full access to all client projects
+    // Client Owner - Full access to all client matters
     public static readonly List<Permission> ClientOwner = new()
     {
         Permission.ViewDocuments, Permission.DownloadDocuments, Permission.UploadDocuments,
         Permission.DeleteDocuments, Permission.CommentOnDocuments,
-        Permission.ViewProjects, Permission.CreateProjects, Permission.EditProjects,
-        Permission.DeleteProjects, Permission.ManageProjectSettings,
+        Permission.ViewMatters, Permission.CreateMatters, Permission.EditMatters,
+        Permission.DeleteMatters, Permission.ManageMatterSettings,
         Permission.InviteUsers, Permission.RemoveUsers, Permission.ManageUserPermissions,
         Permission.ViewMessages, Permission.SendMessages, Permission.DeleteMessages,
         Permission.ManageThreads
     };
 
-    // Client Manager - Full access to assigned projects
+    // Client Manager - Full access to assigned matters
     public static readonly List<Permission> ClientManager = new()
     {
         Permission.ViewDocuments, Permission.DownloadDocuments, Permission.UploadDocuments,
         Permission.CommentOnDocuments,
-        Permission.ViewProjects, Permission.EditProjects, Permission.ManageProjectSettings,
+        Permission.ViewMatters, Permission.EditMatters, Permission.ManageMatterSettings,
         Permission.InviteUsers, Permission.RemoveUsers,
         Permission.ViewMessages, Permission.SendMessages, Permission.ManageThreads
     };
@@ -282,8 +288,8 @@ public static class PermissionSets
     {
         Permission.ViewDocuments, Permission.DownloadDocuments, Permission.UploadDocuments,
         Permission.DeleteDocuments, Permission.CommentOnDocuments,
-        Permission.ViewProjects, Permission.CreateProjects, Permission.EditProjects,
-        Permission.DeleteProjects, Permission.ManageProjectSettings,
+        Permission.ViewMatters, Permission.CreateMatters, Permission.EditMatters,
+        Permission.DeleteMatters, Permission.ManageMatterSettings,
         Permission.ViewMessages, Permission.SendMessages, Permission.ManageThreads
     };
 
@@ -291,7 +297,7 @@ public static class PermissionSets
     public static readonly List<Permission> ClientLawyer = new()
     {
         Permission.ViewDocuments, Permission.DownloadDocuments, Permission.CommentOnDocuments,
-        Permission.ViewProjects, Permission.EditProjects, Permission.ManageProjectSettings,
+        Permission.ViewMatters, Permission.EditMatters, Permission.ManageMatterSettings,
         Permission.InviteUsers, Permission.RemoveUsers,
         Permission.ViewMessages, Permission.SendMessages, Permission.ManageThreads,
         Permission.ViewAuditLogs
@@ -301,7 +307,7 @@ public static class PermissionSets
     public static readonly List<Permission> OpposingCounsel = new()
     {
         Permission.ViewDocuments, Permission.DownloadDocuments, Permission.CommentOnDocuments,
-        Permission.ViewProjects,
+        Permission.ViewMatters,
         Permission.ViewMessages, Permission.SendMessages
     };
 
@@ -309,7 +315,7 @@ public static class PermissionSets
     public static readonly List<Permission> ExpertWitness = new()
     {
         Permission.ViewDocuments, Permission.DownloadDocuments, Permission.CommentOnDocuments,
-        Permission.ViewProjects,
+        Permission.ViewMatters,
         Permission.ViewMessages, Permission.SendMessages
     };
 
@@ -317,7 +323,7 @@ public static class PermissionSets
     public static readonly List<Permission> CourtPersonnel = new()
     {
         Permission.ViewDocuments, Permission.DownloadDocuments,
-        Permission.ViewProjects,
+        Permission.ViewMatters,
         Permission.ViewMessages
     };
 
@@ -325,14 +331,14 @@ public static class PermissionSets
     public static readonly List<Permission> RegulatoryBody = new()
     {
         Permission.ViewDocuments, Permission.DownloadDocuments,
-        Permission.ViewProjects,
+        Permission.ViewMatters,
         Permission.ViewMessages
     };
 
     // External - Other (custom permissions)
     public static readonly List<Permission> Other = new()
     {
-        Permission.ViewDocuments, Permission.ViewProjects, Permission.ViewMessages
+        Permission.ViewDocuments, Permission.ViewMatters, Permission.ViewMessages
     };
 
     // Certio Admin - Full access to everything
@@ -340,21 +346,21 @@ public static class PermissionSets
     {
         Permission.ViewDocuments, Permission.DownloadDocuments, Permission.UploadDocuments,
         Permission.DeleteDocuments, Permission.CommentOnDocuments,
-        Permission.ViewProjects, Permission.CreateProjects, Permission.EditProjects,
-        Permission.DeleteProjects, Permission.ManageProjectSettings,
+        Permission.ViewMatters, Permission.CreateMatters, Permission.EditMatters,
+        Permission.DeleteMatters, Permission.ManageMatterSettings,
         Permission.InviteUsers, Permission.RemoveUsers, Permission.ManageUserPermissions,
         Permission.ViewMessages, Permission.SendMessages, Permission.DeleteMessages,
         Permission.ManageThreads,
         Permission.ViewAuditLogs, Permission.ManageSystemSettings, Permission.AccessAdminPanel
     };
 
-    // Certio Project Manager - Project management access
-    public static readonly List<Permission> CertioProjectManager = new()
+    // Certio Matter Manager - Matter management access
+    public static readonly List<Permission> CertioMatterManager = new()
     {
         Permission.ViewDocuments, Permission.DownloadDocuments, Permission.UploadDocuments,
         Permission.CommentOnDocuments,
-        Permission.ViewProjects, Permission.CreateProjects, Permission.EditProjects,
-        Permission.ManageProjectSettings,
+        Permission.ViewMatters, Permission.CreateMatters, Permission.EditMatters,
+        Permission.ManageMatterSettings,
         Permission.InviteUsers, Permission.RemoveUsers,
         Permission.ViewMessages, Permission.SendMessages, Permission.ManageThreads,
         Permission.ViewAuditLogs
@@ -364,7 +370,7 @@ public static class PermissionSets
     public static readonly List<Permission> CertioSupport = new()
     {
         Permission.ViewDocuments, Permission.DownloadDocuments,
-        Permission.ViewProjects,
+        Permission.ViewMatters,
         Permission.ViewMessages, Permission.SendMessages,
         Permission.ViewAuditLogs
     };
@@ -374,7 +380,7 @@ public static class PermissionSets
     {
         Permission.ViewDocuments, Permission.DownloadDocuments, Permission.UploadDocuments,
         Permission.CommentOnDocuments,
-        Permission.ViewProjects, Permission.EditProjects, Permission.ManageProjectSettings,
+        Permission.ViewMatters, Permission.EditMatters, Permission.ManageMatterSettings,
         Permission.InviteUsers, Permission.RemoveUsers,
         Permission.ViewMessages, Permission.SendMessages, Permission.ManageThreads,
         Permission.ViewAuditLogs

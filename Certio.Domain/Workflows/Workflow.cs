@@ -16,7 +16,7 @@ namespace Certio.Domain.Workflows
         
         [Required]
         [StringLength(20)]
-        public string WorkflowType { get; set; } = ""; // ProjectCreation, DocumentReview, ServiceRequest, etc.
+        public string WorkflowType { get; set; } = ""; // MatterCreation, DocumentReview, ServiceRequest, etc.
         
         [Required]
         [StringLength(20)]
@@ -46,7 +46,7 @@ namespace Certio.Domain.Workflows
         
         // Simplified: Generic foreign key approach
         public int? RelatedEntityId { get; set; } // Generic foreign key
-        public string? RelatedEntityType { get; set; } // "Project", "Document", "ServiceRequest", etc.
+        public string? RelatedEntityType { get; set; } // "Matter", "Document", "ServiceRequest", etc.
         
         public int? StartedById { get; set; }
         

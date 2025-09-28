@@ -71,6 +71,13 @@
         display: flex;
         flex-direction: column;
         padding: 1rem 0.75rem;
+        transform: translateX(0);
+        transition: transform 0.3s ease;
+    }
+
+    /* Sidebar hidden state */
+    .sidebar-hidden .client-sidebar {
+        transform: translateX(-100%);
     }
 
     .client-sidebar .logo-section {
@@ -167,6 +174,7 @@
         display: flex;
         align-items: center;
         padding: 0 1rem;
+        transition: left 0.3s ease;
     }
 
     /* Main content wrapper to contain scrolling */
@@ -180,6 +188,16 @@
         z-index: 1;
         border-radius: 20px 20px 0px 0px; /* Rounded corners on top-left and top-right */
         background-color: rgba(11, 54, 94, 0.085); /* Light blue background */
+        transition: left 0.3s ease;
+    }
+
+    /* Adjust positioning when sidebar is hidden - keep rounded corners */
+    .sidebar-hidden .client-main-content-wrapper {
+        left: calc(6vw + 1rem); /* Move back to just after global navbar + 0.5rem space */
+    }
+
+    .sidebar-hidden .page-header {
+        left: calc(6vw); /* Keep header aligned with main content */
     }
 
     /* Main content adjustment for client sidebar and header */
@@ -313,6 +331,7 @@
         flex: 1;
         padding: 1rem;
         overflow-y: auto;
+        scroll-behavior: auto;
     }
 
     .welcome-message {
@@ -380,7 +399,7 @@
         background-color: rgba(11, 54, 94, 0.1);
         cursor: col-resize;
         position: fixed;
-        top: 7vh; /* Position below the header */
+        top: 9vh; /* Position below the header */
         right: 320px; /* Position next to chat panel (320px default) */
         height: calc(100vh - 7vh); /* Adjust height to account for header */
         z-index: 41;
@@ -417,6 +436,11 @@
 <div class="min-h-screen" style="overflow-y:hidden;">
     <!-- Page Header -->
     <div class="page-header">
+        <!-- Simple Hamburger Menu Button -->
+        <button class="btn btn-link d-none d-xl-block" id="toggleSidebar" type="button" style="color: #0b365e; font-size: 1.2rem; padding: 0.5rem; margin-left: 0.25rem;">
+            <i class="fas fa-bars"></i>
+        </button>
+        
         <div class="d-flex justify-content-center align-items-center w-100">
             <div class="search-container" style="max-width: 500px; width: 100%; transform: translateX(-3vw);">                
                 <i class="fas fa-search"></i>
@@ -430,35 +454,35 @@
         <!-- Navigation -->
         <nav class="nav flex-column">
             <div class="nav-item">
-                <a asp-controller="Project" asp-action="Index" 
-                   class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Project" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+                <a href="/Client/@ViewBag.OrganizationId/Matter" 
+                   class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Matter" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
                     <i class="fas fa-briefcase"></i>
-                    <span>Projects</span>
+                    <span>Matters</span>
                 </a>
             </div>
             <div class="nav-item">
-                <a asp-controller="Home" asp-action="Services" 
+                <a href="/Client/@ViewBag.OrganizationId/Services" 
                    class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Services" ? "active" : "")">
                     <i class="fas fa-comments"></i>
                     <span>Services</span>
                 </a>
             </div>
             <div class="nav-item">
-                <a asp-controller="Home" asp-action="Documents" 
+                <a href="/Client/@ViewBag.OrganizationId/Documents" 
                    class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Documents" ? "active" : "")">
                     <i class="fas fa-file-alt"></i>
                     <span>Documents</span>
                 </a>
             </div>
             <div class="nav-item">
-                <a asp-controller="Home" asp-action="Teams" 
+                <a href="/Client/@ViewBag.OrganizationId/Teams" 
                    class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Teams" ? "active" : "")">
                     <i class="fas fa-users"></i>
                     <span>Teams</span>
                 </a>
             </div>
             <div class="nav-item">
-                <a asp-controller="Settings" asp-action="Index" 
+                <a href="/Client/@ViewBag.OrganizationId/Settings" 
                    class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" ? "active" : "")">
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
@@ -507,11 +531,11 @@
                 <nav>
                     <ul class="list-unstyled d-flex flex-column gap-2">
                         <li>
-                            <a asp-controller="Project" asp-action="Index" 
-                               class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["controller"]?.ToString() == "Project" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")"
+                            <a asp-controller="Matter" asp-action="Index" 
+                               class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["controller"]?.ToString() == "Matter" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")"
                                data-bs-dismiss="offcanvas">
                                 <i class="fas fa-briefcase fs-5"></i>
-                                <span class="fw-medium">Projects</span>
+                                <span class="fw-medium">Matters</span>
                             </a>
                         </li>
                         <li>
@@ -686,7 +710,7 @@
                 <h5 class="modal-title">Start New Conversation</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form asp-controller="Chat" asp-action="CreateConversation" method="post" id="createConversationForm">
+            <form method="post" id="createConversationForm">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="title" class="form-label">Title</label>
@@ -772,6 +796,23 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Load conversations for the global chat panel
         loadConversationsForPanel();
+        
+        // Initialize simple sidebar toggle
+        const toggleBtn = document.getElementById('toggleSidebar');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function() {
+                document.body.classList.toggle('sidebar-hidden');
+                
+                // Save state to localStorage
+                const isHidden = document.body.classList.contains('sidebar-hidden');
+                localStorage.setItem('sidebarHidden', isHidden);
+            });
+            
+            // Restore saved state
+            if (localStorage.getItem('sidebarHidden') === 'true') {
+                document.body.classList.add('sidebar-hidden');
+            }
+        }
     });
 </script>
 

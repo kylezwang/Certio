@@ -20,6 +20,13 @@ namespace Certio.Web.Middleware
 
         public async Task InvokeAsync(HttpContext context, IUserSyncService userSyncService, UserManager<IdentityUser> userManager)
         {
+            // Skip processing during registration flow to avoid conflicts
+            if (IsRegistrationRequest(context))
+            {
+                await _next(context);
+                return;
+            }
+
             // Only process authenticated users
             if (context.User.Identity?.IsAuthenticated == true)
             {
@@ -36,12 +43,15 @@ namespace Certio.Web.Middleware
                             // Backfill defaults for legacy users
                             customUser = await userSyncService.EnsureDefaultsAsync(customUser);
 
-                            // Store custom user ID in context for easy access
-                            context.Items["CustomUserId"] = customUser.Id;
-                            context.Items["CustomUser"] = customUser;
-                            
-                            _logger.LogDebug("Synced user {IdentityUserId} with custom user {CustomUserId}", 
-                                identityUserId, customUser.Id);
+                            // Store custom user ID in context for easy access (null-checked above)
+                            if (customUser != null)
+                            {
+                                context.Items["CustomUserId"] = customUser.Id;
+                                context.Items["CustomUser"] = customUser;
+                                
+                                _logger.LogDebug("Synced user {IdentityUserId} with custom user {CustomUserId}", 
+                                    identityUserId, customUser.Id);
+                            }
                         }
                         else
                         {
@@ -57,6 +67,25 @@ namespace Certio.Web.Middleware
             }
 
             await _next(context);
+        }
+
+        /// <summary>
+        /// Determines if the current request is part of the registration flow
+        /// </summary>
+        private bool IsRegistrationRequest(HttpContext context)
+        {
+            var path = context.Request.Path.Value?.ToLowerInvariant();
+            var method = context.Request.Method;
+
+            // Skip middleware for registration-related requests
+            return path != null && method == "POST" && (
+                path.Contains("/register") ||
+                path.Contains("/startregistration") ||
+                path.Contains("/completeregistration") ||
+                path.Contains("/verifytwo") ||
+                path.Contains("/verifytwofa") ||
+                path.Contains("/identity/account/register")
+            );
         }
     }
 

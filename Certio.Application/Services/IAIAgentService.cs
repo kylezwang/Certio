@@ -14,17 +14,26 @@ public interface IAIAgentService
 
 public interface IChatService
 {
-    Task<Conversation> CreateConversationAsync(string title, string description, string clientId, string? seedJuraId = null, string? lawyerId = null, string? businessId = null);
-    Task<ChatMessage> SendMessageAsync(string conversationId, string userId, string userType, string content, string messageType = "Text");
-    Task<List<ChatMessage>> GetConversationMessagesAsync(string conversationId);
-    Task<List<Conversation>> GetUserConversationsAsync(string userId);
-    Task<ClarityExplanation> RequestClarityAsync(string conversationId, string text, string userType);
-    Task<ReplySuggestion> GetReplySuggestionsAsync(string conversationId, List<ChatMessage> messages, string userType);
-    Task<ChatMessage> GenerateAIResponseAsync(string conversationId, string userMessage);
-    Task<Dictionary<string, object>> GetAIInsightsAsync(string conversationId);
-    Task<ChatSummary?> GetConversationSummaryAsync(string conversationId);
-    Task<ClientGoal?> GetClientGoalsAsync(string conversationId);
-    Task<ReplySuggestion?> GetLatestReplySuggestionAsync(string conversationId);
-    Task<bool> RenameConversationAsync(string conversationId, string newTitle);
-    Task<bool> DeleteConversationAsync(string conversationId);
+    // Organization-scoped conversation management
+    Task<Conversation> CreateConversationAsync(int organizationId, int userId, string title, string description, int? matterId = null, int? serviceRequestId = null);
+    Task<ChatMessage> SendMessageAsync(int conversationId, int? userId, string userType, string content, string messageType = "Text");
+    Task<List<ChatMessage>> GetConversationMessagesAsync(int conversationId);
+    Task<List<Conversation>> GetUserConversationsAsync(int userId, int organizationId);
+    Task<Conversation?> GetConversationAsync(int conversationId, int organizationId);
+    
+    // AI Services
+    Task<ClarityExplanation> RequestClarityAsync(int conversationId, string text, string userType);
+    Task<ReplySuggestion> GetReplySuggestionsAsync(int conversationId, List<ChatMessage> messages, string userType);
+    Task<ChatMessage> GenerateAIResponseAsync(int conversationId, string userMessage);
+    Task<Dictionary<string, object>> GetAIInsightsAsync(int conversationId);
+    Task<ChatSummary?> GetConversationSummaryAsync(int conversationId);
+    Task<ClientGoal?> GetClientGoalsAsync(int conversationId);
+    Task<ReplySuggestion?> GetLatestReplySuggestionAsync(int conversationId);
+    
+    // Conversation management
+    Task<bool> RenameConversationAsync(int conversationId, int organizationId, string newTitle);
+    Task<bool> DeleteConversationAsync(int conversationId, int organizationId);
+    
+    // Organization-scoped queries
+    Task<List<Conversation>> GetOrganizationConversationsAsync(int organizationId, int? userId = null);
 }

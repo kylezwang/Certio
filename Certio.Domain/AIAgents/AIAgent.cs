@@ -59,7 +59,7 @@ namespace Certio.Domain.AIAgents
         
         // Simplified: Generic foreign key approach
         public int? RelatedEntityId { get; set; } // Generic foreign key
-        public string? RelatedEntityType { get; set; } // "Project", "Document", "Conversation", etc.
+        public string? RelatedEntityType { get; set; } // "Matter", "Document", "Conversation", etc.
         
         public int? TriggeredById { get; set; }
         

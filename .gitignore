@@ -1,1 +1,33 @@
 /ai_agents
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+appsettings.Production.json
+
+# Sensitive config files
+*.secrets.json
+bin/Debug/net9.0/appsettings.json
+bin/Debug/net9.0/appsettings.Development.json
+bin/Release/net9.0/appsettings.json
+bin/Release/net9.0/appsettings.Development.json
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+dump.rdb
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environments
+venv/
+.venv/
+
+# Temporary files
+temp_fix.txt

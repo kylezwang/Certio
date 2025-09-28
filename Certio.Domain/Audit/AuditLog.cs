@@ -9,7 +9,7 @@ namespace Certio.Domain.Audit
         
         [Required]
         [StringLength(50)]
-        public string EntityType { get; set; } = ""; // User, Project, Document, etc.
+        public string EntityType { get; set; } = ""; // User, Matter, Document, etc.
         
         public int EntityId { get; set; }
         

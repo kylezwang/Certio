@@ -3,6 +3,14 @@
 
 echo "Starting Certio services..."
 
+# Load environment variables
+if [ -f .env ]; then
+    echo "Loading environment variables from .env file..."
+    export $(cat .env | grep -v '^#' | xargs)
+else
+    echo "Warning: .env file not found. Make sure environment variables are set."
+fi
+
 # Start Redis in background
 echo "Starting Redis..."
 redis-server --daemonize yes

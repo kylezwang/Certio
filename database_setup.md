@@ -28,7 +28,7 @@ dotnet run --project Certio.Web
    - Database: `Certio`
    - Authentication: SQL Login
    - Username: `wangzonghao`
-   - Password: `F1r3B@ll2025`
+   - Password: `{DB_PASSWORD}`
 
 ### Database Management Tools
 
@@ -44,7 +44,7 @@ open -a "Azure Data Studio"
 sqlite3 app.db
 
 # For Azure SQL (if you install sqlcmd)
-sqlcmd -S your-server.database.windows.net -d Certio -U sql-login -P F1r3B@ll2025
+sqlcmd -S your-server.database.windows.net -d Certio -U sql-login -P {DB_PASSWORD}
 ```
 
 ## 🔧 Configuration
@@ -62,7 +62,7 @@ sqlcmd -S your-server.database.windows.net -d Certio -U sql-login -P F1r3B@ll202
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=tcp:your-server.database.windows.net,1433;Initial Catalog=Certio;Persist Security Info=False;User ID=sql-login;Password=F1r3B@ll2025;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+    "DefaultConnection": "Server=tcp:your-server.database.windows.net,1433;Initial Catalog=Certio;Persist Security Info=False;User ID=sql-login;Password=${DB_PASSWORD};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
   }
 }
 ```

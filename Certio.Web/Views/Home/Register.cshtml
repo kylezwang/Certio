@@ -422,6 +422,14 @@
                     return;
                 }
                 
+                // Ensure hidden fields are populated before submission
+                if (!document.getElementById('complete-email').value && registrationData.email) {
+                    document.getElementById('complete-email').value = registrationData.email;
+                }
+                if (!document.getElementById('complete-phone').value && registrationData.phoneNumber) {
+                    document.getElementById('complete-phone').value = registrationData.phoneNumber;
+                }
+                
                 // Let the form submit to the server
                 // The server will create the account
             });

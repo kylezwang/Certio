@@ -1,21 +1,27 @@
 #!/bin/bash
-# Environment setup for Certio development
+# Setup environment variables for Certio
 
-# Add .NET to PATH
-export PATH="/usr/local/share/dotnet:$HOME/.dotnet:$PATH"
+echo "🔧 Setting up Certio environment variables..."
 
-# Activate Python virtual environment
-cd ai_agents
-source venv/bin/activate
-cd ..
+# Check if .env file exists
+if [ -f .env ]; then
+    echo "✅ .env file already exists"
+    echo "📝 Current environment variables:"
+    grep -v '^#' .env | grep -v '^$'
+else
+    echo "❌ .env file not found. Please create one with your database passwords."
+    echo "📋 Required variables:"
+    echo "   - SQL_PASSWORD (for local SQL Server)"
+    echo "   - DB_PASSWORD (for Azure SQL Database)"
+    echo "   - AZURE_SQL_CONNECTION_STRING (full Azure connection string)"
+    echo "   - AI_API_KEY (for AI service)"
+fi
 
-echo "Environment ready for Certio development!"
-echo "Available commands:"
-echo "  dotnet run --project Certio.Web    # Run the web application"
-echo "  cd ai_agents && source venv/bin/activate && python main.py  # Run the AI agents"
-echo "  redis-server                        # Start Redis server"
 echo ""
-echo "Note: Always activate the virtual environment before running Python scripts:"
-echo "  cd ai_agents"
-echo "  source venv/bin/activate"
-echo "  python main.py"
+echo "🔒 Security reminder:"
+echo "   - Change the default passwords immediately!"
+echo "   - Never commit .env files to version control"
+echo "   - Use strong, unique passwords for each environment"
+echo ""
+echo "🚀 To start the application with environment variables:"
+echo "   ./start_services.sh"

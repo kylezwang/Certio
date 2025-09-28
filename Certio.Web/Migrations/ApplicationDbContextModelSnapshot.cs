@@ -239,6 +239,12 @@ namespace Certio.Web.Migrations
                     b.Property<DateTime?>("LastModifiedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("MatterId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MatterId1")
+                        .HasColumnType("int");
+
                     b.Property<string>("MimeType")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -247,12 +253,6 @@ namespace Certio.Web.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
-
-                    b.Property<int?>("ProjectId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ProjectId1")
-                        .HasColumnType("int");
 
                     b.Property<bool>("RequiresSignature")
                         .HasColumnType("bit");
@@ -294,9 +294,9 @@ namespace Certio.Web.Migrations
 
                     b.HasIndex("CreatedById");
 
-                    b.HasIndex("ProjectId");
+                    b.HasIndex("MatterId");
 
-                    b.HasIndex("ProjectId1");
+                    b.HasIndex("MatterId1");
 
                     b.HasIndex("StatusItemId");
 
@@ -457,6 +457,357 @@ namespace Certio.Web.Migrations
                     b.ToTable("DocumentVersions");
                 });
 
+            modelBuilder.Entity("Certio.Domain.Matters.Matter", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AccessLevel")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("ClientGoals")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int?>("ClientId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CompletedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("DueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LegalRequirements")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("MatterType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("OrganizationId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("PendingDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PracticeArea")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Priority")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("StatuteOfLimitationsDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("StatuteOfLimitationsSatisfied")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("TeamId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TeamId1")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("TeamId");
+
+                    b.HasIndex("TeamId1");
+
+                    b.ToTable("Matters");
+                });
+
+            modelBuilder.Entity("Certio.Domain.Matters.MatterAssignment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AssignmentType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<bool>("IsNotifyRecipient")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("MatterId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("RemovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UserId1")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MatterId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId1");
+
+                    b.ToTable("MatterAssignments");
+                });
+
+            modelBuilder.Entity("Certio.Domain.Matters.MatterPermission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("GrantedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("GrantedById")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MatterId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("RevokedById")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GrantedById");
+
+                    b.HasIndex("MatterId");
+
+                    b.HasIndex("RevokedById");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("MatterPermissions");
+                });
+
+            modelBuilder.Entity("Certio.Domain.Matters.StatusItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("CompletedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("DueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("MatterId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ParentStatusItemId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Priority")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MatterId");
+
+                    b.HasIndex("ParentStatusItemId");
+
+                    b.ToTable("StatusItems");
+                });
+
+            modelBuilder.Entity("Certio.Domain.Matters.StatusItemAssignment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AssignmentType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("StatusItemId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StatusItemId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("StatusItemAssignments");
+                });
+
+            modelBuilder.Entity("Certio.Domain.Matters.StatusItemComment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("StatusItemId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StatusItemId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("StatusItemComments");
+                });
+
+            modelBuilder.Entity("Certio.Domain.Matters.StatusItemDependency", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DependencyType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("DependsOnStatusItemId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StatusItemId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DependsOnStatusItemId");
+
+                    b.HasIndex("StatusItemId");
+
+                    b.ToTable("StatusItemDependencies");
+                });
+
             modelBuilder.Entity("Certio.Domain.Notifications.Notification", b =>
                 {
                     b.Property<int>("Id")
@@ -496,12 +847,12 @@ namespace Certio.Web.Migrations
                     b.Property<bool>("IsRead")
                         .HasColumnType("bit");
 
+                    b.Property<int?>("MatterId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Message")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("ProjectId")
-                        .HasColumnType("int");
 
                     b.Property<DateTime?>("ReadAt")
                         .HasColumnType("datetime2");
@@ -531,7 +882,7 @@ namespace Certio.Web.Migrations
 
                     b.HasIndex("DocumentId");
 
-                    b.HasIndex("ProjectId");
+                    b.HasIndex("MatterId");
 
                     b.HasIndex("ServiceRequestId");
 
@@ -718,296 +1069,6 @@ namespace Certio.Web.Migrations
                     b.ToTable("OrganizationJoinCodes");
                 });
 
-            modelBuilder.Entity("Certio.Domain.Projects.Project", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("ClientGoals")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<int?>("ClientId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("CompletedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<DateTime?>("DueDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("LastModifiedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("LegalRequirements")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<int>("OrganizationId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Priority")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("ProjectType")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<DateTime?>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int?>("TeamId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("TeamId1")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClientId");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("TeamId");
-
-                    b.HasIndex("TeamId1");
-
-                    b.ToTable("Projects");
-                });
-
-            modelBuilder.Entity("Certio.Domain.Projects.ProjectAssignment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("AssignedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("ProjectId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("RemovedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("UserId1")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProjectId");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("UserId1");
-
-                    b.ToTable("ProjectAssignments");
-                });
-
-            modelBuilder.Entity("Certio.Domain.Projects.StatusItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<DateTime?>("CompletedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<DateTime?>("DueDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("LastModifiedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Order")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ParentStatusItemId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Priority")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<int>("ProjectId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ParentStatusItemId");
-
-                    b.HasIndex("ProjectId");
-
-                    b.ToTable("StatusItems");
-                });
-
-            modelBuilder.Entity("Certio.Domain.Projects.StatusItemAssignment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("AssignedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("AssignmentType")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("StatusItemId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StatusItemId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("StatusItemAssignments");
-                });
-
-            modelBuilder.Entity("Certio.Domain.Projects.StatusItemComment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("LastModifiedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("StatusItemId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StatusItemId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("StatusItemComments");
-                });
-
-            modelBuilder.Entity("Certio.Domain.Projects.StatusItemDependency", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("DependencyType")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<int>("DependsOnStatusItemId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("StatusItemId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DependsOnStatusItemId");
-
-                    b.HasIndex("StatusItemId");
-
-                    b.ToTable("StatusItemDependencies");
-                });
-
             modelBuilder.Entity("Certio.Domain.Services.AIAgentResult", b =>
                 {
                     b.Property<int>("Id")
@@ -1042,14 +1103,14 @@ namespace Certio.Web.Migrations
                     b.Property<bool>("IsApproved")
                         .HasColumnType("bit");
 
+                    b.Property<int?>("MatterId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Metadata")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("ProcessedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<int?>("ProjectId")
-                        .HasColumnType("int");
 
                     b.Property<bool>("RequiresReview")
                         .HasColumnType("bit");
@@ -1074,7 +1135,7 @@ namespace Certio.Web.Migrations
 
                     b.HasIndex("DocumentId");
 
-                    b.HasIndex("ProjectId");
+                    b.HasIndex("MatterId");
 
                     b.HasIndex("ReviewedById");
 
@@ -1099,11 +1160,7 @@ namespace Certio.Web.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ConversationId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("ConversationId1")
+                    b.Property<int>("ConversationId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
@@ -1151,10 +1208,7 @@ namespace Certio.Web.Migrations
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("UserId1")
+                    b.Property<int?>("UserId")
                         .HasColumnType("int");
 
                     b.Property<string>("UserType")
@@ -1164,13 +1218,11 @@ namespace Certio.Web.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ConversationId1");
-
                     b.HasIndex("ParentMessageId");
 
                     b.HasIndex("ReplyToMessageId");
 
-                    b.HasIndex("UserId1");
+                    b.HasIndex("UserId");
 
                     b.HasIndex("ConversationId", "CreatedAt");
 
@@ -1292,12 +1344,12 @@ namespace Certio.Web.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int?>("MatterId")
+                        .HasColumnType("int");
+
                     b.Property<string>("PrimaryGoal")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("ProjectId")
-                        .HasColumnType("int");
 
                     b.Property<string>("RequiredDocuments")
                         .HasColumnType("nvarchar(max)");
@@ -1316,7 +1368,7 @@ namespace Certio.Web.Migrations
 
                     b.HasIndex("ConversationId");
 
-                    b.HasIndex("ProjectId");
+                    b.HasIndex("MatterId");
 
                     b.HasIndex("ServiceRequestId");
 
@@ -1331,26 +1383,8 @@ namespace Certio.Web.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("AI_Summary")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime?>("ArchivedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("BusinessId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Category")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CertioId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ClientId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Client_Goals")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ConversationType")
                         .IsRequired()
@@ -1360,7 +1394,7 @@ namespace Certio.Web.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("CreatedById")
+                    b.Property<int>("CreatedById")
                         .HasColumnType("int");
 
                     b.Property<string>("Description")
@@ -1376,13 +1410,10 @@ namespace Certio.Web.Migrations
                     b.Property<DateTime?>("LastMessageAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("LawyerId")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("MatterId")
+                        .HasColumnType("int");
 
-                    b.Property<string>("Priority")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("ProjectId")
+                    b.Property<int>("OrganizationId")
                         .HasColumnType("int");
 
                     b.Property<int?>("ServiceRequestId")
@@ -1392,10 +1423,6 @@ namespace Certio.Web.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("TenantId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -1408,9 +1435,13 @@ namespace Certio.Web.Migrations
 
                     b.HasIndex("CreatedById");
 
-                    b.HasIndex("ProjectId");
+                    b.HasIndex("MatterId");
 
                     b.HasIndex("ServiceRequestId");
+
+                    b.HasIndex("OrganizationId", "CreatedAt");
+
+                    b.HasIndex("OrganizationId", "CreatedById");
 
                     b.ToTable("Conversations");
                 });
@@ -1534,6 +1565,12 @@ namespace Certio.Web.Migrations
                     b.Property<DateTime?>("LastModifiedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("MatterId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MatterId1")
+                        .HasColumnType("int");
+
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
@@ -1542,12 +1579,6 @@ namespace Certio.Web.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
-
-                    b.Property<int?>("ProjectId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ProjectId1")
-                        .HasColumnType("int");
 
                     b.Property<string>("Requirements")
                         .HasMaxLength(1000)
@@ -1579,9 +1610,9 @@ namespace Certio.Web.Migrations
 
                     b.HasIndex("CreatedAt");
 
-                    b.HasIndex("ProjectId");
+                    b.HasIndex("MatterId");
 
-                    b.HasIndex("ProjectId1");
+                    b.HasIndex("MatterId1");
 
                     b.HasIndex("UserId");
 
@@ -1805,6 +1836,15 @@ namespace Certio.Web.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DeletedById")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DeletionReason")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Department")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
@@ -1820,6 +1860,9 @@ namespace Certio.Web.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsPersonalOrganization")
@@ -1844,19 +1887,68 @@ namespace Certio.Web.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.PrimitiveCollection<string>("MatterIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("PhoneNumber")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
-
-                    b.PrimitiveCollection<string>("ProjectIds")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Email");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("Certio.Domain.Users.UserDeletionRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("ConfirmDataLoss")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("DeletionType")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsProcessed")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ProcessedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ProcessedById")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ProcessingNotes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("RequestedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProcessedById");
+
+                    b.HasIndex("RequestedAt");
+
+                    b.HasIndex("UserId", "IsProcessed");
+
+                    b.ToTable("UserDeletionRequests");
                 });
 
             modelBuilder.Entity("Certio.Domain.Users.UserOrganization", b =>
@@ -2247,16 +2339,16 @@ namespace Certio.Web.Migrations
                         .HasForeignKey("CreatedById")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Certio.Domain.Projects.Project", "Project")
+                    b.HasOne("Certio.Domain.Matters.Matter", "Matter")
                         .WithMany()
-                        .HasForeignKey("ProjectId")
+                        .HasForeignKey("MatterId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Certio.Domain.Projects.Project", null)
+                    b.HasOne("Certio.Domain.Matters.Matter", null)
                         .WithMany("Documents")
-                        .HasForeignKey("ProjectId1");
+                        .HasForeignKey("MatterId1");
 
-                    b.HasOne("Certio.Domain.Projects.StatusItem", "StatusItem")
+                    b.HasOne("Certio.Domain.Matters.StatusItem", "StatusItem")
                         .WithMany("RelatedDocuments")
                         .HasForeignKey("StatusItemId")
                         .OnDelete(DeleteBehavior.NoAction);
@@ -2267,7 +2359,7 @@ namespace Certio.Web.Migrations
 
                     b.Navigation("CreatedBy");
 
-                    b.Navigation("Project");
+                    b.Navigation("Matter");
 
                     b.Navigation("StatusItem");
                 });
@@ -2288,7 +2380,7 @@ namespace Certio.Web.Migrations
                     b.HasOne("Certio.Domain.Users.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Document");
@@ -2309,7 +2401,7 @@ namespace Certio.Web.Migrations
                     b.HasOne("Certio.Domain.Users.User", "Reviewer")
                         .WithMany()
                         .HasForeignKey("ReviewerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Document");
@@ -2328,7 +2420,7 @@ namespace Certio.Web.Migrations
                     b.HasOne("Certio.Domain.Users.User", "Signer")
                         .WithMany()
                         .HasForeignKey("SignerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Document");
@@ -2354,6 +2446,158 @@ namespace Certio.Web.Migrations
                     b.Navigation("Document");
                 });
 
+            modelBuilder.Entity("Certio.Domain.Matters.Matter", b =>
+                {
+                    b.HasOne("Certio.Domain.Users.User", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Certio.Domain.Teams.Team", "Team")
+                        .WithMany()
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Certio.Domain.Teams.Team", null)
+                        .WithMany("Matters")
+                        .HasForeignKey("TeamId1");
+
+                    b.Navigation("Client");
+
+                    b.Navigation("Team");
+                });
+
+            modelBuilder.Entity("Certio.Domain.Matters.MatterAssignment", b =>
+                {
+                    b.HasOne("Certio.Domain.Matters.Matter", "Matter")
+                        .WithMany("Assignments")
+                        .HasForeignKey("MatterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Certio.Domain.Users.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Certio.Domain.Users.User", null)
+                        .WithMany("MatterAssignments")
+                        .HasForeignKey("UserId1");
+
+                    b.Navigation("Matter");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Certio.Domain.Matters.MatterPermission", b =>
+                {
+                    b.HasOne("Certio.Domain.Users.User", "GrantedBy")
+                        .WithMany()
+                        .HasForeignKey("GrantedById")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Certio.Domain.Matters.Matter", "Matter")
+                        .WithMany("Permissions")
+                        .HasForeignKey("MatterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Certio.Domain.Users.User", "RevokedBy")
+                        .WithMany()
+                        .HasForeignKey("RevokedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Certio.Domain.Users.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("GrantedBy");
+
+                    b.Navigation("Matter");
+
+                    b.Navigation("RevokedBy");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Certio.Domain.Matters.StatusItem", b =>
+                {
+                    b.HasOne("Certio.Domain.Matters.Matter", "Matter")
+                        .WithMany("StatusItems")
+                        .HasForeignKey("MatterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Certio.Domain.Matters.StatusItem", "ParentStatusItem")
+                        .WithMany("SubStatusItems")
+                        .HasForeignKey("ParentStatusItemId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Matter");
+
+                    b.Navigation("ParentStatusItem");
+                });
+
+            modelBuilder.Entity("Certio.Domain.Matters.StatusItemAssignment", b =>
+                {
+                    b.HasOne("Certio.Domain.Matters.StatusItem", "StatusItem")
+                        .WithMany("Assignments")
+                        .HasForeignKey("StatusItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Certio.Domain.Users.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("StatusItem");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Certio.Domain.Matters.StatusItemComment", b =>
+                {
+                    b.HasOne("Certio.Domain.Matters.StatusItem", "StatusItem")
+                        .WithMany("Comments")
+                        .HasForeignKey("StatusItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Certio.Domain.Users.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("StatusItem");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Certio.Domain.Matters.StatusItemDependency", b =>
+                {
+                    b.HasOne("Certio.Domain.Matters.StatusItem", "DependsOnStatusItem")
+                        .WithMany("DependentItems")
+                        .HasForeignKey("DependsOnStatusItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Certio.Domain.Matters.StatusItem", "StatusItem")
+                        .WithMany("Dependencies")
+                        .HasForeignKey("StatusItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DependsOnStatusItem");
+
+                    b.Navigation("StatusItem");
+                });
+
             modelBuilder.Entity("Certio.Domain.Notifications.Notification", b =>
                 {
                     b.HasOne("Certio.Domain.Services.Conversation", "Conversation")
@@ -2366,9 +2610,9 @@ namespace Certio.Web.Migrations
                         .HasForeignKey("DocumentId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Certio.Domain.Projects.Project", "Project")
+                    b.HasOne("Certio.Domain.Matters.Matter", "Matter")
                         .WithMany()
-                        .HasForeignKey("ProjectId")
+                        .HasForeignKey("MatterId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Certio.Domain.Services.ServiceRequest", "ServiceRequest")
@@ -2376,7 +2620,7 @@ namespace Certio.Web.Migrations
                         .HasForeignKey("ServiceRequestId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Certio.Domain.Projects.StatusItem", "StatusItem")
+                    b.HasOne("Certio.Domain.Matters.StatusItem", "StatusItem")
                         .WithMany()
                         .HasForeignKey("StatusItemId")
                         .OnDelete(DeleteBehavior.NoAction);
@@ -2384,14 +2628,14 @@ namespace Certio.Web.Migrations
                     b.HasOne("Certio.Domain.Users.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Conversation");
 
                     b.Navigation("Document");
 
-                    b.Navigation("Project");
+                    b.Navigation("Matter");
 
                     b.Navigation("ServiceRequest");
 
@@ -2430,125 +2674,6 @@ namespace Certio.Web.Migrations
                     b.Navigation("Organization");
                 });
 
-            modelBuilder.Entity("Certio.Domain.Projects.Project", b =>
-                {
-                    b.HasOne("Certio.Domain.Users.User", "Client")
-                        .WithMany()
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Certio.Domain.Teams.Team", "Team")
-                        .WithMany()
-                        .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Certio.Domain.Teams.Team", null)
-                        .WithMany("Projects")
-                        .HasForeignKey("TeamId1");
-
-                    b.Navigation("Client");
-
-                    b.Navigation("Team");
-                });
-
-            modelBuilder.Entity("Certio.Domain.Projects.ProjectAssignment", b =>
-                {
-                    b.HasOne("Certio.Domain.Projects.Project", "Project")
-                        .WithMany("Assignments")
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Certio.Domain.Users.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Certio.Domain.Users.User", null)
-                        .WithMany("ProjectAssignments")
-                        .HasForeignKey("UserId1");
-
-                    b.Navigation("Project");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Certio.Domain.Projects.StatusItem", b =>
-                {
-                    b.HasOne("Certio.Domain.Projects.StatusItem", "ParentStatusItem")
-                        .WithMany("SubStatusItems")
-                        .HasForeignKey("ParentStatusItemId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Certio.Domain.Projects.Project", "Project")
-                        .WithMany("StatusItems")
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ParentStatusItem");
-
-                    b.Navigation("Project");
-                });
-
-            modelBuilder.Entity("Certio.Domain.Projects.StatusItemAssignment", b =>
-                {
-                    b.HasOne("Certio.Domain.Projects.StatusItem", "StatusItem")
-                        .WithMany("Assignments")
-                        .HasForeignKey("StatusItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Certio.Domain.Users.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("StatusItem");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Certio.Domain.Projects.StatusItemComment", b =>
-                {
-                    b.HasOne("Certio.Domain.Projects.StatusItem", "StatusItem")
-                        .WithMany("Comments")
-                        .HasForeignKey("StatusItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Certio.Domain.Users.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("StatusItem");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Certio.Domain.Projects.StatusItemDependency", b =>
-                {
-                    b.HasOne("Certio.Domain.Projects.StatusItem", "DependsOnStatusItem")
-                        .WithMany("DependentItems")
-                        .HasForeignKey("DependsOnStatusItemId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Certio.Domain.Projects.StatusItem", "StatusItem")
-                        .WithMany("Dependencies")
-                        .HasForeignKey("StatusItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("DependsOnStatusItem");
-
-                    b.Navigation("StatusItem");
-                });
-
             modelBuilder.Entity("Certio.Domain.Services.AIAgentResult", b =>
                 {
                     b.HasOne("Certio.Domain.Services.Conversation", "Conversation")
@@ -2561,9 +2686,9 @@ namespace Certio.Web.Migrations
                         .HasForeignKey("DocumentId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Certio.Domain.Projects.Project", "Project")
+                    b.HasOne("Certio.Domain.Matters.Matter", "Matter")
                         .WithMany()
-                        .HasForeignKey("ProjectId")
+                        .HasForeignKey("MatterId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Certio.Domain.Users.User", "ReviewedBy")
@@ -2580,7 +2705,7 @@ namespace Certio.Web.Migrations
 
                     b.Navigation("Document");
 
-                    b.Navigation("Project");
+                    b.Navigation("Matter");
 
                     b.Navigation("ReviewedBy");
 
@@ -2591,7 +2716,7 @@ namespace Certio.Web.Migrations
                 {
                     b.HasOne("Certio.Domain.Services.Conversation", "Conversation")
                         .WithMany("Messages")
-                        .HasForeignKey("ConversationId1")
+                        .HasForeignKey("ConversationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -2607,7 +2732,8 @@ namespace Certio.Web.Migrations
 
                     b.HasOne("Certio.Domain.Users.User", "User")
                         .WithMany("ChatMessages")
-                        .HasForeignKey("UserId1");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Conversation");
 
@@ -2653,9 +2779,9 @@ namespace Certio.Web.Migrations
                         .HasForeignKey("ConversationId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Certio.Domain.Projects.Project", "Project")
+                    b.HasOne("Certio.Domain.Matters.Matter", "Matter")
                         .WithMany()
-                        .HasForeignKey("ProjectId")
+                        .HasForeignKey("MatterId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Certio.Domain.Services.ServiceRequest", "ServiceRequest")
@@ -2665,7 +2791,7 @@ namespace Certio.Web.Migrations
 
                     b.Navigation("Conversation");
 
-                    b.Navigation("Project");
+                    b.Navigation("Matter");
 
                     b.Navigation("ServiceRequest");
                 });
@@ -2675,12 +2801,19 @@ namespace Certio.Web.Migrations
                     b.HasOne("Certio.Domain.Users.User", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Certio.Domain.Matters.Matter", "Matter")
+                        .WithMany()
+                        .HasForeignKey("MatterId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Certio.Domain.Projects.Project", "Project")
+                    b.HasOne("Certio.Domain.Organizations.Organization", "Organization")
                         .WithMany()
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Certio.Domain.Services.ServiceRequest", "ServiceRequest")
                         .WithMany()
@@ -2689,7 +2822,9 @@ namespace Certio.Web.Migrations
 
                     b.Navigation("CreatedBy");
 
-                    b.Navigation("Project");
+                    b.Navigation("Matter");
+
+                    b.Navigation("Organization");
 
                     b.Navigation("ServiceRequest");
                 });
@@ -2705,7 +2840,7 @@ namespace Certio.Web.Migrations
                     b.HasOne("Certio.Domain.Users.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Conversation");
@@ -2742,14 +2877,14 @@ namespace Certio.Web.Migrations
                         .HasForeignKey("ClientId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("Certio.Domain.Projects.Project", "Project")
+                    b.HasOne("Certio.Domain.Matters.Matter", "Matter")
                         .WithMany()
-                        .HasForeignKey("ProjectId")
+                        .HasForeignKey("MatterId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Certio.Domain.Projects.Project", null)
+                    b.HasOne("Certio.Domain.Matters.Matter", null)
                         .WithMany("ServiceRequests")
-                        .HasForeignKey("ProjectId1");
+                        .HasForeignKey("MatterId1");
 
                     b.HasOne("Certio.Domain.Users.User", null)
                         .WithMany("ServiceRequests")
@@ -2759,7 +2894,7 @@ namespace Certio.Web.Migrations
 
                     b.Navigation("Client");
 
-                    b.Navigation("Project");
+                    b.Navigation("Matter");
                 });
 
             modelBuilder.Entity("Certio.Domain.Services.ServiceRequestAttachment", b =>
@@ -2803,7 +2938,7 @@ namespace Certio.Web.Migrations
                     b.HasOne("Certio.Domain.Users.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("ParentMessage");
@@ -2839,6 +2974,24 @@ namespace Certio.Web.Migrations
                         .IsRequired();
 
                     b.Navigation("Team");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Certio.Domain.Users.UserDeletionRequest", b =>
+                {
+                    b.HasOne("Certio.Domain.Users.User", "ProcessedBy")
+                        .WithMany()
+                        .HasForeignKey("ProcessedById")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Certio.Domain.Users.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ProcessedBy");
 
                     b.Navigation("User");
                 });
@@ -2952,27 +3105,20 @@ namespace Certio.Web.Migrations
                     b.Navigation("Replies");
                 });
 
-            modelBuilder.Entity("Certio.Domain.Organizations.Organization", b =>
-                {
-                    b.Navigation("JoinCodes");
-
-                    b.Navigation("Teams");
-
-                    b.Navigation("UserOrganizations");
-                });
-
-            modelBuilder.Entity("Certio.Domain.Projects.Project", b =>
+            modelBuilder.Entity("Certio.Domain.Matters.Matter", b =>
                 {
                     b.Navigation("Assignments");
 
                     b.Navigation("Documents");
+
+                    b.Navigation("Permissions");
 
                     b.Navigation("ServiceRequests");
 
                     b.Navigation("StatusItems");
                 });
 
-            modelBuilder.Entity("Certio.Domain.Projects.StatusItem", b =>
+            modelBuilder.Entity("Certio.Domain.Matters.StatusItem", b =>
                 {
                     b.Navigation("Assignments");
 
@@ -2985,6 +3131,15 @@ namespace Certio.Web.Migrations
                     b.Navigation("RelatedDocuments");
 
                     b.Navigation("SubStatusItems");
+                });
+
+            modelBuilder.Entity("Certio.Domain.Organizations.Organization", b =>
+                {
+                    b.Navigation("JoinCodes");
+
+                    b.Navigation("Teams");
+
+                    b.Navigation("UserOrganizations");
                 });
 
             modelBuilder.Entity("Certio.Domain.Services.ChatMessage", b =>
@@ -3015,9 +3170,9 @@ namespace Certio.Web.Migrations
 
             modelBuilder.Entity("Certio.Domain.Teams.Team", b =>
                 {
-                    b.Navigation("Memberships");
+                    b.Navigation("Matters");
 
-                    b.Navigation("Projects");
+                    b.Navigation("Memberships");
                 });
 
             modelBuilder.Entity("Certio.Domain.Users.User", b =>
@@ -3028,7 +3183,7 @@ namespace Certio.Web.Migrations
 
                     b.Navigation("CreatedJoinCodes");
 
-                    b.Navigation("ProjectAssignments");
+                    b.Navigation("MatterAssignments");
 
                     b.Navigation("ServiceRequests");
 

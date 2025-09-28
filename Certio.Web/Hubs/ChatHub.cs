@@ -29,7 +29,7 @@ public class ChatHub : Hub
     {
         try
         {
-            var message = await _chatService.SendMessageAsync(conversationId, userId, userType, content, messageType);
+            var message = await _chatService.SendMessageAsync(int.Parse(conversationId), int.Parse(userId), userType, content, messageType);
             
             // Send message to all clients in the conversation group
             await Clients.Group($"conversation_{conversationId}").SendAsync("ReceiveMessage", new

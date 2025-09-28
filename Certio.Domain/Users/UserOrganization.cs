@@ -57,7 +57,7 @@ namespace Certio.Domain.Users
         
         // Certio roles
         public const string Admin = "Admin";
-        public const string ProjectManager = "ProjectManager";
+        public const string MatterManager = "MatterManager";
         public const string Support = "Support";
         public const string Legal = "Legal";
         
