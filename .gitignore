@@ -8,11 +8,11 @@
 appsettings.Production.json
 
 # Sensitive config files
-*.secrets.json
-bin/Debug/net9.0/appsettings.json
-bin/Debug/net9.0/appsettings.Development.json
-bin/Release/net9.0/appsettings.json
-bin/Release/net9.0/appsettings.Development.json
+# *.secrets.json
+# bin/Debug/net9.0/appsettings.json
+# bin/Debug/net9.0/appsettings.Development.json
+# bin/Release/net9.0/appsettings.json
+# bin/Release/net9.0/appsettings.Development.json
 
 # Database files
 *.db
