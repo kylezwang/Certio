@@ -1517,9 +1517,8 @@ body {
 
 /* Matters Page Styles */
 .matters-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
+  max-width: 100%;
+  padding: 0;
 }
 
 .matter-card {
@@ -1654,7 +1653,7 @@ body {
 /* Responsive adjustments for Matters page */
 @media (max-width: 768px) {
   .matters-container {
-    padding: 1rem 0.5rem;
+    padding: 0;
   }
   
   .matter-card {
@@ -1700,9 +1699,9 @@ body {
 
 /* Documents Page Styles */
 .documents-container {
-  max-width: 1200px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 0;
 }
 
 .folder-item {
@@ -1844,7 +1843,7 @@ body {
 /* Responsive adjustments for Documents page */
 @media (max-width: 768px) {
   .documents-container {
-    padding: 1rem 0.5rem;
+    padding: 0;
   }
   
   .document-card {
@@ -2960,12 +2959,7 @@ body {
   opacity: 1 !important;
 }
 
-/* Documents page specific styling */
-.documents-container {
-  max-width: 100%;
-  margin: 0 auto;
-  padding: 0;
-}
+/* Documents page specific styling - removed duplicate rule */
 
 .document-search {
   border-radius: 8px;
@@ -3181,11 +3175,11 @@ body {
 
 /* Services Page Styles - Discord-like Interface */
 .services-container {
-  height: 100vh;
+  height: 100%;
   background: rgba(248, 250, 252, 0.2);
   border-radius: 0.5rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   flex-direction: column;
 }
@@ -4474,7 +4468,7 @@ body.services-page .main-content {
 /* Responsive Design */
 @media (max-width: 768px) {
   .services-container {
-    height: 100vh;
+    height: 100%;
   }
   
   .services-sidebar {

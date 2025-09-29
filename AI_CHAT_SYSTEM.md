@@ -2,7 +2,7 @@
 
 ## 🚀 Overview
 
-This is a comprehensive AI-powered chat system designed for legal services, featuring four specialized AI agents that provide real-time analysis, suggestions, and insights during conversations between clients, SeedJura team members, lawyers, and businesses.
+This is a comprehensive AI-powered chat system designed for legal services, featuring four specialized AI agents that provide real-time analysis, suggestions, and insights during conversations between clients, team members, lawyers, and businesses.
 
 ## 🤖 AI Agents
 
@@ -25,7 +25,7 @@ This is a comprehensive AI-powered chat system designed for legal services, feat
   - Categorizes legal practice areas
 
 ### 3. ReplySuggester
-- **Purpose**: Suggests professional replies for SeedJura team and lawyers
+- **Purpose**: Suggests professional replies for team and lawyers
 - **Features**:
   - Generates contextually appropriate responses
   - Suggests appropriate tone (Professional, Friendly, Formal, Casual)
@@ -128,7 +128,7 @@ This is a comprehensive AI-powered chat system designed for legal services, feat
 - **AI Insights Panel**: View comprehensive conversation analysis
 
 ### Multi-User Support
-- Support for Clients, SeedJura team, Lawyers, and Businesses
+- Support for Clients, team, Lawyers, and Businesses
 - User-specific AI responses and suggestions
 - Role-based conversation management
 
@@ -161,17 +161,15 @@ This is a comprehensive AI-powered chat system designed for legal services, feat
 - Receive professional, AI-assisted responses
 - Track conversation progress and insights
 
-### For SeedJura Team
-- AI-generated reply suggestions
-- Automatic conversation summarization
-- Client goal extraction and analysis
-- Professional response templates
 
 ### For Lawyers
 - Context-aware reply suggestions
 - Legal language simplification tools
 - Client requirement analysis
 - Risk assessment assistance
+- Automatic conversation summarization
+- Client goal extraction and analysis
+- Professional response templates
 
 ### For Businesses
 - Streamlined communication with legal teams
