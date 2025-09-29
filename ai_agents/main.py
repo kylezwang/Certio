@@ -18,6 +18,10 @@ from simplified_cost_optimization import (
 from context_manager import IntelligentContextManager
 from background_agents import BackgroundAgentManager, TaskPriority
 from intelligent_routing import IntelligentRouter, TaskContext, TaskType, ProcessingMethod
+from certio_training_pipeline import (
+    add_conversation_training_data, update_agent_performance, 
+    get_training_recommendations, should_retrain_agent
+)
 # CostAnalytics removed - using simplified cost tracking in UsageTracker
 
 # Load environment variables
@@ -27,14 +31,60 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Try to import RAG system, fallback if dependencies not available
+try:
+    from certio_rag_system import enhance_agent_prompt, get_relevant_context, search_project_knowledge
+    logger.info("Using full RAG system with numpy/scikit-learn")
+except ImportError as e:
+    logger.warning(f"Full RAG system not available ({e}), using fallback version")
+    from certio_rag_system_fallback import enhance_agent_prompt, get_relevant_context, search_project_knowledge
+
 # Initialize FastAPI app
 app = FastAPI(title="Certio AI Agents", version="1.0.0")
 
-# Configure OpenAI with custom retry settings
-client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY"),
-    max_retries=0  # Disable OpenAI's built-in retry logic
-)
+# Configure Azure OpenAI with fallback to regular OpenAI
+def create_openai_client():
+    """Create OpenAI client with Azure OpenAI preference"""
+    azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+    azure_api_key = os.getenv("AZURE_OPENAI_API_KEY")
+    
+    if azure_endpoint and azure_api_key:
+        # Use Azure OpenAI
+        from openai import AzureOpenAI
+        logger.info("🔵 Using Azure OpenAI")
+        return AzureOpenAI(
+            azure_endpoint=azure_endpoint,
+            api_key=azure_api_key,
+            api_version=os.getenv("AZURE_OPENAI_VERSION", "2024-02-15-preview"),
+            max_retries=0
+        )
+    else:
+        # Fallback to regular OpenAI
+        logger.info("🟢 Using regular OpenAI (Azure not configured)")
+        return OpenAI(
+            api_key=os.getenv("OPENAI_API_KEY"),
+            max_retries=0
+        )
+
+client = create_openai_client()
+
+# Global function to get model name (Azure deployment names if using Azure)
+def get_model_name(model_type):
+    """Get the appropriate model name for Azure or regular OpenAI"""
+    if os.getenv("AZURE_OPENAI_ENDPOINT"):
+        # Use Azure deployment names
+        azure_mapping = {
+            ModelType.GPT_4O: os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT4O", "gpt-4o"),
+            ModelType.GPT_4O_MINI: os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT4O_MINI", "gpt-4o-mini")
+        }
+        return azure_mapping.get(model_type, "gpt-4o-mini")
+    else:
+        # Use regular OpenAI model names
+        regular_mapping = {
+            ModelType.GPT_4O: "gpt-4o",
+            ModelType.GPT_4O_MINI: "gpt-4o-mini"
+        }
+        return regular_mapping.get(model_type, "gpt-4o-mini")
 
 # Rate limiter to prevent hitting OpenAI limits
 class RateLimiter:
@@ -177,13 +227,9 @@ class BaseAgent:
             time_constraint="normal"
         )
         
-        # Map model type to actual model string
-        model_mapping = {
-            ModelType.GPT_4O: "gpt-4o",
-            ModelType.GPT_4O_MINI: "gpt-4o-mini"
-        }
+        # Use the global get_model_name function
         
-        selected_model = model_mapping.get(optimal_model_type, model)
+        selected_model = get_model_name(optimal_model_type) if optimal_model_type else model
         
         # Log cost optimization decision
         logger.info(f"Selected model: {selected_model} (estimated cost: ${estimated_cost:.4f}) for complexity: {task_complexity.complexity_score:.2f}")
@@ -258,8 +304,12 @@ class ChatSummarizer(BaseAgent):
         conversation_analysis = self._analyze_conversation_patterns(messages)
         conversation_text = "\n".join([f"{msg.user_type}: {msg.content}" for msg in messages])
         
-        prompt = f"""
-        As an expert legal conversation analyst, provide a comprehensive analysis of this legal services conversation:
+        # Get relevant context from RAG system
+        conversation_context = f"Participants: {', '.join(set(msg.user_type for msg in messages))}, Time span: {self._calculate_time_span(messages)}"
+        rag_context = get_relevant_context("ChatSummarizer", conversation_text, conversation_context)
+        
+        base_prompt = f"""
+        As an expert legal conversation analyst for the Certio platform, provide a comprehensive analysis of this legal services conversation:
         
         Conversation Context:
         - Total messages: {len(messages)}
@@ -293,6 +343,9 @@ class ChatSummarizer(BaseAgent):
             "suggested_actions": ["Specific action 1", "Document review needed", "Client follow-up required"]
         }}
         """
+        
+        # Enhance prompt with RAG context
+        prompt = enhance_agent_prompt("ChatSummarizer", base_prompt, conversation_text, conversation_context)
         
         try:
             response = await self._call_openai(prompt, max_tokens=1200, user_type="Client")
@@ -408,8 +461,12 @@ class ClientGoalExtractor(BaseAgent):
         business_context = self._analyze_business_context(client_messages)
         legal_indicators = self._identify_legal_indicators(conversation_text)
         
-        prompt = f"""
-        As a legal business analyst, extract comprehensive client goals and requirements from this legal services conversation:
+        # Get relevant context from RAG system
+        business_context_text = f"Business type: {business_context}, Legal indicators: {legal_indicators['legal_terms']}"
+        rag_context = get_relevant_context("ClientGoalExtractor", conversation_text, business_context_text)
+        
+        base_prompt = f"""
+        As a legal business analyst for the Certio platform, extract comprehensive client goals and requirements from this legal services conversation:
         
         Business Context Analysis:
         - Client message count: {len(client_messages)}
@@ -450,6 +507,9 @@ class ClientGoalExtractor(BaseAgent):
             "required_documents": ["Document 1", "Document 2", "Evidence needed"]
         }}
         """
+        
+        # Enhance prompt with RAG context
+        prompt = enhance_agent_prompt("ClientGoalExtractor", base_prompt, conversation_text, business_context_text)
         
         try:
             response = await self._call_openai(prompt, max_tokens=1000, user_type="Client")
@@ -575,8 +635,12 @@ class ReplySuggester(BaseAgent):
         urgency_level = self._assess_urgency_level(messages)
         legal_complexity = self._assess_legal_complexity(conversation_text)
         
-        prompt = f"""
-        As an expert {user_type} representative, suggest a highly professional and contextually appropriate reply:
+        # Get relevant context from RAG system
+        reply_context = f"User type: {user_type}, Urgency: {urgency_level}, Legal complexity: {legal_complexity}"
+        rag_context = get_relevant_context("ReplySuggester", conversation_text, reply_context)
+        
+        base_prompt = f"""
+        As an expert {user_type} representative for the Certio platform, suggest a highly professional and contextually appropriate reply:
         
         Conversation Context:
         - Total messages: {len(messages)}
@@ -616,6 +680,9 @@ class ReplySuggester(BaseAgent):
             "requires_legal_review": true/false
         }}
         """
+        
+        # Enhance prompt with RAG context
+        prompt = enhance_agent_prompt("ReplySuggester", base_prompt, conversation_text, reply_context)
         
         try:
             response = await self._call_openai(prompt, max_tokens=800, temperature=0.4, user_type=user_type)
@@ -757,8 +824,12 @@ class ClarityAgent(BaseAgent):
         risk_assessment = self._assess_legal_risk(text)
         user_context = self._get_user_context(user_type)
         
-        prompt = f"""
-        As a legal communication expert, explain this legal text in clear, accessible terms for a {user_type}:
+        # Get relevant context from RAG system
+        clarity_context = f"User type: {user_type}, Complexity: {complexity_analysis['complexity_level']}, Document type: {complexity_analysis['document_type']}"
+        rag_context = get_relevant_context("ClarityAgent", text, clarity_context)
+        
+        base_prompt = f"""
+        As a legal communication expert for the Certio platform, explain this legal text in clear, accessible terms for a {user_type}:
         
         Original Legal Text: {text}
         
@@ -793,6 +864,9 @@ class ClarityAgent(BaseAgent):
             "recommended_actions": ["Specific action 1", "Specific action 2", "Next steps"]
         }}
         """
+        
+        # Enhance prompt with RAG context
+        prompt = enhance_agent_prompt("ClarityAgent", base_prompt, text, clarity_context)
         
         try:
             response = await self._call_openai(prompt, max_tokens=1000, temperature=0.3, user_type=user_type)
@@ -896,11 +970,6 @@ class ClarityAgent(BaseAgent):
                 "knowledge_level": "Business-focused legal understanding",
                 "primary_concerns": ["Business impact", "Compliance requirements", "Operational implications"],
                 "communication_style": "Professional, business-oriented, strategic"
-            },
-            "SeedJura": {
-                "knowledge_level": "Legal professional knowledge",
-                "primary_concerns": ["Legal accuracy", "Client communication", "Risk management"],
-                "communication_style": "Technical but accessible, comprehensive"
             },
             "Lawyer": {
                 "knowledge_level": "Expert legal knowledge",
@@ -1355,37 +1424,158 @@ async def record_cost_event(request: dict):
         logger.error(f"Error recording cost event: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/analytics/export-cost-data/{time_period}")
-async def export_cost_data(time_period: str, format: str = "json"):
-    """Export cost data in specified format"""
+@app.get("/knowledge/search")
+async def search_knowledge_endpoint(query: str, category: Optional[str] = None):
+    """Search the Certio knowledge base"""
     try:
-        if time_period not in ["1h", "24h", "7d", "30d"]:
-            raise HTTPException(status_code=400, detail="Invalid time period")
-        
-        if format not in ["json", "csv"]:
-            raise HTTPException(status_code=400, detail="Invalid format. Use 'json' or 'csv'")
-        
-        # Export simplified cost data
-        analytics = usage_tracker.get_usage_analytics()
-        data = {
-            "time_period": time_period,
-            "total_requests": analytics.get("total_requests", 0),
-            "total_cost": analytics.get("total_cost", 0.0),
-            "model_usage": analytics.get("model_usage", {}),
-            "exported_at": datetime.now(timezone.utc).isoformat()
+        results = search_project_knowledge(query, category)
+        return {
+            "status": "success",
+            "query": query,
+            "category": category,
+            "results": results,
+            "total_results": len(results),
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
+    except Exception as e:
+        logger.error(f"Error searching knowledge: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/knowledge/stats")
+async def get_knowledge_stats():
+    """Get knowledge base statistics"""
+    try:
+        # Try to get stats from full RAG system, fallback if needed
+        try:
+            from certio_rag_system import certio_rag
+            stats = certio_rag.get_knowledge_stats()
+        except ImportError:
+            from certio_rag_system_fallback import certio_rag
+            stats = certio_rag.get_knowledge_stats()
         
         return {
             "status": "success",
-            "data": data,
-            "format": format,
-            "time_period": time_period,
+            "knowledge_stats": stats,
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
-    except HTTPException:
-        raise
     except Exception as e:
-        logger.error(f"Error exporting cost data: {e}")
+        logger.error(f"Error getting knowledge stats: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/knowledge/add")
+async def add_custom_knowledge(request: dict):
+    """Add custom knowledge to the system"""
+    try:
+        content = request.get("content")
+        source = request.get("source", "custom")
+        category = request.get("category", "custom")
+        metadata = request.get("metadata", {})
+        
+        if not content:
+            raise HTTPException(status_code=400, detail="Content is required")
+        
+        # Try to add to full RAG system, fallback if needed
+        try:
+            from certio_rag_system import certio_rag
+            certio_rag.add_custom_knowledge(content, source, category, metadata)
+        except ImportError:
+            from certio_rag_system_fallback import certio_rag
+            certio_rag.add_custom_knowledge(content, source, category, metadata)
+        
+        return {
+            "status": "success",
+            "message": "Custom knowledge added successfully",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error adding custom knowledge: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/training/add-conversations")
+async def add_conversation_training_data_endpoint(request: dict):
+    """Add training data from conversations"""
+    try:
+        conversations = request.get("conversations", [])
+        if not conversations:
+            raise HTTPException(status_code=400, detail="Conversations are required")
+        
+        examples_added = add_conversation_training_data(conversations)
+        
+        return {
+            "status": "success",
+            "examples_added": examples_added,
+            "total_conversations": len(conversations),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error adding conversation training data: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/training/update-performance")
+async def update_agent_performance_endpoint(request: dict):
+    """Update agent performance metrics"""
+    try:
+        agent_type = request.get("agent_type")
+        interaction_data = request.get("interaction_data", {})
+        
+        if not agent_type:
+            raise HTTPException(status_code=400, detail="Agent type is required")
+        
+        update_agent_performance(agent_type, interaction_data)
+        
+        return {
+            "status": "success",
+            "agent_type": agent_type,
+            "message": "Performance metrics updated",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error updating agent performance: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/training/recommendations")
+async def get_training_recommendations_endpoint():
+    """Get training recommendations"""
+    try:
+        recommendations = get_training_recommendations()
+        return {
+            "status": "success",
+            "recommendations": recommendations,
+            "total_recommendations": len(recommendations),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error getting training recommendations: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/training/stats")
+async def get_training_stats_endpoint():
+    """Get comprehensive training statistics"""
+    try:
+        from certio_training_pipeline import certio_training
+        stats = certio_training.get_training_stats()
+        return {
+            "status": "success",
+            "training_stats": stats,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error getting training stats: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/training/should-retrain/{agent_type}")
+async def should_retrain_agent_endpoint(agent_type: str):
+    """Check if an agent should be retrained"""
+    try:
+        should_retrain = should_retrain_agent(agent_type)
+        return {
+            "status": "success",
+            "agent_type": agent_type,
+            "should_retrain": should_retrain,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error checking retrain status: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/analytics/optimization-summary")
@@ -1480,7 +1670,7 @@ async def extract_client_goals(request: AIAgentRequest):
 async def suggest_reply(request: AIAgentRequest):
     """Suggest a reply using ReplySuggester agent"""
     try:
-        result = await reply_suggester.process(request.messages, request.user_type or "SeedJura")
+        result = await reply_suggester.process(request.messages, request.user_type)
         return result
     except Exception as e:
         logger.error(f"Error in suggest-reply endpoint: {e}")
@@ -1559,20 +1749,24 @@ async def conversational_response(request: dict):
         is_simple_message = _is_simple_message(user_message, conversation_analysis)
         
         if is_simple_message:
-            # Simple response for greetings and short messages - no background processing needed
-            system_prompt = f"""You are Certio AI, a friendly legal assistant. The user said: "{user_message}"
+            # Simple response for greetings and short messages - enhanced with RAG
+            base_simple_prompt = f"""You are Certio AI, a friendly legal assistant. The user said: "{user_message}"
 
 Respond with a brief, warm greeting and offer to help with legal questions. Keep it conversational and under 50 words. Use HTML formatting with proper <p> tags and <br> for line breaks.
 
 Be friendly, professional, and concise. Format your response as proper HTML."""
             
+            # Even simple messages get RAG enhancement for Certio context
+            simple_context = {"user_type": user_type, "message_type": "greeting"}
+            system_prompt = enhance_agent_prompt("ConversationalAI", base_simple_prompt, user_message, simple_context)
+            
             # Use GPT-4o-mini for simple responses
-            selected_model = "gpt-4o-mini"
+            selected_model = get_model_name(ModelType.GPT_4O_MINI) if os.getenv("AZURE_OPENAI_ENDPOINT") else "gpt-4o-mini"
             max_tokens = 200
             temperature = 0.3
         else:
             # Comprehensive response with integrated analysis for complex queries
-            system_prompt = f"""You are Certio AI, an advanced legal assistant. Provide a comprehensive response that includes both conversation and analysis.
+            base_system_prompt = f"""You are Certio AI, an advanced legal assistant. Provide a comprehensive response that includes both conversation and analysis.
 
 CONVERSATION CONTEXT:
 - User Type: {user_type}
@@ -1584,7 +1778,24 @@ CONVERSATION CONTEXT:
 RECENT CONVERSATION:
 {_build_conversation_context(messages, 6)}
 
-CURRENT REQUEST: {user_message}
+CURRENT REQUEST: {user_message}"""  # Close the base prompt here
+
+            # Enhance prompt with RAG context for Certio-specific knowledge
+            conversation_context = {
+                "user_type": user_type,
+                "message_count": len(messages),
+                "legal_topics": conversation_analysis.get('legal_topics', []),
+                "urgency": conversation_analysis.get('urgency_level', 'Medium'),
+                "conversation_stage": conversation_analysis.get('conversation_stage', 'Initial')
+            }
+            
+            # Use RAG enhancement to inject Certio-specific knowledge
+            logger.info(f"🔍 Enhancing conversational prompt with RAG for user_type: {user_type}")
+            enhanced_prompt = enhance_agent_prompt("ConversationalAI", base_system_prompt, user_message, conversation_context)
+            logger.info(f"✅ RAG enhancement completed for conversational response")
+            
+            # Add the response requirements to the enhanced prompt
+            system_prompt = enhanced_prompt + f"""
 
 RESPONSE REQUIREMENTS:
 1. Provide a helpful, conversational response to the user's request
@@ -1615,8 +1826,8 @@ IMPORTANT: Format your response using proper HTML tags, not markdown or raw text
 
 Respond as an intelligent legal assistant:"""
             
-            # Use GPT-4o for complex responses
-            selected_model = "gpt-4o"
+            # Use GPT-4o for complex responses  
+            selected_model = get_model_name(ModelType.GPT_4O) if os.getenv("AZURE_OPENAI_ENDPOINT") else "gpt-4o"
             max_tokens = 1500
             temperature = 0.7
         
@@ -1632,12 +1843,9 @@ Respond as an intelligent legal assistant:"""
             estimated_cost = 0.0003
         else:
             optimal_model_type, estimated_cost = model_selector.select_optimal_model(task_complexity)
-            # Map model type to actual model string
-            model_mapping = {
-                ModelType.GPT_4O: "gpt-4o",
-                ModelType.GPT_4O_MINI: "gpt-4o-mini"
-            }
-            selected_model = model_mapping.get(optimal_model_type, selected_model)
+            # Use the get_model_name function for consistency
+            if optimal_model_type:
+                selected_model = get_model_name(optimal_model_type)
         
         # Log cost optimization decision
         logger.info(f"Conversational response - Selected model: {selected_model} (estimated cost: ${estimated_cost:.4f}) for complexity: {task_complexity.complexity_score:.2f}")

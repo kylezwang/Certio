@@ -1,0 +1,32 @@
+# PowerShell script to load environment variables
+Write-Host "Loading environment variables from .env file..." -ForegroundColor Cyan
+
+# Check if .env file exists
+if (-not (Test-Path ".env")) {
+    Write-Host "ERROR: .env file not found!" -ForegroundColor Red
+    Write-Host "Please create a .env file with your environment variables." -ForegroundColor Yellow
+    Read-Host "Press Enter to continue"
+    exit 1
+}
+
+# Load environment variables from .env file
+Get-Content ".env" | ForEach-Object {
+    if ($_ -match "^([^#][^=]+)=(.*)$") {
+        $name = $matches[1].Trim()
+        $value = $matches[2].Trim()
+        
+        # Set environment variable for current session
+        [Environment]::SetEnvironmentVariable($name, $value, "Process")
+        Set-Variable -Name $name -Value $value -Scope Global
+        
+        Write-Host "Loaded: $name" -ForegroundColor Green
+    }
+}
+
+Write-Host ""
+Write-Host "✅ Environment variables loaded successfully!" -ForegroundColor Green
+Write-Host ""
+Write-Host "You can now use Docker commands with environment variables." -ForegroundColor Cyan
+Write-Host "Example: docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P `$env:SQL_PASSWORD -C -N -W -s',' -Q `"SELECT Id, Title, Description, ConversationType, Status, CreatedAt, LastMessageAt FROM CertioLocal.dbo.Conversations ORDER BY CreatedAt DESC`"" -ForegroundColor Yellow
+Write-Host ""
+Read-Host "Press Enter to continue"
