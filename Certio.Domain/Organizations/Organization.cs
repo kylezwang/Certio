@@ -21,7 +21,7 @@ namespace Certio.Domain.Organizations
         // Add organization type for better categorization
         [Required]
         [StringLength(20)]
-        public OrganizationType Type { get; set; } = OrganizationType.Business;
+        public OrganizationType Type { get; set; } = OrganizationType.Client;
         
         public bool IsPersonal { get; set; } = false;
         public bool IsActive { get; set; } = true;
@@ -59,8 +59,7 @@ namespace Certio.Domain.Organizations
     
     public enum OrganizationType
     {
-        Personal,     // Individual user's personal organization
-        Business,     // Business/company organization
+        Client,       // Client organization (default)
         LawFirm,      // Law firm organization
         Government,   // Government agency
         NonProfit     // Non-profit organization

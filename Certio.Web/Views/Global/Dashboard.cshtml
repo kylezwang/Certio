@@ -1,0 +1,380 @@
+@model Certio.Web.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "_ClientLayout";
+}
+
+<div class="global-dashboard-main">
+    <!-- AI Chat Section -->
+    <div class="card mb-4 mt-3 border-0 ai-chat-card gd-card">
+        <div class="card-body p-4">
+            <h2 class="text-center mb-4 fs-2 fw-semibold text-dark">What can I help with?</h2>
+            
+            <div class="search-container-large">
+                <i class="fas fa-plus"></i>
+                <input type="text" class="form-control form-control-lg" placeholder="Ask anything" />
+                <div class="search-actions">
+                    <button class="btn btn-link text-muted">
+                        <i class="fas fa-comment"></i>
+                    </button>
+                    <button class="btn btn-link text-muted">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Access Section -->
+    <div class="card mb-4 border-0 gd-card">
+        <div class="card-body p-4">
+            <h5 class="card-title fw-bold mb-4">Quick Access</h5>
+            
+            <div class="row gx-4 gy-3">
+                <div class="col-md-3 mb-3">
+                    <a href="#" class="quick-access-item qa-card" data-action="open-global-clients">
+                        <div class="d-flex flex-column align-items-center text-center p-3">
+                            <div class="quick-access-icon mb-2">
+                                <i class="fas fa-users text-primary"></i>
+                            </div>
+                            <span class="fw-medium">Clients</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <a href="#" class="quick-access-item qa-card">
+                        <div class="d-flex flex-column align-items-center text-center p-3">
+                            <div class="quick-access-icon mb-2">
+                                <i class="fas fa-calendar text-success"></i>
+                            </div>
+                            <span class="fw-medium">Calendar</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <a href="#" class="quick-access-item qa-card">
+                        <div class="d-flex flex-column align-items-center text-center p-3">
+                            <div class="quick-access-icon mb-2">
+                                <i class="fas fa-envelope text-danger"></i>
+                            </div>
+                            <span class="fw-medium">Inbox</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <a href="#" class="quick-access-item qa-card">
+                        <div class="d-flex flex-column align-items-center text-center p-3">
+                            <div class="quick-access-icon mb-2">
+                                <i class="fas fa-file-alt text-purple"></i>
+                            </div>
+                            <span class="fw-medium">Documents</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <a href="#" class="quick-access-item qa-card">
+                        <div class="d-flex flex-column align-items-center text-center p-3">
+                            <div class="quick-access-icon mb-2">
+                                <i class="fas fa-dollar-sign text-warning"></i>
+                            </div>
+                            <span class="fw-medium">Billing</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <a href="#" class="quick-access-item qa-card">
+                        <div class="d-flex flex-column align-items-center text-center p-3">
+                            <div class="quick-access-icon mb-2">
+                                <i class="fas fa-history text-info"></i>
+                            </div>
+                            <span class="fw-medium">History</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <a href="#" class="quick-access-item qa-card">
+                        <div class="d-flex flex-column align-items-center text-center p-3">
+                            <div class="quick-access-icon mb-2">
+                                <i class="fas fa-search text-secondary"></i>
+                            </div>
+                            <span class="fw-medium">Search</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <a href="#" class="quick-access-item qa-card">
+                        <div class="d-flex flex-column align-items-center text-center p-3">
+                            <div class="quick-access-icon mb-2">
+                                <i class="fas fa-ellipsis-h text-muted"></i>
+                            </div>
+                            <span class="fw-medium">More</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Row: Firm Summary, Daily Briefing, Next Suggestions -->
+    <div class="row gx-4">
+        <!-- Firm Summary -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 h-100 gd-card">
+                <div class="card-body p-4">
+                    <h5 class="card-title fw-bold mb-3">Firm Summary</h5>
+                    
+                    <div class="firm-stat mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-semibold">@Model.NewMattersThisWeek new matters this week</span>
+                        </div>
+                        <div class="text-muted small">
+                            <i class="fas fa-arrow-up text-success me-1"></i>
+                            @Model.NewMattersPercentageChange.ToString("F0")% vs last week
+                        </div>
+                    </div>
+                    
+                    <div class="firm-stat mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-semibold">Billing backlog</span>
+                            <span class="fw-bold">@Model.BillingBacklogPercentage%</span>
+                        </div>
+                        <div class="text-muted small">vs last week</div>
+                    </div>
+                    
+                    <div class="firm-stat">
+                        <div class="text-danger fw-semibold">@Model.TrustComplianceWarnings trust compliance warnings</div>
+                        <div class="text-muted small">@Model.TrustComplianceStatus</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Briefing -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 h-100 daily-briefing-card gd-card">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-clock text-muted me-2"></i>
+                        <h5 class="card-title fw-bold mb-0">Daily Briefing</h5>
+                    </div>
+                    
+                    <div class="briefing-item mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-semibold">Today</span>
+                            <span class="text-primary fw-bold">@Model.FilingsDueToday filings due</span>
+                        </div>
+                        <div class="text-muted small">@Model.FilingsDueDescription</div>
+                    </div>
+                    
+                    <div class="briefing-item mb-3">
+                        <div class="text-primary fw-bold">@Model.ClientCallsToday client call</div>
+                        <div class="text-muted small">@Model.ClientCallsDescription</div>
+                    </div>
+                    
+                    <div class="briefing-item">
+                        <div class="text-primary fw-bold">@Model.OverdueInvoices overdue invoice</div>
+                        <div class="text-muted small">@Model.OverdueInvoicesDescription</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Next Suggestions -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 h-100 gd-card">
+                <div class="card-body p-4">
+                    <h5 class="card-title fw-bold mb-3">Next Suggestions</h5>
+                    
+                    @if (Model.NextSuggestions.Any())
+                    {
+                        @foreach (var suggestion in Model.NextSuggestions.Take(3))
+                        {
+                            <div class="suggestion-item mb-3">
+                                <div class="fw-semibold">@suggestion.Title</div>
+                                <div class="text-muted small">@suggestion.Description</div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="suggestion-item mb-3">
+                            <div class="fw-semibold">Matter Z inactive 12 days</div>
+                            <div class="text-muted small">→ follow up</div>
+                        </div>
+                        
+                        <div class="suggestion-item mb-3">
+                            <div class="fw-semibold">3 overdue invoices</div>
+                            <div class="text-muted small">→ send reminders</div>
+                        </div>
+                        
+                        <div class="suggestion-item">
+                            <div class="fw-semibold">Paralegal C overloaded</div>
+                            <div class="text-muted small">→ consider reassigning</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .global-dashboard-main {
+        padding: 0 0.75rem;
+    }
+
+    /* Force 4x2 grid layout for quick access */
+    .global-dashboard-main .row > [class^="col-"] {
+    }
+    .global-dashboard-main .row .col-md-3 .quick-access-item {
+        width: 100%;
+    }
+
+    .card {
+        border-radius: 12px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .ai-chat-card {
+        min-height: 120px;
+    }
+
+    .search-container-large {
+        position: relative;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .search-container-large input {
+        padding: 0.75rem 3rem 0.75rem 3rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 24px;
+        background-color: #f9fafb;
+    }
+
+    /* Match placeholder to Matters subtitle (lead text) */
+    .search-container-large input::placeholder {
+        font-size: 1.25rem; /* Bootstrap .lead size */
+        font-weight: 300;    /* Bootstrap .lead weight */
+        color: #6c757d;      /* Bootstrap .text-muted */
+    }
+
+    .search-container-large i.fa-plus {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6b7280;
+    }
+
+    .search-actions {
+        position: absolute;
+        right: 0.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        gap: 0.25rem;
+    }
+
+    .search-actions .btn {
+        padding: 0.25rem 0.5rem;
+        border: none;
+    }
+
+    .quick-access-item {
+        display: block;
+        text-decoration: none;
+        color: inherit;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    /* Add shadow and spacing on the card itself so gutters show between tiles */
+    .qa-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        display: block;
+        transition: all 0.3s ease;
+    }
+
+    .quick-access-item:hover {
+        background-color: #f9fafb;
+        color: inherit;
+        text-decoration: none;
+    }
+
+    /* Hover to match Matters card */
+    .qa-card:hover {
+        background-color: #eef1f3;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    .quick-access-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    .text-purple {
+        color: #8b5cf6 !important;
+    }
+
+    /* Match Matters card styling */
+    .gd-card {
+        transition: all 0.3s ease;
+        border-radius: 12px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .gd-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    /* Firm Summary styles */
+    .firm-stat {
+        padding: 0.5rem 0;
+    }
+
+    /* Daily Briefing styles */
+    .daily-briefing-card .card-body {
+        background: white;
+        border-radius: 12px;
+    }
+
+    .briefing-item {
+        padding: 0.5rem 0;
+    }
+
+    /* Suggestion styles */
+    .suggestion-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .suggestion-item:last-child {
+        border-bottom: none;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('[data-action="open-global-clients"]').forEach(function (el) {
+                el.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation(); // prevent the global outside-click handler from immediately closing it
+                    const btn = document.getElementById('clientsButton');
+                    if (!btn) return;
+                    // Trigger the same handler without bubbling to document
+                    btn.dispatchEvent(new MouseEvent('click', { bubbles: false }));
+                });
+            });
+        });
+    </script>
+}

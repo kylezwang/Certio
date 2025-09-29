@@ -1,0 +1,566 @@
+@model Certio.Web.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "_ClientLayout";
+}
+
+<div class="dashboard-container">
+    <div class="row h-100">
+        <!-- Left Column -->
+        <div class="col-md-4 left-column">
+            <!-- Upcoming Deadlines Card -->
+            <div class="card mb-4 border-0 h-auto">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title fw-bold mb-0">Upcoming Deadlines</h5>
+                        <span class="badge bg-primary">Today</span>
+                    </div>
+                    
+                    <div class="deadlines-list">
+                        @foreach (var deadline in Model.UpcomingDeadlines.Take(3))
+                        {
+                            <div class="deadline-item @(deadline.Priority == "High" ? "border-start border-danger border-3" : "") mb-3 ps-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1 fw-semibold">@deadline.Title</h6>
+                                        <p class="text-muted small mb-0">@deadline.Time</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        
+                        @if (!Model.UpcomingDeadlines.Any())
+                        {
+                            <div class="deadline-item border-start border-danger border-3 mb-3 ps-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1 fw-semibold">Smith v. Jones - Motion Filing</h6>
+                                        <p class="text-muted small mb-0">2:00 PM</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="deadline-item mb-3 ps-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1 fw-semibold">Client Review Call</h6>
+                                        <p class="text-muted small mb-0">4:30 PM</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="deadline-item mb-3 ps-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1 fw-semibold">Document Review</h6>
+                                        <p class="text-muted small mb-0">EOD</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar Card -->
+            <div class="card mb-4 border-0 h-auto">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title fw-bold mb-0">@Model.CurrentDate.ToString("MMMM yyyy")</h5>
+                    </div>
+                    
+                    <div class="calendar-grid">
+                        <div class="calendar-header">
+                            <div class="calendar-day-header">S</div>
+                            <div class="calendar-day-header">M</div>
+                            <div class="calendar-day-header">T</div>
+                            <div class="calendar-day-header">W</div>
+                            <div class="calendar-day-header">T</div>
+                            <div class="calendar-day-header">F</div>
+                            <div class="calendar-day-header">S</div>
+                        </div>
+                        
+                        <div class="calendar-body">
+                            @{
+                                var firstDay = new DateTime(Model.CurrentDate.Year, Model.CurrentDate.Month, 1);
+                                var startDay = firstDay.AddDays(-(int)firstDay.DayOfWeek);
+                                var today = DateTime.Today;
+                            }
+                            
+                            @for (int week = 0; week < 6; week++)
+                            {
+                                <div class="calendar-week">
+                                    @for (int day = 0; day < 7; day++)
+                                    {
+                                        var currentDate = startDay.AddDays(week * 7 + day);
+                                        var isCurrentMonth = currentDate.Month == Model.CurrentDate.Month;
+                                        var isToday = currentDate.Date == today;
+                                        var isSelected = currentDate.Day == 15 && isCurrentMonth; // Highlight 15th as selected
+                                        
+                                        <div class="calendar-day @(isCurrentMonth ? "current-month" : "other-month") @(isToday ? "today" : "") @(isSelected ? "selected" : "")">
+                                            @currentDate.Day
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity Card -->
+            <div class="card border-0 h-auto">
+                <div class="card-body p-4">
+                    <h5 class="card-title fw-bold mb-2">Recent Activity</h5>
+                    <p class="text-muted small mb-2">Recent Files</p>
+                    
+                    <div class="recent-files-list">
+                        @if (Model.RecentFiles.Any())
+                        {
+                            @foreach (var file in Model.RecentFiles.Take(2))
+                            {
+                                <div class="recent-file-item d-flex align-items-center mb-2">
+                                    <div class="file-icon me-3">
+                                        <i class="fas fa-file-pdf text-danger"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1 fw-semibold">@file.Name</h6>
+                                        <p class="text-muted small mb-0">@file.TimeAgo</p>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="recent-file-item d-flex align-items-center mb-2">
+                                <div class="file-icon me-3">
+                                    <i class="fas fa-file-pdf text-danger"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1 fw-semibold">Project_Spec_v3.pdf</h6>
+                                    <p class="text-muted small mb-0">2h ago</p>
+                                </div>
+                            </div>
+                            <div class="recent-file-item d-flex align-items-center mb-2">
+                                <div class="file-icon me-3">
+                                    <i class="fas fa-file-alt text-primary"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1 fw-semibold">Design_System.fig</h6>
+                                    <p class="text-muted small mb-0">4h ago</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-md-8 right-column">
+            <!-- AI Chat Section -->
+            <div class="card mb-4 border-0 ai-chat-card">
+                <div class="card-body p-4">
+                    <h2 class="text-center mb-4 fw-light">What can I help with?</h2>
+                    
+                    <div class="search-container-large">
+                        <i class="fas fa-plus"></i>
+                        <input type="text" class="form-control form-control-lg" placeholder="Ask anything" />
+                        <div class="search-actions">
+                            <button class="btn btn-link text-muted">
+                                <i class="fas fa-comment"></i>
+                            </button>
+                            <button class="btn btn-link text-muted">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Access Section -->
+            <div class="card mb-4 border-0">
+                <div class="card-body p-4">
+                    <h5 class="card-title fw-bold mb-4">Quick Access</h5>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <a href="/Client/@ViewBag.OrganizationId/Matter" class="quick-access-item">
+                                <div class="d-flex flex-column align-items-center text-center p-3">
+                                    <div class="quick-access-icon mb-2">
+                                        <i class="fas fa-users text-primary"></i>
+                                    </div>
+                                    <span class="fw-medium">Clients</span>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="#" class="quick-access-item">
+                                <div class="d-flex flex-column align-items-center text-center p-3">
+                                    <div class="quick-access-icon mb-2">
+                                        <i class="fas fa-calendar text-success"></i>
+                                    </div>
+                                    <span class="fw-medium">Calendar</span>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="#" class="quick-access-item">
+                                <div class="d-flex flex-column align-items-center text-center p-3">
+                                    <div class="quick-access-icon mb-2">
+                                        <i class="fas fa-envelope text-danger"></i>
+                                    </div>
+                                    <span class="fw-medium">Inbox</span>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="/Client/@ViewBag.OrganizationId/Documents" class="quick-access-item">
+                                <div class="d-flex flex-column align-items-center text-center p-3">
+                                    <div class="quick-access-icon mb-2">
+                                        <i class="fas fa-file-alt text-purple"></i>
+                                    </div>
+                                    <span class="fw-medium">Documents</span>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="#" class="quick-access-item">
+                                <div class="d-flex flex-column align-items-center text-center p-3">
+                                    <div class="quick-access-icon mb-2">
+                                        <i class="fas fa-dollar-sign text-warning"></i>
+                                    </div>
+                                    <span class="fw-medium">Billing</span>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="#" class="quick-access-item">
+                                <div class="d-flex flex-column align-items-center text-center p-3">
+                                    <div class="quick-access-icon mb-2">
+                                        <i class="fas fa-history text-info"></i>
+                                    </div>
+                                    <span class="fw-medium">History</span>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="#" class="quick-access-item">
+                                <div class="d-flex flex-column align-items-center text-center p-3">
+                                    <div class="quick-access-icon mb-2">
+                                        <i class="fas fa-search text-secondary"></i>
+                                    </div>
+                                    <span class="fw-medium">Search</span>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="#" class="quick-access-item">
+                                <div class="d-flex flex-column align-items-center text-center p-3">
+                                    <div class="quick-access-icon mb-2">
+                                        <i class="fas fa-ellipsis-h text-muted"></i>
+                                    </div>
+                                    <span class="fw-medium">More</span>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Row: Firm Summary, Daily Briefing, Next Suggestions -->
+            <div class="row">
+                <!-- Firm Summary -->
+                <div class="col-md-4 mb-4">
+                    <div class="card border-0 h-100">
+                        <div class="card-body p-4">
+                            <h5 class="card-title fw-bold mb-3">Firm Summary</h5>
+                            
+                            <div class="firm-stat mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-semibold">@Model.NewMattersThisWeek new matters this week</span>
+                                </div>
+                                <div class="text-muted small">
+                                    <i class="fas fa-arrow-up text-success me-1"></i>
+                                    @Model.NewMattersPercentageChange.ToString("F0")% vs last week
+                                </div>
+                            </div>
+                            
+                            <div class="firm-stat mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-semibold">Billing backlog</span>
+                                    <span class="fw-bold">@Model.BillingBacklogPercentage%</span>
+                                </div>
+                                <div class="text-muted small">vs last week</div>
+                            </div>
+                            
+                            <div class="firm-stat">
+                                <div class="text-danger fw-semibold">@Model.TrustComplianceWarnings trust compliance warnings</div>
+                                <div class="text-muted small">@Model.TrustComplianceStatus</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Daily Briefing -->
+                <div class="col-md-4 mb-4">
+                    <div class="card border-0 h-100 daily-briefing-card">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fas fa-clock text-muted me-2"></i>
+                                <h5 class="card-title fw-bold mb-0">Daily Briefing</h5>
+                            </div>
+                            
+                            <div class="briefing-item mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-semibold">Today</span>
+                                    <span class="text-primary fw-bold">@Model.FilingsDueToday filings due</span>
+                                </div>
+                                <div class="text-muted small">@Model.FilingsDueDescription</div>
+                            </div>
+                            
+                            <div class="briefing-item mb-3">
+                                <div class="text-primary fw-bold">@Model.ClientCallsToday client call</div>
+                                <div class="text-muted small">@Model.ClientCallsDescription</div>
+                            </div>
+                            
+                            <div class="briefing-item">
+                                <div class="text-primary fw-bold">@Model.OverdueInvoices overdue invoice</div>
+                                <div class="text-muted small">@Model.OverdueInvoicesDescription</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Next Suggestions -->
+                <div class="col-md-4 mb-4">
+                    <div class="card border-0 h-100">
+                        <div class="card-body p-4">
+                            <h5 class="card-title fw-bold mb-3">Next Suggestions</h5>
+                            
+                            @if (Model.NextSuggestions.Any())
+                            {
+                                @foreach (var suggestion in Model.NextSuggestions.Take(3))
+                                {
+                                    <div class="suggestion-item mb-3">
+                                        <div class="fw-semibold">@suggestion.Title</div>
+                                        <div class="text-muted small">@suggestion.Description</div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="suggestion-item mb-3">
+                                    <div class="fw-semibold">Matter Z inactive 12 days</div>
+                                    <div class="text-muted small">→ follow up</div>
+                                </div>
+                                
+                                <div class="suggestion-item mb-3">
+                                    <div class="fw-semibold">3 overdue invoices</div>
+                                    <div class="text-muted small">→ send reminders</div>
+                                </div>
+                                
+                                <div class="suggestion-item">
+                                    <div class="fw-semibold">Paralegal C overloaded</div>
+                                    <div class="text-muted small">→ consider reassigning</div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .dashboard-container {
+        max-width: 100%;
+        padding: 0;
+        height: 100%;
+    }
+
+    .left-column, .right-column {
+        padding: 0 0.75rem;
+    }
+
+    .card {
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .ai-chat-card {
+        min-height: 120px;
+    }
+
+    .search-container-large {
+        position: relative;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .search-container-large input {
+        padding: 0.75rem 3rem 0.75rem 3rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 24px;
+        background-color: #f9fafb;
+    }
+
+    .search-container-large i.fa-plus {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6b7280;
+    }
+
+    .search-actions {
+        position: absolute;
+        right: 0.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        gap: 0.25rem;
+    }
+
+    .search-actions .btn {
+        padding: 0.25rem 0.5rem;
+        border: none;
+    }
+
+    .quick-access-item {
+        display: block;
+        text-decoration: none;
+        color: inherit;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .quick-access-item:hover {
+        background-color: #f9fafb;
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .quick-access-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    .text-purple {
+        color: #8b5cf6 !important;
+    }
+
+    /* Calendar Styles */
+    .calendar-grid {
+        font-size: 0.875rem;
+    }
+
+    .calendar-header {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 0.25rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .calendar-day-header {
+        text-align: center;
+        font-weight: 600;
+        color: #6b7280;
+        padding: 0.5rem;
+    }
+
+    .calendar-body {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .calendar-week {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 0.25rem;
+    }
+
+    .calendar-day {
+        text-align: center;
+        padding: 0.5rem;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+    }
+
+    .calendar-day.current-month {
+        color: #374151;
+    }
+
+    .calendar-day.other-month {
+        color: #d1d5db;
+    }
+
+    .calendar-day.today {
+        background-color: #0b365e;
+        color: white;
+        font-weight: 600;
+    }
+
+    .calendar-day.selected {
+        background-color: #0b365e;
+        color: white;
+        font-weight: 600;
+    }
+
+    .calendar-day:hover:not(.today):not(.selected) {
+        background-color: #f3f4f6;
+    }
+
+    /* Deadline styles */
+    .deadline-item {
+        position: relative;
+    }
+
+    .deadline-item.border-start {
+        border-left: 3px solid #dc3545 !important;
+    }
+
+    /* Firm Summary styles */
+    .firm-stat {
+        padding: 0.5rem 0;
+    }
+
+    /* Daily Briefing styles */
+    .daily-briefing-card .card-body {
+        background: white;
+        border-radius: 12px;
+    }
+
+    .briefing-item {
+        padding: 0.5rem 0;
+    }
+
+    /* Recent files styles */
+    .file-icon {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+
+    .recent-file-item {
+        padding: 0.5rem 0;
+    }
+
+    /* Suggestion styles */
+    .suggestion-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .suggestion-item:last-child {
+        border-bottom: none;
+    }
+</style>

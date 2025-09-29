@@ -218,12 +218,12 @@ namespace Certio.Web.Services
 
                         if (!hasOrganizationsInTransaction)
                         {
-                            // Create a personal organization for the user
+                            // Create a client organization for the user
                             var org = new Certio.Domain.Organizations.Organization
                             {
                                 Name = $"{user.FirstName} {user.LastName}'s Organization",
                                 OwnerId = user.Id,
-                                Type = Certio.Domain.Organizations.OrganizationType.Personal,
+                                Type = Certio.Domain.Organizations.OrganizationType.Client,
                                 CreatedAt = DateTime.UtcNow,
                                 IsActive = true,
                                 IsPersonal = true

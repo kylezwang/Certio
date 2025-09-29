@@ -126,6 +126,17 @@ namespace Certio.Domain.Users
             return UserOrganizations.FirstOrDefault(uo => uo.IsPrimary && uo.IsActive);
         }
         
+        public bool CanJoinLawFirm()
+        {
+            // Check if user is already part of a LawFirm organization
+            return !UserOrganizations.Any(uo => uo.IsActive && uo.Organization.Type == OrganizationType.LawFirm);
+        }
+        
+        public UserOrganization? GetLawFirmMembership()
+        {
+            return UserOrganizations.FirstOrDefault(uo => uo.IsActive && uo.Organization.Type == OrganizationType.LawFirm);
+        }
+        
         public bool HasMatterAccess(int matterId, int organizationId)
         {
             var membership = GetOrganizationMembership(organizationId);
