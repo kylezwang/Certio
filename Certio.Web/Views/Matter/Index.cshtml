@@ -154,7 +154,7 @@
                             </div>
                             <div class="d-flex align-items-center">
                                 <i class="fas fa-users me-1"></i>
-                                <span>@matter.Assignments.Count assignees</span>
+                                <span>@matter.UniqueAssigneeCount participants</span>
                             </div>
                         </div>
 
@@ -163,18 +163,18 @@
                             <span class="text-muted small me-2">Team:</span>
                             <div class="d-flex">
                                 @{
-                                    var assignees = matter.Assignments.Take(3).ToList();
+                                    var uniqueAssignees = matter.Assignments.GroupBy(a => a.UserId).Select(g => g.First()).Take(3).ToList();
                                 }
-                                @for (int i = 0; i < assignees.Count; i++)
+                                @for (int i = 0; i < uniqueAssignees.Count; i++)
                                 {
                                     <div class="assignee-avatar me-1">
-                                        @GetInitials(assignees[i].User.FirstName + " " + assignees[i].User.LastName)
+                                        @GetInitials(uniqueAssignees[i].User.FirstName + " " + uniqueAssignees[i].User.LastName)
                                     </div>
                                 }
-                                @if (matter.Assignments.Count > 3)
+                                @if (matter.UniqueAssigneeCount > 3)
                                 {
                                     <div class="assignee-avatar me-1 bg-muted text-muted">
-                                        +@(matter.Assignments.Count - 3)
+                                        +@(matter.UniqueAssigneeCount - 3)
                                     </div>
                                 }
                             </div>

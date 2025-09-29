@@ -66,6 +66,7 @@ public class Matter
     public int TasksCompleted => StatusItems.Count(si => si.Status == "Completed");
     public int TotalTasks => StatusItems.Count;
     public string Assignees => string.Join(", ", Assignments.Select(a => a.User.FirstName + " " + a.User.LastName));
+    public int UniqueAssigneeCount => Assignments.Select(a => a.UserId).Distinct().Count();
     
     // Helper properties for firm assignments
     public User? OriginatingAttorney => Assignments.FirstOrDefault(a => a.AssignmentType == "OriginatingAttorney")?.User;
