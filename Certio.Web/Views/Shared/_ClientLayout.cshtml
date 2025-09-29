@@ -75,6 +75,165 @@
         transition: transform 0.3s ease;
     }
 
+    /* Global dashboard sidebar styles */
+    .global-dashboard-sidebar {
+        position: fixed;
+        top: 7vh; /* Position below the header */
+        left: 6vw;
+        width: 19.5vw; /* Slightly narrower to create padding */
+        height: calc(100vh - 7vh); /* Adjust height to account for header */
+        z-index: 999;
+        display: flex;
+        flex-direction: column;
+        padding: 0rem 0.5rem 0rem 1rem;
+        transform: translateX(0);
+        transition: transform 0.3s ease;
+        overflow-y: auto; /* Stable layout with reserved gutter */
+        scrollbar-gutter: stable both-edges; /* Reserve space to prevent shift */
+        scrollbar-width: thin; /* Firefox */
+    }
+
+    /* Custom scrollbar styling for global dashboard sidebar - hidden by default */
+    .global-dashboard-sidebar::-webkit-scrollbar {
+        width: 8px; /* Keep constant width to avoid layout shift */
+        background: transparent;
+    }
+
+    .global-dashboard-sidebar:hover { /* Firefox hover colors */
+        scrollbar-color: rgba(11, 54, 94, 0.3) rgba(0, 0, 0, 0.05);
+    }
+
+    .global-dashboard-sidebar { /* Firefox default colors - transparent */
+        scrollbar-color: transparent transparent;
+    }
+
+    .global-dashboard-sidebar:hover::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 4px;
+    }
+
+    .global-dashboard-sidebar::-webkit-scrollbar-thumb {
+        background: transparent; /* Transparent by default to hide visual but keep width */
+        border-radius: 4px;
+        transition: background 0.2s ease;
+    }
+
+    .global-dashboard-sidebar:hover::-webkit-scrollbar-thumb {
+        background: rgba(11, 54, 94, 0.3);
+        border-radius: 4px;
+        transition: background 0.2s ease;
+    }
+
+    .global-dashboard-sidebar:hover::-webkit-scrollbar-thumb:hover {
+        background: rgba(11, 54, 94, 0.5);
+    }
+
+    .global-dashboard-content {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    /* Calendar styles for global dashboard */
+    .global-dashboard-sidebar .calendar-grid {
+        font-size: 0.8rem;
+    }
+
+    .global-dashboard-sidebar .calendar-header {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 0.25rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .global-dashboard-sidebar .calendar-day-header {
+        text-align: center;
+        font-weight: 600;
+        color: #6b7280;
+        padding: 0.25rem;
+        font-size: 0.75rem;
+    }
+
+    .global-dashboard-sidebar .calendar-body {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .global-dashboard-sidebar .calendar-week {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 0.25rem;
+    }
+
+    .global-dashboard-sidebar .calendar-day {
+        text-align: center;
+        padding: 0.25rem;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        font-size: 0.75rem;
+    }
+
+    .global-dashboard-sidebar .calendar-day.current-month {
+        color: #374151;
+    }
+
+    .global-dashboard-sidebar .calendar-day.other-month {
+        color: #d1d5db;
+    }
+
+    .global-dashboard-sidebar .calendar-day.today {
+        background-color: #0b365e;
+        color: white;
+        font-weight: 600;
+    }
+
+    .global-dashboard-sidebar .calendar-day.selected {
+        background-color: #0b365e;
+        color: white;
+        font-weight: 600;
+    }
+
+    .global-dashboard-sidebar .calendar-day:hover:not(.today):not(.selected) {
+        background-color: #f3f4f6;
+    }
+
+    /* File icon styles for global dashboard */
+    .global-dashboard-sidebar .file-icon {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+    }
+
+    .global-dashboard-sidebar .recent-file-item {
+        padding: 0.5rem 0;
+    }
+
+    /* Deadline styles for global dashboard */
+    .global-dashboard-sidebar .deadline-item {
+        position: relative;
+    }
+
+    .global-dashboard-sidebar .deadline-item.border-start {
+        border-left: 3px solid #dc3545 !important;
+    }
+
+    /* Card styles for global dashboard */
+    .global-dashboard-sidebar .card {
+        border-radius: 12px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        transition: all 0.3s ease;
+    }
+
+    .global-dashboard-sidebar .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2) !important;
+    }
+
     /* Sidebar hidden state */
     .sidebar-hidden .client-sidebar {
         transform: translateX(-100%);
@@ -189,6 +348,11 @@
         border-radius: 20px 20px 0px 0px; /* Rounded corners on top-left and top-right */
         background-color: rgba(11, 54, 94, 0.085); /* Light blue background */
         transition: left 0.3s ease;
+    }
+
+    /* Adjust main content wrapper for global dashboard */
+    .client-main-content-wrapper.global-dashboard-layout {
+        left: 26vw; /* Start after global navbar (6vw) + global dashboard sidebar (20vw) */
     }
 
     /* Adjust positioning when sidebar is hidden - keep rounded corners */
@@ -472,56 +636,211 @@
     </div>
 
     <!-- Desktop Client Sidebar -->
-    <div class="d-none d-xl-block client-sidebar">
+    @{
+        var isGlobalDashboard = ViewContext.RouteData.Values["controller"]?.ToString() == "Global";
+    }
+    <div class="d-none d-xl-block @(isGlobalDashboard ? "global-dashboard-sidebar" : "client-sidebar")">
         
         <!-- Navigation -->
-        <nav class="nav flex-column">
-            <div class="nav-item">
-                <a href="/Client/@ViewBag.OrganizationId/Matter" 
-                   class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Matter" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
-                    <i class="fas fa-briefcase"></i>
-                    <span>Matters</span>
-                </a>
+        @if (isGlobalDashboard)
+        {
+            <!-- Global Dashboard Sidebar Content -->
+            <div class="global-dashboard-content">
+                <!-- Upcoming Deadlines Card -->
+                <div class="card mb-3 border-0">
+                    <div class="card-body p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title fw-bold mb-0">Upcoming Deadlines</h5>
+                            <span class="badge bg-primary">Today</span>
+                        </div>
+                        
+                        <div class="deadlines-list">
+                            <div class="deadline-item border-start border-danger border-3 mb-3 ps-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1 fw-semibold">Smith v. Jones - Motion Filing</h6>
+                                        <p class="text-muted small mb-0">2:00 PM</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="deadline-item mb-3 ps-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1 fw-semibold">Client Review Call</h6>
+                                        <p class="text-muted small mb-0">4:30 PM</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="deadline-item mb-3 ps-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1 fw-semibold">Document Review</h6>
+                                        <p class="text-muted small mb-0">EOD</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calendar Card -->
+                <div class="card mb-3 border-0">
+                    <div class="card-body p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title fw-bold mb-0">October 2024</h5>
+                        </div>
+                        
+                        <div class="calendar-grid">
+                            <div class="calendar-header">
+                                <div class="calendar-day-header">S</div>
+                                <div class="calendar-day-header">M</div>
+                                <div class="calendar-day-header">T</div>
+                                <div class="calendar-day-header">W</div>
+                                <div class="calendar-day-header">T</div>
+                                <div class="calendar-day-header">F</div>
+                                <div class="calendar-day-header">S</div>
+                            </div>
+                            
+                            <div class="calendar-body">
+                                <div class="calendar-week">
+                                    <div class="calendar-day other-month">29</div>
+                                    <div class="calendar-day other-month">30</div>
+                                    <div class="calendar-day current-month">1</div>
+                                    <div class="calendar-day current-month">2</div>
+                                    <div class="calendar-day current-month">3</div>
+                                    <div class="calendar-day current-month">4</div>
+                                    <div class="calendar-day current-month">5</div>
+                                </div>
+                                <div class="calendar-week">
+                                    <div class="calendar-day current-month">6</div>
+                                    <div class="calendar-day current-month">7</div>
+                                    <div class="calendar-day current-month">8</div>
+                                    <div class="calendar-day current-month">9</div>
+                                    <div class="calendar-day current-month">10</div>
+                                    <div class="calendar-day current-month">11</div>
+                                    <div class="calendar-day current-month">12</div>
+                                </div>
+                                <div class="calendar-week">
+                                    <div class="calendar-day current-month">13</div>
+                                    <div class="calendar-day current-month">14</div>
+                                    <div class="calendar-day current-month selected">15</div>
+                                    <div class="calendar-day current-month">16</div>
+                                    <div class="calendar-day current-month">17</div>
+                                    <div class="calendar-day current-month">18</div>
+                                    <div class="calendar-day current-month">19</div>
+                                </div>
+                                <div class="calendar-week">
+                                    <div class="calendar-day current-month">20</div>
+                                    <div class="calendar-day current-month">21</div>
+                                    <div class="calendar-day current-month">22</div>
+                                    <div class="calendar-day current-month">23</div>
+                                    <div class="calendar-day current-month">24</div>
+                                    <div class="calendar-day current-month">25</div>
+                                    <div class="calendar-day current-month">26</div>
+                                </div>
+                                <div class="calendar-week">
+                                    <div class="calendar-day current-month">27</div>
+                                    <div class="calendar-day current-month">28</div>
+                                    <div class="calendar-day current-month today">29</div>
+                                    <div class="calendar-day current-month">30</div>
+                                    <div class="calendar-day current-month">31</div>
+                                    <div class="calendar-day other-month">1</div>
+                                    <div class="calendar-day other-month">2</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity Card -->
+                <div class="card border-0">
+                    <div class="card-body p-3">
+                        <h5 class="card-title fw-bold mb-2">Recent Activity</h5>
+                        <p class="text-muted small mb-2">Recent Files</p>
+                        
+                        <div class="recent-files-list">
+                            <div class="recent-file-item d-flex align-items-center mb-2">
+                                <div class="file-icon me-3">
+                                    <i class="fas fa-file-pdf text-danger"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1 fw-semibold">Project_Spec_v3.pdf</h6>
+                                    <p class="text-muted small mb-0">2h ago</p>
+                                </div>
+                            </div>
+                            <div class="recent-file-item d-flex align-items-center mb-2">
+                                <div class="file-icon me-3">
+                                    <i class="fas fa-file-alt text-primary"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1 fw-semibold">Design_System.fig</h6>
+                                    <p class="text-muted small mb-0">4h ago</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="nav-item">
-                <a href="/Client/@ViewBag.OrganizationId/Services" 
-                   class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Services" ? "active" : "")">
-                    <i class="fas fa-comments"></i>
-                    <span>Services</span>
-                </a>
+        }
+        else
+        {
+            <!-- Client Sidebar Navigation -->
+            <nav class="nav flex-column">
+                <div class="nav-item">
+                    <a href="/Client/@ViewBag.OrganizationId/Dashboard" 
+                       class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="/Client/@ViewBag.OrganizationId/Matter" 
+                       class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Matter" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+                        <i class="fas fa-briefcase"></i>
+                        <span>Matters</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="/Client/@ViewBag.OrganizationId/Services" 
+                       class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Services" ? "active" : "")">
+                        <i class="fas fa-comments"></i>
+                        <span>Services</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="/Client/@ViewBag.OrganizationId/Documents" 
+                       class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Documents" ? "active" : "")">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Documents</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="/Client/@ViewBag.OrganizationId/Teams" 
+                       class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Teams" ? "active" : "")">
+                        <i class="fas fa-users"></i>
+                        <span>Teams</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="/Client/@ViewBag.OrganizationId/Settings" 
+                       class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" ? "active" : "")">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Logout Button -->
+            <div class="logout-section">
+                <form asp-controller="Home" asp-action="Logout" method="post" class="d-inline">
+                    <button type="submit" class="logout-button">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </button>
+                </form>
             </div>
-            <div class="nav-item">
-                <a href="/Client/@ViewBag.OrganizationId/Documents" 
-                   class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Documents" ? "active" : "")">
-                    <i class="fas fa-file-alt"></i>
-                    <span>Documents</span>
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="/Client/@ViewBag.OrganizationId/Teams" 
-                   class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Teams" ? "active" : "")">
-                    <i class="fas fa-users"></i>
-                    <span>Teams</span>
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="/Client/@ViewBag.OrganizationId/Settings" 
-                   class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" ? "active" : "")">
-                    <i class="fas fa-cog"></i>
-                    <span>Settings</span>
-                </a>
-            </div>
-        </nav>
+        }
         
-        <!-- Logout Button -->
-        <div class="logout-section">
-            <form asp-controller="Home" asp-action="Logout" method="post" class="d-inline">
-                <button type="submit" class="logout-button">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Logout</span>
-                </button>
-            </form>
-        </div>
     </div>
 
     <!-- Mobile Header -->
@@ -553,6 +872,14 @@
             <div class="offcanvas-body">
                 <nav>
                     <ul class="list-unstyled d-flex flex-column gap-2">
+                        <li>
+                            <a href="/Client/@ViewBag.OrganizationId/Dashboard" 
+                               class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")"
+                               data-bs-dismiss="offcanvas">
+                                <i class="fas fa-tachometer-alt fs-5"></i>
+                                <span class="fw-medium">Dashboard</span>
+                            </a>
+                        </li>
                         <li>
                             <a asp-controller="Matter" asp-action="Index" 
                                class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["controller"]?.ToString() == "Matter" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")"
@@ -610,7 +937,7 @@
     </div>
 
     <!-- Main Content Wrapper -->
-    <div class="client-main-content-wrapper">
+    <div class="client-main-content-wrapper @(isGlobalDashboard ? "global-dashboard-layout" : "")">
         <main class="main-content client-main-content">
             @RenderBody()
         </main>

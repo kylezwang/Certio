@@ -169,6 +169,80 @@
             max-width: 28rem;
         }
 
+        /* Organization selection styles */
+        .organization-options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .organization-option {
+            position: relative;
+        }
+
+        .organization-card {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+            text-decoration: none;
+            color: inherit;
+            width: 100%;
+        }
+
+        .organization-card:hover {
+            border-color: #0b365e;
+            background-color: #f8fafc;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .btn-check:checked + .organization-card {
+            border-color: #0b365e;
+            background-color: #f0f9ff;
+        }
+
+        .organization-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #0b365e, #1e40af);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        .organization-icon i {
+            color: white !important;
+            font-size: 1.25rem;
+        }
+
+        .organization-content h5 {
+            margin: 0 0 0.25rem 0;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .organization-content p {
+            margin: 0;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .btn-check {
+            position: absolute;
+            clip: rect(0, 0, 0, 0);
+            pointer-events: none;
+        }
+
         /* Responsive adjustments */
         @@media (max-width: 480px) {
             .login-container {
@@ -182,6 +256,17 @@
             
             .login-title {
                 font-size: 1.75rem;
+            }
+
+            .organization-card {
+                flex-direction: column;
+                text-align: center;
+                padding: 1.5rem 1rem;
+            }
+
+            .organization-icon {
+                margin-right: 0;
+                margin-bottom: 1rem;
             }
         }
     </style>
@@ -221,9 +306,68 @@
                             <label for="email" class="form-label">Email Address</label>
                             <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email address" required>
                         </div>
+                        
+                        <button type="submit" class="btn btn-signin">
+                            Continue
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Step 2: Organization Selection -->
+                <div id="step-2" class="registration-step" style="display: none;">
+                    <form method="post" action="@Url.Action("SelectOrganization", "Home")">
                         <div class="form-group">
-                            <label for="joinCode" class="form-label">Join Code (optional)</label>
-                            <input type="text" class="form-control" id="joinCode" name="joinCode" placeholder="Enter join code if you were invited">
+                            <label class="form-label">Choose your organization setup</label>
+                            <div class="organization-options">
+                                <div class="organization-option">
+                                    <input type="radio" class="btn-check" name="organizationType" id="client-org" value="client" checked>
+                                    <label class="organization-card" for="client-org">
+                                        <div class="organization-icon">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <div class="organization-content">
+                                            <h5>Create a new client organization</h5>
+                                            <p>Perfect for individuals or businesses seeking legal services</p>
+                                        </div>
+                                    </label>
+                                </div>
+                                
+                                <div class="organization-option">
+                                    <input type="radio" class="btn-check" name="organizationType" id="lawfirm-org" value="lawfirm">
+                                    <label class="organization-card" for="lawfirm-org">
+                                        <div class="organization-icon">
+                                            <i class="fas fa-balance-scale"></i>
+                                        </div>
+                                        <div class="organization-content">
+                                            <h5>Create a new law firm organization</h5>
+                                            <p>For law firms and legal professionals providing services</p>
+                                        </div>
+                                    </label>
+                                </div>
+                                
+                                <div class="organization-option">
+                                    <input type="radio" class="btn-check" name="organizationType" id="join-org" value="join">
+                                    <label class="organization-card" for="join-org">
+                                        <div class="organization-icon">
+                                            <i class="fas fa-users"></i>
+                                        </div>
+                                        <div class="organization-content">
+                                            <h5>Join existing organization with code</h5>
+                                            <p>Join an organization you've been invited to</p>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group" id="organization-name-group">
+                            <label for="organizationName" class="form-label">Organization Name</label>
+                            <input type="text" class="form-control" id="organizationName" name="organizationName" placeholder="Enter organization name">
+                        </div>
+                        
+                        <div class="form-group" id="join-code-group" style="display: none;">
+                            <label for="joinCode" class="form-label">Join Code</label>
+                            <input type="text" class="form-control" id="joinCode" name="joinCode" placeholder="Enter your join code">
                         </div>
                         
                         <button type="submit" class="btn btn-signin">
@@ -232,8 +376,8 @@
                     </form>
                 </div>
                 
-                <!-- Step 2: 2FA Verification -->
-                <div id="step-2" class="registration-step" style="display: none;">
+                <!-- Step 3: 2FA Verification -->
+                <div id="step-3" class="registration-step" style="display: none;">
                     <form method="post" action="@Url.Action("VerifyTwoFactor", "Home")">
                         <input type="hidden" id="verify-email" name="email" />
                         
@@ -269,8 +413,8 @@
                     </form>
                 </div>
                 
-                <!-- Step 3: Complete Registration -->
-                <div id="step-3" class="registration-step" style="display: none;">
+                <!-- Step 4: Complete Registration -->
+                <div id="step-4" class="registration-step" style="display: none;">
                     <form method="post" action="@Url.Action("CompleteRegistration", "Home")">
                         <input type="hidden" id="complete-email" name="email" />
                         <input type="hidden" id="complete-phone" name="phoneNumber" />
@@ -344,16 +488,36 @@
                 });
             });
 
-            // Handle verification method change
-            document.getElementById('email-method').addEventListener('change', function() {
-                document.getElementById('phone-group').style.display = 'none';
-                document.querySelector('small.form-text').textContent = 'We sent a verification code to your email';
+            // Handle organization type change
+            document.querySelectorAll('input[name="organizationType"]').forEach(function(radio) {
+                radio.addEventListener('change', function() {
+                    const orgNameGroup = document.getElementById('organization-name-group');
+                    const joinCodeGroup = document.getElementById('join-code-group');
+                    
+                    if (this.value === 'join') {
+                        orgNameGroup.style.display = 'none';
+                        joinCodeGroup.style.display = 'block';
+                    } else {
+                        orgNameGroup.style.display = 'block';
+                        joinCodeGroup.style.display = 'none';
+                    }
+                });
             });
 
-            document.getElementById('sms-method').addEventListener('change', function() {
-                document.getElementById('phone-group').style.display = 'block';
-                document.querySelector('small.form-text').textContent = 'We sent a verification code to your phone';
-            });
+            // Handle verification method change
+            if (document.getElementById('email-method')) {
+                document.getElementById('email-method').addEventListener('change', function() {
+                    document.getElementById('phone-group').style.display = 'none';
+                    document.querySelector('small.form-text').textContent = 'We sent a verification code to your email';
+                });
+            }
+
+            if (document.getElementById('sms-method')) {
+                document.getElementById('sms-method').addEventListener('change', function() {
+                    document.getElementById('phone-group').style.display = 'block';
+                    document.querySelector('small.form-text').textContent = 'We sent a verification code to your phone';
+                });
+            }
 
             // Handle step 1 form submission
             document.querySelector('#step-1 form').addEventListener('submit', function(e) {
@@ -372,35 +536,66 @@
                 // The server will redirect to step 2
             });
 
-            // Handle step 2 form submission
+            // Handle step 2 form submission (organization selection)
             document.querySelector('#step-2 form').addEventListener('submit', function(e) {
-                const verificationCode = document.getElementById('verificationCode').value;
-                const method = document.querySelector('input[name="verificationMethod"]:checked').value;
-                const phoneNumber = document.getElementById('phone').value;
+                const organizationType = document.querySelector('input[name="organizationType"]:checked').value;
+                const organizationName = document.getElementById('organizationName').value;
+                const joinCode = document.getElementById('joinCode').value;
                 
-                if (!verificationCode) {
+                if (!organizationType) {
                     e.preventDefault();
-                    alert('Please enter the verification code');
+                    alert('Please select an organization type');
                     return;
                 }
                 
-                if (method === 'sms' && !phoneNumber) {
+                if ((organizationType === 'client' || organizationType === 'lawfirm') && !organizationName.trim()) {
                     e.preventDefault();
-                    alert('Please enter your phone number');
+                    alert('Please enter an organization name');
                     return;
                 }
                 
-                // Store phone number for next step
-                registrationData.phoneNumber = phoneNumber;
+                if (organizationType === 'join' && !joinCode.trim()) {
+                    e.preventDefault();
+                    alert('Please enter a join code');
+                    return;
+                }
                 
                 // Let the form submit to the server
                 // The server will redirect to step 3
             });
 
-            // Handle step 3 form submission
-            document.querySelector('#step-3 form').addEventListener('submit', function(e) {
-                const firstName = document.getElementById('firstName').value;
-                const lastName = document.getElementById('lastName').value;
+            // Handle step 3 form submission (2FA verification)
+            if (document.querySelector('#step-3 form')) {
+                document.querySelector('#step-3 form').addEventListener('submit', function(e) {
+                    const verificationCode = document.getElementById('verificationCode').value;
+                    const method = document.querySelector('input[name="verificationMethod"]:checked').value;
+                    const phoneNumber = document.getElementById('phone').value;
+                    
+                    if (!verificationCode) {
+                        e.preventDefault();
+                        alert('Please enter the verification code');
+                        return;
+                    }
+                    
+                    if (method === 'sms' && !phoneNumber) {
+                        e.preventDefault();
+                        alert('Please enter your phone number');
+                        return;
+                    }
+                    
+                    // Store phone number for next step
+                    registrationData.phoneNumber = phoneNumber;
+                    
+                    // Let the form submit to the server
+                    // The server will redirect to step 4
+                });
+            }
+
+            // Handle step 4 form submission (complete registration)
+            if (document.querySelector('#step-4 form')) {
+                document.querySelector('#step-4 form').addEventListener('submit', function(e) {
+                    const firstName = document.getElementById('firstName').value;
+                    const lastName = document.getElementById('lastName').value;
                 const password = document.getElementById('password').value;
                 const confirmPassword = document.getElementById('confirmPassword').value;
                 
@@ -430,9 +625,10 @@
                     document.getElementById('complete-phone').value = registrationData.phoneNumber;
                 }
                 
-                // Let the form submit to the server
-                // The server will create the account
-            });
+                    // Let the form submit to the server
+                    // The server will create the account
+                });
+            }
 
             // Add visual feedback
             inputs.forEach(input => {
@@ -477,14 +673,27 @@
                     description.textContent = 'Enter your email to begin account creation';
                     break;
                 case 2:
+                    title.textContent = 'Choose your organization';
+                    description.textContent = 'Select how you want to set up your organization';
+                    break;
+                case 3:
                     title.textContent = 'Verify your identity';
                     description.textContent = 'We sent a verification code to your email';
                     // Populate hidden fields
                     if (registrationData.email) {
                         document.getElementById('verify-email').value = registrationData.email;
                     }
+                    // Generate and send 2FA code when reaching step 3
+                    if (!document.getElementById('verificationCode').value) {
+                        fetch('@Url.Action("GenerateTwoFactorCode", "Home")', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            }
+                        });
+                    }
                     break;
-                case 3:
+                case 4:
                     title.textContent = 'Complete your profile';
                     description.textContent = 'Enter your personal details to finish registration';
                     // Populate hidden fields
