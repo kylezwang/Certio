@@ -1,22 +1,22 @@
 ﻿<Project>
   <ItemGroup>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\Certio.Web.6tgpwuit0s.bundle.scp.css'))">
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\Certio.Web.nb0o80g506.bundle.scp.css'))">
       <SourceType>Package</SourceType>
       <SourceId>Certio.Web</SourceId>
       <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
       <BasePath>_content/Certio.Web</BasePath>
-      <RelativePath>Certio.Web.6tgpwuit0s.bundle.scp.css</RelativePath>
+      <RelativePath>Certio.Web.nb0o80g506.bundle.scp.css</RelativePath>
       <AssetKind>All</AssetKind>
       <AssetMode>Reference</AssetMode>
       <AssetRole>Primary</AssetRole>
       <RelatedAsset></RelatedAsset>
       <AssetTraitName>ScopedCss</AssetTraitName>
       <AssetTraitValue>ProjectBundle</AssetTraitValue>
-      <Fingerprint>6tgpwuit0s</Fingerprint>
-      <Integrity>pibe254rXomCKDv/v4+lXsN5dzsEdM+pNh6pUpM9+tY=</Integrity>
+      <Fingerprint>nb0o80g506</Fingerprint>
+      <Integrity>o1+OtRFemlpW1YxUkiVHWAw/CwrYnT1Z6BCos3n9idA=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\Certio.Web.6tgpwuit0s.bundle.scp.css'))</OriginalItemSpec>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\Certio.Web.nb0o80g506.bundle.scp.css'))</OriginalItemSpec>
     </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\login.css'))">
       <SourceType>Package</SourceType>
@@ -48,8 +48,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>jl45k6gksc</Fingerprint>
-      <Integrity>ee0BLk7mOkSmVgGyjzjwZ2oQA5Q758HXdv1t3QH6Opw=</Integrity>
+      <Fingerprint>btzn0venh8</Fingerprint>
+      <Integrity>8W65pC73lcKj7HJhJl8kD/3jG8le/FWO2dwVLZgbQ+U=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\site.css'))</OriginalItemSpec>
@@ -120,8 +120,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>pw6i3akqx2</Fingerprint>
-      <Integrity>hwFzgcFjsbS6MH62U+6Xz5UfALySQdm3kHki8u/3ScY=</Integrity>
+      <Fingerprint>5o7k47bfus</Fingerprint>
+      <Integrity>Kyx3oh4tBWqWqMT/coQWM5t1JUBu4+9QLyOTFNYrx2A=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\chat.js'))</OriginalItemSpec>

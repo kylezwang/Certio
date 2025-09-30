@@ -44,6 +44,8 @@ namespace Certio.Domain.Organizations
         public virtual ICollection<UserOrganization> UserOrganizations { get; set; } = new List<UserOrganization>();
         public virtual ICollection<Team> Teams { get; set; } = new List<Team>();
         public virtual ICollection<OrganizationJoinCode> JoinCodes { get; set; } = new List<OrganizationJoinCode>();
+        public virtual ICollection<OrganizationRelationship> OrganizationRelationships { get; set; } = new List<OrganizationRelationship>();
+        public virtual ICollection<OrganizationRelationship> RelatedOrganizations { get; set; } = new List<OrganizationRelationship>();
         
         // Helper methods
         public bool HasUser(int userId)

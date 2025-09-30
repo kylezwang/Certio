@@ -1069,6 +1069,116 @@ namespace Certio.Web.Migrations
                     b.ToTable("OrganizationJoinCodes");
                 });
 
+            modelBuilder.Entity("Certio.Domain.Organizations.OrganizationRelationship", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AccessLevel")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DeletedById")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DeletionReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ModifiedById")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RelationshipType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("SourceOrganizationId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TargetOrganizationId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("DeletedById");
+
+                    b.HasIndex("ExpiresAt");
+
+                    b.HasIndex("ModifiedById");
+
+                    b.HasIndex("TargetOrganizationId");
+
+                    b.HasIndex("RelationshipType", "IsActive");
+
+                    b.HasIndex("SourceOrganizationId", "TargetOrganizationId", "IsActive");
+
+                    b.HasIndex("SourceOrganizationId", "TargetOrganizationId", "RelationshipType")
+                        .IsUnique();
+
+                    b.ToTable("OrganizationRelationships");
+                });
+
+            modelBuilder.Entity("Certio.Domain.Organizations.OrganizationRelationshipAssignedUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("AssignedById")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RelationshipId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("RelationshipId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("OrganizationRelationshipAssignedUsers");
+                });
+
             modelBuilder.Entity("Certio.Domain.Services.AIAgentResult", b =>
                 {
                     b.Property<int>("Id")
@@ -2674,6 +2784,58 @@ namespace Certio.Web.Migrations
                     b.Navigation("Organization");
                 });
 
+            modelBuilder.Entity("Certio.Domain.Organizations.OrganizationRelationship", b =>
+                {
+                    b.HasOne("Certio.Domain.Users.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Certio.Domain.Users.User", "DeletedBy")
+                        .WithMany()
+                        .HasForeignKey("DeletedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Certio.Domain.Users.User", "ModifiedBy")
+                        .WithMany()
+                        .HasForeignKey("ModifiedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Certio.Domain.Organizations.Organization", "SourceOrganization")
+                        .WithMany("OrganizationRelationships")
+                        .HasForeignKey("SourceOrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Certio.Domain.Organizations.Organization", "TargetOrganization")
+                        .WithMany("RelatedOrganizations")
+                        .HasForeignKey("TargetOrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("DeletedBy");
+
+                    b.Navigation("ModifiedBy");
+
+                    b.Navigation("SourceOrganization");
+
+                    b.Navigation("TargetOrganization");
+                });
+
+            modelBuilder.Entity("Certio.Domain.Organizations.OrganizationRelationshipAssignedUser", b =>
+                {
+                    b.HasOne("Certio.Domain.Organizations.OrganizationRelationship", "Relationship")
+                        .WithMany()
+                        .HasForeignKey("RelationshipId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Relationship");
+                });
+
             modelBuilder.Entity("Certio.Domain.Services.AIAgentResult", b =>
                 {
                     b.HasOne("Certio.Domain.Services.Conversation", "Conversation")
@@ -3136,6 +3298,10 @@ namespace Certio.Web.Migrations
             modelBuilder.Entity("Certio.Domain.Organizations.Organization", b =>
                 {
                     b.Navigation("JoinCodes");
+
+                    b.Navigation("OrganizationRelationships");
+
+                    b.Navigation("RelatedOrganizations");
 
                     b.Navigation("Teams");
 

@@ -1983,6 +1983,15 @@ body {
 }
 .document-card:nth-child(5) { animation-delay: 0.5s; }
 
+  /* -------------------------------------------------------
+     Client Dashboard – apply document-card fade-in to cards
+     (gd-card general cards, qa-card quick access tiles)
+  -------------------------------------------------------- */
+  .global-dashboard-main .gd-card,
+  .global-dashboard-main .qa-card {
+    animation: documentFadeInUp 0.6s ease-out;
+  }
+
 /* Global Layout with Chat Panel */
 body {
   margin: 0;
@@ -2063,7 +2072,7 @@ body {
 /* Chat tabs container positioned at the very top, spanning full width */
 .chat-tabs-container {
 
-  padding: 0.75rem 0.5rem 0; /* Remove bottom padding to connect with header */
+  padding: 0rem 0.5rem; /* Remove bottom padding to connect with header */
   border-bottom: none; /* Remove border to connect with chat header */
   width: 100%;
   flex-shrink: 0;
@@ -2082,7 +2091,7 @@ body {
 
 .tab-list {
   display: flex;
-  gap: 0.25rem;
+  gap: 0.35rem;
   flex: 1;
   overflow-x: auto;
   overflow-y: hidden;
@@ -2121,8 +2130,7 @@ body {
   /* gap: 0.5rem; */
   padding: 0.5rem 0rem 0.5rem 0.75rem;
   background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
+  border-radius: 10px 10px 0px 0px;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
@@ -2253,7 +2261,7 @@ body {
   background-color: #0b365e;
   border-color: #0b365e;
   color: white;
-  border-radius: 6px;
+  border-radius: 10px 10px 0px 0px;
   padding: 0.5rem;
   width: 36px;
   height: 36px;
@@ -4256,6 +4264,577 @@ body.services-page .main-content {
   box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.15);
 }
 
+/* Dark Mode Styles */
+body.dark-mode {
+  background: #141414;
+}
+
+/* Dark mode for main content wrapper */
+body.dark-mode .client-main-content-wrapper {
+  background-color: #141414 !important;
+}
+
+/* Dark mode for main content */
+body.dark-mode .main-content.client-main-content {
+  background-color: #181818 !important;
+  color: #ffffff !important;
+}
+
+/* Dark mode for page header */
+body.dark-mode .page-header {
+  background-color: #181818 !important;
+  border-bottom: 1px solid #333;
+}
+
+/* Dark mode for search input */
+body.dark-mode .search-container input {
+  background-color: #232323 !important;
+  color: #ffffff !important;
+  border-color: #333 !important;
+}
+
+body.dark-mode .search-container input::placeholder {
+  color: #888 !important;
+}
+
+body.dark-mode .search-container i {
+  color: #888 !important;
+}
+
+/* Dark mode for cards */
+body.dark-mode .card,
+body.dark-mode .matter-card,
+body.dark-mode .stats-card,
+body.dark-mode .document-card,
+body.dark-mode .team-member-card,
+body.dark-mode .matter-folder-card,
+body.dark-mode .gd-card,
+body.dark-mode .qa-card {
+  background-color: #232323 !important;
+  color: #ffffff !important;
+  border-color: #333 !important;
+}
+
+/* Dark mode card hover states */
+body.dark-mode .card:hover,
+body.dark-mode .matter-card:hover,
+body.dark-mode .stats-card:hover,
+body.dark-mode .document-card:hover,
+body.dark-mode .team-member-card:hover,
+body.dark-mode .matter-folder-card:hover {
+  background-color: #2a2a2a !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Dark mode text colors */
+body.dark-mode .card-title,
+body.dark-mode .card-text,
+body.dark-mode h1, body.dark-mode h2, body.dark-mode h3,
+body.dark-mode h4, body.dark-mode h5, body.dark-mode h6,
+body.dark-mode p, body.dark-mode span, body.dark-mode a,
+body.dark-mode .text-muted,
+body.dark-mode .lead,
+body.dark-mode .display-1, body.dark-mode .display-2,
+body.dark-mode .display-3, body.dark-mode .display-4 {
+  color: #ffffff !important;
+}
+
+/* Dark mode for specific text elements */
+body.dark-mode .text-muted,
+body.dark-mode .small,
+body.dark-mode small {
+  color: #aaaaaa !important;
+}
+
+/* Dark mode for badges */
+body.dark-mode .badge {
+  background-color: #333 !important;
+  color: #ffffff !important;
+}
+
+/* Dark mode for buttons */
+body.dark-mode .btn-outline-secondary {
+  color: #ffffff !important;
+  border-color: #555 !important;
+}
+
+body.dark-mode .btn-outline-secondary:hover {
+  background-color: #333 !important;
+  border-color: #666 !important;
+}
+
+/* Dark mode for forms */
+body.dark-mode .form-control,
+body.dark-mode .form-select {
+  background-color: #232323 !important;
+  color: #ffffff !important;
+  border-color: #333 !important;
+}
+
+body.dark-mode .form-control:focus,
+body.dark-mode .form-select:focus {
+  background-color: #232323 !important;
+  color: #ffffff !important;
+  border-color: #0b365e !important;
+}
+
+/* Dark mode for modals */
+body.dark-mode .modal-content {
+  background-color: #181818 !important;
+  color: #ffffff !important;
+}
+
+body.dark-mode .modal-header,
+body.dark-mode .modal-footer {
+  border-color: #333 !important;
+}
+
+/* Dark mode for sidebar */
+body.dark-mode .client-sidebar,
+body.dark-mode .global-dashboard-sidebar {
+  background-color: #181818 !important;
+  border-right-color: #333 !important;
+}
+
+body.dark-mode .client-sidebar .nav-link,
+body.dark-mode .global-dashboard-sidebar .nav-link {
+  color: #ffffff !important;
+}
+
+body.dark-mode .client-sidebar .nav-link:hover,
+body.dark-mode .global-dashboard-sidebar .nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.dark-mode .client-sidebar .nav-link.active,
+body.dark-mode .global-dashboard-sidebar .nav-link.active {
+  background-color: #0b365e !important;
+  color: #ffffff !important;
+}
+
+/* Dark mode for chat panel */
+body.dark-mode .chat-panel {
+  background-color: #181818 !important;
+  border-left-color: #333 !important;
+}
+
+body.dark-mode .chat-header {
+  background-color: #181818 !important;
+  border-bottom-color: #333 !important;
+}
+
+body.dark-mode .chat-messages {
+  background-color: #181818 !important;
+}
+
+body.dark-mode .chat-input {
+  background-color: #181818 !important;
+  border-top-color: #333 !important;
+}
+
+body.dark-mode .message-text {
+  background-color: #232323 !important;
+  color: #ffffff !important;
+}
+
+body.dark-mode .ai-message-bubble .message-text {
+  background-color: #232323 !important;
+  color: #ffffff !important;
+}
+
+body.dark-mode .user-message-bubble .message-text {
+  background-color: #0b365e !important;
+  color: #ffffff !important;
+}
+
+/* Dark mode for conversation tabs */
+body.dark-mode .conversation-tab {
+  background-color: #232323 !important;
+  color: #ffffff !important;
+  border-color: #333 !important;
+}
+
+body.dark-mode .conversation-tab:hover {
+  background-color: #0b365e !important;
+  border-color: #0b365e !important;
+}
+
+body.dark-mode .conversation-tab.active {
+  background-color: #0b365e !important;
+  border-color: #0b365e !important;
+  color: #ffffff !important;
+}
+
+/* Dark mode for tables */
+body.dark-mode table {
+  color: #ffffff !important;
+}
+
+body.dark-mode .table {
+  color: #ffffff !important;
+  border-color: #333 !important;
+}
+
+body.dark-mode .table th,
+body.dark-mode .table td {
+  border-color: #333 !important;
+}
+
+/* Dark mode for list groups */
+body.dark-mode .list-group-item {
+  background-color: #232323 !important;
+  color: #ffffff !important;
+  border-color: #333 !important;
+}
+
+/* Dark mode for progress bars */
+body.dark-mode .progress {
+  background-color: #232323 !important;
+}
+
+/* Dark mode for alerts */
+body.dark-mode .alert {
+  background-color: #232323 !important;
+  color: #ffffff !important;
+  border-color: #333 !important;
+}
+
+/* Dark mode for dropdowns */
+body.dark-mode .dropdown-menu {
+  background-color: #232323 !important;
+  border-color: #333 !important;
+}
+
+body.dark-mode .dropdown-item {
+  color: #ffffff !important;
+}
+
+body.dark-mode .dropdown-item:hover {
+  background-color: #333 !important;
+  color: #ffffff !important;
+}
+
+/* Dark mode for nav tabs */
+body.dark-mode .nav-tabs {
+  border-color: #333 !important;
+}
+
+body.dark-mode .nav-tabs .nav-link {
+  color: #ffffff !important;
+}
+
+body.dark-mode .nav-tabs .nav-link.active {
+  background-color: #232323 !important;
+  border-color: #333 !important;
+  color: #ffffff !important;
+}
+
+/* Dark mode for offcanvas */
+body.dark-mode .offcanvas {
+  background-color: #181818 !important;
+}
+
+body.dark-mode .offcanvas-header,
+body.dark-mode .offcanvas-body {
+  border-color: #333 !important;
+}
+
+/* Dark mode for breadcrumbs */
+body.dark-mode .breadcrumb {
+  background-color: #232323 !important;
+}
+
+body.dark-mode .breadcrumb-item {
+  color: #ffffff !important;
+}
+
+body.dark-mode .breadcrumb-item.active {
+  color: #aaaaaa !important;
+}
+
+/* Dark mode toggle button */
+.dark-mode-toggle {
+  background-color: #FFFFFF; /* slightly lighter than hover */
+  border: none;
+  color: #0b365e;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.dark-mode-toggle:hover {
+  background-color: #dcdcdc; /* slightly darker than default */
+}
+
+body.dark-mode .dark-mode-toggle {
+  color: #ffffff;
+  background-color: #232323; /* default in dark mode */
+}
+
+body.dark-mode .dark-mode-toggle:hover {
+  background-color: #232323;
+}
+
+.dark-mode-toggle i {
+  transition: transform 0.3s ease;
+}
+
+.dark-mode-toggle:hover i {
+  transform: rotate(20deg);
+}
+
+/* Dark mode for clients popup */
+body.dark-mode .clients-popup {
+  background-color: #181818 !important;
+}
+
+body.dark-mode .clients-popup-header {
+  background-color: #232323 !important;
+  color: #ffffff !important;
+}
+
+body.dark-mode .clients-popup-title {
+  color: #ffffff !important;
+}
+
+body.dark-mode .clients-popup-close {
+  color: #ffffff !important;
+}
+
+body.dark-mode .client-item {
+  border-bottom-color: #333 !important;
+}
+
+body.dark-mode .client-item:hover {
+  background-color: #232323 !important;
+}
+
+body.dark-mode .client-name {
+  color: #ffffff !important;
+}
+
+body.dark-mode .client-company,
+body.dark-mode .client-status {
+  color: #aaaaaa !important;
+}
+
+body.dark-mode .join-code-section {
+  background-color: #232323 !important;
+  border-top-color: #333 !important;
+}
+
+body.dark-mode .join-code-title {
+  color: #ffffff !important;
+}
+
+body.dark-mode .join-code-input {
+  background-color: #181818 !important;
+  color: #ffffff !important;
+  border-color: #333 !important;
+}
+
+body.dark-mode .join-code-message.success {
+  background-color: #1a4d2e !important;
+  color: #a7f3d0 !important;
+  border-color: #065f46 !important;
+}
+
+body.dark-mode .join-code-message.error {
+  background-color: #4d1a1a !important;
+  color: #fca5a5 !important;
+  border-color: #991b1b !important;
+}
+
+/* Dark mode for calendar in sidebar */
+body.dark-mode .calendar-day-header {
+  color: #888 !important;
+}
+
+body.dark-mode .calendar-day.current-month {
+  color: #ffffff !important;
+}
+
+body.dark-mode .calendar-day.other-month {
+  color: #444 !important;
+}
+
+body.dark-mode .calendar-day:hover:not(.today):not(.selected) {
+  background-color: #333 !important;
+}
+
+/* Dark mode for recent files in sidebar */
+body.dark-mode .recent-file-item h6 {
+  color: #ffffff !important;
+}
+
+/* Dark mode for settings page */
+body.dark-mode .settings-sidebar {
+  background-color: #181818 !important;
+  border-color: #333 !important;
+}
+
+body.dark-mode .settings-content {
+  background-color: #181818 !important;
+  border-color: #333 !important;
+}
+
+body.dark-mode .settings-section-content {
+  background-color: #232323 !important;
+  border-color: #333 !important;
+}
+
+body.dark-mode .settings-row {
+  border-bottom-color: #333 !important;
+}
+
+body.dark-mode .settings-row-label {
+  color: #ffffff !important;
+}
+
+body.dark-mode .settings-row-description {
+  color: #aaaaaa !important;
+}
+
+/* Dark mode for session items */
+body.dark-mode .session-item {
+  background-color: #232323 !important;
+  border-color: #333 !important;
+}
+
+body.dark-mode .session-icon {
+  background-color: #181818 !important;
+  color: #888 !important;
+}
+
+body.dark-mode .session-device {
+  color: #ffffff !important;
+}
+
+body.dark-mode .session-location {
+  color: #aaaaaa !important;
+}
+
+/* Dark mode for pagination */
+body.dark-mode .pagination .page-link {
+  background-color: #232323 !important;
+  color: #ffffff !important;
+  border-color: #333 !important;
+}
+
+body.dark-mode .pagination .page-link:hover {
+  background-color: #333 !important;
+  border-color: #555 !important;
+}
+
+body.dark-mode .pagination .page-item.active .page-link {
+  background-color: #0b365e !important;
+  border-color: #0b365e !important;
+}
+
+/* Dark mode for input groups */
+body.dark-mode .input-group-text {
+  background-color: #232323 !important;
+  color: #ffffff !important;
+  border-color: #333 !important;
+}
+
+/* Dark mode for deadline items */
+body.dark-mode .deadline-item h6 {
+  color: #ffffff !important;
+}
+
+/* Dark mode for matter preview and review sections */
+body.dark-mode .matter-preview .card,
+body.dark-mode .matter-review .form-control-plaintext {
+  background-color: #232323 !important;
+  color: #ffffff !important;
+  border-color: #333 !important;
+}
+
+/* Dark mode for AI insights panel */
+body.dark-mode .ai-insights-panel {
+  background-color: #232323 !important;
+  border-color: #333 !important;
+}
+
+body.dark-mode .ai-insights-header {
+  background-color: #181818 !important;
+  border-bottom-color: #333 !important;
+}
+
+body.dark-mode .ai-insight-card {
+  background-color: #181818 !important;
+  border-color: #333 !important;
+}
+
+/* Dark mode for services/discord-like interface */
+body.dark-mode .services-sidebar {
+  background-color: #181818 !important;
+  border-right-color: #333 !important;
+}
+
+body.dark-mode .services-header {
+  border-bottom-color: #333 !important;
+}
+
+body.dark-mode .services-title {
+  color: #ffffff !important;
+}
+
+body.dark-mode .services-subtitle {
+  color: #888 !important;
+}
+
+body.dark-mode .channel-item {
+  color: #aaaaaa !important;
+}
+
+body.dark-mode .channel-item:hover,
+body.dark-mode .channel-item.active {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+body.dark-mode .user-panel {
+  background-color: #181818 !important;
+  border-top-color: #333 !important;
+}
+
+body.dark-mode .user-info {
+  background-color: #232323 !important;
+}
+
+body.dark-mode .user-name {
+  color: #ffffff !important;
+}
+
+body.dark-mode .user-status {
+  color: #888 !important;
+}
+
+body.dark-mode .main-chat {
+  background-color: #181818 !important;
+}
+
+body.dark-mode .message-author {
+  color: #ffffff !important;
+}
+
+body.dark-mode .message-time {
+  color: #888 !important;
+}
+
+body.dark-mode .services-container .message-text {
+  color: #ffffff !important;
+}
+
 /* Multi-Step Matter Creation Form Styles */
 .min-h-screen {
   min-height: 100vh;
@@ -4492,4 +5071,45 @@ body.services-page .main-content {
   .message-text {
     font-size: 0.8125rem;
   }
+}
+
+/* ... existing code ... */
+body.dark-mode .services-container .message-text {
+  color: #ffffff !important;
+}
+
+/* Dashboard-specific dark mode tweaks */
+body.dark-mode .global-dashboard-main .left-column {
+  background-color: #161616 !important;
+}
+
+/* Ensure daily briefing card matches other dark cards */
+body.dark-mode .daily-briefing-card .card-body,
+body.dark-mode .global-dashboard-main .qa-card,
+body.dark-mode .global-dashboard-main .gd-card {
+  background-color: #232323 !important;
+}
+
+/* Large search in AI chat (dashboard hero) */
+body.dark-mode .search-container-large input.form-control.form-control-lg {
+  background-color: #232323 !important;
+  color: #ffffff !important;
+  border-color: #333 !important;
+}
+body.dark-mode .search-container-large input::placeholder {
+  color: #888 !important;
+}
+body.dark-mode .search-container-large i,
+body.dark-mode .search-actions .btn {
+  color: #aaa !important;
+}
+
+/* Any remaining explicit text-dark helpers should be white in dark mode */
+body.dark-mode .text-dark {
+  color: #ffffff !important;
+}
+
+/* Dark mode: Quick Access Matters icon color */
+body.dark-mode .global-dashboard-main .quick-access-icon .fa-briefcase {
+  color: #0b365e !important;
 }

@@ -240,15 +240,30 @@ namespace Certio.Web.Controllers
                 return View(model);
             }
 
-            // Validate dependent type selection - now handled at organization level
-            // UserType and role validation will be done when creating UserOrganization
+            // Determine invited type/role. If LawFirm, ignore provided role and use conservative default.
+            var invitedUserType = model.UserType;
+            var invitedRole = model.Role;
+            if (string.Equals(invitedUserType, Certio.Domain.Users.UserTypes.LawFirm, StringComparison.OrdinalIgnoreCase))
+            {
+                invitedRole = Certio.Domain.Users.OrganizationRoles.Staff;
+                // Ensure any model error for Role is cleared since it's not required
+                ModelState.Remove(nameof(model.Role));
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(invitedRole))
+                {
+                    ModelState.AddModelError(nameof(model.Role), "Role is required for this user type.");
+                    return View(model);
+                }
+            }
 
             // Generate join code (1 use, 7 days TTL). teamName not used for now.
             var join = await _joinCodeService.GenerateAsync(
                 organizationId: primaryOrg.OrganizationId,
                 createdByUserId: customUser.Id,
-                invitedUserType: model.UserType,
-                invitedRole: GetOrganizationRoleFromModel(model),
+                invitedUserType: invitedUserType,
+                invitedRole: invitedRole,
                 teamName: null,
                 maxUses: 1,
                 ttl: TimeSpan.FromDays(7),
@@ -1362,7 +1377,7 @@ namespace Certio.Web.Controllers
                     }
                 }
 
-                // Add user to the organization
+                // Add user to the organization. If this is a Law Firm invite to a Client org, we set membership as LawFirm user type directly for the Client org (direct membership)
                 var userOrg = new Certio.Domain.Users.UserOrganization
                 {
                     UserId = customUser.Id,
@@ -1371,12 +1386,68 @@ namespace Certio.Web.Controllers
                     Role = validJoin.InvitedRole,
                     JoinedAt = DateTime.UtcNow
                 };
-
                 _context.UserOrganizations.Add(userOrg);
 
-                // Consume the join code
-                await _joinCodeService.ConsumeAsync(validJoin.Code);
+                // If this is a Law Firm invitation, upsert the LawFirmClient relationship from the user's firm to the client and assign the user
+                if (string.Equals(validJoin.InvitedUserType, Certio.Domain.Users.UserTypes.LawFirm, StringComparison.OrdinalIgnoreCase))
+                {
+                    // Try to locate the user's firm (if they already belong to one)
+                    var userFirmMembership = await _context.UserOrganizations
+                        .Include(uo => uo.Organization)
+                        .FirstOrDefaultAsync(uo => uo.UserId == customUser.Id && uo.IsActive && uo.Organization.Type == Certio.Domain.Organizations.OrganizationType.LawFirm);
 
+                    if (userFirmMembership != null)
+                    {
+                        // Upsert relationship
+                        var existingRelationship = await _context.OrganizationRelationships
+                            .FirstOrDefaultAsync(or =>
+                                or.SourceOrganizationId == userFirmMembership.OrganizationId &&
+                                or.TargetOrganizationId == validJoin.OrganizationId &&
+                                or.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient);
+
+                        if (existingRelationship == null)
+                        {
+                            existingRelationship = new Certio.Domain.Organizations.OrganizationRelationship
+                            {
+                                SourceOrganizationId = userFirmMembership.OrganizationId,
+                                TargetOrganizationId = validJoin.OrganizationId,
+                                RelationshipType = Certio.Domain.Organizations.RelationshipTypes.LawFirmClient,
+                                AccessLevel = Certio.Domain.Organizations.AccessLevels.FullAccess,
+                                IsActive = true,
+                                CreatedAt = DateTime.UtcNow,
+                                CreatedById = customUser.Id
+                            };
+                            _context.OrganizationRelationships.Add(existingRelationship);
+                            await _context.SaveChangesAsync();
+                        }
+
+                        // Assign user to relationship if not already assigned
+                        var alreadyAssigned = await _context.OrganizationRelationshipAssignedUsers
+                            .AnyAsync(a => a.RelationshipId == existingRelationship.Id && a.UserId == customUser.Id);
+                        if (!alreadyAssigned)
+                        {
+                            _context.OrganizationRelationshipAssignedUsers.Add(new Certio.Domain.Organizations.OrganizationRelationshipAssignedUser
+                            {
+                                RelationshipId = existingRelationship.Id,
+                                UserId = customUser.Id,
+                                AssignedAt = DateTime.UtcNow,
+                                AssignedById = customUser.Id
+                            });
+                        }
+                    }
+                    else
+                    {
+                        // Defer role and assignment resolution until after the user joins/creates a firm
+                        var resolver = HttpContext.RequestServices.GetService<Certio.Web.Services.ILawFirmRoleResolutionService>();
+                        if (resolver != null)
+                        {
+                            await resolver.EnqueueResolveAsync(customUser.Id, validJoin.OrganizationId);
+                        }
+                    }
+                }
+
+                // Consume the join code and persist
+                await _joinCodeService.ConsumeAsync(validJoin.Code);
                 await _context.SaveChangesAsync();
 
                 return Json(new { 

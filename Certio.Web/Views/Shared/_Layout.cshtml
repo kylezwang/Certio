@@ -492,6 +492,9 @@
                         
                         if (firmOrg) {
                             myFirmLink.href = `/Client/${firmOrg.organizationId}/Dashboard`;
+                            
+                            // Check if current URL is in the law firm organization and add active class
+                            updateMyFirmActiveState(firmOrg.organizationId);
                         } else {
                             // If no firm organization found, redirect to Global/Dashboard
                             myFirmLink.href = '/Global/Dashboard';
@@ -504,6 +507,19 @@
                     console.error('Error initializing My Firm link:', error);
                     // Fallback to Global Dashboard on error
                     myFirmLink.href = '/Global/Dashboard';
+                }
+            }
+
+            // Function to update My Firm button active state based on current URL
+            function updateMyFirmActiveState(firmOrgId) {
+                // Check if current URL path matches the firm organization ID
+                const currentPath = window.location.pathname;
+                const firmPathPattern = new RegExp(`^/Client/${firmOrgId}/`);
+                
+                if (firmPathPattern.test(currentPath)) {
+                    myFirmLink.classList.add('active');
+                } else {
+                    myFirmLink.classList.remove('active');
                 }
             }
 
@@ -520,7 +536,7 @@
                         clientsList.appendChild(msg);
                         return;
                     }
-                    const orgs = result.organizations || [];
+                    const orgs = (result.organizations || []).filter(o => o.organizationType !== 'LawFirm');
                     if (orgs.length === 0) {
                         const empty = document.createElement('div');
                         empty.className = 'client-item';

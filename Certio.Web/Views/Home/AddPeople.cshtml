@@ -28,16 +28,7 @@
                         {
                             <div class="alert alert-success">@TempData["Success"]</div>
                         }
-                        @if (ViewBag.JoinCode != null)
-                        {
-                            <div class="alert alert-info d-flex align-items-center gap-2">
-                                <i class="fas fa-key"></i>
-                                <div>
-                                    <div class="fw-bold">Join Code</div>
-                                    <div>@ViewBag.JoinCode</div>
-                                </div>
-                            </div>
-                        }
+                        @* Modal is triggered below when JoinCode is present *@
 
                         <form asp-action="AddPeople" asp-controller="Home" method="post">
                             <div class="mb-4">
@@ -45,22 +36,25 @@
                                 <input asp-for="Email" class="form-control form-control-lg" placeholder="name@example.com" />
                                 <span asp-validation-for="Email" class="text-danger"></span>
                             </div>
-
                             <div class="mb-4">
                                 <label asp-for="UserType" class="form-label fw-bold text-dark">User Type <span class="text-danger">*</span></label>
                                 <select asp-for="UserType" class="form-select form-select-lg" id="userTypeSelect">
                                     <option value="@Certio.Domain.Users.UserTypes.Client">Client</option>
+                                    <option value="@Certio.Domain.Users.UserTypes.LawFirm">Law Firm</option>
                                     <option value="@Certio.Domain.Users.UserTypes.External">External</option>
                                     <option value="@Certio.Domain.Users.UserTypes.Certio">Certio</option>
                                 </select>
                                 <span asp-validation-for="UserType" class="text-danger"></span>
                             </div>
 
-                            <div class="mb-4">
-                                <label asp-for="Role" class="form-label fw-bold text-dark">Role <span class="text-danger">*</span></label>
+                            <div id="lawFirmNote" class="alert alert-secondary d-none">
+                                This invitation will add the user as a <strong>Law Firm</strong> member. Their actual firm role will be resolved automatically after they connect their Law Firm.
+                            </div>
+
+                            <div id="roleContainer" class="mb-4">
+                                <label asp-for="Role" class="form-label fw-bold text-dark">Role <span id="roleRequiredAsterisk" class="text-danger">*</span></label>
                                 <select asp-for="Role" class="form-select form-select-lg" id="roleSelect">
                                     <option value="">Select role</option>
-                                    <!-- Role options will be populated dynamically by JavaScript based on UserType -->
                                 </select>
                                 <span asp-validation-for="Role" class="text-danger"></span>
                             </div>
@@ -80,7 +74,7 @@
                 <div class="card border-0">
                     <div class="card-body p-3">
                         <h5 class="fw-bold text-dark mb-2">Invitation Info</h5>
-                        <p class="text-muted mb-4">Select the appropriate user type and subtype. We'll show the join code here after generation and log it to the debug console.</p>
+                        <p class="text-muted mb-4">Client invites for Law Firm users do not require a role selection. The system assigns their role based on their Law Firm membership.</p>
                     </div>
                 </div>
             </div>
@@ -90,59 +84,93 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    @* Join Code Modal *@
+    <div class="modal fade" id="joinCodeModal" tabindex="-1" aria-labelledby="joinCodeLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="joinCodeLabel">Join Code</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="joinCodeValue" readonly value="@ViewBag.JoinCode">
+                        <button class="btn btn-outline-secondary" type="button" id="copyJoinCodeBtn"><i class="fas fa-copy"></i></button>
+                    </div>
+                    <small class="text-muted d-block mt-2">Share this code with the invitee. It expires in 7 days.</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const userTypeSelect = document.getElementById('userTypeSelect');
             const roleSelect = document.getElementById('roleSelect');
+            const roleContainer = document.getElementById('roleContainer');
+            const lawFirmNote = document.getElementById('lawFirmNote');
+            const roleAsterisk = document.getElementById('roleRequiredAsterisk');
 
-            function updateRoleOptions() {
-                const userType = userTypeSelect.value;
-                const currentRole = roleSelect.value;
-                
-                console.log('Updating role options for user type:', userType);
-                
-                // Clear existing options except the first one
+            const RoleOptions = {
+                Client: ['Owner', 'Manager', 'Member', 'Lawyer'],
+                External: ['OpposingCounsel', 'ExpertWitness', 'CourtPersonnel', 'RegulatoryBody', 'Other'],
+                Certio: ['Admin', 'MatterManager', 'Support', 'Legal'],
+                LawFirm: ['Partner', 'Associate', 'Paralegal', 'Staff']
+            };
+
+            function populateRoles(type) {
                 roleSelect.innerHTML = '<option value="">Select role</option>';
-                
-                // Define all available roles
-                const allRoles = [
-                    'Owner', 'Manager', 'Member', 'Lawyer',
-                    'OpposingCounsel', 'ExpertWitness', 'CourtPersonnel', 'RegulatoryBody', 'Other',
-                    'Admin', 'MatterManager', 'Support', 'Legal',
-                    'Guest'
-                ];
-                
-                let addedRoles = [];
-                
-                allRoles.forEach(function(role) {
-                    const option = document.createElement('option');
-                    option.value = role;
-                    option.textContent = role;
-                    
-                    // Filter roles based on user type
-                    if (userType === 'Client' && ['Owner', 'Manager', 'Member', 'Lawyer'].includes(role)) {
-                        roleSelect.appendChild(option);
-                        addedRoles.push(role);
-                    } else if (userType === 'External' && ['OpposingCounsel', 'ExpertWitness', 'CourtPersonnel', 'RegulatoryBody', 'Other'].includes(role)) {
-                        roleSelect.appendChild(option);
-                        addedRoles.push(role);
-                    } else if (userType === 'Certio' && ['Admin', 'MatterManager', 'Support', 'Legal'].includes(role)) {
-                        roleSelect.appendChild(option);
-                        addedRoles.push(role);
-                    }
+                (RoleOptions[type] || []).forEach(r => {
+                    const opt = document.createElement('option');
+                    opt.value = r;
+                    opt.textContent = r;
+                    roleSelect.appendChild(opt);
                 });
-                
-                console.log('Added roles for', userType, ':', addedRoles);
-                console.log('Total options in select:', roleSelect.options.length);
-                
-                // Restore previous selection if still valid
-                if (currentRole && roleSelect.querySelector(`option[value="${currentRole}"]`)) {
-                    roleSelect.value = currentRole;
+            }
+
+            function updateUI() {
+                const type = userTypeSelect.value;
+                if (type === 'LawFirm') {
+                    roleContainer.classList.add('d-none');
+                    lawFirmNote.classList.remove('d-none');
+                    roleAsterisk.style.visibility = 'hidden';
+                    roleSelect.value = '';
+                    roleSelect.setAttribute('disabled', 'disabled');
+                    // Clear any visible validation message for Role
+                    const validationSpan = roleContainer.querySelector('[data-valmsg-for="Role"]');
+                    if (validationSpan) { validationSpan.textContent = ''; }
+                } else {
+                    roleContainer.classList.remove('d-none');
+                    lawFirmNote.classList.add('d-none');
+                    roleAsterisk.style.visibility = 'visible';
+                    roleSelect.removeAttribute('disabled');
+                    populateRoles(type);
                 }
             }
 
-            updateRoleOptions();
-            userTypeSelect.addEventListener('change', updateRoleOptions);
+            // Initialize
+            populateRoles(userTypeSelect.value);
+            updateUI();
+            userTypeSelect.addEventListener('change', updateUI);
+
+            // Show join code modal if present
+            const joinCode = '@(ViewBag.JoinCode ?? "")';
+            if (joinCode && joinCode.length > 0) {
+                const modalEl = document.getElementById('joinCodeModal');
+                const modal = new bootstrap.Modal(modalEl);
+                modal.show();
+                const copyBtn = document.getElementById('copyJoinCodeBtn');
+                const input = document.getElementById('joinCodeValue');
+                copyBtn?.addEventListener('click', async () => {
+                    try {
+                        await navigator.clipboard.writeText(input.value);
+                        copyBtn.innerHTML = '<i class="fas fa-check"></i>';
+                        setTimeout(() => copyBtn.innerHTML = '<i class="fas fa-copy"></i>', 1500);
+                    } catch {}
+                });
+            }
         });
     </script>
 }

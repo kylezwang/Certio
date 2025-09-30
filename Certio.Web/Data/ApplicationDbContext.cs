@@ -25,6 +25,8 @@ namespace Certio.Web.Data
         public DbSet<Organization> Organizations => Set<Organization>();
         public DbSet<UserOrganization> UserOrganizations => Set<UserOrganization>();
         public DbSet<OrganizationJoinCode> OrganizationJoinCodes => Set<OrganizationJoinCode>();
+        public DbSet<OrganizationRelationship> OrganizationRelationships => Set<OrganizationRelationship>();
+        public DbSet<OrganizationRelationshipAssignedUser> OrganizationRelationshipAssignedUsers => Set<OrganizationRelationshipAssignedUser>();
         public DbSet<Team> Teams => Set<Team>();
         public DbSet<TeamMembership> TeamMemberships => Set<TeamMembership>();
         public DbSet<UserDeletionRequest> UserDeletionRequests => Set<UserDeletionRequest>();
@@ -92,6 +94,8 @@ namespace Certio.Web.Data
             
             // Configure relationships
             ConfigureOrganizationRelationships(builder);
+            ConfigureOrganizationRelationshipRelationships(builder);
+            ConfigureOrganizationRelationshipAssignedUserRelationships(builder);
             ConfigureUserOrganizationRelationships(builder);
             ConfigureUserRelationships(builder);
             ConfigureMatterRelationships(builder);
@@ -145,6 +149,75 @@ namespace Certio.Web.Data
             builder.Entity<Organization>().HasIndex(o => o.OwnerId);
             builder.Entity<OrganizationJoinCode>().HasIndex(jc => jc.Code).IsUnique();
             builder.Entity<OrganizationJoinCode>().HasIndex(jc => jc.ExpiresAt);
+        }
+
+        private void ConfigureOrganizationRelationshipRelationships(ModelBuilder builder)
+        {
+            // OrganizationRelationship -> SourceOrganization relationship
+            builder.Entity<OrganizationRelationship>()
+                .HasOne(or => or.SourceOrganization)
+                .WithMany(o => o.OrganizationRelationships)
+                .HasForeignKey(or => or.SourceOrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // OrganizationRelationship -> TargetOrganization relationship
+            builder.Entity<OrganizationRelationship>()
+                .HasOne(or => or.TargetOrganization)
+                .WithMany(o => o.RelatedOrganizations)
+                .HasForeignKey(or => or.TargetOrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // OrganizationRelationship -> CreatedBy relationship
+            builder.Entity<OrganizationRelationship>()
+                .HasOne(or => or.CreatedBy)
+                .WithMany()
+                .HasForeignKey(or => or.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // OrganizationRelationship -> ModifiedBy relationship
+            builder.Entity<OrganizationRelationship>()
+                .HasOne(or => or.ModifiedBy)
+                .WithMany()
+                .HasForeignKey(or => or.ModifiedById)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // OrganizationRelationship -> DeletedBy relationship
+            builder.Entity<OrganizationRelationship>()
+                .HasOne(or => or.DeletedBy)
+                .WithMany()
+                .HasForeignKey(or => or.DeletedById)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Add indexes for performance
+            builder.Entity<OrganizationRelationship>()
+                .HasIndex(or => new { or.SourceOrganizationId, or.TargetOrganizationId, or.IsActive });
+
+            builder.Entity<OrganizationRelationship>()
+                .HasIndex(or => new { or.RelationshipType, or.IsActive });
+
+            builder.Entity<OrganizationRelationship>()
+                .HasIndex(or => or.ExpiresAt);
+
+            // Composite unique index to prevent duplicate relationships
+            builder.Entity<OrganizationRelationship>()
+                .HasIndex(or => new { or.SourceOrganizationId, or.TargetOrganizationId, or.RelationshipType })
+                .IsUnique();
+        }
+
+        private void ConfigureOrganizationRelationshipAssignedUserRelationships(ModelBuilder builder)
+        {
+            builder.Entity<OrganizationRelationshipAssignedUser>()
+                .HasOne(orau => orau.Relationship)
+                .WithMany()
+                .HasForeignKey(orau => orau.RelationshipId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<OrganizationRelationshipAssignedUser>()
+                .HasIndex(orau => new { orau.RelationshipId, orau.UserId })
+                .IsUnique();
+
+            builder.Entity<OrganizationRelationshipAssignedUser>()
+                .HasIndex(orau => orau.UserId);
         }
 
         private void ConfigureUserOrganizationRelationships(ModelBuilder builder)
@@ -718,6 +791,19 @@ namespace Certio.Web.Data
                     // Note: DeletedById should be set by the service layer
                 }
             }
+
+            // Handle soft delete for OrganizationRelationships
+            foreach (var entry in ChangeTracker.Entries<OrganizationRelationship>())
+            {
+                if (entry.State == EntityState.Deleted)
+                {
+                    entry.State = EntityState.Modified;
+                    entry.Entity.IsDeleted = true;
+                    entry.Entity.DeletedAt = DateTime.UtcNow;
+                    // Note: DeletedById should be set by the service layer
+                }
+            }
+
             return base.SaveChanges();
         }
     }

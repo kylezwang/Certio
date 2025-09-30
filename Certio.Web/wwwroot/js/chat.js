@@ -208,6 +208,10 @@ async function createNewConversationFromMessage(message) {
                 
                 // Now send the message to the new conversation
                 await sendMessageToConversation(message, data.conversationId);
+
+                // Safeguard: ensure the input is cleared after send
+                const messageInput = document.getElementById('messageInput');
+                if (messageInput) messageInput.value = '';
             } else {
                 console.error('Failed to create conversation:', data.error);
             }
@@ -231,16 +235,16 @@ async function sendMessage() {
     
     if (!message) return;
     
+    // Clear input immediately to avoid duplicate text lingering
+    messageInput.value = '';
+    
     // If we don't have a conversation ID, create a new one first
     if (!currentConversationId) {
         await createNewConversationFromMessage(message);
         return;
     }
     
-    const success = await sendMessageInternal(message, currentConversationId);
-    if (success) {
-        messageInput.value = ''; // Clear input only on success
-    }
+    await sendMessageInternal(message, currentConversationId);
 }
 
 // Generate AI response
@@ -418,7 +422,7 @@ function getCurrentOrganizationId() {
     }
     
     // Try to get from URL path (e.g., /Client/123/Chat/... or /Client/123/Matter)
-    const pathMatch = window.location.pathname.match(/\/Client\/(\d+)\/(?:Chat|Matter|Services|Documents|Teams|Settings)/);
+    const pathMatch = window.location.pathname.match(/\/Client\/(\d+)\/(?:Dashboard|Chat|Matter|Services|Documents|Teams|Settings)/);
     if (pathMatch) {
         currentOrganizationId = parseInt(pathMatch[1]);
         return currentOrganizationId;

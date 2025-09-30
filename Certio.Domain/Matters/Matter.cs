@@ -74,6 +74,7 @@ public class Matter
     public User? ResponsibleStaff => Assignments.FirstOrDefault(a => a.AssignmentType == "ResponsibleStaff")?.User;
     
     // Navigation properties
+    public virtual Certio.Domain.Organizations.Organization? Organization { get; set; }
     public virtual Team? Team { get; set; }
     public virtual User? Client { get; set; }
     public virtual ICollection<StatusItem> StatusItems { get; set; } = new List<StatusItem>();
