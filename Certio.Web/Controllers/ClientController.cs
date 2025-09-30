@@ -40,7 +40,8 @@ namespace Certio.Web.Controllers
                     ownerFirstName = uo.Organization!.Owner.FirstName,
                     ownerLastName = uo.Organization!.Owner.LastName,
                     isPersonal = uo.Organization.IsPersonal,
-                    isPrimary = uo.IsPrimary
+                    isPrimary = uo.IsPrimary,
+                    organizationType = uo.Organization.Type.ToString()
                 })
                 .OrderByDescending(x => x.isPrimary)
                 .ThenBy(x => x.organizationName)

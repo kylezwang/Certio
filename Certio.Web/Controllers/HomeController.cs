@@ -56,16 +56,35 @@ namespace Certio.Web.Controllers
             
             var isAuthenticated = hasValidIdentity && hasValidSession;
             
-            // If user is already logged in, redirect to client-scoped Matters
+            // If user is already logged in, redirect to their LawFirm organization dashboard
             if (isAuthenticated)
             {
-                // Resolve custom user and primary organization to build client route
+                // Resolve custom user and find their LawFirm organization
                 var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
-                var orgId = customUser?.GetPrimaryOrganization()?.OrganizationId
-                            ?? customUser?.UserOrganizations.FirstOrDefault(uo => uo.IsActive)?.OrganizationId;
-                if (orgId.HasValue)
+                if (customUser != null)
                 {
-                    return RedirectToRoute("client_matter", new { orgId = orgId.Value, action = "Index" });
+                    // First try to find LawFirm organization
+                    var lawFirmOrg = customUser.UserOrganizations
+                        .FirstOrDefault(uo => uo.IsActive && uo.Organization != null && uo.Organization.Type == Certio.Domain.Organizations.OrganizationType.LawFirm);
+                    
+                    if (lawFirmOrg != null)
+                    {
+                        return RedirectToAction("Dashboard", "Client", new { orgId = lawFirmOrg.OrganizationId });
+                    }
+                    
+                    // Fallback to primary organization dashboard
+                    var primaryOrg = customUser.GetPrimaryOrganization();
+                    if (primaryOrg != null)
+                    {
+                        return RedirectToAction("Dashboard", "Client", new { orgId = primaryOrg.OrganizationId });
+                    }
+                    
+                    // Last fallback to any active organization dashboard
+                    var anyOrg = customUser.UserOrganizations.FirstOrDefault(uo => uo.IsActive && uo.Organization != null);
+                    if (anyOrg != null)
+                    {
+                        return RedirectToAction("Dashboard", "Client", new { orgId = anyOrg.OrganizationId });
+                    }
                 }
                 // If no organization found, fall back to home view
                 return View();
