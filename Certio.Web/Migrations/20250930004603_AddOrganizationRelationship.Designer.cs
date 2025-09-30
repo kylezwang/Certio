@@ -4,6 +4,7 @@ using Certio.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Certio.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250930004603_AddOrganizationRelationship")]
+    partial class AddOrganizationRelationship
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1147,36 +1150,6 @@ namespace Certio.Web.Migrations
                         .IsUnique();
 
                     b.ToTable("OrganizationRelationships");
-                });
-
-            modelBuilder.Entity("Certio.Domain.Organizations.OrganizationRelationshipAssignedUser", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("AssignedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("AssignedById")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RelationshipId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("RelationshipId", "UserId")
-                        .IsUnique();
-
-                    b.ToTable("OrganizationRelationshipAssignedUsers");
                 });
 
             modelBuilder.Entity("Certio.Domain.Services.AIAgentResult", b =>
@@ -2823,17 +2796,6 @@ namespace Certio.Web.Migrations
                     b.Navigation("SourceOrganization");
 
                     b.Navigation("TargetOrganization");
-                });
-
-            modelBuilder.Entity("Certio.Domain.Organizations.OrganizationRelationshipAssignedUser", b =>
-                {
-                    b.HasOne("Certio.Domain.Organizations.OrganizationRelationship", "Relationship")
-                        .WithMany()
-                        .HasForeignKey("RelationshipId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Relationship");
                 });
 
             modelBuilder.Entity("Certio.Domain.Services.AIAgentResult", b =>

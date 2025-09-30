@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using Certio.Web.Data;
+using Certio.Web.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Certio.Web.Middleware
@@ -13,7 +14,7 @@ namespace Certio.Web.Middleware
             _next = next;
         }
 
-        public async Task InvokeAsync(HttpContext context, ApplicationDbContext db)
+        public async Task InvokeAsync(HttpContext context, ApplicationDbContext db, IFirmRelationshipCacheService cacheService, IFirmAccessAuditService auditService)
         {
             var path = context.Request.Path.Value ?? string.Empty;
             // Match /Client/{orgId}/...
@@ -34,12 +35,26 @@ namespace Certio.Web.Middleware
                     return;
                 }
 
-                var isMember = await db.UserOrganizations.AnyAsync(uo => uo.UserId == customUser.Id && uo.OrganizationId == orgId && uo.IsActive);
-                if (!isMember)
+                // Check for direct membership first
+                var isDirectMember = await db.UserOrganizations.AnyAsync(uo => uo.UserId == customUser.Id && uo.OrganizationId == orgId && uo.IsActive);
+                
+                if (!isDirectMember)
                 {
-                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                    await context.Response.WriteAsync("Forbidden: You are not a member of this client.");
-                    return;
+                    // Check for firm-based access using cache
+                    var hasFirmAccess = await cacheService.HasFirmAccessAsync(customUser.Id, orgId);
+                    if (!hasFirmAccess)
+                    {
+                        // Log denied access attempt
+                        await auditService.LogFirmAccessDeniedAsync(
+                            customUser.Id, 
+                            orgId, 
+                            "No firm relationship found",
+                            $"User attempted to access organization {orgId} but has no firm-based access");
+
+                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                        await context.Response.WriteAsync("Forbidden: You are not a member of this client and do not have firm-based access.");
+                        return;
+                    }
                 }
 
                 // Stash current org in Items for downstream use
@@ -48,6 +63,7 @@ namespace Certio.Web.Middleware
 
             await _next(context);
         }
+
     }
 
     public static class ClientAccessMiddlewareExtensions

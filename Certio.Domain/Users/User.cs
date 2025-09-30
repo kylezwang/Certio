@@ -137,6 +137,58 @@ namespace Certio.Domain.Users
             return UserOrganizations.FirstOrDefault(uo => uo.IsActive && uo.Organization.Type == OrganizationType.LawFirm);
         }
         
+        public bool IsLawFirmMember()
+        {
+            return GetLawFirmMembership() != null;
+        }
+        
+        public bool IsLawFirmPartner()
+        {
+            var membership = GetLawFirmMembership();
+            return membership?.Role == OrganizationRoles.Partner;
+        }
+        
+        public bool IsLawFirmAssociate()
+        {
+            var membership = GetLawFirmMembership();
+            return membership?.Role == OrganizationRoles.Associate;
+        }
+        
+        public bool IsLawFirmParalegal()
+        {
+            var membership = GetLawFirmMembership();
+            return membership?.Role == OrganizationRoles.Paralegal;
+        }
+        
+        public bool IsLawFirmStaff()
+        {
+            var membership = GetLawFirmMembership();
+            return membership?.Role == OrganizationRoles.Staff;
+        }
+        
+        public bool CanAccessClientThroughFirm(int clientOrganizationId)
+        {
+            var lawFirmMembership = GetLawFirmMembership();
+            if (lawFirmMembership == null) return false;
+            
+            // Check if there's an active relationship between the law firm and client
+            return lawFirmMembership.Organization.OrganizationRelationships
+                .Any(rel => rel.TargetOrganizationId == clientOrganizationId && 
+                           rel.IsValid() && 
+                           rel.RelationshipType == RelationshipTypes.LawFirmClient);
+        }
+        
+        public List<Organization> GetAccessibleClientOrganizations()
+        {
+            var lawFirmMembership = GetLawFirmMembership();
+            if (lawFirmMembership == null) return new List<Organization>();
+            
+            return lawFirmMembership.Organization.OrganizationRelationships
+                .Where(rel => rel.IsValid() && rel.RelationshipType == RelationshipTypes.LawFirmClient)
+                .Select(rel => rel.TargetOrganization)
+                .ToList();
+        }
+        
         public bool HasMatterAccess(int matterId, int organizationId)
         {
             var membership = GetOrganizationMembership(organizationId);
@@ -228,6 +280,14 @@ namespace Certio.Domain.Users
                     OrganizationRoles.Support => PermissionSets.CertioSupport,
                     OrganizationRoles.Legal => PermissionSets.CertioLegal,
                     _ => PermissionSets.CertioAdmin // Default to admin for Certio
+                },
+                UserTypes.LawFirm => membership.Role switch
+                {
+                    OrganizationRoles.Partner => PermissionSets.Partner,
+                    OrganizationRoles.Associate => PermissionSets.Associate,
+                    OrganizationRoles.Paralegal => PermissionSets.Paralegal,
+                    OrganizationRoles.Staff => PermissionSets.Staff,
+                    _ => new List<Permission>()
                 },
                 _ => new List<Permission>()
             };
@@ -395,6 +455,45 @@ public static class PermissionSets
         Permission.InviteUsers, Permission.RemoveUsers,
         Permission.ViewMessages, Permission.SendMessages, Permission.ManageThreads,
         Permission.ViewAuditLogs
+    };
+
+    // Partner - Full access to firm and client matters
+    public static readonly List<Permission> Partner = new()
+    {
+        Permission.ViewDocuments, Permission.DownloadDocuments, Permission.UploadDocuments,
+        Permission.DeleteDocuments, Permission.CommentOnDocuments,
+        Permission.ViewMatters, Permission.CreateMatters, Permission.EditMatters,
+        Permission.DeleteMatters, Permission.ManageMatterSettings,
+        Permission.InviteUsers, Permission.RemoveUsers, Permission.ManageUserPermissions,
+        Permission.ViewMessages, Permission.SendMessages, Permission.DeleteMessages,
+        Permission.ManageThreads, Permission.ViewAuditLogs
+    };
+
+    // Associate - Access to assigned matters
+    public static readonly List<Permission> Associate = new()
+    {
+        Permission.ViewDocuments, Permission.DownloadDocuments, Permission.UploadDocuments,
+        Permission.CommentOnDocuments,
+        Permission.ViewMatters, Permission.EditMatters, Permission.ManageMatterSettings,
+        Permission.ViewMessages, Permission.SendMessages, Permission.ManageThreads,
+        Permission.ViewAuditLogs
+    };
+
+    // Paralegal - Document and matter support access
+    public static readonly List<Permission> Paralegal = new()
+    {
+        Permission.ViewDocuments, Permission.DownloadDocuments, Permission.UploadDocuments,
+        Permission.CommentOnDocuments,
+        Permission.ViewMatters, Permission.EditMatters,
+        Permission.ViewMessages, Permission.SendMessages, Permission.ManageThreads
+    };
+
+    // Staff - Basic access for administrative staff
+    public static readonly List<Permission> Staff = new()
+    {
+        Permission.ViewDocuments, Permission.DownloadDocuments,
+        Permission.ViewMatters,
+        Permission.ViewMessages, Permission.SendMessages
     };
 }
 }

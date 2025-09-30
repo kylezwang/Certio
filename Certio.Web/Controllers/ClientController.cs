@@ -14,12 +14,18 @@ namespace Certio.Web.Controllers
         private readonly ApplicationDbContext _db;
         private readonly IJoinCodeService _joinCodeService;
         private readonly IConfiguration _configuration;
+        private readonly IFirmRelationshipCacheService _firmRelationshipCache;
 
-        public ClientController(ApplicationDbContext db, IJoinCodeService joinCodeService, IConfiguration configuration)
+        public ClientController(
+            ApplicationDbContext db, 
+            IJoinCodeService joinCodeService, 
+            IConfiguration configuration,
+            IFirmRelationshipCacheService firmRelationshipCache)
         {
             _db = db;
             _joinCodeService = joinCodeService;
             _configuration = configuration;
+            _firmRelationshipCache = firmRelationshipCache;
         }
 
         // GET /Client/List
@@ -61,23 +67,19 @@ namespace Certio.Web.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            var membership = await _db.UserOrganizations.FirstOrDefaultAsync(
-                uo => uo.UserId == customUser.Id && uo.OrganizationId == orgId && uo.IsActive, ct);
+            // Authorization is handled by the [Authorize(Policy = "OrgMember")] attribute
 
-            if (membership == null)
-            {
-                return Forbid();
-            }
+            var org = await _db.Organizations
+                .Where(o => o.Id == orgId)
+                .FirstOrDefaultAsync(ct);
 
             ViewBag.OrganizationId = orgId;
-            ViewBag.OrganizationName = await _db.Organizations
-                .Where(o => o.Id == orgId)
-                .Select(o => o.Name)
-                .FirstOrDefaultAsync(ct) ?? "Client";
+            ViewBag.OrganizationName = org?.Name ?? "Client";
 
             // Create sample dashboard data
             var viewModel = new DashboardViewModel
             {
+                OrganizationType = org?.Type ?? Certio.Domain.Organizations.OrganizationType.Client,
                 NewMattersThisWeek = 4,
                 NewMattersPercentageChange = 15,
                 BillingBacklogPercentage = 20,
@@ -123,23 +125,51 @@ namespace Certio.Web.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            var membership = await _db.UserOrganizations.FirstOrDefaultAsync(
-                uo => uo.UserId == customUser.Id && uo.OrganizationId == orgId && uo.IsActive, ct);
+            // Authorization is handled by the [Authorize(Policy = "OrgMember")] attribute
 
-            if (membership == null)
+            // Check if this is a LawFirm organization - if so, aggregate matters from all accessible clients
+            var currentOrg = await _db.Organizations
+                .FirstOrDefaultAsync(o => o.Id == orgId, ct);
+
+            List<Matter> matters;
+            int teamMembersCount;
+
+            if (currentOrg?.Type == Certio.Domain.Organizations.OrganizationType.LawFirm)
             {
-                return Forbid();
+                // Get all accessible client organizations for this user
+                var accessibleClients = await _firmRelationshipCache.GetAccessibleClientOrganizationsAsync(customUser.Id);
+                var clientOrgIds = accessibleClients.Select(c => c.Id).ToList();
+
+                // Add the LawFirm organization's own ID to include its matters too
+                clientOrgIds.Add(orgId);
+
+                // Query matters from the LawFirm AND all accessible client organizations
+                matters = await _db.Matters
+                    .Where(p => clientOrgIds.Contains(p.OrganizationId))
+                    .Include(p => p.Assignments)
+                        .ThenInclude(a => a.User)
+                    .Include(p => p.Organization) // Include to show which organization the matter belongs to
+                    .OrderByDescending(p => p.CreatedAt)
+                    .ToListAsync(ct);
+
+                // Team members from the law firm
+                teamMembersCount = await _db.UserOrganizations
+                    .Where(uo => uo.OrganizationId == orgId && uo.IsActive)
+                    .CountAsync(ct);
             }
-
-            var matters = await _db.Matters
-                .Where(p => p.OrganizationId == orgId)
-                .Include(p => p.Assignments)
-                    .ThenInclude(a => a.User)
-                .ToListAsync(ct);
-
-            if (!matters.Any())
+            else
             {
-                matters = new List<Matter>();
+                // For client organizations, show only matters from this specific client
+                matters = await _db.Matters
+                    .Where(p => p.OrganizationId == orgId)
+                    .Include(p => p.Assignments)
+                        .ThenInclude(a => a.User)
+                    .OrderByDescending(p => p.CreatedAt)
+                    .ToListAsync(ct);
+
+                teamMembersCount = await _db.UserOrganizations
+                    .Where(uo => uo.OrganizationId == orgId && uo.IsActive)
+                    .CountAsync(ct);
             }
 
             var viewModel = new MattersViewModel
@@ -148,12 +178,12 @@ namespace Certio.Web.Controllers
                 ActiveMattersCount = matters.Count(p => p.Status == "In Progress"),
                 CompletedMattersCount = matters.Count(p => p.Status == "Completed"),
                 InReviewMattersCount = matters.Count(p => p.Status == "Review"),
-                TeamMembersCount = await _db.UserOrganizations
-                    .Where(uo => uo.OrganizationId == orgId && uo.IsActive)
-                    .CountAsync(ct)
+                TeamMembersCount = teamMembersCount
             };
 
             ViewBag.OrganizationId = orgId;
+            ViewBag.IsLawFirmView = currentOrg?.Type == Certio.Domain.Organizations.OrganizationType.LawFirm;
+            
             // Reuse the existing view
             return View("~/Views/Matter/Index.cshtml", viewModel);
         }
@@ -325,6 +355,15 @@ namespace Certio.Web.Controllers
             return View("~/Views/Settings/Index.cshtml");
         }
 
+        // GET /Client/{orgId}/Tasks
+        [Authorize(Policy = "OrgMember")]
+        [HttpGet("/Client/{orgId:int}/Tasks")]
+        public IActionResult Tasks(int orgId)
+        {
+            ViewBag.OrganizationId = orgId;
+            return View("~/Views/Client/Tasks.cshtml");
+        }
+
         // GET /Client/{orgId}/AddPeople
         [Authorize(Policy = "OrgMember")]
         [HttpGet("/Client/{orgId:int}/AddPeople")]
@@ -354,12 +393,7 @@ namespace Certio.Web.Controllers
                 return View("~/Views/Home/AddPeople.cshtml", model);
             }
 
-            // Verify membership and permissions in target org
-            var membership = await _db.UserOrganizations.FirstOrDefaultAsync(uo => uo.UserId == customUser.Id && uo.OrganizationId == orgId && uo.IsActive, ct);
-            if (membership == null)
-            {
-                return Forbid();
-            }
+            // Authorization is handled by the [Authorize(Policy = "OrgMember")] attribute
 
             if (!customUser.CanCreateJoinCodes(orgId))
             {
@@ -368,11 +402,19 @@ namespace Certio.Web.Controllers
                 return View("~/Views/Home/AddPeople.cshtml", model);
             }
 
+            // If Law Firm is selected, ignore the provided role and set a conservative default; otherwise pass through
+            var invitedUserType = model.UserType;
+            var invitedRole = model.Role;
+            if (string.Equals(invitedUserType, Certio.Domain.Users.UserTypes.LawFirm, StringComparison.OrdinalIgnoreCase))
+            {
+                invitedRole = Certio.Domain.Users.OrganizationRoles.Staff;
+            }
+
             var join = await _joinCodeService.GenerateAsync(
                 organizationId: orgId,
                 createdByUserId: customUser.Id,
-                invitedUserType: model.UserType,
-                invitedRole: model.Role,
+                invitedUserType: invitedUserType,
+                invitedRole: invitedRole,
                 teamName: null,
                 maxUses: 1,
                 ttl: TimeSpan.FromDays(7),

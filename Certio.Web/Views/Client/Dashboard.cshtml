@@ -182,16 +182,32 @@
             <h5 class="card-title fw-bold mb-4">Quick Access</h5>
             
             <div class="row gx-4 gy-3">
-                <div class="col-md-3 mb-3">
-                    <a href="/Client/@ViewBag.OrganizationId/Matter" class="quick-access-item qa-card">
-                        <div class="d-flex flex-column align-items-center text-center p-3">
-                            <div class="quick-access-icon mb-2">
-                                <i class="fas fa-users text-primary"></i>
+                @if (Model.OrganizationType == Certio.Domain.Organizations.OrganizationType.LawFirm)
+                {
+                    <div class="col-md-3 mb-3">
+                        <a href="#" class="quick-access-item qa-card" data-action="open-global-clients">
+                            <div class="d-flex flex-column align-items-center text-center p-3">
+                                <div class="quick-access-icon mb-2">
+                                    <i class="fas fa-users text-purple"></i>
+                                </div>
+                                <span class="fw-medium">Clients</span>
                             </div>
-                            <span class="fw-medium">Clients</span>
-                        </div>
-                    </a>
-                </div>
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="col-md-3 mb-3">
+                        <a href="/Client/@ViewBag.OrganizationId/Teams" class="quick-access-item qa-card">
+                            <div class="d-flex flex-column align-items-center text-center p-3">
+                                <div class="quick-access-icon mb-2">
+                                    <i class="fa-solid fa-user-group text-purple"></i>
+                                </div>
+                                <span class="fw-medium">Teams</span>
+                            </div>
+                        </a>
+                    </div>
+                }
                 <div class="col-md-3 mb-3">
                     <a href="#" class="quick-access-item qa-card">
                         <div class="d-flex flex-column align-items-center text-center p-3">
@@ -199,26 +215,6 @@
                                 <i class="fas fa-calendar text-success"></i>
                             </div>
                             <span class="fw-medium">Calendar</span>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-md-3 mb-3">
-                    <a href="#" class="quick-access-item qa-card">
-                        <div class="d-flex flex-column align-items-center text-center p-3">
-                            <div class="quick-access-icon mb-2">
-                                <i class="fas fa-envelope text-danger"></i>
-                            </div>
-                            <span class="fw-medium">Inbox</span>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-md-3 mb-3">
-                    <a href="/Client/@ViewBag.OrganizationId/Documents" class="quick-access-item qa-card">
-                        <div class="d-flex flex-column align-items-center text-center p-3">
-                            <div class="quick-access-icon mb-2">
-                                <i class="fas fa-file-alt text-purple"></i>
-                            </div>
-                            <span class="fw-medium">Documents</span>
                         </div>
                     </a>
                 </div>
@@ -243,12 +239,22 @@
                     </a>
                 </div>
                 <div class="col-md-3 mb-3">
-                    <a href="#" class="quick-access-item qa-card">
+                    <a href="/Client/@ViewBag.OrganizationId/Matter" class="quick-access-item qa-card">
                         <div class="d-flex flex-column align-items-center text-center p-3">
                             <div class="quick-access-icon mb-2">
-                                <i class="fas fa-search text-secondary"></i>
+                                <i class="fas fa-briefcase" style="color: #002b55;"></i>
                             </div>
-                            <span class="fw-medium">Search</span>
+                            <span class="fw-medium">Matters</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <a href="/Client/@ViewBag.OrganizationId/Tasks" class="quick-access-item qa-card">
+                        <div class="d-flex flex-column align-items-center text-center p-3">
+                            <div class="quick-access-icon mb-2">
+                                <i class="fa-solid fa-bars-progress" style="color: #9bc0ec;"></i>
+                            </div>
+                            <span class="fw-medium">Tasks</span>
                         </div>
                     </a>
                 </div>
@@ -256,9 +262,19 @@
                     <a href="#" class="quick-access-item qa-card">
                         <div class="d-flex flex-column align-items-center text-center p-3">
                             <div class="quick-access-icon mb-2">
-                                <i class="fas fa-ellipsis-h text-muted"></i>
+                                <i class="fas fa-comments text-danger"></i>
                             </div>
-                            <span class="fw-medium">More</span>
+                            <span class="fw-medium">Communications</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <a href="/Client/@ViewBag.OrganizationId/Documents" class="quick-access-item qa-card">
+                        <div class="d-flex flex-column align-items-center text-center p-3">
+                            <div class="quick-access-icon mb-2">
+                                <i class="fas fa-file-alt text-primary"></i>
+                            </div>
+                            <span class="fw-medium">Documents</span>
                         </div>
                     </a>
                 </div>
@@ -675,3 +691,24 @@
         padding: 0.5rem 0;
     }
 </style>
+
+@section Scripts {
+    @if (Model.OrganizationType == Certio.Domain.Organizations.OrganizationType.LawFirm)
+    {
+        <script>
+            // For LawFirm organizations, trigger the clients popup from _Layout.cshtml
+            document.addEventListener('DOMContentLoaded', function () {
+                document.querySelectorAll('[data-action="open-global-clients"]').forEach(function (el) {
+                    el.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        e.stopPropagation(); // prevent the global outside-click handler from immediately closing it
+                        const btn = document.getElementById('clientsButton');
+                        if (!btn) return;
+                        // Trigger the same handler without bubbling to document
+                        btn.dispatchEvent(new MouseEvent('click', { bubbles: false }));
+                    });
+                });
+            });
+        </script>
+    }
+}

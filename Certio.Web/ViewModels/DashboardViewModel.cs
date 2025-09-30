@@ -1,10 +1,14 @@
 using Certio.Domain.Matters;
 using Certio.Domain.Documents;
+using Certio.Domain.Organizations;
 
 namespace Certio.Web.ViewModels
 {
     public class DashboardViewModel
     {
+        // Organization type to determine UI behavior
+        public OrganizationType OrganizationType { get; set; }
+
         // Firm Summary data
         public int NewMattersThisWeek { get; set; }
         public double NewMattersPercentageChange { get; set; }

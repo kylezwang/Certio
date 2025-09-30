@@ -229,6 +229,12 @@ builder.Services.AddRazorPages();
 
 // Join code service
 builder.Services.AddScoped<Certio.Web.Services.IJoinCodeService, Certio.Web.Services.JoinCodeService>();
+
+// Firm relationship services
+            builder.Services.AddScoped<IFirmRelationshipCacheService, FirmRelationshipCacheService>();
+            builder.Services.AddScoped<ILawFirmRoleResolutionService, LawFirmRoleResolutionService>();
+builder.Services.AddScoped<IFirmAccessAuditService, FirmAccessAuditService>();
+
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(options =>
     {
@@ -297,6 +303,9 @@ app.UseUserSync(); // Automatically sync Identity users with custom User records
 
 // Build client context AFTER user sync so CustomUser is available
 app.UseMiddleware<ClientContextMiddleware>();
+
+// Client access guard - must come after ClientContextMiddleware
+app.UseClientAccessGuard();
 
 app.UseAuthorization();
 

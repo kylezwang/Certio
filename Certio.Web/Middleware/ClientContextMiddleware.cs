@@ -14,7 +14,7 @@ namespace Certio.Web.Middleware
             _next = next;
         }
 
-        public async Task InvokeAsync(HttpContext context, ApplicationDbContext db, Certio.Web.Services.IClientContextAccessor accessor)
+        public async Task InvokeAsync(HttpContext context, ApplicationDbContext db, Certio.Web.Services.IClientContextAccessor accessor, IFirmRelationshipCacheService cacheService)
         {
             // Parse orgId from /Client/{orgId}/... routes
             var path = context.Request.Path.Value ?? string.Empty;
@@ -25,7 +25,7 @@ namespace Certio.Web.Middleware
                 {
                     context.Items["CurrentOrganizationId"] = orgId;
                     // Build the ClientContext once per request
-                    var clientContext = await ClientContext.CreateAsync(context, db, context.RequestAborted);
+                    var clientContext = await ClientContext.CreateAsync(context, db, cacheService, context.RequestAborted);
                     accessor.ClientContext = clientContext;
                 }
             }

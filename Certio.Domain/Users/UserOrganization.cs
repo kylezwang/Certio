@@ -61,6 +61,12 @@ namespace Certio.Domain.Users
         public const string Support = "Support";
         public const string Legal = "Legal";
         
+        // Law Firm roles
+        public const string Partner = "Partner";
+        public const string Associate = "Associate";
+        public const string Paralegal = "Paralegal";
+        public const string Staff = "Staff";
+        
         // General roles
         public const string Guest = "Guest";
     }
@@ -70,5 +76,6 @@ namespace Certio.Domain.Users
         public const string Client = "Client";
         public const string External = "External";
         public const string Certio = "Certio";
+        public const string LawFirm = "LawFirm";
     }
 }

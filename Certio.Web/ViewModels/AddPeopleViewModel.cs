@@ -12,8 +12,8 @@ namespace Certio.Web.ViewModels
         [Required]
         public string UserType { get; set; } = UserTypes.Client;
 
-        [Required]
-        public string Role { get; set; } = OrganizationRoles.Member;
+        // Role is required only for non-LawFirm user types; validated server-side
+        public string Role { get; set; } = string.Empty;
     }
 }
 
