@@ -385,9 +385,9 @@
         
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="global-nav-link" href="/Global/Dashboard" title="Dashboard">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Dashboard</span>
+                <a class="global-nav-link" href="#" id="myFirmLink" title="My Firm">
+                    <i class="fa-solid fa-building-columns"></i>
+                    <span>My Firm</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -400,18 +400,6 @@
                 <a class="global-nav-link" href="#" title="Calendar">
                     <i class="fas fa-calendar"></i>
                     <span>Calendar</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="global-nav-link" href="#" title="Inbox">
-                    <i class="fas fa-envelope"></i>
-                    <span>Inbox</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="global-nav-link" href="#" title="Documents">
-                    <i class="fas fa-file-alt"></i>
-                    <span>Documents</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -485,6 +473,39 @@
             const clientsPopup = document.getElementById('clientsPopup');
             const clientsPopupClose = document.getElementById('clientsPopupClose');
             const clientsList = document.getElementById('clientsList');
+            const myFirmLink = document.getElementById('myFirmLink');
+
+            // Initialize My Firm link
+            initializeMyFirmLink();
+
+            // Function to initialize My Firm link
+            async function initializeMyFirmLink() {
+                try {
+                    const response = await fetch('/Client/List', { credentials: 'include' });
+                    const result = await response.json();
+                    
+                    if (result.success && result.organizations) {
+                        // Find the user's firm organization (LawFirm type)
+                        const firmOrg = result.organizations.find(org => 
+                            org.organizationType === 'LawFirm'
+                        );
+                        
+                        if (firmOrg) {
+                            myFirmLink.href = `/Client/${firmOrg.organizationId}/Dashboard`;
+                        } else {
+                            // If no firm organization found, redirect to Global/Dashboard
+                            myFirmLink.href = '/Global/Dashboard';
+                        }
+                    } else {
+                        // Fallback to Global Dashboard if unable to fetch organizations
+                        myFirmLink.href = '/Global/Dashboard';
+                    }
+                } catch (error) {
+                    console.error('Error initializing My Firm link:', error);
+                    // Fallback to Global Dashboard on error
+                    myFirmLink.href = '/Global/Dashboard';
+                }
+            }
 
             // Populate clients list
             async function populateClientsList() {
@@ -517,7 +538,7 @@
                             <p class="client-status">${o.isPrimary ? 'Primary' : (o.isPersonal ? 'Personal' : 'Active')}</p>
                         `;
                         clientItem.addEventListener('click', () => {
-                            window.location.href = `/Client/${o.organizationId}/Matter`;
+                            window.location.href = `/Client/${o.organizationId}/Dashboard`;
                         });
                         clientsList.appendChild(clientItem);
                     });
