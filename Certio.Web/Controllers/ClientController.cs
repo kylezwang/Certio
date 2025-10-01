@@ -355,14 +355,6 @@ namespace Certio.Web.Controllers
             return View("~/Views/Settings/Index.cshtml");
         }
 
-        // GET /Client/{orgId}/Tasks
-        [Authorize(Policy = "OrgMember")]
-        [HttpGet("/Client/{orgId:int}/Tasks")]
-        public IActionResult Tasks(int orgId)
-        {
-            ViewBag.OrganizationId = orgId;
-            return View("~/Views/Client/Tasks.cshtml");
-        }
 
         // GET /Client/{orgId}/AddPeople
         [Authorize(Policy = "OrgMember")]

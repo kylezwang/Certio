@@ -120,6 +120,9 @@ namespace Certio.Web.Controllers
                     .CountAsync()
             };
 
+            // Set ViewBag for client layout navigation
+            ViewBag.OrganizationId = primaryOrg.OrganizationId;
+
             return View(viewModel);
         }
 
@@ -155,12 +158,31 @@ namespace Certio.Web.Controllers
                 return NotFound();
             }
 
+            // Set ViewBag for client layout navigation
+            ViewBag.OrganizationId = primaryOrg.OrganizationId;
+
             return View(matter);
         }
 
         // GET: Matter/Create
         public async Task<IActionResult> Create()
         {
+            // Get current user and their organization
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            var primaryOrg = customUser.GetPrimaryOrganization();
+            if (primaryOrg == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Set ViewBag for client layout navigation
+            ViewBag.OrganizationId = primaryOrg.OrganizationId;
+
             var viewModel = new MatterFormViewModel();
             
             // Populate org members data
@@ -174,6 +196,14 @@ namespace Certio.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(MatterFormViewModel model, string action)
         {
+            // Get current user and their organization for ViewBag
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            var primaryOrg = customUser?.GetPrimaryOrganization();
+            if (primaryOrg != null)
+            {
+                ViewBag.OrganizationId = primaryOrg.OrganizationId;
+            }
+
             // Always populate org members data
             await PopulateOrgMembersData(model);
             
@@ -213,15 +243,13 @@ namespace Certio.Web.Controllers
                 // Validate all required fields before creating
                 if (ValidateAllSteps(model))
                 {
-                    // Get current user and their organization
-                    var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+                    // Validate user and organization (already retrieved at top of method)
                     if (customUser == null)
                     {
                         TempData["ErrorMessage"] = "User not found. Please log in again.";
                         return RedirectToAction("Index", "Home");
                     }
 
-                    var primaryOrg = customUser.GetPrimaryOrganization();
                     if (primaryOrg == null)
                     {
                         TempData["ErrorMessage"] = "Organization not found. Please contact support.";
@@ -574,11 +602,27 @@ namespace Certio.Web.Controllers
                 return NotFound();
             }
 
+            // Get current user and their organization
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            var primaryOrg = customUser.GetPrimaryOrganization();
+            if (primaryOrg == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
             var matter = await _context.Matters.FindAsync(id);
             if (matter == null)
             {
                 return NotFound();
             }
+
+            // Set ViewBag for client layout navigation
+            ViewBag.OrganizationId = primaryOrg.OrganizationId;
 
             var viewModel = new MatterFormViewModel
             {
@@ -623,6 +667,14 @@ namespace Certio.Web.Controllers
             if (id != model.Id)
             {
                 return NotFound();
+            }
+
+            // Get current user and their organization for ViewBag
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            var primaryOrg = customUser?.GetPrimaryOrganization();
+            if (primaryOrg != null)
+            {
+                ViewBag.OrganizationId = primaryOrg.OrganizationId;
             }
 
             if (ModelState.IsValid)
@@ -728,6 +780,19 @@ namespace Certio.Web.Controllers
                 return NotFound();
             }
 
+            // Get current user and their organization
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            var primaryOrg = customUser.GetPrimaryOrganization();
+            if (primaryOrg == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
             var matter = await _context.Matters
                 .Include(p => p.Assignments)
                     .ThenInclude(a => a.User)
@@ -737,6 +802,9 @@ namespace Certio.Web.Controllers
             {
                 return NotFound();
             }
+
+            // Set ViewBag for client layout navigation
+            ViewBag.OrganizationId = primaryOrg.OrganizationId;
 
             return View(matter);
         }

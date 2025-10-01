@@ -40,6 +40,12 @@ namespace Certio.Web.Data
         public DbSet<StatusItemAssignment> StatusItemAssignments => Set<StatusItemAssignment>();
         public DbSet<StatusItemComment> StatusItemComments => Set<StatusItemComment>();
         
+        // Task Entities
+        public DbSet<TaskItem> TaskItems => Set<TaskItem>();
+        public DbSet<TaskAssignment> TaskAssignments => Set<TaskAssignment>();
+        public DbSet<TaskItemComment> TaskItemComments => Set<TaskItemComment>();
+        public DbSet<TaskItemDependency> TaskItemDependencies => Set<TaskItemDependency>();
+        
         // Document Entities
         public DbSet<Document> Documents => Set<Document>();
         public DbSet<DocumentVersion> DocumentVersions => Set<DocumentVersion>();
@@ -89,6 +95,8 @@ namespace Certio.Web.Data
             builder.Entity<Document>().HasIndex(d => d.CreatedAt);
             builder.Entity<ServiceRequest>().HasIndex(sr => sr.CreatedAt);
             builder.Entity<StatusItem>().HasIndex(si => si.MatterId);
+            builder.Entity<TaskItem>().HasIndex(ti => ti.MatterId);
+            builder.Entity<TaskItem>().HasIndex(ti => ti.OrgId);
             builder.Entity<Notification>().HasIndex(n => new { n.UserId, n.IsRead });
             builder.Entity<AuditLog>().HasIndex(a => new { a.EntityType, a.EntityId });
             
@@ -99,6 +107,7 @@ namespace Certio.Web.Data
             ConfigureUserOrganizationRelationships(builder);
             ConfigureUserRelationships(builder);
             ConfigureMatterRelationships(builder);
+            ConfigureTaskRelationships(builder);
             ConfigureDocumentRelationships(builder);
             ConfigureServiceRelationships(builder);
             ConfigureChatRelationships(builder);
@@ -261,6 +270,13 @@ namespace Certio.Web.Data
 
         private void ConfigureMatterRelationships(ModelBuilder builder)
         {
+            // Configure Organization relationship for Matter
+            builder.Entity<Matter>()
+                .HasOne(p => p.Organization)
+                .WithMany()
+                .HasForeignKey(p => p.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             builder.Entity<Matter>()
                 .HasMany(p => p.StatusItems)
                 .WithOne(si => si.Matter)
@@ -363,6 +379,79 @@ namespace Certio.Web.Data
                 .HasOne(mp => mp.RevokedBy)
                 .WithMany()
                 .HasForeignKey(mp => mp.RevokedById)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
+
+        private void ConfigureTaskRelationships(ModelBuilder builder)
+        {
+            // TaskItem -> Matter relationship
+            builder.Entity<TaskItem>()
+                .HasOne(ti => ti.Matter)
+                .WithMany()
+                .HasForeignKey(ti => ti.MatterId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // TaskItem -> Organization relationship
+            builder.Entity<TaskItem>()
+                .HasOne(ti => ti.Organization)
+                .WithMany()
+                .HasForeignKey(ti => ti.OrgId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // TaskItem self-referencing relationship (ParentTask -> SubTasks)
+            builder.Entity<TaskItem>()
+                .HasOne(ti => ti.ParentTaskItem)
+                .WithMany(ti => ti.SubTaskItems)
+                .HasForeignKey(ti => ti.ParentTaskItemId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // TaskItem -> TaskAssignments relationship
+            builder.Entity<TaskItem>()
+                .HasMany(ti => ti.TaskAssignments)
+                .WithOne(ta => ta.TaskItem)
+                .HasForeignKey(ta => ta.TaskItemId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // TaskItem -> Comments relationship
+            builder.Entity<TaskItem>()
+                .HasMany(ti => ti.Comments)
+                .WithOne(tic => tic.TaskItem)
+                .HasForeignKey(tic => tic.TaskItemId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // TaskItem -> Dependencies relationship
+            builder.Entity<TaskItem>()
+                .HasMany(ti => ti.Dependencies)
+                .WithOne(tid => tid.TaskItem)
+                .HasForeignKey(tid => tid.TaskItemId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // TaskItem -> DependentItems relationship
+            builder.Entity<TaskItem>()
+                .HasMany(ti => ti.DependentItems)
+                .WithOne(tid => tid.DependsOnTaskItem)
+                .HasForeignKey(tid => tid.DependsOnTaskItemId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // TaskAssignment -> User relationship
+            builder.Entity<TaskAssignment>()
+                .HasOne(ta => ta.User)
+                .WithMany()
+                .HasForeignKey(ta => ta.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // TaskItemComment -> User relationship
+            builder.Entity<TaskItemComment>()
+                .HasOne(tic => tic.User)
+                .WithMany()
+                .HasForeignKey(tic => tic.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // TaskItemComment self-referencing relationship (ParentComment -> Replies)
+            builder.Entity<TaskItemComment>()
+                .HasOne(tic => tic.ParentComment)
+                .WithMany(tic => tic.Replies)
+                .HasForeignKey(tic => tic.ParentCommentId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
 
