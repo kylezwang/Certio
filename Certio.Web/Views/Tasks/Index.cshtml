@@ -1,0 +1,241 @@
+@model Certio.Web.ViewModels.TasksViewModel
+@{
+    ViewData["Title"] = "Tasks";
+    Layout = "_ClientLayout";
+}
+
+<link rel="stylesheet" href="~/css/tasks.css" />
+
+<div class="tasks-page">
+    <!-- Top Bar -->
+    <div class="tasks-header">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="fw-bold mb-0">Tasks</h3>
+            <div class="d-flex gap-2">
+                <input type="text" id="taskSearchInput" class="form-control form-control-sm" placeholder="Search tasks..." style="width: 250px;">
+                <button class="btn btn-sm btn-outline-secondary" id="toggleCalendarBtn">
+                    <i class="bi bi-calendar3"></i> Calendar
+                </button>
+                <button class="btn btn-sm btn-primary" id="addTaskBtn">
+                    <i class="bi bi-plus-lg"></i> Add Task
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <div class="tasks-content">
+        <!-- Left Sidebar - Task Inbox -->
+        <div class="tasks-sidebar">
+            <div class="sidebar-header">
+                <h5 class="fw-bold mb-0">Tasks</h5>
+                <button class="btn btn-sm btn-link text-muted" id="refreshInboxBtn">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+            </div>
+            <div class="task-inbox" id="taskInbox">
+                @foreach (var task in Model.AllTasks.OrderBy(t => t.Status == "Completed" ? 1 : 0).ThenByDescending(t => t.CreatedAt))
+                {
+                    <div class="inbox-task-item @(task.Status == "Completed" ? "completed" : "")" data-task-id="@task.Id">
+                        <div class="form-check">
+                            <input class="form-check-input task-checkbox" type="checkbox" 
+                                   id="inbox-task-@task.Id" 
+                                   data-task-id="@task.Id"
+                                   @(task.Status == "Completed" ? "checked" : "")>
+                            <label class="form-check-label task-title" for="inbox-task-@task.Id">
+                                @task.Title
+                            </label>
+                        </div>
+                        @if (task.DueDate.HasValue)
+                        {
+                            <small class="task-due-date @(task.IsOverdue ? "text-danger" : "text-muted")">
+                                @task.DueDateFormatted
+                            </small>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Right Side - Kanban Board -->
+        <div class="kanban-board-container">
+            <div class="kanban-board" id="kanbanBoard">
+                <!-- Planned Column -->
+                <div class="kanban-column" data-status="Pending">
+                    <div class="column-header">
+                        <div class="d-flex align-items-center gap-2">
+                            <h6 class="mb-0 fw-bold">Planned</h6>
+                            <span class="badge bg-secondary">@Model.PlannedTasks.Count</span>
+                        </div>
+                        <button class="btn btn-sm btn-link text-muted column-add-btn" data-status="Pending">
+                            <i class="bi bi-plus-lg"></i>
+                        </button>
+                    </div>
+                    <div class="column-cards" id="column-pending">
+                        @foreach (var task in Model.PlannedTasks.OrderBy(t => t.Order))
+                        {
+                            <partial name="_TaskCard" model="task" />
+                        }
+                    </div>
+                </div>
+
+                <!-- In Progress Column -->
+                <div class="kanban-column" data-status="InProgress">
+                    <div class="column-header">
+                        <div class="d-flex align-items-center gap-2">
+                            <h6 class="mb-0 fw-bold">In Progress</h6>
+                            <span class="badge bg-primary">@Model.InProgressTasks.Count</span>
+                        </div>
+                        <button class="btn btn-sm btn-link text-muted column-add-btn" data-status="InProgress">
+                            <i class="bi bi-plus-lg"></i>
+                        </button>
+                    </div>
+                    <div class="column-cards" id="column-inprogress">
+                        @foreach (var task in Model.InProgressTasks.OrderBy(t => t.Order))
+                        {
+                            <partial name="_TaskCard" model="task" />
+                        }
+                    </div>
+                </div>
+
+                <!-- Review Column -->
+                <div class="kanban-column" data-status="Review">
+                    <div class="column-header">
+                        <div class="d-flex align-items-center gap-2">
+                            <h6 class="mb-0 fw-bold">Review</h6>
+                            <span class="badge bg-warning">@Model.ReviewTasks.Count</span>
+                        </div>
+                        <button class="btn btn-sm btn-link text-muted column-add-btn" data-status="Review">
+                            <i class="bi bi-plus-lg"></i>
+                        </button>
+                    </div>
+                    <div class="column-cards" id="column-review">
+                        @foreach (var task in Model.ReviewTasks.OrderBy(t => t.Order))
+                        {
+                            <partial name="_TaskCard" model="task" />
+                        }
+                    </div>
+                </div>
+
+                <!-- Completed Column -->
+                <div class="kanban-column" data-status="Completed">
+                    <div class="column-header">
+                        <div class="d-flex align-items-center gap-2">
+                            <h6 class="mb-0 fw-bold">Completed</h6>
+                            <span class="badge bg-success">@Model.CompletedTasks.Count</span>
+                        </div>
+                        <button class="btn btn-sm btn-link text-muted column-add-btn" data-status="Completed">
+                            <i class="bi bi-plus-lg"></i>
+                        </button>
+                    </div>
+                    <div class="column-cards" id="column-completed">
+                        @foreach (var task in Model.CompletedTasks.OrderBy(t => t.Order))
+                        {
+                            <partial name="_TaskCard" model="task" />
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar View (Hidden by default) -->
+    <div class="calendar-view d-none" id="calendarView">
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> Calendar integration coming soon. This will display tasks with due dates in a calendar format.
+        </div>
+    </div>
+</div>
+
+<!-- Task Detail Modal -->
+<div class="modal fade" id="taskDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" id="taskDetailTitle">Task Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="taskDetailContent">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Task Modal -->
+<div class="modal fade" id="taskFormModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="taskFormModalTitle">Add Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="taskForm">
+                <div class="modal-body">
+                    <input type="hidden" id="taskId" name="id">
+                    <div class="mb-3">
+                        <label for="taskMatter" class="form-label">Matter</label>
+                        <select class="form-select" id="taskMatter" name="matterId" required>
+                            <option value="">Select Matter</option>
+                            @foreach (var matter in Model.Matters)
+                            {
+                                <option value="@matter.Id">@matter.Title</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="taskTitle" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="taskTitle" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="taskDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="taskDescription" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="taskPriority" class="form-label">Priority</label>
+                            <select class="form-select" id="taskPriority" name="priority">
+                                <option value="Low">Low</option>
+                                <option value="Medium" selected>Medium</option>
+                                <option value="High">High</option>
+                                <option value="Critical">Critical</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="taskDueDate" class="form-label">Due Date</label>
+                            <input type="date" class="form-control" id="taskDueDate" name="dueDate">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="taskStatus" class="form-label">Status</label>
+                        <select class="form-select" id="taskStatus" name="status">
+                            <option value="Pending">Planned</option>
+                            <option value="InProgress">In Progress</option>
+                            <option value="Review">Review</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="~/js/tasks.js"></script>
+    <script>
+        // Pass model data to JavaScript
+        window.tasksData = {
+            matters: @Html.Raw(Json.Serialize(Model.Matters)),
+            users: @Html.Raw(Json.Serialize(Model.Users))
+        };
+    </script>
+}
+

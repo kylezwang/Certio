@@ -1,0 +1,68 @@
+@model Certio.Web.ViewModels.TaskItemViewModel
+
+<div class="task-card" data-task-id="@Model.Id" draggable="true">
+    <div class="task-card-header">
+        <div class="form-check">
+            <input class="form-check-input card-checkbox" type="checkbox" 
+                   id="card-task-@Model.Id" 
+                   data-task-id="@Model.Id"
+                   @(Model.Status == "Completed" ? "checked" : "")>
+        </div>
+        <span class="task-priority-badge @Model.PriorityClass">@Model.Priority</span>
+    </div>
+    
+    <div class="task-card-body" data-bs-toggle="modal" data-bs-target="#taskDetailModal" onclick="loadTaskDetail(@Model.Id)">
+        <h6 class="task-card-title">@Model.Title</h6>
+        
+        @if (!string.IsNullOrEmpty(Model.Description))
+        {
+            <p class="task-card-description">@Model.Description</p>
+        }
+        
+        <div class="task-card-meta">
+            @if (Model.TotalSubTasks > 0)
+            {
+                <div class="task-progress">
+                    <i class="bi bi-check2-square"></i>
+                    <span>@Model.CompletedSubTasks/@Model.TotalSubTasks</span>
+                    <div class="progress ms-2" style="width: 60px; height: 4px;">
+                        <div class="progress-bar" role="progressbar" 
+                             style="width: @Model.ProgressPercentage" 
+                             aria-valuenow="@Model.CompletedSubTasks" 
+                             aria-valuemin="0" 
+                             aria-valuemax="@Model.TotalSubTasks"></div>
+                    </div>
+                </div>
+            }
+            
+            @if (Model.DueDate.HasValue)
+            {
+                <div class="task-due @(Model.IsOverdue ? "overdue" : "")">
+                    <i class="bi bi-calendar3"></i>
+                    <span>@Model.DueDateFormatted</span>
+                </div>
+            }
+        </div>
+        
+        @if (Model.Assignments.Any())
+        {
+            <div class="task-card-footer">
+                <div class="task-assignees">
+                    @foreach (var assignment in Model.Assignments.Take(3))
+                    {
+                        <div class="assignee-avatar" title="@assignment.UserName">
+                            @assignment.UserInitials
+                        </div>
+                    }
+                    @if (Model.Assignments.Count > 3)
+                    {
+                        <div class="assignee-avatar">
+                            +@(Model.Assignments.Count - 3)
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+

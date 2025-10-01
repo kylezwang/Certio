@@ -179,12 +179,12 @@
     <!-- Quick Access Section -->
     <div class="card mb-4 border-0 gd-card">
         <div class="card-body p-4">
-            <h5 class="card-title fw-bold mb-4">Quick Access</h5>
+            <h5 class="card-title fw-bold mb-3">Quick Access</h5>
             
             <div class="row gx-4 gy-3">
                 @if (Model.OrganizationType == Certio.Domain.Organizations.OrganizationType.LawFirm)
                 {
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-3">
                         <a href="#" class="quick-access-item qa-card" data-action="open-global-clients">
                             <div class="d-flex flex-column align-items-center text-center p-3">
                                 <div class="quick-access-icon mb-2">
@@ -197,7 +197,7 @@
                 }
                 else
                 {
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-3">
                         <a href="/Client/@ViewBag.OrganizationId/Teams" class="quick-access-item qa-card">
                             <div class="d-flex flex-column align-items-center text-center p-3">
                                 <div class="quick-access-icon mb-2">
@@ -208,7 +208,7 @@
                         </a>
                     </div>
                 }
-                <div class="col-md-3 mb-3">
+                <div class="col-md-3">
                     <a href="#" class="quick-access-item qa-card">
                         <div class="d-flex flex-column align-items-center text-center p-3">
                             <div class="quick-access-icon mb-2">
@@ -218,7 +218,7 @@
                         </div>
                     </a>
                 </div>
-                <div class="col-md-3 mb-3">
+                <div class="col-md-3">
                     <a href="#" class="quick-access-item qa-card">
                         <div class="d-flex flex-column align-items-center text-center p-3">
                             <div class="quick-access-icon mb-2">
@@ -228,7 +228,7 @@
                         </div>
                     </a>
                 </div>
-                <div class="col-md-3 mb-3">
+                <div class="col-md-3">
                     <a href="#" class="quick-access-item qa-card">
                         <div class="d-flex flex-column align-items-center text-center p-3">
                             <div class="quick-access-icon mb-2">
@@ -238,7 +238,7 @@
                         </div>
                     </a>
                 </div>
-                <div class="col-md-3 mb-3">
+                <div class="col-md-3">
                     <a href="/Client/@ViewBag.OrganizationId/Matter" class="quick-access-item qa-card">
                         <div class="d-flex flex-column align-items-center text-center p-3">
                             <div class="quick-access-icon mb-2">
@@ -248,7 +248,7 @@
                         </div>
                     </a>
                 </div>
-                <div class="col-md-3 mb-3">
+                <div class="col-md-3">
                     <a href="/Client/@ViewBag.OrganizationId/Tasks" class="quick-access-item qa-card">
                         <div class="d-flex flex-column align-items-center text-center p-3">
                             <div class="quick-access-icon mb-2">
@@ -258,7 +258,7 @@
                         </div>
                     </a>
                 </div>
-                <div class="col-md-3 mb-3">
+                <div class="col-md-3">
                     <a href="#" class="quick-access-item qa-card">
                         <div class="d-flex flex-column align-items-center text-center p-3">
                             <div class="quick-access-icon mb-2">
@@ -268,7 +268,7 @@
                         </div>
                     </a>
                 </div>
-                <div class="col-md-3 mb-3">
+                <div class="col-md-3">
                     <a href="/Client/@ViewBag.OrganizationId/Documents" class="quick-access-item qa-card">
                         <div class="d-flex flex-column align-items-center text-center p-3">
                             <div class="quick-access-icon mb-2">
@@ -418,13 +418,14 @@
         border: 1px solid #e5e7eb;
         border-radius: 24px;
         background-color: #f9fafb;
+        font-size: 1rem;
     }
 
     /* Match placeholder to Matters subtitle (lead text) */
     .search-container-large input::placeholder {
-        font-size: 1.25rem; /* Bootstrap .lead size */
-        font-weight: 300;    /* Bootstrap .lead weight */
-        color: #6c757d;      /* Bootstrap .text-muted */
+        font-size: 1.1rem;
+        font-weight: 300;
+        color: #6c757d;
     }
 
     .search-container-large i.fa-plus {
