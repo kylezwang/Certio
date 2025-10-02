@@ -1,8 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using Certio.Domain.Users;
 using Certio.Domain.Documents;
+using Certio.Domain.Matters;
 
-namespace Certio.Domain.Matters
+namespace Certio.Domain.Tasks
 {
     public class TaskItem
     {
@@ -23,7 +24,7 @@ namespace Certio.Domain.Matters
         
         [Required]
         [StringLength(20)]
-        public string Status { get; set; } = "Pending"; // Pending, InProgress, Completed, Blocked, Cancelled
+        public string Status { get; set; } = "Pending"; // Pending, InProgress, Review, Completed
         
         [Required]
         [StringLength(20)]
@@ -127,4 +128,6 @@ namespace Certio.Domain.Matters
         public virtual TaskItem DependsOnTaskItem { get; set; } = null!;
     }
 }
+
+
 
