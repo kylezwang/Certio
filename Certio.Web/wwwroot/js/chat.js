@@ -422,7 +422,7 @@ function getCurrentOrganizationId() {
     }
     
     // Try to get from URL path (e.g., /Client/123/Chat/... or /Client/123/Matter)
-    const pathMatch = window.location.pathname.match(/\/Client\/(\d+)\/(?:Dashboard|Chat|Matter|Services|Documents|Teams|Settings)/);
+    const pathMatch = window.location.pathname.match(/\/Client\/(\d+)\/(?:Dashboard|Chat|Matter|Services|Documents|Teams|Settings|Tasks)/);
     if (pathMatch) {
         currentOrganizationId = parseInt(pathMatch[1]);
         return currentOrganizationId;

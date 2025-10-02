@@ -376,11 +376,11 @@
             if (isCalendarVisible) {
                 calendarView.classList.add('d-none');
                 kanbanBoard.classList.remove('d-none');
-                this.innerHTML = '<i class="bi bi-calendar3"></i> Calendar';
+                this.innerHTML = '<i class="fas fa-calendar"></i> Calendar';
             } else {
                 calendarView.classList.remove('d-none');
                 kanbanBoard.classList.add('d-none');
-                this.innerHTML = '<i class="bi bi-kanban"></i> Board';
+                this.innerHTML = '<i class="fa-solid fa-chart-simple" style="transform: rotate(180deg);"></i> Board';
             }
         });
     }

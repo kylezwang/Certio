@@ -90,6 +90,9 @@
     overflow-x: auto;
     overflow-y: hidden;
     padding: 1rem;
+    background: #0b365eCC;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .kanban-board {
@@ -100,13 +103,14 @@
 }
 
 .kanban-column {
-    width: 300px;
-    background: #f5f7fa;
-    border-radius: 8px;
+    width: 280px;
+    background: white;
+    border-radius: 12px;
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
     height: calc(100vh - 200px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .column-header {
@@ -114,7 +118,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 2px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    border-radius: 12px 12px 0 0;
 }
 
 .column-header h6 {
@@ -136,6 +141,7 @@
     overflow-y: auto;
     padding: 0.75rem;
     min-height: 100px;
+    border-radius: 0 0 12px 12px;
 }
 
 /* Task Card */
@@ -144,9 +150,10 @@
     border-radius: 8px;
     padding: 0.75rem;
     margin-bottom: 0.75rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     cursor: pointer;
     transition: all 0.2s;
+    border: 1px solid #e0e0e0;
 }
 
 .task-card:hover {
@@ -220,6 +227,7 @@
     margin-bottom: 0.75rem;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -328,7 +336,7 @@
     }
     
     .kanban-column {
-        width: 260px;
+        width: 240px;
     }
     
     .tasks-header .d-flex {
@@ -408,4 +416,680 @@
     background-color: #4caf50;
     transition: width 0.3s ease;
 }
+
+/* Bottom Navigation Bar */
+.bottom-navbar {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    border-radius: 25px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    padding: 8px 16px;
+    display: flex;
+    gap: 8px;
+    z-index: 1000;
+    border: 1px solid #e0e0e0;
+}
+
+.bottom-navbar .nav-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 60px;
+    text-align: center;
+    gap: 6px;
+}
+
+.bottom-navbar .nav-item:hover {
+    background-color: #f5f7fa;
+}
+
+.bottom-navbar .nav-item.active {
+    background-color: #007bff;
+    color: white;
+}
+
+.bottom-navbar .nav-item.multi-active {
+    background-color: #007bff;
+    color: white;
+}
+
+.bottom-navbar .nav-item.multi-active:hover {
+    background-color: #007bff;
+}
+
+.bottom-navbar .nav-item i {
+    font-size: 16px;
+    margin-bottom: 0;
+}
+
+.bottom-navbar .nav-item span {
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1;
+    text-align: left;
+}
+
+/* View Containers */
+.view-container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    background: #f5f7fa;
+    transition: all 0.3s ease;
+}
+
+/* Multi-view layout classes */
+.tasks-content.multi-view {
+    display: flex;
+    gap: 1rem;
+}
+
+.tasks-content.multi-view .view-container {
+    flex: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Width allocations for different view combinations */
+.tasks-content.inbox-planner .view-container#inboxView {
+    width: 25%;
+}
+
+.tasks-content.inbox-planner .view-container#plannerView {
+    width: 75%;
+}
+
+.tasks-content.inbox-board .view-container#inboxView {
+    width: 25%;
+}
+
+.tasks-content.inbox-board .view-container#boardView {
+    width: 75%;
+}
+
+.tasks-content.planner-board .view-container#plannerView {
+    width: 30%;
+}
+
+.tasks-content.planner-board .view-container#boardView {
+    width: 70%;
+}
+
+.tasks-content.all-views .view-container#inboxView {
+    width: 25%;
+}
+
+.tasks-content.all-views .view-container#plannerView {
+    width: 30%;
+}
+
+.tasks-content.all-views .view-container#boardView {
+    width: 45%;
+}
+
+/* Inbox Container */
+.inbox-container {
+    width: 100%;
+    height: 100%;
+    background: #9bc0ec;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    overflow-y: auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Inbox Header */
+.inbox-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.inbox-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.inbox-title i {
+    font-size: 1.2rem;
+    color: #232b39;
+}
+
+.inbox-title span {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-right: 1rem;
+    color: #232b39;
+}
+
+.inbox-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #4a5568;
+    transition: background-color 0.2s;
+}
+
+.action-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Add Card Input */
+.add-card-container {
+    margin-bottom: 1.5rem;
+}
+
+.add-card-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 8px;
+    background: white;
+    font-size: 0.9rem;
+    color: #4a5568;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.add-card-input::placeholder {
+    color: #a0aec0;
+}
+
+.add-card-input:focus {
+    outline: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Task Cards Container */
+.task-cards-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+.task-card-item {
+    background: white;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.2s;
+}
+
+.task-card-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.task-card-item .form-check {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.task-radio {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+}
+
+.task-card-item .form-check-label {
+    font-size: 0.9rem;
+    color: #2d3748;
+    font-weight: 500;
+    margin: 0;
+    cursor: pointer;
+}
+
+/* Floating Action Buttons */
+.floating-actions {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.5rem;
+    background: white;
+    padding: 0.5rem;
+    border-radius: 25px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 999;
+    transition: left 0.3s ease;
+}
+
+/* Center floating actions within inbox view when multi-view is active */
+.tasks-content.multi-view .floating-actions {
+    left: 12.5%; /* Center within inbox view (25% width) */
+    transform: translateX(-50%);
+}
+
+.floating-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: #f7fafc;
+    color: #4a5568;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.floating-btn:hover {
+    background: #edf2f7;
+    transform: translateY(-2px);
+}
+
+.floating-btn i {
+    font-size: 1rem;
+}
+
+/* Microsoft Teams button special styling */
+.floating-btn:nth-child(3) {
+    background: #6264a7;
+    color: white;
+}
+
+.floating-btn:nth-child(3):hover {
+    background: #4f52a0;
+}
+
+/* Planner/Calendar View */
+.planner-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+
+/* Calendar Header */
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: white;
+}
+
+.calendar-nav-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.month-year-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.44rem;
+    cursor: pointer;
+    padding: 0.75rem 0rem;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+    background: none;
+    border: none;
+    color: #333;
+}
+
+.month-year-selector:hover {
+    background-color: #f5f7fa;
+}
+
+.month-year-selector i:first-child {
+    font-size: 1rem;
+    color: #666;
+}
+
+.month-year {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.month-year-selector i:last-child {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.nav-btn {
+    background: #007bff;
+    border: none;
+    padding: 0.4rem 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    color: white;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-btn:hover {
+    background-color: #0056b3;
+}
+
+.nav-btn i {
+    color: white;
+}
+
+.today-btn {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.today-btn:hover {
+    background: #0056b3;
+}
+
+.calendar-nav-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.premium-badge {
+    background: #8b5cf6;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.calendar-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+    background: none;
+    border: none;
+    color: #666;
+}
+
+.calendar-selector:hover {
+    background-color: #f5f7fa;
+}
+
+.calendar-selector span {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.calendar-selector i {
+    font-size: 1rem;
+    color: #666;
+}
+
+/* All Day Row (Fixed) */
+.all-day-row {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    border-bottom: 1px solid #d0d0d0;
+    background: white;
+}
+
+.all-day-time-column {
+    background: #f8f9fa;
+    border-right: 1px solid #e0e0e0;
+}
+
+.all-day-calendar-columns {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.all-day-calendar-columns .calendar-column {
+    border-right: 1px solid #e0e0e0;
+}
+
+/* Calendar Grid */
+.calendar-grid {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.calendar-days-header {
+    display: grid;
+    grid-template-columns: 80px repeat(7, 1fr);
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.day-header {
+    padding: 0.75rem;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #666;
+    background: #f8f9fa;
+}
+
+.calendar-dates-header {
+    display: grid;
+    grid-template-columns: 80px repeat(7, 1fr);
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.date-cell {
+    padding: 0.75rem;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #333;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.date-cell:hover {
+    background-color: #f5f7fa;
+}
+
+.date-cell.active {
+    background: #8b5cf6;
+    color: white;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.calendar-time-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    overflow-y: auto;
+}
+
+.time-column {
+    background: #f8f9fa;
+    border-right: 1px solid #e0e0e0;
+}
+
+.time-slot {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.8rem;
+    color: #666;
+    text-align: right;
+    border-bottom: 1px solid #d0d0d0;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    position: relative;
+}
+
+.time-slot::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: #d0d0d0;
+}
+
+.time-slot.all-day {
+    font-weight: 600;
+    background: #f0f0f0;
+}
+
+.calendar-columns {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.calendar-column {
+    border-right: 1px solid #e0e0e0;
+}
+
+.time-cell {
+    border-bottom: 1px solid #d0d0d0;
+    min-height: 60px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    position: relative;
+}
+
+.time-cell::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: #d0d0d0;
+}
+
+.time-cell:hover {
+    background-color: #f8f9fa;
+}
+
+.time-cell.all-day-cell {
+    background: #f0f0f0;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+/* Count Badge Alignment and In Progress Styling */
+.column-header .d-flex {
+    align-items: center;
+}
+
+.badge.bg-primary {
+    background-color: #0d6efd !important;
+}
+
+/* Scrollbar for calendar */
+.calendar-time-grid::-webkit-scrollbar {
+    width: 8px;
+}
+
+.calendar-time-grid::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.calendar-time-grid::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+
+.calendar-time-grid::-webkit-scrollbar-thumb:hover {
+    background: #999;
+}
+
+/* Single column planner view for multi-view mode */
+.tasks-content.multi-view .planner-container .calendar-days-header {
+    grid-template-columns: 80px 1fr;
+}
+
+.tasks-content.multi-view .planner-container .calendar-dates-header {
+    grid-template-columns: 80px 1fr;
+}
+
+.tasks-content.multi-view .planner-container .all-day-calendar-columns {
+    grid-template-columns: 1fr;
+}
+
+.tasks-content.multi-view .planner-container .calendar-columns {
+    grid-template-columns: 1fr;
+}
+
+.tasks-content.multi-view .planner-container .calendar-column:last-child {
+    border-right: none;
+}
+
+/* Hide extra calendar columns in multi-view mode */
+.tasks-content.multi-view .planner-container .calendar-column:nth-child(n+2) {
+    display: none;
+}
+
+.tasks-content.multi-view .planner-container .all-day-calendar-columns .calendar-column:nth-child(n+2) {
+    display: none;
+}
+
+/* Hide premium and calendar fields in multi-view mode */
+.tasks-content.multi-view .premium-badge,
+.tasks-content.multi-view .calendar-selector {
+    display: none;
+}
+
+/* Single day header styling for multi-view */
+.tasks-content.multi-view .single-day-header {
+    display: grid !important;
+    grid-template-columns: 80px 1fr;
+}
+
+.tasks-content.multi-view .single-date-header {
+    display: grid !important;
+    grid-template-columns: 80px 1fr;
+}
+
+/* Hide full week headers in multi-view */
+.tasks-content.multi-view .calendar-days-header:not(.single-day-header),
+.tasks-content.multi-view .calendar-dates-header:not(.single-date-header) {
+    display: none !important;
+}
+
 

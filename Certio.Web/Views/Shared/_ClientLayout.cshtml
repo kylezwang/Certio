@@ -614,6 +614,106 @@
             display: none;
         }
     }
+
+    /* Toggle button styles */
+    .dark-mode-toggle, .ai-toggle {
+        background: none;
+        border: none;
+        color: #6b7280;
+        font-size: 1.2rem;
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    /* Make both toggle buttons square (wider) */
+    .dark-mode-toggle, .ai-toggle {
+        width: 2.5rem;
+        height: 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* User profile avatar styling */
+    .user-profile-avatar {
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: 2px solid white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-left: 1rem;
+        margin-bottom: 0.15rem;
+    }
+
+    .user-profile-avatar:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Organization name text field styling */
+    .organization-name-field {
+        color: #0b365e;
+        font-size: 1rem;
+        font-weight: 500;
+        padding: 0.5rem 0.75rem;
+        margin-left: 0.5rem;
+        background: none;
+        border: none;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease;
+        cursor: default;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 1;
+        min-width: 200px;
+        max-width: 400px;
+    }
+
+    .organization-name-field:hover {
+        background-color: rgba(11, 54, 94, 0.1);
+    }
+
+    .dark-mode-toggle:hover, .ai-toggle:hover {
+        background-color: rgba(11, 54, 94, 0.1);
+        color: #0b365e;
+    }
+
+    /* Chat panel hidden state with animation */
+    .chat-panel {
+        transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    .chat-hidden .chat-panel {
+        transform: translateX(100%);
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .client-main-content-wrapper {
+        transition: right 0.3s ease;
+    }
+
+    .chat-hidden .client-main-content-wrapper {
+        right: 1rem !important; /* Same leftover padding as sidebar toggle */
+    }
+
+    .chat-hidden .resize-handle {
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
 </style>
 
 <div class="min-h-screen" style="overflow-y:hidden;">
@@ -624,17 +724,55 @@
             <i class="fas fa-bars"></i>
         </button>
         
+        <!-- Organization Name Field -->
+        <div class="organization-name-field d-none d-xl-block" title="@(ViewBag.OrganizationName ?? "Organization")">
+            @(ViewBag.OrganizationName ?? "Organization")
+        </div>
+        
         <div class="d-flex justify-content-center align-items-center w-100">
-            <div class="search-container" style="max-width: 600px; width: 100%; margin: 0 auto; position: relative;">
+            <div class="search-container" style="max-width: 600px; width: 100%; margin: 0 auto; position: relative; flex-shrink: 0;">
                 <i class="fas fa-search" style="position: absolute; left: 50%; transform: translate(-200%, -50%); top: 50%; color: #6b7280;"></i>
                 <input type="text" class="form-control" placeholder="Search" 
-                       style="height: 44px; line-height: 1.25; border-radius: 24px; padding: 0.75rem 1rem 0.75rem 3rem; background-color: #f9fafb; font-size: 1rem; text-align: center;" />
+                       style="height: 2.5rem; line-height: 1.25; border-radius: 24px; padding: 0.75rem 1rem 0.75rem 3rem; background-color: #f9fafb; font-size: 1rem; text-align: center;" />
             </div>
+            <!-- Notifications Button -->
+            <button class="ai-toggle" id="notificationsBtn" type="button" title="Show Notifications" style="margin-left: 1rem;">
+                <i class="fa-solid fa-bell"></i>
+            </button>
+            
             
             <!-- Dark Mode Toggle -->
             <button class="dark-mode-toggle" id="darkModeToggle" type="button" title="Toggle Dark Mode" style="margin-left: 1rem;">
                 <i class="fas fa-moon" id="darkModeIcon"></i>
             </button>
+            <!-- Communications Button -->
+            <button class="ai-toggle" id="communicationsBtn" type="button" title="Communications" style="margin-left: 1rem;">
+                <i class="fas fa-comments"></i>
+            </button>
+            
+            <!-- AI Chat Toggle -->
+            <button class="ai-toggle" id="aiToggle" type="button" title="Toggle AI Chat Panel" style="margin-left: 1rem;">
+                <i class="bi bi-stars"></i>
+            </button>
+            
+            <!-- User Profile Avatar -->
+            @{
+                var currentUser = Context.Items["CustomUser"] as Certio.Domain.Users.User;
+                var userInitials = "";
+                if (currentUser != null)
+                {
+                    var fullName = $"{currentUser.FirstName} {currentUser.LastName}";
+                    var parts = fullName.Split(' ');
+                    userInitials = parts.Length >= 2 ? $"{parts[0][0]}{parts[1][0]}" : fullName.Substring(0, Math.Min(2, fullName.Length));
+                }
+                else
+                {
+                    userInitials = "U";
+                }
+            }
+            <div class="user-profile-avatar" title="@(currentUser?.FirstName ?? "User") @(currentUser?.LastName ?? "")">
+                @userInitials
+            </div>
         </div>
     </div>
 
@@ -726,7 +864,7 @@
                                 <div class="calendar-week">
                                     <div class="calendar-day current-month">13</div>
                                     <div class="calendar-day current-month">14</div>
-                                    <div class="calendar-day current-month selected">15</div>
+                                    <div class="calendar-day current-month">15</div>
                                     <div class="calendar-day current-month">16</div>
                                     <div class="calendar-day current-month">17</div>
                                     <div class="calendar-day current-month">18</div>
@@ -805,7 +943,7 @@
                 </div>
                 <div class="nav-item">
                     <a href="/Client/@ViewBag.OrganizationId/Tasks" 
-                       class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Tasks" ? "active" : "")">
+                       class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" && ViewContext.RouteData.Values["controller"]?.ToString() == "Tasks" ? "active" : "")">
                         <i class="fa-solid fa-bars-progress"></i>
                         <span>Tasks</span>
                     </a>
@@ -1163,6 +1301,72 @@
             if (localStorage.getItem('sidebarHidden') === 'true') {
                 document.body.classList.add('sidebar-hidden');
             }
+        }
+        
+        // AI Chat Toggle
+        const aiToggle = document.getElementById('aiToggle');
+        const aiToggleIcon = document.getElementById('aiToggleIcon');
+        
+        // Check for saved AI chat preference or default to visible
+        const isChatHidden = localStorage.getItem('chatHidden') === 'true';
+        if (isChatHidden) {
+            document.body.classList.add('chat-hidden');
+            if (aiToggleIcon) {
+                aiToggleIcon.classList.remove('fa-robot');
+                aiToggleIcon.classList.add('fa-eye-slash');
+            }
+        }
+        
+        // Toggle AI chat panel
+        if (aiToggle) {
+            aiToggle.addEventListener('click', function() {
+                document.body.classList.toggle('chat-hidden');
+                const isHidden = document.body.classList.contains('chat-hidden');
+                localStorage.setItem('chatHidden', isHidden);
+                
+                // Update icon
+                if (aiToggleIcon) {
+                    if (isHidden) {
+                        aiToggleIcon.classList.remove('fa-robot');
+                        aiToggleIcon.classList.add('fa-eye-slash');
+                    } else {
+                        aiToggleIcon.classList.remove('fa-eye-slash');
+                        aiToggleIcon.classList.add('fa-robot');
+                    }
+                }
+            });
+        }
+        
+        // Notifications Toggle
+        const notificationsBtn = document.getElementById('notificationsBtn');
+        if (notificationsBtn) {
+            // Check for saved notifications preference or default to visible
+            const isNotificationsHidden = localStorage.getItem('notificationsHidden') === 'true';
+            if (isNotificationsHidden) {
+                const icon = notificationsBtn.querySelector('i');
+                icon.classList.remove('fa-bell');
+                icon.classList.add('fa-bell-slash');
+                notificationsBtn.title = 'Hide Notifications';
+            }
+            
+            notificationsBtn.addEventListener('click', function() {
+                const icon = this.querySelector('i');
+                const isHidden = icon.classList.contains('fa-bell-slash');
+                
+                if (isHidden) {
+                    // Show notifications
+                    icon.classList.remove('fa-bell-slash');
+                    icon.classList.add('fa-bell');
+                    this.title = 'Show Notifications';
+                    localStorage.setItem('notificationsHidden', 'false');
+                } else {
+                    // Hide notifications
+                    icon.classList.remove('fa-bell');
+                    icon.classList.add('fa-bell-slash');
+                    this.title = 'Hide Notifications';
+                    localStorage.setItem('notificationsHidden', 'true');
+                }
+            });
         }
         
         // Dark Mode Toggle
