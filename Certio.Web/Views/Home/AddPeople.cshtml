@@ -7,7 +7,7 @@
 <div class="min-h-screen bg-gradient-subtle py-8">
     <div class="container-fluid">
         <div class="mb-4">
-            <a href="@Url.Action("Teams", "Home")" class="btn btn-ghost d-flex align-items-center gap-2 text-decoration-none">
+            <a href="@Url.Action("Teams", "Client", new { orgId = ViewBag.OrganizationId ?? 0 })" class="btn btn-ghost d-flex align-items-center gap-2 text-decoration-none">
                 <i class="fas fa-arrow-left"></i>
                 Back to Teams
             </a>
@@ -30,7 +30,7 @@
                         }
                         @* Modal is triggered below when JoinCode is present *@
 
-                        <form asp-action="AddPeople" asp-controller="Home" method="post">
+                        <form asp-action="AddPeople" asp-controller="Client" asp-route-orgId="@ViewBag.OrganizationId" method="post">
                             <div class="mb-4">
                                 <label asp-for="Email" class="form-label fw-bold text-dark">Email <span class="text-danger">*</span></label>
                                 <input asp-for="Email" class="form-control form-control-lg" placeholder="name@example.com" />

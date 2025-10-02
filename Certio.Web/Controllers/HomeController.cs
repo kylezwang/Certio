@@ -204,6 +204,16 @@ namespace Certio.Web.Controllers
         [HttpGet]
         public IActionResult AddPeople()
         {
+            // Prefer org-scoped route: redirect to current primary organization if available
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            var primaryOrg = customUser?.GetPrimaryOrganization();
+            if (primaryOrg != null)
+            {
+                return RedirectToAction("AddPeople", "Client", new { orgId = primaryOrg.OrganizationId });
+            }
+
+            // Fallback to existing view if no primary organization is set
+            TempData["Error"] = "User must have a primary organization to add people.";
             return View(new Certio.Web.ViewModels.AddPeopleViewModel());
         }
 
@@ -579,7 +589,7 @@ namespace Certio.Web.Controllers
                     // Create new client organization
                     var org = new Certio.Domain.Organizations.Organization
                     {
-                        Name = organizationName ?? $"{firstName} {lastName}",
+                        Name = organizationName ?? $"{firstName} {lastName}'s Organization",
                         Description = "Client Organization",
                         OwnerId = customUser.Id,
                         Type = Certio.Domain.Organizations.OrganizationType.Client,
@@ -598,7 +608,7 @@ namespace Certio.Web.Controllers
                     // Create new law firm organization
                     var org = new Certio.Domain.Organizations.Organization
                     {
-                        Name = organizationName ?? $"{firstName} {lastName} Law Firm",
+                        Name = organizationName ?? $"{firstName} {lastName}'s Law Firm",
                         Description = "Law Firm Organization",
                         OwnerId = customUser.Id,
                         Type = Certio.Domain.Organizations.OrganizationType.LawFirm,
@@ -617,7 +627,7 @@ namespace Certio.Web.Controllers
                     // Default: Create client organization
                     var org = new Certio.Domain.Organizations.Organization
                     {
-                        Name = $"{firstName} {lastName}",
+                        Name = $"{firstName} {lastName}'s Organization",
                         Description = "Client Organization",
                         OwnerId = customUser.Id,
                         Type = Certio.Domain.Organizations.OrganizationType.Client,

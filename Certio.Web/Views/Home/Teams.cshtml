@@ -13,7 +13,7 @@
                 Manage team members across all matter stakeholders
             </p>
         </div>
-        <a class="btn btn-primary d-flex align-items-center gap-2" asp-controller="Home" asp-action="AddPeople">
+        <a class="btn btn-primary d-flex align-items-center gap-2" asp-controller="Client" asp-action="AddPeople" asp-route-orgId="@ViewBag.OrganizationId">
             <i class="fas fa-user-plus"></i>
             Add people
         </a>

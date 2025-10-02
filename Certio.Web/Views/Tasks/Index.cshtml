@@ -7,142 +7,486 @@
 <link rel="stylesheet" href="~/css/tasks.css" />
 
 <div class="tasks-page">
-    <!-- Top Bar -->
-    <div class="tasks-header">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3 class="fw-bold mb-0">Tasks</h3>
-            <div class="d-flex gap-2">
-                <input type="text" id="taskSearchInput" class="form-control form-control-sm" placeholder="Search tasks..." style="width: 250px;">
-                <button class="btn btn-sm btn-outline-secondary" id="toggleCalendarBtn">
-                    <i class="bi bi-calendar3"></i> Calendar
-                </button>
-                <button class="btn btn-sm btn-primary" id="addTaskBtn">
-                    <i class="bi bi-plus-lg"></i> Add Task
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- Main Content Container -->
     <div class="tasks-content">
-        <!-- Left Sidebar - Task Inbox -->
-        <div class="tasks-sidebar">
-            <div class="sidebar-header">
-                <h5 class="fw-bold mb-0">Tasks</h5>
-                <button class="btn btn-sm btn-link text-muted" id="refreshInboxBtn">
-                    <i class="bi bi-arrow-clockwise"></i>
-                </button>
-            </div>
-            <div class="task-inbox" id="taskInbox">
-                @foreach (var task in Model.AllTasks.OrderBy(t => t.Status == "Completed" ? 1 : 0).ThenByDescending(t => t.CreatedAt))
-                {
-                    <div class="inbox-task-item @(task.Status == "Completed" ? "completed" : "")" data-task-id="@task.Id">
-                        <div class="form-check">
-                            <input class="form-check-input task-checkbox" type="checkbox" 
-                                   id="inbox-task-@task.Id" 
-                                   data-task-id="@task.Id"
-                                   @(task.Status == "Completed" ? "checked" : "")>
-                            <label class="form-check-label task-title" for="inbox-task-@task.Id">
-                                @task.Title
-                            </label>
-                        </div>
-                        @if (task.DueDate.HasValue)
-                        {
-                            <small class="task-due-date @(task.IsOverdue ? "text-danger" : "text-muted")">
-                                @task.DueDateFormatted
-                            </small>
-                        }
+        <!-- Inbox View -->
+        <div class="view-container" id="inboxView">
+            <div class="inbox-container">
+                <!-- Inbox Header -->
+                <div class="inbox-header">
+                    <div class="inbox-title">
+                        <i class="fas fa-bars-progress"></i>
+                        <span>Tasks</span>
                     </div>
-                }
+                    <div class="inbox-actions">
+                        <button class="action-btn">
+                            <i class="fas fa-volume-up"></i>
+                        </button>
+                        <button class="action-btn">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <button class="action-btn">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Add Card Input -->
+                <div class="add-card-container">
+                    <input type="text" class="add-card-input" placeholder="Add a task">
+                </div>
+
+                <!-- Task Cards -->
+                <div class="task-cards-container">
+                    <div class="task-card-item">
+                        <div class="form-check">
+                            <input class="form-check-input task-radio" type="radio" name="task" id="task2">
+                            <label class="form-check-label" for="task2">Example Task #2</label>
+                        </div>
+                    </div>
+                    <div class="task-card-item">
+                        <div class="form-check">
+                            <input class="form-check-input task-radio" type="radio" name="task" id="task3">
+                            <label class="form-check-label" for="task3">Example Task #3</label>
+                        </div>
+                    </div>
+                    <div class="task-card-item">
+                        <div class="form-check">
+                            <input class="form-check-input task-radio" type="radio" name="task" id="task1">
+                            <label class="form-check-label" for="task1">Example Task #1</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Floating Action Buttons -->
+                <div class="floating-actions">
+                    <button class="floating-btn">
+                        <i class="fas fa-envelope"></i>
+                    </button>
+                    <button class="floating-btn">
+                        <i class="fab fa-slack"></i>
+                    </button>
+                    <button class="floating-btn">
+                        <i class="fab fa-microsoft"></i>
+                    </button>
+                    <button class="floating-btn">
+                        <i class="fas fa-mobile-alt"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
-        <!-- Right Side - Kanban Board -->
-        <div class="kanban-board-container">
-            <div class="kanban-board" id="kanbanBoard">
-                <!-- Planned Column -->
-                <div class="kanban-column" data-status="Pending">
-                    <div class="column-header">
-                        <div class="d-flex align-items-center gap-2">
-                            <h6 class="mb-0 fw-bold">Planned</h6>
-                            <span class="badge bg-secondary">@Model.PlannedTasks.Count</span>
-                        </div>
-                        <button class="btn btn-sm btn-link text-muted column-add-btn" data-status="Pending">
-                            <i class="bi bi-plus-lg"></i>
+        <!-- Planner View -->
+        <div class="view-container" id="plannerView">
+            <div class="planner-container">
+                <!-- Calendar Navigation Header -->
+                <div class="calendar-header">
+                    <div class="calendar-nav-left">
+                        <button class="month-year-selector">
+                            <i class="fas fa-calendar"></i>
+                            <span class="month-year">Oct 2025</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <button class="nav-btn" id="prevWeekBtn">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="today-btn" id="todayBtn">Today</button>
+                        <button class="nav-btn" id="nextWeekBtn">
+                            <i class="fas fa-chevron-right"></i>
                         </button>
                     </div>
-                    <div class="column-cards" id="column-pending">
-                        @foreach (var task in Model.PlannedTasks.OrderBy(t => t.Order))
-                        {
-                            <partial name="_TaskCard" model="task" />
-                        }
+                    <div class="calendar-nav-right">
+                        <div class="premium-badge">PREMIUM</div>
+                        <button class="calendar-selector">
+                            <span>1 calendar</span>
+                            <i class="bi bi-gear"></i>
+                        </button>
                     </div>
                 </div>
 
-                <!-- In Progress Column -->
-                <div class="kanban-column" data-status="InProgress">
-                    <div class="column-header">
-                        <div class="d-flex align-items-center gap-2">
-                            <h6 class="mb-0 fw-bold">In Progress</h6>
-                            <span class="badge bg-primary">@Model.InProgressTasks.Count</span>
-                        </div>
-                        <button class="btn btn-sm btn-link text-muted column-add-btn" data-status="InProgress">
-                            <i class="bi bi-plus-lg"></i>
-                        </button>
+                <!-- Calendar Grid -->
+                <div class="calendar-grid">
+                    <!-- Days Header -->
+                    <div class="calendar-days-header">
+                        <div class="day-header">Sun</div>
+                        <div class="day-header">Mon</div>
+                        <div class="day-header">Tue</div>
+                        <div class="day-header">Wed</div>
+                        <div class="day-header">Thu</div>
+                        <div class="day-header">Fri</div>
+                        <div class="day-header">Sat</div>
                     </div>
-                    <div class="column-cards" id="column-inprogress">
-                        @foreach (var task in Model.InProgressTasks.OrderBy(t => t.Order))
-                        {
-                            <partial name="_TaskCard" model="task" />
-                        }
+
+                    <!-- Dates Header -->
+                    <div class="calendar-dates-header">
+                        <div class="date-cell">28</div>
+                        <div class="date-cell">29</div>
+                        <div class="date-cell">30</div>
+                        <div class="date-cell active">1</div>
+                        <div class="date-cell">2</div>
+                        <div class="date-cell">3</div>
+                        <div class="date-cell">4</div>
+                    </div>
+
+                    <!-- Single Day Header for Multi-view -->
+                    <div class="calendar-days-header single-day-header d-none">
+                        <div class="day-header">Wed</div>
+                    </div>
+
+                    <!-- Single Date Header for Multi-view -->
+                    <div class="calendar-dates-header single-date-header d-none">
+                        <div class="date-cell active">1</div>
+                    </div>
+
+                    <!-- All Day Row (Fixed) -->
+                    <div class="all-day-row">
+                        <div class="all-day-time-column">
+                            <div class="time-slot all-day">All day</div>
+                        </div>
+                        <div class="all-day-calendar-columns">
+                            <div class="calendar-column">
+                                <div class="time-cell all-day-cell"></div>
+                            </div>
+                            <div class="calendar-column">
+                                <div class="time-cell all-day-cell"></div>
+                            </div>
+                            <div class="calendar-column">
+                                <div class="time-cell all-day-cell"></div>
+                            </div>
+                            <div class="calendar-column">
+                                <div class="time-cell all-day-cell"></div>
+                            </div>
+                            <div class="calendar-column">
+                                <div class="time-cell all-day-cell"></div>
+                            </div>
+                            <div class="calendar-column">
+                                <div class="time-cell all-day-cell"></div>
+                            </div>
+                            <div class="calendar-column">
+                                <div class="time-cell all-day-cell"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Time Grid (Scrollable) -->
+                    <div class="calendar-time-grid">
+                        <div class="time-column">
+                            <div class="time-slot">12 am</div>
+                            <div class="time-slot">1 am</div>
+                            <div class="time-slot">2 am</div>
+                            <div class="time-slot">3 am</div>
+                            <div class="time-slot">4 am</div>
+                            <div class="time-slot">5 am</div>
+                            <div class="time-slot">6 am</div>
+                            <div class="time-slot">7 am</div>
+                            <div class="time-slot">8 am</div>
+                            <div class="time-slot">9 am</div>
+                            <div class="time-slot">10 am</div>
+                            <div class="time-slot">11 am</div>
+                            <div class="time-slot">12 pm</div>
+                            <div class="time-slot">1 pm</div>
+                            <div class="time-slot">2 pm</div>
+                            <div class="time-slot">3 pm</div>
+                            <div class="time-slot">4 pm</div>
+                            <div class="time-slot">5 pm</div>
+                            <div class="time-slot">6 pm</div>
+                            <div class="time-slot">7 pm</div>
+                            <div class="time-slot">8 pm</div>
+                            <div class="time-slot">9 pm</div>
+                            <div class="time-slot">10 pm</div>
+                            <div class="time-slot">11 pm</div>
+                        </div>
+                        <div class="calendar-columns">
+                            <div class="calendar-column">
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                            </div>
+                            <div class="calendar-column">
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                            </div>
+                            <div class="calendar-column">
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                            </div>
+                            <div class="calendar-column">
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                            </div>
+                            <div class="calendar-column">
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                            </div>
+                            <div class="calendar-column">
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                            </div>
+                            <div class="calendar-column">
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                                <div class="time-cell"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <!-- Review Column -->
-                <div class="kanban-column" data-status="Review">
-                    <div class="column-header">
-                        <div class="d-flex align-items-center gap-2">
-                            <h6 class="mb-0 fw-bold">Review</h6>
-                            <span class="badge bg-warning">@Model.ReviewTasks.Count</span>
+        <!-- Board View -->
+        <div class="view-container" id="boardView">
+            <div class="kanban-board-container">
+                <div class="kanban-board" id="kanbanBoardFull">
+                    <!-- Planned Column -->
+                    <div class="kanban-column" data-status="Pending">
+                        <div class="column-header">
+                            <div class="d-flex align-items-center">
+                                <h6 class="mb-0 fw-bold">Planned</h6>
+                                <span class="badge bg-secondary" style="margin-left: 0.75rem;">@Model.PlannedTasks.Count</span>
+                            </div>
+                            <button class="btn btn-sm btn-link text-muted column-add-btn" data-status="Pending">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
                         </div>
-                        <button class="btn btn-sm btn-link text-muted column-add-btn" data-status="Review">
-                            <i class="bi bi-plus-lg"></i>
-                        </button>
+                        <div class="column-cards" id="column-pending-full">
+                            @foreach (var task in Model.PlannedTasks.OrderBy(t => t.Order))
+                            {
+                                <partial name="_TaskCard" model="task" />
+                            }
+                        </div>
                     </div>
-                    <div class="column-cards" id="column-review">
-                        @foreach (var task in Model.ReviewTasks.OrderBy(t => t.Order))
-                        {
-                            <partial name="_TaskCard" model="task" />
-                        }
-                    </div>
-                </div>
 
-                <!-- Completed Column -->
-                <div class="kanban-column" data-status="Completed">
-                    <div class="column-header">
-                        <div class="d-flex align-items-center gap-2">
-                            <h6 class="mb-0 fw-bold">Completed</h6>
-                            <span class="badge bg-success">@Model.CompletedTasks.Count</span>
+                    <!-- In Progress Column -->
+                    <div class="kanban-column" data-status="InProgress">
+                        <div class="column-header">
+                            <div class="d-flex align-items-center">
+                                <h6 class="mb-0 fw-bold">In Progress</h6>
+                                <span class="badge bg-primary" style="margin-left: 0.75rem;">@Model.InProgressTasks.Count</span>
+                            </div>
+                            <button class="btn btn-sm btn-link text-muted column-add-btn" data-status="InProgress">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
                         </div>
-                        <button class="btn btn-sm btn-link text-muted column-add-btn" data-status="Completed">
-                            <i class="bi bi-plus-lg"></i>
-                        </button>
+                        <div class="column-cards" id="column-inprogress-full">
+                            @foreach (var task in Model.InProgressTasks.OrderBy(t => t.Order))
+                            {
+                                <partial name="_TaskCard" model="task" />
+                            }
+                        </div>
                     </div>
-                    <div class="column-cards" id="column-completed">
-                        @foreach (var task in Model.CompletedTasks.OrderBy(t => t.Order))
-                        {
-                            <partial name="_TaskCard" model="task" />
-                        }
+
+                    <!-- Review Column -->
+                    <div class="kanban-column" data-status="Review">
+                        <div class="column-header">
+                            <div class="d-flex align-items-center">
+                                <h6 class="mb-0 fw-bold">Review</h6>
+                                <span class="badge bg-warning" style="margin-left: 0.75rem;">@Model.ReviewTasks.Count</span>
+                            </div>
+                            <button class="btn btn-sm btn-link text-muted column-add-btn" data-status="Review">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
+                        </div>
+                        <div class="column-cards" id="column-review-full">
+                            @foreach (var task in Model.ReviewTasks.OrderBy(t => t.Order))
+                            {
+                                <partial name="_TaskCard" model="task" />
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Completed Column -->
+                    <div class="kanban-column" data-status="Completed">
+                        <div class="column-header">
+                            <div class="d-flex align-items-center">
+                                <h6 class="mb-0 fw-bold">Completed</h6>
+                                <span class="badge bg-success" style="margin-left: 0.75rem;">@Model.CompletedTasks.Count</span>
+                            </div>
+                            <button class="btn btn-sm btn-link text-muted column-add-btn" data-status="Completed">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
+                        </div>
+                        <div class="column-cards" id="column-completed-full">
+                            @foreach (var task in Model.CompletedTasks.OrderBy(t => t.Order))
+                            {
+                                <partial name="_TaskCard" model="task" />
+                            }
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Calendar View (Hidden by default) -->
-    <div class="calendar-view d-none" id="calendarView">
-        <div class="alert alert-info">
-            <i class="bi bi-info-circle"></i> Calendar integration coming soon. This will display tasks with due dates in a calendar format.
+
+    <!-- Bottom Navigation Bar -->
+    <div class="bottom-navbar">
+        <div class="nav-item multi-active" data-view="inbox">
+            <i class="fas fa-bars-progress"></i>
+            <span>Tasks</span>
+        </div>
+        <div class="nav-item multi-active" data-view="planner">
+            <i class="fas fa-calendar"></i>
+            <span>Planner</span>
+        </div>
+        <div class="nav-item multi-active" data-view="board">
+            <i class="fa-solid fa-chart-simple" style="transform: rotate(180deg);"></i>
+            <span>Board</span>
+        </div>
+        <div class="nav-item" data-view="switch">
+            <i class="bi bi-stack"></i>
+            <span>Switch Matters</span>
         </div>
     </div>
 </div>
@@ -236,6 +580,232 @@
             matters: @Html.Raw(Json.Serialize(Model.Matters)),
             users: @Html.Raw(Json.Serialize(Model.Users))
         };
+
+        // Bottom navbar multi-view toggle functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ensure conversations are loaded for the Tasks page
+            setTimeout(function() {
+                if (typeof loadConversationsForPanel === 'function') {
+                    console.log('Tasks page: Loading conversations...');
+                    loadConversationsForPanel();
+                } else {
+                    console.error('Tasks page: loadConversationsForPanel function not available');
+                }
+            }, 100); // Small delay to ensure chat.js is loaded
+            
+            const navItems = document.querySelectorAll('.bottom-navbar .nav-item');
+            const viewContainers = document.querySelectorAll('.view-container');
+            const tasksContent = document.querySelector('.tasks-content');
+            
+            // Track active views
+            let activeViews = new Set(['inbox', 'planner', 'board']); // Default to all views
+            
+            // Initialize the layout
+            updateViewLayout();
+
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const view = this.getAttribute('data-view');
+                    
+                    // Skip switch matters for now
+                    if (view === 'switch') {
+                        return;
+                    }
+                    
+                    // Toggle the view
+                    if (activeViews.has(view)) {
+                        // If it's the only active view, don't remove it
+                        if (activeViews.size === 1) {
+                            return;
+                        }
+                        activeViews.delete(view);
+                    } else {
+                        activeViews.add(view);
+                    }
+                    
+                    updateViewLayout();
+                });
+            });
+            
+            function updateViewLayout() {
+                // Update navbar visual state
+                navItems.forEach(nav => {
+                    const view = nav.getAttribute('data-view');
+                    nav.classList.remove('active', 'multi-active');
+                    
+                    if (activeViews.has(view)) {
+                        if (activeViews.size === 1) {
+                            nav.classList.add('active');
+                        } else {
+                            nav.classList.add('multi-active');
+                        }
+                    }
+                });
+                
+                // Update view containers visibility
+                viewContainers.forEach(container => {
+                    container.classList.add('d-none');
+                });
+                
+                // Show active views
+                activeViews.forEach(view => {
+                    const targetView = document.getElementById(view + 'View');
+                    if (targetView) {
+                        targetView.classList.remove('d-none');
+                    }
+                });
+                
+                // Update layout classes
+                tasksContent.classList.remove('multi-view', 'inbox-planner', 'inbox-board', 'planner-board', 'all-views');
+                
+                if (activeViews.size > 1) {
+                    tasksContent.classList.add('multi-view');
+                    
+                    // Apply specific layout classes based on active views
+                    const viewsArray = Array.from(activeViews);
+                    
+                    if (viewsArray.length === 2) {
+                        if (viewsArray.includes('inbox') && viewsArray.includes('planner')) {
+                            tasksContent.classList.add('inbox-planner');
+                        } else if (viewsArray.includes('inbox') && viewsArray.includes('board')) {
+                            tasksContent.classList.add('inbox-board');
+                        } else if (viewsArray.includes('planner') && viewsArray.includes('board')) {
+                            tasksContent.classList.add('planner-board');
+                        }
+                    } else if (viewsArray.length === 3) {
+                        tasksContent.classList.add('all-views');
+                    }
+                }
+                
+                // Update floating actions positioning
+                updateFloatingActionsPosition();
+            }
+
+            // Calendar navigation functionality
+            const prevWeekBtn = document.getElementById('prevWeekBtn');
+            const nextWeekBtn = document.getElementById('nextWeekBtn');
+            const todayBtn = document.getElementById('todayBtn');
+
+            if (prevWeekBtn) {
+                prevWeekBtn.addEventListener('click', function() {
+                    // TODO: Implement previous week navigation
+                    console.log('Previous week clicked');
+                });
+            }
+
+            if (nextWeekBtn) {
+                nextWeekBtn.addEventListener('click', function() {
+                    // TODO: Implement next week navigation
+                    console.log('Next week clicked');
+                });
+            }
+
+            if (todayBtn) {
+                todayBtn.addEventListener('click', function() {
+                    // TODO: Implement jump to today
+                    console.log('Today clicked');
+                });
+            }
+
+            // Adaptive floating actions positioning
+            function updateFloatingActionsPosition() {
+                const floatingActions = document.querySelector('.floating-actions');
+                if (!floatingActions) return;
+
+                // Get the tasks page container
+                const tasksPage = document.querySelector('.tasks-page');
+                if (!tasksPage) return;
+
+                // Check if we're in multi-view mode
+                const isMultiView = tasksContent.classList.contains('multi-view');
+                
+                if (isMultiView) {
+                    // In multi-view mode, center within the inbox view
+                    const inboxView = document.getElementById('inboxView');
+                    if (inboxView) {
+                        const rect = inboxView.getBoundingClientRect();
+                        const centerX = rect.left + (rect.width / 2);
+                        floatingActions.style.left = centerX + 'px';
+                        floatingActions.style.transform = 'translateX(-50%)';
+                    }
+                } else {
+                    // In single view mode, center within the full content area
+                    const rect = tasksPage.getBoundingClientRect();
+                    const centerX = rect.left + (rect.width / 2);
+                    floatingActions.style.left = centerX + 'px';
+                    floatingActions.style.transform = 'translateX(-50%)';
+                }
+            }
+
+            // Adaptive navbar positioning (original behavior)
+            function updateNavbarPosition() {
+                const navbar = document.querySelector('.bottom-navbar');
+                if (!navbar) return;
+
+                // Get the tasks page container
+                const tasksPage = document.querySelector('.tasks-page');
+                if (!tasksPage) return;
+
+                // Calculate the center of the visible content area
+                const rect = tasksPage.getBoundingClientRect();
+                const centerX = rect.left + (rect.width / 2);
+                
+                // Set the navbar position to the center of the content area
+                navbar.style.left = centerX + 'px';
+            }
+
+            // Update on load and resize
+            updateNavbarPosition();
+            updateFloatingActionsPosition();
+            window.addEventListener('resize', function() {
+                updateNavbarPosition();
+                updateFloatingActionsPosition();
+            });
+            
+            // Update when layout changes (e.g., sidebar toggles)
+            const resizeObserver = new ResizeObserver(function() {
+                updateNavbarPosition();
+                updateFloatingActionsPosition();
+            });
+            const tasksPage = document.querySelector('.tasks-page');
+            if (tasksPage) {
+                resizeObserver.observe(tasksPage);
+            }
+
+            // Also observe the main content container in case it changes
+            const mainContent = document.querySelector('.main-content, .content-wrapper, main');
+            if (mainContent) {
+                resizeObserver.observe(mainContent);
+            }
+
+            // Kanban board vertical-to-horizontal scroll functionality
+            const kanbanBoardContainer = document.querySelector('.kanban-board-container');
+            if (kanbanBoardContainer) {
+                let isScrolling = false;
+                
+                kanbanBoardContainer.addEventListener('wheel', function(e) {
+                    // Only handle vertical scroll events
+                    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                        e.preventDefault();
+                        
+                        // Convert vertical scroll to horizontal scroll
+                        const scrollAmount = e.deltaY;
+                        kanbanBoardContainer.scrollLeft += scrollAmount;
+                        
+                        // Add smooth scrolling effect
+                        if (!isScrolling) {
+                            isScrolling = true;
+                            kanbanBoardContainer.style.scrollBehavior = 'smooth';
+                            
+                            setTimeout(() => {
+                                isScrolling = false;
+                                kanbanBoardContainer.style.scrollBehavior = 'auto';
+                            }, 150);
+                        }
+                    }
+                }, { passive: false });
+            }
+        });
     </script>
 }
 

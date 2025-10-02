@@ -208,7 +208,12 @@ namespace Certio.Domain.Users
             
             return membership.UserType == UserTypes.Certio || 
                    (membership.UserType == UserTypes.Client && 
-                    (membership.Role == OrganizationRoles.Owner || membership.Role == OrganizationRoles.Manager || membership.Role == OrganizationRoles.Lawyer));
+                    (membership.Role == OrganizationRoles.Owner || 
+                     membership.Role == OrganizationRoles.Manager || 
+                     membership.Role == OrganizationRoles.Lawyer)) ||
+                   (membership.UserType == UserTypes.LawFirm && 
+                    (membership.Role == OrganizationRoles.Partner || 
+                     membership.Role == OrganizationRoles.Associate));
         }
         
         public bool CanInviteUserType(string userType, int organizationId)

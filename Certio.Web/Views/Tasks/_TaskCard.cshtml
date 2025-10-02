@@ -23,7 +23,7 @@
             @if (Model.TotalSubTasks > 0)
             {
                 <div class="task-progress">
-                    <i class="bi bi-check2-square"></i>
+                    <i class="fas fa-bars-progress"></i>
                     <span>@Model.CompletedSubTasks/@Model.TotalSubTasks</span>
                     <div class="progress ms-2" style="width: 60px; height: 4px;">
                         <div class="progress-bar" role="progressbar" 
@@ -38,7 +38,7 @@
             @if (Model.DueDate.HasValue)
             {
                 <div class="task-due @(Model.IsOverdue ? "overdue" : "")">
-                    <i class="bi bi-calendar3"></i>
+                    <i class="fas fa-calendar"></i>
                     <span>@Model.DueDateFormatted</span>
                 </div>
             }
