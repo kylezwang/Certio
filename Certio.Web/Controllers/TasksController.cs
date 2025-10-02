@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Certio.Web.ViewModels;
 using Certio.Domain.Matters;
+using Certio.Domain.Tasks;
 using Certio.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;

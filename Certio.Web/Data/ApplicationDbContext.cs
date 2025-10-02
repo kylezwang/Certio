@@ -10,6 +10,7 @@ using Certio.Domain.Workflows;
 using Certio.Domain.Notifications;
 using Certio.Domain.Audit;
 using Certio.Domain.Organizations;
+using Certio.Domain.Tasks;
 
 namespace Certio.Web.Data
 {
@@ -45,6 +46,7 @@ namespace Certio.Web.Data
         public DbSet<TaskAssignment> TaskAssignments => Set<TaskAssignment>();
         public DbSet<TaskItemComment> TaskItemComments => Set<TaskItemComment>();
         public DbSet<TaskItemDependency> TaskItemDependencies => Set<TaskItemDependency>();
+        public DbSet<SubTaskItem> SubTaskItems => Set<SubTaskItem>();
         
         // Document Entities
         public DbSet<Document> Documents => Set<Document>();
@@ -108,6 +110,7 @@ namespace Certio.Web.Data
             ConfigureUserRelationships(builder);
             ConfigureMatterRelationships(builder);
             ConfigureTaskRelationships(builder);
+            ConfigureSubTaskRelationships(builder);
             ConfigureDocumentRelationships(builder);
             ConfigureServiceRelationships(builder);
             ConfigureChatRelationships(builder);
@@ -453,6 +456,33 @@ namespace Certio.Web.Data
                 .WithMany(tic => tic.Replies)
                 .HasForeignKey(tic => tic.ParentCommentId)
                 .OnDelete(DeleteBehavior.Restrict);
+        }
+
+        private void ConfigureSubTaskRelationships(ModelBuilder builder)
+        {
+            // SubTaskItem -> TaskItem relationship
+            builder.Entity<SubTaskItem>()
+                .HasOne(sti => sti.Task)
+                .WithMany()
+                .HasForeignKey(sti => sti.TaskId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // SubTaskItem -> Matter relationship
+            builder.Entity<SubTaskItem>()
+                .HasOne(sti => sti.Matter)
+                .WithMany()
+                .HasForeignKey(sti => sti.MatterId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Add indexes for performance
+            builder.Entity<SubTaskItem>()
+                .HasIndex(sti => new { sti.TaskId, sti.IsCompleted });
+            
+            builder.Entity<SubTaskItem>()
+                .HasIndex(sti => new { sti.MatterId, sti.IsCompleted });
+            
+            builder.Entity<SubTaskItem>()
+                .HasIndex(sti => sti.OrgId);
         }
 
         private void ConfigureDocumentRelationships(ModelBuilder builder)
