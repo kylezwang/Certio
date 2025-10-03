@@ -133,18 +133,26 @@
                             <p>Manage your password and account security</p>
                         </div>
                         <div class="settings-section-content">
-                            <button class="btn btn-outline-secondary mb-3">
-                                <i class="fas fa-key me-2"></i>
-                                Change Password
-                            </button>
-                            <hr class="settings-divider">
-                            <button class="btn btn-outline-danger">
-                                <i class="fas fa-trash me-2"></i>
-                                Delete Account
-                            </button>
-                            <p class="text-muted small mt-2">
-                                This action cannot be undone. All your data will be permanently deleted.
-                            </p>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Change Password</label>
+                                    <p class="settings-row-description">Update your account password</p>
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-key me-2"></i>
+                                    Change
+                                </button>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Delete Account</label>
+                                    <p class="settings-row-description">This action cannot be undone. All your data will be permanently deleted.</p>
+                                </div>
+                                <button class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-trash me-2"></i>
+                                    Delete
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -166,8 +174,14 @@
                                     <input class="form-check-input" type="checkbox" id="twoFactorEnabled">
                                 </div>
                             </div>
-                            <hr class="settings-divider">
-                            <h5 class="mb-3">Authentication Methods</h5>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Authentication Methods</h3>
+                        </div>
+                        <div class="settings-section-content">
                             <div class="settings-row">
                                 <div class="settings-row-content">
                                     <label class="settings-row-label">Authenticator App</label>
@@ -191,11 +205,16 @@
                                 </div>
                                 <button class="btn btn-outline-secondary btn-sm">Add</button>
                             </div>
-                            <hr class="settings-divider">
-                            <button class="btn btn-outline-secondary btn-sm">
-                                <i class="fas fa-download me-2"></i>
-                                Download Backup Codes
-                            </button>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Backup Codes</label>
+                                    <p class="settings-row-description">Download emergency access codes</p>
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-download me-2"></i>
+                                    Download
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -243,7 +262,13 @@
                                     </div>
                                 </div>
                             </div>
-                            <button class="btn btn-outline-danger btn-sm mt-3">Sign Out All Devices</button>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Sign Out All Devices</label>
+                                    <p class="settings-row-description">End all active sessions except current</p>
+                                </div>
+                                <button class="btn btn-outline-danger btn-sm">Sign Out All</button>
+                            </div>
                         </div>
                     </div>
 
@@ -295,8 +320,12 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label">Organization Logo</label>
+                            <hr class="settings-divider">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Organization Logo</label>
+                                    <p class="settings-row-description">Upload your company logo</p>
+                                </div>
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="org-logo-placeholder">
                                         <i class="fas fa-building"></i>
@@ -547,36 +576,28 @@
                             <p>Set default reminder schedules</p>
                         </div>
                         <div class="settings-section-content">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="settings-row">
-                                        <div class="settings-row-content">
-                                            <label class="settings-row-label">7-day reminder</label>
-                                        </div>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="reminder7day" checked>
-                                        </div>
-                                    </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">7-day reminder</label>
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="settings-row">
-                                        <div class="settings-row-content">
-                                            <label class="settings-row-label">3-day reminder</label>
-                                        </div>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="reminder3day" checked>
-                                        </div>
-                                    </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="reminder7day" checked>
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="settings-row">
-                                        <div class="settings-row-content">
-                                            <label class="settings-row-label">1-day reminder</label>
-                                        </div>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="reminder1day" checked>
-                                        </div>
-                                    </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">3-day reminder</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="reminder3day" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">1-day reminder</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="reminder1day" checked>
                                 </div>
                             </div>
                         </div>
@@ -801,10 +822,16 @@
                             <p>View system activity and changes</p>
                         </div>
                         <div class="settings-section-content">
-                            <button class="btn btn-outline-secondary">
-                                <i class="fas fa-eye me-2"></i>
-                                View Audit Log
-                            </button>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">View Audit Log</label>
+                                    <p class="settings-row-description">Review system activity and changes</p>
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-eye me-2"></i>
+                                    View Log
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -861,10 +888,10 @@
                             <p>Manage your subscription</p>
                         </div>
                         <div class="settings-section-content">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h5 class="mb-1">Professional Plan</h5>
-                                    <p class="text-muted mb-0">$99/month • 10 users included</p>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Professional Plan</label>
+                                    <p class="settings-row-description">$99/month • 10 users included</p>
                                 </div>
                                 <button class="btn btn-outline-secondary btn-sm">Change Plan</button>
                             </div>
@@ -876,13 +903,10 @@
                             <h3>Payment Method</h3>
                         </div>
                         <div class="settings-section-content">
-                            <div class="d-flex justify-content-between align-items-center p-3 border rounded">
-                                <div class="d-flex align-items-center gap-3">
-                                    <i class="fas fa-credit-card"></i>
-                                    <div>
-                                        <h6 class="mb-1">•••• 4242</h6>
-                                        <p class="text-muted small mb-0">Expires 12/25</p>
-                                    </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Credit Card</label>
+                                    <p class="settings-row-description">•••• 4242 • Expires 12/25</p>
                                 </div>
                                 <button class="btn btn-outline-secondary btn-sm">Update</button>
                             </div>
@@ -908,10 +932,16 @@
                                 </div>
                                 <button class="btn btn-outline-secondary btn-sm">Upgrade</button>
                             </div>
-                            <button class="btn btn-outline-secondary">
-                                <i class="fas fa-download me-2"></i>
-                                Download Invoices
-                            </button>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Invoices</label>
+                                    <p class="settings-row-description">Download billing history</p>
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-download me-2"></i>
+                                    Download
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -997,10 +1027,10 @@
                             <p>Define what AI can do for different team roles</p>
                         </div>
                         <div class="settings-section-content">
-                            <h5 class="mb-3">Legal Team Permissions</h5>
                             <div class="settings-row">
                                 <div class="settings-row-content">
                                     <label class="settings-row-label">Document summarization</label>
+                                    <p class="settings-row-description">Legal team</p>
                                 </div>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="legalSummarization" checked>
@@ -1009,6 +1039,7 @@
                             <div class="settings-row">
                                 <div class="settings-row-content">
                                     <label class="settings-row-label">Draft generation</label>
+                                    <p class="settings-row-description">Legal team</p>
                                 </div>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="legalDraftGeneration" checked>
@@ -1017,16 +1048,16 @@
                             <div class="settings-row">
                                 <div class="settings-row-content">
                                     <label class="settings-row-label">Auto-assign tasks</label>
+                                    <p class="settings-row-description">Legal team</p>
                                 </div>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="legalAutoAssign">
                                 </div>
                             </div>
-                            <hr class="settings-divider">
-                            <h5 class="mb-3">Client Team Permissions</h5>
                             <div class="settings-row">
                                 <div class="settings-row-content">
                                     <label class="settings-row-label">Document summarization</label>
+                                    <p class="settings-row-description">Client team</p>
                                 </div>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="clientSummarization" checked>
@@ -1035,6 +1066,7 @@
                             <div class="settings-row">
                                 <div class="settings-row-content">
                                     <label class="settings-row-label">Draft generation</label>
+                                    <p class="settings-row-description">Client team</p>
                                 </div>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="clientDraftGeneration">
@@ -1043,6 +1075,7 @@
                             <div class="settings-row">
                                 <div class="settings-row-content">
                                     <label class="settings-row-label">Auto-assign tasks</label>
+                                    <p class="settings-row-description">Client team</p>
                                 </div>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="clientAutoAssign">

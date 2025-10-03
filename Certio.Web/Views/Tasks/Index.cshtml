@@ -475,7 +475,7 @@
         
         <!-- Task Details Modal -->
         <div class="task-details-modal" id="taskDetailsModal" style="display: none; border-radius: 12px;">
-            <div class="modal-dialog">
+            <div class="modal-dialog" style="margin-bottom: 2rem;">
                 <div class="task-details-content">
                     <!-- Modal Header -->
                     <div class="task-details-header">
@@ -651,15 +651,15 @@
 
     <!-- Bottom Navigation Bar -->
     <div class="bottom-navbar">
-        <div class="nav-item multi-active" data-view="inbox">
+        <div class="nav-item active" data-view="inbox">
             <i class="fas fa-bars-progress"></i>
             <span>Tasks</span>
         </div>
-        <div class="nav-item multi-active" data-view="planner">
+        <div class="nav-item" data-view="planner">
             <i class="fas fa-calendar"></i>
             <span>Planner</span>
         </div>
-        <div class="nav-item multi-active" data-view="board">
+        <div class="nav-item" data-view="board">
             <i class="fa-solid fa-chart-simple" style="transform: rotate(180deg);"></i>
             <span>Board</span>
         </div>
@@ -672,7 +672,7 @@
 
 <!-- Task Detail Modal -->
 <div class="modal fade" id="taskDetailModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg" style="margin-bottom: 2rem;">
         <div class="modal-content">
             <div class="modal-header border-0">
                 <h5 class="modal-title fw-bold" id="taskDetailTitle">Task Details</h5>
@@ -700,15 +700,33 @@
 
         // Task Details Modal functionality
         document.addEventListener('DOMContentLoaded', function() {
-            const addTaskButton = document.getElementById('addTaskButton');
             const taskDetailsModal = document.getElementById('taskDetailsModal');
             const closeTaskModal = document.getElementById('closeTaskModal');
             
-            if (addTaskButton) {
-                addTaskButton.addEventListener('click', function() {
-                    taskDetailsModal.style.display = 'flex';
+            // Open modal when clicking on example task cards (exclude only direct checkbox clicks)
+            const taskCardItems = document.querySelectorAll('.task-card-item');
+            taskCardItems.forEach(card => {
+                card.addEventListener('click', function(e) {
+                    if (e.target.closest('input')) {
+                        return; // don't open modal when interacting with checkbox directly
+                    }
+                    if (taskDetailsModal) {
+                        taskDetailsModal.style.display = 'flex';
+                    }
                 });
-            }
+            });
+
+            // Ensure clicking the label (task text) opens modal instead of toggling checkbox
+            const taskLabels = document.querySelectorAll('.task-card-item label');
+            taskLabels.forEach(label => {
+                label.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (taskDetailsModal) {
+                        taskDetailsModal.style.display = 'flex';
+                    }
+                });
+            });
             
             if (closeTaskModal) {
                 closeTaskModal.addEventListener('click', function() {
@@ -809,7 +827,7 @@
             const tasksContent = document.querySelector('.tasks-content');
             
             // Track active views
-            let activeViews = new Set(['inbox', 'planner', 'board']); // Default to all views
+            let activeViews = new Set(['inbox']); // Default to inbox only
             
             // Initialize the layout
             updateViewLayout();
