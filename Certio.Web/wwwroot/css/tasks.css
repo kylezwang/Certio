@@ -652,7 +652,7 @@
     max-width: 90%;
     width: 45rem;
     margin: 0;
-    max-height: 80%;
+    max-height: 85%;
     overflow: hidden;
     border-radius: 12px;
 }
@@ -1123,6 +1123,7 @@
     padding: 0.75rem 1rem;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: box-shadow 0.2s;
+    cursor: pointer; /* indicate card is clickable */
 }
 
 .task-card-item:hover {

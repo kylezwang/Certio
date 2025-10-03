@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Certio.Domain.Users;
 using Certio.Web.Data;
 using Certio.Web.ViewModels;
 using Certio.Domain.Matters;
@@ -183,6 +184,7 @@ namespace Certio.Web.Controllers
 
             ViewBag.OrganizationId = orgId;
             ViewBag.IsLawFirmView = currentOrg?.Type == Certio.Domain.Organizations.OrganizationType.LawFirm;
+            ViewBag.OrganizationName = currentOrg?.Name ?? "Client";
             
             // Reuse the existing view
             return View("~/Views/Matter/Index.cshtml", viewModel);
@@ -191,10 +193,12 @@ namespace Certio.Web.Controllers
         // GET /Client/{orgId}/Services
         [Authorize(Policy = "OrgMember")]
         [HttpGet("/Client/{orgId:int}/Services")]
-        public IActionResult Services(int orgId)
+        public async Task<IActionResult> Services(int orgId)
         {
             // Membership hint for future scoping
             ViewBag.OrganizationId = orgId;
+            var org = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync();
+            ViewBag.OrganizationName = org?.Name ?? "Client";
 
             var useSample = _configuration.GetValue<bool>("Features:UseSampleData");
             ServicesViewModel viewModel;
@@ -267,9 +271,11 @@ namespace Certio.Web.Controllers
         // GET /Client/{orgId}/Documents
         [Authorize(Policy = "OrgMember")]
         [HttpGet("/Client/{orgId:int}/Documents")]
-        public IActionResult Documents(int orgId)
+        public async Task<IActionResult> Documents(int orgId)
         {
             ViewBag.OrganizationId = orgId;
+            var org = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync();
+            ViewBag.OrganizationName = org?.Name ?? "Client";
             var useSample = _configuration.GetValue<bool>("Features:UseSampleData");
             DocumentsViewModel model;
             if (useSample)
@@ -307,51 +313,94 @@ namespace Certio.Web.Controllers
         // GET /Client/{orgId}/Teams
         [Authorize(Policy = "OrgMember")]
         [HttpGet("/Client/{orgId:int}/Teams")]
-        public IActionResult Teams(int orgId)
+        public async Task<IActionResult> Teams(int orgId)
         {
             ViewBag.OrganizationId = orgId;
-            var useSample = _configuration.GetValue<bool>("Features:UseSampleData");
-            TeamsViewModel model;
-            if (useSample)
+            var org = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync();
+            ViewBag.OrganizationName = org?.Name ?? "Client";
+
+            // Load active memberships for this organization with user info
+            var memberships = await _db.UserOrganizations
+                .Where(uo => uo.OrganizationId == orgId && uo.IsActive)
+                .Include(uo => uo.User)
+                .ToListAsync();
+
+            // Fallback colors to match existing UI palette
+            static string GetTeamColor(TeamType team)
             {
-                // Copy of HomeController.Teams sample data
-                var teamMembers = new List<TeamMember>
+                return team switch
                 {
-                    // Client Team
-                    new TeamMember { Id = "1", Name = "Sarah Johnson", Initials = "SJ", Role = "CEO", Department = "Executive", Location = "New York", Team = TeamType.Client, Color = "#3b82f6" },
-                    new TeamMember { Id = "2", Name = "Michael Chen", Initials = "MC", Role = "CTO", Department = "Technology", Location = "San Francisco", Team = TeamType.Client, Color = "#3b82f6" },
-                    new TeamMember { Id = "3", Name = "Emma Davis", Initials = "ED", Role = "Legal Counsel", Department = "Legal", Location = "Chicago", Team = TeamType.Client, Color = "#3b82f6" },
-                    // Legal Team
-                    new TeamMember { Id = "4", Name = "David Wilson", Initials = "DW", Role = "Senior Partner", Department = "Corporate Law", Location = "New York", Team = TeamType.Legal, Color = "#0b365e" },
-                    new TeamMember { Id = "5", Name = "Jennifer Martinez", Initials = "JM", Role = "Associate", Department = "Litigation", Location = "Los Angeles", Team = TeamType.Legal, Color = "#0b365e" },
-                    new TeamMember { Id = "6", Name = "Robert Taylor", Initials = "RT", Role = "Paralegal", Department = "Research", Location = "Boston", Team = TeamType.Legal, Color = "#0b365e" },
-                    new TeamMember { Id = "7", Name = "Kyle Wang", Initials = "KW", Role = "Certio Team", Department = "Research", Location = "Boston", Team = TeamType.Legal, Color = "#0b365e" },
-                    // External Team
-                    new TeamMember { Id = "8", Name = "Lisa Anderson", Initials = "LA", Role = "Consultant", Department = "Advisory", Location = "Seattle", Team = TeamType.External, Color = "#10b981" },
-                    new TeamMember { Id = "9", Name = "James Brown", Initials = "JB", Role = "Expert Witness", Department = "Technical", Location = "Austin", Team = TeamType.External, Color = "#10b981" }
-                };
-                model = new TeamsViewModel
-                {
-                    TeamMembers = teamMembers,
-                    ClientTeamCount = teamMembers.Count(m => m.Team == TeamType.Client),
-                    LegalTeamCount = teamMembers.Count(m => m.Team == TeamType.Legal),
-                    ExternalTeamCount = teamMembers.Count(m => m.Team == TeamType.External),
-                    TotalMembersCount = teamMembers.Count
+                    TeamType.Client => "#3b82f6",
+                    TeamType.Legal => "#0b365e",
+                    TeamType.External => "#10b981",
+                    _ => "#3b82f6"
                 };
             }
-            else
+
+            static string GetInitials(string firstName, string lastName)
             {
-                model = new TeamsViewModel();
+                var a = string.IsNullOrWhiteSpace(firstName) ? ' ' : char.ToUpperInvariant(firstName.Trim()[0]);
+                var b = string.IsNullOrWhiteSpace(lastName) ? ' ' : char.ToUpperInvariant(lastName.Trim()[0]);
+                return $"{a}{b}".Trim();
             }
+
+            static TeamType MapTeam(string userType)
+            {
+                if (string.Equals(userType, UserTypes.Client, StringComparison.OrdinalIgnoreCase))
+                    return TeamType.Client;
+                if (string.Equals(userType, UserTypes.External, StringComparison.OrdinalIgnoreCase))
+                    return TeamType.External;
+                // Treat LawFirm and Certio as Legal team in this UI
+                return TeamType.Legal;
+            }
+
+            var teamMembers = memberships
+                .Where(m => m.User != null)
+                .Select(m =>
+                {
+                    var team = MapTeam(m.UserType);
+                    var firstName = m.User!.FirstName ?? string.Empty;
+                    var lastName = m.User!.LastName ?? string.Empty;
+                    var name = ($"{firstName} {lastName}").Trim();
+                    var initials = !string.IsNullOrWhiteSpace(m.User.Avatar)
+                        ? m.User.Avatar!
+                        : GetInitials(firstName, lastName);
+                    var color = !string.IsNullOrWhiteSpace(m.User.Color) ? m.User.Color : GetTeamColor(team);
+                    return new TeamMember
+                    {
+                        Id = m.UserId.ToString(),
+                        Name = string.IsNullOrWhiteSpace(name) ? m.User.Email : name,
+                        Initials = initials,
+                        Role = m.Role,
+                        Department = string.IsNullOrWhiteSpace(m.Department) ? m.User.Department : m.Department,
+                        Location = m.User.Location,
+                        Team = team,
+                        Color = color
+                    };
+                })
+                .ToList();
+
+            // If no real data, fallback to empty model (no placeholders)
+            var model = new TeamsViewModel
+            {
+                TeamMembers = teamMembers,
+                ClientTeamCount = teamMembers.Count(m => m.Team == TeamType.Client),
+                LegalTeamCount = teamMembers.Count(m => m.Team == TeamType.Legal),
+                ExternalTeamCount = teamMembers.Count(m => m.Team == TeamType.External),
+                TotalMembersCount = teamMembers.Count
+            };
+
             return View("~/Views/Home/Teams.cshtml", model);
         }
 
         // GET /Client/{orgId}/Settings
         [Authorize(Policy = "OrgMember")]
         [HttpGet("/Client/{orgId:int}/Settings")]
-        public IActionResult Settings(int orgId)
+        public async Task<IActionResult> Settings(int orgId)
         {
             ViewBag.OrganizationId = orgId;
+            var org = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync();
+            ViewBag.OrganizationName = org?.Name ?? "Client";
             return View("~/Views/Settings/Index.cshtml");
         }
 
@@ -359,9 +408,11 @@ namespace Certio.Web.Controllers
         // GET /Client/{orgId}/AddPeople
         [Authorize(Policy = "OrgMember")]
         [HttpGet("/Client/{orgId:int}/AddPeople")]
-        public IActionResult AddPeople(int orgId)
+        public async Task<IActionResult> AddPeople(int orgId)
         {
             ViewBag.OrganizationId = orgId;
+            var org = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync();
+            ViewBag.OrganizationName = org?.Name ?? "Client";
             return View("~/Views/Home/AddPeople.cshtml", new AddPeopleViewModel());
         }
 
@@ -374,6 +425,8 @@ namespace Certio.Web.Controllers
             if (!ModelState.IsValid)
             {
                 ViewBag.OrganizationId = orgId;
+                var org = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync(ct);
+                ViewBag.OrganizationName = org?.Name ?? "Client";
                 return View("~/Views/Home/AddPeople.cshtml", model);
             }
 
@@ -382,6 +435,8 @@ namespace Certio.Web.Controllers
             {
                 TempData["Error"] = "Unable to resolve current user.";
                 ViewBag.OrganizationId = orgId;
+                var org2 = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync(ct);
+                ViewBag.OrganizationName = org2?.Name ?? "Client";
                 return View("~/Views/Home/AddPeople.cshtml", model);
             }
 
@@ -391,6 +446,8 @@ namespace Certio.Web.Controllers
             {
                 TempData["Error"] = "You do not have permission to create join codes.";
                 ViewBag.OrganizationId = orgId;
+                var org3 = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync(ct);
+                ViewBag.OrganizationName = org3?.Name ?? "Client";
                 return View("~/Views/Home/AddPeople.cshtml", model);
             }
 
@@ -413,6 +470,8 @@ namespace Certio.Web.Controllers
                 ct: ct);
 
             ViewBag.OrganizationId = orgId;
+            var org4 = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync(ct);
+            ViewBag.OrganizationName = org4?.Name ?? "Client";
             ViewBag.JoinCode = join.Code;
             TempData["Success"] = "Join code generated.";
             return View("~/Views/Home/AddPeople.cshtml", new AddPeopleViewModel

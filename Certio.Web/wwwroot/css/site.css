@@ -3888,6 +3888,8 @@ body.services-page .main-content {
 
 .settings-content-inner {
   padding: 2rem;
+  max-width: 100%;
+  width: 100%;
 }
 
 .settings-tab-content {
@@ -3896,10 +3898,12 @@ body.services-page .main-content {
 
 .settings-tab-content.active {
   display: block;
+  width: 100%;
 }
 
 .settings-section {
   margin-bottom: 2rem;
+  width: 100%;
 }
 
 .settings-section:last-child {
@@ -3908,6 +3912,7 @@ body.services-page .main-content {
 
 .settings-section-header {
   margin-bottom: 1.5rem;
+  max-width: 800px;
 }
 
 .settings-section-header h3 {
@@ -3928,12 +3933,16 @@ body.services-page .main-content {
   border-radius: 8px;
   padding: 1.5rem;
   border: 1px solid #e5e7eb;
+  width: 100%;
+  max-width: 800px;
+  box-sizing: border-box;
 }
 
 .settings-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto; /* content | action */
   align-items: center;
-  justify-content: space-between;
+  column-gap: 1rem;
   padding: 1rem 0;
   border-bottom: 1px solid #e5e7eb;
 }
@@ -3948,8 +3957,12 @@ body.services-page .main-content {
 }
 
 .settings-row-content {
-  flex: 1;
   min-width: 0;
+}
+
+/* Ensure actions (buttons/switches) align consistently */
+.settings-row > :last-child {
+  justify-self: end;
 }
 
 .settings-row-label {
@@ -3969,6 +3982,21 @@ body.services-page .main-content {
   border: none;
   border-top: 1px solid #e5e7eb;
   margin: 1.5rem 0;
+}
+
+/* Fix Bootstrap row negative margins within settings */
+.settings-section-content > .row {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.settings-section-content > .row > [class*="col-"] {
+  padding-left: 0;
+  padding-right: 12px;
+}
+
+.settings-section-content > .row > [class*="col-"]:last-child {
+  padding-right: 0;
 }
 
 /* Profile Avatar Section */
@@ -4148,18 +4176,31 @@ body.services-page .main-content {
     padding: 1rem;
   }
   
+  .settings-section-header {
+    max-width: 100%;
+  }
+  
+  .settings-section-content {
+    max-width: 100%;
+  }
+  
   .settings-title {
     font-size: 2rem;
   }
   
   .settings-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
+    grid-template-columns: 1fr; /* stack content and action */
+    row-gap: 0.75rem;
+    align-items: start;
   }
   
   .settings-row-content {
     width: 100%;
+  }
+
+  /* Place action under content on small screens */
+  .settings-row > :last-child {
+    justify-self: start;
   }
   
   .profile-avatar-section {
