@@ -129,7 +129,9 @@ namespace Certio.Web.Controllers
                 Description = request.Description,
                 Status = request.Status ?? "Pending",
                 Priority = request.Priority ?? "Medium",
+                StartedAt = request.StartedAt,
                 DueDate = request.DueDate,
+                Location = request.Location,
                 Order = request.Order,
                 CreatedAt = DateTime.UtcNow
             };
@@ -165,8 +167,12 @@ namespace Certio.Web.Controllers
                 task.Status = request.Status;
             if (!string.IsNullOrEmpty(request.Priority))
                 task.Priority = request.Priority;
+            if (request.StartedAt.HasValue)
+                task.StartedAt = request.StartedAt.Value;
             if (request.DueDate.HasValue)
                 task.DueDate = request.DueDate.Value;
+            if (!string.IsNullOrEmpty(request.Location))
+                task.Location = request.Location;
             if (request.Order.HasValue)
                 task.Order = request.Order.Value;
 
@@ -311,6 +317,7 @@ namespace Certio.Web.Controllers
                 Description = task.Description ?? "",
                 Status = task.Status,
                 Priority = task.Priority,
+                Location = task.Location,
                 Order = task.Order,
                 DueDate = task.DueDate,
                 CompletedAt = task.CompletedAt,
@@ -365,7 +372,9 @@ namespace Certio.Web.Controllers
         public string Description { get; set; } = "";
         public string? Status { get; set; }
         public string? Priority { get; set; }
+        public DateTime? StartedAt { get; set; }
         public DateTime? DueDate { get; set; }
+        public string? Location { get; set; }
         public int Order { get; set; }
     }
 
@@ -376,7 +385,9 @@ namespace Certio.Web.Controllers
         public string? Description { get; set; }
         public string? Status { get; set; }
         public string? Priority { get; set; }
+        public DateTime? StartedAt { get; set; }
         public DateTime? DueDate { get; set; }
+        public string? Location { get; set; }
         public int? Order { get; set; }
     }
 
