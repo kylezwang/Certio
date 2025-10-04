@@ -43,24 +43,46 @@
 
                 <!-- Task Cards -->
                 <div class="task-cards-container">
-                    <div class="task-card-item">
-                        <div class="form-check">
-                            <input class="form-check-input task-radio" type="radio" name="task" id="task2">
-                            <label class="form-check-label" for="task2">Example Task #2</label>
+                    @if (Model.AllTasks.Any())
+                    {
+                        @foreach (var task in Model.AllTasks.OrderBy(t => t.Order))
+                        {
+                            <div class="task-card-item" data-task-id="@task.Id" data-status="@task.Status" data-matter-id="@task.MatterId">
+                                <div class="form-check">
+                                    <input class="form-check-input task-radio" 
+                                           type="radio" 
+                                           name="task" 
+                                           id="inbox-task-@task.Id"
+                                           data-task-id="@task.Id"
+                                           @(task.Status == "Completed" ? "checked" : "")>
+                                    <label class="form-check-label" for="inbox-task-@task.Id">
+                                        @task.Title
+                                        @if (!string.IsNullOrEmpty(task.Priority) && task.Priority != "Medium")
+                                        {
+                                            <span class="badge badge-@task.Priority.ToLower() ms-2" style="font-size: 0.7em;">
+                                                @task.Priority
+                                            </span>
+                                        }
+                                        @if (task.DueDate.HasValue)
+                                        {
+                                            var daysUntilDue = (task.DueDate.Value - DateTime.UtcNow).Days;
+                                            var dueDateClass = daysUntilDue < 0 ? "text-danger" : (daysUntilDue <= 2 ? "text-warning" : "text-muted");
+                                            <span class="ms-2 @dueDateClass" style="font-size: 0.75em;">
+                                                <i class="fas fa-calendar"></i> @task.DueDate.Value.ToString("MMM dd")
+                                            </span>
+                                        }
+                                    </label>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-tasks fa-2x mb-2"></i>
+                            <p>No tasks yet. Click "Add a task" to create your first task!</p>
                         </div>
-                    </div>
-                    <div class="task-card-item">
-                        <div class="form-check">
-                            <input class="form-check-input task-radio" type="radio" name="task" id="task3">
-                            <label class="form-check-label" for="task3">Example Task #3</label>
-                        </div>
-                    </div>
-                    <div class="task-card-item">
-                        <div class="form-check">
-                            <input class="form-check-input task-radio" type="radio" name="task" id="task1">
-                            <label class="form-check-label" for="task1">Example Task #1</label>
-                        </div>
-                    </div>
+                    }
                 </div>
 
                 <!-- Floating Action Buttons -->
@@ -516,7 +538,7 @@
                     <div class="task-details-title-section">
                         <div class="task-title-container">
                             <i class="fa-solid fa-circle-question task-title-icon" id="taskTitleIcon"></i>
-                            <h2 class="task-title" contenteditable="true">Draft Founder Agreement & IP Assignment (4-yr vest, 1-yr cliff)</h2>
+                            <h2 class="task-title" contenteditable="true" data-placeholder="Enter task title...">Draft Founder Agreement & IP Assignment (4-yr vest, 1-yr cliff)</h2>
                         </div>
                     </div>
 
@@ -902,9 +924,32 @@
             <i class="fa-solid fa-chart-simple" style="transform: rotate(180deg);"></i>
             <span>Board</span>
         </div>
-        <div class="nav-item" data-view="switch">
+        <div class="nav-item" data-view="switch" id="switchMattersBtn">
             <i class="bi bi-stack"></i>
             <span>Switch Matters</span>
+        </div>
+    </div>
+    
+    <!-- Matter Selector Popup (minimal) -->
+    <div class="matter-popup" id="matterPopup" style="display: none;">
+        <div class="matter-popup-inner">
+            <div class="matter-popup-title">Select Matter</div>
+            <div class="matter-popup-list">
+                @if (Model.Matters.Any())
+                {
+                    @foreach (var matter in Model.Matters)
+                    {
+                        <button type="button" class="matter-item" data-matter-id="@matter.Id" title="@matter.Title">
+                            <i class="fas fa-folder"></i>
+                            <span class="matter-item-text">@matter.Title</span>
+                        </button>
+                    }
+                }
+                else
+                {
+                    <div class="text-center text-muted py-2">No matters available</div>
+                }
+            </div>
         </div>
     </div>
 </div>
@@ -963,35 +1008,50 @@
         // Pass model data to JavaScript
         window.tasksData = {
             matters: @Html.Raw(Json.Serialize(Model.Matters)),
-            users: @Html.Raw(Json.Serialize(Model.Users))
+            users: @Html.Raw(Json.Serialize(Model.Users)),
+            allTasks: @Html.Raw(Json.Serialize(Model.AllTasks))
         };
 
         // Task Details Modal functionality
         document.addEventListener('DOMContentLoaded', function() {
             const taskDetailsModal = document.getElementById('taskDetailsModal');
             const closeTaskModal = document.getElementById('closeTaskModal');
+            const addTaskButton = document.getElementById('addTaskButton');
             
-            // Open modal when clicking on example task cards (exclude only direct checkbox clicks)
+            // Open modal for creating new task when clicking "Add a task" button
+            if (addTaskButton) {
+                addTaskButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openTaskModal(null, 'Pending'); // null taskId means create new
+                });
+            }
+            
+            // Open modal when clicking on task cards (exclude only direct checkbox clicks)
             const taskCardItems = document.querySelectorAll('.task-card-item');
             taskCardItems.forEach(card => {
                 card.addEventListener('click', function(e) {
                     if (e.target.closest('input')) {
                         return; // don't open modal when interacting with checkbox directly
                     }
-                    if (taskDetailsModal) {
-                        taskDetailsModal.style.display = 'flex';
+                    const taskId = this.getAttribute('data-task-id');
+                    if (taskId && taskDetailsModal) {
+                        // Load task data and open modal in edit mode
+                        openTaskModal(parseInt(taskId));
                     }
                 });
             });
 
-            // Ensure clicking the label (task text) opens modal instead of toggling checkbox
+            // Ensure clicking the label (task text) opens modal
             const taskLabels = document.querySelectorAll('.task-card-item label');
             taskLabels.forEach(label => {
                 label.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    if (taskDetailsModal) {
-                        taskDetailsModal.style.display = 'flex';
+                    const taskCard = this.closest('.task-card-item');
+                    const taskId = taskCard?.getAttribute('data-task-id');
+                    if (taskId && taskDetailsModal) {
+                        openTaskModal(parseInt(taskId));
                     }
                 });
             });
@@ -999,6 +1059,7 @@
             if (closeTaskModal) {
                 closeTaskModal.addEventListener('click', function() {
                     taskDetailsModal.style.display = 'none';
+                    resetTaskModal();
                 });
             }
             
@@ -1008,9 +1069,469 @@
                     // Only close if clicking directly on the backdrop (taskDetailsModal itself)
                     if (e.target === taskDetailsModal) {
                         taskDetailsModal.style.display = 'none';
+                        resetTaskModal();
                     }
                 });
             }
+            
+            // Initialize save task button
+            initializeSaveTask();
+
+            // Initialize matter selector (wrapped to avoid breaking other handlers)
+            try {
+                initializeMatterSelector();
+            } catch (err) {
+                console.error('Error initializing matter selector:', err);
+            }
+        });
+
+        // Matter selection state
+        let currentMatterId = null;
+
+        // Initialize Matter Selector
+        function initializeMatterSelector() {
+            const switchMattersBtn = document.getElementById('switchMattersBtn');
+            const matterPopup = document.getElementById('matterPopup');
+            const matterItems = document.querySelectorAll('.matter-item');
+
+            // Load saved matter from localStorage or auto-select first
+            const savedMatterId = localStorage.getItem('certio_selected_matter_id');
+            if (savedMatterId && window.tasksData.matters.find(m => m.Id == savedMatterId)) {
+                selectMatter(parseInt(savedMatterId));
+            } else if (window.tasksData.matters.length > 0) {
+                selectMatter(window.tasksData.matters[0].Id);
+            }
+
+            // Toggle popup above navbar
+            if (switchMattersBtn && matterPopup) {
+                switchMattersBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const isVisible = matterPopup.style.display === 'block' || matterPopup.style.display === 'flex';
+                    matterPopup.style.display = isVisible ? 'none' : 'block';
+                });
+            }
+
+            // Close when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!matterPopup) return;
+                const clickInsidePopup = matterPopup.contains(e.target);
+                const clickOnButton = switchMattersBtn && switchMattersBtn.contains(e.target);
+                if (!clickInsidePopup && !clickOnButton) {
+                    matterPopup.style.display = 'none';
+                }
+            });
+
+            // Handle matter selection
+            matterItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const mId = parseInt(this.dataset.matterId);
+                    if (!Number.isFinite(mId)) return;
+                    selectMatter(mId);
+                    if (matterPopup) matterPopup.style.display = 'none';
+                });
+            });
+        }
+
+        // Select a matter and filter tasks
+        function selectMatter(matterId) {
+            if (!Number.isFinite(matterId)) {
+                // Fallback to first available
+                const first = window.tasksData?.matters?.[0]?.Id;
+                if (!Number.isFinite(first)) return;
+                matterId = first;
+            }
+            currentMatterId = matterId;
+            localStorage.setItem('certio_selected_matter_id', matterId);
+            console.log('[Tasks] Switched MatterId =', matterId);
+
+            // Filter inbox tasks
+            filterTasksByMatter(matterId);
+        }
+
+        // Filter tasks by matter across views
+        function filterTasksByMatter(matterId) {
+            // Inbox items
+            const inboxTasks = document.querySelectorAll('.task-cards-container .task-card-item');
+            let visibleCount = 0;
+            inboxTasks.forEach(task => {
+                const taskMatterId = parseInt(task.getAttribute('data-matter-id'));
+                if (!isNaN(taskMatterId) && taskMatterId === matterId) {
+                    task.style.display = '';
+                    visibleCount++;
+                } else {
+                    task.style.display = 'none';
+                }
+            });
+
+            // Empty state handling
+            const emptyState = document.querySelector('.task-cards-container .text-center.text-muted');
+            if (emptyState) {
+                emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
+            }
+
+            // Board cards
+            const boardCards = document.querySelectorAll('.kanban-board .task-card');
+            boardCards.forEach(card => {
+                const taskMatterId = parseInt(card.getAttribute('data-matter-id'));
+                if (!isNaN(taskMatterId) && taskMatterId === matterId) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Update column counts locally
+            updateBoardColumnCountsLocal();
+        }
+
+        // Local recount for board columns (visible cards only)
+        function updateBoardColumnCountsLocal() {
+            document.querySelectorAll('.kanban-column').forEach(column => {
+                const visibleCards = Array.from(column.querySelectorAll('.task-card')).filter(el => el.style.display !== 'none');
+                const badge = column.querySelector('.badge');
+                if (badge) badge.textContent = visibleCards.length;
+            });
+        }
+        
+        // Open task modal for create or edit
+        function openTaskModal(taskId = null, defaultStatus = 'Pending') {
+            const taskDetailsModal = document.getElementById('taskDetailsModal');
+            
+            // Always clear placeholders and reset UI first to avoid stale default content
+            clearTaskModal();
+
+            if (taskId) {
+                // Edit mode - load task data
+                loadTaskData(taskId);
+            } else {
+                // Create mode - clear all fields
+                document.getElementById('statusDropdown').value = defaultStatus;
+                document.getElementById('status-field').value = defaultStatus;
+                updateTaskTitleIconFromModal(defaultStatus);
+            }
+            
+            // Show modal
+            taskDetailsModal.style.display = 'flex';
+            
+            // Focus on title field
+            setTimeout(() => {
+                const titleField = document.querySelector('.task-title');
+                if (titleField) {
+                    titleField.focus();
+                }
+            }, 100);
+        }
+        
+        // Clear task modal for new task creation
+        function clearTaskModal() {
+            // Clear title
+            const taskTitle = document.querySelector('.task-title');
+            if (taskTitle) {
+                taskTitle.textContent = '';
+                taskTitle.dataset.taskId = '';
+            }
+            
+            // Clear description
+            const descriptionField = document.querySelector('.task-description-textarea');
+            if (descriptionField) {
+                descriptionField.value = '';
+            }
+            
+            // Reset status and priority to defaults
+            const statusDropdown = document.getElementById('statusDropdown');
+            const statusField = document.getElementById('status-field');
+            const priorityField = document.getElementById('priority-field');
+            
+            if (statusDropdown) statusDropdown.value = 'Pending';
+            if (statusField) statusField.value = 'Pending';
+            if (priorityField) priorityField.value = 'Medium';
+            
+            // Clear dates
+            const startDateField = document.getElementById('start-date-field');
+            const dueDateField = document.getElementById('due-date-field');
+            if (startDateField) startDateField.value = '';
+            if (dueDateField) dueDateField.value = '';
+            
+            // Clear location
+            const locationInput = document.getElementById('locationSearchInput');
+            const locationDisplay = document.getElementById('locationDisplay');
+            const mapContainer = document.getElementById('mapContainer');
+            
+            if (locationInput) locationInput.value = '';
+            if (locationDisplay) locationDisplay.style.display = 'none';
+            if (mapContainer) {
+                mapContainer.innerHTML = `
+                    <div class="map-placeholder">
+                        <i class="fas fa-map-marked-alt" style="font-size: 3rem; color: #d1d5db;"></i>
+                        <p class="text-muted mt-2">No location selected</p>
+                        <small class="text-muted">Search for a location to display it on the map</small>
+                    </div>
+                `;
+            }
+            
+            // Clear subtasks
+            const checklistItems = document.querySelector('.checklist-items');
+            if (checklistItems) {
+                checklistItems.innerHTML = `
+                    <div class="text-muted text-center py-3">
+                        <i class="fas fa-info-circle"></i> No subtasks yet. Add your first subtask below.
+                    </div>
+                `;
+            }
+            
+            // Update progress to 0%
+            updateChecklistProgressManual(0);
+        }
+        
+        // Reset task modal
+        function resetTaskModal() {
+            clearTaskModal();
+        }
+        
+        // Load task data for editing
+        function loadTaskData(taskId) {
+            // Prefer hydrated data passed to the page
+            const allTasks = (window.tasksData && Array.isArray(window.tasksData.allTasks)) ? window.tasksData.allTasks : [];
+            const task = allTasks.find(t => Number(t.Id) === Number(taskId));
+            
+            if (!task) {
+                console.error('Task not found:', taskId);
+                return;
+            }
+            
+            console.log('Loading task data:', task);
+            
+            // Set task ID in title element for saving
+            const taskTitle = document.querySelector('.task-title');
+            if (taskTitle) {
+                taskTitle.textContent = task.Title || '';
+                taskTitle.dataset.taskId = taskId;
+            }
+            
+            // Set description
+            const descriptionField = document.querySelector('.task-description-textarea');
+            if (descriptionField) {
+                descriptionField.value = task.Description || '';
+            }
+            
+            // Set status and priority
+            const statusDropdown = document.getElementById('statusDropdown');
+            const statusField = document.getElementById('status-field');
+            const priorityField = document.getElementById('priority-field');
+            
+            if (statusDropdown) statusDropdown.value = task.Status || 'Pending';
+            if (statusField) statusField.value = task.Status || 'Pending';
+            if (priorityField) priorityField.value = task.Priority || 'Medium';
+            
+            // Update icon based on status
+            updateTaskTitleIconFromModal(task.Status || 'Pending');
+            
+            // Set dates
+            const startDateField = document.getElementById('start-date-field');
+            const dueDateField = document.getElementById('due-date-field');
+            
+            if (startDateField && task.StartedAt) {
+                // Convert to YYYY-MM-DD format for date input
+                const startDate = new Date(task.StartedAt);
+                startDateField.value = startDate.toISOString().split('T')[0];
+            }
+            
+            if (dueDateField && task.DueDate) {
+                const dueDate = new Date(task.DueDate);
+                dueDateField.value = dueDate.toISOString().split('T')[0];
+            }
+            
+            // Set location (if available)
+            const locationInput = document.getElementById('locationSearchInput');
+            if (locationInput) {
+                locationInput.value = task.Location || '';
+            }
+            
+            // Load subtasks (if available)
+            if (task.SubTasks && task.SubTasks.length > 0) {
+                const checklistItems = document.querySelector('.checklist-items');
+                if (checklistItems) {
+                    checklistItems.innerHTML = '';
+                    task.SubTasks.forEach(subtask => {
+                        const item = document.createElement('div');
+                        item.className = 'checklist-item' + (subtask.IsCompleted ? ' completed' : '');
+                        item.innerHTML = `
+                            <input type="checkbox" class="form-check-input" ${subtask.IsCompleted ? 'checked' : ''}>
+                            <label class="form-check-label" style="font-size: 0.875rem;">${subtask.Title}</label>
+                        `;
+                        checklistItems.appendChild(item);
+                    });
+                }
+                
+                // Update progress
+                const completedCount = task.SubTasks.filter(st => st.IsCompleted).length;
+                const totalCount = task.SubTasks.length;
+                const percentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+                updateChecklistProgressManual(percentage);
+            } else {
+                updateChecklistProgressManual(0);
+            }
+            
+            // Load comments (if available)
+            if (task.Comments && task.Comments.length > 0) {
+                // TODO: Render comments in activity log
+            }
+            
+            // Load assignees (if available)
+            if (task.Assignments && task.Assignments.length > 0) {
+                // TODO: Render assignees
+            }
+        }
+        
+        // Initialize save task functionality
+        function initializeSaveTask() {
+            // Add save button to modal header
+            const headerRight = document.querySelector('.task-details-header-right');
+            if (headerRight && !document.getElementById('saveTaskBtn')) {
+                const saveBtn = document.createElement('button');
+                saveBtn.id = 'saveTaskBtn';
+                saveBtn.className = 'btn btn-sm btn-primary me-2';
+                saveBtn.innerHTML = '<i class="fas fa-save me-1"></i> Save';
+                saveBtn.style.marginRight = '0.5rem';
+                
+                // Insert before the close button
+                const closeBtn = document.getElementById('closeTaskModal');
+                headerRight.insertBefore(saveBtn, closeBtn);
+                
+                // Add click handler
+                saveBtn.addEventListener('click', saveTask);
+            }
+        }
+        
+        // Save task (create or update)
+        function saveTask() {
+            const taskTitle = document.querySelector('.task-title');
+            const taskId = taskTitle?.dataset?.taskId;
+            
+            // Validate required fields
+            const title = taskTitle?.textContent.trim();
+            if (!title) {
+                alert('Please enter a task title');
+                taskTitle.focus();
+                return;
+            }
+            
+            // Get all field values
+            const description = document.querySelector('.task-description-textarea')?.value || '';
+            const status = document.getElementById('status-field')?.value || 'Pending';
+            const priority = document.getElementById('priority-field')?.value || 'Medium';
+            const startDate = document.getElementById('start-date-field')?.value || null;
+            const dueDate = document.getElementById('due-date-field')?.value || null;
+            const location = document.getElementById('locationName')?.textContent || '';
+            
+            // Get matter ID (for now, use first matter from the list or require selection)
+            // Use selected matter if available
+            const matterId = currentMatterId || (window.tasksData?.matters?.[0]?.Id ?? null);
+            
+            if (!matterId) {
+                alert('No matter found. Please ensure you have at least one matter.');
+                return;
+            }
+            
+            // Prepare request data
+            const requestData = {
+                title: title,
+                description: description,
+                status: status,
+                priority: priority,
+                startedAt: startDate,
+                dueDate: dueDate,
+                location: location,
+                matterId: matterId,
+                order: 0
+            };
+            
+            // Determine endpoint
+            const url = taskId ? '/Tasks/Update' : '/Tasks/Create';
+            if (taskId) {
+                requestData.id = parseInt(taskId);
+            }
+            
+            // Show loading state
+            const saveBtn = document.getElementById('saveTaskBtn');
+            const originalText = saveBtn.innerHTML;
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+            
+            // Get anti-forgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            
+            // Send request
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Success - reload page to show new task
+                    window.location.reload();
+                } else {
+                    // Error
+                    alert('Error: ' + (data.message || 'Failed to save task'));
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error saving task:', error);
+                alert('An error occurred while saving the task');
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = originalText;
+            });
+        }
+        
+        // Update checklist progress manually
+        function updateChecklistProgressManual(percentage) {
+            const progressBar = document.querySelector('.checklist-progress .progress-bar');
+            const progressText = document.querySelector('.checklist-progress .progress-text');
+            const headerProgressBar = document.getElementById('headerProgressBar');
+            const headerProgressText = document.getElementById('headerProgressText');
+            
+            if (progressBar) progressBar.style.width = percentage + '%';
+            if (progressText) progressText.textContent = percentage + '%';
+            if (headerProgressBar) headerProgressBar.style.width = percentage + '%';
+            if (headerProgressText) headerProgressText.textContent = percentage + '%';
+        }
+        
+        // Update task title icon based on status
+        function updateTaskTitleIconFromModal(status) {
+            const icon = document.getElementById('taskTitleIcon');
+            if (!icon) return;
+            
+            // Remove all status classes
+            icon.className = icon.className.replace(/\bstatus-\w+/g, '');
+            
+            // Update icon and color based on status
+            switch(status) {
+                case 'Pending':
+                    icon.className = 'fa-solid fa-circle-question task-title-icon status-planned';
+                    break;
+                case 'InProgress':
+                    icon.className = 'fas fa-play-circle task-title-icon status-in-progress';
+                    break;
+                case 'Review':
+                    icon.className = 'fas fa-exclamation-circle task-title-icon status-review';
+                    break;
+                case 'Completed':
+                    icon.className = 'fas fa-check-circle task-title-icon status-completed';
+                    break;
+                default:
+                    icon.className = 'fa-solid fa-circle-question task-title-icon status-planned';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
             
             // Handle checklist item interactions
             const checklistItems = document.querySelectorAll('.checklist-item input[type="checkbox"]');
