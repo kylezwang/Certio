@@ -776,7 +776,7 @@
                                         </div>
                                     </div>
                                     <div class="flex-shrink-0 ms-2">
-                                        <span class="badge @GetPriorityClass(Model.Priority)" style="font-size: 0.7rem; padding: 0.25rem 0.5rem; white-space: nowrap;">
+                                        <span class="badge" style="font-size: 0.7rem; padding: 0.25rem 0.5rem; white-space: nowrap; @GetPriorityStyles(string.IsNullOrEmpty(Model.Priority) ? "Medium" : Model.Priority)">
                                             @(string.IsNullOrEmpty(Model.Priority) ? "Medium" : Model.Priority)
                                         </span>
                                     </div>
@@ -1101,11 +1101,23 @@
     {
         return priority switch
         {
-            "High" => "bg-danger text-white",
-            "Medium" => "bg-primary text-white",
-            "Low" => "bg-secondary text-white",
-            "Critical" => "bg-danger text-white",
-            _ => "bg-primary text-white"
+            "High" => "",
+            "Medium" => "",
+            "Low" => "",
+            "Critical" => "",
+            _ => ""
+        };
+    }
+    
+    string GetPriorityStyles(string priority)
+    {
+        return priority switch
+        {
+            "Critical" => "color: #dc3545; background-color: #f5b7b1;",
+            "High" => "color: #fd7e14; background-color: #ffeaa7;",
+            "Medium" => "color: #0d6efd; background-color: #cfe2ff;",
+            "Low" => "color: #6c757d; background-color: #e9ecef;",
+            _ => "color: #0d6efd; background-color: #cfe2ff;"
         };
     }
 
@@ -1239,7 +1251,7 @@
                 if (!previewPriority) return;
                 
                 previewPriority.textContent = priority;
-                previewPriority.className = 'badge ' + getPriorityClass(priority);
+                previewPriority.setAttribute('style', previewPriority.getAttribute('style').replace(/color:[^;]*; background-color:[^;]*;/, '') + ' ' + getPriorityClass(priority));
             }
             
             function updateDueDate(dueDate) {
@@ -1386,11 +1398,11 @@
             
             function getPriorityClass(priority) {
                 switch(priority) {
-                    case 'High': return 'bg-danger text-white';
-                    case 'Medium': return 'bg-primary text-white';
-                    case 'Low': return 'bg-secondary text-white';
-                    case 'Critical': return 'bg-danger text-white';
-                    default: return 'bg-primary text-white';
+                    case 'Critical': return 'color: #dc3545; background-color: #f5b7b1;';
+                    case 'High': return 'color: #fd7e14; background-color: #ffeaa7;';
+                    case 'Medium': return 'color: #0d6efd; background-color: #cfe2ff;';
+                    case 'Low': return 'color: #6c757d; background-color: #e9ecef;';
+                    default: return 'color: #0d6efd; background-color: #cfe2ff;';
                 }
             }
             

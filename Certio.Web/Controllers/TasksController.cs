@@ -6,16 +6,20 @@ using Certio.Domain.Tasks;
 using Certio.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
+using Microsoft.Extensions.Options;
+using Certio.Web.Configuration;
 
 namespace Certio.Web.Controllers
 {
     public class TasksController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly GoogleMapsConfiguration _googleMapsConfig;
 
-        public TasksController(ApplicationDbContext context)
+        public TasksController(ApplicationDbContext context, IOptions<GoogleMapsConfiguration> googleMapsConfig)
         {
             _context = context;
+            _googleMapsConfig = googleMapsConfig.Value;
         }
 
         // GET: /Client/{orgId}/Tasks or /Tasks/Index
@@ -48,6 +52,8 @@ namespace Certio.Web.Controllers
 
             // Set ViewBag for layout
             ViewBag.OrganizationId = organizationId;
+            ViewBag.GoogleMapsApiKey = _googleMapsConfig.ApiKey;
+            ViewBag.GoogleMapsEnabled = _googleMapsConfig.Enabled;
             
             var org = await _context.Organizations
                 .Where(o => o.Id == organizationId)

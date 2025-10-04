@@ -475,25 +475,34 @@
         
         <!-- Task Details Modal -->
         <div class="task-details-modal" id="taskDetailsModal" style="display: none; border-radius: 12px;">
-            <div class="modal-dialog" style="margin-bottom: 2rem;">
+            <div class="modal-dialog" style="margin-bottom: 1.5rem;">
                 <div class="task-details-content">
                     <!-- Modal Header -->
                     <div class="task-details-header">
                         <div class="task-details-header-left">
                             <div class="task-status-dropdown">
-                                <select class="form-select task-status-select">
+                                <select class="form-select task-status-select" id="statusDropdown">
                                     <option value="Pending">Planned</option>
                                     <option value="InProgress">In Progress</option>
                                     <option value="Review">Review</option>
                                     <option value="Completed">Completed</option>
                                 </select>
+                                <i class="fas fa-chevron-down status-dropdown-arrow"></i>
+                            </div>
+                        </div>
+                        <div class="task-details-header-middle">
+                            <div class="header-progress">
+                                <div class="progress" style="height: 8px;" id="headerProgressBarContainer">
+                                    <div class="progress-bar" style="width: 33%" id="headerProgressBar"></div>
+                                </div>
+                                <span class="progress-text" style="font-size: 0.875rem; font-weight: 500; color: #6b7280;" id="headerProgressText">33%</span>
                             </div>
                         </div>
                         <div class="task-details-header-right">
                             <button class="btn btn-sm btn-link task-header-btn">
                                 <i class="fas fa-bell"></i>
                             </button>
-                            <button class="btn btn-sm btn-link task-header-btn">
+                            <button class="btn btn-sm btn-link task-header-btn" id="headerAttachmentBtn">
                                 <i class="fas fa-paperclip"></i>
                             </button>
                             <button class="btn btn-sm btn-link task-header-btn">
@@ -506,43 +515,39 @@
                     <!-- Task Title -->
                     <div class="task-details-title-section">
                         <div class="task-title-container">
-                            <i class="fas fa-check-circle task-title-icon"></i>
+                            <i class="fa-solid fa-circle-question task-title-icon" id="taskTitleIcon"></i>
                             <h2 class="task-title" contenteditable="true">Draft Founder Agreement & IP Assignment (4-yr vest, 1-yr cliff)</h2>
                         </div>
                     </div>
 
                     <!-- Action Buttons -->
                     <div class="task-action-buttons">
-                        <button class="btn btn-sm btn-outline-secondary task-action-btn">
-                            <i class="fas fa-plus"></i> Add
+                        <button class="btn btn-sm btn-outline-secondary task-action-btn" id="scroll-status-btn" style="font-size: 0.875rem;">
+                            <i class="fas fa-clock"></i> Status
                         </button>
-                        <button class="btn btn-sm btn-outline-secondary task-action-btn">
-                            <i class="fas fa-clock"></i> Dates
+                        <button class="btn btn-sm btn-outline-secondary task-action-btn" id="scroll-priority-btn" style="font-size: 0.875rem;">
+                            <i class="fas fa-exclamation-circle"></i> Priority
                         </button>
-                        <button class="btn btn-sm btn-outline-secondary task-action-btn">
-                            <i class="fas fa-check-square"></i> Checklist
+                        <button class="btn btn-sm btn-outline-secondary task-action-btn" id="scroll-dates-btn" style="font-size: 0.875rem;">
+                            <i class="fas fa-calendar"></i> Dates
                         </button>
-                        <button class="btn btn-sm btn-outline-secondary task-action-btn">
-                            <i class="fas fa-paperclip"></i> Attachment
+                        <button class="btn btn-sm btn-outline-secondary task-action-btn" id="scroll-checklist-btn" style="font-size: 0.875rem;">
+                            <i class="fas fa-check-square"></i> Subtasks
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary task-action-btn" id="scroll-attachment-btn" style="font-size: 0.875rem;">
+                            <i class="fas fa-paperclip"></i> Attachments
                         </button>
                         <button class="btn btn-sm btn-outline-secondary task-action-btn">
                             <i class="fas fa-map-marker-alt"></i> Location
                         </button>
                     </div>
 
-                    <!-- Members and Labels -->
+                    <!-- Assignees -->
                     <div class="task-meta-section">
                         <div class="task-members">
-                            <span class="task-meta-label">Members</span>
+                            <span class="task-meta-label">Assignees</span>
                             <div class="member-avatar">CT</div>
                             <button class="btn btn-sm btn-outline-secondary add-member-btn">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
-                        <div class="task-labels">
-                            <span class="task-meta-label">Labels</span>
-                            <div class="task-label green-label">Label</div>
-                            <button class="btn btn-sm btn-outline-secondary add-label-btn">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
@@ -558,39 +563,82 @@
                                     <h6 class="task-section-title">
                                         <i class="fas fa-bars"></i> Description
                                     </h6>
-                                    <button class="btn btn-sm btn-link edit-btn">Edit</button>
                                 </div>
                                 <div class="task-section-content">
-                                    <p class="task-description">Test description for this task</p>
+                                    <textarea class="form-control task-description-textarea" rows="4" placeholder="Add a description for this task..." style="font-size: 0.875rem;">Test description for this task</textarea>
                                 </div>
                             </div>
 
-                            <!-- Custom Fields Section -->
-                            <div class="task-section">
+                            <!-- Status and Priority Section -->
+                            <div class="task-section" id="status-priority-section">
                                 <div class="task-section-header">
                                     <h6 class="task-section-title">
-                                        <i class="fas fa-table"></i> Custom Fields
+                                        <i class="fas fa-cog"></i> Status & Priority
                                     </h6>
-                                    <button class="btn btn-sm btn-link edit-btn">Edit</button>
                                 </div>
                                 <div class="task-section-content">
-                                    <div class="custom-field">
-                                        <label class="custom-field-label">Priority</label>
-                                        <select class="form-select custom-field-select priority-select">
-                                            <option value="Low">Low</option>
-                                            <option value="Medium">Medium</option>
-                                            <option value="High">High</option>
-                                            <option value="Highest" selected>Highest</option>
-                                        </select>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label fw-bold status-priority-label" style="font-size: 0.875rem;" id="status-label">
+                                                <i class="fas fa-clock me-2" style="color: #0b365e;"></i>
+                                                Status
+                                            </label>
+                                            <select class="form-select status-field" style="font-size: 0.875rem;" id="status-field">
+                                                <option value="Pending" selected>Planned</option>
+                                                <option value="InProgress">In Progress</option>
+                                                <option value="Review">Review</option>
+                                                <option value="Completed">Completed</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label fw-bold status-priority-label" style="font-size: 0.875rem;" id="priority-label">
+                                                <i class="fas fa-exclamation-circle me-2" style="color: #0b365e;"></i>
+                                                Priority
+                                            </label>
+                                            <select class="form-select priority-field" style="font-size: 0.875rem;" id="priority-field">
+                                                <option value="">Select priority</option>
+                                                <option value="Low">Low</option>
+                                                <option value="Medium" selected>Medium</option>
+                                                <option value="High">High</option>
+                                                <option value="Critical">Critical</option>
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Checklist Section -->
-                            <div class="task-section">
+                            <!-- Dates Section -->
+                            <div class="task-section" id="dates-section">
                                 <div class="task-section-header">
                                     <h6 class="task-section-title">
-                                        <i class="fas fa-check-square"></i> Checklist
+                                        <i class="fas fa-calendar"></i> Dates
+                                    </h6>
+                                </div>
+                                <div class="task-section-content">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label fw-bold status-priority-label" style="font-size: 0.875rem;" id="start-date-label">
+                                                <i class="fas fa-calendar me-2" style="color: #0b365e;"></i>
+                                                Start Date
+                                            </label>
+                                            <input type="date" class="form-control dates-field" style="font-size: 0.875rem;" id="start-date-field" />
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label fw-bold status-priority-label" style="font-size: 0.875rem;" id="due-date-label">
+                                                <i class="fas fa-calendar me-2" style="color: #0b365e;"></i>
+                                                Due Date
+                                            </label>
+                                            <input type="date" class="form-control dates-field" style="font-size: 0.875rem;" id="due-date-field" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Subtasks Section -->
+                            <div class="task-section" id="checklist-section">
+                                <div class="task-section-header">
+                                    <h6 class="task-section-title">
+                                        <i class="fas fa-check-square"></i> Subtasks
                                     </h6>
                                 </div>
                                 <div class="task-section-content">
@@ -603,16 +651,145 @@
                                     <div class="checklist-items">
                                         <div class="checklist-item completed">
                                             <input type="checkbox" class="form-check-input" checked>
-                                            <label class="form-check-label">fadefeqtfeg</label>
+                                            <label class="form-check-label" style="font-size: 0.875rem;">fadefeqtfeg</label>
                                         </div>
                                         <div class="checklist-item">
                                             <input type="checkbox" class="form-check-input">
-                                            <label class="form-check-label">geqwwgeg</label>
+                                            <label class="form-check-label" style="font-size: 0.875rem;">geqwwgeg</label>
+                                        </div>
+                                        <div class="checklist-item">
+                                            <input type="checkbox" class="form-check-input">
+                                            <label class="form-check-label" style="font-size: 0.875rem;">Review startup equity terms</label>
+                                        </div>
+                                        <div class="checklist-item">
+                                            <input type="checkbox" class="form-check-input">
+                                            <label class="form-check-label" style="font-size: 0.875rem;">Draft IP assignment clause</label>
+                                        </div>
+                                        <div class="checklist-item">
+                                            <input type="checkbox" class="form-check-input">
+                                            <label class="form-check-label" style="font-size: 0.875rem;">Verify cliff period calculations</label>
+                                        </div>
+                                        <div class="checklist-item">
+                                            <input type="checkbox" class="form-check-input">
+                                            <label class="form-check-label" style="font-size: 0.875rem;">Get legal team review</label>
+                                        </div>
+                                        <div class="checklist-item">
+                                            <input type="checkbox" class="form-check-input">
+                                            <label class="form-check-label" style="font-size: 0.875rem;">Prepare final documentation</label>
+                                        </div>
+                                        <div class="checklist-item">
+                                            <input type="checkbox" class="form-check-input">
+                                            <label class="form-check-label" style="font-size: 0.875rem;">Schedule founder meeting</label>
+                                        </div>
+                                        <div class="checklist-item">
+                                            <input type="checkbox" class="form-check-input">
+                                            <label class="form-check-label" style="font-size: 0.875rem;">Update client status</label>
                                         </div>
                                     </div>
                                     <div class="checklist-actions">
                                         <button class="btn btn-sm btn-link">Hide checked items</button>
                                         <button class="btn btn-sm btn-link text-danger">Delete</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Attachments Section -->
+                            <div class="task-section" id="attachments-section">
+                                <div class="task-section-header">
+                                    <h6 class="task-section-title">
+                                        <i class="fas fa-paperclip"></i> Attachments
+                                    </h6>
+                                    <button class="btn btn-sm btn-outline-secondary edit-btn">
+                                        <i class="fas fa-plus"></i> Add
+                                    </button>
+                                </div>
+                                <div class="task-section-content">
+                                    <div class="attachments-container">
+                                        <!-- Sample attachments for demonstration -->
+                                        <div class="attachment-item">
+                                            <div class="attachment-icon">
+                                                <i class="fas fa-file-pdf"></i>
+                                            </div>
+                                            <div class="attachment-info">
+                                                <div class="attachment-name">Draft Founder Agreement.pdf</div>
+                                                <div class="attachment-meta">
+                                                    <span class="attachment-size">2.4 MB</span>
+                                                    <span class="attachment-date">Uploaded 2 hours ago</span>
+                                                </div>
+                                            </div>
+                                            <div class="attachment-actions">
+                                                <button class="btn btn-sm btn-link p-0" title="Download">
+                                                    <i class="fas fa-download"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-link p-0 text-danger" title="Remove">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <button class="attachment-upload-btn">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                            <span>Upload files</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Location Section -->
+                            <div class="task-section" id="location-section">
+                                <div class="task-section-header">
+                                    <h6 class="task-section-title">
+                                        <i class="fas fa-map-marker-alt"></i> Location
+                                    </h6>
+                                    <button class="btn btn-sm btn-outline-secondary edit-btn d-none">
+                                        <i class="fas fa-search"></i> Search
+                                    </button>
+                                </div>
+                                <div class="task-section-content">
+                                    <div class="location-container">
+                                        <!-- Location Search with Autocomplete -->
+                                        <div class="location-search">
+                                            <div class="search-input-group">
+                                                <input type="text" class="form-control location-search-input" 
+                                                       placeholder="Start typing a location..." 
+                                                       id="locationSearchInput"
+                                                       autocomplete="off">
+                                                <div class="search-loading-indicator" id="searchLoadingIndicator" style="display: none;">
+                                                    <i class="fas fa-spinner fa-spin"></i>
+                                                </div>
+                                            </div>
+                                            <!-- Autocomplete Dropdown -->
+                                            <div class="autocomplete-dropdown" id="autocompleteDropdown" style="display: none;">
+                                                <ul class="autocomplete-list" id="autocompleteList">
+                                                    <!-- Suggestions will be populated here -->
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Selected Location Display -->
+                                        <div class="location-display" id="locationDisplay" style="display: none;">
+                                            <div class="location-info">
+                                                <h6 class="location-name" id="locationName"></h6>
+                                                <p class="location-address" id="locationAddress"></p>
+                                            </div>
+                                            <div class="location-actions">
+                                                <button class="btn btn-sm btn-link p-0" title="Get directions">
+                                                    <i class="fas fa-route"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-link text-danger p-0" title="Remove location">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Google Maps Container -->
+                                        <div class="map-container" id="mapContainer">
+                                            <div class="map-placeholder">
+                                                <i class="fas fa-map-marked-alt" style="font-size: 3rem; color: #d1d5db;"></i>
+                                                <p class="text-muted mt-2">No location selected</p>
+                                                <small class="text-muted">Search for a location to display it on the map</small>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -625,19 +802,81 @@
                                     <h6 class="comments-title">
                                         <i class="fas fa-comment"></i> Comments and activity
                                     </h6>
-                                    <button class="btn btn-sm btn-link">Show details</button>
                                 </div>
                                 <div class="comment-input-section">
                                     <textarea class="form-control comment-input" placeholder="Write a comment..."></textarea>
                                 </div>
                                 <div class="activity-log">
                                     <div class="activity-item">
+                                        <div class="activity-avatar" style="background: #e74c3c;">L</div>
+                                        <div class="activity-content">
+                                            <span class="activity-text">
+                                                <strong>lawyer.smith</strong> commented: "Need to review the vesting schedule with legal team first"
+                                            </span>
+                                            <div class="activity-time">Sep 26, 2025, 2:15 PM</div>
+                                        </div>
+                                    </div>
+                                    <div class="activity-item">
+                                        <div class="activity-avatar" style="background: #2ecc71;">A</div>
+                                        <div class="activity-content">
+                                            <span class="activity-text">
+                                                <strong>admin.user</strong> attached a document "Founder Agreement Template.pdf"
+                                            </span>
+                                            <div class="activity-time">Sep 26, 2025, 11:30 AM</div>
+                                        </div>
+                                    </div>
+                                    <div class="activity-item">
+                                        <div class="activity-avatar" style="background: #3498db;">M</div>
+                                        <div class="activity-content">
+                                            <span class="activity-text">
+                                                <strong>marketing.lead</strong> changed status from <strong>Planned</strong> to <strong>In Progress</strong>
+                                            </span>
+                                            <div class="activity-time">Sep 25, 2025, 4:22 PM</div>
+                                        </div>
+                                    </div>
+                                    <div class="activity-item">
+                                        <div class="activity-avatar" style="background: #9b59b6;">CT</div>
+                                        <div class="activity-content">
+                                            <span class="activity-text">
+                                                <strong>CT</strong> commented: "Starting work on this agreement. Will need input from founders"
+                                            </span>
+                                            <div class="activity-time">Sep 25, 2025, 3:45 PM</div>
+                                        </div>
+                                    </div>
+                                    <div class="activity-item">
+                                        <div class="activity-avatar" style="background: #f39c12;">JD</div>
+                                        <div class="activity-content">
+                                            <span class="activity-text">
+                                                <strong>john.doe</strong> created <strong>Subtask</strong>: "Prepare first draft"
+                                            </span>
+                                            <div class="activity-time">Sep 25, 2025, 3:45 PM</div>
+                                        </div>
+                                    </div>
+                                    <div class="activity-item">
                                         <div class="activity-avatar">K</div>
                                         <div class="activity-content">
                                             <span class="activity-text">
                                                 <strong>kylezwang</strong> added this card to <strong>Planned</strong>
                                             </span>
-                                            <div class="activity-time">Sep 25, 2025, 9:48 PM</div>
+                                            <div class="activity-time">Sep 25, 2025, 2:30 PM</div>
+                                        </div>
+                                    </div>
+                                    <div class="activity-item">
+                                        <div class="activity-avatar" style="background: #1abc9c;">SM</div>
+                                        <div class="activity-content">
+                                            <span class="activity-text">
+                                                <strong>sarah.miller</strong> set priority to <strong>High</strong>
+                                            </span>
+                                            <div class="activity-time">Sep 25, 2025, 2:15 PM</div>
+                                        </div>
+                                    </div>
+                                    <div class="activity-item">
+                                        <div class="activity-avatar" style="background: #34495e;">TK</div>
+                                        <div class="activity-content">
+                                            <span class="activity-text">
+                                                <strong>tom.kim</strong> assigned to <strong>kylezwang</strong>
+                                            </span>
+                                            <div class="activity-time">Sep 25, 2025, 1:20 PM</div>
                                         </div>
                                     </div>
                                 </div>
@@ -670,8 +909,8 @@
     </div>
 </div>
 
-<!-- Task Detail Modal -->
-<div class="modal fade" id="taskDetailModal" tabindex="-1" aria-hidden="true">
+@* Bootstrap Modal - NOT USED - Using custom modal instead
+<div class="modal fade" id="taskDetailModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-lg" style="margin-bottom: 2rem;">
         <div class="modal-content">
             <div class="modal-header border-0">
@@ -686,11 +925,40 @@
         </div>
     </div>
 </div>
+*@
 
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    @if (ViewBag.GoogleMapsEnabled == true && !string.IsNullOrEmpty(ViewBag.GoogleMapsApiKey))
+    {
+        <script>
+            // Google Maps initialization callback must be defined before async load
+            window.initGoogleMaps = function() {
+                try {
+                    console.log('Google Maps API loaded successfully');
+                    window.googleMapsReady = true;
+                    setTimeout(function() {
+                        if (typeof initializeLocationSearch === 'function') {
+                            initializeLocationSearch();
+                        } else {
+                            console.warn('initializeLocationSearch function not found');
+                        }
+                    }, 100);
+                } catch (err) {
+                    console.error('Error in initGoogleMaps:', err);
+                }
+            }
+        </script>
+        <script src="https://maps.googleapis.com/maps/api/js?key=@ViewBag.GoogleMapsApiKey&libraries=places&callback=initGoogleMaps" async defer></script>
+    }
     <script src="~/js/tasks.js"></script>
+    <script>
+        // Make initializeLocationSearch available globally for debugging
+        window.initializeLocationSearch = window.initializeLocationSearch || function() {
+            console.warn('initializeLocationSearch called but not implemented');
+        };
+    </script>
     <script>
         // Pass model data to JavaScript
         window.tasksData = {
@@ -734,9 +1002,10 @@
                 });
             }
             
-            // Close modal when clicking outside
+            // Close modal when clicking on backdrop (outside modal content)
             if (taskDetailsModal) {
                 taskDetailsModal.addEventListener('click', function(e) {
+                    // Only close if clicking directly on the backdrop (taskDetailsModal itself)
                     if (e.target === taskDetailsModal) {
                         taskDetailsModal.style.display = 'none';
                     }
@@ -756,14 +1025,26 @@
                 const completedItems = document.querySelectorAll('.checklist-item.completed').length;
                 const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
                 
-                const progressBar = document.querySelector('.progress-bar');
-                const progressText = document.querySelector('.progress-text');
+                // Update main checklist progress
+                const progressBar = document.querySelector('.checklist-progress .progress-bar');
+                const progressText = document.querySelector('.checklist-progress .progress-text');
                 
                 if (progressBar) {
                     progressBar.style.width = progressPercentage + '%';
                 }
                 if (progressText) {
                     progressText.textContent = progressPercentage + '%';
+                }
+                
+                // Update header progress
+                const headerProgressBar = document.getElementById('headerProgressBar');
+                const headerProgressText = document.getElementById('headerProgressText');
+                
+                if (headerProgressBar) {
+                    headerProgressBar.style.width = progressPercentage + '%';
+                }
+                if (headerProgressText) {
+                    headerProgressText.textContent = progressPercentage + '%';
                 }
             }
             
@@ -1034,7 +1315,271 @@
                     }
                 }, { passive: false });
             }
+
+            // Scroll-to-field functionality for action buttons
+            setupScrollToField();
         });
+
+        function setupScrollToField() {
+            // Wait a bit for modal to be fully rendered
+            setTimeout(() => {
+                const scrollableContainer = document.querySelector('.task-details-left');
+                const statusBtn = document.getElementById('scroll-status-btn');
+                const priorityBtn = document.getElementById('scroll-priority-btn');
+                const datesBtn = document.getElementById('scroll-dates-btn');
+                const checklistBtn = document.getElementById('scroll-checklist-btn');
+                const attachmentBtn = document.getElementById('scroll-attachment-btn');
+                
+                const statusPrioritySection = document.getElementById('status-priority-section');
+                const datesSection = document.getElementById('dates-section');
+                const checklistSection = document.getElementById('checklist-section');
+                const attachmentsSection = document.getElementById('attachments-section');
+                
+                const statusField = document.getElementById('status-field');
+                const priorityField = document.getElementById('priority-field');
+                const startDateField = document.getElementById('start-date-field');
+                
+                if (!scrollableContainer) {
+                    console.error('Scrollable container not found');
+                    return;
+                }
+
+            // Status button click handler
+            if (statusBtn && statusPrioritySection) {
+                statusBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    scrollToElement(statusPrioritySection);
+                    // Remove focused class from other labels first
+                    removeFocusedClass();
+                    
+                    // Add focused class to change color to black for Status label
+                    const statusLabel = document.getElementById('status-label');
+                    statusLabel.classList.add('focused');
+                    
+                    // Focus the field
+                    setTimeout(() => statusField.focus(), 300);
+                });
+            }
+
+            // Priority button click handler
+            if (priorityBtn && statusPrioritySection) {
+                priorityBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    scrollToElement(statusPrioritySection);
+                    // Remove focused class from other labels first
+                    removeFocusedClass();
+                    
+                    // Add focused class to change color to black for Priority label
+                    const priorityLabel = document.getElementById('priority-label');
+                    priorityLabel.classList.add('focused');
+                    
+                    // Focus the field
+                    setTimeout(() => priorityField.focus(), 300);
+                });
+            }
+
+            // Dates button click handler
+            if (datesBtn && datesSection) {
+                datesBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    scrollToElement(datesSection);
+                    // Remove focused class from other labels first
+                    removeFocusedClass();
+                    
+                    // Add focused class to change color to black for both date labels
+                    const startDateLabel = document.getElementById('start-date-label');
+                    const dueDateLabel = document.getElementById('due-date-label');
+                    startDateLabel.classList.add('focused');
+                    dueDateLabel.classList.add('focused');
+                    
+                    // Focus the first date field
+                    setTimeout(() => startDateField.focus(), 300);
+                });
+            }
+
+            // Checklist button click handler
+            if (checklistBtn && checklistSection) {
+                checklistBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Checklist button clicked');
+                    scrollToElement(checklistSection);
+                    // Remove focused class from other labels
+                    removeFocusedClass();
+                });
+            } else {
+                console.log('Checklist elements not found:', { checklistBtn: !!checklistBtn, checklistSection: !!checklistSection });
+            }
+
+            // Attachment button click handler
+            if (attachmentBtn && attachmentsSection) {
+                attachmentBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Attachment button clicked');
+                    scrollToElement(attachmentsSection);
+                    // Remove focused class from other labels
+                    removeFocusedClass();
+                });
+            } else {
+                console.log('Attachment elements not found:', { attachmentBtn: !!attachmentBtn, attachmentsSection: !!attachmentsSection });
+            }
+            
+            // Status dropdown click handler - navigates to Status section
+            const statusDropdown = document.getElementById('statusDropdown');
+            if (statusDropdown && statusPrioritySection) {
+                statusDropdown.addEventListener('click', function(e) {
+                    e.stopPropagation(); // Prevent closing dropdown
+                    scrollToElement(statusPrioritySection);
+                    // Remove focused class from other labels
+                    removeFocusedClass();
+                });
+                
+                // Sync when header dropdown changes
+                statusDropdown.addEventListener('change', function(e) {
+                    syncStatusDropdowns(statusDropdown, statusField);
+                });
+            }
+            
+            // Sync when status section dropdown changes
+            if (statusField) {
+                statusField.addEventListener('change', function(e) {
+                    syncStatusDropdowns(statusField, statusDropdown);
+                });
+            }
+            
+            // Function to sync dropdowns when either changes
+            function syncStatusDropdowns(sourceDropdown, targetDropdown) {
+                if (sourceDropdown && targetDropdown) {
+                    const selectedValue = sourceDropdown.value;
+                    if (targetDropdown.value !== selectedValue) {
+                        targetDropdown.value = selectedValue;
+                    }
+                    // Update icon based on status
+                    updateTaskTitleIcon(selectedValue);
+                }
+            }
+            
+            // Function to update task title icon based on status
+            function updateTaskTitleIcon(status) {
+                const icon = document.getElementById('taskTitleIcon');
+                if (!icon) return;
+                
+                // Remove all status classes
+                icon.className = icon.className.replace(/\bstatus-\w+/g, '');
+                
+                // Update icon and color based on status
+                switch(status) {
+                    case 'Pending':
+                        icon.className = 'fa-solid fa-circle-question task-title-icon status-planned';
+                        break;
+                    case 'InProgress':
+                        icon.className = 'fas fa-play-circle task-title-icon status-in-progress';
+                        break;
+                    case 'Review':
+                        icon.className = 'fas fa-exclamation-circle task-title-icon status-review';
+                        break;
+                    case 'Completed':
+                        icon.className = 'fas fa-check-circle task-title-icon status-completed';
+                        break;
+                    default:
+                        icon.className = 'fa-solid fa-circle-question task-title-icon status-planned';
+                }
+            }
+            
+            // Header progress bar and text click handler - navigates to Subtasks section
+            const headerProgressContainer = document.getElementById('headerProgressBarContainer');
+            const headerProgressText = document.getElementById('headerProgressText');
+            
+            function scrollToSubtasks(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Progress clicked - navigating to Subtasks');
+                scrollToElement(checklistSection);
+                // Remove focused class from other labels
+                removeFocusedClass();
+            }
+            
+            if (headerProgressContainer && checklistSection) {
+                headerProgressContainer.addEventListener('click', scrollToSubtasks);
+            }
+            
+            if (headerProgressText && checklistSection) {
+                headerProgressText.addEventListener('click', scrollToSubtasks);
+            }
+            
+            // Header attachment icon click handler - navigates to Attachments section
+            const headerAttachmentBtn = document.getElementById('headerAttachmentBtn');
+            if (headerAttachmentBtn && attachmentsSection) {
+                headerAttachmentBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Header attachment icon clicked');
+                    scrollToElement(attachmentsSection);
+                    // Remove focused class from other labels
+                    removeFocusedClass();
+                });
+            }
+            
+            // Initialize status icon based on current selection
+            const initialStatusDropdown = document.getElementById('statusDropdown');
+            if (initialStatusDropdown) {
+                updateTaskTitleIcon(initialStatusDropdown.value);
+            }
+
+            // Scroll event listener to revert colors when scrolling
+            if (scrollableContainer) {
+                let scrollTimeout;
+                scrollableContainer.addEventListener('scroll', function() {
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(function() {
+                        revertLabelColors();
+                    }, 300);
+                });
+            }
+
+            // Function to scroll to a specific element with smooth animation
+            function scrollToElement(element) {
+                if (!element || !scrollableContainer) return;
+                
+                console.log('Scrolling to element:', element.id);
+                
+                // Get the element's position relative to the scrollable container
+                const scrollableRect = scrollableContainer.getBoundingClientRect();
+                const elementRect = element.getBoundingClientRect();
+                
+                // Calculate how much we need to scroll
+                const currentScrollTop = scrollableContainer.scrollTop;
+                const elementOffsetFromContainerTop = elementRect.top - scrollableRect.top;
+                const targetScrollTop = currentScrollTop + elementOffsetFromContainerTop - 10; // 10px padding
+                
+                console.log('Current scroll top:', currentScrollTop);
+                console.log('Element position:', elementOffsetFromContainerTop);
+                console.log('Target scroll top:', targetScrollTop);
+                
+                // Scroll smoothly to the element
+                scrollableContainer.scrollTo({
+                    top: targetScrollTop,
+                    behavior: 'smooth'
+                });
+            }
+
+            // Function to remove focused class from other labels
+            function removeFocusedClass() {
+                const labels = document.querySelectorAll('.status-priority-label');
+                labels.forEach(label => label.classList.remove('focused'));
+            }
+
+            // Function to revert label colors by removing focused class
+            function revertLabelColors() {
+                const labels = document.querySelectorAll('.status-priority-label');
+                labels.forEach(label => label.classList.remove('focused'));
+            }
+            }, 100); // End of setTimeout
+        }
     </script>
 }
 
