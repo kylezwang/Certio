@@ -169,7 +169,7 @@ Type in the search box at the top of the page. Tasks filter in real-time based o
 ## Data Model
 
 ### TaskItem
-- **Core Fields**: Id, OrgId, MatterId, Title, Description, Status, Priority, Order
+- **Core Fields**: Id, OrgId, MatterId, Title, Description, Status, Priority, Location, Order
 - **Dates**: CreatedAt, StartedAt, LastModifiedAt, DueDate, CompletedAt
 - **Relationships**: TaskAssignments, Comments, SubTaskItems, RelatedDocuments, Dependencies
 

@@ -113,7 +113,7 @@
             <div class="col-lg-4 mb-3">
                 <div class="card h-100 border-0 matter-card" style="padding-top: 0.5rem; position: relative;">
                     <div class="card-header bg-transparent border-0 pb-0">
-                        <span class="badge @GetPriorityClass(matter.Priority) matter-priority-badge">@matter.Priority</span>
+                        <span class="badge matter-priority-badge" style="@GetPriorityStyles(matter.Priority)">@matter.Priority</span>
                         <div class="mb-2">
                             <div class="d-flex align-items-start">
                                 <i class="fas fa-gavel fs-5 me-2 flex-shrink-0" style="color: #002b55; margin-top: 2px;"></i>
@@ -197,11 +197,23 @@
     {
         return priority switch
         {
-            "Critical" => "bg-danger text-white",
-            "High" => "bg-danger text-white",
-            "Medium" => "bg-primary text-white",
-            "Low" => "bg-secondary text-white",
-            _ => "bg-secondary text-white"
+            "Critical" => "",
+            "High" => "",
+            "Medium" => "",
+            "Low" => "",
+            _ => ""
+        };
+    }
+    
+    string GetPriorityStyles(string priority)
+    {
+        return priority switch
+        {
+            "Critical" => "color: #dc3545; background-color: #f5b7b1;",
+            "High" => "color: #fd7e14; background-color: #ffeaa7;",
+            "Medium" => "color: #0d6efd; background-color: #cfe2ff;",
+            "Low" => "color: #6c757d; background-color: #e9ecef;",
+            _ => "color: #6c757d; background-color: #e9ecef;"
         };
     }
 

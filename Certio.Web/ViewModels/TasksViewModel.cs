@@ -23,6 +23,7 @@ namespace Certio.Web.ViewModels
         public string Description { get; set; } = "";
         public string Status { get; set; } = "";
         public string Priority { get; set; } = "";
+        public string? Location { get; set; }
         public int Order { get; set; }
         public DateTime? DueDate { get; set; }
         public DateTime? CompletedAt { get; set; }

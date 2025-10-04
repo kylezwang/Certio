@@ -15,6 +15,15 @@
         initializeTaskForm();
         initializeCalendarToggle();
         initializeColumnAddButtons();
+        initializeLocationSection();
+        
+        // Location search will be initialized by Google Maps callback or setTimeout
+        if (!window.google || !google.maps.places) {
+            // Try to initialize location search again after Google Maps loads
+            setTimeout(initializeLocationSearch, 2000);
+        } else {
+            initializeLocationSearch();
+        }
     });
 
     // Initialize Drag and Drop for Kanban columns
@@ -414,6 +423,441 @@
             alert(`${title}: ${message}`);
         }
     }
+
+    let autocomplete = null; // Deprecated widget; no longer used for new customers
+    let currentLocationInput = null;
+    let placesSessionToken = null;
+
+    // Initialize Google Places Autocomplete
+    function initializeLocationSearch() {
+        console.log('Initializing location search...');
+        const searchInput = document.getElementById('locationSearchInput');
+        
+        if (!searchInput) {
+            console.error('Location search input not found');
+            return;
+        }
+        
+        if (!window.google || !google.maps.places) {
+            console.warn('Google Maps API not loaded yet, retrying...');
+            setTimeout(initializeLocationSearch, 1000);
+            return;
+        }
+
+        console.log('Google Maps API is ready, setting up location search');
+        currentLocationInput = searchInput;
+
+        // Do NOT initialize google.maps.places.Autocomplete widget.
+        // New customers cannot use it; rely on manual predictions + PlacesService instead.
+        // Ensure input is enabled and placeholder is correct in case a previous attempt disabled it
+        searchInput.disabled = false;
+        searchInput.placeholder = 'Start typing a location...';
+
+        // Handle typing and show custom dropdown
+        let typingTimeout = null;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(typingTimeout);
+            const query = this.value.trim();
+            console.log('Location search input:', query);
+            
+            if (query.length > 2) {
+                if (!placesSessionToken || query.length === 3) {
+                    placesSessionToken = new google.maps.places.AutocompleteSessionToken();
+                }
+                typingTimeout = setTimeout(() => {
+                    console.log('Triggering autocomplete for:', query);
+                    showManualAutocomplete(query);
+                }, 300); // Delay to avoid too many requests
+            } else {
+                hideAutocompleteDropdown();
+            }
+        });
+
+        // Handle keyboard navigation
+        searchInput.addEventListener('keydown', handleKeyboardNavigation);
+
+        // Click outside to close dropdown
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.location-search')) {
+                hideAutocompleteDropdown();
+            }
+        });
+
+        // Initialize location section scroll button functionality
+        initializeLocationScrollButton();
+    }
+
+    // Show manual autocomplete dropdown
+    function showManualAutocomplete(query) {
+        console.log('showManualAutocomplete called with query:', query);
+        const dropdown = document.getElementById('autocompleteDropdown');
+        const list = document.getElementById('autocompleteList');
+        const loadingIndicator = document.getElementById('searchLoadingIndicator');
+        
+        console.log('Dropdown element:', dropdown);
+        console.log('List element:', list);
+        
+        if (!dropdown || !list || !query) {
+            console.warn('Missing autocomplete elements or empty query');
+            return;
+        }
+
+        loadingIndicator.style.display = 'block';
+
+        // Use Places API to get suggestions
+        const service = new google.maps.places.AutocompleteService();
+        console.log('AutocompleteService created, making request...');
+        
+        service.getPlacePredictions({
+            input: query,
+            types: ['establishment', 'geocode'],
+            sessionToken: placesSessionToken
+        }, function(predictions, status) {
+            console.log('Places API response:', {predictions: predictions, status: status});
+            console.log('Full status code:', status);
+            loadingIndicator.style.display = 'none';
+            
+            if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
+                console.log('Got predictions, populating dropdown...');
+                populateAutocompleteDropdown(predictions);
+                showAutocompleteDropdown();
+            } else if (status === google.maps.places.PlacesServiceStatus.REQUEST_DENIED) {
+                console.error('Places API request denied. Ensure Places API is enabled for your API key.');
+                showToast('Error', 'Places API not enabled for your key. Enable "Places API" in Google Cloud.', 'error');
+                hideAutocompleteDropdown();
+            } else if (status === google.maps.places.PlacesServiceStatus.UNKNOWN_ERROR) {
+                console.error('Unknown error from Places API. The Maps JavaScript API may not be enabled.');
+                showToast('Error', 'Maps API error. Enable "Maps JavaScript API" in Google Cloud Console.', 'error');
+                hideAutocompleteDropdown();
+            } else {
+                console.log('No predictions or error. Status:', status);
+                hideAutocompleteDropdown();
+            }
+        });
+    }
+
+    // Populate autocomplete dropdown with predictions
+    function populateAutocompleteDropdown(predictions) {
+        console.log('populateAutocompleteDropdown called with predictions:', predictions);
+        const list = document.getElementById('autocompleteList');
+        console.log('Autocomplete list element:', list);
+        if (!list) {
+            console.error('Autocomplete list not found!');
+            return;
+        }
+
+        list.innerHTML = '';
+        console.log('Creating', predictions.length, 'prediction items');
+        
+        predictions.slice(0, 5).forEach((prediction, index) => {
+            const item = document.createElement('li');
+            item.className = 'autocomplete-item';
+            item.dataset.placeId = prediction.place_id;
+            item.dataset.prediction = prediction.description;
+            
+            // Extract primary and secondary text
+            const description = prediction.description;
+            const commaIndex = description.indexOf(', ');
+            const primaryText = commaIndex > -1 ? description.substring(0, commaIndex) : description;
+            const secondaryText = commaIndex > -1 ? description.substring(commaIndex + 2) : '';
+            
+            item.innerHTML = `
+                <div class="autocomplete-icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <div class="autocomplete-text">
+                    <div class="autocomplete-primary-text">${primaryText}</div>
+                    ${secondaryText ? `<div class="autocomplete-secondary-text">${secondaryText}</div>` : ''}
+                </div>
+            `;
+            
+            // Handle click selection
+            item.addEventListener('click', function() {
+                selectLocationFromDropdown(prediction);
+            });
+            
+            // Handle keyboard navigation
+            item.addEventListener('mouseenter', function() {
+                clearActiveAutocompleteItem();
+                this.classList.add('active');
+            });
+            
+            list.appendChild(item);
+            console.log('Added prediction item:', prediction.description);
+        });
+        console.log('Total items in list:', list.children.length);
+    }
+
+    // Handle autocomplete selection from dropdown
+    function selectLocationFromDropdown(prediction) {
+        const searchInput = document.getElementById('locationSearchInput');
+        searchInput.value = prediction.description;
+        
+        // Get place details
+        const service = new google.maps.places.PlacesService(document.createElement('div'));
+        service.getDetails({
+            placeId: prediction.place_id,
+            fields: ['name', 'formatted_address', 'geometry'],
+            sessionToken: placesSessionToken
+        }, function(place, status) {
+            hideAutocompleteDropdown();
+            
+            if (status === google.maps.places.PlacesServiceStatus.OK) {
+                displayLocationFromPlace(place);
+                placesSessionToken = null; // reset after successful selection
+            } else {
+                showToast('Error', 'Could not load location details', 'error');
+            }
+        });
+    }
+
+    // Handle keyboard navigation in autocomplete
+    function handleKeyboardNavigation(e) {
+        const dropdown = document.getElementById('autocompleteDropdown');
+        const list = document.getElementById('autocompleteList');
+        
+        if (!dropdown || !list || dropdown.style.display === 'none') return;
+
+        const items = list.querySelectorAll('.autocomplete-item');
+        const activeItem = list.querySelector('.autocomplete-item.active');
+        let nextActiveIndex = -1;
+
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                nextActiveIndex = activeItem ? Array.from(items).indexOf(activeItem) + 1 : 0;
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                nextActiveIndex = activeItem ? Array.from(items).indexOf(activeItem) - 1 : items.length - 1;
+                break;
+            case 'Enter':
+                e.preventDefault();
+                if (activeItem) {
+                    activeItem.click();
+                }
+                return;
+            case 'Escape':
+                e.preventDefault();
+                hideAutocompleteDropdown();
+                return;
+            default:
+                return;
+        }
+
+        if (nextActiveIndex >= 0 && nextActiveIndex < items.length) {
+            clearActiveAutocompleteItem();
+            items[nextActiveIndex].classList.add('active');
+        }
+    }
+
+    // Clear active autocomplete item
+    function clearActiveAutocompleteItem() {
+        const activeItem = document.querySelector('.autocomplete-item.active');
+        if (activeItem) {
+            activeItem.classList.remove('active');
+        }
+    }
+
+    // Show autocomplete dropdown
+    function showAutocompleteDropdown() {
+        const dropdown = document.getElementById('autocompleteDropdown');
+        console.log('showAutocompleteDropdown called, dropdown element:', dropdown);
+        if (dropdown) {
+            dropdown.style.display = 'block';
+            console.log('Dropdown display set to block. Current style:', dropdown.style.display);
+            console.log('Dropdown computed style:', window.getComputedStyle(dropdown).display);
+        } else {
+            console.error('Dropdown element not found!');
+        }
+    }
+
+    // Hide autocomplete dropdown
+    function hideAutocompleteDropdown() {
+        const dropdown = document.getElementById('autocompleteDropdown');
+        if (dropdown) {
+            dropdown.style.display = 'none';
+        }
+        clearActiveAutocompleteItem();
+    }
+
+    // Initialize location scroll button
+    function initializeLocationScrollButton() {
+        const locationScrollBtn = document.querySelector('#scroll-location-btn');
+        if (locationScrollBtn) {
+            locationScrollBtn.addEventListener('click', function() {
+                document.getElementById('location-section').scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        }
+    }
+
+    // Display location from Google Place object
+    function displayLocationFromPlace(place) {
+        const locationDisplay = document.getElementById('locationDisplay');
+        const locationName = document.getElementById('locationName');
+        const locationAddress = document.getElementById('locationAddress');
+
+        // Update location info
+        locationName.textContent = place.name || 'Selected Location';
+        locationAddress.textContent = place.formatted_address;
+
+        // Show location display
+        locationDisplay.style.display = 'flex';
+
+        // Load embedded map
+        loadEmbeddedMap(place.geometry.location, place.name || 'Location', place.formatted_address);
+
+        // Update task location field
+        updateTaskLocationField(place.name + ', ' + place.formatted_address);
+        
+        showToast('Success', 'Location selected successfully', 'success');
+    }
+
+
+    // Load embedded Google Map
+    function loadEmbeddedMap(location, name, address) {
+        const mapContainer = document.getElementById('mapContainer');
+        
+        // Create map URL for embedded display
+        const locationStr = location.lat() + ',' + location.lng();
+        const encodedName = encodeURIComponent(name);
+        const encodedAddress = encodeURIComponent(address);
+        
+        const mapUrl = `https://maps.google.com/maps?q=${encodedName}|${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+        
+        // Create iframe for embedded map
+        mapContainer.innerHTML = `
+            <iframe 
+                class="embedded-map loaded"
+                src="${mapUrl}"
+                frameborder="0"
+                allowfullscreen>
+            </iframe>
+        `;
+    }
+
+    // Update task location field (if editing)
+    function updateTaskLocationField(locationText) {
+        const locationInput = document.querySelector('input[name="location"], input[id*="location"]');
+        if (locationInput) {
+            locationInput.value = locationText;
+        }
+    }
+
+    // Initialize location section functionality
+    function initializeLocationSection() {
+        // Remove location button
+        const removeLocationBtn = document.querySelector('.location-actions .btn.text-danger');
+        if (removeLocationBtn) {
+            removeLocationBtn.addEventListener('click', function() {
+                removeLocation();
+            });
+        }
+
+        // Get directions button
+        const directionsBtn = document.querySelector('.location-actions .btn:first-child');
+        if (directionsBtn) {
+            directionsBtn.addEventListener('click', function() {
+                const locationName = document.getElementById('locationName')?.textContent;
+                const locationAddress = document.getElementById('locationAddress')?.textContent;
+                
+                if (locationName && locationAddress) {
+                    const searchQuery = encodeURIComponent(`${locationName}, ${locationAddress}`);
+                    window.open(`https://www.google.com/maps/dir/?api=1&destination=${searchQuery}`, '_blank');
+                }
+            });
+        }
+
+        // Initialize location action button in toolbar (avoid :contains selector)
+        (function() {
+            const candidates = document.querySelectorAll('.task-action-buttons button, .task-action-btn');
+            for (const btn of candidates) {
+                if (btn.textContent && btn.textContent.trim().toLowerCase().includes('location')) {
+                    btn.addEventListener('click', function() {
+                        const section = document.getElementById('location-section');
+                        if (section) {
+                            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    });
+                    break;
+                }
+            }
+        })();
+    }
+
+    // Remove location
+    function removeLocation() {
+        if (!confirm('Are you sure you want to remove this location?')) return;
+
+        const locationDisplay = document.getElementById('locationDisplay');
+        const mapContainer = document.getElementById('mapContainer');
+        
+        // Hide location display
+        locationDisplay.style.display = 'none';
+        
+        // Reset map container
+        mapContainer.innerHTML = `
+            <div class="map-placeholder">
+                <i class="fas fa-map-marked-alt" style="font-size: 3rem; color: #d1d5db;"></i>
+                <p class="text-muted mt-2">No location selected</p>
+                <small class="text-muted">Search for a location to display it on the map</small>
+            </div>
+        `;
+        
+        // Clear location field if editing
+        updateTaskLocationField('');
+        
+        showToast('Success', 'Location removed successfully', 'success');
+    }
+
+    // Sample function to simulate loading different attachment types
+    window.simulateDocumentUpload = function(fileName, fileType, fileSize) {
+        const attachmentsContainer = document.querySelector('.attachments-container');
+        const attachmentItem = document.createElement('div');
+        attachmentItem.className = 'attachment-item';
+        
+        // Determine icon based on file type
+        let iconClass = 'fas fa-file';
+        if (fileName.includes('.pdf')) iconClass = 'fas fa-file-pdf';
+        else if (fileName.includes('.doc') || fileName.includes('.docx')) iconClass = 'fas fa-file-word';
+        else if (fileName.includes('.xls') || fileName.includes('.xlsx')) iconClass = 'fas fa-file-excel';
+        else if (fileName.includes('.ppt') || fileName.includes('.pptx')) iconClass = 'fas fa-file-powerpoint';
+        else if (fileName.match(/\.(jpg|jpeg|png|gif)$/)) iconClass = 'fas fa-image';
+        else if (fileName.match(/\.(zip|rar|7z)$/)) iconClass = 'fas fa-file-archive';
+        
+        attachmentItem.innerHTML = `
+            <div class="attachment-icon">
+                <i class="${iconClass}"></i>
+            </div>
+            <div class="attachment-info">
+                <div class="attachment-name">${fileName}</div>
+                <div class="attachment-meta">
+                    <span class="attachment-size">${fileSize}</span>
+                    <span class="attachment-date">Uploaded just now</span>
+                </div>
+            </div>
+            <div class="attachment-actions">
+                <button class="btn btn-sm btn-link p-0" title="Download">
+                    <i class="fas fa-download"></i>
+                </button>
+                <button class="btn btn-sm btn-link p-0 text-danger" title="Remove">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+        
+        // Insert before the upload button
+        const uploadBtn = attachmentsContainer.querySelector('.attachment-upload-btn');
+        attachmentsContainer.insertBefore(attachmentItem, uploadBtn);
+        
+        showToast('Success', 'File uploaded successfully', 'success');
+    };
+
+    // Expose functions globally for Google Maps callback
+    window.initializeLocationSearch = initializeLocationSearch;
+    window.displayLocationFromPlace = displayLocationFromPlace;
 
 })();
 

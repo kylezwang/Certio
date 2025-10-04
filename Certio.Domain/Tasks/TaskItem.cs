@@ -30,6 +30,9 @@ namespace Certio.Domain.Tasks
         [StringLength(20)]
         public string Priority { get; set; } = "Medium"; // High, Medium, Low, Critical
         
+        [StringLength(200)]
+        public string? Location { get; set; }
+        
         public int Order { get; set; } = 0;
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

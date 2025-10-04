@@ -169,6 +169,19 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddEnvironmentVariables();
 
+// Map flat env vars to hierarchical configuration keys (so .env or shell vars override appsettings)
+var googleMapsEnvKey = Environment.GetEnvironmentVariable("GOOGLE_MAPS_API_KEY");
+if (!string.IsNullOrWhiteSpace(googleMapsEnvKey))
+{
+    builder.Configuration["GoogleMaps:ApiKey"] = googleMapsEnvKey;
+}
+
+var aiApiKey = Environment.GetEnvironmentVariable("AI_API_KEY");
+if (!string.IsNullOrWhiteSpace(aiApiKey))
+{
+    builder.Configuration["AIService:ApiKey"] = aiApiKey;
+}
+
 // Smart database selection based on internet connectivity
 var connectionString = await GetConnectionStringAsync(builder.Configuration);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -269,6 +282,9 @@ builder.Services.AddScoped<Certio.Web.Services.IUserSyncService, Certio.Web.Serv
 // User Deletion Services
 // Configure anonymization settings
 builder.Services.Configure<Certio.Web.Configuration.AnonymizationSettings>(builder.Configuration.GetSection("AnonymizationSettings"));
+
+// Configure Google Maps settings
+builder.Services.Configure<Certio.Web.Configuration.GoogleMapsConfiguration>(builder.Configuration.GetSection("GoogleMaps"));
 
 builder.Services.AddScoped<Certio.Web.Services.IUserDeletionService, Certio.Web.Services.UserDeletionService>();
 
