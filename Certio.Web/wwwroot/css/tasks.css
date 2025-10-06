@@ -4,8 +4,97 @@
     height: calc(100vh - 120px);
     display: flex;
     flex-direction: column;
+    overflow: visible; /* Allow child elements to extend beyond boundaries */
+    padding: 0 1rem 1rem 1rem; /* Remove top padding, keep right, bottom, left */
+}
+
+/* Tasks Page Header */
+.tasks-page-header {
+    position: absolute;
+    top: 0; /* Now positioned at the very top since no top padding */
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: white;
+    border-radius: 0px 0px 12px 12px;
+    z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    pointer-events: auto;
+}
+
+.matter-selector-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.matter-selector-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    background: white;
+    border: 1px solid #ffffff;
+    border-radius: 0px 0px 12px 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 13rem;
+    min-width: 13rem;
+    max-width: 13rem;
+    font-size: 0.875rem;
+    color: #374151;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.matter-selector-btn:hover {
+    background-color: #f9fafb;
+    border-color: #ffffff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.matter-selector-text {
+    flex: 1;
+    text-align: left;
+    white-space: nowrap;
     overflow: hidden;
-    padding: 1rem; /* Add internal padding to Tasks page */
+    text-overflow: ellipsis;
+    font-weight: 500;
+}
+
+.matter-selector-arrow {
+    font-size: 0.75rem;
+    color: #6b7280;
+    flex-shrink: 0;
+}
+
+
+/* Inbox Status Sections */
+.inbox-status-section {
+    margin-bottom: 1.5rem;
+}
+
+.inbox-status-header {
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.inbox-status-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #495057;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.inbox-status-tasks {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
 /* Override main content padding for Tasks page */
@@ -23,8 +112,8 @@
 .tasks-content {
     display: flex;
     flex: 1;
-    overflow: hidden;
-    background: #f5f7fa;
+    background: #ffffff;
+    position: relative; /* Enable absolute positioning for child elements */
 }
 
 /* Left Sidebar - Task Inbox */
@@ -51,41 +140,26 @@
     padding: 0.5rem;
 }
 
-.inbox-task-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem;
-    margin-bottom: 0.5rem;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.2s;
+.task-card-item.completed {
+    background-color: #eef1f3;
 }
 
-.inbox-task-item:hover {
-    background-color: #f5f7fa;
-}
-
-.inbox-task-item.completed {
-    opacity: 0.6;
-}
-
-.inbox-task-item.completed .task-title {
+.task-card-item.completed .task-title {
     text-decoration: line-through;
     color: #999;
 }
 
-.inbox-task-item .form-check {
+.task-card-item .form-check {
     flex-grow: 1;
 }
 
-.inbox-task-item .task-title {
+.task-card-item .task-title {
     font-size: 0.9rem;
     margin-bottom: 0;
     cursor: pointer;
 }
 
-.inbox-task-item .task-due-date {
+.task-card-item .task-due-date {
     font-size: 0.75rem;
     margin-left: 0.5rem;
 }
@@ -99,6 +173,42 @@
     background: #0b365eCC;
     border-radius: 12px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    margin-top: 1rem; /* Add top margin to compensate for removed page padding */
+    margin-bottom: 1rem;
+    position: relative; /* Enable absolute positioning for scroll indicators */
+    scroll-behavior: smooth; /* Smooth scrolling for better UX */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    height: 85vh;
+}
+
+/* Auto-scroll zone indicators */
+.kanban-board-container::before,
+.kanban-board-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 80px;
+    z-index: 10;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.kanban-board-container::before {
+    left: 0;
+    background: linear-gradient(to right, rgba(11, 54, 94, 0.8), transparent);
+}
+
+.kanban-board-container::after {
+    right: 0;
+    background: linear-gradient(to left, rgba(11, 54, 94, 0.8), transparent);
+}
+
+/* Show scroll indicators when dragging */
+.kanban-board-container.drag-scroll-left::before,
+.kanban-board-container.drag-scroll-right::after {
+    opacity: 1;
 }
 
 .kanban-board {
@@ -163,7 +273,7 @@
 }
 
 .task-card:hover {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
     transform: translateY(-2px);
 }
 
@@ -487,7 +597,7 @@
     display: flex;
     flex: 1;
     overflow: hidden;
-    background: #f5f7fa;
+    background: #ffffff;
     transition: all 0.3s ease;
 }
 
@@ -537,20 +647,22 @@
 }
 
 .tasks-content.all-views .view-container#boardView {
-    width: 45%;
+    width: 42%;
 }
 
 /* Inbox Container */
 .inbox-container {
     width: 100%;
-    height: 100%;
+    height: 85vh;
     background: #9bc0ec;
     display: flex;
     flex-direction: column;
-    padding: 1rem;
+    padding: 1rem 0.6rem 5rem 1rem;
     overflow-y: auto;
     border-radius: 12px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    margin-top: 1rem; /* Add top margin to compensate for removed page padding */
+    margin-bottom: 1rem;
 }
 
 /* Inbox Header */
@@ -1254,6 +1366,7 @@
     transform: translateX(-50%);
     z-index: 1100;
     display: none; /* toggled to block */
+    transition: left 0.3s ease, transform 0.3s ease; /* Smooth transition when main content width changes */
 }
 
 .matter-popup-inner {
@@ -1264,6 +1377,15 @@
     width: 360px;
     max-height: 360px;
     overflow: hidden;
+}
+
+/* Matter popup positioning for top selector - overrides default bottom positioning */
+.matter-popup.top-positioned {
+    position: fixed !important;
+    top: 6.5rem !important; /* Position below the top matter selector */
+    bottom: auto !important;
+    z-index: 1100 !important;
+    transition: left 0.3s ease, transform 0.3s ease !important; /* Smooth transition when main content width changes */
 }
 
 .matter-popup-title {
@@ -1302,13 +1424,36 @@
     color: #6b7280;
 }
 
+.matter-item-all {
+    background: linear-gradient(135deg, #f0f9ff, #e0f2fe) !important;
+}
+
+.matter-item-all:hover {
+    background: linear-gradient(135deg, #e0f2fe, #bae6fd) !important;
+}
+
+.matter-item-all i {
+    color: #0ea5e9 !important;
+}
+
+.matter-item-all .matter-item-text {
+    color: #0c4a6e !important;
+    font-weight: 600;
+}
+
 .matter-item-text {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-/* Priority Badges */
+/* Priority Badges - Matter Page Style */
+.matter-priority-badge {
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
 .badge-low {
     background-color: #10b981 !important;
     color: white;
@@ -1325,12 +1470,16 @@
 }
 
 .task-card-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     background: white;
     border-radius: 8px;
     padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: box-shadow 0.2s;
-    cursor: pointer; /* indicate card is clickable */
+    cursor: pointer;
 }
 
 .task-card-item:hover {
@@ -1342,12 +1491,6 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-}
-
-.task-radio {
-    width: 18px;
-    height: 18px;
-    margin: 0;
 }
 
 .task-card-item .form-check-label {
@@ -1366,7 +1509,7 @@
     transform: translateX(-50%);
     display: flex;
     gap: 0.5rem;
-    background: white;
+    background: #ffffffb3;
     padding: 0.5rem;
     border-radius: 25px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -1416,7 +1559,7 @@
 /* Planner/Calendar View */
 .planner-container {
     width: 100%;
-    height: 100%;
+    height: 85vh;
     display: flex;
     flex-direction: column;
     background: white;
@@ -1425,6 +1568,8 @@
     overflow: hidden;
     margin: 0;
     padding: 0;
+    margin-top: 1rem; /* Add top margin to compensate for removed page padding */
+    margin-bottom: 1rem;
 }
 
 /* Calendar Header */
@@ -1478,7 +1623,7 @@
 .nav-btn {
     background: #007bff;
     border: none;
-    padding: 0.4rem 0.5rem;
+    padding: 0.4rem 0.6rem;
     border-radius: 6px;
     cursor: pointer;
     transition: background-color 0.2s;
@@ -1563,7 +1708,7 @@
 /* All Day Row (Fixed) */
 .all-day-row {
     display: grid;
-    grid-template-columns: 80px 1fr;
+    grid-template-columns: 4rem 1fr;
     border-bottom: 1px solid #d0d0d0;
     background: white;
 }
@@ -1644,7 +1789,7 @@
 .calendar-time-grid {
     flex: 1;
     display: grid;
-    grid-template-columns: 80px 1fr;
+    grid-template-columns: 4rem 1fr;
     overflow-y: auto;
     overflow-x: hidden;
 }
@@ -1751,11 +1896,11 @@
 
 /* Single column planner view for multi-view mode */
 .tasks-content.multi-view .planner-container .calendar-days-header {
-    grid-template-columns: 80px 1fr;
+    grid-template-columns: 4rem 1fr;
 }
 
 .tasks-content.multi-view .planner-container .calendar-dates-header {
-    grid-template-columns: 80px 1fr;
+    grid-template-columns: 4rem 1fr;
 }
 
 .tasks-content.multi-view .planner-container .all-day-calendar-columns {
@@ -1792,12 +1937,12 @@
 /* Single day header styling for multi-view */
 .tasks-content.multi-view .single-day-header {
     display: grid !important;
-    grid-template-columns: 80px 1fr;
+    grid-template-columns: 4rem 1fr;
 }
 
 .tasks-content.multi-view .single-date-header {
     display: grid !important;
-    grid-template-columns: 80px 1fr;
+    grid-template-columns: 4rem 1fr;
 }
 
 /* Hide full week headers in multi-view */

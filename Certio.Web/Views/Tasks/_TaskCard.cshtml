@@ -1,5 +1,19 @@
 @model Certio.Web.ViewModels.TaskItemViewModel
 
+@functions {
+    string GetPriorityStyles(string priority)
+    {
+        return priority switch
+        {
+            "Critical" => "color: #dc3545; background-color: #f5b7b1;",
+            "High" => "color: #fd7e14; background-color: #ffeaa7;",
+            "Medium" => "color: #0d6efd; background-color: #cfe2ff;",
+            "Low" => "color: #6c757d; background-color: #e9ecef;",
+            _ => "color: #6c757d; background-color: #e9ecef;"
+        };
+    }
+}
+
 <div class="task-card" data-task-id="@Model.Id" data-matter-id="@Model.MatterId" draggable="true">
     <div class="task-card-header">
         <div class="form-check">
@@ -8,10 +22,10 @@
                    data-task-id="@Model.Id"
                    @(Model.Status == "Completed" ? "checked" : "")>
         </div>
-        <span class="task-priority-badge @Model.PriorityClass">@Model.Priority</span>
+        <span class="badge matter-priority-badge" style="@GetPriorityStyles(Model.Priority); font-size: 0.7rem;">@Model.Priority</span>
     </div>
     
-    <div class="task-card-body" data-bs-toggle="modal" data-bs-target="#taskDetailModal" onclick="loadTaskDetail(@Model.Id)">
+    <div class="task-card-body" onclick="openTaskModal(@Model.Id)">
         <h6 class="task-card-title">@Model.Title</h6>
         
         @if (!string.IsNullOrEmpty(Model.Description))

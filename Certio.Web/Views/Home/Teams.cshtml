@@ -143,8 +143,8 @@
                         @{
                             var teamIcon = teamType switch
                             {
-                                Certio.Web.ViewModels.TeamType.Client => "fas fa-building",
-                                Certio.Web.ViewModels.TeamType.Legal => "fas fa-users",
+                                Certio.Web.ViewModels.TeamType.Client => "fas fa-users",
+                                Certio.Web.ViewModels.TeamType.Legal => "fa-solid fa-building-columns",
                                 Certio.Web.ViewModels.TeamType.External => "fas fa-user",
                                 _ => "fas fa-users"
                             };
@@ -170,7 +170,7 @@
                                         <!-- Avatar -->
                                         <div class="mb-3">
                                             <div class="team-member-avatar" 
-                                                 style="background-color: @member.Color;">
+                                                 style="background-color: @(member.Team == Certio.Web.ViewModels.TeamType.Legal ? "#0b365e" : (member.Team == Certio.Web.ViewModels.TeamType.Client ? "#3b82f6" : member.Color));">
                                                 @member.Initials
                                             </div>
                                         </div>

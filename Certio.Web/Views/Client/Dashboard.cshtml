@@ -93,9 +93,8 @@
                                         var currentDate = startDay.AddDays(week * 7 + day);
                                         var isCurrentMonth = currentDate.Month == Model.CurrentDate.Month;
                                         var isToday = currentDate.Date == today;
-                                        var isSelected = currentDate.Day == 15 && isCurrentMonth; // Highlight 15th as selected
                                         
-                                        <div class="calendar-day @(isCurrentMonth ? "current-month" : "other-month") @(isToday ? "today" : "") @(isSelected ? "selected" : "")">
+                                        <div class="calendar-day @(isCurrentMonth ? "current-month" : "other-month") @(isToday ? "today" : "")">
                                             @currentDate.Day
                                         </div>
                                     }
@@ -209,7 +208,7 @@
                     </div>
                 }
                 <div class="col-md-3">
-                    <a href="#" class="quick-access-item qa-card">
+                    <a href="/Client/@ViewBag.OrganizationId/Calendar" class="quick-access-item qa-card">
                         <div class="d-flex flex-column align-items-center text-center p-3">
                             <div class="quick-access-icon mb-2">
                                 <i class="fas fa-calendar text-success"></i>
@@ -288,7 +287,7 @@
         <div class="col-md-4 mb-4">
             <div class="card border-0 h-100 gd-card">
                 <div class="card-body p-4">
-                    <h5 class="card-title fw-bold mb-3">Firm Summary</h5>
+                    <h5 class="card-title fw-bold mb-3"><i class="fa-solid fa-chart-pie me-2 text-muted" style="font-size: 0.75em;"></i>Firm Summary</h5>
                     
                     <div class="firm-stat mb-3">
                         <div class="d-flex justify-content-between align-items-center">
@@ -321,15 +320,15 @@
             <div class="card border-0 h-100 daily-briefing-card gd-card">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center mb-3">
-                        <i class="fas fa-clock text-muted me-2"></i>
+                        <i class="fa-solid fa-calendar-day text-muted me-2" style="font-size: 0.9em;"></i>
                         <h5 class="card-title fw-bold mb-0">Daily Briefing</h5>
                     </div>
                     
                     <div class="briefing-item mb-3">
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="fw-semibold">Today</span>
-                            <span class="text-primary fw-bold">@Model.FilingsDueToday filings due</span>
                         </div>
+                        <span class="text-primary fw-bold">@Model.FilingsDueToday filings due</span>
                         <div class="text-muted small">@Model.FilingsDueDescription</div>
                     </div>
                     
@@ -350,7 +349,7 @@
         <div class="col-md-4 mb-4">
             <div class="card border-0 h-100 gd-card">
                 <div class="card-body p-4">
-                    <h5 class="card-title fw-bold mb-3">Next Suggestions</h5>
+                    <h5 class="card-title fw-bold mb-3"><i class="fa-solid fa-lightbulb me-2 text-muted" style="font-size: 0.75em;"></i>Next Suggestions</h5>
                     
                     @if (Model.NextSuggestions.Any())
                     {
@@ -400,7 +399,7 @@
 
     .card {
         border-radius: 12px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.25);
     }
 
     .ai-chat-card {
@@ -462,20 +461,16 @@
     .qa-card {
         background: #fff;
         border-radius: 12px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.25);
         display: block;
-        transition: all 0.3s ease;
+        transition: transform 0.2s ease, background-color 0.2s ease;
     }
 
-    .quick-access-item:hover {
-        background-color: #f9fafb;
-        color: inherit;
-        text-decoration: none;
-    }
-
-    /* Hover to match Matters card */
+    /* Single hover effect for qa-card buttons */
     .qa-card:hover {
         background-color: #eef1f3;
+        color: inherit;
+        text-decoration: none;
         transform: translateY(-2px);
         box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2) !important;
     }
@@ -497,7 +492,7 @@
     .gd-card {
         transition: all 0.3s ease;
         border-radius: 12px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.25);
     }
 
     .gd-card:hover {
@@ -640,7 +635,7 @@
     }
 
     .calendar-day:hover:not(.today):not(.selected) {
-        background-color: #f3f4f6;
+        background-color: #eef1f3;
         border-radius: 6px;
     }
 
@@ -712,4 +707,29 @@
             });
         </script>
     }
+    <script>
+        // Calendar day selection: only mark selected when user clicks a day
+        document.addEventListener('DOMContentLoaded', function () {
+            const calendarDays = document.querySelectorAll('.calendar-day');
+            if (!calendarDays || calendarDays.length === 0) return;
+
+            function clearSelected() {
+                document.querySelectorAll('.calendar-day.selected').forEach(function (el) {
+                    el.classList.remove('selected');
+                });
+                // When a selection is made, remove the automatic "today" highlight
+                document.querySelectorAll('.calendar-day.today').forEach(function (el) {
+                    el.classList.remove('today');
+                });
+            }
+
+            calendarDays.forEach(function (dayEl) {
+                dayEl.addEventListener('click', function () {
+                    // Do not override highlight for today unless explicitly clicked (allowed by adding selected)
+                    clearSelected();
+                    this.classList.add('selected');
+                });
+            });
+        });
+    </script>
 }

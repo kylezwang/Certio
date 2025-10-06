@@ -398,7 +398,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="global-nav-link" href="#" title="Calendar">
+                <a class="global-nav-link" href="#" id="calendarLink" title="Calendar">
                     <i class="fas fa-calendar"></i>
                     <span>Calendar</span>
                 </a>
@@ -475,9 +475,13 @@
             const clientsPopupClose = document.getElementById('clientsPopupClose');
             const clientsList = document.getElementById('clientsList');
             const myFirmLink = document.getElementById('myFirmLink');
+            const calendarLink = document.getElementById('calendarLink');
 
             // Initialize My Firm link
             initializeMyFirmLink();
+            
+            // Initialize Calendar link with same logic
+            initializeCalendarLink();
 
             // Function to initialize My Firm link
             async function initializeMyFirmLink() {
@@ -513,14 +517,61 @@
 
             // Function to update My Firm button active state based on current URL
             function updateMyFirmActiveState(firmOrgId) {
-                // Check if current URL path matches the firm organization ID
+                // Check if current URL path matches the firm organization ID but is NOT the Calendar page
                 const currentPath = window.location.pathname;
-                const firmPathPattern = new RegExp(`^/Client/${firmOrgId}/`);
-                
-                if (firmPathPattern.test(currentPath)) {
+                const isFirmPath = new RegExp(`^/Client/${firmOrgId}/`).test(currentPath);
+                const isCalendarPath = new RegExp(`^/Client/${firmOrgId}/Calendar`).test(currentPath);
+
+                if (isFirmPath && !isCalendarPath) {
                     myFirmLink.classList.add('active');
                 } else {
                     myFirmLink.classList.remove('active');
+                }
+            }
+
+            // Function to initialize Calendar link
+            async function initializeCalendarLink() {
+                try {
+                    const response = await fetch('/Client/List', { credentials: 'include' });
+                    const result = await response.json();
+                    
+                    if (result.success && result.organizations) {
+                        // Find the user's firm organization (LawFirm type)
+                        const firmOrg = result.organizations.find(org => 
+                            org.organizationType === 'LawFirm'
+                        );
+                        
+                        if (firmOrg) {
+                            calendarLink.href = `/Client/${firmOrg.organizationId}/Calendar`;
+                            
+                            // Check if current URL is the calendar page and add active class
+                            updateCalendarActiveState(firmOrg.organizationId);
+                        } else {
+                            // If no firm organization found, default to #
+                            calendarLink.href = '#';
+                        }
+                    } else {
+                        // Fallback on error
+                        calendarLink.href = '#';
+                    }
+                } catch (error) {
+                    console.error('Error initializing Calendar link:', error);
+                    // Fallback on error
+                    calendarLink.href = '#';
+                }
+            }
+
+            // Function to update Calendar button active state based on current URL
+            function updateCalendarActiveState(firmOrgId) {
+                const currentPath = window.location.pathname;
+                const calendarPathPattern = new RegExp(`^/Client/${firmOrgId}/Calendar`);
+                
+                if (calendarPathPattern.test(currentPath)) {
+                    calendarLink.classList.add('active');
+                    // Ensure My Firm is not marked active when Calendar is active
+                    myFirmLink.classList.remove('active');
+                } else {
+                    calendarLink.classList.remove('active');
                 }
             }
 

@@ -16,6 +16,7 @@
         initializeCalendarToggle();
         initializeColumnAddButtons();
         initializeLocationSection();
+        initializeMatterPopupPositioning();
         
         // Location search will be initialized by Google Maps callback or setTimeout
         if (!window.google || !google.maps.places) {
@@ -28,16 +29,39 @@
 
     // Initialize Drag and Drop for Kanban columns
     function initializeDragAndDrop() {
-        const columns = document.querySelectorAll('.column-cards');
+        // Destroy existing sortable instances first
+        sortableInstances.forEach(instance => {
+            if (instance && instance.destroy) {
+                instance.destroy();
+            }
+        });
+        sortableInstances = [];
         
-        columns.forEach(column => {
+        const columns = document.querySelectorAll('.column-cards');
+        console.log('Found columns:', columns.length, columns);
+        
+        columns.forEach((column, index) => {
+            console.log(`Initializing column ${index}:`, column.id);
             const sortable = new Sortable(column, {
                 group: 'kanban',
                 animation: 150,
                 ghostClass: 'task-card-ghost',
                 dragClass: 'task-card-drag',
                 handle: '.task-card',
+                scroll: document.querySelector('.kanban-board-container'), // Use our kanban container
+                scrollSensitivity: 80,
+                scrollSpeed: 15,
+                bubbleScroll: true,
+                forceFallback: false,
+                onStart: function(evt) {
+                    console.log('Drag started:', evt.item.id);
+                    // Enable auto-scroll when drag starts
+                    enableAutoScroll();
+                },
                 onEnd: function(evt) {
+                    console.log('Drag ended:', evt.item.id, 'to', evt.to.id);
+                    // Disable auto-scroll when drag ends
+                    disableAutoScroll();
                     handleTaskMove(evt);
                 }
             });
@@ -45,17 +69,156 @@
         });
     }
 
+    // Reinitialize drag and drop when board view becomes visible
+    function reinitializeDragAndDropIfNeeded() {
+        const boardView = document.getElementById('boardView');
+        if (boardView && !boardView.classList.contains('d-none')) {
+            console.log('Board view is visible, reinitializing drag and drop');
+            // Small delay to ensure DOM is ready
+            setTimeout(() => {
+                initializeDragAndDrop();
+            }, 100);
+        }
+    }
+
+    // Expose function globally so it can be called from view switching
+    window.reinitializeDragAndDropIfNeeded = reinitializeDragAndDropIfNeeded;
+
+    // Auto-scroll functionality for drag operations
+    let autoScrollInterval = null;
+    let isDragging = false;
+    let dragElement = null;
+    let currentMousePos = { x: 0, y: 0 };
+
+    function enableAutoScroll() {
+        console.log('Auto-scroll enabled');
+        isDragging = true;
+        
+        // Add global mouse position tracker
+        document.addEventListener('mousemove', updateMousePosition);
+        document.addEventListener('touchmove', updateMousePosition);
+        
+        // Start auto-scroll check interval
+        startAutoScrollCheck();
+    }
+    
+    function updateMousePosition(e) {
+        currentMousePos = {
+            x: e.clientX || (e.touches && e.touches[0].clientX) || 0,
+            y: e.clientY || (e.touches && e.touches[0].clientY) || 0
+        };
+    }
+    
+    function startAutoScrollCheck() {
+        if (autoScrollInterval) {
+            clearInterval(autoScrollInterval);
+        }
+        
+        autoScrollInterval = setInterval(() => {
+            if (isDragging) {
+                checkAndPerformAutoScroll();
+            }
+        }, 16); // ~60fps
+    }
+
+
+    function disableAutoScroll() {
+        console.log('Auto-scroll disabled');
+        isDragging = false;
+        
+        // Remove mouse position tracker
+        document.removeEventListener('mousemove', updateMousePosition);
+        document.removeEventListener('touchmove', updateMousePosition);
+        
+        // Clear any existing scroll interval
+        if (autoScrollInterval) {
+            clearInterval(autoScrollInterval);
+            autoScrollInterval = null;
+        }
+        
+        // Remove visual indicators
+        const kanbanContainer = document.querySelector('.kanban-board-container');
+        if (kanbanContainer) {
+            kanbanContainer.classList.remove('drag-scroll-left', 'drag-scroll-right');
+        }
+    }
+    
+    function checkAndPerformAutoScroll() {
+        const scrollThreshold = 100; // Distance from edge to start scrolling
+        const scrollSpeed = 20; // Pixels to scroll per interval
+        
+        // Get kanban container and its bounds
+        const kanbanContainer = document.querySelector('.kanban-board-container');
+        if (!kanbanContainer) return;
+        
+        const kanbanRect = kanbanContainer.getBoundingClientRect();
+        
+        // Check if mouse is near left or right edge of kanban container
+        const distanceFromLeft = currentMousePos.x - kanbanRect.left;
+        const distanceFromRight = kanbanRect.right - currentMousePos.x;
+        
+        let scrollX = 0;
+        
+        if (distanceFromLeft < scrollThreshold && distanceFromLeft > 0) {
+            scrollX = -scrollSpeed; // Scroll left
+        } else if (distanceFromRight < scrollThreshold && distanceFromRight > 0) {
+            scrollX = scrollSpeed; // Scroll right
+        }
+        
+        // Perform scroll if needed
+        if (scrollX !== 0) {
+            const oldScrollLeft = kanbanContainer.scrollLeft;
+            const maxScrollLeft = kanbanContainer.scrollWidth - kanbanContainer.clientWidth;
+            
+            // Only scroll if we haven't reached the limits
+            if ((scrollX < 0 && oldScrollLeft > 0) || (scrollX > 0 && oldScrollLeft < maxScrollLeft)) {
+                kanbanContainer.scrollLeft += scrollX;
+                
+                // Add visual indicators
+                if (scrollX < 0) {
+                    kanbanContainer.classList.add('drag-scroll-left');
+                    kanbanContainer.classList.remove('drag-scroll-right');
+                } else if (scrollX > 0) {
+                    kanbanContainer.classList.add('drag-scroll-right');
+                    kanbanContainer.classList.remove('drag-scroll-left');
+                }
+                
+                console.log('Kanban horizontal scroll:', { 
+                    oldScrollLeft, 
+                    newScrollLeft: kanbanContainer.scrollLeft, 
+                    scrollX,
+                    maxScrollLeft,
+                    mouseX: currentMousePos.x,
+                    distanceFromLeft,
+                    distanceFromRight
+                });
+            } else {
+                // Remove visual indicators when we can't scroll anymore
+                kanbanContainer.classList.remove('drag-scroll-left', 'drag-scroll-right');
+            }
+        } else {
+            // Remove visual indicators when not scrolling
+            kanbanContainer.classList.remove('drag-scroll-left', 'drag-scroll-right');
+        }
+    }
+
+
     // Handle task moved between columns or reordered
     function handleTaskMove(evt) {
+        console.log('handleTaskMove called with:', evt);
         const taskId = evt.item.getAttribute('data-task-id');
         const newColumn = evt.to.id;
         const newOrder = evt.newIndex;
         
+        console.log('Task ID:', taskId, 'New Column:', newColumn, 'New Order:', newOrder);
+        
         // Determine new status based on column
         let newStatus = 'Pending';
-        if (newColumn === 'column-inprogress') newStatus = 'InProgress';
-        else if (newColumn === 'column-review') newStatus = 'Review';
-        else if (newColumn === 'column-completed') newStatus = 'Completed';
+        if (newColumn === 'column-inprogress-full') newStatus = 'InProgress';
+        else if (newColumn === 'column-review-full') newStatus = 'Review';
+        else if (newColumn === 'column-completed-full') newStatus = 'Completed';
+        
+        console.log(`Moving task ${taskId} to ${newColumn} with status ${newStatus}`);
         
         // Update task status via API
         updateTaskStatus(taskId, newStatus, newOrder);
@@ -80,13 +243,21 @@
             if (data.success) {
                 console.log('Task status updated successfully');
                 updateColumnCounts();
-                // Update inbox checkbox if exists
+                
+                // Update inbox checkbox and visual state
                 const inboxCheckbox = document.querySelector(`#inbox-task-${taskId}`);
                 if (inboxCheckbox) {
-                    inboxCheckbox.checked = (status === 'Completed');
-                    const inboxItem = inboxCheckbox.closest('.inbox-task-item');
+                    const isCompleted = (status === 'Completed');
+                    inboxCheckbox.checked = isCompleted;
+                    const inboxItem = inboxCheckbox.closest('.task-card-item');
                     if (inboxItem) {
-                        inboxItem.classList.toggle('completed', status === 'Completed');
+                        inboxItem.classList.toggle('completed', isCompleted);
+                        
+                        // Update the task's data-status attribute
+                        inboxItem.setAttribute('data-status', status);
+                        
+                        // Move the task to the correct inbox section if needed
+                        moveTaskToCorrectInboxSection(taskId, status);
                     }
                 }
             } else {
@@ -100,7 +271,38 @@
         });
     }
 
-    // Initialize search functionality
+    // Move task to correct inbox section based on status
+    function moveTaskToCorrectInboxSection(taskId, status) {
+        const taskItem = document.querySelector(`[data-task-id="${taskId}"]`);
+        if (!taskItem) return;
+        
+        // Find the correct inbox section based on status
+        let targetSection = null;
+        const sections = document.querySelectorAll('.inbox-status-section');
+        sections.forEach(section => {
+            const badge = section.querySelector('.badge');
+            if (badge) {
+                const badgeText = badge.textContent.toLowerCase();
+                if ((status === 'Pending' && badgeText.includes('planned')) ||
+                    (status === 'InProgress' && badgeText.includes('progress')) ||
+                    (status === 'Review' && badgeText.includes('review')) ||
+                    (status === 'Completed' && badgeText.includes('completed'))) {
+                    targetSection = section;
+                }
+            }
+        });
+        
+        if (targetSection) {
+            const tasksContainer = targetSection.querySelector('.inbox-status-tasks');
+            if (tasksContainer) {
+                // Remove from current location
+                taskItem.remove();
+                // Add to new location
+                tasksContainer.appendChild(taskItem);
+                console.log(`Moved task ${taskId} to ${status} section in inbox`);
+            }
+        }
+    }
     function initializeSearch() {
         const searchInput = document.getElementById('taskSearchInput');
         if (!searchInput) return;
@@ -114,7 +316,7 @@
     // Filter tasks based on search term
     function filterTasks(searchTerm) {
         const allCards = document.querySelectorAll('.task-card');
-        const inboxItems = document.querySelectorAll('.inbox-task-item');
+        const inboxItems = document.querySelectorAll('.task-card-item');
         
         allCards.forEach(card => {
             const title = card.querySelector('.task-card-title')?.textContent.toLowerCase() || '';
@@ -132,7 +334,7 @@
 
     // Initialize inbox task checkboxes
     function initializeInboxCheckboxes() {
-        const checkboxes = document.querySelectorAll('.inbox-task-item .task-checkbox');
+        const checkboxes = document.querySelectorAll('.task-card-item .card-checkbox');
         
         checkboxes.forEach(checkbox => {
             checkbox.addEventListener('change', function(e) {
@@ -141,7 +343,7 @@
                 const newStatus = isCompleted ? 'Completed' : 'Pending';
                 
                 // Update visual state
-                const inboxItem = this.closest('.inbox-task-item');
+                const inboxItem = this.closest('.task-card-item');
                 inboxItem.classList.toggle('completed', isCompleted);
                 
                 // Update task status
@@ -174,7 +376,7 @@
                 const inboxCheckbox = document.querySelector(`#inbox-task-${taskId}`);
                 if (inboxCheckbox) {
                     inboxCheckbox.checked = isCompleted;
-                    const inboxItem = inboxCheckbox.closest('.inbox-task-item');
+                    const inboxItem = inboxCheckbox.closest('.task-card-item');
                     if (inboxItem) {
                         inboxItem.classList.toggle('completed', isCompleted);
                     }
@@ -205,76 +407,12 @@
         });
     }
 
-    // Open task form modal
-    function openTaskFormModal(taskId = null, defaultStatus = 'Pending') {
-        const modal = new bootstrap.Modal(document.getElementById('taskFormModal'));
-        const form = document.getElementById('taskForm');
-        const title = document.getElementById('taskFormModalTitle');
-        
-        // Reset form
-        form.reset();
-        
-        if (taskId) {
-            title.textContent = 'Edit Task';
-            document.getElementById('taskId').value = taskId;
-            // Load task data here if editing
-        } else {
-            title.textContent = 'Add Task';
-            document.getElementById('taskId').value = '';
-            document.getElementById('taskStatus').value = defaultStatus;
-        }
-        
-        modal.show();
-    }
+    // Note: openTaskModal function is already defined in the Views and handles task loading correctly
 
-    // Initialize task form submission
+    // Initialize task form submission (now handled by existing saveTask function)
     function initializeTaskForm() {
-        const form = document.getElementById('taskForm');
-        if (!form) return;
-
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const taskId = document.getElementById('taskId').value;
-            const formData = {
-                matterId: parseInt(document.getElementById('taskMatter').value),
-                title: document.getElementById('taskTitle').value,
-                description: document.getElementById('taskDescription').value,
-                priority: document.getElementById('taskPriority').value,
-                status: document.getElementById('taskStatus').value,
-                dueDate: document.getElementById('taskDueDate').value || null,
-                order: 0
-            };
-
-            const url = taskId ? '/Tasks/Update' : '/Tasks/Create';
-            if (taskId) {
-                formData.id = parseInt(taskId);
-            }
-
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'RequestVerificationToken': getAntiForgeryToken()
-                },
-                body: JSON.stringify(formData)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showToast('Success', 'Task saved successfully', 'success');
-                    bootstrap.Modal.getInstance(document.getElementById('taskFormModal')).hide();
-                    // Reload page to show new task
-                    setTimeout(() => window.location.reload(), 500);
-                } else {
-                    showToast('Error', data.message || 'Failed to save task', 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error saving task:', error);
-                showToast('Error', 'An error occurred while saving the task', 'error');
-            });
-        });
+        // Form submission is now handled by the existing saveTask function in the Views
+        // This function is kept for compatibility but does nothing
     }
 
     // Load task detail into modal
@@ -706,6 +844,20 @@
         // Show location display
         locationDisplay.style.display = 'flex';
 
+        // Store the full location data globally for saving
+        window.currentLocationData = {
+            name: place.name || 'Selected Location',
+            address: place.formatted_address,
+            formatted_address: place.formatted_address,
+            place_id: place.place_id,
+            geometry: {
+                location: {
+                    lat: place.geometry.location.lat(),
+                    lng: place.geometry.location.lng()
+                }
+            }
+        };
+
         // Load embedded map
         loadEmbeddedMap(place.geometry.location, place.name || 'Location', place.formatted_address);
 
@@ -854,6 +1006,131 @@
         
         showToast('Success', 'File uploaded successfully', 'success');
     };
+
+    // Initialize matter popup positioning to adjust with main content width changes
+    function initializeMatterPopupPositioning() {
+        const matterPopup = document.getElementById('matterPopup');
+        if (!matterPopup) return;
+
+        // Function to update matter popup position based on main content width
+        function updateMatterPopupPosition() {
+            if (!matterPopup || matterPopup.style.display === 'none') return;
+
+            // Get the main content container
+            const mainContent = document.querySelector('.main-content, .content-wrapper, main');
+            const tasksPage = document.querySelector('.tasks-page');
+            
+            if (!mainContent && !tasksPage) return;
+
+            // Use tasks page if available, otherwise fall back to main content
+            const contentElement = tasksPage || mainContent;
+            const contentRect = contentElement.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            
+            // Calculate the center of the visible content area
+            const contentCenter = contentRect.left + (contentRect.width / 2);
+            
+            // Ensure the popup stays within viewport bounds
+            const popupWidth = 360; // Fixed width from CSS
+            const minLeft = popupWidth / 2;
+            const maxLeft = viewportWidth - (popupWidth / 2);
+            
+            let targetLeft = Math.max(minLeft, Math.min(maxLeft, contentCenter));
+            
+            // Check if this is a top-positioned popup (from top matter selector)
+            const isTopPositioned = matterPopup.classList.contains('top-positioned');
+            
+            if (isTopPositioned) {
+                // For top popup, position it relative to the top matter selector button
+                const topMatterSelectorBtn = document.getElementById('topMatterSelectorBtn');
+                if (topMatterSelectorBtn) {
+                    const buttonRect = topMatterSelectorBtn.getBoundingClientRect();
+                    const buttonCenter = buttonRect.left + (buttonRect.width / 2);
+                    targetLeft = Math.max(minLeft, Math.min(maxLeft, buttonCenter));
+                    console.log('Top popup positioning:', {
+                        buttonRect: buttonRect,
+                        buttonCenter: buttonCenter,
+                        targetLeft: targetLeft
+                    });
+                } else {
+                    console.warn('Top matter selector button not found, using content center');
+                }
+            }
+            
+            // Apply the positioning
+            matterPopup.style.left = targetLeft + 'px';
+            matterPopup.style.transform = 'translateX(-50%)';
+            
+            console.log('Matter popup repositioned:', {
+                isTopPositioned: isTopPositioned,
+                contentCenter: contentCenter,
+                targetLeft: targetLeft,
+                contentWidth: contentRect.width,
+                viewportWidth: viewportWidth
+            });
+        }
+
+        // Set up ResizeObserver to watch for main content width changes
+        if (window.ResizeObserver) {
+            const resizeObserver = new ResizeObserver(function(entries) {
+                // Debounce the position update to avoid excessive calls
+                clearTimeout(window.matterPopupPositionTimeout);
+                window.matterPopupPositionTimeout = setTimeout(updateMatterPopupPosition, 100);
+            });
+
+            // Observe the main content container
+            const mainContent = document.querySelector('.main-content, .content-wrapper, main');
+            const tasksPage = document.querySelector('.tasks-page');
+            
+            if (mainContent) {
+                resizeObserver.observe(mainContent);
+            }
+            if (tasksPage) {
+                resizeObserver.observe(tasksPage);
+            }
+
+            // Also observe the body for global layout changes
+            resizeObserver.observe(document.body);
+        }
+
+        // Listen for custom popup shown events
+        document.addEventListener('matterPopupShown', function(event) {
+            const source = event.detail?.source || 'bottom';
+            console.log('Matter popup shown from:', source);
+            // Small delay to ensure the popup is rendered before positioning
+            setTimeout(updateMatterPopupPosition, 10);
+        });
+
+        // Also listen for class changes on the matter popup
+        if (window.MutationObserver) {
+            const mutationObserver = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                        const target = mutation.target;
+                        if (target === matterPopup && target.style.display !== 'none') {
+                            console.log('Matter popup class changed, repositioning...');
+                            setTimeout(updateMatterPopupPosition, 10);
+                        }
+                    }
+                });
+            });
+            
+            mutationObserver.observe(matterPopup, {
+                attributes: true,
+                attributeFilter: ['class']
+            });
+        }
+
+        // Update position on window resize
+        window.addEventListener('resize', function() {
+            clearTimeout(window.matterPopupResizeTimeout);
+            window.matterPopupResizeTimeout = setTimeout(updateMatterPopupPosition, 100);
+        });
+
+        // Update position when sidebar states change (if there are sidebar toggle events)
+        document.addEventListener('sidebarToggle', updateMatterPopupPosition);
+        document.addEventListener('chatToggle', updateMatterPopupPosition);
+    }
 
     // Expose functions globally for Google Maps callback
     window.initializeLocationSearch = initializeLocationSearch;
