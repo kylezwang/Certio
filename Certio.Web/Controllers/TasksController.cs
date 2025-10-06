@@ -218,6 +218,29 @@ namespace Certio.Web.Controllers
             return Json(new { success = true });
         }
 
+        // GET: Tasks/Get/{id}
+        [HttpGet]
+        public async Task<IActionResult> Get(int id)
+        {
+            var task = await _context.TaskItems
+                .Where(t => t.Id == id)
+                .Include(t => t.Matter)
+                .Include(t => t.TaskAssignments)
+                    .ThenInclude(ta => ta.User)
+                .Include(t => t.Comments)
+                    .ThenInclude(c => c.User)
+                .Include(t => t.SubTaskItems)
+                .FirstOrDefaultAsync();
+
+            if (task == null)
+            {
+                return Json(new { success = false, message = "Task not found" });
+            }
+
+            var taskViewModel = MapToViewModel(task);
+            return Json(new { success = true, task = taskViewModel });
+        }
+
         // POST: Tasks/Delete
         [HttpPost]
         [ValidateAntiForgeryToken]

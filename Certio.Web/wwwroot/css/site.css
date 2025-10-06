@@ -30,7 +30,7 @@ body {
   transition: all 0.2s ease-in-out;
   cursor: pointer;
   height: 100px; /* Fixed height for all cards */
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
 }
 
 .matter-folder-card:hover {
@@ -1568,7 +1568,7 @@ body {
 .card {
   border-radius: 12px;
   border: 1px solid #e5e7eb;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
 }
 
 .badge {
@@ -1583,7 +1583,7 @@ body {
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
   transition: all 0.3s ease;
 }
 
@@ -1697,6 +1697,71 @@ body {
 .matter-card:nth-child(3) { animation-delay: 0.3s; }
 .matter-card:nth-child(4) { animation-delay: 0.4s; }
 
+/* Custom Scrollbar Styling for Matters Page */
+.matters-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.matters-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.matters-container::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+
+.matters-container::-webkit-scrollbar-thumb:hover {
+    background: #999;
+}
+
+/* Apply custom scrollbar to all scrollable areas within matters page */
+.matters-container *::-webkit-scrollbar,
+.matter-card::-webkit-scrollbar,
+.card::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.matters-container *::-webkit-scrollbar-track,
+.matter-card::-webkit-scrollbar-track,
+.card::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.matters-container *::-webkit-scrollbar-thumb,
+.matter-card::-webkit-scrollbar-thumb,
+.card::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+
+.matters-container *::-webkit-scrollbar-thumb:hover,
+.matter-card::-webkit-scrollbar-thumb:hover,
+.card::-webkit-scrollbar-thumb:hover {
+    background: #999;
+}
+
+/* Custom Scrollbar for Tasks Page Inbox Container */
+.inbox-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.inbox-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.inbox-container::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+
+.inbox-container::-webkit-scrollbar-thumb:hover {
+    background: #999;
+}
+
 /* Documents Page Styles */
 .documents-container {
   max-width: 100%;
@@ -1719,7 +1784,7 @@ body {
   transition: all 0.3s ease;
   border: 1px solid #e5e7eb;
   background: #ffffff; /* default to white */
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
 }
 
 .document-card:hover {
@@ -1963,7 +2028,7 @@ body {
 .matters-container .stats-card {
   transition: all 0.3s ease;
   background: #ffffff; /* default to white */
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
 }
 
 .matters-container .card:hover,

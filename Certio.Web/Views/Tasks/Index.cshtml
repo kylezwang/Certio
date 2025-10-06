@@ -4,11 +4,60 @@
     Layout = "_ClientLayout";
 }
 
+@functions {
+    string GetPriorityStyles(string priority)
+    {
+        return priority switch
+        {
+            "Critical" => "color: #dc3545; background-color: #f5b7b1;",
+            "High" => "color: #fd7e14; background-color: #ffeaa7;",
+            "Medium" => "color: #0d6efd; background-color: #cfe2ff;",
+            "Low" => "color: #6c757d; background-color: #e9ecef;",
+            _ => "color: #6c757d; background-color: #e9ecef;"
+        };
+    }
+
+    string GetStatusClass(string status)
+    {
+        return status switch
+        {
+            "Completed" => "bg-success text-white",
+            "InProgress" => "bg-primary text-white",
+            "Review" => "bg-warning text-dark",
+            "Pending" => "bg-secondary text-white",
+            _ => "bg-secondary text-white"
+        };
+    }
+
+    string GetStatusIcon(string status)
+    {
+        return status switch
+        {
+            "Completed" => "fas fa-check-circle text-success",
+            "InProgress" => "fas fa-play-circle text-primary",
+            "Review" => "fas fa-exclamation-circle text-warning",
+            "Pending" => "fas fa-clock text-muted",
+            _ => "fas fa-clock text-muted"
+        };
+    }
+}
+
 <link rel="stylesheet" href="~/css/tasks.css" />
 
 <div class="tasks-page">
     <!-- Main Content Container -->
     <div class="tasks-content" style="position: relative;">
+        <!-- Tasks Page Header with Matter Selector -->
+        <div class="tasks-page-header">
+            <div class="matter-selector-container">
+                <button class="matter-selector-btn" id="topMatterSelectorBtn">
+                    <i class="fas fa-folder"></i>
+                    <span class="matter-selector-text" id="topMatterSelectorText">Select Matter</span>
+                    <i class="fas fa-chevron-down matter-selector-arrow"></i>
+                </button>
+            </div>
+        </div>
+        
         <!-- Inbox View -->
         <div class="view-container" id="inboxView">
             <div class="inbox-container">
@@ -45,33 +94,178 @@
                 <div class="task-cards-container">
                     @if (Model.AllTasks.Any())
                     {
-                        @foreach (var task in Model.AllTasks.OrderBy(t => t.Order))
+                        <!-- Planned Tasks Section -->
+                        @if (Model.PlannedTasks.Any())
                         {
-                            <div class="task-card-item" data-task-id="@task.Id" data-status="@task.Status" data-matter-id="@task.MatterId">
-                                <div class="form-check">
-                                    <input class="form-check-input task-radio" 
-                                           type="radio" 
-                                           name="task" 
-                                           id="inbox-task-@task.Id"
-                                           data-task-id="@task.Id"
-                                           @(task.Status == "Completed" ? "checked" : "")>
-                                    <label class="form-check-label" for="inbox-task-@task.Id">
-                                        @task.Title
-                                        @if (!string.IsNullOrEmpty(task.Priority) && task.Priority != "Medium")
-                                        {
-                                            <span class="badge badge-@task.Priority.ToLower() ms-2" style="font-size: 0.7em;">
-                                                @task.Priority
-                                            </span>
-                                        }
-                                        @if (task.DueDate.HasValue)
-                                        {
-                                            var daysUntilDue = (task.DueDate.Value - DateTime.UtcNow).Days;
-                                            var dueDateClass = daysUntilDue < 0 ? "text-danger" : (daysUntilDue <= 2 ? "text-warning" : "text-muted");
-                                            <span class="ms-2 @dueDateClass" style="font-size: 0.75em;">
-                                                <i class="fas fa-calendar"></i> @task.DueDate.Value.ToString("MMM dd")
-                                            </span>
-                                        }
-                                    </label>
+                            <div class="inbox-status-section">
+                                <div class="inbox-status-header">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="@GetStatusIcon("Pending")" style="font-size: 0.85rem; padding-top: 0.6rem;"></i>
+                                        <span class="badge @GetStatusClass("Pending")" style="font-size: 0.7rem;">Planned (@Model.PlannedTasks.Count)</span>
+                                    </div>
+                                </div>
+                                <div class="inbox-status-tasks">
+                                    @foreach (var task in Model.PlannedTasks.OrderBy(t => t.Order))
+                                    {
+                                        <div class="task-card-item" data-task-id="@task.Id" data-status="@task.Status" data-matter-id="@task.MatterId">
+                                            <div class="form-check">
+                                                <input class="form-check-input card-checkbox" 
+                                                       type="checkbox" 
+                                                       id="inbox-task-@task.Id"
+                                                       data-task-id="@task.Id"
+                                                       @(task.Status == "Completed" ? "checked" : "")>
+                                                <label class="form-check-label" for="inbox-task-@task.Id">
+                                                    @task.Title
+                                                    @if (!string.IsNullOrEmpty(task.Priority) && task.Priority != "Medium")
+                                                    {
+                                                        <span class="badge matter-priority-badge ms-2" style="@GetPriorityStyles(task.Priority); font-size: 0.7em;">
+                                                            @task.Priority
+                                                        </span>
+                                                    }
+                                                    @if (task.DueDate.HasValue)
+                                                    {
+                                                        var daysUntilDue = (task.DueDate.Value - DateTime.UtcNow).Days;
+                                                        var dueDateClass = daysUntilDue < 0 ? "text-danger" : (daysUntilDue <= 2 ? "text-warning" : "text-muted");
+                                                        <span class="ms-2 @dueDateClass" style="font-size: 0.75em;">
+                                                            <i class="fas fa-calendar"></i> @task.DueDate.Value.ToString("MMM dd")
+                                                        </span>
+                                                    }
+                                                </label>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        <!-- In Progress Tasks Section -->
+                        @if (Model.InProgressTasks.Any())
+                        {
+                            <div class="inbox-status-section">
+                                <div class="inbox-status-header">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="@GetStatusIcon("InProgress")" style="font-size: 0.85rem; padding-top: 0.6rem;"></i>
+                                        <span class="badge @GetStatusClass("InProgress")" style="font-size: 0.7rem;">In Progress (@Model.InProgressTasks.Count)</span>
+                                    </div>
+                                </div>
+                                <div class="inbox-status-tasks">
+                                    @foreach (var task in Model.InProgressTasks.OrderBy(t => t.Order))
+                                    {
+                                        <div class="task-card-item" data-task-id="@task.Id" data-status="@task.Status" data-matter-id="@task.MatterId">
+                                            <div class="form-check">
+                                                <input class="form-check-input card-checkbox" 
+                                                       type="checkbox" 
+                                                       id="inbox-task-@task.Id"
+                                                       data-task-id="@task.Id"
+                                                       @(task.Status == "Completed" ? "checked" : "")>
+                                                <label class="form-check-label" for="inbox-task-@task.Id">
+                                                    @task.Title
+                                                    @if (!string.IsNullOrEmpty(task.Priority) && task.Priority != "Medium")
+                                                    {
+                                                        <span class="badge matter-priority-badge ms-2" style="@GetPriorityStyles(task.Priority); font-size: 0.7em;">
+                                                            @task.Priority
+                                                        </span>
+                                                    }
+                                                    @if (task.DueDate.HasValue)
+                                                    {
+                                                        var daysUntilDue = (task.DueDate.Value - DateTime.UtcNow).Days;
+                                                        var dueDateClass = daysUntilDue < 0 ? "text-danger" : (daysUntilDue <= 2 ? "text-warning" : "text-muted");
+                                                        <span class="ms-2 @dueDateClass" style="font-size: 0.75em;">
+                                                            <i class="fas fa-calendar"></i> @task.DueDate.Value.ToString("MMM dd")
+                                                        </span>
+                                                    }
+                                                </label>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Review Tasks Section -->
+                        @if (Model.ReviewTasks.Any())
+                        {
+                            <div class="inbox-status-section">
+                                <div class="inbox-status-header">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="@GetStatusIcon("Review")" style="font-size: 0.85rem; padding-top: 0.6rem;"></i>
+                                        <span class="badge @GetStatusClass("Review")" style="font-size: 0.7rem;">Review (@Model.ReviewTasks.Count)</span>
+                                    </div>
+                                </div>
+                                <div class="inbox-status-tasks">
+                                    @foreach (var task in Model.ReviewTasks.OrderBy(t => t.Order))
+                                    {
+                                        <div class="task-card-item" data-task-id="@task.Id" data-status="@task.Status" data-matter-id="@task.MatterId">
+                                            <div class="form-check">
+                                                <input class="form-check-input card-checkbox" 
+                                                       type="checkbox" 
+                                                       id="inbox-task-@task.Id"
+                                                       data-task-id="@task.Id"
+                                                       @(task.Status == "Completed" ? "checked" : "")>
+                                                <label class="form-check-label" for="inbox-task-@task.Id">
+                                                    @task.Title
+                                                    @if (!string.IsNullOrEmpty(task.Priority) && task.Priority != "Medium")
+                                                    {
+                                                        <span class="badge matter-priority-badge ms-2" style="@GetPriorityStyles(task.Priority); font-size: 0.7em;">
+                                                            @task.Priority
+                                                        </span>
+                                                    }
+                                                    @if (task.DueDate.HasValue)
+                                                    {
+                                                        var daysUntilDue = (task.DueDate.Value - DateTime.UtcNow).Days;
+                                                        var dueDateClass = daysUntilDue < 0 ? "text-danger" : (daysUntilDue <= 2 ? "text-warning" : "text-muted");
+                                                        <span class="ms-2 @dueDateClass" style="font-size: 0.75em;">
+                                                            <i class="fas fa-calendar"></i> @task.DueDate.Value.ToString("MMM dd")
+                                                        </span>
+                                                    }
+                                                </label>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Completed Tasks Section -->
+                        @if (Model.CompletedTasks.Any())
+                        {
+                            <div class="inbox-status-section">
+                                <div class="inbox-status-header">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="@GetStatusIcon("Completed")" style="font-size: 0.85rem; padding-top: 0.6rem;"></i>
+                                        <span class="badge @GetStatusClass("Completed")" style="font-size: 0.7rem;">Completed (@Model.CompletedTasks.Count)</span>
+                                    </div>
+                                </div>
+                                <div class="inbox-status-tasks">
+                                    @foreach (var task in Model.CompletedTasks.OrderBy(t => t.Order))
+                                    {
+                                        <div class="task-card-item" data-task-id="@task.Id" data-status="@task.Status" data-matter-id="@task.MatterId">
+                                            <div class="form-check">
+                                                <input class="form-check-input card-checkbox" 
+                                                       type="checkbox" 
+                                                       id="inbox-task-@task.Id"
+                                                       data-task-id="@task.Id"
+                                                       @(task.Status == "Completed" ? "checked" : "")>
+                                                <label class="form-check-label" for="inbox-task-@task.Id">
+                                                    @task.Title
+                                                    @if (!string.IsNullOrEmpty(task.Priority) && task.Priority != "Medium")
+                                                    {
+                                                        <span class="badge matter-priority-badge ms-2" style="@GetPriorityStyles(task.Priority); font-size: 0.7em;">
+                                                            @task.Priority
+                                                        </span>
+                                                    }
+                                                    @if (task.DueDate.HasValue)
+                                                    {
+                                                        var daysUntilDue = (task.DueDate.Value - DateTime.UtcNow).Days;
+                                                        var dueDateClass = daysUntilDue < 0 ? "text-danger" : (daysUntilDue <= 2 ? "text-warning" : "text-muted");
+                                                        <span class="ms-2 @dueDateClass" style="font-size: 0.75em;">
+                                                            <i class="fas fa-calendar"></i> @task.DueDate.Value.ToString("MMM dd")
+                                                        </span>
+                                                    }
+                                                </label>
+                                            </div>
+                                        </div>
+                                    }
                                 </div>
                             </div>
                         }
@@ -935,6 +1129,12 @@
         <div class="matter-popup-inner">
             <div class="matter-popup-title">Select Matter</div>
             <div class="matter-popup-list">
+                <!-- View All Matters Option -->
+                <button type="button" class="matter-item matter-item-all" data-matter-id="all" title="View All Matters">
+                    <i class="fas fa-globe"></i>
+                    <span class="matter-item-text">View All Matters</span>
+                </button>
+                
                 @if (Model.Matters.Any())
                 {
                     @foreach (var matter in Model.Matters)
@@ -952,6 +1152,7 @@
             </div>
         </div>
     </div>
+    
 </div>
 
 @* Bootstrap Modal - NOT USED - Using custom modal instead
@@ -1094,12 +1295,18 @@
             const matterPopup = document.getElementById('matterPopup');
             const matterItems = document.querySelectorAll('.matter-item');
 
-            // Load saved matter from localStorage or auto-select first
+            // Initialize top matter selector - now uses same popup as bottom navbar
+            const topMatterSelectorBtn = document.getElementById('topMatterSelectorBtn');
+
+            // Load saved matter from localStorage or default to "View All Matters"
             const savedMatterId = localStorage.getItem('certio_selected_matter_id');
-            if (savedMatterId && window.tasksData.matters.find(m => m.Id == savedMatterId)) {
+            if (savedMatterId === 'all') {
+                selectMatter('all');
+            } else if (savedMatterId && window.tasksData.matters.find(m => m.Id == savedMatterId)) {
                 selectMatter(parseInt(savedMatterId));
-            } else if (window.tasksData.matters.length > 0) {
-                selectMatter(window.tasksData.matters[0].Id);
+            } else {
+                // Default to "View All Matters" when loading fresh
+                selectMatter('all');
             }
 
             // Toggle popup above navbar
@@ -1108,6 +1315,33 @@
                     e.stopPropagation();
                     const isVisible = matterPopup.style.display === 'block' || matterPopup.style.display === 'flex';
                     matterPopup.style.display = isVisible ? 'none' : 'block';
+                    // Remove top positioning class for bottom navbar
+                    matterPopup.classList.remove('top-positioned');
+                    console.log('Bottom navbar clicked - removed top-positioned class');
+                    // Trigger custom event for popup positioning system
+                    if (!isVisible) {
+                        setTimeout(() => {
+                            document.dispatchEvent(new CustomEvent('matterPopupShown', { detail: { source: 'bottom' } }));
+                        }, 10);
+                    }
+                });
+            }
+
+            // Toggle top matter popup - now uses same popup as bottom navbar
+            if (topMatterSelectorBtn && matterPopup) {
+                topMatterSelectorBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const isVisible = matterPopup.style.display === 'block' || matterPopup.style.display === 'flex';
+                    matterPopup.style.display = isVisible ? 'none' : 'block';
+                    // Add top positioning class for top selector
+                    matterPopup.classList.add('top-positioned');
+                    console.log('Top selector clicked - added top-positioned class');
+                    // Trigger custom event for popup positioning system
+                    if (!isVisible) {
+                        setTimeout(() => {
+                            document.dispatchEvent(new CustomEvent('matterPopupShown', { detail: { source: 'top' } }));
+                        }, 10);
+                    }
                 });
             }
 
@@ -1115,9 +1349,12 @@
             document.addEventListener('click', function(e) {
                 if (!matterPopup) return;
                 const clickInsidePopup = matterPopup.contains(e.target);
-                const clickOnButton = switchMattersBtn && switchMattersBtn.contains(e.target);
-                if (!clickInsidePopup && !clickOnButton) {
+                const clickOnSwitchButton = switchMattersBtn && switchMattersBtn.contains(e.target);
+                const clickOnTopButton = topMatterSelectorBtn && topMatterSelectorBtn.contains(e.target);
+                if (!clickInsidePopup && !clickOnSwitchButton && !clickOnTopButton) {
                     matterPopup.style.display = 'none';
+                    // Remove positioning class when closing
+                    matterPopup.classList.remove('top-positioned');
                 }
             });
 
@@ -1125,28 +1362,106 @@
             matterItems.forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.stopPropagation();
-                    const mId = parseInt(this.dataset.matterId);
-                    if (!Number.isFinite(mId)) return;
-                    selectMatter(mId);
-                    if (matterPopup) matterPopup.style.display = 'none';
+                    const matterId = this.dataset.matterId;
+                    
+                    // Handle "View All Matters" case
+                    if (matterId === 'all') {
+                        selectMatter('all');
+                    } else {
+                        const mId = parseInt(matterId);
+                        if (!Number.isFinite(mId)) return;
+                        selectMatter(mId);
+                    }
+                    
+                    if (matterPopup) {
+                        matterPopup.style.display = 'none';
+                        // Remove positioning class when closing
+                        matterPopup.classList.remove('top-positioned');
+                    }
                 });
             });
         }
 
         // Select a matter and filter tasks
         function selectMatter(matterId) {
+            if (matterId === 'all') {
+                currentMatterId = 'all';
+                localStorage.setItem('certio_selected_matter_id', 'all');
+                console.log('[Tasks] Switched to Viewing All Matters');
+                
+                // Update top matter selector text
+                const topMatterSelectorText = document.getElementById('topMatterSelectorText');
+                if (topMatterSelectorText) {
+                    topMatterSelectorText.textContent = 'Viewing All Matters';
+                    console.log('Updated top matter selector text to: Viewing All Matters');
+                }
+                
+                // Show all tasks
+                showAllTasks();
+                return;
+            }
+            
             if (!Number.isFinite(matterId)) {
-                // Fallback to first available
-                const first = window.tasksData?.matters?.[0]?.Id;
-                if (!Number.isFinite(first)) return;
-                matterId = first;
+                // Fallback to "View All Matters"
+                selectMatter('all');
+                return;
             }
             currentMatterId = matterId;
             localStorage.setItem('certio_selected_matter_id', matterId);
             console.log('[Tasks] Switched MatterId =', matterId);
 
+            // Update top matter selector text
+            const topMatterSelectorText = document.getElementById('topMatterSelectorText');
+            if (topMatterSelectorText && window.tasksData?.matters) {
+                console.log('Available matters:', window.tasksData.matters);
+                console.log('Looking for matter ID:', matterId, 'Type:', typeof matterId);
+                
+                // Try different property name variations
+                let selectedMatter = window.tasksData.matters.find(m => m.Id == matterId);
+                if (!selectedMatter) {
+                    selectedMatter = window.tasksData.matters.find(m => m.id == matterId);
+                }
+                if (!selectedMatter) {
+                    selectedMatter = window.tasksData.matters.find(m => m.MatterId == matterId);
+                }
+                if (!selectedMatter) {
+                    selectedMatter = window.tasksData.matters.find(m => m.matterId == matterId);
+                }
+                
+                if (selectedMatter) {
+                    const title = selectedMatter.Title || selectedMatter.title || selectedMatter.Name || selectedMatter.name;
+                    topMatterSelectorText.textContent = title;
+                    console.log('Updated top matter selector text to:', title);
+                } else {
+                    console.log('Selected matter not found for ID:', matterId);
+                    console.log('Available matter IDs:', window.tasksData.matters.map(m => ({ Id: m.Id, id: m.id, MatterId: m.MatterId, matterId: m.matterId })));
+                }
+            } else {
+                console.log('topMatterSelectorText element or matters data not found');
+            }
+
             // Filter inbox tasks
             filterTasksByMatter(matterId);
+        }
+
+        // Show all tasks (no filtering)
+        function showAllTasks() {
+            // Show all inbox tasks
+            const inboxTasks = document.querySelectorAll('.task-cards-container .task-card-item');
+            inboxTasks.forEach(task => {
+                task.style.display = '';
+            });
+
+            // Show all board cards
+            const boardCards = document.querySelectorAll('.kanban-board .task-card');
+            boardCards.forEach(card => {
+                card.style.display = '';
+            });
+
+            // Update column counts
+            updateBoardColumnCountsLocal();
+            
+            console.log('[Tasks] Showing all tasks across all matters');
         }
 
         // Filter tasks by matter across views
@@ -1195,7 +1510,7 @@
         }
         
         // Open task modal for create or edit
-        function openTaskModal(taskId = null, defaultStatus = 'Pending') {
+        window.openTaskModal = function(taskId = null, defaultStatus = 'Pending') {
             const taskDetailsModal = document.getElementById('taskDetailsModal');
             
             // Always clear placeholders and reset UI first to avoid stale default content
@@ -1289,30 +1604,102 @@
             clearTaskModal();
         }
         
+        // Get current location data from the modal
+        function getLocationData() {
+            const locationDisplay = document.getElementById('locationDisplay');
+            const locationName = document.getElementById('locationName');
+            const locationAddress = document.getElementById('locationAddress');
+            
+            // Check if location is selected
+            if (locationDisplay && locationDisplay.style.display !== 'none' && locationName && locationAddress) {
+                return {
+                    name: locationName.textContent || '',
+                    address: locationAddress.textContent || '',
+                    formatted_address: locationAddress.textContent || '',
+                    // Store the current location data if available
+                    place_id: window.currentLocationData?.place_id || null,
+                    geometry: window.currentLocationData?.geometry || null
+                };
+            }
+            
+            return null;
+        }
+        
+        // Set location data in the modal
+        function setLocationData(locationData) {
+            if (!locationData) return;
+            
+            const locationDisplay = document.getElementById('locationDisplay');
+            const locationName = document.getElementById('locationName');
+            const locationAddress = document.getElementById('locationAddress');
+            const locationInput = document.getElementById('locationSearchInput');
+            
+            if (locationDisplay && locationName && locationAddress) {
+                locationName.textContent = locationData.name || '';
+                locationAddress.textContent = locationData.address || locationData.formatted_address || '';
+                locationDisplay.style.display = 'flex';
+                
+                // Store the location data globally for map display
+                window.currentLocationData = locationData;
+                
+                // Load the map if we have coordinates
+                if (locationData.geometry && locationData.geometry.location) {
+                    loadEmbeddedMapFromData(locationData.geometry.location, locationData.name, locationData.address || locationData.formatted_address);
+                }
+                
+                // Update the search input
+                if (locationInput) {
+                    locationInput.value = locationData.name || '';
+                }
+            }
+        }
+        
+        // Load embedded map from stored location data
+        function loadEmbeddedMapFromData(location, name, address) {
+            const mapContainer = document.getElementById('mapContainer');
+            
+            if (!mapContainer) return;
+            
+            // Create map URL for embedded display
+            const locationStr = location.lat + ',' + location.lng;
+            const encodedName = encodeURIComponent(name);
+            const encodedAddress = encodeURIComponent(address);
+            
+            const mapUrl = `https://maps.google.com/maps?q=${encodedName}|${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+            
+            // Create iframe for embedded map
+            mapContainer.innerHTML = `
+                <iframe 
+                    class="embedded-map loaded"
+                    src="${mapUrl}"
+                    frameborder="0"
+                    allowfullscreen>
+                </iframe>
+            `;
+        }
+        
         // Load task data for editing
         function loadTaskData(taskId) {
             // Prefer hydrated data passed to the page
             const allTasks = (window.tasksData && Array.isArray(window.tasksData.allTasks)) ? window.tasksData.allTasks : [];
-            const task = allTasks.find(t => Number(t.Id) === Number(taskId));
+            const task = allTasks.find(t => Number(t.id) === Number(taskId));
             
             if (!task) {
                 console.error('Task not found:', taskId);
                 return;
             }
             
-            console.log('Loading task data:', task);
-            
             // Set task ID in title element for saving
             const taskTitle = document.querySelector('.task-title');
             if (taskTitle) {
-                taskTitle.textContent = task.Title || '';
+                taskTitle.textContent = task.title || '';
                 taskTitle.dataset.taskId = taskId;
             }
             
             // Set description
             const descriptionField = document.querySelector('.task-description-textarea');
             if (descriptionField) {
-                descriptionField.value = task.Description || '';
+                descriptionField.value = task.description || '';
             }
             
             // Set status and priority
@@ -1320,45 +1707,89 @@
             const statusField = document.getElementById('status-field');
             const priorityField = document.getElementById('priority-field');
             
-            if (statusDropdown) statusDropdown.value = task.Status || 'Pending';
-            if (statusField) statusField.value = task.Status || 'Pending';
-            if (priorityField) priorityField.value = task.Priority || 'Medium';
+            if (statusDropdown) statusDropdown.value = task.status || 'Pending';
+            if (statusField) statusField.value = task.status || 'Pending';
+            if (priorityField) priorityField.value = task.priority || 'Medium';
             
             // Update icon based on status
-            updateTaskTitleIconFromModal(task.Status || 'Pending');
+            updateTaskTitleIconFromModal(task.status || 'Pending');
             
             // Set dates
             const startDateField = document.getElementById('start-date-field');
             const dueDateField = document.getElementById('due-date-field');
             
-            if (startDateField && task.StartedAt) {
+            if (startDateField && task.startedAt) {
                 // Convert to YYYY-MM-DD format for date input
-                const startDate = new Date(task.StartedAt);
+                const startDate = new Date(task.startedAt);
                 startDateField.value = startDate.toISOString().split('T')[0];
             }
             
-            if (dueDateField && task.DueDate) {
-                const dueDate = new Date(task.DueDate);
+            if (dueDateField && task.dueDate) {
+                const dueDate = new Date(task.dueDate);
                 dueDateField.value = dueDate.toISOString().split('T')[0];
             }
             
             // Set location (if available)
-            const locationInput = document.getElementById('locationSearchInput');
-            if (locationInput) {
-                locationInput.value = task.Location || '';
+            if (task.location) {
+                // Try to parse location data if it's JSON, otherwise treat as text
+                try {
+                    const locationData = JSON.parse(task.location);
+                    setLocationData(locationData);
+                } catch (e) {
+                    // If not JSON, treat as plain text and set in input
+                    const locationInput = document.getElementById('locationSearchInput');
+                    if (locationInput) {
+                        locationInput.value = task.location;
+                    }
+                    
+                    // Try to display the location even if it's just text
+                    // Split the location string to extract name and address
+                    const locationParts = task.location.split(', ');
+                    if (locationParts.length >= 2) {
+                        const locationName = locationParts[0];
+                        const locationAddress = locationParts.slice(1).join(', ');
+                        
+                        const locationDisplay = document.getElementById('locationDisplay');
+                        const locationNameEl = document.getElementById('locationName');
+                        const locationAddressEl = document.getElementById('locationAddress');
+                        
+                        if (locationDisplay && locationNameEl && locationAddressEl) {
+                            locationNameEl.textContent = locationName;
+                            locationAddressEl.textContent = locationAddress;
+                            locationDisplay.style.display = 'flex';
+                            
+                            // Load the map for plain text locations too
+                            // Create a map URL using the location text
+                            const encodedLocation = encodeURIComponent(task.location);
+                            const mapUrl = `https://maps.google.com/maps?q=${encodedLocation}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+                            
+                            const mapContainer = document.getElementById('mapContainer');
+                            if (mapContainer) {
+                                mapContainer.innerHTML = `
+                                    <iframe 
+                                        class="embedded-map loaded"
+                                        src="${mapUrl}"
+                                        frameborder="0"
+                                        allowfullscreen>
+                                    </iframe>
+                                `;
+                            }
+                        }
+                    }
+                }
             }
             
             // Load subtasks (if available)
-            if (task.SubTasks && task.SubTasks.length > 0) {
+            if (task.subTasks && task.subTasks.length > 0) {
                 const checklistItems = document.querySelector('.checklist-items');
                 if (checklistItems) {
                     checklistItems.innerHTML = '';
-                    task.SubTasks.forEach(subtask => {
+                    task.subTasks.forEach(subtask => {
                         const item = document.createElement('div');
-                        item.className = 'checklist-item' + (subtask.IsCompleted ? ' completed' : '');
+                        item.className = 'checklist-item' + (subtask.isCompleted ? ' completed' : '');
                         item.innerHTML = `
-                            <input type="checkbox" class="form-check-input" ${subtask.IsCompleted ? 'checked' : ''}>
-                            <label class="form-check-label" style="font-size: 0.875rem;">${subtask.Title}</label>
+                            <input type="checkbox" class="form-check-input" ${subtask.isCompleted ? 'checked' : ''}>
+                            <label class="form-check-label" style="font-size: 0.875rem;">${subtask.title}</label>
                         `;
                         checklistItems.appendChild(item);
                     });
@@ -1423,7 +1854,10 @@
             const priority = document.getElementById('priority-field')?.value || 'Medium';
             const startDate = document.getElementById('start-date-field')?.value || null;
             const dueDate = document.getElementById('due-date-field')?.value || null;
-            const location = document.getElementById('locationName')?.textContent || '';
+            // Get full location data including coordinates and place ID
+            const locationData = getLocationData();
+            // Send simple string for backend compatibility, but store full data in a hidden field
+            const locationString = locationData ? `${locationData.name}, ${locationData.address}` : null;
             
             // Get matter ID (for now, use first matter from the list or require selection)
             // Use selected matter if available
@@ -1442,10 +1876,12 @@
                 priority: priority,
                 startedAt: startDate,
                 dueDate: dueDate,
-                location: location,
+                location: locationString,
                 matterId: matterId,
                 order: 0
             };
+            
+            console.log('Sending request data:', requestData);
             
             // Determine endpoint
             const url = taskId ? '/Tasks/Update' : '/Tasks/Create';
@@ -1471,13 +1907,18 @@
                 },
                 body: JSON.stringify(requestData)
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
             .then(data => {
+                console.log('Response data:', data);
                 if (data.success) {
                     // Success - reload page to show new task
                     window.location.reload();
                 } else {
                     // Error
+                    console.error('Save error:', data);
                     alert('Error: ' + (data.message || 'Failed to save task'));
                     saveBtn.disabled = false;
                     saveBtn.innerHTML = originalText;
@@ -1683,6 +2124,11 @@
                     const targetView = document.getElementById(view + 'View');
                     if (targetView) {
                         targetView.classList.remove('d-none');
+                        
+                        // Reinitialize drag and drop if board view becomes visible
+                        if (view === 'board' && window.reinitializeDragAndDropIfNeeded) {
+                            window.reinitializeDragAndDropIfNeeded();
+                        }
                     }
                 });
                 

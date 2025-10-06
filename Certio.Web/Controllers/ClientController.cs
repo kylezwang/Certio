@@ -393,6 +393,19 @@ namespace Certio.Web.Controllers
             return View("~/Views/Home/Teams.cshtml", model);
         }
 
+        // GET /Client/{orgId}/Calendar
+        [Authorize(Policy = "OrgMember")]
+        [HttpGet("/Client/{orgId:int}/Calendar")]
+        public async Task<IActionResult> Calendar(int orgId)
+        {
+            ViewBag.OrganizationId = orgId;
+            var org = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync();
+            ViewBag.OrganizationName = org?.Name ?? "Client";
+            
+            // Return the Calendar view
+            return View("~/Views/Client/Calendar.cshtml");
+        }
+
         // GET /Client/{orgId}/Settings
         [Authorize(Policy = "OrgMember")]
         [HttpGet("/Client/{orgId:int}/Settings")]
