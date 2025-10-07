@@ -3867,7 +3867,6 @@ body.services-page .main-content {
 .settings-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem 1rem;
 }
 
 .settings-header {
@@ -3954,7 +3953,7 @@ body.services-page .main-content {
 .settings-content-inner {
   padding: 2rem;
   max-width: 100%;
-  width: 100%;
+  width: 50rem;
 }
 
 .settings-tab-content {
@@ -4220,7 +4219,6 @@ body.services-page .main-content {
 /* Responsive Design */
 @media (max-width: 768px) {
   .settings-container {
-    padding: 1rem 0.5rem;
   }
   
   .settings-layout {

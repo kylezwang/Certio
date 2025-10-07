@@ -94,7 +94,7 @@
 .inbox-status-tasks {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.35rem;
 }
 
 /* Override main content padding for Tasks page */
@@ -604,7 +604,7 @@
 /* Multi-view layout classes */
 .tasks-content.multi-view {
     display: flex;
-    gap: 1rem;
+    gap: 0;
 }
 
 .tasks-content.multi-view .view-container {
@@ -613,29 +613,92 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* Resizable divider styles */
+.view-resizer {
+    width: 8px;
+    background: #ffffff;
+    cursor: col-resize;
+    position: relative;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.view-resizer:hover {
+    background: #d1d5db;
+}
+
+.view-resizer:active {
+    background: #9ca3af;
+}
+
+.view-resizer::before {
+    content: '';
+    width: 2px;
+    height: 20px;
+    background: #9ca3af;
+    border-radius: 1px;
+    opacity: 0.6;
+}
+
+.view-resizer:hover::before {
+    opacity: 1;
+}
+
+.view-resizer:active::before {
+    background: #6b7280;
+}
+
+/* Hide resizers by default - they will be shown via JavaScript */
+.view-resizer {
+    display: none;
+}
+
+/* Ensure resizers are properly positioned in multi-view */
+.tasks-content.multi-view {
+    align-items: stretch;
+}
+
+.tasks-content.multi-view .view-container {
+    min-width: 0; /* Allow flex items to shrink below content size */
+}
+
+/* Smooth transitions for width changes */
+.tasks-content.multi-view .view-container {
+    transition: width 0.1s ease-out;
+}
+
+/* Resizer positioning adjustments */
+.view-resizer {
+    margin: 1rem 0rem; /* Add some margin to maintain the 1rem total gap */
+}
+
 /* Width allocations for different view combinations */
 .tasks-content.inbox-planner .view-container#inboxView {
-    width: 25%;
+    width: 49.5%;
 }
 
 .tasks-content.inbox-planner .view-container#plannerView {
-    width: 75%;
+    width: 49.5%;
 }
 
 .tasks-content.inbox-board .view-container#inboxView {
-    width: 25%;
+    width: 49.5%;
 }
 
 .tasks-content.inbox-board .view-container#boardView {
-    width: 75%;
+    width: 49.5%;
 }
 
 .tasks-content.planner-board .view-container#plannerView {
-    width: 30%;
+    width: 49.5%;
 }
 
 .tasks-content.planner-board .view-container#boardView {
-    width: 70%;
+    width: 49.5%;
 }
 
 .tasks-content.all-views .view-container#inboxView {
@@ -647,7 +710,7 @@
 }
 
 .tasks-content.all-views .view-container#boardView {
-    width: 42%;
+    width: 43%;
 }
 
 /* Inbox Container */
@@ -752,7 +815,7 @@
     top: 7vh; /* Start below header */
     left: 20vw; /* Start after sidebar */
     right: 320px; /* Leave space for chat panel */
-    bottom: 4rem;
+    bottom: 2rem;
     z-index: 1000;
     display: flex;
     align-items: center;
@@ -1034,6 +1097,13 @@
     font-weight: 600;
 }
 
+.task-assignees-container {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+}
+
 .add-member-btn,
 .add-label-btn {
     width: 32px;
@@ -1197,7 +1267,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.5rem 0;
+    padding: 0.15rem 0;
 }
 
 .checklist-item.completed {
@@ -1476,7 +1546,6 @@
     background: white;
     border-radius: 8px;
     padding: 0.75rem 1rem;
-    margin-bottom: 0.5rem;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: box-shadow 0.2s;
     cursor: pointer;

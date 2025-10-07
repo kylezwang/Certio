@@ -296,7 +296,10 @@
                 </div>
             </div>
         </div>
-
+        
+        <!-- Resizer between Inbox and Planner -->
+        <div class="view-resizer" id="inboxPlannerResizer" data-left-view="inboxView" data-right-view="plannerView"></div>
+        
         <!-- Planner View -->
         <div class="view-container" id="plannerView">
             <div class="planner-container">
@@ -605,7 +608,10 @@
                 </div>
             </div>
         </div>
-
+        
+        <!-- Resizer between Planner and Board -->
+        <div class="view-resizer" id="plannerBoardResizer" data-left-view="plannerView" data-right-view="boardView"></div>
+        
         <!-- Board View -->
         <div class="view-container" id="boardView">
             <div class="kanban-board-container">
@@ -738,22 +744,22 @@
 
                     <!-- Action Buttons -->
                     <div class="task-action-buttons">
-                        <button class="btn btn-sm btn-outline-secondary task-action-btn" id="scroll-status-btn" style="font-size: 0.875rem;">
+                        <button class="btn btn-sm btn-outline-secondary task-action-btn" id="scroll-status-btn" style="font-size: 0.875rem; border-radius: 0.5rem;">
                             <i class="fas fa-clock"></i> Status
                         </button>
-                        <button class="btn btn-sm btn-outline-secondary task-action-btn" id="scroll-priority-btn" style="font-size: 0.875rem;">
+                        <button class="btn btn-sm btn-outline-secondary task-action-btn" id="scroll-priority-btn" style="font-size: 0.875rem; border-radius: 0.5rem;">
                             <i class="fas fa-exclamation-circle"></i> Priority
                         </button>
-                        <button class="btn btn-sm btn-outline-secondary task-action-btn" id="scroll-dates-btn" style="font-size: 0.875rem;">
+                        <button class="btn btn-sm btn-outline-secondary task-action-btn" id="scroll-dates-btn" style="font-size: 0.875rem; border-radius: 0.5rem;">
                             <i class="fas fa-calendar"></i> Dates
                         </button>
-                        <button class="btn btn-sm btn-outline-secondary task-action-btn" id="scroll-checklist-btn" style="font-size: 0.875rem;">
+                        <button class="btn btn-sm btn-outline-secondary task-action-btn" id="scroll-checklist-btn" style="font-size: 0.875rem; border-radius: 0.5rem;">
                             <i class="fas fa-check-square"></i> Subtasks
                         </button>
-                        <button class="btn btn-sm btn-outline-secondary task-action-btn" id="scroll-attachment-btn" style="font-size: 0.875rem;">
+                        <button class="btn btn-sm btn-outline-secondary task-action-btn" id="scroll-attachment-btn" style="font-size: 0.875rem; border-radius: 0.5rem;">
                             <i class="fas fa-paperclip"></i> Attachments
                         </button>
-                        <button class="btn btn-sm btn-outline-secondary task-action-btn">
+                        <button class="btn btn-sm btn-outline-secondary task-action-btn" style="border-radius: 0.5rem;">
                             <i class="fas fa-map-marker-alt"></i> Location
                         </button>
                     </div>
@@ -762,8 +768,10 @@
                     <div class="task-meta-section">
                         <div class="task-members">
                             <span class="task-meta-label">Assignees</span>
-                            <div class="member-avatar">CT</div>
-                            <button class="btn btn-sm btn-outline-secondary add-member-btn">
+                            <div class="task-assignees-container" id="taskAssigneesContainer">
+                                <!-- Assignees will be dynamically rendered here -->
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary add-member-btn" id="addTaskAssigneeBtn">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
@@ -856,6 +864,9 @@
                                     <h6 class="task-section-title">
                                         <i class="fas fa-check-square"></i> Subtasks
                                     </h6>
+                                    <button class="btn btn-sm btn-outline-secondary edit-btn" id="addSubtaskBtn" style="border-radius: 0.5rem;">
+                                        <i class="fas fa-plus"></i> Add subtask
+                                    </button>
                                 </div>
                                 <div class="task-section-content">
                                     <div class="checklist-progress">
@@ -915,7 +926,7 @@
                                     <h6 class="task-section-title">
                                         <i class="fas fa-paperclip"></i> Attachments
                                     </h6>
-                                    <button class="btn btn-sm btn-outline-secondary edit-btn">
+                                    <button class="btn btn-sm btn-outline-secondary edit-btn" style="border-radius: 0.5rem;">
                                         <i class="fas fa-plus"></i> Add
                                     </button>
                                 </div>
@@ -1259,8 +1270,7 @@
             
             if (closeTaskModal) {
                 closeTaskModal.addEventListener('click', function() {
-                    taskDetailsModal.style.display = 'none';
-                    resetTaskModal();
+                    checkUnsavedChangesBeforeClose();
                 });
             }
             
@@ -1269,9 +1279,56 @@
                 taskDetailsModal.addEventListener('click', function(e) {
                     // Only close if clicking directly on the backdrop (taskDetailsModal itself)
                     if (e.target === taskDetailsModal) {
-                        taskDetailsModal.style.display = 'none';
-                        resetTaskModal();
+                        checkUnsavedChangesBeforeClose();
                     }
+                });
+            }
+            
+            // Function to check for unsaved changes before closing modal
+            function checkUnsavedChangesBeforeClose() {
+                if (hasUnsavedChanges || pendingSubtasks.length > 0 || modifiedExistingSubtasks.size > 0) {
+                    showUnsavedChangesDialog();
+                } else {
+                    closeTaskModalFinal();
+                }
+            }
+            
+            // Function to actually close the modal
+            function closeTaskModalFinal() {
+                taskDetailsModal.style.display = 'none';
+                resetTaskModal();
+                // Reset unsaved changes tracking
+                hasUnsavedChanges = false;
+                pendingSubtasks = [];
+            }
+            
+            // Function to show unsaved changes warning dialog
+            function showUnsavedChangesDialog() {
+                const dialogHtml = `
+                    <div class="unsaved-changes-dialog" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 10001; padding: 1.5rem; min-width: 400px;">
+                        <h5 style="margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">Unsaved Changes</h5>
+                        <p style="margin-bottom: 1.5rem; color: #666;">You have unsaved changes. What would you like to do?</p>
+                        <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+                            <button class="btn btn-secondary" id="discardChangesBtn" style="padding: 0.5rem 1rem;">Discard Changes</button>
+                            <button class="btn btn-primary" id="continueEditingBtn" style="padding: 0.5rem 1rem;">Continue Editing</button>
+                        </div>
+                    </div>
+                    <div class="unsaved-changes-backdrop" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000;"></div>
+                `;
+                
+                const dialogContainer = document.createElement('div');
+                dialogContainer.className = 'unsaved-changes-container';
+                dialogContainer.innerHTML = dialogHtml;
+                document.body.appendChild(dialogContainer);
+                
+                // Handle buttons
+                document.getElementById('discardChangesBtn').addEventListener('click', function() {
+                    dialogContainer.remove();
+                    closeTaskModalFinal();
+                });
+                
+                document.getElementById('continueEditingBtn').addEventListener('click', function() {
+                    dialogContainer.remove();
                 });
             }
             
@@ -1529,6 +1586,12 @@
             // Show modal
             taskDetailsModal.style.display = 'flex';
             
+            // Initialize subtasks functionality
+            initializeSubtasks();
+            
+            // Initialize task assignment button
+            initializeTaskAssignmentButton();
+            
             // Focus on title field
             setTimeout(() => {
                 const titleField = document.querySelector('.task-title');
@@ -1595,6 +1658,11 @@
                 `;
             }
             
+            // Clear assignments
+            currentTaskAssignments = [];
+            originalTaskAssignments = [];
+            renderTaskAssignees([]);
+            
             // Update progress to 0%
             updateChecklistProgressManual(0);
         }
@@ -1602,6 +1670,12 @@
         // Reset task modal
         function resetTaskModal() {
             clearTaskModal();
+            // Clear pending subtasks when modal is reset
+            pendingSubtasks = [];
+            hasUnsavedChanges = false;
+            // Clear subtask tracking maps
+            originalSubtaskStates.clear();
+            modifiedExistingSubtasks.clear();
         }
         
         // Get current location data from the modal
@@ -1784,20 +1858,113 @@
                 const checklistItems = document.querySelector('.checklist-items');
                 if (checklistItems) {
                     checklistItems.innerHTML = '';
+                    
+                    // Clear tracking maps when loading new task
+                    originalSubtaskStates.clear();
+                    modifiedExistingSubtasks.clear();
+                    
                     task.subTasks.forEach(subtask => {
+                        const isCompleted = subtask.status === 'Completed';
+                        
+                        // Store original state for change detection
+                        originalSubtaskStates.set(subtask.id, {
+                            isCompleted: isCompleted
+                        });
+                        
+                        // Build assignment badges HTML
+                        let assignmentHtml = '';
+                        if (subtask.assignments && subtask.assignments.length > 0) {
+                            subtask.assignments.forEach(assignment => {
+                                assignmentHtml += `
+                                    <span class="badge badge-sm" style="background-color: #e3f2fd; color: #1976d2; font-size: 0.7rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem;" title="${assignment.userName} (${assignment.assignmentType})">
+                                        ${assignment.userInitials}
+                                    </span>
+                                `;
+                            });
+                        }
+                        
+                        // Build due date HTML
+                        let dueDateHtml = '';
+                        if (subtask.dueDate) {
+                            // Parse date string directly to avoid timezone issues
+                            const dateStr = subtask.dueDate.split('T')[0]; // Remove time part if present
+                            const dateParts = dateStr.split('-');
+                            const year = dateParts[0];
+                            const month = dateParts[1];
+                            const day = dateParts[2];
+                            
+                            // Create date for comparison (local timezone)
+                            const dueDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0); // Reset time to start of day
+                            
+                            // Format as "Oct 15" style
+                            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                            const formattedDate = `${monthNames[parseInt(month) - 1]} ${parseInt(day)}`;
+                            
+                            const isOverdue = dueDate < today && subtask.status !== 'Completed';
+                            dueDateHtml = `
+                                <span class="badge badge-sm" style="background-color: ${isOverdue ? '#ffebee' : '#f5f5f5'}; color: ${isOverdue ? '#c62828' : '#666'}; font-size: 0.7rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem;">
+                                    <i class="fas fa-calendar-alt" style="font-size: 0.65rem;"></i> ${formattedDate}
+                                </span>
+                            `;
+                        }
+                        
                         const item = document.createElement('div');
-                        item.className = 'checklist-item' + (subtask.isCompleted ? ' completed' : '');
+                        item.className = 'checklist-item' + (isCompleted ? ' completed' : '');
+                        item.dataset.subtaskId = subtask.id;
+                        item.dataset.isExisting = 'true'; // Mark as existing subtask
                         item.innerHTML = `
-                            <input type="checkbox" class="form-check-input" ${subtask.isCompleted ? 'checked' : ''}>
-                            <label class="form-check-label" style="font-size: 0.875rem;">${subtask.title}</label>
+                            <div style="display: flex; align-items: center; width: 100%; padding: 0.5rem 0;">
+                                <div style="display: flex; align-items: center; flex: 1; min-width: 0;">
+                                    <input type="checkbox" class="form-check-input subtask-checkbox" ${isCompleted ? 'checked' : ''} style="margin-right: 0.5rem;">
+                                    <label class="form-check-label" style="font-size: 0.875rem; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${subtask.title}</label>
+                                </div>
+                                <div style="display: flex; align-items: center; min-width: 80px; justify-content: right;">
+                                    ${dueDateHtml}
+                                </div>
+                                <div style="display: flex; align-items: center; min-width: 120px; justify-content: flex-end; gap: 0.25rem;">
+                                    ${assignmentHtml}
+                                </div>
+                            </div>
                         `;
                         checklistItems.appendChild(item);
+                        
+                        // Attach event listener for checkbox changes on existing subtasks
+                        const checkbox = item.querySelector('.subtask-checkbox');
+                        checkbox.addEventListener('change', function() {
+                            const subtaskId = parseInt(item.dataset.subtaskId);
+                            const newIsCompleted = this.checked;
+                            
+                            // Update visual state
+                            if (newIsCompleted) {
+                                item.classList.add('completed');
+                            } else {
+                                item.classList.remove('completed');
+                            }
+                            
+                            // Track the change
+                            const originalState = originalSubtaskStates.get(subtaskId);
+                            if (originalState && originalState.isCompleted !== newIsCompleted) {
+                                // Modified from original
+                                modifiedExistingSubtasks.set(subtaskId, {
+                                    isCompleted: newIsCompleted
+                                });
+                                hasUnsavedChanges = true;
+                            } else {
+                                // Reverted to original state
+                                modifiedExistingSubtasks.delete(subtaskId);
+                            }
+                            
+                            // Update progress bar
+                            updateSubtaskProgressInModal();
+                        });
                     });
                 }
                 
                 // Update progress
-                const completedCount = task.SubTasks.filter(st => st.IsCompleted).length;
-                const totalCount = task.SubTasks.length;
+                const completedCount = task.subTasks.filter(st => st.status === 'Completed').length;
+                const totalCount = task.subTasks.length;
                 const percentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
                 updateChecklistProgressManual(percentage);
             } else {
@@ -1810,8 +1977,20 @@
             }
             
             // Load assignees (if available)
-            if (task.Assignments && task.Assignments.length > 0) {
-                // TODO: Render assignees
+            if (task.assignments && task.assignments.length > 0) {
+                currentTaskAssignments = task.assignments.map(a => ({
+                    userId: a.userId,
+                    userName: a.userName,
+                    userInitials: a.userInitials,
+                    userEmail: a.userEmail || ''
+                }));
+                // Keep a copy of original assignments to detect new ones later
+                originalTaskAssignments = JSON.parse(JSON.stringify(currentTaskAssignments));
+                renderTaskAssignees(currentTaskAssignments);
+            } else {
+                currentTaskAssignments = [];
+                originalTaskAssignments = [];
+                renderTaskAssignees([]);
             }
         }
         
@@ -1848,12 +2027,56 @@
                 return;
             }
             
+            // Validate that at least one assignee is selected
+            if (!currentTaskAssignments || currentTaskAssignments.length === 0) {
+                alert('Please assign at least one user to this task');
+                return;
+            }
+            
             // Get all field values
             const description = document.querySelector('.task-description-textarea')?.value || '';
-            const status = document.getElementById('status-field')?.value || 'Pending';
+            let status = document.getElementById('status-field')?.value || 'Pending';
             const priority = document.getElementById('priority-field')?.value || 'Medium';
             const startDate = document.getElementById('start-date-field')?.value || null;
             const dueDate = document.getElementById('due-date-field')?.value || null;
+            
+            // Auto-complete task if all subtasks are completed
+            const existingSubtasks = document.querySelectorAll('.checklist-item:not(.new-subtask-card)');
+            const totalSubtasks = existingSubtasks.length + pendingSubtasks.length;
+            
+            if (totalSubtasks > 0) {
+                let completedCount = 0;
+                
+                // Count completed existing subtasks (check both UI state and modified tracking)
+                existingSubtasks.forEach(item => {
+                    const subtaskId = item.dataset.subtaskId;
+                    
+                    // Check if it's in the modified map first
+                    if (subtaskId && modifiedExistingSubtasks.has(subtaskId)) {
+                        if (modifiedExistingSubtasks.get(subtaskId).isCompleted) {
+                            completedCount++;
+                        }
+                    } else {
+                        // Otherwise check the UI state
+                        if (item.classList.contains('completed')) {
+                            completedCount++;
+                        }
+                    }
+                });
+                
+                // Count completed pending subtasks
+                pendingSubtasks.forEach(subtask => {
+                    if (subtask.status === 'Completed') {
+                        completedCount++;
+                    }
+                });
+                
+                // If all subtasks are completed, auto-set status to Completed
+                if (completedCount === totalSubtasks) {
+                    status = 'Completed';
+                    console.log(`All ${totalSubtasks} subtasks completed - auto-setting task status to Completed`);
+                }
+            }
             // Get full location data including coordinates and place ID
             const locationData = getLocationData();
             // Send simple string for backend compatibility, but store full data in a hidden field
@@ -1911,10 +2134,38 @@
                 console.log('Response status:', response.status);
                 return response.json();
             })
-            .then(data => {
+            .then(async (data) => {
                 console.log('Response data:', data);
                 if (data.success) {
-                    // Success - reload page to show new task
+                    const savedTaskId = data.taskId || parseInt(taskId);
+                    
+                    // Save task assignments
+                    if (currentTaskAssignments && currentTaskAssignments.length > 0) {
+                        if (!taskId) {
+                            // NEW task: save all assignments
+                            await saveTaskAssignments(savedTaskId);
+                        } else {
+                            // EXISTING task: only save NEW assignments (not already in database)
+                            const newAssignments = currentTaskAssignments.filter(current => 
+                                !originalTaskAssignments.some(original => original.userId === current.userId)
+                            );
+                            if (newAssignments.length > 0) {
+                                await saveTaskAssignments(savedTaskId, newAssignments);
+                            }
+                        }
+                    }
+                    
+                    // If there are modified existing subtasks, save them first
+                    if (modifiedExistingSubtasks.size > 0) {
+                        await saveModifiedExistingSubtasks();
+                    }
+                    
+                    // If there are pending subtasks, save them now
+                    if (pendingSubtasks.length > 0) {
+                        await savePendingSubtasks(savedTaskId);
+                    }
+                    
+                    // Success - reload page to show updated task
                     window.location.reload();
                 } else {
                     // Error
@@ -1930,6 +2181,132 @@
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = originalText;
             });
+        }
+        
+        // Function to save modified existing subtasks to database
+        async function saveModifiedExistingSubtasks() {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            
+            // Save each modified subtask sequentially
+            for (const [subtaskId, changes] of modifiedExistingSubtasks.entries()) {
+                try {
+                    const response = await fetch('/Tasks/UpdateSubTaskStatus', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        },
+                        body: JSON.stringify({
+                            subTaskId: parseInt(subtaskId),
+                            isCompleted: changes.isCompleted
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    if (!data.success) {
+                        console.error('Failed to update subtask:', subtaskId, data.message);
+                    }
+                } catch (error) {
+                    console.error('Error updating subtask:', subtaskId, error);
+                }
+            }
+            
+            // Clear modified subtasks after saving
+            modifiedExistingSubtasks.clear();
+        }
+        
+        // Function to save pending subtasks to database
+        async function savePendingSubtasks(taskId) {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            
+            // Save each subtask sequentially
+            for (const subtask of pendingSubtasks) {
+                // Prepare assignments data
+                const assignmentsData = subtask.assignments?.map(a => ({
+                    userId: a.userId,
+                    assignmentType: a.assignmentType || 'Assignee',
+                    role: a.role || ''
+                })) || [];
+                
+                try {
+                    const response = await fetch('/Tasks/CreateSubTask', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        },
+                        body: JSON.stringify({
+                            taskId: taskId,
+                            title: subtask.title,
+                            dueDate: subtask.dueDate || null,
+                            assignments: assignmentsData.length > 0 ? assignmentsData : null
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    if (!data.success) {
+                        console.error('Failed to save subtask:', subtask.title, data.message);
+                    } else if (data.subTask && subtask.status === 'Completed') {
+                        // If the subtask was marked as completed before saving, update its status
+                        const updateResponse = await fetch('/Tasks/UpdateSubTaskStatus', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'RequestVerificationToken': token
+                            },
+                            body: JSON.stringify({
+                                subTaskId: data.subTask.id,
+                                isCompleted: true
+                            })
+                        });
+                        
+                        const updateData = await updateResponse.json();
+                        if (!updateData.success) {
+                            console.error('Failed to update subtask status:', subtask.title, updateData.message);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error saving subtask:', subtask.title, error);
+                }
+            }
+            
+            // Clear pending subtasks after saving
+            pendingSubtasks = [];
+            hasUnsavedChanges = false;
+        }
+        
+        // Function to save task assignments to database
+        async function saveTaskAssignments(taskId, assignmentsToSave = null) {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            
+            // Use provided assignments or default to all current assignments
+            const assignments = assignmentsToSave || currentTaskAssignments;
+            
+            // Save each assignment sequentially
+            for (const assignment of assignments) {
+                try {
+                    const response = await fetch('/Tasks/AddAssignment', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        },
+                        body: JSON.stringify({
+                            taskItemId: taskId,
+                            userId: assignment.userId,
+                            assignmentType: 'Assignee',
+                            role: null
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    if (!data.success) {
+                        console.error('Failed to save assignment:', assignment.userName, data.message);
+                    }
+                } catch (error) {
+                    console.error('Error saving assignment:', assignment.userName, error);
+                }
+            }
         }
         
         // Update checklist progress manually
@@ -1972,43 +2349,912 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            
-            // Handle checklist item interactions
-            const checklistItems = document.querySelectorAll('.checklist-item input[type="checkbox"]');
-            checklistItems.forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    updateChecklistProgress();
-                });
+        // Track pending subtasks (not yet saved to database)
+        let pendingSubtasks = [];
+        let hasUnsavedChanges = false;
+        
+        // Track original subtask states for change detection
+        let originalSubtaskStates = new Map(); // Map<subtaskId, {isCompleted: bool, ...}>
+        let modifiedExistingSubtasks = new Map(); // Map<subtaskId, {isCompleted: bool, ...}>
+
+        // Function to update subtask progress in modal
+        function updateSubtaskProgressInModal() {
+            const totalItems = document.querySelectorAll('.checklist-item').length;
+            const completedItems = document.querySelectorAll('.checklist-item.completed').length;
+            const percentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+            updateChecklistProgressManual(percentage);
+        }
+        
+        // Function to update subtask status on server (global scope)
+        function updateSubTaskStatus(subtaskId, isCompleted) {
+            fetch('/Tasks/UpdateSubTaskStatus', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({
+                    subTaskId: parseInt(subtaskId),
+                    isCompleted: isCompleted
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('SubTask status updated successfully');
+                } else {
+                    console.error('Failed to update subtask status:', data.message);
+                    alert('Failed to update subtask status: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error updating subtask status:', error);
+                alert('An error occurred while updating the subtask');
             });
+        }
+
+        // Initialize subtask functionality
+        function initializeSubtasks() {
+            const addSubtaskBtn = document.getElementById('addSubtaskBtn');
+            const checklistItems = document.querySelector('.checklist-items');
             
-            function updateChecklistProgress() {
-                const totalItems = document.querySelectorAll('.checklist-item').length;
-                const completedItems = document.querySelectorAll('.checklist-item.completed').length;
-                const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+            if (addSubtaskBtn) {
+                addSubtaskBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Check if there's already a subtask form in the DOM
+                    const existingForm = document.querySelector('.new-subtask-card');
+                    if (existingForm) {
+                        console.log('Subtask form already exists, removing it first');
+                        existingForm.remove();
+                    }
+                    
+                    // Create new subtask card with improved UI
+                    const newSubtaskCard = document.createElement('div');
+                    newSubtaskCard.className = 'new-subtask-card';
+                    newSubtaskCard.style.cssText = 'padding: 1rem 0rem; background-color: #fff; border-radius: 0.375rem; margin-bottom: 1rem;';
+                    newSubtaskCard.innerHTML = `
+                        <div style="margin-bottom: 0.75rem;">
+                            <textarea class="form-control subtask-title-input" placeholder="Enter subtask title..." rows="1" style="resize: none; border: 1px solid #dee2e6; font-size: 0.875rem; padding: 0.75rem;"></textarea>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn btn-primary btn-sm add-subtask-btn" style="padding: 0.375rem 1rem; border-radius: 0.5rem;">
+                                    Add
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm cancel-subtask-btn" style="padding: 0.375rem 1rem; border-radius: 0.5rem;">
+                                    Cancel
+                                </button>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn btn-sm" id="assignSubtaskBtn" style="padding: 0.375rem 0.75rem; border: none; background: transparent; border-radius: 0.5rem;" onmouseover="this.style.backgroundColor='#eef1f3'" onmouseout="this.style.backgroundColor='transparent'">
+                                    <i class="fas fa-user-plus"></i> Assign
+                                </button>
+                                <button class="btn btn-sm" id="dueDateSubtaskBtn" style="padding: 0.375rem 0.75rem; border: none; background: transparent; border-radius: 0.5rem;" onmouseover="this.style.backgroundColor='#eef1f3'" onmouseout="this.style.backgroundColor='transparent'">
+                                    <i class="far fa-calendar"></i> Due date
+                                </button>
+                            </div>
+                        </div>
+                        <input type="date" class="form-control mt-2 subtask-duedate-input" style="display: none; font-size: 0.875rem;">
+                        <div class="subtask-assignments-container" style="display: none;"></div>
+                    `;
+                    
+                    // Insert at the beginning of checklist items
+                    if (checklistItems) {
+                        checklistItems.insertBefore(newSubtaskCard, checklistItems.firstChild);
+                        
+                        // Focus on the textarea
+                        const input = newSubtaskCard.querySelector('.subtask-title-input');
+                        input.focus();
+                        
+                        // Store selected assignments and due date
+                        let selectedAssignments = [];
+                        let selectedDueDate = null;
+                        
+                        // Validation function
+                        function validateSubtaskForm(showMessages = false) {
+                            const title = input.value.trim();
+                            const hasTitle = title.length > 0;
+                            const hasDueDate = selectedDueDate !== null && selectedDueDate !== '';
+                            const hasAssignments = selectedAssignments.length > 0;
+                            
+                            const isValid = hasTitle && hasDueDate && hasAssignments;
+                            
+                            // Update Add button state
+                            const addBtn = newSubtaskCard.querySelector('.add-subtask-btn');
+                            if (isValid) {
+                                addBtn.disabled = false;
+                                addBtn.classList.remove('btn-secondary');
+                                addBtn.classList.add('btn-primary');
+                            } else {
+                                addBtn.disabled = true;
+                                addBtn.classList.remove('btn-primary');
+                                addBtn.classList.add('btn-secondary');
+                            }
+                            
+                            // Only show validation messages if requested
+                            if (showMessages) {
+                                updateValidationMessages(hasTitle, hasDueDate, hasAssignments);
+                            }
+                            
+                            return isValid;
+                        }
+                        
+                        // Update validation messages
+                        function updateValidationMessages(hasTitle, hasDueDate, hasAssignments) {
+                            // Remove existing validation messages
+                            const existingMessages = newSubtaskCard.querySelectorAll('.validation-message');
+                            existingMessages.forEach(msg => msg.remove());
+                            
+                            // Add validation messages
+                            const messages = [];
+                            if (!hasTitle) messages.push('Title is required');
+                            if (!hasDueDate) messages.push('Due date is required');
+                            if (!hasAssignments) messages.push('At least one assignee is required');
+                            
+                            if (messages.length > 0) {
+                                const validationDiv = document.createElement('div');
+                                validationDiv.className = 'validation-message';
+                                validationDiv.style.cssText = 'font-size: 0.75rem; color: #dc3545; margin-bottom: 0.5rem; padding: 0.5rem; background-color: #f8d7da; border-radius: 0.25rem; border: 1px solid #f5c6cb;';
+                                validationDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + messages.join(', ');
+                                
+                                // Insert above the title input field
+                                const titleContainer = newSubtaskCard.querySelector('div[style*="margin-bottom: 0.75rem"]');
+                                titleContainer.insertBefore(validationDiv, titleContainer.firstChild);
+                            }
+                        }
+                        
+                        // Handle Add button
+                        const addBtn = newSubtaskCard.querySelector('.add-subtask-btn');
+                        addBtn.disabled = true; // Start disabled
+                        addBtn.classList.remove('btn-primary');
+                        addBtn.classList.add('btn-secondary');
+                        
+                        addBtn.addEventListener('click', function() {
+                            if (validateSubtaskForm(true)) { // Show messages when clicked
+                                const title = input.value.trim();
+                                createSubtask(title, selectedDueDate, selectedAssignments);
+                            }
+                        });
+                        
+                        // Handle Cancel button
+                        const cancelBtn = newSubtaskCard.querySelector('.cancel-subtask-btn');
+                        cancelBtn.addEventListener('click', function() {
+                            newSubtaskCard.remove();
+                        });
+                        
+                        // Handle Due Date button
+                        const dueDateBtn = newSubtaskCard.querySelector('#dueDateSubtaskBtn');
+                        const dueDateInput = newSubtaskCard.querySelector('.subtask-duedate-input');
+                        dueDateBtn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            if (dueDateInput.style.display === 'none') {
+                                dueDateInput.style.display = 'block';
+                                dueDateInput.focus();
+                            } else {
+                                dueDateInput.style.display = 'none';
+                            }
+                        });
+                        
+                        dueDateInput.addEventListener('change', function() {
+                            selectedDueDate = this.value;
+                            if (this.value) {
+                                // Parse the date string directly without timezone conversion
+                                const dateParts = this.value.split('-');
+                                const year = dateParts[0];
+                                const month = dateParts[1];
+                                const day = dateParts[2];
+                                
+                                // Format as MM/DD/YYYY to match the display format
+                                const formattedDate = `${month}/${day}/${year}`;
+                                dueDateBtn.innerHTML = '<i class="far fa-calendar"></i> ' + formattedDate;
+                                dueDateBtn.style.color = '#0d6efd';
+                            } else {
+                                selectedDueDate = null;
+                                dueDateBtn.innerHTML = '<i class="far fa-calendar"></i> Due date';
+                                dueDateBtn.style.color = '';
+                            }
+                            
+                            // Trigger validation (no messages)
+                            validateSubtaskForm(false);
+                        });
+                        
+                        // Handle Assign button
+                        const assignBtn = newSubtaskCard.querySelector('#assignSubtaskBtn');
+                        assignBtn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            showSubtaskAssignmentPopup(selectedAssignments, function(assignments) {
+                                selectedAssignments = assignments;
+                                updateAssignmentDisplay(assignBtn, assignments);
+                                
+                                // Trigger validation after assignment change (no messages)
+                                validateSubtaskForm(false);
+                            });
+                        });
+                        
+                        // Add validation trigger for title input
+                        input.addEventListener('input', function() {
+                            validateSubtaskForm(false); // No messages
+                        });
+                        
+                        // Add validation trigger for title input on keyup (for paste events)
+                        input.addEventListener('keyup', function() {
+                            validateSubtaskForm(false); // No messages
+                        });
+                        
+                        // Initial validation (no messages)
+                        validateSubtaskForm(false);
+                        
+                        // Handle Escape key
+                        input.addEventListener('keydown', function(e) {
+                            if (e.key === 'Escape') {
+                                e.preventDefault();
+                                newSubtaskCard.remove();
+                            }
+                        });
+                    }
+                });
+            }
+            
+            // Function to create a subtask (stored in memory, not saved to DB immediately)
+            function createSubtask(title, dueDate, assignments) {
+                // Generate temporary ID for the subtask
+                const tempId = 'temp_' + Date.now();
                 
-                // Update main checklist progress
-                const progressBar = document.querySelector('.checklist-progress .progress-bar');
-                const progressText = document.querySelector('.checklist-progress .progress-text');
+                // Transform assignment data to match expected structure
+                const transformedAssignments = (assignments || []).map(assignment => ({
+                    userId: assignment.userId,
+                    userName: assignment.userName,
+                    userInitials: assignment.userName ? assignment.userName.split(' ').map(n => n[0]).join('').toUpperCase() : '??',
+                    assignmentType: assignment.assignmentType || 'Assignee',
+                    role: assignment.role || ''
+                }));
                 
-                if (progressBar) {
-                    progressBar.style.width = progressPercentage + '%';
+                // Create subtask object
+                const newSubtask = {
+                    id: tempId,
+                    title: title,
+                    dueDate: dueDate,
+                    status: 'Pending',
+                    assignments: transformedAssignments,
+                    isPending: true // Mark as not yet saved to database
+                };
+                
+                // Add to pending subtasks list
+                pendingSubtasks.push(newSubtask);
+                
+                // Mark as having unsaved changes
+                hasUnsavedChanges = true;
+                
+                // Remove the subtask form
+                const existingForm = document.querySelector('.new-subtask-card');
+                if (existingForm) {
+                    existingForm.remove();
                 }
-                if (progressText) {
-                    progressText.textContent = progressPercentage + '%';
+                
+                // Add the new subtask to the list
+                addSubtaskToList(newSubtask);
+                
+                // Update progress
+                updateSubtaskProgress();
+            }
+            
+            // Function to add subtask to the list
+            function addSubtaskToList(subtask) {
+                if (!checklistItems) return;
+                
+                // Build assignment badges HTML
+                let assignmentHtml = '';
+                if (subtask.assignments && subtask.assignments.length > 0) {
+                    subtask.assignments.forEach(assignment => {
+                        assignmentHtml += `
+                            <span class="badge badge-sm" style="background-color: #e3f2fd; color: #1976d2; font-size: 0.7rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem;" title="${assignment.userName} (${assignment.assignmentType})">
+                                ${assignment.userInitials}
+                            </span>
+                        `;
+                    });
                 }
                 
-                // Update header progress
-                const headerProgressBar = document.getElementById('headerProgressBar');
-                const headerProgressText = document.getElementById('headerProgressText');
-                
-                if (headerProgressBar) {
-                    headerProgressBar.style.width = progressPercentage + '%';
+                // Build due date HTML
+                let dueDateHtml = '';
+                if (subtask.dueDate) {
+                    // Parse date string directly to avoid timezone issues
+                    const dateStr = subtask.dueDate.split('T')[0]; // Remove time part if present
+                    const dateParts = dateStr.split('-');
+                    const year = dateParts[0];
+                    const month = dateParts[1];
+                    const day = dateParts[2];
+                    
+                    // Create date for comparison (local timezone)
+                    const dueDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0); // Reset time to start of day
+                    
+                    // Format as "Oct 15" style
+                    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    const formattedDate = `${monthNames[parseInt(month) - 1]} ${parseInt(day)}`;
+                    
+                    const isOverdue = dueDate < today && subtask.status !== 'Completed';
+                    dueDateHtml = `
+                        <span class="badge badge-sm" style="background-color: ${isOverdue ? '#ffebee' : '#f5f5f5'}; color: ${isOverdue ? '#c62828' : '#666'}; font-size: 0.7rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem;">
+                            <i class="fas fa-calendar-alt" style="font-size: 0.65rem;"></i> ${formattedDate}
+                        </span>
+                    `;
                 }
-                if (headerProgressText) {
-                    headerProgressText.textContent = progressPercentage + '%';
+                
+                const subtaskItem = document.createElement('div');
+                subtaskItem.className = 'checklist-item' + (subtask.status === 'Completed' ? ' completed' : '');
+                subtaskItem.dataset.subtaskId = subtask.id;
+                subtaskItem.innerHTML = `
+                    <div style="display: flex; align-items: center; width: 100%; padding: 0.5rem 0;">
+                        <div style="display: flex; align-items: center; flex: 1; min-width: 0;">
+                            <input type="checkbox" class="form-check-input" ${subtask.status === 'Completed' ? 'checked' : ''} style="margin-right: 0.5rem;">
+                            <label class="form-check-label" style="font-size: 0.875rem; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${subtask.title}</label>
+                        </div>
+                        <div style="display: flex; align-items: center; min-width: 80px; justify-content: right;">
+                            ${dueDateHtml}
+                        </div>
+                        <div style="display: flex; align-items: center; min-width: 120px; justify-content: flex-end; gap: 0.25rem;">
+                            ${assignmentHtml}
+                        </div>
+                    </div>
+                `;
+                
+                // Add to the list (after the new card position if any)
+                checklistItems.appendChild(subtaskItem);
+                
+                // Add event listener for checkbox toggle
+                const checkbox = subtaskItem.querySelector('input[type="checkbox"]');
+                checkbox.addEventListener('change', function() {
+                    const subtaskId = subtask.id;
+                    const isCompleted = this.checked;
+                    
+                    if (isCompleted) {
+                        subtaskItem.classList.add('completed');
+                    } else {
+                        subtaskItem.classList.remove('completed');
+                    }
+                    
+                    // For pending subtasks, just update the in-memory status
+                    if (subtask.isPending) {
+                        // Update the subtask object in the pendingSubtasks array
+                        const pendingSubtask = pendingSubtasks.find(st => st.id === subtaskId);
+                        if (pendingSubtask) {
+                            pendingSubtask.status = isCompleted ? 'Completed' : 'Pending';
+                        }
+                        // Mark as having unsaved changes
+                        hasUnsavedChanges = true;
+                    }
+                    
+                    // Update progress bar
+                    updateSubtaskProgressInModal();
+                });
+            }
+            
+            // Function to update subtask progress
+            function updateSubtaskProgress() {
+                const totalItems = document.querySelectorAll('.checklist-item:not(.new-subtask-card)').length;
+                const completedItems = document.querySelectorAll('.checklist-item.completed:not(.new-subtask-card)').length;
+                const percentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+                
+                updateChecklistProgressManual(percentage);
+            }
+            
+            
+            // Function to show assignment popup
+            function showSubtaskAssignmentPopup(currentAssignments, callback) {
+                // Get the assign button to position popup relative to it
+                const assignBtn = document.querySelector('#assignSubtaskBtn');
+                if (!assignBtn) return;
+                
+                // Create popup container
+                const popup = document.createElement('div');
+                popup.className = 'subtask-assignment-popup';
+                
+                // Get button position
+                const btnRect = assignBtn.getBoundingClientRect();
+                
+                // Position popup above the button (left edge aligned)
+                popup.style.cssText = `
+                    position: fixed;
+                    bottom: ${window.innerHeight - btnRect.top + 10}px;
+                    left: ${btnRect.left}px;
+                    background: white;
+                    border-radius: 0.5rem;
+                    padding: 1rem;
+                    width: 400px;
+                    max-height: 500px;
+                    overflow-y: auto;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+                    border: 1px solid #dee2e6;
+                    z-index: 1000;
+                `;
+                
+                // Add custom scrollbar styling
+                const style = document.createElement('style');
+                style.textContent = `
+                    .subtask-assignment-popup::-webkit-scrollbar {
+                        width: 8px;
+                        height: 8px;
+                    }
+                    .subtask-assignment-popup::-webkit-scrollbar-track {
+                        background: transparent;
+                    }
+                    .subtask-assignment-popup::-webkit-scrollbar-thumb {
+                        background: #ccc;
+                        border-radius: 4px;
+                    }
+                    .subtask-assignment-popup::-webkit-scrollbar-thumb:hover {
+                        background: #999;
+                    }
+                    #subtaskAvailableUsersList::-webkit-scrollbar {
+                        width: 8px;
+                        height: 8px;
+                    }
+                    #subtaskAvailableUsersList::-webkit-scrollbar-track {
+                        background: transparent;
+                    }
+                    #subtaskAvailableUsersList::-webkit-scrollbar-thumb {
+                        background: #ccc;
+                        border-radius: 0.5rem;
+                    }
+                    #subtaskAvailableUsersList::-webkit-scrollbar-thumb:hover {
+                        background: #999;
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                // Clone current assignments
+                const selectedUsers = [...(currentAssignments || [])];
+                
+                popup.innerHTML = `
+                    <div class="mb-2">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-search me-2" style="color: #0b365e; font-size: 1rem;"></i>
+                            <div>
+                                <h6 class="fw-bold text-dark mb-0" style="font-size: 0.9rem;">Find users or groups</h6>
+                                <p class="text-muted mb-0" style="font-size: 0.75rem;">Search and select specific users for matter access.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <label class="form-label fw-bold text-dark mb-1" style="font-size: 0.85rem;">Search Users</label>
+                        <div class="input-group input-group-sm">
+                            <input type="text" class="form-control" id="subtaskUserSearch" placeholder="Search by name or email..." style="font-size: 0.875rem;">
+                            <button class="btn btn-outline-secondary" type="button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <label class="form-label fw-bold text-dark mb-1" style="font-size: 0.85rem;">Selected Users/Groups</label>
+                        <div id="subtaskSelectedUsersList" class="border rounded p-2" style="min-height: 50px; background-color: #f8f9fa; font-size: 0.875rem;">
+                            <p class="text-muted mb-0 small">No users or groups selected yet.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <label class="form-label fw-bold text-dark mb-1" style="font-size: 0.85rem;">Available Users</label>
+                        <div id="subtaskAvailableUsersList" class="border rounded" style="max-height: 10rem; overflow-y: auto; padding-left: 1.75rem;">
+                            <!-- Users will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2 mt-2">
+                        <button class="btn btn-secondary btn-sm" id="subtaskAssignCancel" style="border-radius: 0.5rem;">Cancel</button>
+                        <button class="btn btn-primary btn-sm" id="subtaskAssignDone" style="border-radius: 0.5rem;">Done</button>
+                    </div>
+                `;
+                
+                document.body.appendChild(popup);
+                
+                // Load available users from the tasksData
+                const availableUsersList = popup.querySelector('#subtaskAvailableUsersList');
+                const selectedUsersList = popup.querySelector('#subtaskSelectedUsersList');
+                const searchInput = popup.querySelector('#subtaskUserSearch');
+                
+                // Get users from window.tasksData
+                const users = window.tasksData?.users || [];
+                
+                function renderUsers(filterText = '') {
+                    const filtered = users.filter(u => 
+                        !filterText || 
+                        u.name.toLowerCase().includes(filterText.toLowerCase()) || 
+                        u.email.toLowerCase().includes(filterText.toLowerCase())
+                    );
+                    
+                    availableUsersList.innerHTML = filtered.map(user => `
+                        <div class="form-check user-item" style="padding: 0.4rem;">
+                            <input class="form-check-input user-checkbox" type="checkbox" 
+                                   id="subtask_user_${user.id}" value="${user.id}"
+                                   ${selectedUsers.some(u => u.userId === user.id) ? 'checked' : ''} style="margin-top: 0.75rem;">
+                            <label class="form-check-label" for="subtask_user_${user.id}" style="cursor: pointer; font-size: 0.875rem;">
+                                <strong>${user.name}</strong>
+                                <small class="text-muted d-block" style="font-size: 0.75rem;">${user.email}</small>
+                            </label>
+                        </div>
+                    `).join('');
+                    
+                    // Add checkbox event listeners
+                    availableUsersList.querySelectorAll('.user-checkbox').forEach(checkbox => {
+                        checkbox.addEventListener('change', function() {
+                            const userId = parseInt(this.value);
+                            const user = users.find(u => u.id === userId);
+                            
+                            if (this.checked) {
+                                if (!selectedUsers.some(u => u.userId === userId)) {
+                                    selectedUsers.push({
+                                        userId: userId,
+                                        userName: user.name,
+                                        userEmail: user.email
+                                    });
+                                }
+                            } else {
+                                const index = selectedUsers.findIndex(u => u.userId === userId);
+                                if (index > -1) {
+                                    selectedUsers.splice(index, 1);
+                                }
+                            }
+                            updateSelectedDisplay();
+                        });
+                    });
+                }
+                
+                function updateSelectedDisplay() {
+                    if (selectedUsers.length === 0) {
+                        selectedUsersList.innerHTML = '<p class="text-muted mb-0" style="font-size: 0.75rem;">No users or groups selected yet.</p>';
+                    } else {
+                        selectedUsersList.innerHTML = selectedUsers.map(user => `
+                            <span class="badge bg-primary me-1 mb-1" style="font-size: 0.75rem;">
+                                ${user.userName}
+                                <i class="fas fa-times ms-1" style="cursor: pointer;" data-user-id="${user.userId}"></i>
+                            </span>
+                        `).join('');
+                        
+                        // Add remove handlers
+                        selectedUsersList.querySelectorAll('.fa-times').forEach(icon => {
+                            icon.addEventListener('click', function() {
+                                const userId = parseInt(this.dataset.userId);
+                                const index = selectedUsers.findIndex(u => u.userId === userId);
+                                if (index > -1) {
+                                    selectedUsers.splice(index, 1);
+                                }
+                                const checkbox = availableUsersList.querySelector(`#subtask_user_${userId}`);
+                                if (checkbox) checkbox.checked = false;
+                                updateSelectedDisplay();
+                            });
+                        });
+                    }
+                }
+                
+                // Initialize display
+                renderUsers();
+                updateSelectedDisplay();
+                
+                // Search functionality
+                searchInput.addEventListener('input', function() {
+                    renderUsers(this.value);
+                });
+                
+                // Handle Done button
+                popup.querySelector('#subtaskAssignDone').addEventListener('click', function() {
+                    callback(selectedUsers);
+                    popup.remove();
+                    document.removeEventListener('click', outsideClickHandler);
+                });
+                
+                // Handle Cancel button
+                popup.querySelector('#subtaskAssignCancel').addEventListener('click', function() {
+                    popup.remove();
+                    document.removeEventListener('click', outsideClickHandler);
+                });
+                
+                // Close on outside click
+                const outsideClickHandler = function(e) {
+                    if (!popup.contains(e.target) && e.target !== assignBtn) {
+                        popup.remove();
+                        document.removeEventListener('click', outsideClickHandler);
+                    }
+                };
+                
+                // Add click handler after a short delay to avoid immediate closing
+                setTimeout(() => {
+                    document.addEventListener('click', outsideClickHandler);
+                }, 100);
+            }
+            
+            // Function to update assignment display
+            function updateAssignmentDisplay(assignBtn, assignments) {
+                if (assignments && assignments.length > 0) {
+                    assignBtn.innerHTML = `<i class="fas fa-user-plus"></i> Assign (${assignments.length})`;
+                    assignBtn.style.color = '#0d6efd';
+                } else {
+                    assignBtn.innerHTML = '<i class="fas fa-user-plus"></i> Assign';
+                    assignBtn.style.color = '';
                 }
             }
+        }
+        
+        // ============================================
+        // TASK-LEVEL ASSIGNMENT MANAGEMENT
+        // ============================================
+        
+        // Track task assignments
+        let currentTaskAssignments = [];
+        let originalTaskAssignments = []; // Track original assignments for existing tasks
+        
+        // Function to show task assignment popup
+        function showTaskAssignmentPopup(currentAssignments, callback) {
+            // Get the assign button to position popup relative to it
+            const assignBtn = document.querySelector('#addTaskAssigneeBtn');
+            if (!assignBtn) return;
+            
+            // Create popup container
+            const popup = document.createElement('div');
+            popup.className = 'task-assignment-popup';
+            
+            // Get button position
+            const btnRect = assignBtn.getBoundingClientRect();
+            
+            // Position popup to the right of the button
+            popup.style.cssText = `
+                position: fixed;
+                top: ${btnRect.top - 20}px;
+                left: ${btnRect.right + 10}px;
+                background: white;
+                border-radius: 0.5rem;
+                padding: 1rem;
+                width: 400px;
+                max-height: 500px;
+                overflow-y: auto;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+                border: 1px solid #dee2e6;
+                z-index: 1000;
+            `;
+            
+            // Add custom scrollbar styling
+            const style = document.createElement('style');
+            style.textContent = `
+                .task-assignment-popup::-webkit-scrollbar {
+                    width: 8px;
+                    height: 8px;
+                }
+                .task-assignment-popup::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                .task-assignment-popup::-webkit-scrollbar-thumb {
+                    background: #ccc;
+                    border-radius: 4px;
+                }
+                .task-assignment-popup::-webkit-scrollbar-thumb:hover {
+                    background: #999;
+                }
+                #taskAvailableUsersList::-webkit-scrollbar {
+                    width: 8px;
+                    height: 8px;
+                }
+                #taskAvailableUsersList::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                #taskAvailableUsersList::-webkit-scrollbar-thumb {
+                    background: #ccc;
+                    border-radius: 0.5rem;
+                }
+                #taskAvailableUsersList::-webkit-scrollbar-thumb:hover {
+                    background: #999;
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // Clone current assignments
+            const selectedUsers = [...(currentAssignments || [])];
+            
+            popup.innerHTML = `
+                <div class="mb-2">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-search me-2" style="color: #0b365e; font-size: 1rem;"></i>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-0" style="font-size: 0.9rem;">Find users or groups</h6>
+                            <p class="text-muted mb-0" style="font-size: 0.75rem;">Search and select assignees for this task.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-2">
+                    <label class="form-label fw-bold text-dark mb-1" style="font-size: 0.85rem;">Search Users</label>
+                    <div class="input-group input-group-sm">
+                        <input type="text" class="form-control" id="taskUserSearch" placeholder="Search by name or email..." style="font-size: 0.875rem;">
+                        <button class="btn btn-outline-secondary" type="button">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mb-2">
+                    <label class="form-label fw-bold text-dark mb-1" style="font-size: 0.85rem;">Selected Users/Groups</label>
+                    <div id="taskSelectedUsersList" class="border rounded p-2" style="min-height: 50px; background-color: #f8f9fa; font-size: 0.875rem;">
+                        <p class="text-muted mb-0 small">No users or groups selected yet.</p>
+                    </div>
+                </div>
+                
+                <div class="mb-2">
+                    <label class="form-label fw-bold text-dark mb-1" style="font-size: 0.85rem;">Available Users</label>
+                    <div id="taskAvailableUsersList" class="border rounded" style="max-height: 10rem; overflow-y: auto; padding-left: 1.75rem;">
+                        <!-- Users will be loaded here -->
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-end gap-2 mt-2">
+                    <button class="btn btn-secondary btn-sm" id="taskAssignCancel" style="border-radius: 0.5rem;">Cancel</button>
+                    <button class="btn btn-primary btn-sm" id="taskAssignDone" style="border-radius: 0.5rem;">Done</button>
+                </div>
+            `;
+            
+            document.body.appendChild(popup);
+            
+            // Load available users from the tasksData
+            const availableUsersList = popup.querySelector('#taskAvailableUsersList');
+            const selectedUsersList = popup.querySelector('#taskSelectedUsersList');
+            const searchInput = popup.querySelector('#taskUserSearch');
+            
+            // Get users from window.tasksData
+            const users = window.tasksData?.users || [];
+            
+            function renderUsers(filterText = '') {
+                    const filtered = users.filter(u => 
+                        !filterText || 
+                        u.name.toLowerCase().includes(filterText.toLowerCase()) || 
+                        u.email.toLowerCase().includes(filterText.toLowerCase())
+                    );
+                    
+                    availableUsersList.innerHTML = filtered.map(user => `
+                        <div class="form-check user-item" style="padding: 0.4rem;">
+                            <input class="form-check-input user-checkbox" type="checkbox" 
+                                   id="task_user_${user.id}" value="${user.id}"
+                                   ${selectedUsers.some(u => u.userId === user.id) ? 'checked' : ''} style="margin-top: 0.75rem;">
+                            <label class="form-check-label" for="task_user_${user.id}" style="cursor: pointer; font-size: 0.875rem;">
+                                <strong>${user.name}</strong>
+                                <small class="text-muted d-block" style="font-size: 0.75rem;">${user.email}</small>
+                            </label>
+                        </div>
+                    `).join('');
+                    
+                    // Add checkbox event listeners
+                    availableUsersList.querySelectorAll('.user-checkbox').forEach(checkbox => {
+                        checkbox.addEventListener('change', function() {
+                            const userId = parseInt(this.value);
+                            const user = users.find(u => u.id === userId);
+                            
+                            if (this.checked) {
+                                if (!selectedUsers.some(u => u.userId === userId)) {
+                                    selectedUsers.push({
+                                        userId: userId,
+                                        userName: user.name,
+                                        userInitials: user.initials,
+                                        userEmail: user.email
+                                    });
+                                }
+                            } else {
+                                const index = selectedUsers.findIndex(u => u.userId === userId);
+                                if (index > -1) {
+                                    selectedUsers.splice(index, 1);
+                                }
+                            }
+                            updateSelectedDisplay();
+                        });
+                    });
+                }
+                
+                function updateSelectedDisplay() {
+                    if (selectedUsers.length === 0) {
+                        selectedUsersList.innerHTML = '<p class="text-muted mb-0" style="font-size: 0.75rem;">No users or groups selected yet.</p>';
+                    } else {
+                        selectedUsersList.innerHTML = selectedUsers.map(user => `
+                            <span class="badge bg-primary me-1 mb-1" style="font-size: 0.75rem;">
+                                ${user.userName}
+                                <i class="fas fa-times ms-1" style="cursor: pointer;" data-user-id="${user.userId}"></i>
+                            </span>
+                        `).join('');
+                        
+                        // Add remove handlers
+                        selectedUsersList.querySelectorAll('.fa-times').forEach(icon => {
+                            icon.addEventListener('click', function() {
+                                const userId = parseInt(this.dataset.userId);
+                                const index = selectedUsers.findIndex(u => u.userId === userId);
+                                if (index > -1) {
+                                    selectedUsers.splice(index, 1);
+                                }
+                                const checkbox = availableUsersList.querySelector(`#task_user_${userId}`);
+                                if (checkbox) checkbox.checked = false;
+                                updateSelectedDisplay();
+                            });
+                        });
+                    }
+                }
+                
+                // Initialize display
+                renderUsers();
+                updateSelectedDisplay();
+                
+                // Search functionality
+                searchInput.addEventListener('input', function() {
+                    renderUsers(this.value);
+                });
+                
+                // Handle Done button
+                popup.querySelector('#taskAssignDone').addEventListener('click', function() {
+                    callback(selectedUsers);
+                    popup.remove();
+                    document.removeEventListener('click', outsideClickHandler);
+                });
+                
+                // Handle Cancel button
+                popup.querySelector('#taskAssignCancel').addEventListener('click', function() {
+                    popup.remove();
+                    document.removeEventListener('click', outsideClickHandler);
+                });
+                
+                // Close on outside click
+                const outsideClickHandler = function(e) {
+                    if (!popup.contains(e.target) && e.target !== assignBtn) {
+                        popup.remove();
+                        document.removeEventListener('click', outsideClickHandler);
+                    }
+                };
+                
+                // Add click handler after a short delay to avoid immediate closing
+                setTimeout(() => {
+                    document.addEventListener('click', outsideClickHandler);
+                }, 100);
+            }
+            
+            // Function to render task assignees in the modal
+            function renderTaskAssignees(assignments) {
+                const container = document.getElementById('taskAssigneesContainer');
+                if (!container) return;
+                
+                if (!assignments || assignments.length === 0) {
+                    container.innerHTML = '';
+                    return;
+                }
+                
+                container.innerHTML = assignments.map(assignment => {
+                    const initials = assignment.userInitials || assignment.userName.split(' ').map(n => n[0]).join('').toUpperCase();
+                    return `
+                        <div class="member-avatar" title="${assignment.userName}">
+                            ${initials}
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+        // Initialize task assignment button handler
+        function initializeTaskAssignmentButton() {
+            const addAssigneeBtn = document.getElementById('addTaskAssigneeBtn');
+            if (!addAssigneeBtn) return;
+            
+            // Remove existing handler
+            const newBtn = addAssigneeBtn.cloneNode(true);
+            addAssigneeBtn.parentNode.replaceChild(newBtn, addAssigneeBtn);
+            
+            // Add click handler
+            newBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                showTaskAssignmentPopup(currentTaskAssignments, function(selectedUsers) {
+                    currentTaskAssignments = selectedUsers;
+                    renderTaskAssignees(currentTaskAssignments);
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Note: Checkbox event listeners are now attached when subtasks are loaded
+            // in loadTaskData() for existing subtasks and addSubtaskToList() for new subtasks
             
             // Handle task title editing
             const taskTitle = document.querySelector('.task-title');
@@ -2099,6 +3345,59 @@
                 });
             });
             
+            // Function to update resizer visibility based on active views
+            function updateResizerVisibility(activeViews) {
+                const resizers = document.querySelectorAll('.view-resizer');
+                
+                // Hide all resizers first
+                resizers.forEach(resizer => {
+                    resizer.style.display = 'none';
+                });
+                
+                // Show resizers based on active views
+                if (activeViews.size === 2) {
+                    const viewsArray = Array.from(activeViews);
+                    
+                    if (viewsArray.includes('inbox') && viewsArray.includes('planner')) {
+                        // Show resizer between inbox and planner
+                        const inboxPlannerResizer = document.getElementById('inboxPlannerResizer');
+                        if (inboxPlannerResizer) {
+                            inboxPlannerResizer.style.display = 'flex';
+                        }
+                    } else if (viewsArray.includes('inbox') && viewsArray.includes('board')) {
+                        // Show resizer between inbox and board (skip planner)
+                        const inboxPlannerResizer = document.getElementById('inboxPlannerResizer');
+                        const plannerBoardResizer = document.getElementById('plannerBoardResizer');
+                        if (inboxPlannerResizer) {
+                            inboxPlannerResizer.style.display = 'flex';
+                            // Update data attributes to reflect actual views
+                            inboxPlannerResizer.dataset.leftView = 'inboxView';
+                            inboxPlannerResizer.dataset.rightView = 'boardView';
+                        }
+                    } else if (viewsArray.includes('planner') && viewsArray.includes('board')) {
+                        // Show resizer between planner and board
+                        const plannerBoardResizer = document.getElementById('plannerBoardResizer');
+                        if (plannerBoardResizer) {
+                            plannerBoardResizer.style.display = 'flex';
+                        }
+                    }
+                } else if (activeViews.size === 3) {
+                    // Show both resizers for all three views
+                    const inboxPlannerResizer = document.getElementById('inboxPlannerResizer');
+                    const plannerBoardResizer = document.getElementById('plannerBoardResizer');
+                    
+                    if (inboxPlannerResizer) {
+                        inboxPlannerResizer.style.display = 'flex';
+                        // Reset data attributes to original
+                        inboxPlannerResizer.dataset.leftView = 'inboxView';
+                        inboxPlannerResizer.dataset.rightView = 'plannerView';
+                    }
+                    if (plannerBoardResizer) {
+                        plannerBoardResizer.style.display = 'flex';
+                    }
+                }
+            }
+            
             function updateViewLayout() {
                 // Update navbar visual state
                 navItems.forEach(nav => {
@@ -2152,6 +3451,14 @@
                     } else if (viewsArray.length === 3) {
                         tasksContent.classList.add('all-views');
                     }
+                }
+                
+                // Update resizer visibility based on active views
+                updateResizerVisibility(activeViews);
+                
+                // Reinitialize resizer functionality for newly visible resizers
+                if (activeViews.size > 1) {
+                    initializeViewResizers();
                 }
                 
                 // Update floating actions positioning
@@ -2547,7 +3854,86 @@
             }
             }, 100); // End of setTimeout
         }
+
+        // View Resizer Functionality
+        function initializeViewResizers() {
+            const resizers = document.querySelectorAll('.view-resizer');
+            
+            resizers.forEach(resizer => {
+                let isResizing = false;
+                let startX = 0;
+                let startLeftWidth = 0;
+                let startRightWidth = 0;
+                
+                resizer.addEventListener('mousedown', function(e) {
+                    isResizing = true;
+                    startX = e.clientX;
+                    
+                    const leftView = document.getElementById(resizer.dataset.leftView);
+                    const rightView = document.getElementById(resizer.dataset.rightView);
+                    
+                    if (leftView && rightView) {
+                        startLeftWidth = leftView.offsetWidth;
+                        startRightWidth = rightView.offsetWidth;
+                        
+                        // Add visual feedback
+                        document.body.style.cursor = 'col-resize';
+                        document.body.style.userSelect = 'none';
+                        
+                        // Prevent text selection during resize
+                        e.preventDefault();
+                    }
+                });
+                
+                document.addEventListener('mousemove', function(e) {
+                    if (!isResizing) return;
+                    
+                    const leftView = document.getElementById(resizer.dataset.leftView);
+                    const rightView = document.getElementById(resizer.dataset.rightView);
+                    
+                    if (leftView && rightView) {
+                        const deltaX = e.clientX - startX;
+                        const containerWidth = resizer.parentElement.offsetWidth;
+                        const resizerWidth = resizer.offsetWidth;
+                        const availableWidth = containerWidth - resizerWidth;
+                        
+                        // Calculate new widths
+                        let newLeftWidth = startLeftWidth + deltaX;
+                        let newRightWidth = startRightWidth - deltaX;
+                        
+                        // Set minimum widths (20% of container)
+                        const minWidth = availableWidth * 0.2;
+                        
+                        if (newLeftWidth < minWidth) {
+                            newLeftWidth = minWidth;
+                            newRightWidth = availableWidth - minWidth;
+                        } else if (newRightWidth < minWidth) {
+                            newRightWidth = minWidth;
+                            newLeftWidth = availableWidth - minWidth;
+                        }
+                        
+                        // Apply new widths
+                        leftView.style.width = `${(newLeftWidth / availableWidth) * 100}%`;
+                        rightView.style.width = `${(newRightWidth / availableWidth) * 100}%`;
+                    }
+                });
+                
+                document.addEventListener('mouseup', function() {
+                    if (isResizing) {
+                        isResizing = false;
+                        document.body.style.cursor = '';
+                        document.body.style.userSelect = '';
+                    }
+                });
+            });
+        }
+        
+        // Initialize resizers when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeViewResizers();
+        });
     </script>
 }
+
 
 
