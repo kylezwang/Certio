@@ -47,6 +47,7 @@ namespace Certio.Web.Data
         public DbSet<TaskItemComment> TaskItemComments => Set<TaskItemComment>();
         public DbSet<TaskItemDependency> TaskItemDependencies => Set<TaskItemDependency>();
         public DbSet<SubTaskItem> SubTaskItems => Set<SubTaskItem>();
+        public DbSet<SubTaskAssignment> SubTaskAssignments => Set<SubTaskAssignment>();
         
         // Document Entities
         public DbSet<Document> Documents => Set<Document>();
@@ -463,7 +464,7 @@ namespace Certio.Web.Data
             // SubTaskItem -> TaskItem relationship
             builder.Entity<SubTaskItem>()
                 .HasOne(sti => sti.Task)
-                .WithMany()
+                .WithMany(t => t.SubTasks)
                 .HasForeignKey(sti => sti.TaskId)
                 .OnDelete(DeleteBehavior.Restrict);
 
@@ -474,6 +475,20 @@ namespace Certio.Web.Data
                 .HasForeignKey(sti => sti.MatterId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // SubTaskAssignment -> SubTaskItem relationship
+            builder.Entity<SubTaskAssignment>()
+                .HasOne(sta => sta.SubTaskItem)
+                .WithMany(sti => sti.Assignments)
+                .HasForeignKey(sta => sta.SubTaskItemId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // SubTaskAssignment -> User relationship
+            builder.Entity<SubTaskAssignment>()
+                .HasOne(sta => sta.User)
+                .WithMany()
+                .HasForeignKey(sta => sta.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // Add indexes for performance
             builder.Entity<SubTaskItem>()
                 .HasIndex(sti => new { sti.TaskId, sti.IsCompleted });
@@ -483,6 +498,12 @@ namespace Certio.Web.Data
             
             builder.Entity<SubTaskItem>()
                 .HasIndex(sti => sti.OrgId);
+
+            builder.Entity<SubTaskAssignment>()
+                .HasIndex(sta => new { sta.SubTaskItemId, sta.AssignmentType });
+            
+            builder.Entity<SubTaskAssignment>()
+                .HasIndex(sta => sta.UserId);
         }
 
         private void ConfigureDocumentRelationships(ModelBuilder builder)

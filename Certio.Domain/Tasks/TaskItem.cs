@@ -49,6 +49,7 @@ namespace Certio.Domain.Tasks
         public virtual Matter Matter { get; set; } = null!;
         public virtual TaskItem? ParentTaskItem { get; set; }
         public virtual ICollection<TaskItem> SubTaskItems { get; set; } = new List<TaskItem>();
+        public virtual ICollection<SubTaskItem> SubTasks { get; set; } = new List<SubTaskItem>();
         public virtual ICollection<TaskAssignment> TaskAssignments { get; set; } = new List<TaskAssignment>();
         public virtual ICollection<TaskItemComment> Comments { get; set; } = new List<TaskItemComment>();
         public virtual ICollection<Document> RelatedDocuments { get; set; } = new List<Document>();

@@ -69,7 +69,9 @@ namespace Certio.Web.Controllers
                     .ThenInclude(ta => ta.User)
                 .Include(t => t.Comments)
                     .ThenInclude(c => c.User)
-                .Include(t => t.SubTaskItems)
+                .Include(t => t.SubTasks)
+                    .ThenInclude(st => st.Assignments)
+                        .ThenInclude(sta => sta.User)
                 .OrderBy(t => t.Order)
                 .ToListAsync();
 
@@ -203,7 +205,7 @@ namespace Certio.Web.Controllers
             task.Order = request.Order;
             task.LastModifiedAt = DateTime.UtcNow;
 
-            if (request.Status == "InProgress" && !task.StartedAt.HasValue)
+            if (request.Status != "Pending" && !task.StartedAt.HasValue)
             {
                 task.StartedAt = DateTime.UtcNow;
             }
@@ -229,7 +231,9 @@ namespace Certio.Web.Controllers
                     .ThenInclude(ta => ta.User)
                 .Include(t => t.Comments)
                     .ThenInclude(c => c.User)
-                .Include(t => t.SubTaskItems)
+                .Include(t => t.SubTasks)
+                    .ThenInclude(st => st.Assignments)
+                        .ThenInclude(sta => sta.User)
                 .FirstOrDefaultAsync();
 
             if (task == null)
@@ -328,6 +332,138 @@ namespace Certio.Web.Controllers
             return Json(new { success = true });
         }
 
+        // POST: Tasks/AddSubTaskAssignment
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddSubTaskAssignment([FromBody] AddSubTaskAssignmentRequest request)
+        {
+            var assignment = new SubTaskAssignment
+            {
+                SubTaskItemId = request.SubTaskItemId,
+                UserId = request.UserId,
+                AssignmentType = request.AssignmentType ?? "Assignee",
+                Role = request.Role,
+                AssignedAt = DateTime.UtcNow
+            };
+
+            _context.SubTaskAssignments.Add(assignment);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, assignmentId = assignment.Id });
+        }
+
+        // POST: Tasks/RemoveSubTaskAssignment
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveSubTaskAssignment(int id)
+        {
+            var assignment = await _context.SubTaskAssignments.FindAsync(id);
+            if (assignment == null)
+            {
+                return Json(new { success = false, message = "Assignment not found" });
+            }
+
+            _context.SubTaskAssignments.Remove(assignment);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true });
+        }
+
+        // POST: Tasks/UpdateSubTaskStatus
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateSubTaskStatus([FromBody] UpdateSubTaskStatusRequest request)
+        {
+            var subTask = await _context.SubTaskItems.FindAsync(request.SubTaskId);
+            if (subTask == null)
+            {
+                return Json(new { success = false, message = "SubTask not found" });
+            }
+
+            subTask.IsCompleted = request.IsCompleted;
+            subTask.LastModifiedAt = DateTime.UtcNow;
+            
+            if (request.IsCompleted && !subTask.CompletedAt.HasValue)
+            {
+                subTask.CompletedAt = DateTime.UtcNow;
+            }
+            else if (!request.IsCompleted)
+            {
+                subTask.CompletedAt = null;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true });
+        }
+
+        // POST: Tasks/CreateSubTask
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateSubTask([FromBody] CreateSubTaskRequest request)
+        {
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                return Json(new { success = false, message = "User not authenticated" });
+            }
+
+            var task = await _context.TaskItems.FindAsync(request.TaskId);
+            if (task == null)
+            {
+                return Json(new { success = false, message = "Task not found" });
+            }
+
+            var subTask = new SubTaskItem
+            {
+                TaskId = request.TaskId,
+                MatterId = task.MatterId,
+                OrgId = task.OrgId,
+                Title = request.Title,
+                DueDate = request.DueDate,
+                IsCompleted = false,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.SubTaskItems.Add(subTask);
+            await _context.SaveChangesAsync();
+
+            // Add assignments if provided
+            if (request.Assignments != null && request.Assignments.Any())
+            {
+                var assignments = request.Assignments.Select(a => new SubTaskAssignment
+                {
+                    SubTaskItemId = subTask.Id,
+                    UserId = a.UserId,
+                    AssignmentType = a.AssignmentType ?? "Assignee",
+                    Role = a.Role,
+                    AssignedAt = DateTime.UtcNow
+                }).ToList();
+
+                _context.SubTaskAssignments.AddRange(assignments);
+                await _context.SaveChangesAsync();
+            }
+
+            // Reload the subtask with all its navigation properties
+            var createdSubTask = await _context.SubTaskItems
+                .Where(st => st.Id == subTask.Id)
+                .Include(st => st.Assignments)
+                    .ThenInclude(a => a.User)
+                .FirstOrDefaultAsync();
+
+            if (createdSubTask == null)
+            {
+                return Json(new { success = false, message = "Failed to retrieve created subtask" });
+            }
+
+            var subTaskViewModel = MapToViewModel(createdSubTask);
+            
+            return Json(new { 
+                success = true, 
+                subTask = subTaskViewModel
+            });
+        }
+
         // Helper method to map TaskItem to ViewModel
         private TaskItemViewModel MapToViewModel(TaskItem task)
         {
@@ -346,8 +482,8 @@ namespace Certio.Web.Controllers
                 CompletedAt = task.CompletedAt,
                 CreatedAt = task.CreatedAt,
                 StartedAt = task.StartedAt,
-                TotalSubTasks = task.SubTaskItems?.Count ?? 0,
-                CompletedSubTasks = task.SubTaskItems?.Count(st => st.Status == "Completed") ?? 0,
+                TotalSubTasks = task.SubTasks?.Count ?? 0,
+                CompletedSubTasks = task.SubTasks?.Count(st => st.IsCompleted) ?? 0,
                 Assignments = task.TaskAssignments?.Select(ta => new TaskAssignmentViewModel
                 {
                     Id = ta.Id,
@@ -366,7 +502,31 @@ namespace Certio.Web.Controllers
                     CreatedAt = c.CreatedAt,
                     TimeAgo = GetTimeAgo(c.CreatedAt)
                 }).ToList() ?? new List<TaskCommentViewModel>(),
-                SubTasks = task.SubTaskItems?.Select(st => MapToViewModel(st)).ToList() ?? new List<TaskItemViewModel>()
+                SubTasks = task.SubTasks?.Select(st => MapToViewModel(st)).ToList() ?? new List<TaskItemViewModel>()
+            };
+        }
+
+        // Helper method to map SubTaskItem to ViewModel
+        private TaskItemViewModel MapToViewModel(SubTaskItem subTask)
+        {
+            return new TaskItemViewModel
+            {
+                Id = subTask.Id,
+                MatterId = subTask.MatterId,
+                Title = subTask.Title,
+                Status = subTask.IsCompleted ? "Completed" : "Pending",
+                DueDate = subTask.DueDate,
+                CompletedAt = subTask.CompletedAt,
+                CreatedAt = subTask.CreatedAt,
+                Assignments = subTask.Assignments?.Select(a => new TaskAssignmentViewModel
+                {
+                    Id = a.Id,
+                    UserId = a.UserId,
+                    UserName = $"{a.User.FirstName} {a.User.LastName}",
+                    UserInitials = $"{a.User.FirstName[0]}{a.User.LastName[0]}".ToUpper(),
+                    AssignmentType = a.AssignmentType,
+                    Role = a.Role ?? ""
+                }).ToList() ?? new List<TaskAssignmentViewModel>()
             };
         }
 
@@ -433,6 +593,35 @@ namespace Certio.Web.Controllers
         public int UserId { get; set; }
         public string? AssignmentType { get; set; }
         public string? Role { get; set; }
+    }
+
+    public class CreateSubTaskRequest
+    {
+        public int TaskId { get; set; }
+        public string Title { get; set; } = "";
+        public DateTime? DueDate { get; set; }
+        public List<SubTaskAssignmentRequest>? Assignments { get; set; }
+    }
+
+    public class SubTaskAssignmentRequest
+    {
+        public int UserId { get; set; }
+        public string? AssignmentType { get; set; }
+        public string? Role { get; set; }
+    }
+
+    public class AddSubTaskAssignmentRequest
+    {
+        public int SubTaskItemId { get; set; }
+        public int UserId { get; set; }
+        public string? AssignmentType { get; set; }
+        public string? Role { get; set; }
+    }
+
+    public class UpdateSubTaskStatusRequest
+    {
+        public int SubTaskId { get; set; }
+        public bool IsCompleted { get; set; }
     }
 }
 
