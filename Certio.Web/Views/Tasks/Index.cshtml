@@ -107,30 +107,108 @@
                                 <div class="inbox-status-tasks">
                                     @foreach (var task in Model.PlannedTasks.OrderBy(t => t.Order))
                                     {
-                                        <div class="task-card-item" data-task-id="@task.Id" data-status="@task.Status" data-matter-id="@task.MatterId">
-                                            <div class="form-check">
+                                        <div class="task-card-item inbox-task-card" data-task-id="@task.Id" data-status="@task.Status" data-matter-id="@task.MatterId" onclick="openTaskModal(@task.Id)">
+                                            <!-- Checkbox Column -->
+                                            <div class="task-checkbox-column">
+                                            <div class="form-check" style="padding-left: 0;">
                                                 <input class="form-check-input card-checkbox" 
                                                        type="checkbox" 
                                                        id="inbox-task-@task.Id"
                                                        data-task-id="@task.Id"
-                                                       @(task.Status == "Completed" ? "checked" : "")>
-                                                <label class="form-check-label" for="inbox-task-@task.Id">
+                                                           @(task.Status == "Completed" ? "checked" : "")
+                                                           onclick="event.stopPropagation();">
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Title Column -->
+                                            <div class="task-title-column">
+                                                <label class="form-check-label task-title-label" for="inbox-task-@task.Id">
                                                     @task.Title
-                                                    @if (!string.IsNullOrEmpty(task.Priority) && task.Priority != "Medium")
-                                                    {
-                                                        <span class="badge matter-priority-badge ms-2" style="@GetPriorityStyles(task.Priority); font-size: 0.7em;">
+                                                </label>
+                                            </div>
+                                            
+                                            <!-- Align Column -->
+                                            <div class="task-align-column">
+                                                <button class="task-align-btn task-card-align-btn" title="Description" data-task-id="@task.Id" onclick="event.stopPropagation();">
+                                                    <i class="fa-solid fa-align-left"></i>
+                                                </button>
+                                            </div>
+                                            
+                                            <!-- Priority Column -->
+                                            <div class="task-priority-column">
+                                                @if (!string.IsNullOrEmpty(task.Priority))
+                                                {
+                                                    <span class="badge matter-priority-badge task-card-priority-btn" style="@GetPriorityStyles(task.Priority); font-size: 0.7em; cursor: pointer;" 
+                                                          data-task-id="@task.Id" title="Click to edit priority">
                                                             @task.Priority
                                                         </span>
                                                     }
+                                            </div>
+                                            
+                                            <!-- Due Date Column -->
+                                            <div class="task-due-date-column">
                                                     @if (task.DueDate.HasValue)
                                                     {
                                                         var daysUntilDue = (task.DueDate.Value - DateTime.UtcNow).Days;
-                                                        var dueDateClass = daysUntilDue < 0 ? "text-danger" : (daysUntilDue <= 2 ? "text-warning" : "text-muted");
-                                                        <span class="ms-2 @dueDateClass" style="font-size: 0.75em;">
-                                                            <i class="fas fa-calendar"></i> @task.DueDate.Value.ToString("MMM dd")
+                                                        var dueDateClass = daysUntilDue < 0 ? "task-due overdue" : (daysUntilDue <= 2 ? "text-warning" : "text-muted");
+                                                    <span class="@dueDateClass task-card-date-btn" style="font-size: 0.75em; cursor: pointer;" 
+                                                          data-task-id="@task.Id" title="Click to edit dates">
+                                                        <i class="fas fa-calendar"></i> @task.DueDate.Value.ToString("MMM dd, yyyy")
                                                         </span>
                                                     }
-                                                </label>
+                                            </div>
+                                            
+                                            <!-- Subtask Progress Column -->
+                                            <div class="task-progress-column">
+                                                @if (task.TotalSubTasks > 0)
+                                                {
+                                                    <div class="task-progress task-card-progress-btn" data-task-id="@task.Id" title="Click to edit subtasks" style="cursor: pointer;">
+                                                        <span>@task.CompletedSubTasks/@task.TotalSubTasks</span>
+                                                        <div class="progress">
+                                                            <div class="progress-bar" role="progressbar" 
+                                                                 style="width: @task.ProgressPercentage" 
+                                                                 aria-valuenow="@task.CompletedSubTasks" 
+                                                                 aria-valuemin="0" 
+                                                                 aria-valuemax="@task.TotalSubTasks"></div>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                            
+                                            <!-- Action Buttons Column -->
+                                            <div class="task-actions-column">
+                                                <div class="task-action-buttons">
+                                                    <button class="btn btn-sm btn-link task-action-btn task-card-attachment-btn" title="Attachments" data-task-id="@task.Id" onclick="event.stopPropagation();">
+                                                        <i class="fas fa-paperclip"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-link task-action-btn task-card-location-btn" title="Location" data-task-id="@task.Id" onclick="event.stopPropagation();">
+                                                        <i class="fas fa-map-marker-alt"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-link task-action-btn task-card-comment-btn" title="Comments" data-task-id="@task.Id" onclick="event.stopPropagation();">
+                                                        <i class="fas fa-comment"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Assignees Column -->
+                                            <div class="task-assignees-column">
+                                                @if (task.Assignments.Any())
+                                                {
+                                                    <div class="task-assignees-inline">
+                                                        @foreach (var assignment in task.Assignments.Take(3))
+                                                        {
+                                                            <div class="task-assignee-avatar-inline" title="@assignment.UserName">
+                                                                @assignment.UserInitials
+                                                            </div>
+                                                        }
+                                                        @if (task.Assignments.Count > 3)
+                                                        {
+                                                            <div class="task-assignee-avatar-inline" title="+@(task.Assignments.Count - 3) more">
+                                                                +@(task.Assignments.Count - 3)
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                }
                                             </div>
                                         </div>
                                     }
@@ -151,30 +229,108 @@
                                 <div class="inbox-status-tasks">
                                     @foreach (var task in Model.InProgressTasks.OrderBy(t => t.Order))
                                     {
-                                        <div class="task-card-item" data-task-id="@task.Id" data-status="@task.Status" data-matter-id="@task.MatterId">
-                                            <div class="form-check">
+                                        <div class="task-card-item inbox-task-card" data-task-id="@task.Id" data-status="@task.Status" data-matter-id="@task.MatterId" onclick="openTaskModal(@task.Id)">
+                                            <!-- Checkbox Column -->
+                                            <div class="task-checkbox-column">
+                                            <div class="form-check" style="padding-left: 0;">
                                                 <input class="form-check-input card-checkbox" 
                                                        type="checkbox" 
                                                        id="inbox-task-@task.Id"
                                                        data-task-id="@task.Id"
-                                                       @(task.Status == "Completed" ? "checked" : "")>
-                                                <label class="form-check-label" for="inbox-task-@task.Id">
+                                                           @(task.Status == "Completed" ? "checked" : "")
+                                                           onclick="event.stopPropagation();">
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Title Column -->
+                                            <div class="task-title-column">
+                                                <label class="form-check-label task-title-label" for="inbox-task-@task.Id">
                                                     @task.Title
-                                                    @if (!string.IsNullOrEmpty(task.Priority) && task.Priority != "Medium")
-                                                    {
-                                                        <span class="badge matter-priority-badge ms-2" style="@GetPriorityStyles(task.Priority); font-size: 0.7em;">
+                                                </label>
+                                            </div>
+                                            
+                                            <!-- Align Column -->
+                                            <div class="task-align-column">
+                                                <button class="task-align-btn task-card-align-btn" title="Description" data-task-id="@task.Id" onclick="event.stopPropagation();">
+                                                    <i class="fa-solid fa-align-left"></i>
+                                                </button>
+                                            </div>
+                                            
+                                            <!-- Priority Column -->
+                                            <div class="task-priority-column">
+                                                @if (!string.IsNullOrEmpty(task.Priority))
+                                                {
+                                                    <span class="badge matter-priority-badge task-card-priority-btn" style="@GetPriorityStyles(task.Priority); font-size: 0.7em; cursor: pointer;" 
+                                                          data-task-id="@task.Id" title="Click to edit priority">
                                                             @task.Priority
                                                         </span>
                                                     }
+                                            </div>
+                                            
+                                            <!-- Due Date Column -->
+                                            <div class="task-due-date-column">
                                                     @if (task.DueDate.HasValue)
                                                     {
                                                         var daysUntilDue = (task.DueDate.Value - DateTime.UtcNow).Days;
-                                                        var dueDateClass = daysUntilDue < 0 ? "text-danger" : (daysUntilDue <= 2 ? "text-warning" : "text-muted");
-                                                        <span class="ms-2 @dueDateClass" style="font-size: 0.75em;">
-                                                            <i class="fas fa-calendar"></i> @task.DueDate.Value.ToString("MMM dd")
+                                                        var dueDateClass = daysUntilDue < 0 ? "task-due overdue" : (daysUntilDue <= 2 ? "text-warning" : "text-muted");
+                                                    <span class="@dueDateClass task-card-date-btn" style="font-size: 0.75em; cursor: pointer;" 
+                                                          data-task-id="@task.Id" title="Click to edit dates">
+                                                        <i class="fas fa-calendar"></i> @task.DueDate.Value.ToString("MMM dd, yyyy")
                                                         </span>
                                                     }
-                                                </label>
+                                            </div>
+                                            
+                                            <!-- Subtask Progress Column -->
+                                            <div class="task-progress-column">
+                                                @if (task.TotalSubTasks > 0)
+                                                {
+                                                    <div class="task-progress task-card-progress-btn" data-task-id="@task.Id" title="Click to edit subtasks" style="cursor: pointer;">
+                                                        <span>@task.CompletedSubTasks/@task.TotalSubTasks</span>
+                                                        <div class="progress">
+                                                            <div class="progress-bar" role="progressbar" 
+                                                                 style="width: @task.ProgressPercentage" 
+                                                                 aria-valuenow="@task.CompletedSubTasks" 
+                                                                 aria-valuemin="0" 
+                                                                 aria-valuemax="@task.TotalSubTasks"></div>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                            
+                                            <!-- Action Buttons Column -->
+                                            <div class="task-actions-column">
+                                                <div class="task-action-buttons">
+                                                    <button class="btn btn-sm btn-link task-action-btn task-card-attachment-btn" title="Attachments" data-task-id="@task.Id" onclick="event.stopPropagation();">
+                                                        <i class="fas fa-paperclip"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-link task-action-btn task-card-location-btn" title="Location" data-task-id="@task.Id" onclick="event.stopPropagation();">
+                                                        <i class="fas fa-map-marker-alt"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-link task-action-btn task-card-comment-btn" title="Comments" data-task-id="@task.Id" onclick="event.stopPropagation();">
+                                                        <i class="fas fa-comment"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Assignees Column -->
+                                            <div class="task-assignees-column">
+                                                @if (task.Assignments.Any())
+                                                {
+                                                    <div class="task-assignees-inline">
+                                                        @foreach (var assignment in task.Assignments.Take(3))
+                                                        {
+                                                            <div class="task-assignee-avatar-inline" title="@assignment.UserName">
+                                                                @assignment.UserInitials
+                                                            </div>
+                                                        }
+                                                        @if (task.Assignments.Count > 3)
+                                                        {
+                                                            <div class="task-assignee-avatar-inline" title="+@(task.Assignments.Count - 3) more">
+                                                                +@(task.Assignments.Count - 3)
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                }
                                             </div>
                                         </div>
                                     }
@@ -195,30 +351,108 @@
                                 <div class="inbox-status-tasks">
                                     @foreach (var task in Model.ReviewTasks.OrderBy(t => t.Order))
                                     {
-                                        <div class="task-card-item" data-task-id="@task.Id" data-status="@task.Status" data-matter-id="@task.MatterId">
-                                            <div class="form-check">
+                                        <div class="task-card-item inbox-task-card" data-task-id="@task.Id" data-status="@task.Status" data-matter-id="@task.MatterId" onclick="openTaskModal(@task.Id)">
+                                            <!-- Checkbox Column -->
+                                            <div class="task-checkbox-column">
+                                            <div class="form-check" style="padding-left: 0;">
                                                 <input class="form-check-input card-checkbox" 
                                                        type="checkbox" 
                                                        id="inbox-task-@task.Id"
                                                        data-task-id="@task.Id"
-                                                       @(task.Status == "Completed" ? "checked" : "")>
-                                                <label class="form-check-label" for="inbox-task-@task.Id">
+                                                           @(task.Status == "Completed" ? "checked" : "")
+                                                           onclick="event.stopPropagation();">
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Title Column -->
+                                            <div class="task-title-column">
+                                                <label class="form-check-label task-title-label" for="inbox-task-@task.Id">
                                                     @task.Title
-                                                    @if (!string.IsNullOrEmpty(task.Priority) && task.Priority != "Medium")
-                                                    {
-                                                        <span class="badge matter-priority-badge ms-2" style="@GetPriorityStyles(task.Priority); font-size: 0.7em;">
+                                                </label>
+                                            </div>
+                                            
+                                            <!-- Align Column -->
+                                            <div class="task-align-column">
+                                                <button class="task-align-btn task-card-align-btn" title="Description" data-task-id="@task.Id" onclick="event.stopPropagation();">
+                                                    <i class="fa-solid fa-align-left"></i>
+                                                </button>
+                                            </div>
+                                            
+                                            <!-- Priority Column -->
+                                            <div class="task-priority-column">
+                                                @if (!string.IsNullOrEmpty(task.Priority))
+                                                {
+                                                    <span class="badge matter-priority-badge task-card-priority-btn" style="@GetPriorityStyles(task.Priority); font-size: 0.7em; cursor: pointer;" 
+                                                          data-task-id="@task.Id" title="Click to edit priority">
                                                             @task.Priority
                                                         </span>
                                                     }
+                                            </div>
+                                            
+                                            <!-- Due Date Column -->
+                                            <div class="task-due-date-column">
                                                     @if (task.DueDate.HasValue)
                                                     {
                                                         var daysUntilDue = (task.DueDate.Value - DateTime.UtcNow).Days;
-                                                        var dueDateClass = daysUntilDue < 0 ? "text-danger" : (daysUntilDue <= 2 ? "text-warning" : "text-muted");
-                                                        <span class="ms-2 @dueDateClass" style="font-size: 0.75em;">
-                                                            <i class="fas fa-calendar"></i> @task.DueDate.Value.ToString("MMM dd")
+                                                        var dueDateClass = daysUntilDue < 0 ? "task-due overdue" : (daysUntilDue <= 2 ? "text-warning" : "text-muted");
+                                                    <span class="@dueDateClass task-card-date-btn" style="font-size: 0.75em; cursor: pointer;" 
+                                                          data-task-id="@task.Id" title="Click to edit dates">
+                                                        <i class="fas fa-calendar"></i> @task.DueDate.Value.ToString("MMM dd, yyyy")
                                                         </span>
                                                     }
-                                                </label>
+                                            </div>
+                                            
+                                            <!-- Subtask Progress Column -->
+                                            <div class="task-progress-column">
+                                                @if (task.TotalSubTasks > 0)
+                                                {
+                                                    <div class="task-progress task-card-progress-btn" data-task-id="@task.Id" title="Click to edit subtasks" style="cursor: pointer;">
+                                                        <span>@task.CompletedSubTasks/@task.TotalSubTasks</span>
+                                                        <div class="progress">
+                                                            <div class="progress-bar" role="progressbar" 
+                                                                 style="width: @task.ProgressPercentage" 
+                                                                 aria-valuenow="@task.CompletedSubTasks" 
+                                                                 aria-valuemin="0" 
+                                                                 aria-valuemax="@task.TotalSubTasks"></div>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                            
+                                            <!-- Action Buttons Column -->
+                                            <div class="task-actions-column">
+                                                <div class="task-action-buttons">
+                                                    <button class="btn btn-sm btn-link task-action-btn task-card-attachment-btn" title="Attachments" data-task-id="@task.Id" onclick="event.stopPropagation();">
+                                                        <i class="fas fa-paperclip"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-link task-action-btn task-card-location-btn" title="Location" data-task-id="@task.Id" onclick="event.stopPropagation();">
+                                                        <i class="fas fa-map-marker-alt"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-link task-action-btn task-card-comment-btn" title="Comments" data-task-id="@task.Id" onclick="event.stopPropagation();">
+                                                        <i class="fas fa-comment"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Assignees Column -->
+                                            <div class="task-assignees-column">
+                                                @if (task.Assignments.Any())
+                                                {
+                                                    <div class="task-assignees-inline">
+                                                        @foreach (var assignment in task.Assignments.Take(3))
+                                                        {
+                                                            <div class="task-assignee-avatar-inline" title="@assignment.UserName">
+                                                                @assignment.UserInitials
+                                                            </div>
+                                                        }
+                                                        @if (task.Assignments.Count > 3)
+                                                        {
+                                                            <div class="task-assignee-avatar-inline" title="+@(task.Assignments.Count - 3) more">
+                                                                +@(task.Assignments.Count - 3)
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                }
                                             </div>
                                         </div>
                                     }
@@ -239,30 +473,108 @@
                                 <div class="inbox-status-tasks">
                                     @foreach (var task in Model.CompletedTasks.OrderBy(t => t.Order))
                                     {
-                                        <div class="task-card-item" data-task-id="@task.Id" data-status="@task.Status" data-matter-id="@task.MatterId">
-                                            <div class="form-check">
+                                        <div class="task-card-item inbox-task-card" data-task-id="@task.Id" data-status="@task.Status" data-matter-id="@task.MatterId" onclick="openTaskModal(@task.Id)">
+                                            <!-- Checkbox Column -->
+                                            <div class="task-checkbox-column">
+                                            <div class="form-check" style="padding-left: 0;">
                                                 <input class="form-check-input card-checkbox" 
                                                        type="checkbox" 
                                                        id="inbox-task-@task.Id"
                                                        data-task-id="@task.Id"
-                                                       @(task.Status == "Completed" ? "checked" : "")>
-                                                <label class="form-check-label" for="inbox-task-@task.Id">
+                                                           @(task.Status == "Completed" ? "checked" : "")
+                                                           onclick="event.stopPropagation();">
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Title Column -->
+                                            <div class="task-title-column">
+                                                <label class="form-check-label task-title-label" for="inbox-task-@task.Id">
                                                     @task.Title
-                                                    @if (!string.IsNullOrEmpty(task.Priority) && task.Priority != "Medium")
-                                                    {
-                                                        <span class="badge matter-priority-badge ms-2" style="@GetPriorityStyles(task.Priority); font-size: 0.7em;">
+                                                </label>
+                                            </div>
+                                            
+                                            <!-- Align Column -->
+                                            <div class="task-align-column">
+                                                <button class="task-align-btn task-card-align-btn" title="Description" data-task-id="@task.Id" onclick="event.stopPropagation();">
+                                                    <i class="fa-solid fa-align-left"></i>
+                                                </button>
+                                            </div>
+                                            
+                                            <!-- Priority Column -->
+                                            <div class="task-priority-column">
+                                                @if (!string.IsNullOrEmpty(task.Priority))
+                                                {
+                                                    <span class="badge matter-priority-badge task-card-priority-btn" style="@GetPriorityStyles(task.Priority); font-size: 0.7em; cursor: pointer;" 
+                                                          data-task-id="@task.Id" title="Click to edit priority">
                                                             @task.Priority
                                                         </span>
                                                     }
+                                            </div>
+                                            
+                                            <!-- Due Date Column -->
+                                            <div class="task-due-date-column">
                                                     @if (task.DueDate.HasValue)
                                                     {
                                                         var daysUntilDue = (task.DueDate.Value - DateTime.UtcNow).Days;
-                                                        var dueDateClass = daysUntilDue < 0 ? "text-danger" : (daysUntilDue <= 2 ? "text-warning" : "text-muted");
-                                                        <span class="ms-2 @dueDateClass" style="font-size: 0.75em;">
-                                                            <i class="fas fa-calendar"></i> @task.DueDate.Value.ToString("MMM dd")
+                                                        var dueDateClass = daysUntilDue < 0 ? "task-due overdue" : (daysUntilDue <= 2 ? "text-warning" : "text-muted");
+                                                    <span class="@dueDateClass task-card-date-btn" style="font-size: 0.75em; cursor: pointer;" 
+                                                          data-task-id="@task.Id" title="Click to edit dates">
+                                                        <i class="fas fa-calendar"></i> @task.DueDate.Value.ToString("MMM dd, yyyy")
                                                         </span>
                                                     }
-                                                </label>
+                                            </div>
+                                            
+                                            <!-- Subtask Progress Column -->
+                                            <div class="task-progress-column">
+                                                @if (task.TotalSubTasks > 0)
+                                                {
+                                                    <div class="task-progress task-card-progress-btn" data-task-id="@task.Id" title="Click to edit subtasks" style="cursor: pointer;">
+                                                        <span>@task.CompletedSubTasks/@task.TotalSubTasks</span>
+                                                        <div class="progress">
+                                                            <div class="progress-bar" role="progressbar" 
+                                                                 style="width: @task.ProgressPercentage" 
+                                                                 aria-valuenow="@task.CompletedSubTasks" 
+                                                                 aria-valuemin="0" 
+                                                                 aria-valuemax="@task.TotalSubTasks"></div>
+                                                        </div>
+                                                    </div>
+                                    }
+                                </div>
+                                            
+                                            <!-- Action Buttons Column -->
+                                            <div class="task-actions-column">
+                                                <div class="task-action-buttons">
+                                                    <button class="btn btn-sm btn-link task-action-btn task-card-attachment-btn" title="Attachments" data-task-id="@task.Id" onclick="event.stopPropagation();">
+                                                        <i class="fas fa-paperclip"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-link task-action-btn task-card-location-btn" title="Location" data-task-id="@task.Id" onclick="event.stopPropagation();">
+                                                        <i class="fas fa-map-marker-alt"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-link task-action-btn task-card-comment-btn" title="Comments" data-task-id="@task.Id" onclick="event.stopPropagation();">
+                                                        <i class="fas fa-comment"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Assignees Column -->
+                                            <div class="task-assignees-column">
+                                                @if (task.Assignments.Any())
+                                                {
+                                                    <div class="task-assignees-inline">
+                                                        @foreach (var assignment in task.Assignments.Take(3))
+                                                        {
+                                                            <div class="task-assignee-avatar-inline" title="@assignment.UserName">
+                                                                @assignment.UserInitials
+                                                            </div>
+                                                        }
+                                                        @if (task.Assignments.Count > 3)
+                                                        {
+                                                            <div class="task-assignee-avatar-inline" title="+@(task.Assignments.Count - 3) more">
+                                                                +@(task.Assignments.Count - 3)
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                }
                                             </div>
                                         </div>
                                     }
@@ -759,7 +1071,7 @@
                         <button class="btn btn-sm btn-outline-secondary task-action-btn" id="scroll-attachment-btn" style="font-size: 0.875rem; border-radius: 0.5rem;">
                             <i class="fas fa-paperclip"></i> Attachments
                         </button>
-                        <button class="btn btn-sm btn-outline-secondary task-action-btn" style="border-radius: 0.5rem;">
+                        <button class="btn btn-sm btn-outline-secondary task-action-btn" id="scroll-location-btn" style="border-radius: 0.5rem;">
                             <i class="fas fa-map-marker-alt"></i> Location
                         </button>
                     </div>
@@ -926,9 +1238,6 @@
                                     <h6 class="task-section-title">
                                         <i class="fas fa-paperclip"></i> Attachments
                                     </h6>
-                                    <button class="btn btn-sm btn-outline-secondary edit-btn" style="border-radius: 0.5rem;">
-                                        <i class="fas fa-plus"></i> Add
-                                    </button>
                                 </div>
                                 <div class="task-section-content">
                                     <div class="attachments-container">
@@ -963,7 +1272,7 @@
                             </div>
 
                             <!-- Location Section -->
-                            <div class="task-section" id="location-section">
+                            <div class="task-section" id="location-section" style="margin-bottom: 0;">
                                 <div class="task-section-header">
                                     <h6 class="task-section-title">
                                         <i class="fas fa-map-marker-alt"></i> Location
@@ -1031,81 +1340,13 @@
                                     </h6>
                                 </div>
                                 <div class="comment-input-section">
-                                    <textarea class="form-control comment-input" placeholder="Write a comment..."></textarea>
+                                    <textarea class="form-control comment-input" id="commentInput" placeholder="Write a comment..."></textarea>
+                                    <div class="mt-2 d-flex align-items-center">
+                                        <small class="text-muted" style="margin-right: 0.8rem; margin-left: 0.3rem; font-size: 0.8rem;">Type &#64; to mention users</small>
+                                        <button class="btn btn-sm btn-primary" id="postCommentBtn"><i class="fas fa-paper-plane"></i> Post</button>
+                                    </div>
                                 </div>
-                                <div class="activity-log">
-                                    <div class="activity-item">
-                                        <div class="activity-avatar" style="background: #e74c3c;">L</div>
-                                        <div class="activity-content">
-                                            <span class="activity-text">
-                                                <strong>lawyer.smith</strong> commented: "Need to review the vesting schedule with legal team first"
-                                            </span>
-                                            <div class="activity-time">Sep 26, 2025, 2:15 PM</div>
-                                        </div>
-                                    </div>
-                                    <div class="activity-item">
-                                        <div class="activity-avatar" style="background: #2ecc71;">A</div>
-                                        <div class="activity-content">
-                                            <span class="activity-text">
-                                                <strong>admin.user</strong> attached a document "Founder Agreement Template.pdf"
-                                            </span>
-                                            <div class="activity-time">Sep 26, 2025, 11:30 AM</div>
-                                        </div>
-                                    </div>
-                                    <div class="activity-item">
-                                        <div class="activity-avatar" style="background: #3498db;">M</div>
-                                        <div class="activity-content">
-                                            <span class="activity-text">
-                                                <strong>marketing.lead</strong> changed status from <strong>Planned</strong> to <strong>In Progress</strong>
-                                            </span>
-                                            <div class="activity-time">Sep 25, 2025, 4:22 PM</div>
-                                        </div>
-                                    </div>
-                                    <div class="activity-item">
-                                        <div class="activity-avatar" style="background: #9b59b6;">CT</div>
-                                        <div class="activity-content">
-                                            <span class="activity-text">
-                                                <strong>CT</strong> commented: "Starting work on this agreement. Will need input from founders"
-                                            </span>
-                                            <div class="activity-time">Sep 25, 2025, 3:45 PM</div>
-                                        </div>
-                                    </div>
-                                    <div class="activity-item">
-                                        <div class="activity-avatar" style="background: #f39c12;">JD</div>
-                                        <div class="activity-content">
-                                            <span class="activity-text">
-                                                <strong>john.doe</strong> created <strong>Subtask</strong>: "Prepare first draft"
-                                            </span>
-                                            <div class="activity-time">Sep 25, 2025, 3:45 PM</div>
-                                        </div>
-                                    </div>
-                                    <div class="activity-item">
-                                        <div class="activity-avatar">K</div>
-                                        <div class="activity-content">
-                                            <span class="activity-text">
-                                                <strong>kylezwang</strong> added this card to <strong>Planned</strong>
-                                            </span>
-                                            <div class="activity-time">Sep 25, 2025, 2:30 PM</div>
-                                        </div>
-                                    </div>
-                                    <div class="activity-item">
-                                        <div class="activity-avatar" style="background: #1abc9c;">SM</div>
-                                        <div class="activity-content">
-                                            <span class="activity-text">
-                                                <strong>sarah.miller</strong> set priority to <strong>High</strong>
-                                            </span>
-                                            <div class="activity-time">Sep 25, 2025, 2:15 PM</div>
-                                        </div>
-                                    </div>
-                                    <div class="activity-item">
-                                        <div class="activity-avatar" style="background: #34495e;">TK</div>
-                                        <div class="activity-content">
-                                            <span class="activity-text">
-                                                <strong>tom.kim</strong> assigned to <strong>kylezwang</strong>
-                                            </span>
-                                            <div class="activity-time">Sep 25, 2025, 1:20 PM</div>
-                                        </div>
-                                    </div>
+                                <div class="activity-log" id="commentsList">
                                 </div>
                             </div>
                         </div>
@@ -1341,6 +1582,9 @@
             } catch (err) {
                 console.error('Error initializing matter selector:', err);
             }
+            
+            // Initialize task card button handlers for navbar functionality
+            initializeTaskCardButtons();
         });
 
         // Matter selection state
@@ -1592,6 +1836,17 @@
             // Initialize task assignment button
             initializeTaskAssignmentButton();
             
+            // Initialize scroll-to-field functionality
+            setupScrollToField();
+
+            // Load comments directly by taskId to avoid races with dataset timing
+            const commentsList = document.getElementById('commentsList');
+            if (taskId) {
+                window.loadComments && window.loadComments(parseInt(taskId));
+            } else if (commentsList) {
+                commentsList.innerHTML = '<div class="text-muted">Save the task to start commenting.</div>';
+            }
+            
             // Focus on title field
             setTimeout(() => {
                 const titleField = document.querySelector('.task-title');
@@ -1756,24 +2011,33 @@
         function loadTaskData(taskId) {
             // Prefer hydrated data passed to the page
             const allTasks = (window.tasksData && Array.isArray(window.tasksData.allTasks)) ? window.tasksData.allTasks : [];
-            const task = allTasks.find(t => Number(t.id) === Number(taskId));
+            // Be resilient to different casings/keys from server
+            const getId = t => (t?.id ?? t?.Id ?? t?.taskId ?? t?.TaskId);
+            const task = allTasks.find(t => Number(getId(t)) === Number(taskId));
             
             if (!task) {
                 console.error('Task not found:', taskId);
                 return;
             }
             
+            // Helpers for property resolution
+            const getProp = (t, keys, fallback = '') => {
+                for (const k of keys) { if (t && t[k] !== undefined && t[k] !== null) return t[k]; }
+                return fallback;
+            };
+            
             // Set task ID in title element for saving
             const taskTitle = document.querySelector('.task-title');
             if (taskTitle) {
-                taskTitle.textContent = task.title || '';
-                taskTitle.dataset.taskId = taskId;
+                const titleVal = getProp(task, ['title','Title'], '');
+                taskTitle.textContent = titleVal;
+                taskTitle.dataset.taskId = String(getId(task) ?? taskId);
             }
             
             // Set description
             const descriptionField = document.querySelector('.task-description-textarea');
             if (descriptionField) {
-                descriptionField.value = task.description || '';
+                descriptionField.value = getProp(task, ['description','Description'], '');
             }
             
             // Set status and priority
@@ -1781,26 +2045,31 @@
             const statusField = document.getElementById('status-field');
             const priorityField = document.getElementById('priority-field');
             
-            if (statusDropdown) statusDropdown.value = task.status || 'Pending';
-            if (statusField) statusField.value = task.status || 'Pending';
-            if (priorityField) priorityField.value = task.priority || 'Medium';
+            const statusVal = getProp(task, ['status','Status'], 'Pending');
+            const priorityVal = getProp(task, ['priority','Priority'], 'Medium');
+            
+            if (statusDropdown) statusDropdown.value = statusVal;
+            if (statusField) statusField.value = statusVal;
+            if (priorityField) priorityField.value = priorityVal;
             
             // Update icon based on status
-            updateTaskTitleIconFromModal(task.status || 'Pending');
+            updateTaskTitleIconFromModal(statusVal);
             
             // Set dates
             const startDateField = document.getElementById('start-date-field');
             const dueDateField = document.getElementById('due-date-field');
             
-            if (startDateField && task.startedAt) {
-                // Convert to YYYY-MM-DD format for date input
-                const startDate = new Date(task.startedAt);
-                startDateField.value = startDate.toISOString().split('T')[0];
+            const startedAt = getProp(task, ['startedAt','StartedAt'], null);
+            const dueDate = getProp(task, ['dueDate','DueDate'], null);
+            
+            if (startDateField && startedAt) {
+                const d = new Date(startedAt);
+                if (!isNaN(d)) startDateField.value = d.toISOString().split('T')[0];
             }
             
-            if (dueDateField && task.dueDate) {
-                const dueDate = new Date(task.dueDate);
-                dueDateField.value = dueDate.toISOString().split('T')[0];
+            if (dueDateField && dueDate) {
+                const d = new Date(dueDate);
+                if (!isNaN(d)) dueDateField.value = d.toISOString().split('T')[0];
             }
             
             // Set location (if available)
@@ -1874,13 +2143,15 @@
                         // Build assignment badges HTML
                         let assignmentHtml = '';
                         if (subtask.assignments && subtask.assignments.length > 0) {
+                            assignmentHtml += '<div class="task-assignees-inline">';
                             subtask.assignments.forEach(assignment => {
                                 assignmentHtml += `
-                                    <span class="badge badge-sm" style="background-color: #e3f2fd; color: #1976d2; font-size: 0.7rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem;" title="${assignment.userName} (${assignment.assignmentType})">
+                                    <div class="task-assignee-avatar-inline" title="${assignment.userName} (${assignment.assignmentType})">
                                         ${assignment.userInitials}
-                                    </span>
+                                    </div>
                                 `;
                             });
+                            assignmentHtml += '</div>';
                         }
                         
                         // Build due date HTML
@@ -2647,13 +2918,15 @@
                 // Build assignment badges HTML
                 let assignmentHtml = '';
                 if (subtask.assignments && subtask.assignments.length > 0) {
+                    assignmentHtml += '<div class="task-assignees-inline">';
                     subtask.assignments.forEach(assignment => {
                         assignmentHtml += `
-                            <span class="badge badge-sm" style="background-color: #e3f2fd; color: #1976d2; font-size: 0.7rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem;" title="${assignment.userName} (${assignment.assignmentType})">
+                            <div class="task-assignee-avatar-inline" title="${assignment.userName} (${assignment.assignmentType})">
                                 ${assignment.userInitials}
-                            </span>
+                            </div>
                         `;
                     });
+                    assignmentHtml += '</div>';
                 }
                 
                 // Build due date HTML
@@ -2686,10 +2959,11 @@
                 const subtaskItem = document.createElement('div');
                 subtaskItem.className = 'checklist-item' + (subtask.status === 'Completed' ? ' completed' : '');
                 subtaskItem.dataset.subtaskId = subtask.id;
-                subtaskItem.innerHTML = `
+                subtaskItem.dataset.isExisting = 'true'; // Mark as existing subtask
+                item.innerHTML = `
                     <div style="display: flex; align-items: center; width: 100%; padding: 0.5rem 0;">
                         <div style="display: flex; align-items: center; flex: 1; min-width: 0;">
-                            <input type="checkbox" class="form-check-input" ${subtask.status === 'Completed' ? 'checked' : ''} style="margin-right: 0.5rem;">
+                            <input type="checkbox" class="form-check-input subtask-checkbox" ${isCompleted ? 'checked' : ''} style="margin-right: 0.5rem;">
                             <label class="form-check-label" style="font-size: 0.875rem; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${subtask.title}</label>
                         </div>
                         <div style="display: flex; align-items: center; min-width: 80px; justify-content: right;">
@@ -2700,8 +2974,6 @@
                         </div>
                     </div>
                 `;
-                
-                // Add to the list (after the new card position if any)
                 checklistItems.appendChild(subtaskItem);
                 
                 // Add event listener for checkbox toggle
@@ -3252,6 +3524,135 @@
             });
         }
 
+        // Initialize task card button handlers for navbar functionality
+        function initializeTaskCardButtons() {
+            // Priority button handlers
+            const priorityButtons = document.querySelectorAll('.task-card-priority-btn');
+            priorityButtons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const taskId = this.getAttribute('data-task-id');
+                    if (taskId) {
+                        openTaskModal(parseInt(taskId));
+                        // Wait for modal to open, then scroll to priority section
+                        setTimeout(() => {
+                            const priorityBtn = document.getElementById('scroll-priority-btn');
+                            if (priorityBtn) {
+                                priorityBtn.click();
+                            }
+                        }, 100);
+                    }
+                });
+            });
+
+            // Date button handlers
+            const dateButtons = document.querySelectorAll('.task-card-date-btn');
+            dateButtons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const taskId = this.getAttribute('data-task-id');
+                    if (taskId) {
+                        openTaskModal(parseInt(taskId));
+                        // Wait for modal to open, then scroll to dates section
+                        setTimeout(() => {
+                            const datesBtn = document.getElementById('scroll-dates-btn');
+                            if (datesBtn) {
+                                datesBtn.click();
+                            }
+                        }, 100);
+                    }
+                });
+            });
+
+            // Progress bar handlers
+            const progressButtons = document.querySelectorAll('.task-card-progress-btn');
+            progressButtons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const taskId = this.getAttribute('data-task-id');
+                    if (taskId) {
+                        openTaskModal(parseInt(taskId));
+                        // Wait for modal to open, then scroll to subtasks section
+                        setTimeout(() => {
+                            const checklistBtn = document.getElementById('scroll-checklist-btn');
+                            if (checklistBtn) {
+                                checklistBtn.click();
+                            }
+                        }, 100);
+                    }
+                });
+            });
+
+            // Attachment button handlers
+            const attachmentButtons = document.querySelectorAll('.task-card-attachment-btn');
+            attachmentButtons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const taskId = this.getAttribute('data-task-id');
+                    if (taskId) {
+                        openTaskModal(parseInt(taskId));
+                        // Wait for modal to open, then scroll to attachments section
+                        setTimeout(() => {
+                            const attachmentBtn = document.getElementById('scroll-attachment-btn');
+                            if (attachmentBtn) {
+                                attachmentBtn.click();
+                            }
+                        }, 100);
+                    }
+                });
+            });
+
+            // Location button handlers
+            const locationButtons = document.querySelectorAll('.task-card-location-btn');
+            locationButtons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const taskId = this.getAttribute('data-task-id');
+                    if (taskId) {
+                        openTaskModal(parseInt(taskId));
+                        // Wait for modal to open, then scroll to location section
+                        setTimeout(() => {
+                            const locationBtn = document.getElementById('scroll-location-btn');
+                            if (locationBtn) {
+                                locationBtn.click();
+                            }
+                        }, 100);
+                    }
+                });
+            });
+
+            // Align-left button handlers (default functionality - just open modal)
+            const alignButtons = document.querySelectorAll('.task-card-align-btn');
+            alignButtons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const taskId = this.getAttribute('data-task-id');
+                    if (taskId) {
+                        openTaskModal(parseInt(taskId));
+                    }
+                });
+            });
+
+            // Comment button handlers (default functionality - just open modal)
+            const commentButtons = document.querySelectorAll('.task-card-comment-btn');
+            commentButtons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const taskId = this.getAttribute('data-task-id');
+                    if (taskId) {
+                        openTaskModal(parseInt(taskId));
+                    }
+                });
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             // Note: Checkbox event listeners are now attached when subtasks are loaded
             // in loadTaskData() for existing subtasks and addSubtaskToList() for new subtasks
@@ -3265,37 +3666,128 @@
                 });
             }
             
-            // Handle comment submission
-            const commentInput = document.querySelector('.comment-input');
-            if (commentInput) {
-                commentInput.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter' && e.ctrlKey) {
-                        // Submit comment
-                        const comment = this.value.trim();
-                        if (comment) {
-                            addComment(comment);
-                            this.value = '';
-                        }
+            // Comments: load, post, react
+            const commentsList = document.getElementById('commentsList');
+            const commentInput = document.getElementById('commentInput');
+            const postCommentBtn = document.getElementById('postCommentBtn');
+
+            // Expose comment loader globally so other handlers (like openTaskModal)
+            // can trigger initial load before this closure's scope is referenced
+            window.loadComments = async function(taskId) {
+                if (!commentsList || !taskId) return;
+                commentsList.innerHTML = '<div class="text-muted">Loading comments...</div>';
+                const res = await fetch(`/Tasks/GetComments?taskId=${taskId}`);
+                const data = await res.json();
+                if (!data.success) { commentsList.innerHTML = '<div class="task-due overdue">Failed to load comments</div>'; return; }
+                renderComments(data.comments || []);
+            }
+
+            function renderComments(comments) {
+                if (!commentsList) return;
+                if (!comments || comments.length === 0) { commentsList.innerHTML = '<div class="text-muted">No comments yet.</div>'; return; }
+                commentsList.innerHTML = comments.map(c => commentHtml(c)).join('');
+                // Bind reaction buttons
+                commentsList.querySelectorAll('[data-react]')?.forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const commentId = parseInt(this.closest('[data-comment-id]')?.dataset?.commentId);
+                        const reaction = this.dataset.react;
+                        await reactToComment(commentId, reaction);
+                        // reload minimal by updating counts
+                        const taskId = document.querySelector('.task-title')?.dataset?.taskId;
+                        if (taskId) window.loadComments(parseInt(taskId));
+                    });
+                });
+            }
+
+            function commentHtml(c) {
+                const initials = c.userName?.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+                const reactions = c.reactions || {};
+                const like = reactions['like']||0;
+                let rendered = escapeHtml(c.content || '');
+                if (Array.isArray(c.mentions) && c.mentions.length > 0) {
+                    for (const m of c.mentions) {
+                        const name = (m.name || '').trim();
+                        if (!name) continue;
+                        const at = String.fromCharCode(64);
+                        const escaped = name.replace(/[-\/^$*+?.()|[\]{}]/g, r => "\\" + r);
+                        const pattern = new RegExp(at + escaped, 'i');
+                        rendered = rendered.replace(pattern, `<span class="text-primary">&#64;${escapeHtml(name)}</span>`);
+                    }
+                }
+                return `
+                <div class="activity-item" data-comment-id="${c.id}">
+                    <div class="activity-avatar">${initials||'U'}</div>
+                    <div class="activity-content position-relative">
+                        <div class="comment-header">
+                            <strong>${c.userName}</strong>
+                            <span class="comment-time">${c.timeAgo}</span>
+                            <div class="comment-actions">
+                                <button class="icon-btn" title="Like" data-react="like">👍 <span class="count">${like}</span></button>
+                                <button class="icon-btn" title="Forward" data-action="forward"><i class="fas fa-share"></i></button>
+                                <button class="icon-btn" title="Edit" data-action="edit"><i class="fas fa-pen"></i></button>
+                                <button class="icon-btn" title="More" data-action="more"><i class="fas fa-ellipsis-h"></i></button>
+                            </div>
+                        </div>
+                        <div class="activity-text">${rendered}</div>
+                    </div>
+                </div>`;
+            }
+
+            function escapeHtml(str){return (str||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));}
+
+            async function postComment(taskId, content, mentionUserIds){
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                const res = await fetch('/Tasks/AddComment', {
+                    method: 'POST', headers: {'Content-Type':'application/json','RequestVerificationToken': token},
+                    body: JSON.stringify({ taskItemId: taskId, content, mentionUserIds: mentionUserIds||[] })
+                });
+                return await res.json();
+            }
+
+            async function reactToComment(commentId, reactionType){
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                const res = await fetch('/Tasks/ReactToComment', {
+                    method: 'POST', headers: {'Content-Type':'application/json','RequestVerificationToken': token},
+                    body: JSON.stringify({ commentId, reactionType })
+                });
+                return await res.json();
+            }
+
+            // Minimal mentions: parse at-sign Name to ids via users list
+            function extractMentionUserIds(text){
+                const users = window.tasksData?.users||[];
+                // Build regex via string to avoid Razor parsing at-sign
+                const at = String.fromCharCode(64);
+                const names = (text.match(new RegExp(at + "[^\\s" + at + "]+", "g"))||[]).map(x=>x.substring(1).toLowerCase());
+                const mapped = [];
+                for (const n of names){
+                    const u = users.find(u=>u.name.toLowerCase().startsWith(n));
+                    if (u) mapped.push(u.id);
+                }
+                return Array.from(new Set(mapped));
+            }
+
+            if (commentInput){
+                commentInput.addEventListener('keydown', async function(e){
+                    if (e.ctrlKey && e.key === 'Enter'){
+                        const text = this.value.trim(); if (!text) return;
+                        const taskId = document.querySelector('.task-title')?.dataset?.taskId;
+                        if (!taskId) return;
+                        await postComment(parseInt(taskId), text, extractMentionUserIds(text));
+                        this.value='';
+                        window.loadComments(parseInt(taskId));
                     }
                 });
             }
-            
-            function addComment(commentText) {
-                const activityLog = document.querySelector('.activity-log');
-                if (activityLog) {
-                    const newActivityItem = document.createElement('div');
-                    newActivityItem.className = 'activity-item';
-                    newActivityItem.innerHTML = `
-                        <div class="activity-avatar">U</div>
-                        <div class="activity-content">
-                            <span class="activity-text">
-                                <strong>You</strong> commented: ${commentText}
-                            </span>
-                            <div class="activity-time">${new Date().toLocaleString()}</div>
-                        </div>
-                    `;
-                    activityLog.insertBefore(newActivityItem, activityLog.firstChild);
-                }
+            if (postCommentBtn){
+                postCommentBtn.addEventListener('click', async function(){
+                    const text = commentInput?.value.trim(); if (!text) return;
+                    const taskId = document.querySelector('.task-title')?.dataset?.taskId;
+                    if (!taskId) return;
+                    await postComment(parseInt(taskId), text, extractMentionUserIds(text));
+                    commentInput.value='';
+                    window.loadComments(parseInt(taskId));
+                });
             }
         });
 
@@ -3434,6 +3926,11 @@
                 // Update layout classes
                 tasksContent.classList.remove('multi-view', 'inbox-planner', 'inbox-board', 'planner-board', 'all-views');
                 
+                // Reset inline width styles when changing layouts
+                viewContainers.forEach(container => {
+                    container.style.width = '';
+                });
+                
                 if (activeViews.size > 1) {
                     tasksContent.classList.add('multi-view');
                     
@@ -3463,6 +3960,11 @@
                 
                 // Update floating actions positioning
                 updateFloatingActionsPosition();
+                
+                // Update inbox title column widths based on new layout
+                setTimeout(() => {
+                    updateInboxTitleWidths();
+                }, 50);
             }
 
             // Calendar navigation functionality
@@ -3701,6 +4203,22 @@
             } else {
                 console.log('Attachment elements not found:', { attachmentBtn: !!attachmentBtn, attachmentsSection: !!attachmentsSection });
             }
+
+            // Location button click handler
+            const locationBtn = document.getElementById('scroll-location-btn');
+            const locationSection = document.getElementById('location-section');
+            if (locationBtn && locationSection) {
+                locationBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Location button clicked');
+                    scrollToElement(locationSection);
+                    // Remove focused class from other labels
+                    removeFocusedClass();
+                });
+            } else {
+                console.log('Location elements not found:', { locationBtn: !!locationBtn, locationSection: !!locationSection });
+            }
             
             // Status dropdown click handler - navigates to Status section
             const statusDropdown = document.getElementById('statusDropdown');
@@ -3915,6 +4433,9 @@
                         // Apply new widths
                         leftView.style.width = `${(newLeftWidth / availableWidth) * 100}%`;
                         rightView.style.width = `${(newRightWidth / availableWidth) * 100}%`;
+                        
+                        // Update title column widths dynamically
+                        updateInboxTitleWidths();
                     }
                 });
                 
@@ -3923,14 +4444,83 @@
                         isResizing = false;
                         document.body.style.cursor = '';
                         document.body.style.userSelect = '';
+                        
+                        // Final update after resizing is done
+                        updateInboxTitleWidths();
                     }
                 });
             });
         }
         
+        // Function to dynamically adjust inbox task card title widths based on view width
+        function updateInboxTitleWidths() {
+            const inboxView = document.getElementById('inboxView');
+            const tasksContent = document.querySelector('.tasks-content');
+            
+            if (!inboxView || !tasksContent) return;
+            
+            // Get the actual width of the inbox view
+            const inboxWidth = inboxView.offsetWidth;
+            
+            // Check if we're in multi-view mode
+            const isMultiView = tasksContent.classList.contains('multi-view');
+            const isAllViews = tasksContent.classList.contains('all-views');
+            
+            if (!isMultiView) {
+                // In single view mode, remove any inline max-width styles
+                const inboxTaskCards = inboxView.querySelectorAll('.inbox-task-card');
+                inboxTaskCards.forEach(card => {
+                    const titleColumn = card.querySelector('.task-title-column');
+                    if (titleColumn) {
+                        titleColumn.style.maxWidth = '';
+                    }
+                });
+                return;
+            }
+            
+            // Get all inbox task cards
+            const inboxTaskCards = inboxView.querySelectorAll('.inbox-task-card');
+            
+            if (isAllViews) {
+                // In 3-view mode: remove any max-width constraints to allow natural wrapping
+                inboxTaskCards.forEach(card => {
+                    const titleColumn = card.querySelector('.task-title-column');
+                    if (titleColumn) {
+                        titleColumn.style.maxWidth = '';
+                    }
+                });
+            } else {
+                // In 2-view mode: calculate space for title dynamically
+                inboxTaskCards.forEach(card => {
+                    const titleColumn = card.querySelector('.task-title-column');
+                    if (titleColumn) {
+                        // Account for: checkbox (16px) + due date (100px) + assignees (60px) + gaps (24px) + padding (32px) + buffer (16px)
+                        const fixedElementsWidth = 248;
+                        const availableWidth = inboxWidth - fixedElementsWidth;
+                        
+                        // Ensure minimum width
+                        const minWidth = 120;
+                        const calculatedWidth = Math.max(minWidth, availableWidth);
+                        
+                        titleColumn.style.maxWidth = `${calculatedWidth}px`;
+                    }
+                });
+            }
+        }
+        
         // Initialize resizers when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
             initializeViewResizers();
+            
+            // Initial title width update
+            setTimeout(() => {
+                updateInboxTitleWidths();
+            }, 100);
+        });
+        
+        // Update title widths when window is resized
+        window.addEventListener('resize', function() {
+            updateInboxTitleWidths();
         });
     </script>
 }
