@@ -69,6 +69,9 @@ namespace Certio.Web.ViewModels
         public string Content { get; set; } = "";
         public DateTime CreatedAt { get; set; }
         public string TimeAgo { get; set; } = "";
+        public List<UserOption> Mentions { get; set; } = new List<UserOption>();
+        public Dictionary<string, int> Reactions { get; set; } = new Dictionary<string, int>();
+        public string UserReaction { get; set; } = "";
     }
     
     public class MatterOption

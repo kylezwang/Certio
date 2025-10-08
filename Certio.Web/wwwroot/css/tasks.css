@@ -72,7 +72,7 @@
 
 /* Inbox Status Sections */
 .inbox-status-section {
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.5rem;
 }
 
 .inbox-status-header {
@@ -350,17 +350,39 @@
 
 .task-card-meta {
     display: flex;
-    gap: 1rem;
+    flex-direction: column;
+    gap: 0.5rem;
     margin-bottom: 0.75rem;
     font-size: 0.8rem;
     color: #666;
 }
 
-.task-progress,
+.task-progress {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.task-progress .progress {
+    flex: 1;
+    height: 6px;
+    background-color: #e5e7eb;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.task-progress .progress-bar {
+    background-color: #3b82f6;
+    height: 100%;
+    transition: width 0.3s;
+}
+
 .task-due {
     display: flex;
     align-items: center;
     gap: 0.25rem;
+    font-size: 0.75em;
 }
 
 .task-due.overdue {
@@ -372,8 +394,6 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 0.75rem;
-    padding-top: 0.75rem;
     border-top: 1px solid #f0f0f0;
 }
 
@@ -386,7 +406,7 @@
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #0b365e;
     color: white;
     display: flex;
     align-items: center;
@@ -717,7 +737,7 @@
 .inbox-container {
     width: 100%;
     height: 85vh;
-    background: #9bc0ec;
+    background: #A7BED780;
     display: flex;
     flex-direction: column;
     padding: 1rem 0.6rem 5rem 1rem;
@@ -828,7 +848,7 @@
     max-width: 90%;
     width: 50rem;
     margin: 0;
-    max-height: 87%;
+    max-height: 90%;
     overflow: hidden;
     border-radius: 12px;
     pointer-events: auto; /* Ensure modal content captures clicks */
@@ -850,10 +870,10 @@
 .task-details-body {
     display: flex;
     gap: 1rem;
-    padding: 0 1.5rem 1.5rem;
+    padding: 0 1.5rem 0.75rem;
     flex: 1;
     overflow-y: auto;
-    max-height: calc(85vh - 200px);
+    max-height: 50vh;
     min-height: 0;
 }
 
@@ -1034,24 +1054,27 @@
     color: #cbd5e0;
 }
 
-.task-action-buttons {
+/* Task Details Page Action Buttons Container */
+.task-details-modal .task-action-buttons {
     display: flex;
     gap: 0.5rem;
-    padding: 0 1.5rem 1rem;
+    padding: 0;
     flex-wrap: wrap;
     flex-shrink: 0;
+    margin: 0rem 1.5rem 1rem;
 }
 
-.task-action-btn {
+/* Task Details Page Action Buttons */
+.task-details-modal .task-action-btn {
     border: 1px solid #d1d5db;
     color: #6b7280;
     padding: 0.5rem 0.75rem;
     border-radius: 6px;
-    font-size: 0.875rem;
+    font-size: 1rem;
     transition: all 0.2s;
 }
 
-.task-action-btn:hover {
+.task-details-modal .task-action-btn:hover {
     background-color: #f9fafb;
     border-color: #9ca3af;
     color: #374151;
@@ -1130,9 +1153,8 @@
 .task-details-left {
     flex: 2;
     overflow-y: auto;
-    max-height: 100%;
+    max-height: 46vh;
     position: relative;
-    margin-bottom: 6rem;
     padding-right: 2.5rem;
 }
 
@@ -1332,7 +1354,7 @@
 }
 
 .activity-log {
-    max-height: 300px;
+    max-height: 12.5rem;
     overflow-y: auto;
 }
 
@@ -1346,12 +1368,12 @@
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    background: #dc2626;
+    background: #0b365e;
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.75rem;
+    font-size: 0.65rem;
     font-weight: 600;
     flex-shrink: 0;
 }
@@ -1361,9 +1383,61 @@
 }
 
 .activity-text {
-    font-size: 0.875rem;
+    font-size: 0.7875rem; /* 10% smaller */
     color: #374151;
     line-height: 1.4;
+}
+
+/* Comment header: name + time on same line */
+.comment-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.comment-header strong { /* user name */
+    font-size: 0.9rem; /* 10% smaller than previous implied 1rem */
+}
+
+.comment-header .comment-time {
+    color: #9ca3af;
+    font-size: 0.675rem; /* 10% smaller */
+    font-weight: 500;
+}
+
+/* Hover actions at top-right */
+.activity-content {
+    position: relative;
+}
+
+.comment-actions {
+    position: absolute;
+    top: -8px;
+    right: 0;
+    display: none; /* shown on hover */
+}
+
+.activity-item:hover .comment-actions {
+    display: inline-flex;
+}
+
+.comment-actions .icon-btn {
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 0.7rem;
+    color: #374151;
+}
+
+.comment-actions .icon-btn:hover { background: rgba(0,0,0,0.03); }
+
+/* Grouping container styling for hover toolbar */
+.comment-actions {
+    background: #eef1f3; /* requested background */
+    border-radius: 0.5rem; /* requested radius */
+    padding: 2px;
+    gap: 2px;
 }
 
 .activity-time {
@@ -1404,7 +1478,7 @@
         gap: 1rem;
     }
     
-    .task-action-buttons {
+    .task-details-modal .task-action-buttons {
         flex-direction: column;
     }
 }
@@ -1568,6 +1642,196 @@
     font-weight: 500;
     margin: 0;
     cursor: pointer;
+}
+
+/* Inbox Task Card Layout */
+.inbox-task-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    min-height: 48px;
+}
+
+.task-checkbox-column {
+    flex: 0 0 auto;
+    width: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.task-title-column {
+    flex: 0 0 auto;
+    width: 200px;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+}
+
+.task-title-label {
+    font-size: 0.9rem;
+    color: #2d3748;
+    font-weight: 500;
+    margin: 0;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.task-align-column {
+    flex: 0 0 auto;
+    width: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.task-align-btn {
+    padding: 0.25rem;
+    font-size: 0.95rem;
+    color: #6b7280;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+    transform: scaleY(-1);
+}
+
+.task-align-btn:hover {
+    color: #374151;
+    background-color: #f3f4f6;
+}
+
+.task-priority-column {
+    flex: 0 0 auto;
+    width: 5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.task-due-date-column {
+    flex: 0 0 auto;
+    width: 6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.task-progress-column {
+    flex: 0 0 auto;
+    width: 12rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.task-actions-column {
+    flex: 0 0 auto;
+    width: 6.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+/* Inbox Task Cards Action Buttons Container */
+.inbox-task-card .task-action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.task-assignees-column {
+    flex: 0 0 auto;
+    width: 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.task-assignees-inline {
+    display: flex;
+    gap: 0.125rem;
+    align-items: center;
+}
+
+.task-assignee-avatar-inline {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    background: #0b365e;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    font-weight: 600;
+    border: 1px solid white;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.task-assignee-avatar-inline:not(:first-child) {
+    margin-left: -4px;
+}
+
+/* Inbox Task Cards Action Buttons */
+.inbox-task-card .task-action-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 1rem;
+    color: #6b7280;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.inbox-task-card .task-action-btn:hover {
+    color: #374151;
+    background-color: #f3f4f6;
+}
+
+/* Progress bar styling within inbox cards */
+.inbox-task-card .task-progress {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    justify-content: center;
+}
+
+.inbox-task-card .task-progress span {
+    font-size: 0.7em;
+    color: #6b7280;
+    white-space: nowrap;
+}
+
+.inbox-task-card .task-progress .progress {
+    width: 60px;
+    height: 4px;
+    background-color: #e5e7eb;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.inbox-task-card .task-progress .progress-bar {
+    background-color: #3b82f6;
+    height: 100%;
+    transition: width 0.3s;
+}
+
+/* Form check alignment within inbox cards */
+.inbox-task-card .form-check {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.inbox-task-card .form-check-input {
+    margin: 0;
 }
 
 /* Floating Action Buttons */
@@ -2031,11 +2295,6 @@
      transition: color 0.2s ease;
  }
 
- /* Action button text sizing */
- .task-action-btn {
-     font-size: 0.875rem !important;
- }
-
 /* Attachments Section Styles */
 .attachments-container {
     display: flex;
@@ -2406,6 +2665,183 @@
     .autocomplete-item {
         padding: 0.75rem;
     }
+}
+
+/* Task card button hover effects */
+.task-card-priority-btn:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+    transition: all 0.2s ease;
+}
+
+.task-card-date-btn:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+    transition: all 0.2s ease;
+}
+
+.task-card-progress-btn:hover {
+    opacity: 0.8;
+    transform: scale(1.02);
+    transition: all 0.2s ease;
+}
+
+.task-card-attachment-btn:hover,
+.task-card-location-btn:hover,
+.task-card-comment-btn:hover {
+    opacity: 0.7;
+    transform: scale(1.1);
+    transition: all 0.2s ease;
+}
+
+.task-card-align-btn:hover {
+    opacity: 0.7;
+    transform: scaleY(-1) scale(1.1);
+    transition: all 0.2s ease;
+}
+
+/* Inbox Task Card Multi-View Adjustments */
+
+/* When 2 views are selected - hide extra columns and keep essential ones in a single row */
+.tasks-content.multi-view:not(.all-views) .inbox-task-card {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Hide non-essential columns in 2-view mode */
+.tasks-content.multi-view:not(.all-views) .inbox-task-card .task-align-column,
+.tasks-content.multi-view:not(.all-views) .inbox-task-card .task-priority-column,
+.tasks-content.multi-view:not(.all-views) .inbox-task-card .task-progress-column,
+.tasks-content.multi-view:not(.all-views) .inbox-task-card .task-actions-column {
+    display: none;
+}
+
+/* Adjust title width in 2-view mode to be flexible */
+.tasks-content.multi-view:not(.all-views) .inbox-task-card .task-title-column {
+    flex: 1 1 auto;
+    min-width: 120px;
+    max-width: none;
+    width: auto;
+}
+
+/* Adjust due date and assignees in 2-view mode */
+.tasks-content.multi-view:not(.all-views) .inbox-task-card .task-due-date-column {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 100px;
+}
+
+.tasks-content.multi-view:not(.all-views) .inbox-task-card .task-assignees-column {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 60px;
+}
+
+/* When all 3 views are selected - wrap to 2 rows */
+.tasks-content.all-views .inbox-task-card {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    min-height: 60px;
+}
+
+/* Hide non-essential columns in 3-view mode */
+.tasks-content.all-views .inbox-task-card .task-align-column,
+.tasks-content.all-views .inbox-task-card .task-priority-column,
+.tasks-content.all-views .inbox-task-card .task-progress-column,
+.tasks-content.all-views .inbox-task-card .task-actions-column {
+    display: none;
+}
+
+/* First row in 3-view mode: checkbox and title */
+.tasks-content.all-views .inbox-task-card .task-checkbox-column {
+    flex: 0 0 auto;
+    width: 1rem;
+    order: 1;
+    align-self: flex-start;
+    margin-top: 0.125rem;
+}
+
+.tasks-content.all-views .inbox-task-card .task-title-column {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+    order: 2;
+    margin-right: auto;
+}
+
+/* Create a line break by making the second row items start on a new line */
+.tasks-content.all-views .inbox-task-card .task-due-date-column,
+.tasks-content.all-views .inbox-task-card .task-assignees-column {
+    flex-basis: auto;
+}
+
+/* Second row in 3-view mode: due date and assignees */
+.tasks-content.all-views .inbox-task-card .task-due-date-column {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 80px;
+    order: 3;
+    margin-left: 0;
+    justify-content: flex-start;
+}
+
+.tasks-content.all-views .inbox-task-card .task-assignees-column {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 50px;
+    order: 4;
+    justify-content: flex-end;
+    margin-left: auto;
+}
+
+/* Dynamic title width adjustments based on inbox view width */
+/* These will be updated via JavaScript when resizers are moved */
+.tasks-content.inbox-planner .inbox-task-card .task-title-column,
+.tasks-content.inbox-board .inbox-task-card .task-title-column {
+    max-width: calc(100% - 280px);
+}
+
+/* In 3-view mode, force title to take full width minus checkbox to force line break */
+.tasks-content.all-views .inbox-task-card .task-title-column {
+    flex-basis: 100%;
+    max-width: calc(100% - 2rem);
+}
+
+/* Text handling for different view modes */
+.tasks-content.multi-view:not(.all-views) .inbox-task-card .task-title-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    width: 100%;
+}
+
+/* In 3-view mode, allow text wrapping */
+.tasks-content.all-views .inbox-task-card .task-title-label {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: initial;
+    display: block;
+    width: 100%;
+    word-wrap: break-word;
+    line-height: 1.3;
+}
+
+/* Responsive adjustments for due date text in multi-view */
+.tasks-content.all-views .inbox-task-card .task-due-date-column span {
+    font-size: 0.7em;
+}
+
+/* Ensure assignee avatars stay compact in multi-view */
+.tasks-content.multi-view .inbox-task-card .task-assignee-avatar-inline {
+    width: 1.25rem;
+    height: 1.25rem;
+    font-size: 0.55rem;
 }
 
 

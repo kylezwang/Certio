@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "ZibW+Uafm1f3qIOH2/LEOtS/Z0hNCY4TJLoM2KTBLGk=",
+  "Hash": "finNiAC3E4KyNgvOTZQdCYoDfzY+0BtdfNF51h8+ZQ0=",
   "Source": "Certio.Web",
   "BasePath": "_content/Certio.Web",
   "Mode": "Default",
@@ -80,12 +80,12 @@
       "OriginalItemSpec": "C:\\Projects\\Certio\\Certio.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css"
     },
     {
-      "Identity": "C:\\Projects\\Certio\\Certio.Web\\obj\\Debug\\net9.0\\compressed\\0xrvhz6sv7-1rcigd231s.gz",
+      "Identity": "C:\\Projects\\Certio\\Certio.Web\\obj\\Debug\\net9.0\\compressed\\0xrvhz6sv7-35wanmwswm.gz",
       "SourceId": "Certio.Web",
       "SourceType": "Discovered",
       "ContentRoot": "C:\\Projects\\Certio\\Certio.Web\\obj\\Debug\\net9.0\\compressed\\",
       "BasePath": "_content/Certio.Web",
-      "RelativePath": "css/tasks#[.{fingerprint=1rcigd231s}]?.css.gz",
+      "RelativePath": "css/tasks#[.{fingerprint=35wanmwswm}]?.css.gz",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Alternative",
@@ -94,8 +94,8 @@
       "RelatedAsset": "C:\\Projects\\Certio\\Certio.Web\\wwwroot\\css\\tasks.css",
       "AssetTraitName": "Content-Encoding",
       "AssetTraitValue": "gzip",
-      "Fingerprint": "526tyxzkxs",
-      "Integrity": "7XlIOmNbj9UPRPCmzeOKASxq1XN+wtU8F8Ft9oJpX/0=",
+      "Fingerprint": "lqyl1ak2a1",
+      "Integrity": "45MU4eiI7SHQhWa7SUK7IMYV9PdxRd5oiKGyGSLmzMQ=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "C:\\Projects\\Certio\\Certio.Web\\wwwroot\\css\\tasks.css"
@@ -2803,8 +2803,8 @@
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
-      "Fingerprint": "1rcigd231s",
-      "Integrity": "DVU7Kr09Y4plIYuTpCgddiawt6y0+GH6z5es6/CA28c=",
+      "Fingerprint": "35wanmwswm",
+      "Integrity": "N1AYXX3K+4USo0MEj83ho+mISaSnsX0EYKTdL9vaPBE=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\css\\tasks.css"
@@ -6671,13 +6671,13 @@
       ]
     },
     {
-      "Route": "css/tasks.1rcigd231s.css",
-      "AssetFile": "C:\\Projects\\Certio\\Certio.Web\\obj\\Debug\\net9.0\\compressed\\0xrvhz6sv7-1rcigd231s.gz",
+      "Route": "css/tasks.35wanmwswm.css",
+      "AssetFile": "C:\\Projects\\Certio\\Certio.Web\\obj\\Debug\\net9.0\\compressed\\0xrvhz6sv7-35wanmwswm.gz",
       "Selectors": [
         {
           "Name": "Content-Encoding",
           "Value": "gzip",
-          "Quality": "0.000126055717"
+          "Quality": "0.000106666667"
         }
       ],
       "ResponseHeaders": [
@@ -6687,15 +6687,15 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "7932"
+          "Value": "9374"
         },
         {
           "Name": "ETag",
-          "Value": "\"7XlIOmNbj9UPRPCmzeOKASxq1XN+wtU8F8Ft9oJpX/0=\""
+          "Value": "\"45MU4eiI7SHQhWa7SUK7IMYV9PdxRd5oiKGyGSLmzMQ=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Tue, 07 Oct 2025 07:18:06 GMT"
+          "Value": "Wed, 08 Oct 2025 00:35:45 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -6715,13 +6715,13 @@
         },
         {
           "Name": "ETag",
-          "Value": "W/\"DVU7Kr09Y4plIYuTpCgddiawt6y0+GH6z5es6/CA28c=\""
+          "Value": "W/\"N1AYXX3K+4USo0MEj83ho+mISaSnsX0EYKTdL9vaPBE=\""
         }
       ],
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "1rcigd231s"
+          "Value": "35wanmwswm"
         },
         {
           "Name": "label",
@@ -6729,12 +6729,12 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-DVU7Kr09Y4plIYuTpCgddiawt6y0+GH6z5es6/CA28c="
+          "Value": "sha256-N1AYXX3K+4USo0MEj83ho+mISaSnsX0EYKTdL9vaPBE="
         }
       ]
     },
     {
-      "Route": "css/tasks.1rcigd231s.css",
+      "Route": "css/tasks.35wanmwswm.css",
       "AssetFile": "C:\\Projects\\Certio\\Certio.Web\\wwwroot\\css\\tasks.css",
       "Selectors": [],
       "ResponseHeaders": [
@@ -6744,7 +6744,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "44872"
+          "Value": "54742"
         },
         {
           "Name": "Content-Type",
@@ -6752,11 +6752,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"DVU7Kr09Y4plIYuTpCgddiawt6y0+GH6z5es6/CA28c=\""
+          "Value": "\"N1AYXX3K+4USo0MEj83ho+mISaSnsX0EYKTdL9vaPBE=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Tue, 07 Oct 2025 07:18:06 GMT"
+          "Value": "Wed, 08 Oct 2025 00:35:45 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -6766,7 +6766,7 @@
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "1rcigd231s"
+          "Value": "35wanmwswm"
         },
         {
           "Name": "label",
@@ -6774,13 +6774,13 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-DVU7Kr09Y4plIYuTpCgddiawt6y0+GH6z5es6/CA28c="
+          "Value": "sha256-N1AYXX3K+4USo0MEj83ho+mISaSnsX0EYKTdL9vaPBE="
         }
       ]
     },
     {
-      "Route": "css/tasks.1rcigd231s.css.gz",
-      "AssetFile": "C:\\Projects\\Certio\\Certio.Web\\obj\\Debug\\net9.0\\compressed\\0xrvhz6sv7-1rcigd231s.gz",
+      "Route": "css/tasks.35wanmwswm.css.gz",
+      "AssetFile": "C:\\Projects\\Certio\\Certio.Web\\obj\\Debug\\net9.0\\compressed\\0xrvhz6sv7-35wanmwswm.gz",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -6789,7 +6789,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "7932"
+          "Value": "9374"
         },
         {
           "Name": "Content-Type",
@@ -6797,11 +6797,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"7XlIOmNbj9UPRPCmzeOKASxq1XN+wtU8F8Ft9oJpX/0=\""
+          "Value": "\"45MU4eiI7SHQhWa7SUK7IMYV9PdxRd5oiKGyGSLmzMQ=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Tue, 07 Oct 2025 07:18:06 GMT"
+          "Value": "Wed, 08 Oct 2025 00:35:45 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -6819,7 +6819,7 @@
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "1rcigd231s"
+          "Value": "35wanmwswm"
         },
         {
           "Name": "label",
@@ -6827,18 +6827,18 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-7XlIOmNbj9UPRPCmzeOKASxq1XN+wtU8F8Ft9oJpX/0="
+          "Value": "sha256-45MU4eiI7SHQhWa7SUK7IMYV9PdxRd5oiKGyGSLmzMQ="
         }
       ]
     },
     {
       "Route": "css/tasks.css",
-      "AssetFile": "C:\\Projects\\Certio\\Certio.Web\\obj\\Debug\\net9.0\\compressed\\0xrvhz6sv7-1rcigd231s.gz",
+      "AssetFile": "C:\\Projects\\Certio\\Certio.Web\\obj\\Debug\\net9.0\\compressed\\0xrvhz6sv7-35wanmwswm.gz",
       "Selectors": [
         {
           "Name": "Content-Encoding",
           "Value": "gzip",
-          "Quality": "0.000126055717"
+          "Quality": "0.000106666667"
         }
       ],
       "ResponseHeaders": [
@@ -6848,15 +6848,15 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "7932"
+          "Value": "9374"
         },
         {
           "Name": "ETag",
-          "Value": "\"7XlIOmNbj9UPRPCmzeOKASxq1XN+wtU8F8Ft9oJpX/0=\""
+          "Value": "\"45MU4eiI7SHQhWa7SUK7IMYV9PdxRd5oiKGyGSLmzMQ=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Tue, 07 Oct 2025 07:18:06 GMT"
+          "Value": "Wed, 08 Oct 2025 00:35:45 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -6876,13 +6876,13 @@
         },
         {
           "Name": "ETag",
-          "Value": "W/\"DVU7Kr09Y4plIYuTpCgddiawt6y0+GH6z5es6/CA28c=\""
+          "Value": "W/\"N1AYXX3K+4USo0MEj83ho+mISaSnsX0EYKTdL9vaPBE=\""
         }
       ],
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-DVU7Kr09Y4plIYuTpCgddiawt6y0+GH6z5es6/CA28c="
+          "Value": "sha256-N1AYXX3K+4USo0MEj83ho+mISaSnsX0EYKTdL9vaPBE="
         }
       ]
     },
@@ -6897,7 +6897,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "44872"
+          "Value": "54742"
         },
         {
           "Name": "Content-Type",
@@ -6905,11 +6905,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"DVU7Kr09Y4plIYuTpCgddiawt6y0+GH6z5es6/CA28c=\""
+          "Value": "\"N1AYXX3K+4USo0MEj83ho+mISaSnsX0EYKTdL9vaPBE=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Tue, 07 Oct 2025 07:18:06 GMT"
+          "Value": "Wed, 08 Oct 2025 00:35:45 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -6919,13 +6919,13 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-DVU7Kr09Y4plIYuTpCgddiawt6y0+GH6z5es6/CA28c="
+          "Value": "sha256-N1AYXX3K+4USo0MEj83ho+mISaSnsX0EYKTdL9vaPBE="
         }
       ]
     },
     {
       "Route": "css/tasks.css.gz",
-      "AssetFile": "C:\\Projects\\Certio\\Certio.Web\\obj\\Debug\\net9.0\\compressed\\0xrvhz6sv7-1rcigd231s.gz",
+      "AssetFile": "C:\\Projects\\Certio\\Certio.Web\\obj\\Debug\\net9.0\\compressed\\0xrvhz6sv7-35wanmwswm.gz",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -6934,7 +6934,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "7932"
+          "Value": "9374"
         },
         {
           "Name": "Content-Type",
@@ -6942,11 +6942,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"7XlIOmNbj9UPRPCmzeOKASxq1XN+wtU8F8Ft9oJpX/0=\""
+          "Value": "\"45MU4eiI7SHQhWa7SUK7IMYV9PdxRd5oiKGyGSLmzMQ=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Tue, 07 Oct 2025 07:18:06 GMT"
+          "Value": "Wed, 08 Oct 2025 00:35:45 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -6964,7 +6964,7 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-7XlIOmNbj9UPRPCmzeOKASxq1XN+wtU8F8Ft9oJpX/0="
+          "Value": "sha256-45MU4eiI7SHQhWa7SUK7IMYV9PdxRd5oiKGyGSLmzMQ="
         }
       ]
     },

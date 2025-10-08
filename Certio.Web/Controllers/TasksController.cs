@@ -262,6 +262,49 @@ namespace Certio.Web.Controllers
             return Json(new { success = true });
         }
 
+        // GET: Tasks/GetComments
+        [HttpGet]
+        public async Task<IActionResult> GetComments(int taskId)
+        {
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                return Json(new { success = false, message = "User not authenticated" });
+            }
+
+            var comments = await _context.TaskItemComments
+                .Where(c => c.TaskItemId == taskId)
+                .Include(c => c.User)
+                .Include(c => c.Mentions)
+                    .ThenInclude(m => m.MentionedUser)
+                .Include(c => c.Reactions)
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync();
+
+            var result = comments.Select(c => new TaskCommentViewModel
+            {
+                Id = c.Id,
+                UserId = c.UserId,
+                UserName = $"{c.User.FirstName} {c.User.LastName}",
+                Content = c.Content,
+                CreatedAt = c.CreatedAt,
+                TimeAgo = GetTimeAgo(c.CreatedAt),
+                Mentions = c.Mentions.Select(m => new UserOption
+                {
+                    Id = m.MentionedUserId,
+                    Name = $"{m.MentionedUser.FirstName} {m.MentionedUser.LastName}",
+                    Email = m.MentionedUser.Email ?? string.Empty,
+                    Initials = ($"{m.MentionedUser.FirstName[0]}{m.MentionedUser.LastName[0]}").ToUpper()
+                }).ToList(),
+                Reactions = c.Reactions
+                    .GroupBy(r => r.ReactionType)
+                    .ToDictionary(g => g.Key, g => g.Count()),
+                UserReaction = c.Reactions.FirstOrDefault(r => r.UserId == customUser.Id)?.ReactionType ?? string.Empty
+            }).ToList();
+
+            return Json(new { success = true, comments = result });
+        }
+
         // POST: Tasks/AddComment
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -284,15 +327,98 @@ namespace Certio.Web.Controllers
             _context.TaskItemComments.Add(comment);
             await _context.SaveChangesAsync();
 
-            return Json(new { 
-                success = true, 
-                comment = new {
-                    id = comment.Id,
-                    userName = $"{customUser.FirstName} {customUser.LastName}",
-                    content = comment.Content,
-                    createdAt = comment.CreatedAt.ToString("MMM dd, yyyy HH:mm")
+            // Mentions
+            if (request.MentionUserIds != null && request.MentionUserIds.Count > 0)
+            {
+                var mentionEntities = request.MentionUserIds.Distinct().Select(uid => new TaskCommentMention
+                {
+                    CommentId = comment.Id,
+                    MentionedUserId = uid
+                }).ToList();
+                _context.TaskCommentMentions.AddRange(mentionEntities);
+                await _context.SaveChangesAsync();
+            }
+
+            // Return full view model for convenience
+            var vm = new TaskCommentViewModel
+            {
+                Id = comment.Id,
+                UserId = customUser.Id,
+                UserName = $"{customUser.FirstName} {customUser.LastName}",
+                Content = comment.Content,
+                CreatedAt = comment.CreatedAt,
+                TimeAgo = GetTimeAgo(comment.CreatedAt),
+                Mentions = (request.MentionUserIds ?? new List<int>()).Select(uid =>
+                {
+                    var u = _context.Users.FirstOrDefault(x => x.Id == uid);
+                    return new UserOption
+                    {
+                        Id = uid,
+                        Name = u != null ? $"{u.FirstName} {u.LastName}" : string.Empty,
+                        Email = u?.Email ?? string.Empty,
+                        Initials = u != null ? ($"{u.FirstName[0]}{u.LastName[0]}").ToUpper() : string.Empty
+                    };
+                }).ToList(),
+                Reactions = new Dictionary<string, int>(),
+                UserReaction = string.Empty
+            };
+
+            return Json(new { success = true, comment = vm });
+        }
+
+        // POST: Tasks/ReactToComment
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ReactToComment([FromBody] ReactToCommentRequest request)
+        {
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                return Json(new { success = false, message = "User not authenticated" });
+            }
+
+            var comment = await _context.TaskItemComments.FindAsync(request.CommentId);
+            if (comment == null)
+            {
+                return Json(new { success = false, message = "Comment not found" });
+            }
+
+            // Toggle behavior: if same reaction exists, remove; else upsert
+            var existing = await _context.TaskCommentReactions
+                .FirstOrDefaultAsync(r => r.CommentId == request.CommentId && r.UserId == customUser.Id);
+
+            if (existing != null)
+            {
+                if (existing.ReactionType == request.ReactionType)
+                {
+                    _context.TaskCommentReactions.Remove(existing);
                 }
-            });
+                else
+                {
+                    existing.ReactionType = request.ReactionType;
+                }
+            }
+            else
+            {
+                _context.TaskCommentReactions.Add(new TaskCommentReaction
+                {
+                    CommentId = request.CommentId,
+                    UserId = customUser.Id,
+                    ReactionType = request.ReactionType,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            await _context.SaveChangesAsync();
+
+            // Return updated reaction summary
+            var summary = await _context.TaskCommentReactions
+                .Where(r => r.CommentId == request.CommentId)
+                .GroupBy(r => r.ReactionType)
+                .Select(g => new { Type = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            return Json(new { success = true, reactions = summary });
         }
 
         // POST: Tasks/AddAssignment
@@ -585,6 +711,13 @@ namespace Certio.Web.Controllers
     {
         public int TaskItemId { get; set; }
         public string Content { get; set; } = "";
+        public List<int> MentionUserIds { get; set; } = new List<int>();
+    }
+
+    public class ReactToCommentRequest
+    {
+        public int CommentId { get; set; }
+        public string ReactionType { get; set; } = "like";
     }
 
     public class AddAssignmentRequest

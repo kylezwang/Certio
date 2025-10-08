@@ -45,6 +45,8 @@ namespace Certio.Web.Data
         public DbSet<TaskItem> TaskItems => Set<TaskItem>();
         public DbSet<TaskAssignment> TaskAssignments => Set<TaskAssignment>();
         public DbSet<TaskItemComment> TaskItemComments => Set<TaskItemComment>();
+        public DbSet<TaskCommentMention> TaskCommentMentions => Set<TaskCommentMention>();
+        public DbSet<TaskCommentReaction> TaskCommentReactions => Set<TaskCommentReaction>();
         public DbSet<TaskItemDependency> TaskItemDependencies => Set<TaskItemDependency>();
         public DbSet<SubTaskItem> SubTaskItems => Set<SubTaskItem>();
         public DbSet<SubTaskAssignment> SubTaskAssignments => Set<SubTaskAssignment>();
@@ -457,6 +459,40 @@ namespace Certio.Web.Data
                 .WithMany(tic => tic.Replies)
                 .HasForeignKey(tic => tic.ParentCommentId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // TaskCommentMention relationships
+            builder.Entity<TaskCommentMention>()
+                .HasOne(tcm => tcm.Comment)
+                .WithMany(c => c.Mentions)
+                .HasForeignKey(tcm => tcm.CommentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<TaskCommentMention>()
+                .HasOne(tcm => tcm.MentionedUser)
+                .WithMany()
+                .HasForeignKey(tcm => tcm.MentionedUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<TaskCommentMention>()
+                .HasIndex(tcm => new { tcm.CommentId, tcm.MentionedUserId })
+                .IsUnique();
+
+            // TaskCommentReaction relationships
+            builder.Entity<TaskCommentReaction>()
+                .HasOne(tcr => tcr.Comment)
+                .WithMany(c => c.Reactions)
+                .HasForeignKey(tcr => tcr.CommentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<TaskCommentReaction>()
+                .HasOne(tcr => tcr.User)
+                .WithMany()
+                .HasForeignKey(tcr => tcr.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<TaskCommentReaction>()
+                .HasIndex(tcr => new { tcr.CommentId, tcr.UserId, tcr.ReactionType })
+                .IsUnique();
         }
 
         private void ConfigureSubTaskRelationships(ModelBuilder builder)

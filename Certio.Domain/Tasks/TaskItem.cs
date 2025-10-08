@@ -109,6 +109,8 @@ namespace Certio.Domain.Tasks
         public virtual User User { get; set; } = null!;
         public virtual TaskItemComment? ParentComment { get; set; }
         public virtual ICollection<TaskItemComment> Replies { get; set; } = new List<TaskItemComment>();
+        public virtual ICollection<TaskCommentMention> Mentions { get; set; } = new List<TaskCommentMention>();
+        public virtual ICollection<TaskCommentReaction> Reactions { get; set; } = new List<TaskCommentReaction>();
     }
     
     public class TaskItemDependency
