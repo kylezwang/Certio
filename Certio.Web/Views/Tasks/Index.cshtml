@@ -107,7 +107,7 @@
                                 <div class="inbox-status-tasks">
                                     @foreach (var task in Model.PlannedTasks.OrderBy(t => t.Order))
                                     {
-                                        <div class="task-card-item inbox-task-card" data-task-id="@task.Id" data-status="@task.Status" data-matter-id="@task.MatterId" onclick="openTaskModal(@task.Id)">
+                                        <div class="task-card-item inbox-task-card" data-task-id="@task.Id" data-status="@task.Status" data-matter-id="@task.MatterId" data-matter-title="@task.MatterTitle" onclick="openTaskModal(@task.Id)">
                                             <!-- Checkbox Column -->
                                             <div class="task-checkbox-column">
                                             <div class="form-check" style="padding-left: 0;">
@@ -121,7 +121,12 @@
                                             </div>
                                             
                                             <!-- Title Column -->
-                                            <div class="task-title-column">
+                                            <div class="task-title-column" style="display: flex; flex-direction: column; align-items: flex-start;">
+                                                <div class="task-matter-badge" style="display: none; margin-bottom: 0.4rem;">
+                                                    <span class="badge matter-priority-badge" style="background-color: #e3f2fd; color: #1976d2; font-size: 0.6em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block;">
+                                                        @task.MatterTitle
+                                                    </span>
+                                                </div>
                                                 <label class="form-check-label task-title-label" for="inbox-task-@task.Id">
                                                     @task.Title
                                                 </label>
@@ -150,10 +155,10 @@
                                                     @if (task.DueDate.HasValue)
                                                     {
                                                         var daysUntilDue = (task.DueDate.Value - DateTime.UtcNow).Days;
-                                                        var dueDateClass = daysUntilDue < 0 ? "task-due overdue" : (daysUntilDue <= 2 ? "text-warning" : "text-muted");
+                                                        var dueDateClass = daysUntilDue < 0 ? "task-due overdue" : (daysUntilDue <= 1 ? "text-dark" : "text-muted");
                                                     <span class="@dueDateClass task-card-date-btn" style="font-size: 0.75em; cursor: pointer;" 
                                                           data-task-id="@task.Id" title="Click to edit dates">
-                                                        <i class="fas fa-calendar"></i> @task.DueDate.Value.ToString("MMM dd, yyyy")
+                                                        <i class="fa-solid fa-calendar-day"></i> @task.DueDate.Value.ToString("MMM dd, yyyy")
                                                         </span>
                                                     }
                                             </div>
@@ -171,6 +176,12 @@
                                                                  aria-valuemin="0" 
                                                                  aria-valuemax="@task.TotalSubTasks"></div>
                                                         </div>
+                                                        @if (task.UrgentSubTasksCount > 0)
+                                                        {
+                                                            <div class="urgent-subtasks-badge" title="@task.UrgentSubTasksCount subtask(s) due today or tomorrow">
+                                                                @task.UrgentSubTasksCount
+                                                            </div>
+                                                        }
                                                     </div>
                                                 }
                                             </div>
@@ -195,16 +206,16 @@
                                                 @if (task.Assignments.Any())
                                                 {
                                                     <div class="task-assignees-inline">
-                                                        @foreach (var assignment in task.Assignments.Take(3))
+                                                        @foreach (var assignment in task.Assignments.Take(2))
                                                         {
                                                             <div class="task-assignee-avatar-inline" title="@assignment.UserName">
                                                                 @assignment.UserInitials
                                                             </div>
                                                         }
-                                                        @if (task.Assignments.Count > 3)
+                                                        @if (task.Assignments.Count > 2)
                                                         {
-                                                            <div class="task-assignee-avatar-inline" title="+@(task.Assignments.Count - 3) more">
-                                                                +@(task.Assignments.Count - 3)
+                                                            <div class="task-assignee-avatar-inline" title="+@(task.Assignments.Count - 2) more">
+                                                                +@(task.Assignments.Count - 2)
                                                             </div>
                                                         }
                                                     </div>
@@ -229,7 +240,7 @@
                                 <div class="inbox-status-tasks">
                                     @foreach (var task in Model.InProgressTasks.OrderBy(t => t.Order))
                                     {
-                                        <div class="task-card-item inbox-task-card" data-task-id="@task.Id" data-status="@task.Status" data-matter-id="@task.MatterId" onclick="openTaskModal(@task.Id)">
+                                        <div class="task-card-item inbox-task-card" data-task-id="@task.Id" data-status="@task.Status" data-matter-id="@task.MatterId" data-matter-title="@task.MatterTitle" onclick="openTaskModal(@task.Id)">
                                             <!-- Checkbox Column -->
                                             <div class="task-checkbox-column">
                                             <div class="form-check" style="padding-left: 0;">
@@ -243,7 +254,12 @@
                                             </div>
                                             
                                             <!-- Title Column -->
-                                            <div class="task-title-column">
+                                            <div class="task-title-column" style="display: flex; flex-direction: column; align-items: flex-start;">
+                                                <div class="task-matter-badge" style="display: none; margin-bottom: 0.4rem;">
+                                                    <span class="badge matter-priority-badge" style="background-color: #e3f2fd; color: #1976d2; font-size: 0.6em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block;">
+                                                        @task.MatterTitle
+                                                    </span>
+                                                </div>
                                                 <label class="form-check-label task-title-label" for="inbox-task-@task.Id">
                                                     @task.Title
                                                 </label>
@@ -272,10 +288,10 @@
                                                     @if (task.DueDate.HasValue)
                                                     {
                                                         var daysUntilDue = (task.DueDate.Value - DateTime.UtcNow).Days;
-                                                        var dueDateClass = daysUntilDue < 0 ? "task-due overdue" : (daysUntilDue <= 2 ? "text-warning" : "text-muted");
+                                                        var dueDateClass = daysUntilDue < 0 ? "task-due overdue" : (daysUntilDue <= 1 ? "text-dark" : "text-muted");
                                                     <span class="@dueDateClass task-card-date-btn" style="font-size: 0.75em; cursor: pointer;" 
                                                           data-task-id="@task.Id" title="Click to edit dates">
-                                                        <i class="fas fa-calendar"></i> @task.DueDate.Value.ToString("MMM dd, yyyy")
+                                                        <i class="fa-solid fa-calendar-day"></i> @task.DueDate.Value.ToString("MMM dd, yyyy")
                                                         </span>
                                                     }
                                             </div>
@@ -293,6 +309,12 @@
                                                                  aria-valuemin="0" 
                                                                  aria-valuemax="@task.TotalSubTasks"></div>
                                                         </div>
+                                                        @if (task.UrgentSubTasksCount > 0)
+                                                        {
+                                                            <div class="urgent-subtasks-badge" title="@task.UrgentSubTasksCount subtask(s) due today or tomorrow">
+                                                                @task.UrgentSubTasksCount
+                                                            </div>
+                                                        }
                                                     </div>
                                                 }
                                             </div>
@@ -317,16 +339,16 @@
                                                 @if (task.Assignments.Any())
                                                 {
                                                     <div class="task-assignees-inline">
-                                                        @foreach (var assignment in task.Assignments.Take(3))
+                                                        @foreach (var assignment in task.Assignments.Take(2))
                                                         {
                                                             <div class="task-assignee-avatar-inline" title="@assignment.UserName">
                                                                 @assignment.UserInitials
                                                             </div>
                                                         }
-                                                        @if (task.Assignments.Count > 3)
+                                                        @if (task.Assignments.Count > 2)
                                                         {
-                                                            <div class="task-assignee-avatar-inline" title="+@(task.Assignments.Count - 3) more">
-                                                                +@(task.Assignments.Count - 3)
+                                                            <div class="task-assignee-avatar-inline" title="+@(task.Assignments.Count - 2) more">
+                                                                +@(task.Assignments.Count - 2)
                                                             </div>
                                                         }
                                                     </div>
@@ -351,7 +373,7 @@
                                 <div class="inbox-status-tasks">
                                     @foreach (var task in Model.ReviewTasks.OrderBy(t => t.Order))
                                     {
-                                        <div class="task-card-item inbox-task-card" data-task-id="@task.Id" data-status="@task.Status" data-matter-id="@task.MatterId" onclick="openTaskModal(@task.Id)">
+                                        <div class="task-card-item inbox-task-card" data-task-id="@task.Id" data-status="@task.Status" data-matter-id="@task.MatterId" data-matter-title="@task.MatterTitle" onclick="openTaskModal(@task.Id)">
                                             <!-- Checkbox Column -->
                                             <div class="task-checkbox-column">
                                             <div class="form-check" style="padding-left: 0;">
@@ -365,7 +387,12 @@
                                             </div>
                                             
                                             <!-- Title Column -->
-                                            <div class="task-title-column">
+                                            <div class="task-title-column" style="display: flex; flex-direction: column; align-items: flex-start;">
+                                                <div class="task-matter-badge" style="display: none; margin-bottom: 0.4rem;">
+                                                    <span class="badge matter-priority-badge" style="background-color: #e3f2fd; color: #1976d2; font-size: 0.6em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block;">
+                                                        @task.MatterTitle
+                                                    </span>
+                                                </div>
                                                 <label class="form-check-label task-title-label" for="inbox-task-@task.Id">
                                                     @task.Title
                                                 </label>
@@ -394,10 +421,10 @@
                                                     @if (task.DueDate.HasValue)
                                                     {
                                                         var daysUntilDue = (task.DueDate.Value - DateTime.UtcNow).Days;
-                                                        var dueDateClass = daysUntilDue < 0 ? "task-due overdue" : (daysUntilDue <= 2 ? "text-warning" : "text-muted");
+                                                        var dueDateClass = daysUntilDue < 0 ? "task-due overdue" : (daysUntilDue <= 1 ? "text-dark" : "text-muted");
                                                     <span class="@dueDateClass task-card-date-btn" style="font-size: 0.75em; cursor: pointer;" 
                                                           data-task-id="@task.Id" title="Click to edit dates">
-                                                        <i class="fas fa-calendar"></i> @task.DueDate.Value.ToString("MMM dd, yyyy")
+                                                        <i class="fa-solid fa-calendar-day"></i> @task.DueDate.Value.ToString("MMM dd, yyyy")
                                                         </span>
                                                     }
                                             </div>
@@ -415,6 +442,12 @@
                                                                  aria-valuemin="0" 
                                                                  aria-valuemax="@task.TotalSubTasks"></div>
                                                         </div>
+                                                        @if (task.UrgentSubTasksCount > 0)
+                                                        {
+                                                            <div class="urgent-subtasks-badge" title="@task.UrgentSubTasksCount subtask(s) due today or tomorrow">
+                                                                @task.UrgentSubTasksCount
+                                                            </div>
+                                                        }
                                                     </div>
                                                 }
                                             </div>
@@ -439,16 +472,16 @@
                                                 @if (task.Assignments.Any())
                                                 {
                                                     <div class="task-assignees-inline">
-                                                        @foreach (var assignment in task.Assignments.Take(3))
+                                                        @foreach (var assignment in task.Assignments.Take(2))
                                                         {
                                                             <div class="task-assignee-avatar-inline" title="@assignment.UserName">
                                                                 @assignment.UserInitials
                                                             </div>
                                                         }
-                                                        @if (task.Assignments.Count > 3)
+                                                        @if (task.Assignments.Count > 2)
                                                         {
-                                                            <div class="task-assignee-avatar-inline" title="+@(task.Assignments.Count - 3) more">
-                                                                +@(task.Assignments.Count - 3)
+                                                            <div class="task-assignee-avatar-inline" title="+@(task.Assignments.Count - 2) more">
+                                                                +@(task.Assignments.Count - 2)
                                                             </div>
                                                         }
                                                     </div>
@@ -473,7 +506,7 @@
                                 <div class="inbox-status-tasks">
                                     @foreach (var task in Model.CompletedTasks.OrderBy(t => t.Order))
                                     {
-                                        <div class="task-card-item inbox-task-card" data-task-id="@task.Id" data-status="@task.Status" data-matter-id="@task.MatterId" onclick="openTaskModal(@task.Id)">
+                                        <div class="task-card-item inbox-task-card" data-task-id="@task.Id" data-status="@task.Status" data-matter-id="@task.MatterId" data-matter-title="@task.MatterTitle" onclick="openTaskModal(@task.Id)">
                                             <!-- Checkbox Column -->
                                             <div class="task-checkbox-column">
                                             <div class="form-check" style="padding-left: 0;">
@@ -487,7 +520,12 @@
                                             </div>
                                             
                                             <!-- Title Column -->
-                                            <div class="task-title-column">
+                                            <div class="task-title-column" style="display: flex; flex-direction: column; align-items: flex-start;">
+                                                <div class="task-matter-badge" style="display: none; margin-bottom: 0.4rem;">
+                                                    <span class="badge matter-priority-badge" style="background-color: #e3f2fd; color: #1976d2; font-size: 0.6em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block;">
+                                                        @task.MatterTitle
+                                                    </span>
+                                                </div>
                                                 <label class="form-check-label task-title-label" for="inbox-task-@task.Id">
                                                     @task.Title
                                                 </label>
@@ -519,7 +557,7 @@
                                                         var dueDateClass = daysUntilDue < 0 ? "task-due overdue" : (daysUntilDue <= 2 ? "text-warning" : "text-muted");
                                                     <span class="@dueDateClass task-card-date-btn" style="font-size: 0.75em; cursor: pointer;" 
                                                           data-task-id="@task.Id" title="Click to edit dates">
-                                                        <i class="fas fa-calendar"></i> @task.DueDate.Value.ToString("MMM dd, yyyy")
+                                                        <i class="fa-solid fa-calendar-day"></i> @task.DueDate.Value.ToString("MMM dd, yyyy")
                                                         </span>
                                                     }
                                             </div>
@@ -561,16 +599,16 @@
                                                 @if (task.Assignments.Any())
                                                 {
                                                     <div class="task-assignees-inline">
-                                                        @foreach (var assignment in task.Assignments.Take(3))
+                                                        @foreach (var assignment in task.Assignments.Take(2))
                                                         {
                                                             <div class="task-assignee-avatar-inline" title="@assignment.UserName">
                                                                 @assignment.UserInitials
                                                             </div>
                                                         }
-                                                        @if (task.Assignments.Count > 3)
+                                                        @if (task.Assignments.Count > 2)
                                                         {
-                                                            <div class="task-assignee-avatar-inline" title="+@(task.Assignments.Count - 3) more">
-                                                                +@(task.Assignments.Count - 3)
+                                                            <div class="task-assignee-avatar-inline" title="+@(task.Assignments.Count - 2) more">
+                                                                +@(task.Assignments.Count - 2)
                                                             </div>
                                                         }
                                                     </div>
@@ -619,7 +657,7 @@
                 <div class="calendar-header">
                     <div class="calendar-nav-left">
                         <button class="month-year-selector">
-                            <i class="fas fa-calendar"></i>
+                            <i class="fa-solid fa-calendar-day"></i>
                             <span class="month-year">Oct 2025</span>
                             <i class="fas fa-chevron-down"></i>
                         </button>
@@ -1063,7 +1101,7 @@
                             <i class="fas fa-exclamation-circle"></i> Priority
                         </button>
                         <button class="btn btn-sm btn-outline-secondary task-action-btn" id="scroll-dates-btn" style="font-size: 0.875rem; border-radius: 0.5rem;">
-                            <i class="fas fa-calendar"></i> Dates
+                            <i class="fa-solid fa-calendar-day"></i> Dates
                         </button>
                         <button class="btn btn-sm btn-outline-secondary task-action-btn" id="scroll-checklist-btn" style="font-size: 0.875rem; border-radius: 0.5rem;">
                             <i class="fas fa-check-square"></i> Subtasks
@@ -1147,21 +1185,21 @@
                             <div class="task-section" id="dates-section">
                                 <div class="task-section-header">
                                     <h6 class="task-section-title">
-                                        <i class="fas fa-calendar"></i> Dates
+                                        <i class="fa-solid fa-calendar-day"></i> Dates
                                     </h6>
                                 </div>
                                 <div class="task-section-content">
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label fw-bold status-priority-label" style="font-size: 0.875rem;" id="start-date-label">
-                                                <i class="fas fa-calendar me-2" style="color: #0b365e;"></i>
+                                                <i class="fa-solid fa-calendar-day me-2" style="color: #0b365e;"></i>
                                                 Start Date
                                             </label>
                                             <input type="date" class="form-control dates-field" style="font-size: 0.875rem;" id="start-date-field" />
                                         </div>
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label fw-bold status-priority-label" style="font-size: 0.875rem;" id="due-date-label">
-                                                <i class="fas fa-calendar me-2" style="color: #0b365e;"></i>
+                                                <i class="fa-solid fa-calendar-day me-2" style="color: #0b365e;"></i>
                                                 Due Date
                                             </label>
                                             <input type="date" class="form-control dates-field" style="font-size: 0.875rem;" id="due-date-field" />
@@ -1363,7 +1401,7 @@
             <span>Tasks</span>
         </div>
         <div class="nav-item" data-view="planner">
-            <i class="fas fa-calendar"></i>
+            <i class="fa-solid fa-calendar-day"></i>
             <span>Planner</span>
         </div>
         <div class="nav-item" data-view="board">
@@ -1463,6 +1501,14 @@
             matters: @Html.Raw(Json.Serialize(Model.Matters)),
             users: @Html.Raw(Json.Serialize(Model.Users)),
             allTasks: @Html.Raw(Json.Serialize(Model.AllTasks))
+        };
+
+        // Pass current user data to JavaScript
+        window.currentUser = {
+            id: @ViewBag.CurrentUserId,
+            name: '@ViewBag.CurrentUserName',
+            initials: '@ViewBag.CurrentUserInitials',
+            email: '@ViewBag.CurrentUserEmail'
         };
 
         // Task Details Modal functionality
@@ -1587,8 +1633,10 @@
             initializeTaskCardButtons();
         });
 
-        // Matter selection state
+        // Matter selection state (for view filtering)
         let currentMatterId = null;
+        // Current task's matter ID (for task/subtask assignment filtering)
+        let currentTaskMatterId = null;
 
         // Initialize Matter Selector
         function initializeMatterSelector() {
@@ -1690,6 +1738,11 @@
                 localStorage.setItem('certio_selected_matter_id', 'all');
                 console.log('[Tasks] Switched to Viewing All Matters');
                 
+                // Show matter badges when viewing all matters
+                document.querySelectorAll('.task-matter-badge').forEach(badge => {
+                    badge.style.display = 'block';
+                });
+                
                 // Update top matter selector text
                 const topMatterSelectorText = document.getElementById('topMatterSelectorText');
                 if (topMatterSelectorText) {
@@ -1710,6 +1763,11 @@
             currentMatterId = matterId;
             localStorage.setItem('certio_selected_matter_id', matterId);
             console.log('[Tasks] Switched MatterId =', matterId);
+            
+            // Hide matter badges when viewing specific matter
+            document.querySelectorAll('.task-matter-badge').forEach(badge => {
+                badge.style.display = 'none';
+            });
 
             // Update top matter selector text
             const topMatterSelectorText = document.getElementById('topMatterSelectorText');
@@ -1825,6 +1883,30 @@
                 document.getElementById('statusDropdown').value = defaultStatus;
                 document.getElementById('status-field').value = defaultStatus;
                 updateTaskTitleIconFromModal(defaultStatus);
+                
+                // Set task matter ID for new tasks (use selected matter or first matter)
+                currentTaskMatterId = currentMatterId && currentMatterId !== 'all' 
+                    ? currentMatterId 
+                    : (window.tasksData?.matters?.[0]?.Id || window.tasksData?.matters?.[0]?.id || null);
+                
+                // Auto-add current user as the task creator
+                if (window.currentUser) {
+                    const creatorAssignment = {
+                        userId: window.currentUser.id,
+                        userName: window.currentUser.name,
+                        userInitials: window.currentUser.initials,
+                        userEmail: window.currentUser.email || '',
+                        assignmentType: 'Assignee',
+                        role: 'Task Creator'
+                    };
+                    
+                    // Set current and original assignments
+                    currentTaskAssignments = [creatorAssignment];
+                    originalTaskAssignments = [creatorAssignment];
+                    
+                    // Render the creator in the UI immediately
+                    renderTaskAssignees(currentTaskAssignments);
+                }
             }
             
             // Show modal
@@ -1858,6 +1940,9 @@
         
         // Clear task modal for new task creation
         function clearTaskModal() {
+            // Clear task matter ID
+            currentTaskMatterId = null;
+            
             // Clear title
             const taskTitle = document.querySelector('.task-title');
             if (taskTitle) {
@@ -2026,13 +2111,16 @@
                 return fallback;
             };
             
-            // Set task ID in title element for saving
+            // Set task ID and matter ID
             const taskTitle = document.querySelector('.task-title');
             if (taskTitle) {
                 const titleVal = getProp(task, ['title','Title'], '');
                 taskTitle.textContent = titleVal;
                 taskTitle.dataset.taskId = String(getId(task) ?? taskId);
             }
+            
+            // Store task's matter ID for assignment filtering
+            currentTaskMatterId = getProp(task, ['matterId','MatterId'], null);
             
             // Set description
             const descriptionField = document.querySelector('.task-description-textarea');
@@ -2174,9 +2262,14 @@
                             const formattedDate = `${monthNames[parseInt(month) - 1]} ${parseInt(day)}`;
                             
                             const isOverdue = dueDate < today && subtask.status !== 'Completed';
+                            const tomorrow = new Date(today);
+                            tomorrow.setDate(today.getDate() + 1);
+                            const isToday = dueDate.getTime() === today.getTime();
+                            const isTomorrow = dueDate.getTime() === tomorrow.getTime();
+                            const textColor = isOverdue ? '#c62828' : (isToday || isTomorrow ? '#1e1e1e' : '#6b7280');
                             dueDateHtml = `
-                                <span class="badge badge-sm" style="background-color: ${isOverdue ? '#ffebee' : '#f5f5f5'}; color: ${isOverdue ? '#c62828' : '#666'}; font-size: 0.7rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem;">
-                                    <i class="fas fa-calendar-alt" style="font-size: 0.65rem;"></i> ${formattedDate}
+                                <span class="badge badge-sm" style="background-color: ${isOverdue ? '#ffebee' : '#f5f5f5'}; color: ${textColor}; font-size: 0.7rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem;">
+                                    <i class="fa-solid fa-calendar-day" style="font-size: 0.65rem;"></i> ${formattedDate}
                                 </span>
                             `;
                         }
@@ -2253,7 +2346,9 @@
                     userId: a.userId,
                     userName: a.userName,
                     userInitials: a.userInitials,
-                    userEmail: a.userEmail || ''
+                    userEmail: a.userEmail || '',
+                    assignmentType: a.assignmentType || 'Assignee',
+                    role: a.role || ''
                 }));
                 // Keep a copy of original assignments to detect new ones later
                 originalTaskAssignments = JSON.parse(JSON.stringify(currentTaskAssignments));
@@ -2298,11 +2393,7 @@
                 return;
             }
             
-            // Validate that at least one assignee is selected
-            if (!currentTaskAssignments || currentTaskAssignments.length === 0) {
-                alert('Please assign at least one user to this task');
-                return;
-            }
+            // Note: Assignee validation removed - creator is auto-assigned on the server
             
             // Get all field values
             const description = document.querySelector('.task-description-textarea')?.value || '';
@@ -2413,8 +2504,11 @@
                     // Save task assignments
                     if (currentTaskAssignments && currentTaskAssignments.length > 0) {
                         if (!taskId) {
-                            // NEW task: save all assignments
-                            await saveTaskAssignments(savedTaskId);
+                            // NEW task: Only save non-creator assignments (server already auto-assigned creator)
+                            const nonCreatorAssignments = currentTaskAssignments.filter(a => a.role !== 'Task Creator');
+                            if (nonCreatorAssignments.length > 0) {
+                                await saveTaskAssignments(savedTaskId, nonCreatorAssignments);
+                            }
                         } else {
                             // EXISTING task: only save NEW assignments (not already in database)
                             const newAssignments = currentTaskAssignments.filter(current => 
@@ -2703,7 +2797,7 @@
                                     <i class="fas fa-user-plus"></i> Assign
                                 </button>
                                 <button class="btn btn-sm" id="dueDateSubtaskBtn" style="padding: 0.375rem 0.75rem; border: none; background: transparent; border-radius: 0.5rem;" onmouseover="this.style.backgroundColor='#eef1f3'" onmouseout="this.style.backgroundColor='transparent'">
-                                    <i class="far fa-calendar"></i> Due date
+                                    <i class="fa-solid fa-calendar-day"></i> Due date
                                 </button>
                             </div>
                         </div>
@@ -2732,19 +2826,7 @@
                             
                             const isValid = hasTitle && hasDueDate && hasAssignments;
                             
-                            // Update Add button state
-                            const addBtn = newSubtaskCard.querySelector('.add-subtask-btn');
-                            if (isValid) {
-                                addBtn.disabled = false;
-                                addBtn.classList.remove('btn-secondary');
-                                addBtn.classList.add('btn-primary');
-                            } else {
-                                addBtn.disabled = true;
-                                addBtn.classList.remove('btn-primary');
-                                addBtn.classList.add('btn-secondary');
-                            }
-                            
-                            // Only show validation messages if requested
+                            // Only show validation messages if requested (when Add button is clicked)
                             if (showMessages) {
                                 updateValidationMessages(hasTitle, hasDueDate, hasAssignments);
                             }
@@ -2778,9 +2860,8 @@
                         
                         // Handle Add button
                         const addBtn = newSubtaskCard.querySelector('.add-subtask-btn');
-                        addBtn.disabled = true; // Start disabled
-                        addBtn.classList.remove('btn-primary');
-                        addBtn.classList.add('btn-secondary');
+                        addBtn.disabled = false; // Always enabled
+                        addBtn.classList.add('btn-primary');
                         
                         addBtn.addEventListener('click', function() {
                             if (validateSubtaskForm(true)) { // Show messages when clicked
@@ -2819,11 +2900,11 @@
                                 
                                 // Format as MM/DD/YYYY to match the display format
                                 const formattedDate = `${month}/${day}/${year}`;
-                                dueDateBtn.innerHTML = '<i class="far fa-calendar"></i> ' + formattedDate;
+                                dueDateBtn.innerHTML = '<i class="fa-solid fa-calendar-day"></i> ' + formattedDate;
                                 dueDateBtn.style.color = '#0d6efd';
                             } else {
                                 selectedDueDate = null;
-                                dueDateBtn.innerHTML = '<i class="far fa-calendar"></i> Due date';
+                                dueDateBtn.innerHTML = '<i class="fa-solid fa-calendar-day"></i> Due date';
                                 dueDateBtn.style.color = '';
                             }
                             
@@ -2878,9 +2959,30 @@
                     userId: assignment.userId,
                     userName: assignment.userName,
                     userInitials: assignment.userName ? assignment.userName.split(' ').map(n => n[0]).join('').toUpperCase() : '??',
+                    userEmail: assignment.userEmail || '',
                     assignmentType: assignment.assignmentType || 'Assignee',
                     role: assignment.role || ''
                 }));
+                
+                // Auto-add subtask assignees to task assignees if they're not already assigned
+                transformedAssignments.forEach(assignment => {
+                    const isAlreadyAssigned = currentTaskAssignments.some(ta => ta.userId === assignment.userId);
+                    if (!isAlreadyAssigned) {
+                        currentTaskAssignments.push({
+                            userId: assignment.userId,
+                            userName: assignment.userName,
+                            userInitials: assignment.userInitials,
+                            userEmail: assignment.userEmail || '',
+                            assignmentType: 'Assignee',
+                            role: 'Subtask Assignee'
+                        });
+                    }
+                });
+                
+                // Update task assignees UI if any new assignees were added
+                if (transformedAssignments.length > 0) {
+                    renderTaskAssignees(currentTaskAssignments);
+                }
                 
                 // Create subtask object
                 const newSubtask = {
@@ -2949,18 +3051,24 @@
                     const formattedDate = `${monthNames[parseInt(month) - 1]} ${parseInt(day)}`;
                     
                     const isOverdue = dueDate < today && subtask.status !== 'Completed';
+                    const tomorrow = new Date(today);
+                    tomorrow.setDate(today.getDate() + 1);
+                    const isToday = dueDate.getTime() === today.getTime();
+                    const isTomorrow = dueDate.getTime() === tomorrow.getTime();
+                    const textColor = isOverdue ? '#c62828' : (isToday || isTomorrow ? '#1e1e1e' : '#6b7280');
                     dueDateHtml = `
-                        <span class="badge badge-sm" style="background-color: ${isOverdue ? '#ffebee' : '#f5f5f5'}; color: ${isOverdue ? '#c62828' : '#666'}; font-size: 0.7rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem;">
-                            <i class="fas fa-calendar-alt" style="font-size: 0.65rem;"></i> ${formattedDate}
+                        <span class="badge badge-sm" style="background-color: ${isOverdue ? '#ffebee' : '#f5f5f5'}; color: ${textColor}; font-size: 0.7rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem;">
+                            <i class="fa-solid fa-calendar-day" style="font-size: 0.65rem;"></i> ${formattedDate}
                         </span>
                     `;
                 }
                 
                 const subtaskItem = document.createElement('div');
-                subtaskItem.className = 'checklist-item' + (subtask.status === 'Completed' ? ' completed' : '');
+                const isCompleted = subtask.status === 'Completed';
+                subtaskItem.className = 'checklist-item' + (isCompleted ? ' completed' : '');
                 subtaskItem.dataset.subtaskId = subtask.id;
                 subtaskItem.dataset.isExisting = 'true'; // Mark as existing subtask
-                item.innerHTML = `
+                subtaskItem.innerHTML = `
                     <div style="display: flex; align-items: center; width: 100%; padding: 0.5rem 0;">
                         <div style="display: flex; align-items: center; flex: 1; min-width: 0;">
                             <input type="checkbox" class="form-check-input subtask-checkbox" ${isCompleted ? 'checked' : ''} style="margin-right: 0.5rem;">
@@ -3082,11 +3190,19 @@
                 
                 popup.innerHTML = `
                     <div class="mb-2">
-                        <div class="d-flex align-items-center mb-2">
-                            <i class="fas fa-search me-2" style="color: #0b365e; font-size: 1rem;"></i>
-                            <div>
-                                <h6 class="fw-bold text-dark mb-0" style="font-size: 0.9rem;">Find users or groups</h6>
-                                <p class="text-muted mb-0" style="font-size: 0.75rem;">Search and select specific users for matter access.</p>
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-search me-2" style="color: #0b365e; font-size: 1rem;"></i>
+                                <div>
+                                    <h6 class="fw-bold text-dark mb-0" style="font-size: 0.9rem;">Find users or groups</h6>
+                                    <p class="text-muted mb-0" style="font-size: 0.75rem;">Search and select specific users for matter access.</p>
+                                </div>
+                            </div>
+                            <div style="position: relative;">
+                                <i class="far fa-question-circle subtask-hint-icon" style="color: #6c757d; font-size: 1.2rem; cursor: help;"></i>
+                                <div class="subtask-hint-tooltip" style="display: none; position: absolute; right: 0; top: 25px; background: white; border: 1px solid #dee2e6; border-radius: 0.5rem; padding: 0.5rem 0.75rem; width: 250px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 1001; font-size: 0.75rem; color: #495057;">
+                                    Not seeing the user you're looking for? You may need to assign them to this selected matter first.
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -3128,8 +3244,38 @@
                 const selectedUsersList = popup.querySelector('#subtaskSelectedUsersList');
                 const searchInput = popup.querySelector('#subtaskUserSearch');
                 
+                // Add hover handlers for hint icon
+                const hintIcon = popup.querySelector('.subtask-hint-icon');
+                const hintTooltip = popup.querySelector('.subtask-hint-tooltip');
+                
+                if (hintIcon && hintTooltip) {
+                    hintIcon.addEventListener('mouseenter', function() {
+                        this.classList.remove('far');
+                        this.classList.add('fas');
+                        hintTooltip.style.display = 'block';
+                    });
+                    
+                    hintIcon.addEventListener('mouseleave', function() {
+                        this.classList.remove('fas');
+                        this.classList.add('far');
+                        hintTooltip.style.display = 'none';
+                    });
+                }
+                
                 // Get users from window.tasksData
-                const users = window.tasksData?.users || [];
+                const allUsers = window.tasksData?.users || [];
+                
+                // Filter users by the TASK's matter (not the view filter)
+                let users = allUsers;
+                const matters = window.tasksData?.matters || [];
+                
+                if (currentTaskMatterId) {
+                    // Show only users assigned to this task's matter
+                    const taskMatter = matters.find(m => m.id === currentTaskMatterId || m.Id === currentTaskMatterId);
+                    if (taskMatter && taskMatter.assignedUserIds) {
+                        users = allUsers.filter(u => taskMatter.assignedUserIds.includes(u.id));
+                    }
+                }
                 
                 function renderUsers(filterText = '') {
                     const filtered = users.filter(u => 
@@ -3326,11 +3472,19 @@
             
             popup.innerHTML = `
                 <div class="mb-2">
-                    <div class="d-flex align-items-center mb-2">
-                        <i class="fas fa-search me-2" style="color: #0b365e; font-size: 1rem;"></i>
-                        <div>
-                            <h6 class="fw-bold text-dark mb-0" style="font-size: 0.9rem;">Find users or groups</h6>
-                            <p class="text-muted mb-0" style="font-size: 0.75rem;">Search and select assignees for this task.</p>
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-search me-2" style="color: #0b365e; font-size: 1rem;"></i>
+                            <div>
+                                <h6 class="fw-bold text-dark mb-0" style="font-size: 0.9rem;">Find users or groups</h6>
+                                <p class="text-muted mb-0" style="font-size: 0.75rem;">Search and select assignees for this task.</p>
+                            </div>
+                        </div>
+                        <div style="position: relative;">
+                            <i class="far fa-question-circle task-hint-icon" style="color: #6c757d; font-size: 1.2rem; cursor: help;"></i>
+                            <div class="task-hint-tooltip" style="display: none; position: absolute; right: 0; top: 25px; background: white; border: 1px solid #dee2e6; border-radius: 0.5rem; padding: 0.5rem 0.75rem; width: 250px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 1001; font-size: 0.75rem; color: #495057;">
+                                Not seeing the user you're looking for? You may need to assign them to this selected matter first.
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -3372,8 +3526,38 @@
             const selectedUsersList = popup.querySelector('#taskSelectedUsersList');
             const searchInput = popup.querySelector('#taskUserSearch');
             
+            // Add hover handlers for hint icon
+            const hintIcon = popup.querySelector('.task-hint-icon');
+            const hintTooltip = popup.querySelector('.task-hint-tooltip');
+            
+            if (hintIcon && hintTooltip) {
+                hintIcon.addEventListener('mouseenter', function() {
+                    this.classList.remove('far');
+                    this.classList.add('fas');
+                    hintTooltip.style.display = 'block';
+                });
+                
+                hintIcon.addEventListener('mouseleave', function() {
+                    this.classList.remove('fas');
+                    this.classList.add('far');
+                    hintTooltip.style.display = 'none';
+                });
+            }
+            
             // Get users from window.tasksData
-            const users = window.tasksData?.users || [];
+            const allUsers = window.tasksData?.users || [];
+            
+            // Filter users by the TASK's matter (not the view filter)
+            let users = allUsers;
+            const matters = window.tasksData?.matters || [];
+            
+            if (currentTaskMatterId) {
+                // Show only users assigned to this task's matter
+                const taskMatter = matters.find(m => m.id === currentTaskMatterId || m.Id === currentTaskMatterId);
+                if (taskMatter && taskMatter.assignedUserIds) {
+                    users = allUsers.filter(u => taskMatter.assignedUserIds.includes(u.id));
+                }
+            }
             
             function renderUsers(filterText = '') {
                     const filtered = users.filter(u => 
@@ -3495,8 +3679,9 @@
                 
                 container.innerHTML = assignments.map(assignment => {
                     const initials = assignment.userInitials || assignment.userName.split(' ').map(n => n[0]).join('').toUpperCase();
+                    const tooltip = assignment.role ? `${assignment.userName} (${assignment.role})` : assignment.userName;
                     return `
-                        <div class="member-avatar" title="${assignment.userName}">
+                        <div class="member-avatar" title="${tooltip}">
                             ${initials}
                         </div>
                     `;
@@ -4467,12 +4652,19 @@
             const isAllViews = tasksContent.classList.contains('all-views');
             
             if (!isMultiView) {
-                // In single view mode, remove any inline max-width styles
+                // In single view mode (most space available), allow largest badge width
                 const inboxTaskCards = inboxView.querySelectorAll('.inbox-task-card');
                 inboxTaskCards.forEach(card => {
                     const titleColumn = card.querySelector('.task-title-column');
                     if (titleColumn) {
                         titleColumn.style.maxWidth = '';
+                        const badgeSpan = card.querySelector('.task-matter-badge span');
+                        if (badgeSpan) {
+                            const width = titleColumn.offsetWidth;
+                            if (width && width > 0) {
+                                badgeSpan.style.maxWidth = `${Math.floor(width * 0.95)}px`;
+                            }
+                        }
                     }
                 });
                 return;
@@ -4482,15 +4674,23 @@
             const inboxTaskCards = inboxView.querySelectorAll('.inbox-task-card');
             
             if (isAllViews) {
-                // In 3-view mode: remove any max-width constraints to allow natural wrapping
+                // In 3-view mode (least space available): use smallest badge width
                 inboxTaskCards.forEach(card => {
                     const titleColumn = card.querySelector('.task-title-column');
                     if (titleColumn) {
                         titleColumn.style.maxWidth = '';
                     }
+                    // Badge width is smallest at 50% of the title column width
+                    const badgeSpan = card.querySelector('.task-matter-badge span');
+                    if (badgeSpan && titleColumn) {
+                        const width = titleColumn.offsetWidth;
+                        if (width && width > 0) {
+                            badgeSpan.style.maxWidth = `${Math.floor(width * 0.5)}px`;
+                        }
+                    }
                 });
             } else {
-                // In 2-view mode: calculate space for title dynamically
+                // In 2-view mode (medium space available): use medium badge width
                 inboxTaskCards.forEach(card => {
                     const titleColumn = card.querySelector('.task-title-column');
                     if (titleColumn) {
@@ -4503,6 +4703,11 @@
                         const calculatedWidth = Math.max(minWidth, availableWidth);
                         
                         titleColumn.style.maxWidth = `${calculatedWidth}px`;
+                        // Badge should be 70% of title width (medium)
+                        const badgeSpan = card.querySelector('.task-matter-badge span');
+                        if (badgeSpan) {
+                            badgeSpan.style.maxWidth = `${Math.floor(calculatedWidth * 0.7)}px`;
+                        }
                     }
                 });
             }

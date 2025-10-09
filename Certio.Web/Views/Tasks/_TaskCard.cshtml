@@ -46,6 +46,12 @@
                              aria-valuemin="0" 
                              aria-valuemax="@Model.TotalSubTasks"></div>
                     </div>
+                    @if (Model.UrgentSubTasksCount > 0)
+                    {
+                        <div class="urgent-subtasks-badge" title="@Model.UrgentSubTasksCount subtask(s) due today or tomorrow">
+                            @Model.UrgentSubTasksCount
+                        </div>
+                    }
                 </div>
             </div>
         }
@@ -53,9 +59,11 @@
         <div class="task-card-footer">
             @if (Model.DueDate.HasValue)
             {
-                <div class="task-due @(Model.IsOverdue ? "overdue" : "")">
-                    <i class="fas fa-calendar"></i>
-                    <span>@Model.DueDateFormatted</span>
+                var daysUntilDue = (Model.DueDate.Value - DateTime.UtcNow).Days;
+                var dateClass = daysUntilDue < 0 ? "overdue" : (daysUntilDue <= 1 ? "text-dark" : "text-muted");
+                <div class="task-due @(daysUntilDue < 0 ? "overdue" : "")">
+                    <i class="fa-solid fa-calendar-day"></i>
+                    <span class="@dateClass">@Model.DueDateFormatted</span>
                 </div>
             }
             else
@@ -66,16 +74,16 @@
             @if (Model.Assignments.Any())
             {
                 <div class="task-assignees">
-                    @foreach (var assignment in Model.Assignments.Take(3))
+                    @foreach (var assignment in Model.Assignments.Take(2))
                     {
                         <div class="assignee-avatar" title="@assignment.UserName">
                             @assignment.UserInitials
                         </div>
                     }
-                    @if (Model.Assignments.Count > 3)
+                    @if (Model.Assignments.Count > 2)
                     {
                         <div class="assignee-avatar">
-                            +@(Model.Assignments.Count - 3)
+                            +@(Model.Assignments.Count - 2)
                         </div>
                     }
                 </div>

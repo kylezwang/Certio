@@ -49,6 +49,25 @@ namespace Certio.Web.ViewModels
         public string DueDateFormatted => DueDate?.ToString("MMM dd, yyyy") ?? "";
         public bool IsOverdue => DueDate.HasValue && DueDate.Value < DateTime.Now && Status != "Completed";
         public string ProgressPercentage => TotalSubTasks > 0 ? $"{(CompletedSubTasks * 100 / TotalSubTasks)}%" : "0%";
+        
+        // Count of subtasks due today or tomorrow
+        public int UrgentSubTasksCount
+        {
+            get
+            {
+                if (SubTasks == null || !SubTasks.Any()) return 0;
+                
+                var now = DateTime.UtcNow.Date;
+                var tomorrow = now.AddDays(1);
+                var dayAfterTomorrow = now.AddDays(2);
+                
+                return SubTasks.Count(st => 
+                    st.DueDate.HasValue && 
+                    st.Status != "Completed" &&
+                    st.DueDate.Value.Date >= now && 
+                    st.DueDate.Value.Date < dayAfterTomorrow);
+            }
+        }
     }
     
     public class TaskAssignmentViewModel
@@ -79,6 +98,7 @@ namespace Certio.Web.ViewModels
         public int Id { get; set; }
         public string Title { get; set; } = "";
         public string PracticeArea { get; set; } = "";
+        public List<int> AssignedUserIds { get; set; } = new List<int>();
     }
     
     public class UserOption
