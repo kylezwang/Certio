@@ -44,6 +44,53 @@
 
 <link rel="stylesheet" href="~/css/tasks.css" />
 
+<script>
+    // Pre-filter tasks IMMEDIATELY to prevent any flash
+    (function() {
+        const savedMatterId = localStorage.getItem('certio_selected_matter_id');
+        if (savedMatterId && savedMatterId !== 'all') {
+            const matterId = parseInt(savedMatterId);
+            if (!isNaN(matterId) && matterId > 0) {
+                // Inject CSS immediately using document.write (runs synchronously before page render)
+                document.write(`
+                    <style id="matter-prefilter">
+                        .task-card-item:not([data-matter-id="${matterId}"]),
+                        .task-card:not([data-matter-id="${matterId}"]) {
+                            display: none !important;
+                        }
+                        .task-matter-badge {
+                            display: none !important;
+                        }
+                        .inbox-status-section {
+                            visibility: hidden;
+                        }
+                    </style>
+                `);
+                
+                // Hide empty sections as soon as DOM is ready (but before DOMContentLoaded)
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', hideSections);
+                } else {
+                    hideSections();
+                }
+                
+                function hideSections() {
+                    const sections = document.querySelectorAll('.inbox-status-section');
+                    sections.forEach(section => {
+                        const tasks = section.querySelectorAll('.task-card-item[data-matter-id="${matterId}"]');
+                        if (tasks.length > 0) {
+                            section.style.visibility = 'visible';
+                            section.style.display = '';
+                        } else {
+                            section.style.display = 'none';
+                        }
+                    });
+                }
+            }
+        }
+    })();
+</script>
+
 <div class="tasks-page">
     <!-- Main Content Container -->
     <div class="tasks-content" style="position: relative;">
@@ -81,13 +128,56 @@
                 </div>
 
                 <!-- Add Card Button -->
-                <div class="add-card-container">
-                    <button class="add-card-button" id="addTaskButton">
-                        <div class="add-card-icon">
-                            <i class="fas fa-plus"></i>
+                <div class="add-card-outer-container">
+                    <div class="add-card-container">
+                        <button class="add-card-button" id="addTaskButton">
+                            <div class="add-card-icon">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                            <span class="add-card-text">Add a task</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Column Headers Row - Using task card structure for perfect alignment -->
+                    <div class="task-card-item inbox-task-card task-column-header-card" style="background: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); padding: 0.6rem 1rem 0.2rem 1rem; margin-bottom: 0;" onclick="event.stopPropagation();">
+                        <!-- Checkbox Column -->
+                        <div class="task-checkbox-column">
                         </div>
-                        <span class="add-card-text">Add a task</span>
-                    </button>
+                        
+                        <!-- Title Column -->
+                        <div class="task-title-column">
+                            <button class="column-header-btn" style="padding: 0.375rem 0.5rem; border: none; background: white; color: #2d3748; font-size: 0.75rem; font-weight: 600; border-radius: 0.5rem; cursor: pointer; text-align: left; width: 100%;">Title</button>
+                        </div>
+                        
+                        <!-- Align Column -->
+                        <div class="task-align-column">
+                        </div>
+                        
+                        <!-- Priority Column -->
+                        <div class="task-priority-column">
+                            <button class="column-header-btn" style="padding: 0.375rem 0.5rem; border: none; background: white; color: #2d3748; font-size: 0.75rem; font-weight: 600; border-radius: 0.5rem; cursor: pointer; text-align: center; width: 100%;">Priority</button>
+                        </div>
+                        
+                        <!-- Due Date Column -->
+                        <div class="task-due-date-column">
+                            <button class="column-header-btn" style="padding: 0.375rem 0.5rem; border: none; background: white; color: #2d3748; font-size: 0.75rem; font-weight: 600; border-radius: 0.5rem; cursor: pointer; text-align: center; width: 100%;">Due Date</button>
+                        </div>
+                        
+                        <!-- Subtask Progress Column -->
+                        <div class="task-progress-column">
+                            <button class="column-header-btn" style="padding: 0.375rem 0.5rem; border: none; background: white; color: #2d3748; font-size: 0.75rem; font-weight: 600; border-radius: 0.5rem; cursor: pointer; text-align: center; width: 100%;">Progress</button>
+                        </div>
+                        
+                        <!-- Action Buttons Column -->
+                        <div class="task-actions-column">
+                            <button class="column-header-btn" style="padding: 0.375rem 0.5rem; border: none; background: white; color: #2d3748; font-size: 0.75rem; font-weight: 600; border-radius: 0.5rem; cursor: pointer; text-align: center; width: 100%;">Actions</button>
+                        </div>
+                        
+                        <!-- Assignees Column -->
+                        <div class="task-assignees-column">
+                            <button class="column-header-btn" style="padding: 0.375rem 0.25rem; border: none; background: white; color: #2d3748; font-size: 0.75rem; font-weight: 600; border-radius: 0.5rem; cursor: pointer; text-align: center; width: 100%;">Assignees</button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Task Cards -->
@@ -651,7 +741,7 @@
         <div class="view-resizer" id="inboxPlannerResizer" data-left-view="inboxView" data-right-view="plannerView"></div>
         
         <!-- Planner View -->
-        <div class="view-container" id="plannerView">
+        <div class="view-container d-none" id="plannerView">
             <div class="planner-container">
                 <!-- Calendar Navigation Header -->
                 <div class="calendar-header">
@@ -963,7 +1053,7 @@
         <div class="view-resizer" id="plannerBoardResizer" data-left-view="plannerView" data-right-view="boardView"></div>
         
         <!-- Board View -->
-        <div class="view-container" id="boardView">
+        <div class="view-container d-none" id="boardView">
             <div class="kanban-board-container">
                 <div class="kanban-board" id="kanbanBoardFull">
                     <!-- Planned Column -->
@@ -1649,10 +1739,28 @@
 
             // Load saved matter from localStorage or default to "View All Matters"
             const savedMatterId = localStorage.getItem('certio_selected_matter_id');
+            
             if (savedMatterId === 'all') {
                 selectMatter('all');
-            } else if (savedMatterId && window.tasksData.matters.find(m => m.Id == savedMatterId)) {
-                selectMatter(parseInt(savedMatterId));
+            } else if (savedMatterId && window.tasksData && window.tasksData.matters) {
+                // Check all possible ways the matter might be stored (Id vs id for JSON serialization)
+                const savedMatterIdNum = parseInt(savedMatterId);
+                const foundMatter = window.tasksData.matters.find(m => 
+                    m.Id === savedMatterIdNum || 
+                    m.Id === savedMatterId ||
+                    m.Id == savedMatterIdNum ||
+                    m.Id == savedMatterId ||
+                    m.id === savedMatterIdNum ||
+                    m.id === savedMatterId ||
+                    m.id == savedMatterIdNum ||
+                    m.id == savedMatterId
+                );
+                
+                if (foundMatter) {
+                    selectMatter(parseInt(savedMatterId));
+                } else {
+                    selectMatter('all');
+                }
             } else {
                 // Default to "View All Matters" when loading fresh
                 selectMatter('all');
@@ -1733,10 +1841,15 @@
 
         // Select a matter and filter tasks
         function selectMatter(matterId) {
+            // Remove prefilter style if it exists
+            const prefilterStyle = document.getElementById('matter-prefilter');
+            if (prefilterStyle) {
+                prefilterStyle.remove();
+            }
+            
             if (matterId === 'all') {
                 currentMatterId = 'all';
                 localStorage.setItem('certio_selected_matter_id', 'all');
-                console.log('[Tasks] Switched to Viewing All Matters');
                 
                 // Show matter badges when viewing all matters
                 document.querySelectorAll('.task-matter-badge').forEach(badge => {
@@ -1747,7 +1860,6 @@
                 const topMatterSelectorText = document.getElementById('topMatterSelectorText');
                 if (topMatterSelectorText) {
                     topMatterSelectorText.textContent = 'Viewing All Matters';
-                    console.log('Updated top matter selector text to: Viewing All Matters');
                 }
                 
                 // Show all tasks
@@ -1762,7 +1874,6 @@
             }
             currentMatterId = matterId;
             localStorage.setItem('certio_selected_matter_id', matterId);
-            console.log('[Tasks] Switched MatterId =', matterId);
             
             // Hide matter badges when viewing specific matter
             document.querySelectorAll('.task-matter-badge').forEach(badge => {
@@ -1772,9 +1883,6 @@
             // Update top matter selector text
             const topMatterSelectorText = document.getElementById('topMatterSelectorText');
             if (topMatterSelectorText && window.tasksData?.matters) {
-                console.log('Available matters:', window.tasksData.matters);
-                console.log('Looking for matter ID:', matterId, 'Type:', typeof matterId);
-                
                 // Try different property name variations
                 let selectedMatter = window.tasksData.matters.find(m => m.Id == matterId);
                 if (!selectedMatter) {
@@ -1790,13 +1898,7 @@
                 if (selectedMatter) {
                     const title = selectedMatter.Title || selectedMatter.title || selectedMatter.Name || selectedMatter.name;
                     topMatterSelectorText.textContent = title;
-                    console.log('Updated top matter selector text to:', title);
-                } else {
-                    console.log('Selected matter not found for ID:', matterId);
-                    console.log('Available matter IDs:', window.tasksData.matters.map(m => ({ Id: m.Id, id: m.id, MatterId: m.MatterId, matterId: m.matterId })));
                 }
-            } else {
-                console.log('topMatterSelectorText element or matters data not found');
             }
 
             // Filter inbox tasks
@@ -1811,6 +1913,15 @@
                 task.style.display = '';
             });
 
+            // Show all inbox sections
+            const inboxSections = document.querySelectorAll('.inbox-status-section');
+            inboxSections.forEach(section => {
+                section.style.display = '';
+            });
+
+            // Update inbox section counts to original values
+            updateInboxSectionCounts('all');
+
             // Show all board cards
             const boardCards = document.querySelectorAll('.kanban-board .task-card');
             boardCards.forEach(card => {
@@ -1819,8 +1930,6 @@
 
             // Update column counts
             updateBoardColumnCountsLocal();
-            
-            console.log('[Tasks] Showing all tasks across all matters');
         }
 
         // Filter tasks by matter across views
@@ -1837,6 +1946,9 @@
                     task.style.display = 'none';
                 }
             });
+
+            // Handle inbox sections (hide empty sections and update counts)
+            updateInboxSectionCounts(matterId);
 
             // Empty state handling
             const emptyState = document.querySelector('.task-cards-container .text-center.text-muted');
@@ -1865,6 +1977,42 @@
                 const visibleCards = Array.from(column.querySelectorAll('.task-card')).filter(el => el.style.display !== 'none');
                 const badge = column.querySelector('.badge');
                 if (badge) badge.textContent = visibleCards.length;
+            });
+        }
+
+        // Update inbox section counts and visibility based on filtered tasks
+        function updateInboxSectionCounts(matterIdOrAll) {
+            const sections = document.querySelectorAll('.inbox-status-section');
+            
+            sections.forEach(section => {
+                const tasksContainer = section.querySelector('.inbox-status-tasks');
+                if (!tasksContainer) return;
+                
+                // Count visible tasks in this section
+                const tasks = tasksContainer.querySelectorAll('.task-card-item');
+                let visibleCount = 0;
+                
+                tasks.forEach(task => {
+                    if (task.style.display !== 'none') {
+                        visibleCount++;
+                    }
+                });
+                
+                // Update the badge count
+                const badge = section.querySelector('.badge');
+                if (badge) {
+                    // Extract the status name from the badge text (e.g., "Planned (5)" -> "Planned")
+                    const badgeText = badge.textContent;
+                    const statusName = badgeText.split('(')[0].trim();
+                    badge.textContent = `${statusName} (${visibleCount})`;
+                }
+                
+                // Hide section if no visible tasks, show if has tasks
+                if (visibleCount === 0) {
+                    section.style.display = 'none';
+                } else {
+                    section.style.display = '';
+                }
             });
         }
         
@@ -4075,6 +4223,45 @@
                 }
             }
             
+            function handleAddButtonPosition() {
+                const addCardContainer = document.querySelector('.add-card-container');
+                const addCardOuterContainer = document.querySelector('.add-card-outer-container');
+                const inboxContainer = document.querySelector('.inbox-container');
+                
+                if (!addCardContainer || !addCardOuterContainer || !inboxContainer) return;
+                
+                // Check if we're in all-views mode
+                const isAllViews = tasksContent.classList.contains('all-views');
+                
+                if (isAllViews) {
+                    // Move add button outside the outer container if not already moved
+                    if (addCardContainer.parentElement === addCardOuterContainer) {
+                        // Store the original parent for later restoration
+                        addCardContainer.dataset.originalParent = 'add-card-outer-container';
+                        
+                        // Insert the add button container before the outer container
+                        addCardOuterContainer.parentElement.insertBefore(addCardContainer, addCardOuterContainer);
+                        
+                        // Add some margin to the moved button
+                        addCardContainer.style.marginBottom = '0.5rem';
+                    }
+                } else {
+                    // Move button back to original position if it was moved
+                    if (addCardContainer.dataset.originalParent === 'add-card-outer-container' && 
+                        addCardContainer.parentElement !== addCardOuterContainer) {
+                        
+                        // Move it back as the first child of the outer container
+                        addCardOuterContainer.insertBefore(addCardContainer, addCardOuterContainer.firstChild);
+                        
+                        // Remove the temporary margin
+                        addCardContainer.style.marginBottom = '';
+                        
+                        // Clean up the data attribute
+                        delete addCardContainer.dataset.originalParent;
+                    }
+                }
+            }
+            
             function updateViewLayout() {
                 // Update navbar visual state
                 navItems.forEach(nav => {
@@ -4134,6 +4321,9 @@
                         tasksContent.classList.add('all-views');
                     }
                 }
+                
+                // Handle Add button positioning for all-views mode
+                handleAddButtonPosition();
                 
                 // Update resizer visibility based on active views
                 updateResizerVisibility(activeViews);

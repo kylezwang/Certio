@@ -431,7 +431,7 @@
 .tasks-page .text-warning,
 .kanban-board-container .text-warning,
 .task-card .text-warning {
-    color: #1e1e1e !important; /* darker orange */
+    color: rgba(var(--bs-warning-rgb),var(--bs-bg-opacity)); /* darker orange */
 }
 .tasks-page .text-warning i,
 .kanban-board-container .text-warning i,
@@ -685,6 +685,9 @@
     transition: all 0.3s ease;
 }
 
+/* Views are hidden by default with d-none class in HTML */
+/* JavaScript will remove d-none to show them when needed */
+
 /* Multi-view layout classes */
 .tasks-content.multi-view {
     display: flex;
@@ -858,20 +861,29 @@
 }
 
 /* Add Card Button */
+.add-card-outer-container {
+    background: white;
+    border-radius: 8px;
+    padding: 0.75rem 0rem 0.4rem 0rem;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 .add-card-container {
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.5rem;
 }
 
 .add-card-button {
-    width: 100%;
+    width: 95%;
+    margin: 0 auto;
     padding: 0.75rem 1rem;
     border: none;
-    border-radius: 8px;
-    background: white;
+    border-radius: 12px;
+    background: #fff;
     color: #4a5568;
     font-size: 0.9rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    transition: transform 0.2s ease, background-color 0.2s ease;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -880,8 +892,9 @@
 }
 
 .add-card-button:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    background: #f8f9fa;
+    background-color: #eef1f3;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2) !important;
 }
 
 .add-card-icon {
@@ -891,6 +904,35 @@
 
 .add-card-text {
     color: #4a5568;
+}
+
+/* Column Headers Row - Using task card structure for perfect alignment */
+.task-column-header-card {
+    pointer-events: auto !important; /* Allow clicks on header buttons */
+    cursor: default !important; /* Change cursor for header row */
+    margin-bottom: 0.5rem;
+}
+
+.task-column-header-card:hover {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important; /* Keep same shadow on hover */
+    transform: none !important; /* No transform on hover */
+}
+
+.column-header-btn {
+    padding: 0.375rem 0.5rem;
+    border: none;
+    background: white;
+    color: #2d3748;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    pointer-events: auto;
+}
+
+.column-header-btn:hover {
+    background-color: #eef1f3 !important;
 }
 
 /* Task Details Modal */
@@ -2821,6 +2863,12 @@
     flex: 0 0 auto;
     width: auto;
     min-width: 60px;
+}
+
+/* Hide entire add-card-outer-container in all-views mode */
+/* JavaScript will move the Add button outside this container */
+.tasks-content.all-views .add-card-outer-container {
+    display: none !important;
 }
 
 /* When all 3 views are selected - wrap to 2 rows */
