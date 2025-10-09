@@ -619,7 +619,7 @@ namespace Certio.Web.Controllers
                     _context.Organizations.Add(org);
                     await _context.SaveChangesAsync();
                     organizationId = org.Id;
-                    userType = Certio.Domain.Users.UserTypes.Client;
+                    userType = Certio.Domain.Users.UserTypes.LawFirm;
                     organizationRole = Certio.Domain.Users.OrganizationRoles.Owner;
                 }
                 else

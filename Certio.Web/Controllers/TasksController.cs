@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Certio.Web.ViewModels;
 using Certio.Domain.Matters;
 using Certio.Domain.Tasks;
+using Certio.Domain.Users;
+using Certio.Domain.Organizations;
 using Certio.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
@@ -55,15 +57,46 @@ namespace Certio.Web.Controllers
             ViewBag.GoogleMapsApiKey = _googleMapsConfig.ApiKey;
             ViewBag.GoogleMapsEnabled = _googleMapsConfig.Enabled;
             
+            // Set current user data for JavaScript
+            ViewBag.CurrentUserId = customUser.Id;
+            ViewBag.CurrentUserName = $"{customUser.FirstName} {customUser.LastName}";
+            ViewBag.CurrentUserInitials = $"{customUser.FirstName[0]}{customUser.LastName[0]}".ToUpper();
+            ViewBag.CurrentUserEmail = customUser.Email ?? "";
+            
             var org = await _context.Organizations
                 .Where(o => o.Id == organizationId)
                 .FirstOrDefaultAsync();
             
             ViewBag.OrganizationName = org?.Name ?? "Client";
 
-            // Get all tasks for the organization
-            var tasks = await _context.TaskItems
-                .Where(t => t.OrgId == organizationId)
+            // Get matters from the user's organization AND from client organizations they have relationships with
+            var userOrgMembership = customUser.GetOrganizationMembership(organizationId);
+            var isLawFirmUser = userOrgMembership?.UserType == UserTypes.LawFirm;
+
+            // Initialize client organization IDs list
+            var clientOrgIds = new List<int>();
+
+            // Get tasks from the user's organization AND from client organizations they have relationships with
+            IQueryable<TaskItem> tasksQuery = _context.TaskItems
+                .Where(t => t.OrgId == organizationId);  // Own organization tasks
+
+            if (isLawFirmUser)
+            {
+                // Get all client organizations this law firm has relationships with
+                clientOrgIds = await _context.OrganizationRelationships
+                    .Where(r => r.SourceOrganizationId == organizationId &&
+                               r.RelationshipType == RelationshipTypes.LawFirmClient &&
+                               r.IsActive && !r.IsDeleted &&
+                               (!r.ExpiresAt.HasValue || r.ExpiresAt.Value > DateTime.UtcNow))
+                    .Select(r => r.TargetOrganizationId)
+                    .ToListAsync();
+
+                // Include tasks from all connected client organizations
+                tasksQuery = _context.TaskItems
+                    .Where(t => t.OrgId == organizationId || clientOrgIds.Contains(t.OrgId));
+            }
+
+            var tasks = await tasksQuery
                 .Include(t => t.Matter)
                 .Include(t => t.TaskAssignments)
                     .ThenInclude(ta => ta.User)
@@ -75,6 +108,19 @@ namespace Certio.Web.Controllers
                 .OrderBy(t => t.Order)
                 .ToListAsync();
 
+            IQueryable<Matter> mattersQuery = _context.Matters
+                .Include(m => m.Assignments)
+                .Where(m => m.OrganizationId == organizationId);  // Own organization matters
+
+            if (isLawFirmUser)
+            {
+                // Use the same clientOrgIds we already fetched for tasks
+                // Include matters from all connected client organizations
+                mattersQuery = _context.Matters
+                    .Include(m => m.Assignments)
+                    .Where(m => m.OrganizationId == organizationId || clientOrgIds.Contains(m.OrganizationId));
+            }
+
             var viewModel = new TasksViewModel
             {
                 AllTasks = tasks.Select(t => MapToViewModel(t)).ToList(),
@@ -82,13 +128,14 @@ namespace Certio.Web.Controllers
                 InProgressTasks = tasks.Where(t => t.Status == "InProgress").Select(t => MapToViewModel(t)).ToList(),
                 ReviewTasks = tasks.Where(t => t.Status == "Review").Select(t => MapToViewModel(t)).ToList(),
                 CompletedTasks = tasks.Where(t => t.Status == "Completed").Select(t => MapToViewModel(t)).ToList(),
-                Matters = await _context.Matters
-                    .Where(m => m.OrganizationId == organizationId)
+                Matters = await mattersQuery
+                    .OrderBy(m => m.Title)
                     .Select(m => new MatterOption
                     {
                         Id = m.Id,
                         Title = m.Title,
-                        PracticeArea = m.PracticeArea
+                        PracticeArea = m.PracticeArea,
+                        AssignedUserIds = m.Assignments.Select(a => a.UserId).ToList()
                     })
                     .ToListAsync(),
                 Users = await _context.UserOrganizations
@@ -123,9 +170,18 @@ namespace Certio.Web.Controllers
                 return Json(new { success = false, message = "Organization not found" });
             }
 
+            // Get the matter to determine the correct organization
+            var matter = await _context.Matters
+                .FirstOrDefaultAsync(m => m.Id == request.MatterId);
+
+            if (matter == null)
+            {
+                return Json(new { success = false, message = "Matter not found" });
+            }
+
             var taskItem = new TaskItem
             {
-                OrgId = primaryOrg.OrganizationId,
+                OrgId = matter.OrganizationId,
                 MatterId = request.MatterId,
                 Title = request.Title,
                 Description = request.Description,
@@ -139,6 +195,18 @@ namespace Certio.Web.Controllers
             };
 
             _context.TaskItems.Add(taskItem);
+            await _context.SaveChangesAsync();
+
+            // Auto-assign the creator to ensure visibility and notifications
+            var creatorAssignment = new TaskAssignment
+            {
+                TaskItemId = taskItem.Id,
+                UserId = customUser.Id,
+                AssignmentType = "Assignee",
+                Role = "Task Creator",
+                AssignedAt = DateTime.UtcNow
+            };
+            _context.TaskAssignments.Add(creatorAssignment);
             await _context.SaveChangesAsync();
 
             return Json(new { success = true, taskId = taskItem.Id });

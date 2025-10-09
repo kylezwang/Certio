@@ -362,6 +362,7 @@
     align-items: center;
     gap: 0.5rem;
     width: 100%;
+    position: relative;
 }
 
 .task-progress .progress {
@@ -378,10 +379,28 @@
     transition: width 0.3s;
 }
 
+.urgent-subtasks-badge {
+    position: absolute;
+    top: -0.6rem;
+    right: -0.75rem;
+    background-color: #dc3545;
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
 .task-due {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
     font-size: 0.75em;
 }
 
@@ -395,6 +414,51 @@
     justify-content: space-between;
     align-items: center;
     border-top: 1px solid #f0f0f0;
+}
+
+/* =============================== */
+/* Tasks - Dates and Title Tweaks  */
+/* =============================== */
+
+/* Ensure the calendar icon has the same spacing (0.6rem) everywhere */
+.task-due i,
+.task-card-date-btn i,
+.task-inbox .task-due-date-column i {
+    margin-right: 0.6rem;
+}
+
+/* Darker orange for warning states (near-due) in tasks views */
+.tasks-page .text-warning,
+.kanban-board-container .text-warning,
+.task-card .text-warning {
+    color: #1e1e1e !important; /* darker orange */
+}
+.tasks-page .text-warning i,
+.kanban-board-container .text-warning i,
+.task-card .text-warning i {
+    color: #1e1e1e !important;
+}
+
+/* Prevent text overflow for titles in 3-view (and generally) */
+.inbox-task-card .task-title-label {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Prevent matter badge text from overflowing in inbox cards */
+.inbox-task-card .task-matter-badge {
+    max-width: 100%;
+}
+.inbox-task-card .task-matter-badge span {
+    display: inline-block;
+    max-width: 95%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: bottom;
 }
 
 .task-assignees {
@@ -1649,7 +1713,7 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.75rem 1rem;
+    padding: 0.3rem 1rem 0.6rem 1rem;
     min-height: 48px;
 }
 
@@ -1800,6 +1864,7 @@
     gap: 0.5rem;
     width: 100%;
     justify-content: center;
+    position: relative;
 }
 
 .inbox-task-card .task-progress span {
@@ -1820,6 +1885,25 @@
     background-color: #3b82f6;
     height: 100%;
     transition: width 0.3s;
+}
+
+.inbox-task-card .urgent-subtasks-badge {
+    position: absolute;
+    top: -0.5rem;
+    right: -0.75rem;
+    background-color: #dc3545;
+    color: white;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 2;
 }
 
 /* Form check alignment within inbox cards */
