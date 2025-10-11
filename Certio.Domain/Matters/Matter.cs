@@ -80,7 +80,6 @@ public class Matter
     public virtual ICollection<StatusItem> StatusItems { get; set; } = new List<StatusItem>();
     public virtual ICollection<MatterAssignment> Assignments { get; set; } = new List<MatterAssignment>();
     public virtual ICollection<Document> Documents { get; set; } = new List<Document>();
-    public virtual ICollection<ServiceRequest> ServiceRequests { get; set; } = new List<ServiceRequest>();
     public virtual ICollection<MatterPermission> Permissions { get; set; } = new List<MatterPermission>();
 }
 

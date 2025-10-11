@@ -1,0 +1,516 @@
+@model Certio.Web.ViewModels.CommunicationsViewModel
+@using Certio.Web.ViewModels
+@{
+    ViewData["Title"] = "Communications - Certio AI Legal Assistant";
+    ViewData["BodyClass"] = "communications-page";
+    // Show AI chat panel like other pages
+    ViewData["HideChatPanel"] = false;
+    Layout = "_ClientLayout";
+    var organizationId = ViewBag.OrganizationId ?? ViewContext.HttpContext.Items["CurrentOrganizationId"];
+}
+
+<!-- Organization ID for JavaScript access -->
+<div class="d-none" data-organization-id="@organizationId"></div>
+
+<div class="communications-container">
+    <div class="communications-layout">
+        <!-- Sidebar -->
+        <div class="communications-sidebar">
+            <!-- Header -->
+            <div class="communications-header">
+                <h2 class="communications-title">Communications Hub</h2>
+                <p class="communications-subtitle">Professional Communication</p>
+            </div>
+
+            <!-- Channels -->
+            <div class="channels-section">
+                @foreach (var category in Model.ChannelCategories.Where(c => c.Name != "VOICE CHANNELS"))
+                {
+                    <div class="channel-category">
+                        <button class="category-toggle" data-category="@category.Name">
+                            <i class="fas fa-chevron-down category-icon"></i>
+                            @category.Name
+                        </button>
+                        
+                        <div class="channels-list" data-category="@category.Name">
+                            @if (category.Subcategories.Any())
+                            {
+                                @foreach (var subcategory in category.Subcategories)
+                                {
+                                    <div class="subcategory-section">
+                                        <button class="subcategory-toggle" data-subcategory="@subcategory.Name">
+                                            <i class="fas fa-chevron-down subcategory-icon"></i>
+                                            @subcategory.Name
+                                        </button>
+                                        <div class="subcategory-channels" data-subcategory="@subcategory.Name">
+                                            @foreach (var channel in subcategory.Channels)
+                                            {
+                                                <button class="channel-item @(channel.Name == Model.ActiveChannel ? "active" : "")" 
+                                                        data-channel="@channel.Name"
+                                                        data-channel-id="@channel.Id"
+                                                        data-type="@channel.Type.ToString().ToLower()"
+                                                        data-private="@channel.IsPrivate.ToString().ToLower()">
+                                                    <div class="channel-info">
+                                                        @if (channel.Type == ChannelType.Voice)
+                                                        {
+                                                            <i class="fas fa-volume-up channel-icon"></i>
+                                                        }
+                                                        else
+                                                        {
+                                                            @if (channel.IsPrivate)
+                                                            {
+                                                                <i class="fas fa-lock channel-icon"></i>
+                                                            }
+                                                            else
+                                                            {
+                                                                <i class="fas fa-hashtag channel-icon"></i>
+                                                            }
+                                                        }
+                                                        <span class="channel-name">@channel.Name</span>
+                                                    </div>
+                                                    <div class="channel-meta">
+                                                        @if (channel.Type == ChannelType.Voice && channel.Users.Any())
+                                                        {
+                                                            <div class="voice-users">
+                                                                @foreach (var user in channel.Users.Take(3))
+                                                                {
+                                                                    <div class="voice-user-avatar">@user</div>
+                                                                }
+                                                            </div>
+                                                        }
+                                                        @if (channel.Unread > 0)
+                                                        {
+                                                            <span class="unread-badge">@channel.Unread</span>
+                                                        }
+                                                    </div>
+                                                </button>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                @foreach (var channel in category.Channels)
+                                {
+                                    <button class="channel-item @(channel.Name == Model.ActiveChannel ? "active" : "")" 
+                                            data-channel="@channel.Name"
+                                            data-channel-id="@channel.Id"
+                                            data-type="@channel.Type.ToString().ToLower()"
+                                            data-private="@channel.IsPrivate.ToString().ToLower()">
+                                        <div class="channel-info">
+                                            @if (channel.Type == ChannelType.Voice)
+                                            {
+                                                <i class="fas fa-volume-up channel-icon"></i>
+                                            }
+                                            else
+                                            {
+                                                @if (channel.IsPrivate)
+                                                {
+                                                    <i class="fas fa-lock channel-icon"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fas fa-hashtag channel-icon"></i>
+                                                }
+                                            }
+                                            <span class="channel-name">@channel.Name</span>
+                                        </div>
+                                        <div class="channel-meta">
+                                            @if (channel.Type == ChannelType.Voice && channel.Users.Any())
+                                            {
+                                                <div class="voice-users">
+                                                    @foreach (var user in channel.Users.Take(3))
+                                                    {
+                                                        <div class="voice-user-avatar">@user</div>
+                                                    }
+                                                </div>
+                                            }
+                                            @if (channel.Unread > 0)
+                                            {
+                                                <span class="unread-badge">@channel.Unread</span>
+                                            }
+                                        </div>
+                                    </button>
+                                }
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- Direct Messages -->
+                <h3 class="team-title">Direct Messages — @Model.OnlineMembersCount Online</h3>
+                <div class="team-members">
+                    @foreach (var member in Model.TeamMembers)
+                    {
+                        <div class="team-member">
+                            <div class="member-avatar">
+                                <span>@member.Avatar</span>
+                                <div class="status-indicator @member.Status"></div>
+                            </div>
+                            <div class="member-info">
+                                <div class="member-name-row">
+                                    <span class="member-name">@member.Name</span>
+                                    <i class="@member.RoleIcon @member.RoleColor"></i>
+                                </div>
+                                <p class="member-activity">@member.Activity</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Main Chat Area -->
+        <div class="main-chat">
+            <!-- Chat Header -->
+            <div class="chat-header">
+                <div class="chat-header-content">
+                    <div class="channel-header">
+                        <i class="fas fa-hashtag channel-header-icon"></i>
+                        <div class="channel-details">
+                            <h2 class="channel-title">@Model.ActiveChannel</h2>
+                            <p class="channel-description">Secure legal communications</p>
+                        </div>
+                    </div>
+                    <div class="chat-controls">
+                        <button class="control-btn" title="Search">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        <button class="control-btn" title="Notifications">
+                            <i class="fas fa-bell"></i>
+                        </button>
+                        <button class="control-btn" title="Members">
+                            <i class="fas fa-users"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div class="messages-container">
+                <div class="messages-list">
+                    @foreach (var message in Model.Messages)
+                    {
+                        var member = Model.TeamMembers.FirstOrDefault(m => m.Name == message.User);
+                        <div class="message-item">
+                            <div class="message-avatar">
+                                <span>@message.Avatar</span>
+                            </div>
+                            <div class="message-content">
+                                <div class="message-header">
+                                    <span class="message-author">@message.User</span>
+                                    @if (member != null)
+                                    {
+                                        <i class="@member.RoleIcon @member.RoleColor"></i>
+                                    }
+                                    <span class="message-time">@message.Time</span>
+                                </div>
+                                <p class="message-text">@message.Content</p>
+                                @if (message.Reactions.Any())
+                                {
+                                    <div class="message-reactions">
+                                        @foreach (var reaction in message.Reactions)
+                                        {
+                                            <button class="reaction-btn">
+                                                @reaction.Emoji @reaction.Count
+                                            </button>
+                                        }
+                                        <button class="add-reaction-btn">
+                                            <i class="fas fa-smile"></i>
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Scroll to bottom button -->
+            <button class="scroll-to-bottom-btn" id="scrollToBottomBtn" title="Scroll to bottom">
+                <i class="fas fa-arrow-down"></i>
+            </button>
+
+            <!-- Message Input -->
+            <div class="message-input-container">
+                <div class="message-input-wrapper">
+                    <button class="input-btn" title="Attach File">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                    <textarea class="message-input" 
+                              id="messageInput"
+                              placeholder="Message #@Model.ActiveChannel" 
+                              rows="1"></textarea>
+                    <div class="input-controls">
+                        <button class="input-btn" title="Emoji">
+                            <i class="fas fa-smile"></i>
+                        </button>
+                        <button class="send-btn" id="sendButton" title="Send">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- SignalR Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+    
+    <!-- Communications Script -->
+    <script src="~/js/communications.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get current user and organization info
+            const currentUserId = '@ViewBag.CurrentUserId';
+            const currentUserName = '@ViewBag.CurrentUserName';
+            const currentOrganizationId = '@ViewBag.OrganizationId';
+            
+            // Debug logging
+            console.log('Initialization values:');
+            console.log('  currentUserId:', currentUserId, '(type:', typeof currentUserId, ')');
+            console.log('  currentUserName:', currentUserName, '(type:', typeof currentUserName, ')');
+            console.log('  currentOrganizationId:', currentOrganizationId, '(type:', typeof currentOrganizationId, ')');
+            
+            // Get active channel from the first public channel
+            const firstChannel = document.querySelector('.channel-item');
+            const activeChannelId = firstChannel ? firstChannel.dataset.channelId : null;
+            const activeChannelName = firstChannel ? firstChannel.querySelector('.channel-name')?.textContent : 'general';
+            
+            console.log('Channel info:');
+            console.log('  firstChannel:', firstChannel);
+            console.log('  activeChannelId:', activeChannelId, '(type:', typeof activeChannelId, ')');
+            console.log('  activeChannelName:', activeChannelName);
+            
+            // Initialize communications chat if we have required data
+            if (currentUserId && activeChannelId && typeof initializeCommunicationsChat === 'function') {
+                console.log('Initializing communications chat...');
+                initializeCommunicationsChat(activeChannelId, currentUserId, currentUserName, currentOrganizationId);
+            } else {
+                console.warn('Cannot initialize communications chat:', {
+                    hasUserId: !!currentUserId,
+                    hasChannelId: !!activeChannelId,
+                    hasFunction: typeof initializeCommunicationsChat === 'function'
+                });
+            }
+
+            // Send message function - define first
+            window.handleSendMessage = function() {
+                const messageInput = document.getElementById('messageInput');
+                if (messageInput && messageInput.value.trim()) {
+                    const message = messageInput.value.trim();
+                    console.log('Sending message:', message);
+                    
+                    if (typeof sendChannelMessage === 'function') {
+                        sendChannelMessage(message);
+                    } else {
+                        console.warn('sendChannelMessage not available, message not sent');
+                        // Clear input anyway for demo purposes
+                        messageInput.value = '';
+                        messageInput.style.height = 'auto';
+                    }
+                }
+            };
+
+            // Message input handlers
+            const messageInput = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+            
+            // Handle keydown (Enter to send)
+            if (messageInput) {
+                messageInput.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter' && !event.shiftKey) {
+                        event.preventDefault();
+                        handleSendMessage();
+                    }
+                });
+                
+                // Handle input (typing indicator and auto-resize)
+                messageInput.addEventListener('input', function() {
+                    if (this.value.trim().length > 0) {
+                        // Start typing indicator
+                        if (typeof startTyping === 'function') {
+                            startTyping();
+                        }
+                    }
+                    
+                    // Auto-resize textarea
+                    this.style.height = 'auto';
+                    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+                });
+            }
+            
+            // Handle send button click
+            if (sendButton) {
+                sendButton.addEventListener('click', handleSendMessage);
+            }
+
+            // Category toggle functionality
+            const categoryToggles = document.querySelectorAll('.category-toggle');
+            categoryToggles.forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    const categoryName = this.dataset.category;
+                    const channelsList = document.querySelector(`.channels-list[data-category="${categoryName}"]`);
+                    const icon = this.querySelector('.category-icon');
+                    
+                    if (!channelsList) return;
+                    
+                    // Toggle collapsed state
+                    const isCollapsed = channelsList.classList.contains('collapsed');
+                    
+                    if (isCollapsed) {
+                        channelsList.classList.remove('collapsed');
+                        icon.style.transform = 'rotate(0deg)';
+                    } else {
+                        channelsList.classList.add('collapsed');
+                        icon.style.transform = 'rotate(-90deg)';
+                    }
+                });
+            });
+
+            // Subcategory toggle functionality
+            const subcategoryToggles = document.querySelectorAll('.subcategory-toggle');
+            subcategoryToggles.forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    const subcategoryName = this.dataset.subcategory;
+                    const subcategoryChannels = document.querySelector(`.subcategory-channels[data-subcategory="${subcategoryName}"]`);
+                    const icon = this.querySelector('.subcategory-icon');
+                    
+                    if (!subcategoryChannels) return;
+                    
+                    // Toggle collapsed state
+                    const isCollapsed = subcategoryChannels.classList.contains('collapsed');
+                    
+                    if (isCollapsed) {
+                        subcategoryChannels.classList.remove('collapsed');
+                        icon.style.transform = 'rotate(0deg)';
+                    } else {
+                        subcategoryChannels.classList.add('collapsed');
+                        icon.style.transform = 'rotate(-90deg)';
+                    }
+                });
+            });
+
+            // Channel selection with event delegation
+            document.addEventListener('click', function(event) {
+                const channelItem = event.target.closest('.channel-item');
+                if (channelItem) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    
+                    const channelId = channelItem.dataset.channelId;
+                    const channelName = channelItem.dataset.channel;
+                    
+                    // Remove active class from all channels
+                    document.querySelectorAll('.channel-item').forEach(ch => ch.classList.remove('active'));
+                    // Add active class to clicked channel
+                    channelItem.classList.add('active');
+                    
+                    // Update channel title
+                    document.querySelector('.channel-title').textContent = channelName;
+                    
+                    // Update channel description based on type
+                    const channelType = channelItem.dataset.type;
+                    const channelDescription = channelType === 'voice' ? 'Voice Channel' : 'Secure legal communications';
+                    document.querySelector('.channel-description').textContent = channelDescription;
+                    
+                    // Update channel header icon
+                    const headerIcon = document.querySelector('.channel-header-icon');
+                    if (channelType === 'voice') {
+                        headerIcon.className = 'fas fa-volume-up channel-header-icon';
+                    } else {
+                        const isPrivate = channelItem.dataset.private === 'true';
+                        headerIcon.className = isPrivate ? 'fas fa-lock channel-header-icon' : 'fas fa-hashtag channel-header-icon';
+                    }
+                    
+                    // Call switchChannel if available (from communications.js)
+                    if (typeof switchChannel === 'function') {
+                        switchChannel(parseInt(channelId), channelName);
+                    } else {
+                        console.log('switchChannel function not available yet, UI updated only');
+                    }
+                }
+            });
+
+
+            // Auto-scroll to bottom of messages
+            function scrollToBottom() {
+                const messagesContainer = document.querySelector('.messages-container');
+                if (messagesContainer) {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }
+            }
+
+            // Smooth scroll to bottom
+            function smoothScrollToBottom() {
+                const messagesContainer = document.querySelector('.messages-container');
+                if (messagesContainer) {
+                    messagesContainer.scrollTo({
+                        top: messagesContainer.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+
+            // Scroll to bottom on page load (instant, no animation)
+            scrollToBottom();
+            // Also scroll after a short delay to ensure all content is rendered
+            setTimeout(scrollToBottom, 100);
+            // Final scroll after images and other content might load
+            setTimeout(scrollToBottom, 500);
+
+            // Make scrollToBottom available globally for future use
+            window.scrollToBottom = scrollToBottom;
+            window.smoothScrollToBottom = smoothScrollToBottom;
+
+            // Scroll to bottom button functionality + Lazy loading (Discord/Slack style)
+            const scrollToBottomBtn = document.getElementById('scrollToBottomBtn');
+            const messagesContainer = document.querySelector('.messages-container');
+            
+            if (scrollToBottomBtn && messagesContainer) {
+                // Show/hide scroll to bottom button based on scroll position
+                function toggleScrollButton() {
+                    const isAtBottom = messagesContainer.scrollTop + messagesContainer.clientHeight >= messagesContainer.scrollHeight - 10;
+                    if (isAtBottom) {
+                        scrollToBottomBtn.classList.remove('show');
+                    } else {
+                        scrollToBottomBtn.classList.add('show');
+                    }
+                }
+
+                // Lazy load older messages when scrolling to top (Discord/Slack style)
+                let scrollDebounce = null;
+                messagesContainer.addEventListener('scroll', function() {
+                    toggleScrollButton();
+                    
+                    // Check if user scrolled near the top (50px threshold)
+                    if (messagesContainer.scrollTop < 50) {
+                        // Debounce to prevent multiple requests
+                        clearTimeout(scrollDebounce);
+                        scrollDebounce = setTimeout(function() {
+                            if (typeof hasMoreMessages !== 'undefined' && hasMoreMessages && 
+                                typeof loadChannelMessages === 'function' && 
+                                typeof currentChannelId !== 'undefined') {
+                                console.log('Loading older messages...');
+                                loadChannelMessages(parseInt(currentChannelId), true);
+                            }
+                        }, 200);
+                    }
+                });
+
+                // Click handler for scroll to bottom button
+                scrollToBottomBtn.addEventListener('click', function() {
+                    smoothScrollToBottom();
+                });
+
+                // Initial check
+                toggleScrollButton();
+            }
+        });
+    </script>
+}
+

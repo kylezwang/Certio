@@ -3247,70 +3247,101 @@ body {
 }
 
 /* Services Page Styles - Discord-like Interface */
-.services-container {
-  height: 100%;
+.communications-container {
+  height: calc(100vh - 7vh);
+  max-height: calc(100vh - 7vh);
   background: rgba(248, 250, 252, 0.2);
   border-radius: 0.5rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  overflow: visible;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
-/* Override main content padding for services page */
-body.services-page .main-content .px-4 {
+/* Override main content padding for communications page */
+body.communications-page .main-content .px-4 {
   padding: 0 !important;
   height: 100vh;
   min-height: 100vh;
 }
 
-/* Hide footer on services page to prevent scrolling */
-body.services-page .footer {
+/* Remove padding from main-content itself for communications page */
+body.communications-page .main-content {
+  padding: 0 !important;
+  height: calc(100vh - 7vh);
+  max-height: calc(100vh - 7vh);
+  margin: 0 !important;
+  overflow: hidden;
+}
+
+/* Ensure main-content wrapper is properly sized for communications page */
+body.communications-page .client-main-content-wrapper {
+  height: calc(100vh - 7vh);
+  max-height: calc(100vh - 7vh);
+  overflow: hidden;
+}
+
+/* Hide footer on communications page to prevent scrolling */
+body.communications-page .footer {
   display: none !important;
 }
 
-/* Ensure services page body takes full height */
-body.services-page {
+/* Ensure communications page body takes full height */
+body.communications-page {
   height: 100vh;
   overflow: hidden;
 }
 
-body.services-page .main-content {
-  height: 100vh;
-  min-height: 100vh;
+/* Adjust communications container when chat panel is visible */
+body.communications-page .communications-container {
+  height: calc(100vh - 7vh);
+  max-height: calc(100vh - 7vh);
+  margin-right: 0; /* Remove any right margin to accommodate chat panel */
 }
 
-.services-layout {
+/* Ensure communications layout works with chat panel */
+body.communications-page .communications-layout {
+  height: calc(100vh - 7vh);
+  max-height: calc(100vh - 7vh);
+}
+
+.communications-layout {
   display: flex;
   flex: 1;
   min-height: 0;
-  height: 100%;
+  height: calc(100vh - 7vh);
+  max-height: calc(100vh - 7vh);
 }
 
 /* Sidebar Styles */
-.services-sidebar {
+.communications-sidebar {
   width: 16rem;
-  background: rgba(248, 250, 252, 0.8);
-  backdrop-filter: blur(8px);
+  background: rgba(248, 250, 252, 0.95);
   border-right: 1px solid rgba(229, 231, 235, 0.5);
   display: flex;
   flex-direction: column;
+  height: 100%;
+  will-change: transform;
+  transform: translateZ(0);
+  transition: transform 0.3s ease;
 }
 
-.services-header {
+.communications-header {
   padding: 1rem;
   border-bottom: 1px solid rgba(229, 231, 235, 0.5);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.services-title {
+.communications-title {
   font-weight: 700;
   color: black;
   margin: 0;
   font-size: 1.25rem;
 }
 
-.services-subtitle {
+.communications-subtitle {
   font-size: 0.875rem;
   color: #6b7280;
   margin: 0.25rem 0 0 0;
@@ -3321,6 +3352,9 @@ body.services-page .main-content {
   flex: 1;
   padding: 0.5rem;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .channel-category {
@@ -3333,6 +3367,7 @@ body.services-page .main-content {
   align-items: center;
   gap: 0.25rem;
   padding: 0.5rem;
+  padding-left: 0;
   text-align: left;
   font-size: 0.75rem;
   font-weight: 700;
@@ -3357,6 +3392,16 @@ body.services-page .main-content {
 .channels-list {
   margin-top: 0.25rem;
   display: block;
+  max-height: 5000px;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+  opacity: 1;
+}
+
+.channels-list.collapsed {
+  max-height: 0;
+  opacity: 0;
+  margin-top: 0;
 }
 
 .channel-item {
@@ -3442,11 +3487,66 @@ body.services-page .main-content {
   text-align: center;
 }
 
+/* Subcategory Styles */
+.subcategory-section {
+  margin-bottom: 0.5rem;
+}
+
+.subcategory-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  padding-left: 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.subcategory-toggle:hover {
+  color: #1f2937;
+}
+
+.subcategory-icon {
+  font-size: 0.75rem;
+  transition: transform 0.2s ease;
+}
+
+.subcategory-channels {
+  margin-top: 0.25rem;
+  display: block;
+  max-height: 5000px;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+  opacity: 1;
+}
+
+.subcategory-channels.collapsed {
+  max-height: 0;
+  opacity: 0;
+  margin-top: 0;
+}
+
+.subcategory-channels .channel-item {
+  padding-left: 2rem;
+}
+
 /* User Panel */
 .user-panel {
-  padding: 0.75rem;
+  padding: 0.25rem;
   border-top: 1px solid rgba(229, 231, 235, 0.5);
-  background: rgba(248, 250, 252, 0.6);
+  background: #eef1f3;
+  border-radius: 12px;
+  margin: 0.25rem 0.5rem 1rem 0.5rem;
+  flex-shrink: 0;
 }
 
 .user-info {
@@ -3539,12 +3639,7 @@ body.services-page .main-content {
   color: #1f2937;
 }
 
-/* Team Section */
-.team-section {
-  padding: 0.75rem;
-  border-top: 1px solid rgba(229, 231, 235, 0.5);
-  background: rgba(248, 250, 252, 0.4);
-}
+/* Team Section - Now integrated into channels-section */
 
 .team-title {
   font-size: 0.75rem;
@@ -3552,12 +3647,12 @@ body.services-page .main-content {
   color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin: 0 0 0.5rem 0;
+  border-top: 1px solid rgba(229, 231, 235, 0.5);
 }
 
 .team-members {
-  max-height: 12rem;
-  overflow-y: auto;
+  flex: 1;
+  overflow-y: visible;
 }
 
 .team-member {
@@ -3618,27 +3713,31 @@ body.services-page .main-content {
 }
 
 /* Services Page - Main Chat Area */
-.services-container .main-chat {
+.communications-container .main-chat {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.8);
   min-height: 0;
   height: 100%;
   position: relative;
+  will-change: transform;
+  transform: translateZ(0);
+  transition: transform 0.3s ease;
 }
 
 /* Services Page - Chat Header */
-.services-container .chat-header {
+.communications-container .chat-header {
   padding: 1rem;
   border-bottom: 1px solid rgba(229, 231, 235, 0.5);
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  will-change: transform;
+  transform: translateZ(0);
+  transition: transform 0.3s ease;
 }
 
-.services-container .chat-header-content {
+.communications-container .chat-header-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -3674,7 +3773,7 @@ body.services-page .main-content {
 }
 
 /* Services Page - Messages Container */
-.services-container .messages-container {
+.communications-container .messages-container {
   flex: 1;
   padding: 0 1rem;
   overflow-y: auto;
@@ -3684,32 +3783,32 @@ body.services-page .main-content {
 }
 
 /* Services Page - Messages List */
-.services-container .messages-list {
+.communications-container .messages-list {
   padding: 1rem 0;
   min-height: 100%;
 }
 
 /* Ensure messages container has proper scrolling behavior */
-.services-container .messages-container::-webkit-scrollbar {
+.communications-container .messages-container::-webkit-scrollbar {
   width: 6px;
 }
 
-.services-container .messages-container::-webkit-scrollbar-track {
+.communications-container .messages-container::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.1);
   border-radius: 3px;
 }
 
-.services-container .messages-container::-webkit-scrollbar-thumb {
+.communications-container .messages-container::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.3);
   border-radius: 3px;
 }
 
-.services-container .messages-container::-webkit-scrollbar-thumb:hover {
+.communications-container .messages-container::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.5);
 }
 
 /* Scroll to bottom button */
-.services-container .scroll-to-bottom-btn {
+.communications-container .scroll-to-bottom-btn {
   position: absolute;
   bottom: 5rem;
   right: 1.5rem;
@@ -3730,22 +3829,22 @@ body.services-page .main-content {
   z-index: 10;
 }
 
-.services-container .scroll-to-bottom-btn:hover {
+.communications-container .scroll-to-bottom-btn:hover {
   background: #2563eb;
   transform: translateY(-2px);
   box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.15);
 }
 
-.services-container .scroll-to-bottom-btn.show {
+.communications-container .scroll-to-bottom-btn.show {
   opacity: 1;
   visibility: visible;
 }
 
-.services-container .scroll-to-bottom-btn i {
+.communications-container .scroll-to-bottom-btn i {
   font-size: 0.875rem;
 }
 
-.services-container .message-item {
+.communications-container .message-item {
   display: flex;
   gap: 0.75rem;
   margin-bottom: 0.25rem;
@@ -3754,11 +3853,11 @@ body.services-page .main-content {
   transition: background 0.2s ease;
 }
 
-.services-container .message-item:hover {
+.communications-container .message-item:hover {
   background: rgba(156, 163, 175, 0.1);
 }
 
-.services-container .message-avatar {
+.communications-container .message-avatar {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 50%;
@@ -3773,31 +3872,31 @@ body.services-page .main-content {
   margin-top: 0.125rem;
 }
 
-.services-container .message-content {
+.communications-container .message-content {
   flex: 1;
   min-width: 0;
 }
 
-.services-container .message-header {
+.communications-container .message-header {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 0.25rem;
 }
 
-.services-container .message-author {
+.communications-container .message-author {
   font-weight: 700;
   color: #1f2937;
   font-size: 0.875rem;
 }
 
-.services-container .message-time {
+.communications-container .message-time {
   font-size: 0.75rem;
   color: #6b7280;
   font-weight: 500;
 }
 
-.services-container .message-text {
+.communications-container .message-text {
   font-size: 0.875rem;
   color: rgba(31, 41, 55, 0.9);
   line-height: 1.5;
@@ -3806,14 +3905,14 @@ body.services-page .main-content {
 }
 
 /* Services Page - Message Reactions */
-.services-container .message-reactions {
+.communications-container .message-reactions {
   display: flex;
   align-items: center;
   gap: 0.25rem;
   margin-top: 0.5rem;
 }
 
-.services-container .reaction-btn {
+.communications-container .reaction-btn {
   height: 1.5rem;
   padding: 0 0.5rem;
   font-size: 0.75rem;
@@ -3827,11 +3926,11 @@ body.services-page .main-content {
   gap: 0.25rem;
 }
 
-.services-container .reaction-btn:hover {
+.communications-container .reaction-btn:hover {
   background: rgba(156, 163, 175, 0.2);
 }
 
-.services-container .add-reaction-btn {
+.communications-container .add-reaction-btn {
   width: 1.5rem;
   height: 1.5rem;
   padding: 0;
@@ -3847,20 +3946,22 @@ body.services-page .main-content {
   transition: all 0.2s ease;
 }
 
-.services-container .message-item:hover .add-reaction-btn {
+.communications-container .message-item:hover .add-reaction-btn {
   opacity: 1;
 }
 
-.services-container .add-reaction-btn:hover {
+.communications-container .add-reaction-btn:hover {
   background: rgba(156, 163, 175, 0.1);
   color: #1f2937;
 }
 
 /* Services Page - Message Input */
-.services-container .message-input-container {
+.communications-container .message-input-container {
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.9);
+  will-change: transform;
+  transform: translateZ(0);
+  transition: transform 0.3s ease;
 }
 
 /* Settings Page Styles */
@@ -4218,9 +4319,6 @@ body.services-page .main-content {
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .settings-container {
-  }
-  
   .settings-layout {
     grid-template-columns: 1fr;
     gap: 1rem;
@@ -4293,19 +4391,21 @@ body.services-page .main-content {
   }
 }
 
-.services-container .message-input-wrapper {
+.communications-container .message-input-wrapper {
   display: flex;
   align-items: flex-end;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   border: 1px solid rgba(229, 231, 235, 0.5);
   border-radius: 0.5rem;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  will-change: transform;
+  transform: translateZ(0);
+  transition: transform 0.3s ease;
 }
 
-.services-container .message-input {
+.communications-container .message-input {
   flex: 1;
   border: none;
   outline: none;
@@ -4318,11 +4418,11 @@ body.services-page .main-content {
   line-height: 1.25rem;
 }
 
-.services-container .message-input::placeholder {
+.communications-container .message-input::placeholder {
   color: #6b7280;
 }
 
-.services-container .input-btn {
+.communications-container .input-btn {
   width: 1.5rem;
   height: 1.5rem;
   border: none;
@@ -4336,18 +4436,18 @@ body.services-page .main-content {
   transition: all 0.2s ease;
 }
 
-.services-container .input-btn:hover {
+.communications-container .input-btn:hover {
   background: rgba(156, 163, 175, 0.1);
   color: #1f2937;
 }
 
-.services-container .input-controls {
+.communications-container .input-controls {
   display: flex;
   align-items: center;
   gap: 0.25rem;
 }
 
-.services-container .send-btn {
+.communications-container .send-btn {
   width: 2rem;
   height: 2rem;
   border: none;
@@ -4362,7 +4462,7 @@ body.services-page .main-content {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-.services-container .send-btn:hover {
+.communications-container .send-btn:hover {
   background: #2563eb;
   transform: translateY(-1px);
   box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.15);
@@ -4879,20 +4979,20 @@ body.dark-mode .ai-insight-card {
 }
 
 /* Dark mode for services/discord-like interface */
-body.dark-mode .services-sidebar {
+body.dark-mode .communications-sidebar {
   background-color: #181818 !important;
   border-right-color: #333 !important;
 }
 
-body.dark-mode .services-header {
+body.dark-mode .communications-header {
   border-bottom-color: #333 !important;
 }
 
-body.dark-mode .services-title {
+body.dark-mode .communications-title {
   color: #ffffff !important;
 }
 
-body.dark-mode .services-subtitle {
+body.dark-mode .communications-subtitle {
   color: #888 !important;
 }
 
@@ -4907,8 +5007,9 @@ body.dark-mode .channel-item.active {
 }
 
 body.dark-mode .user-panel {
-  background-color: #181818 !important;
+  background-color: #2a2a2a !important;
   border-top-color: #333 !important;
+  border-radius: 12px;
 }
 
 body.dark-mode .user-info {
@@ -4935,7 +5036,7 @@ body.dark-mode .message-time {
   color: #888 !important;
 }
 
-body.dark-mode .services-container .message-text {
+body.dark-mode .communications-container .message-text {
   color: #ffffff !important;
 }
 
@@ -5150,15 +5251,15 @@ body.dark-mode .services-container .message-text {
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .services-container {
+  .communications-container {
     height: 100%;
   }
   
-  .services-sidebar {
+  .communications-sidebar {
     width: 14rem;
   }
   
-  .services-title {
+  .communications-title {
     font-size: 1rem;
   }
   
@@ -5178,7 +5279,7 @@ body.dark-mode .services-container .message-text {
 }
 
 /* ... existing code ... */
-body.dark-mode .services-container .message-text {
+body.dark-mode .communications-container .message-text {
   color: #ffffff !important;
 }
 

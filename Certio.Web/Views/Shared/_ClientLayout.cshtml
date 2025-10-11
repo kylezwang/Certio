@@ -2,6 +2,24 @@
     Layout = "_Layout";
 }
 
+@section Styles {
+    <!-- Client layout styles are included in site.css -->
+}
+
+<!-- Critical CSS for instant page render - prevents white flash -->
+<style>
+    /* Prevent white flash by setting background immediately */
+    body {
+        background-color: #f1f5f9;
+    }
+    .client-main-content-wrapper {
+        background-color: rgba(11, 54, 94, 0.085);
+    }
+    .main-content.client-main-content {
+        background-color: #ffffff;
+    }
+</style>
+
 <style>
     /* Logo image styling */
     .logo-image {
@@ -259,10 +277,12 @@
     /* Sidebar hidden state */
     .sidebar-hidden .client-sidebar {
         transform: translateX(-100%);
+        transition: transform 0.3s ease;
     }
 
     .sidebar-hidden .global-dashboard-sidebar {
         transform: translateX(-100%);
+        transition: transform 0.3s ease;
     }
 
     .client-sidebar .logo-section {
@@ -373,7 +393,7 @@
         z-index: 1;
         border-radius: 20px 20px 0px 0px; /* Rounded corners on top-left and top-right */
         background-color: rgba(11, 54, 94, 0.085); /* Light blue background */
-        transition: left 0.3s ease;
+        transition: left 0.3s ease, right 0.3s ease;
     }
 
     /* Adjust main content wrapper for global dashboard */
@@ -384,14 +404,17 @@
     /* Adjust positioning when sidebar is hidden - keep rounded corners */
     .sidebar-hidden .client-main-content-wrapper {
         left: calc(6vw + 1rem); /* Move back to just after global navbar + 0.5rem space */
+        transition: left 0.3s ease;
     }
 
     .sidebar-hidden .client-main-content-wrapper.global-dashboard-layout {
         left: calc(6vw + 1rem); /* Same as client sidebar, expand to use full width */
+        transition: left 0.3s ease;
     }
 
     .sidebar-hidden .page-header {
         left: calc(6vw); /* Keep header aligned with main content */
+        transition: left 0.3s ease;
     }
 
     /* Main content adjustment for client sidebar and header */
@@ -731,10 +754,6 @@
         pointer-events: none;
     }
 
-    .client-main-content-wrapper {
-        transition: right 0.3s ease;
-    }
-
     .chat-hidden .client-main-content-wrapper {
         right: 1rem !important; /* Same leftover padding as sidebar toggle */
     }
@@ -971,10 +990,10 @@
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="/Client/@ViewBag.OrganizationId/Services" 
-                       class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Services" ? "active" : "")">
+                    <a href="/Client/@ViewBag.OrganizationId/Communications" 
+                       class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Communications" ? "active" : "")">
                         <i class="fas fa-comments"></i>
-                        <span>Services</span>
+                        <span>Communications</span>
                     </a>
                 </div>
                 <div class="nav-item">
@@ -1067,11 +1086,11 @@
                             </a>
                         </li>
                         <li>
-                            <a asp-controller="Home" asp-action="Services" 
-                               class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["action"]?.ToString() == "Services" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")"
+                            <a asp-controller="Client" asp-action="Communications" asp-route-orgId="@ViewBag.OrganizationId"
+                               class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["action"]?.ToString() == "Communications" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")"
                                data-bs-dismiss="offcanvas">
                                 <i class="fas fa-comments fs-5"></i>
-                                <span class="fw-medium">Services</span>
+                                <span class="fw-medium">Communications</span>
                             </a>
                         </li>
                         <li>
@@ -1121,6 +1140,9 @@
         </main>
     </div>
 
+    @* Only show AI chat panel and resize handle if not explicitly hidden (e.g., on Communications page) *@
+    @if (ViewData["HideChatPanel"] as bool? != true)
+    {
     <!-- Resize handle -->
     <div class="resize-handle" id="resizeHandle"></div>
 
@@ -1130,7 +1152,7 @@
         <div class="chat-tabs-container">
             <div class="conversation-tabs" id="conversationTabs">
                 <div class="tab-list">
-                    <!-- Conversation tabs will be populated by JavaScript -->
+                    <!-- Conversations will be loaded here -->
                 </div>
                 <button class="btn btn-primary btn-sm new-conversation-btn" data-bs-toggle="modal" data-bs-target="#newConversationModal">
                     <i class="fas fa-plus"></i>
@@ -1198,7 +1220,7 @@
             </div>
         </div>
     </div>
-</div>
+    } @* End if HideChatPanel *@
 
 <!-- <footer class="border-top footer text-muted main-content client-main-content">
     <div class="container-fluid">
@@ -1299,14 +1321,15 @@
     </div>
 </div>
 
-<script src="~/js/signalr/dist/browser/signalr.js"></script>
-<script src="~/js/chat.js"></script>
+@* Only load AI chat scripts if chat panel is not hidden *@
+@if (ViewData["HideChatPanel"] as bool? != true)
+{
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js" defer></script>
+<script src="~/js/chat.js" defer></script>
 
 <script>
     // Initialize conversations on all pages
     document.addEventListener('DOMContentLoaded', function() {
-        // Load conversations for the global chat panel
-        loadConversationsForPanel();
         
         // Initialize simple sidebar toggle
         const toggleBtn = document.getElementById('toggleSidebar');
@@ -1314,13 +1337,15 @@
             toggleBtn.addEventListener('click', function() {
                 document.body.classList.toggle('sidebar-hidden');
                 
-                // Save state to localStorage
+                // Save state to localStorage only if manually toggled
                 const isHidden = document.body.classList.contains('sidebar-hidden');
                 localStorage.setItem('sidebarHidden', isHidden);
+                localStorage.setItem('sidebarHiddenManual', 'true');
             });
             
-            // Restore saved state
-            if (localStorage.getItem('sidebarHidden') === 'true') {
+            // Restore saved state only if it was manually toggled
+            const wasManuallyHidden = localStorage.getItem('sidebarHiddenManual') === 'true';
+            if (wasManuallyHidden && localStorage.getItem('sidebarHidden') === 'true') {
                 document.body.classList.add('sidebar-hidden');
             }
         }
@@ -1459,5 +1484,6 @@
         }
     });
 </script>
+} @* End if HideChatPanel for scripts *@
 
 @await RenderSectionAsync("Scripts", required: false)

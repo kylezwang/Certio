@@ -18,19 +18,25 @@ namespace Certio.Web.Controllers
         private readonly ITwoFactorService _twoFactorService;
         private readonly ApplicationDbContext _context;
         private readonly IJoinCodeService _joinCodeService;
+        private readonly IChannelManagementService _channelManagementService;
+        private readonly IClientContextAccessor _clientContextAccessor;
 
         public HomeController(
             SignInManager<IdentityUser> signInManager, 
             UserManager<IdentityUser> userManager,
             ITwoFactorService twoFactorService,
             ApplicationDbContext context,
-            IJoinCodeService joinCodeService)
+            IJoinCodeService joinCodeService,
+            IChannelManagementService channelManagementService,
+            IClientContextAccessor clientContextAccessor)
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _twoFactorService = twoFactorService;
             _context = context;
             _joinCodeService = joinCodeService;
+            _channelManagementService = channelManagementService;
+            _clientContextAccessor = clientContextAccessor;
         }
 
         public IActionResult Index()
@@ -993,41 +999,87 @@ namespace Certio.Web.Controllers
         }
 
         [Authorize]
-        public IActionResult Services()
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public async Task<IActionResult> Communications()
         {
-            // Sample data - in a real application, this would come from a service/repository
+            // Get current organization context
+            var clientContext = _clientContextAccessor.ClientContext;
+            if (clientContext == null || !clientContext.OrganizationId.HasValue)
+            {
+                return RedirectToAction("Index");
+            }
+
+            var organizationId = clientContext.OrganizationId.Value;
+            
+            // Get current user
+            var identityUser = await _userManager.GetUserAsync(User);
+            var customUser = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == identityUser.Email);
+
+            if (customUser == null)
+            {
+                return RedirectToAction("Index");
+            }
+
+            // Get real channels from database
+            var channels = await _channelManagementService.GetOrganizationChannelsAsync(organizationId);
+            
+            // Get unread counts for each channel
+            var channelsWithUnread = new List<Channel>();
+            foreach (var channel in channels)
+            {
+                var unreadCount = await _channelManagementService.GetUnreadCountAsync(channel.Id, customUser.Id);
+                channelsWithUnread.Add(new Channel
+                {
+                    Id = channel.Id,
+                    Name = channel.Title,
+                    Unread = unreadCount,
+                    Type = ChannelType.Text,
+                    IsPrivate = channel.IsPrivateChannel
+                });
+            }
+
+            // Organize channels into categories
+            var publicChannels = channelsWithUnread.Where(c => !c.IsPrivate).ToList();
+            var privateChannels = channelsWithUnread.Where(c => c.IsPrivate).ToList();
+
             var channelCategories = new List<ChannelCategory>
             {
                 new ChannelCategory
                 {
                     Name = "CLIENT COMMUNICATIONS",
-                    Channels = new List<Channel>
+                    Channels = new List<Channel>(),
+                    Subcategories = new List<ChannelSubcategory>
                     {
-                        new Channel { Id = 1, Name = "general-client-chat", Unread = 0, Type = ChannelType.Text, IsPrivate = false },
-                        new Channel { Id = 2, Name = "urgent-matters", Unread = 3, Type = ChannelType.Text, IsPrivate = false },
-                        new Channel { Id = 3, Name = "client-onboarding", Unread = 1, Type = ChannelType.Text, IsPrivate = false }
-                    }
-                },
-                new ChannelCategory
-                {
-                    Name = "LEGAL TEAM",
-                    Channels = new List<Channel>
-                    {
-                        new Channel { Id = 4, Name = "contract-reviews", Unread = 0, Type = ChannelType.Text, IsPrivate = true },
-                        new Channel { Id = 5, Name = "case-discussions", Unread = 2, Type = ChannelType.Text, IsPrivate = true },
-                        new Channel { Id = 6, Name = "compliance-alerts", Unread = 0, Type = ChannelType.Text, IsPrivate = true }
-                    }
-                },
-                new ChannelCategory
-                {
-                    Name = "VOICE CHANNELS",
-                    Channels = new List<Channel>
-                    {
-                        new Channel { Id = 7, Name = "Client Consultations", Unread = 0, Type = ChannelType.Voice, IsPrivate = false, Users = new List<string> { "SJ", "MC" } },
-                        new Channel { Id = 8, Name = "Team Meetings", Unread = 0, Type = ChannelType.Voice, IsPrivate = true, Users = new List<string>() }
+                        new ChannelSubcategory
+                        {
+                            Name = "Client Organizations",
+                            Channels = publicChannels
+                        }
                     }
                 }
             };
+
+            // Add private channels if any exist
+            if (privateChannels.Any())
+            {
+                channelCategories.Add(new ChannelCategory
+                {
+                    Name = "LEGAL TEAM",
+                    Channels = privateChannels
+                });
+            }
+
+            // Add voice channels category (placeholder for future)
+            channelCategories.Add(new ChannelCategory
+            {
+                Name = "VOICE CHANNELS",
+                Channels = new List<Channel>
+                {
+                    new Channel { Id = -1, Name = "Client Consultations", Unread = 0, Type = ChannelType.Voice, IsPrivate = false, Users = new List<string>() },
+                    new Channel { Id = -2, Name = "Team Meetings", Unread = 0, Type = ChannelType.Voice, IsPrivate = true, Users = new List<string>() }
+                }
+            });
 
             var messages = new List<Message>
             {
@@ -1204,60 +1256,65 @@ namespace Certio.Web.Controllers
                 }
             };
 
-            var teamMembers = new List<ServiceTeamMember>
-            {
-                new ServiceTeamMember
-                {
-                    Name = "Sarah Johnson",
-                    Role = "Senior Legal Counsel",
-                    Status = "online",
-                    Avatar = "SJ",
-                    Activity = "Reviewing Morrison contract",
-                },
-                new ServiceTeamMember
-                {
-                    Name = "Mike Chen",
-                    Role = "Legal Tech Specialist",
-                    Status = "online",
-                    Avatar = "MC",
-                    Activity = "Debugging case management system",
-                },
-                new ServiceTeamMember
-                {
-                    Name = "Alex Rodriguez",
-                    Role = "Compliance Officer",
-                    Status = "away",
-                    Avatar = "AR",
-                    Activity = "In compliance meeting",
-                },
-                new ServiceTeamMember
-                {
-                    Name = "Emily Davis",
-                    Role = "Legal Assistant",
-                    Status = "online",
-                    Avatar = "ED",
-                    Activity = "Organizing client documents",
-                },
-                new ServiceTeamMember
-                {
-                    Name = "David Wilson",
-                    Role = "Contract Analyst",
-                    Status = "offline",
-                    Avatar = "DW",
-                    Activity = "Last seen 2 hours ago",
-                }
-            };
+            // Get real team members from organization
+            var orgUsers = await _context.UserOrganizations
+                .Include(uo => uo.User)
+                .Where(uo => uo.OrganizationId == organizationId && uo.IsActive)
+                .ToListAsync();
 
-            var viewModel = new ServicesViewModel
+            var onlineUserIds = await _channelManagementService.GetOnlineUserIdsAsync(organizationId);
+
+            var teamMembers = orgUsers.Select(uo =>
+            {
+                var isOnline = onlineUserIds.Contains(uo.UserId);
+                var initials = string.IsNullOrEmpty(uo.User.FirstName) && string.IsNullOrEmpty(uo.User.LastName)
+                    ? uo.User.Email?.Substring(0, 2).ToUpper() ?? "??"
+                    : $"{uo.User.FirstName?.FirstOrDefault() ?? '?'}{uo.User.LastName?.FirstOrDefault() ?? '?'}";
+
+                return new CommunicationsTeamMember
+                {
+                    Name = $"{uo.User.FirstName} {uo.User.LastName}".Trim(),
+                    Role = uo.Role ?? "Team Member",
+                    Status = isOnline ? "online" : "offline",
+                    Avatar = initials,
+                    Activity = isOnline ? "Available" : $"Last seen {GetRelativeTime(uo.User.LastLoginDate ?? DateTime.UtcNow.AddHours(-1))}"
+                };
+            }).ToList();
+
+            // Set active channel to the first available channel
+            var activeChannel = publicChannels.FirstOrDefault()?.Name ?? "general";
+
+            // Set user info for JavaScript
+            ViewBag.CurrentUserId = customUser.Id;
+            ViewBag.CurrentUserName = $"{customUser.FirstName} {customUser.LastName}".Trim();
+            ViewBag.OrganizationId = organizationId;
+
+            var viewModel = new CommunicationsViewModel
             {
                 ChannelCategories = channelCategories,
                 Messages = messages,
                 TeamMembers = teamMembers,
-                ActiveChannel = "general-client-chat",
+                ActiveChannel = activeChannel,
                 OnlineMembersCount = teamMembers.Count(m => m.Status == "online")
             };
 
             return View(viewModel);
+        }
+
+        private string GetRelativeTime(DateTime dateTime)
+        {
+            var timeSpan = DateTime.UtcNow - dateTime;
+            
+            if (timeSpan.TotalMinutes < 1)
+                return "just now";
+            if (timeSpan.TotalMinutes < 60)
+                return $"{(int)timeSpan.TotalMinutes} minute{((int)timeSpan.TotalMinutes > 1 ? "s" : "")} ago";
+            if (timeSpan.TotalHours < 24)
+                return $"{(int)timeSpan.TotalHours} hour{((int)timeSpan.TotalHours > 1 ? "s" : "")} ago";
+            if (timeSpan.TotalDays < 7)
+                return $"{(int)timeSpan.TotalDays} day{((int)timeSpan.TotalDays > 1 ? "s" : "")} ago";
+            
+            return dateTime.ToString("MMM d");
         }
 
         [HttpPost]

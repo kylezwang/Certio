@@ -58,11 +58,6 @@ namespace Certio.Web.Data
         public DbSet<DocumentComment> DocumentComments => Set<DocumentComment>();
         public DbSet<DocumentSignature> DocumentSignatures => Set<DocumentSignature>();
         
-        // Service Entities
-        public DbSet<ServiceRequest> ServiceRequests => Set<ServiceRequest>();
-        public DbSet<ServiceRequestMessage> ServiceRequestMessages => Set<ServiceRequestMessage>();
-        public DbSet<ServiceRequestAttachment> ServiceRequestAttachments => Set<ServiceRequestAttachment>();
-        
         // Chat Entities
         public DbSet<Conversation> Conversations => Set<Conversation>();
         public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
@@ -98,7 +93,6 @@ namespace Certio.Web.Data
             builder.Entity<ChatMessage>().HasIndex(m => new { m.ConversationId, m.CreatedAt });
             builder.Entity<User>().HasIndex(u => u.Email);
             builder.Entity<Document>().HasIndex(d => d.CreatedAt);
-            builder.Entity<ServiceRequest>().HasIndex(sr => sr.CreatedAt);
             builder.Entity<StatusItem>().HasIndex(si => si.MatterId);
             builder.Entity<TaskItem>().HasIndex(ti => ti.MatterId);
             builder.Entity<TaskItem>().HasIndex(ti => ti.OrgId);
@@ -115,7 +109,6 @@ namespace Certio.Web.Data
             ConfigureTaskRelationships(builder);
             ConfigureSubTaskRelationships(builder);
             ConfigureDocumentRelationships(builder);
-            ConfigureServiceRelationships(builder);
             ConfigureChatRelationships(builder);
             ConfigureAIAgentRelationships(builder);
             ConfigureWorkflowRelationships(builder);
@@ -625,69 +618,6 @@ namespace Certio.Web.Data
                 .OnDelete(DeleteBehavior.Restrict);
         }
 
-        private void ConfigureServiceRelationships(ModelBuilder builder)
-        {
-            builder.Entity<ServiceRequest>()
-                .HasMany(sr => sr.Messages)
-                .WithOne(srm => srm.ServiceRequest)
-                .HasForeignKey(srm => srm.ServiceRequestId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            builder.Entity<ServiceRequest>()
-                .HasMany(sr => sr.Attachments)
-                .WithOne(sra => sra.ServiceRequest)
-                .HasForeignKey(sra => sra.ServiceRequestId)
-                .OnDelete(DeleteBehavior.NoAction);
-
-            // Configure User relationships for ServiceRequest
-            builder.Entity<ServiceRequest>()
-                .HasOne(sr => sr.Client)
-                .WithMany()
-                .HasForeignKey(sr => sr.ClientId)
-                .OnDelete(DeleteBehavior.NoAction);
-
-            builder.Entity<ServiceRequest>()
-                .HasOne(sr => sr.AssignedTo)
-                .WithMany()
-                .HasForeignKey(sr => sr.AssignedToId)
-                .OnDelete(DeleteBehavior.NoAction);
-
-            // Configure Matter relationship for ServiceRequest
-            builder.Entity<ServiceRequest>()
-                .HasOne(sr => sr.Matter)
-                .WithMany()
-                .HasForeignKey(sr => sr.MatterId)
-                .OnDelete(DeleteBehavior.SetNull);
-
-            // Configure self-referencing relationships for ServiceRequestMessage
-            builder.Entity<ServiceRequestMessage>()
-                .HasOne(srm => srm.ParentMessage)
-                .WithMany(srm => srm.Replies)
-                .HasForeignKey(srm => srm.ParentMessageId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // Configure User relationship for ServiceRequestMessage
-            builder.Entity<ServiceRequestMessage>()
-                .HasOne(srm => srm.User)
-                .WithMany()
-                .HasForeignKey(srm => srm.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // Configure User relationship for ServiceRequestAttachment
-            builder.Entity<ServiceRequestAttachment>()
-                .HasOne(sra => sra.UploadedBy)
-                .WithMany()
-                .HasForeignKey(sra => sra.UploadedById)
-                .OnDelete(DeleteBehavior.NoAction);
-
-            // Configure ServiceRequestMessage relationship for ServiceRequestAttachment
-            builder.Entity<ServiceRequestAttachment>()
-                .HasOne(sra => sra.Message)
-                .WithMany()
-                .HasForeignKey(sra => sra.MessageId)
-                .OnDelete(DeleteBehavior.SetNull);
-        }
-
         private void ConfigureChatRelationships(ModelBuilder builder)
         {
             // Configure Organization relationship for Conversation
@@ -723,13 +653,6 @@ namespace Certio.Web.Data
                 .HasOne(c => c.Matter)
                 .WithMany()
                 .HasForeignKey(c => c.MatterId)
-                .OnDelete(DeleteBehavior.SetNull);
-
-            // Configure ServiceRequest relationship for Conversation
-            builder.Entity<Conversation>()
-                .HasOne(c => c.ServiceRequest)
-                .WithMany()
-                .HasForeignKey(c => c.ServiceRequestId)
                 .OnDelete(DeleteBehavior.SetNull);
 
             // Configure User relationship for ConversationParticipant
@@ -805,12 +728,6 @@ namespace Certio.Web.Data
                 .OnDelete(DeleteBehavior.SetNull);
 
             builder.Entity<AIAgentResult>()
-                .HasOne(aar => aar.ServiceRequest)
-                .WithMany()
-                .HasForeignKey(aar => aar.ServiceRequestId)
-                .OnDelete(DeleteBehavior.SetNull);
-
-            builder.Entity<AIAgentResult>()
                 .HasOne(aar => aar.ReviewedBy)
                 .WithMany()
                 .HasForeignKey(aar => aar.ReviewedById)
@@ -836,23 +753,11 @@ namespace Certio.Web.Data
                 .HasForeignKey(cg => cg.MatterId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            builder.Entity<ClientGoal>()
-                .HasOne(cg => cg.ServiceRequest)
-                .WithMany()
-                .HasForeignKey(cg => cg.ServiceRequestId)
-                .OnDelete(DeleteBehavior.SetNull);
-
             // Configure ReplySuggestion relationships
             builder.Entity<ReplySuggestion>()
                 .HasOne(rs => rs.Conversation)
                 .WithMany()
                 .HasForeignKey(rs => rs.ConversationId)
-                .OnDelete(DeleteBehavior.SetNull);
-
-            builder.Entity<ReplySuggestion>()
-                .HasOne(rs => rs.ServiceRequest)
-                .WithMany()
-                .HasForeignKey(rs => rs.ServiceRequestId)
                 .OnDelete(DeleteBehavior.SetNull);
 
             // Configure ClarityExplanation relationships
@@ -905,13 +810,6 @@ namespace Certio.Web.Data
                 .HasOne(n => n.Document)
                 .WithMany()
                 .HasForeignKey(n => n.DocumentId)
-                .OnDelete(DeleteBehavior.SetNull);
-
-            // Configure ServiceRequest relationship for Notification
-            builder.Entity<Notification>()
-                .HasOne(n => n.ServiceRequest)
-                .WithMany()
-                .HasForeignKey(n => n.ServiceRequestId)
                 .OnDelete(DeleteBehavior.SetNull);
 
             // Configure StatusItem relationship for Notification

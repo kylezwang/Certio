@@ -4,6 +4,7 @@ using Certio.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Certio.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251011000648_RemoveServiceRequestSystem")]
+    partial class RemoveServiceRequestSystem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1263,9 +1266,6 @@ namespace Certio.Web.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<int?>("ChannelId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -1275,15 +1275,6 @@ namespace Certio.Web.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("EditedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsChannelMessage")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsEdited")
-                        .HasColumnType("bit");
 
                     b.Property<bool>("IsFromAI")
                         .HasColumnType("bit");
@@ -1310,9 +1301,6 @@ namespace Certio.Web.Migrations
 
                     b.Property<int?>("ParentMessageId")
                         .HasColumnType("int");
-
-                    b.Property<string>("Reactions")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("ReplyToMessageId")
                         .HasColumnType("int");
@@ -1503,15 +1491,6 @@ namespace Certio.Web.Migrations
                     b.Property<DateTime?>("ArchivedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("ChannelDescription")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("ChannelType")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
                     b.Property<string>("ConversationType")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -1530,13 +1509,7 @@ namespace Certio.Web.Migrations
                     b.Property<bool>("IsArchived")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsChannel")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("IsPrivate")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsPrivateChannel")
                         .HasColumnType("bit");
 
                     b.Property<DateTime?>("LastMessageAt")

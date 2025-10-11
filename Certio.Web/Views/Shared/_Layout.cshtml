@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Righteous&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Certio.Web.styles.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
     <style>
         /* Global Navbar Styles */
         .global-navbar {
@@ -463,13 +464,13 @@
         </div>
     </div>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js" defer></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="~/js/site.js" asp-append-version="true" defer></script>
 
-    <script>
-        // Clients Popup Functionality
-        document.addEventListener('DOMContentLoaded', function() {
+    <script defer>
+        // Clients Popup Functionality - deferred to not block page load
+        window.addEventListener('load', function() {
             const clientsButton = document.getElementById('clientsButton');
             const clientsPopup = document.getElementById('clientsPopup');
             const clientsPopupClose = document.getElementById('clientsPopupClose');
@@ -483,35 +484,44 @@
             // Initialize Calendar link with same logic
             initializeCalendarLink();
 
-            // Function to initialize My Firm link
+            // Function to initialize My Firm link - defer to not block page load
             async function initializeMyFirmLink() {
-                try {
-                    const response = await fetch('/Client/List', { credentials: 'include' });
-                    const result = await response.json();
-                    
-                    if (result.success && result.organizations) {
-                        // Find the user's firm organization (LawFirm type)
-                        const firmOrg = result.organizations.find(org => 
-                            org.organizationType === 'LawFirm'
-                        );
+                // Defer to idle time to not block page load
+                if ('requestIdleCallback' in window) {
+                    requestIdleCallback(doFetch);
+                } else {
+                    setTimeout(doFetch, 100);
+                }
+                
+                async function doFetch() {
+                    try {
+                        const response = await fetch('/Client/List', { credentials: 'include' });
+                        const result = await response.json();
                         
-                        if (firmOrg) {
-                            myFirmLink.href = `/Client/${firmOrg.organizationId}/Dashboard`;
+                        if (result.success && result.organizations) {
+                            // Find the user's firm organization (LawFirm type)
+                            const firmOrg = result.organizations.find(org => 
+                                org.organizationType === 'LawFirm'
+                            );
                             
-                            // Check if current URL is in the law firm organization and add active class
-                            updateMyFirmActiveState(firmOrg.organizationId);
+                            if (firmOrg) {
+                                myFirmLink.href = `/Client/${firmOrg.organizationId}/Dashboard`;
+                                
+                                // Check if current URL is in the law firm organization and add active class
+                                updateMyFirmActiveState(firmOrg.organizationId);
+                            } else {
+                                // If no firm organization found, redirect to Global/Dashboard
+                                myFirmLink.href = '/Global/Dashboard';
+                            }
                         } else {
-                            // If no firm organization found, redirect to Global/Dashboard
+                            // Fallback to Global Dashboard if unable to fetch organizations
                             myFirmLink.href = '/Global/Dashboard';
                         }
-                    } else {
-                        // Fallback to Global Dashboard if unable to fetch organizations
+                    } catch (error) {
+                        console.error('Error initializing My Firm link:', error);
+                        // Fallback to Global Dashboard on error
                         myFirmLink.href = '/Global/Dashboard';
                     }
-                } catch (error) {
-                    console.error('Error initializing My Firm link:', error);
-                    // Fallback to Global Dashboard on error
-                    myFirmLink.href = '/Global/Dashboard';
                 }
             }
 
@@ -529,35 +539,44 @@
                 }
             }
 
-            // Function to initialize Calendar link
+            // Function to initialize Calendar link - defer to not block page load
             async function initializeCalendarLink() {
-                try {
-                    const response = await fetch('/Client/List', { credentials: 'include' });
-                    const result = await response.json();
-                    
-                    if (result.success && result.organizations) {
-                        // Find the user's firm organization (LawFirm type)
-                        const firmOrg = result.organizations.find(org => 
-                            org.organizationType === 'LawFirm'
-                        );
+                // Defer to idle time to not block page load
+                if ('requestIdleCallback' in window) {
+                    requestIdleCallback(doFetch);
+                } else {
+                    setTimeout(doFetch, 100);
+                }
+                
+                async function doFetch() {
+                    try {
+                        const response = await fetch('/Client/List', { credentials: 'include' });
+                        const result = await response.json();
                         
-                        if (firmOrg) {
-                            calendarLink.href = `/Client/${firmOrg.organizationId}/Calendar`;
+                        if (result.success && result.organizations) {
+                            // Find the user's firm organization (LawFirm type)
+                            const firmOrg = result.organizations.find(org => 
+                                org.organizationType === 'LawFirm'
+                            );
                             
-                            // Check if current URL is the calendar page and add active class
-                            updateCalendarActiveState(firmOrg.organizationId);
+                            if (firmOrg) {
+                                calendarLink.href = `/Client/${firmOrg.organizationId}/Calendar`;
+                                
+                                // Check if current URL is the calendar page and add active class
+                                updateCalendarActiveState(firmOrg.organizationId);
+                            } else {
+                                // If no firm organization found, default to #
+                                calendarLink.href = '#';
+                            }
                         } else {
-                            // If no firm organization found, default to #
+                            // Fallback on error
                             calendarLink.href = '#';
                         }
-                    } else {
+                    } catch (error) {
+                        console.error('Error initializing Calendar link:', error);
                         // Fallback on error
                         calendarLink.href = '#';
                     }
-                } catch (error) {
-                    console.error('Error initializing Calendar link:', error);
-                    // Fallback on error
-                    calendarLink.href = '#';
                 }
             }
 

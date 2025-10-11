@@ -16,17 +16,20 @@ namespace Certio.Web.Controllers
         private readonly IJoinCodeService _joinCodeService;
         private readonly IConfiguration _configuration;
         private readonly IFirmRelationshipCacheService _firmRelationshipCache;
+        private readonly IChannelManagementService _channelManagementService;
 
         public ClientController(
             ApplicationDbContext db, 
             IJoinCodeService joinCodeService, 
             IConfiguration configuration,
-            IFirmRelationshipCacheService firmRelationshipCache)
+            IFirmRelationshipCacheService firmRelationshipCache,
+            IChannelManagementService channelManagementService)
         {
             _db = db;
             _joinCodeService = joinCodeService;
             _configuration = configuration;
             _firmRelationshipCache = firmRelationshipCache;
+            _channelManagementService = channelManagementService;
         }
 
         // GET /Client/List
@@ -190,31 +193,165 @@ namespace Certio.Web.Controllers
             return View("~/Views/Matter/Index.cshtml", viewModel);
         }
 
-        // GET /Client/{orgId}/Services
+        // GET /Client/{orgId}/Communications
         [Authorize(Policy = "OrgMember")]
-        [HttpGet("/Client/{orgId:int}/Services")]
-        public async Task<IActionResult> Services(int orgId)
+        [HttpGet("/Client/{orgId:int}/Communications")]
+        public async Task<IActionResult> Communications(int orgId)
         {
             // Membership hint for future scoping
             ViewBag.OrganizationId = orgId;
             var org = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync();
             ViewBag.OrganizationName = org?.Name ?? "Client";
+            
+            // Set user info for JavaScript
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            ViewBag.CurrentUserId = customUser?.Id;
+            ViewBag.CurrentUserName = customUser != null ? $"{customUser.FirstName} {customUser.LastName}".Trim() : "";
 
-            var useSample = _configuration.GetValue<bool>("Features:UseSampleData");
-            ServicesViewModel viewModel;
-            if (useSample)
+            // Load real channels from database
+            var channels = await _channelManagementService.GetOrganizationChannelsAsync(orgId);
+            
+            // Load team members from organization - declare once for use in both paths
+            var orgTeamMembers = await _db.UserOrganizations
+                .Where(uo => uo.OrganizationId == orgId && uo.IsActive)
+                .Include(uo => uo.User)
+                .Select(uo => new CommunicationsTeamMember
+                {
+                    Name = $"{uo.User.FirstName} {uo.User.LastName}",
+                    Role = uo.Role.ToString(),
+                    Status = "offline", // Will be updated by SignalR
+                    Avatar = $"{uo.User.FirstName.Substring(0, 1)}{uo.User.LastName.Substring(0, 1)}",
+                    Activity = "Available"
+                })
+                .ToListAsync();
+
+            CommunicationsViewModel viewModel;
+            
+            // Check if we have real data
+            if (channels.Any())
             {
-                // Copy of HomeController.Services sample data
+                // Build channel categories from real data
+                var channelCategories = new List<ChannelCategory>();
+                
+                // Group channels by type
+                var publicChannels = channels.Where(c => !c.IsPrivateChannel && c.ChannelType != "Voice").ToList();
+                var privateChannels = channels.Where(c => c.IsPrivateChannel && c.ChannelType != "Voice").ToList();
+                var voiceChannels = channels.Where(c => c.ChannelType == "Voice").ToList();
+                
+                // CLIENT COMMUNICATIONS category
+                if (publicChannels.Any())
+                {
+                    channelCategories.Add(new ChannelCategory
+                    {
+                        Name = "CLIENT COMMUNICATIONS",
+                        Channels = new List<Channel>(),
+                        Subcategories = new List<ChannelSubcategory>
+                        {
+                            new ChannelSubcategory
+                            {
+                                Name = "Client Organizations",
+                                Channels = publicChannels.Select(c => new Channel
+                                {
+                                    Id = c.Id,
+                                    Name = c.Title,
+                                    Unread = 0, // TODO: Calculate unread count
+                                    Type = c.ChannelType == "Voice" ? ChannelType.Voice : ChannelType.Text,
+                                    IsPrivate = c.IsPrivateChannel
+                                }).ToList()
+                            }
+                        }
+                    });
+                }
+                
+                // LEGAL TEAM category
+                if (privateChannels.Any())
+                {
+                    channelCategories.Add(new ChannelCategory
+                    {
+                        Name = "LEGAL TEAM",
+                        Channels = privateChannels.Select(c => new Channel
+                        {
+                            Id = c.Id,
+                            Name = c.Title,
+                            Unread = 0, // TODO: Calculate unread count
+                            Type = c.ChannelType == "Voice" ? ChannelType.Voice : ChannelType.Text,
+                            IsPrivate = c.IsPrivateChannel
+                        }).ToList()
+                    });
+                }
+                
+                // VOICE CHANNELS category
+                if (voiceChannels.Any())
+                {
+                    channelCategories.Add(new ChannelCategory
+                    {
+                        Name = "VOICE CHANNELS",
+                        Channels = voiceChannels.Select(c => new Channel
+                        {
+                            Id = c.Id,
+                            Name = c.Title,
+                            Unread = 0,
+                            Type = ChannelType.Voice,
+                            IsPrivate = c.IsPrivateChannel,
+                            Users = new List<string>() // TODO: Get active users from SignalR
+                        }).ToList()
+                    });
+                }
+                
+                // Load recent messages from the first channel
+                var firstChannel = channels.FirstOrDefault();
+                var messages = new List<Message>();
+                if (firstChannel != null)
+                {
+                    var recentMessages = await _db.ChatMessages
+                        .Where(m => m.ChannelId == firstChannel.Id && m.IsChannelMessage)
+                        .OrderByDescending(m => m.CreatedAt)
+                        .Take(50)
+                        .Include(m => m.User)
+                        .ToListAsync();
+                    
+                    messages = recentMessages.OrderBy(m => m.CreatedAt).Select(m => new Message
+                    {
+                        Id = m.Id,
+                        User = !string.IsNullOrEmpty(m.Sender) ? m.Sender : $"{m.User?.FirstName} {m.User?.LastName}",
+                        Avatar = m.User != null ? $"{m.User.FirstName.Substring(0, 1)}{m.User.LastName.Substring(0, 1)}" : "??",
+                        Time = m.CreatedAt.ToLocalTime().ToString("h:mm tt"),
+                        Content = m.Content,
+                        Reactions = new List<Reaction>() // TODO: Parse reactions from JSON
+                    }).ToList();
+                }
+                
+                viewModel = new CommunicationsViewModel
+                {
+                    ChannelCategories = channelCategories,
+                    Messages = messages,
+                    TeamMembers = orgTeamMembers,
+                    ActiveChannel = firstChannel?.Title ?? "general",
+                    OnlineMembersCount = 0 // Will be updated by SignalR
+                };
+            }
+            else
+            {
+                // Fallback to sample data if no channels exist yet
+                // Copy of HomeController.Communications sample data
                 var channelCategories = new List<ChannelCategory>
                 {
                     new ChannelCategory
                     {
                         Name = "CLIENT COMMUNICATIONS",
-                        Channels = new List<Channel>
+                        Channels = new List<Channel>(),
+                        Subcategories = new List<ChannelSubcategory>
                         {
-                            new Channel { Id = 1, Name = "general-client-chat", Unread = 0, Type = ChannelType.Text, IsPrivate = false },
-                            new Channel { Id = 2, Name = "urgent-matters", Unread = 3, Type = ChannelType.Text, IsPrivate = false },
-                            new Channel { Id = 3, Name = "client-onboarding", Unread = 1, Type = ChannelType.Text, IsPrivate = false }
+                            new ChannelSubcategory
+                            {
+                                Name = "Client Organizations",
+                                Channels = new List<Channel>
+                                {
+                                    new Channel { Id = 1, Name = "general-client-chat", Unread = 0, Type = ChannelType.Text, IsPrivate = false },
+                                    new Channel { Id = 2, Name = "urgent-matters", Unread = 3, Type = ChannelType.Text, IsPrivate = false },
+                                    new Channel { Id = 3, Name = "client-onboarding", Unread = 1, Type = ChannelType.Text, IsPrivate = false }
+                                }
+                            }
                         }
                     },
                     new ChannelCategory
@@ -245,27 +382,26 @@ namespace Certio.Web.Controllers
                     new Message { Id = 3, User = "Alex Rodriguez", Avatar = "AR", Time = "10:15 AM", Content = "New client onboarding documents uploaded to the secure portal. All stakeholders have been notified.", Reactions = new List<Reaction> { new Reaction { Emoji = "🎉", Count = 3 } } },
                 };
 
-                var teamMembers = new List<ServiceTeamMember>
+                // Use real team members or sample data if no real users exist
+                var sampleTeamMembers = new List<CommunicationsTeamMember>
                 {
-                    new ServiceTeamMember { Name = "Sarah Johnson", Role = "Senior Legal Counsel", Status = "online", Avatar = "SJ", Activity = "Reviewing Morrison contract" },
-                    new ServiceTeamMember { Name = "Mike Chen", Role = "Legal Tech Specialist", Status = "online", Avatar = "MC", Activity = "Debugging case management system" }
+                    new CommunicationsTeamMember { Name = "Sarah Johnson", Role = "Senior Legal Counsel", Status = "online", Avatar = "SJ", Activity = "Reviewing Morrison contract" },
+                    new CommunicationsTeamMember { Name = "Mike Chen", Role = "Legal Tech Specialist", Status = "online", Avatar = "MC", Activity = "Debugging case management system" }
                 };
+                
+                var displayTeamMembers = orgTeamMembers.Any() ? orgTeamMembers : sampleTeamMembers;
 
-                viewModel = new ServicesViewModel
+                viewModel = new CommunicationsViewModel
                 {
                     ChannelCategories = channelCategories,
                     Messages = messages,
-                    TeamMembers = teamMembers,
+                    TeamMembers = displayTeamMembers,
                     ActiveChannel = "general-client-chat",
-                    OnlineMembersCount = teamMembers.Count(m => m.Status == "online")
+                    OnlineMembersCount = displayTeamMembers.Count(m => m.Status == "online")
                 };
             }
-            else
-            {
-                viewModel = new ServicesViewModel();
-            }
 
-            return View("~/Views/Home/Services.cshtml", viewModel);
+            return View("~/Views/Home/Communications.cshtml", viewModel);
         }
 
         // GET /Client/{orgId}/Documents

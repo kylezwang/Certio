@@ -45,6 +45,13 @@ public class ChatMessage
     public int? ParentMessageId { get; set; }
     public int? ReplyToMessageId { get; set; }
     
+    // Channel-based messaging fields
+    public int? ChannelId { get; set; }
+    public bool IsChannelMessage { get; set; } = false;
+    public string? Reactions { get; set; } // JSON string for emoji reactions
+    public bool IsEdited { get; set; } = false;
+    public DateTime? EditedAt { get; set; }
+    
     public string? Metadata { get; set; } // JSON string for additional data
     
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;

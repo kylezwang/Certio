@@ -72,7 +72,6 @@ namespace Certio.Domain.Users
         public virtual ICollection<UserOrganization> UserOrganizations { get; set; } = new List<UserOrganization>();
         public virtual ICollection<TeamMembership> TeamMemberships { get; set; } = new List<TeamMembership>();
         public virtual ICollection<MatterAssignment> MatterAssignments { get; set; } = new List<MatterAssignment>();
-        public virtual ICollection<ServiceRequest> ServiceRequests { get; set; } = new List<ServiceRequest>();
         public virtual ICollection<Document> CreatedDocuments { get; set; } = new List<Document>();
         public virtual ICollection<ChatMessage> ChatMessages { get; set; } = new List<ChatMessage>();
         public virtual ICollection<OrganizationJoinCode> CreatedJoinCodes { get; set; } = new List<OrganizationJoinCode>();

@@ -11,15 +11,17 @@ public class ChatService : IChatService
     private readonly ApplicationDbContext _context;
     private readonly IAIAgentService _aiAgentService;
     private readonly AIBackgroundService _aiBackgroundService;
+    private readonly ICacheService _cacheService;
 
-    public ChatService(ApplicationDbContext context, IAIAgentService aiAgentService, AIBackgroundService aiBackgroundService)
+    public ChatService(ApplicationDbContext context, IAIAgentService aiAgentService, AIBackgroundService aiBackgroundService, ICacheService cacheService)
     {
         _context = context;
         _aiAgentService = aiAgentService;
         _aiBackgroundService = aiBackgroundService;
+        _cacheService = cacheService;
     }
 
-    public async Task<Conversation> CreateConversationAsync(int organizationId, int userId, string title, string description, int? matterId = null, int? serviceRequestId = null)
+    public async Task<Conversation> CreateConversationAsync(int organizationId, int userId, string title, string description, int? matterId = null)
     {
         var conversation = new Conversation
         {
@@ -28,7 +30,32 @@ public class ChatService : IChatService
             Title = title,
             Description = description,
             MatterId = matterId,
-            ServiceRequestId = serviceRequestId,
+            CreatedAt = DateTime.UtcNow,
+            LastMessageAt = DateTime.UtcNow
+        };
+
+        _context.Conversations.Add(conversation);
+        await _context.SaveChangesAsync();
+
+        // Invalidate conversation cache for this user/organization
+        await _cacheService.InvalidateUserConversationsCacheAsync(userId, organizationId);
+
+        return conversation;
+    }
+
+    public async Task<Conversation> CreateChannelAsync(int organizationId, int userId, string title, string description, string channelType = "Group", bool isPrivateChannel = false, int? matterId = null)
+    {
+        var conversation = new Conversation
+        {
+            OrganizationId = organizationId,
+            CreatedById = userId,
+            Title = title,
+            Description = description,
+            MatterId = matterId,
+            ChannelType = channelType,
+            IsChannel = true,
+            IsPrivateChannel = isPrivateChannel,
+            ChannelDescription = description,
             CreatedAt = DateTime.UtcNow,
             LastMessageAt = DateTime.UtcNow
         };
@@ -73,6 +100,136 @@ public class ChatService : IChatService
         return message;
     }
 
+    public async Task<ChatMessage> SendChannelMessageAsync(int conversationId, int? userId, string userType, string content, string messageType = "Text", int? channelId = null, int? replyToMessageId = null)
+    {
+        var message = new ChatMessage
+        {
+            ConversationId = conversationId,
+            UserId = userId,
+            UserType = userType,
+            Content = content,
+            MessageType = messageType,
+            IsFromAI = false,
+            IsChannelMessage = true,
+            ChannelId = channelId,
+            ReplyToMessageId = replyToMessageId,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.ChatMessages.Add(message);
+
+        // Update conversation last message time
+        var conversation = await _context.Conversations
+            .FirstOrDefaultAsync(c => c.Id == conversationId);
+        if (conversation != null)
+        {
+            conversation.LastMessageAt = DateTime.UtcNow;
+        }
+
+        await _context.SaveChangesAsync();
+        
+        // Invalidate cache for this channel (Discord/Slack style)
+        await _cacheService.InvalidateChannelCacheAsync(conversationId);
+
+        return message;
+    }
+
+    public async Task<ChatMessage> EditMessageAsync(int messageId, string newContent, int userId)
+    {
+        var message = await _context.ChatMessages
+            .FirstOrDefaultAsync(m => m.Id == messageId && m.UserId == userId);
+
+        if (message == null)
+        {
+            throw new ArgumentException("Message not found or user not authorized to edit");
+        }
+
+        message.Content = newContent;
+        message.IsEdited = true;
+        message.EditedAt = DateTime.UtcNow;
+        message.LastModifiedDate = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+        return message;
+    }
+
+    public async Task<bool> AddReactionAsync(int messageId, int userId, string emoji)
+    {
+        var message = await _context.ChatMessages
+            .FirstOrDefaultAsync(m => m.Id == messageId);
+
+        if (message == null) return false;
+
+        // Parse existing reactions or create new dictionary
+        var reactions = new Dictionary<string, List<int>>();
+        if (!string.IsNullOrEmpty(message.Reactions))
+        {
+            try
+            {
+                reactions = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, List<int>>>(message.Reactions) ?? new Dictionary<string, List<int>>();
+            }
+            catch
+            {
+                reactions = new Dictionary<string, List<int>>();
+            }
+        }
+
+        // Add or update reaction
+        if (!reactions.ContainsKey(emoji))
+        {
+            reactions[emoji] = new List<int>();
+        }
+
+        if (!reactions[emoji].Contains(userId))
+        {
+            reactions[emoji].Add(userId);
+        }
+
+        // Serialize back to JSON
+        message.Reactions = System.Text.Json.JsonSerializer.Serialize(reactions);
+        await _context.SaveChangesAsync();
+
+        return true;
+    }
+
+    public async Task<bool> RemoveReactionAsync(int messageId, int userId, string emoji)
+    {
+        var message = await _context.ChatMessages
+            .FirstOrDefaultAsync(m => m.Id == messageId);
+
+        if (message == null) return false;
+
+        // Parse existing reactions
+        var reactions = new Dictionary<string, List<int>>();
+        if (!string.IsNullOrEmpty(message.Reactions))
+        {
+            try
+            {
+                reactions = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, List<int>>>(message.Reactions) ?? new Dictionary<string, List<int>>();
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        // Remove reaction
+        if (reactions.ContainsKey(emoji))
+        {
+            reactions[emoji].Remove(userId);
+            if (reactions[emoji].Count == 0)
+            {
+                reactions.Remove(emoji);
+            }
+        }
+
+        // Serialize back to JSON
+        message.Reactions = System.Text.Json.JsonSerializer.Serialize(reactions);
+        await _context.SaveChangesAsync();
+
+        return true;
+    }
+
     public async Task<List<ChatMessage>> GetConversationMessagesAsync(int conversationId)
     {
         return await _context.ChatMessages
@@ -83,10 +240,50 @@ public class ChatService : IChatService
 
     public async Task<List<Conversation>> GetUserConversationsAsync(int userId, int organizationId)
     {
-        return await _context.Conversations
+        // Try to get from cache first
+        var cachedConversations = await _cacheService.GetUserConversationsAsync<Conversation>(userId, organizationId);
+        if (cachedConversations != null)
+        {
+            return cachedConversations;
+        }
+
+        var conversations = await _context.Conversations
             .Where(c => c.OrganizationId == organizationId && c.CreatedById == userId)
             .OrderByDescending(c => c.LastMessageAt)
             .ToListAsync();
+
+        // Cache the result for future requests
+        await _cacheService.SetUserConversationsAsync(userId, organizationId, conversations);
+
+        return conversations;
+    }
+
+    public async Task<List<Conversation>> GetUserAIConversationsAsync(int userId, int organizationId)
+    {
+        // Try to get from cache first
+        var cachedConversations = await _cacheService.GetUserAIConversationsAsync<Conversation>(userId, organizationId);
+        if (cachedConversations != null)
+        {
+            return cachedConversations;
+        }
+
+        // AI-only conversations are those with at least one AI message (IsFromAI) or explicitly titled/typed
+        // Keep it simple and rely on AI messages to infer; fallback to conversation title marker if needed
+        var aiConversationIds = await _context.ChatMessages
+            .Where(m => m.UserId == null && m.IsFromAI)
+            .Select(m => m.ConversationId)
+            .Distinct()
+            .ToListAsync();
+
+        var conversations = await _context.Conversations
+            .Where(c => c.OrganizationId == organizationId && c.CreatedById == userId && aiConversationIds.Contains(c.Id))
+            .OrderByDescending(c => c.LastMessageAt)
+            .ToListAsync();
+
+        // Cache the result for future requests
+        await _cacheService.SetUserAIConversationsAsync(userId, organizationId, conversations);
+
+        return conversations;
     }
 
     public async Task<Conversation?> GetConversationAsync(int conversationId, int organizationId)
@@ -107,6 +304,87 @@ public class ChatService : IChatService
 
         return await query
             .OrderByDescending(c => c.LastMessageAt)
+            .ToListAsync();
+    }
+
+    public async Task<List<Conversation>> GetChannelsAsync(int organizationId, bool includePrivateChannels = false)
+    {
+        // Try cache first (Slack style - channel list cached)
+        var cacheKey = $"channels:{organizationId}:{includePrivateChannels}";
+        var cachedChannels = await _cacheService.GetAsync<List<Conversation>>(cacheKey);
+        
+        if (cachedChannels != null)
+        {
+            return cachedChannels;
+        }
+
+        // Cache miss - get from database
+        var query = _context.Conversations
+            .Where(c => c.OrganizationId == organizationId && c.IsChannel);
+
+        if (!includePrivateChannels)
+        {
+            query = query.Where(c => !c.IsPrivateChannel);
+        }
+
+        var channels = await query
+            .OrderByDescending(c => c.LastMessageAt)
+            .ToListAsync();
+        
+        // Cache for next time (longer TTL for channel metadata)
+        await _cacheService.SetAsync(cacheKey, channels, TimeSpan.FromHours(1));
+
+        return channels;
+    }
+
+    public async Task<List<Conversation>> GetUserChannelsAsync(int userId, int organizationId)
+    {
+        return await _context.Conversations
+            .Where(c => c.OrganizationId == organizationId && c.IsChannel && c.CreatedById == userId)
+            .OrderByDescending(c => c.LastMessageAt)
+            .ToListAsync();
+    }
+
+    public async Task<List<ChatMessage>> GetChannelMessagesAsync(int conversationId, int? channelId = null)
+    {
+        // Try to get from cache first (Discord/Slack style - last 50 messages cached)
+        var cachedMessages = await _cacheService.GetRecentMessagesAsync<ChatMessage>(conversationId, 50);
+        
+        if (cachedMessages != null && cachedMessages.Count > 0)
+        {
+            // Cache hit! Return cached messages
+            return cachedMessages;
+        }
+
+        // Cache miss - get from database
+        var query = _context.ChatMessages
+            .Include(m => m.User) // Include User navigation property
+            .Where(m => m.ConversationId == conversationId && m.IsChannelMessage);
+
+        if (channelId.HasValue)
+        {
+            query = query.Where(m => m.ChannelId == channelId.Value);
+        }
+
+        var messages = await query
+            .OrderBy(m => m.CreatedAt)
+            .ToListAsync();
+        
+        // Cache the recent messages for next time
+        if (messages.Count > 0)
+        {
+            await _cacheService.SetRecentMessagesAsync(conversationId, messages, 50);
+        }
+
+        return messages;
+    }
+
+    public async Task<List<ChatMessage>> GetMessagesWithRepliesAsync(int conversationId)
+    {
+        return await _context.ChatMessages
+            .Where(m => m.ConversationId == conversationId)
+            .Include(m => m.Replies)
+            .OrderBy(m => m.CreatedAt)
             .ToListAsync();
     }
 
