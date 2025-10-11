@@ -15,10 +15,20 @@ public interface IAIAgentService
 public interface IChatService
 {
     // Organization-scoped conversation management
-    Task<Conversation> CreateConversationAsync(int organizationId, int userId, string title, string description, int? matterId = null, int? serviceRequestId = null);
+    Task<Conversation> CreateConversationAsync(int organizationId, int userId, string title, string description, int? matterId = null);
+    Task<Conversation> CreateChannelAsync(int organizationId, int userId, string title, string description, string channelType = "Group", bool isPrivateChannel = false, int? matterId = null);
     Task<ChatMessage> SendMessageAsync(int conversationId, int? userId, string userType, string content, string messageType = "Text");
+    Task<ChatMessage> SendChannelMessageAsync(int conversationId, int? userId, string userType, string content, string messageType = "Text", int? channelId = null, int? replyToMessageId = null);
+    Task<ChatMessage> EditMessageAsync(int messageId, string newContent, int userId);
+    Task<bool> AddReactionAsync(int messageId, int userId, string emoji);
+    Task<bool> RemoveReactionAsync(int messageId, int userId, string emoji);
     Task<List<ChatMessage>> GetConversationMessagesAsync(int conversationId);
+    Task<List<ChatMessage>> GetChannelMessagesAsync(int conversationId, int? channelId = null);
+    Task<List<ChatMessage>> GetMessagesWithRepliesAsync(int conversationId);
     Task<List<Conversation>> GetUserConversationsAsync(int userId, int organizationId);
+    Task<List<Conversation>> GetUserAIConversationsAsync(int userId, int organizationId);
+    Task<List<Conversation>> GetChannelsAsync(int organizationId, bool includePrivateChannels = false);
+    Task<List<Conversation>> GetUserChannelsAsync(int userId, int organizationId);
     Task<Conversation?> GetConversationAsync(int conversationId, int organizationId);
     
     // AI Services

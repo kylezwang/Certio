@@ -260,11 +260,6 @@ namespace Certio.Web.Services
                 .ToListAsync();
             _context.DocumentComments.RemoveRange(documentComments);
 
-            // Remove personal service request messages
-            var serviceRequestMessages = await _context.ServiceRequestMessages
-                .Where(srm => srm.UserId == userId)
-                .ToListAsync();
-            _context.ServiceRequestMessages.RemoveRange(serviceRequestMessages);
 
             // Remove personal matter permissions
             var matterPermissions = await _context.MatterPermissions
@@ -317,29 +312,6 @@ namespace Certio.Web.Services
                 _context.MatterAssignments.Remove(assignment);
             }
 
-            // Handle service requests
-            var serviceRequests = await _context.ServiceRequests
-                .Where(sr => sr.ClientId == userId || sr.AssignedToId == userId)
-                .ToListAsync();
-
-            foreach (var serviceRequest in serviceRequests)
-            {
-                // Create anonymized metric record
-                await _context.AuditLogs.AddAsync(new AuditLog
-                {
-                    EntityType = "ServiceRequest",
-                    EntityId = serviceRequest.Id,
-                    Action = "UserDeleted",
-                    UserId = null, // Anonymized
-                    UserName = "Deleted User",
-                    Description = $"Service Request {serviceRequest.Title} - User data anonymized",
-                    Timestamp = DateTime.UtcNow
-                });
-
-                // Clear user references
-                if (serviceRequest.ClientId == userId) serviceRequest.ClientId = null;
-                if (serviceRequest.AssignedToId == userId) serviceRequest.AssignedToId = null;
-            }
         }
     }
 }

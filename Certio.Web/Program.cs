@@ -237,6 +237,31 @@ builder.Services.AddSession(options =>
     options.Cookie.SameSite = SameSiteMode.Lax; // Less restrictive for development
 });
 
+// Multi-level caching strategy (Discord/Slack style)
+// 1. In-memory cache for hot data (fast, but not distributed)
+builder.Services.AddMemoryCache();
+
+// 2. Redis distributed cache for shared data across instances
+var redisConnection = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379";
+try
+{
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = redisConnection;
+        options.InstanceName = "Certio_";
+    });
+    Console.WriteLine($"✅ Redis cache configured: {redisConnection}");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"⚠️ Redis not available, using in-memory cache only: {ex.Message}");
+    // Fallback to memory cache if Redis is not available
+    builder.Services.AddDistributedMemoryCache();
+}
+
+// Register cache service
+builder.Services.AddSingleton<Certio.Web.Services.ICacheService, Certio.Web.Services.RedisCacheService>();
+
 // mvc/razor/controllers + signalr
 builder.Services.AddRazorPages();
 
@@ -275,6 +300,10 @@ builder.Services.AddScoped<IAuthorizationHandler, OrgMemberAuthorizationHandler>
 builder.Services.AddHttpClient<Certio.Application.Services.IAIAgentService, Certio.Application.Services.AIAgentService>();
 builder.Services.AddScoped<Certio.Application.Services.IChatService, Certio.Web.Services.ChatService>();
 builder.Services.AddSingleton<Certio.Web.Services.AIBackgroundService>();
+
+// Channel Management Services
+builder.Services.AddScoped<Certio.Web.Services.IChannelManagementService, Certio.Web.Services.ChannelManagementService>();
+builder.Services.AddSingleton<Certio.Web.Services.IUserPresenceService, Certio.Web.Services.UserPresenceService>();
 
 // User Sync Services
 builder.Services.AddScoped<Certio.Web.Services.IUserSyncService, Certio.Web.Services.UserSyncService>();
@@ -320,6 +349,9 @@ app.UseUserSync(); // Automatically sync Identity users with custom User records
 // Build client context AFTER user sync so CustomUser is available
 app.UseMiddleware<ClientContextMiddleware>();
 
+// Initialize default channels for organizations
+app.UseChannelInitialization();
+
 // Client access guard - must come after ClientContextMiddleware
 app.UseClientAccessGuard();
 
@@ -335,6 +367,11 @@ app.MapControllerRoute(
 app.MapControllerRoute(
     name: "client_chat",
     pattern: "Client/{orgId:int}/Chat/{action=Index}/{id?}",
+    defaults: new { controller = "Chat" });
+// API routes for chat
+app.MapControllerRoute(
+    name: "api_chat",
+    pattern: "api/chat/{action=Index}/{id?}",
     defaults: new { controller = "Chat" });
 app.MapControllerRoute(
     name: "admin",

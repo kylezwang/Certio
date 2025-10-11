@@ -26,6 +26,19 @@ Get-Content ".env" | ForEach-Object {
 Write-Host ""
 Write-Host "✅ Environment variables loaded successfully!" -ForegroundColor Green
 Write-Host ""
+
+# Check Redis status
+Write-Host "Checking Redis status..." -ForegroundColor Cyan
+$redisContainer = docker ps --filter "name=redis-certio" --format "{{.Names}}" 2>$null
+if ($redisContainer -eq "redis-certio") {
+    Write-Host "✅ Redis container is running (localhost:6379)" -ForegroundColor Green
+} else {
+    Write-Host "⚠️  Redis container not running" -ForegroundColor Yellow
+    Write-Host "   The app will fall back to in-memory cache." -ForegroundColor Yellow
+    Write-Host "   To start Redis: docker run -d --name redis-certio -p 6379:6379 redis:latest" -ForegroundColor Gray
+}
+Write-Host ""
+
 Write-Host "You can now use Docker commands with environment variables." -ForegroundColor Cyan
 Write-Host "Example: docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P `$env:SQL_PASSWORD -C -N -W -s',' -Q `"SELECT Id, Title, Description, ConversationType, Status, CreatedAt, LastMessageAt FROM CertioLocal.dbo.Conversations ORDER BY CreatedAt DESC`"" -ForegroundColor Yellow
 Write-Host ""

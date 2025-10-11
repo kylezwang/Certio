@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Certio.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+31242b7fac92b38c1115c1a95c74e2e766ce4059")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2d89f5d7c91ea82601c2375a773d6e3df8705392")]
 [assembly: System.Reflection.AssemblyProductAttribute("Certio.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Certio.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

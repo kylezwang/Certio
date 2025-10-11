@@ -4319,7 +4319,12 @@
                         }
                     } else if (viewsArray.length === 3) {
                         tasksContent.classList.add('all-views');
+                        // Hide client navbar when all 3 views are selected
+                        document.body.classList.add('sidebar-hidden');
                     }
+                } else {
+                    // Show client navbar when not in all-views mode
+                    document.body.classList.remove('sidebar-hidden');
                 }
                 
                 // Handle Add button positioning for all-views mode

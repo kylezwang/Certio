@@ -28,7 +28,6 @@ public class AIAgentResult
     public int? ConversationId { get; set; }
     public int? MatterId { get; set; }
     public int? DocumentId { get; set; }
-    public int? ServiceRequestId { get; set; }
     
     public bool RequiresReview { get; set; } = false;
     public bool IsApproved { get; set; } = false;
@@ -42,7 +41,6 @@ public class AIAgentResult
     public virtual Conversation? Conversation { get; set; }
     public virtual Matter? Matter { get; set; }
     public virtual Document? Document { get; set; }
-    public virtual ServiceRequest? ServiceRequest { get; set; }
     public virtual User? ReviewedBy { get; set; }
 }
 
@@ -77,7 +75,6 @@ public class ClientGoal
     
     public int? ConversationId { get; set; }
     public int? MatterId { get; set; }
-    public int? ServiceRequestId { get; set; }
     
     [Required]
     public string PrimaryGoal { get; set; } = "";
@@ -103,7 +100,6 @@ public class ClientGoal
     // Navigation properties
     public virtual Conversation? Conversation { get; set; }
     public virtual Matter? Matter { get; set; }
-    public virtual ServiceRequest? ServiceRequest { get; set; }
 }
 
 public class ReplySuggestion
@@ -111,7 +107,6 @@ public class ReplySuggestion
     public int Id { get; set; }
     
     public int? ConversationId { get; set; }
-    public int? ServiceRequestId { get; set; }
     
     [Required]
     public string SuggestedReply { get; set; } = "";
@@ -131,7 +126,6 @@ public class ReplySuggestion
     
     // Navigation properties
     public virtual Conversation? Conversation { get; set; }
-    public virtual ServiceRequest? ServiceRequest { get; set; }
 }
 
 public class ClarityExplanation

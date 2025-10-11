@@ -48,8 +48,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>2epy0t40iq</Fingerprint>
-      <Integrity>9nYsgCLXgeKSXP2H5OIbT+vkegum4Jp2YCxQoiw7KrY=</Integrity>
+      <Fingerprint>kn1mmxqtbv</Fingerprint>
+      <Integrity>4It+J3q4rdM7Velt92KW375gdEMkDslJDnvrgL43hO4=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\site.css'))</OriginalItemSpec>
@@ -66,8 +66,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>8rgefl6fkz</Fingerprint>
-      <Integrity>VE+6vGt04SRVorTYszHIM+WrBaQ1sYXG0cPShGALd1Y=</Integrity>
+      <Fingerprint>q4o3z7t5ih</Fingerprint>
+      <Integrity>FtRfbKNzoMWOHCf/lhMfq9tKS9mkYgJghzkriu19m5Y=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\tasks.css'))</OriginalItemSpec>
@@ -138,11 +138,29 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>4ks7qz7vtz</Fingerprint>
-      <Integrity>rH1vSOdomsu+QcMO7m6jB4qEIvVqk2dU/n/mDbmGVMc=</Integrity>
+      <Fingerprint>csqvsnroo0</Fingerprint>
+      <Integrity>XKHNobSTFpAiz+indJ54QOZKusbhPbXtST4xlj1U644=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\chat.js'))</OriginalItemSpec>
+    </StaticWebAsset>
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\communications.js'))">
+      <SourceType>Package</SourceType>
+      <SourceId>Certio.Web</SourceId>
+      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
+      <BasePath>_content/Certio.Web</BasePath>
+      <RelativePath>js/communications.js</RelativePath>
+      <AssetKind>All</AssetKind>
+      <AssetMode>All</AssetMode>
+      <AssetRole>Primary</AssetRole>
+      <RelatedAsset></RelatedAsset>
+      <AssetTraitName></AssetTraitName>
+      <AssetTraitValue></AssetTraitValue>
+      <Fingerprint>y3tw8aiscf</Fingerprint>
+      <Integrity>XuvEpg0UAElrVej7pT8xwDodWBQTWrlDwomHJhLSjr4=</Integrity>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\communications.js'))</OriginalItemSpec>
     </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\matter-form.js'))">
       <SourceType>Package</SourceType>

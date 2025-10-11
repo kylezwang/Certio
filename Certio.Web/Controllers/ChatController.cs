@@ -41,6 +41,22 @@ public class ChatController : Controller
         }
     }
 
+    // Returns only conversations that include AI-generated messages, for lightweight global panel usage
+    [HttpGet("GetAIConversations")]
+    public async Task<IActionResult> GetAIConversations(int orgId)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var conversations = await _chatService.GetUserAIConversationsAsync(userId, orgId);
+            return Json(conversations);
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, error = ex.Message });
+        }
+    }
+
     [HttpGet("Conversation/{id}")]
     public async Task<IActionResult> Conversation(int orgId, int id)
     {
@@ -96,6 +112,41 @@ public class ChatController : Controller
     {
         var messages = await _chatService.GetConversationMessagesAsync(id);
         return Json(messages);
+    }
+
+    [HttpGet("channel/{channelId}/messages")]
+    [AllowAnonymous] // Allow for now, add proper auth later
+    public async Task<IActionResult> GetChannelMessages(int channelId)
+    {
+        try
+        {
+            var messages = await _chatService.GetChannelMessagesAsync(channelId);
+            
+            // Transform to match expected format
+            var formattedMessages = messages.Select(m => new
+            {
+                m.Id,
+                m.ConversationId,
+                m.UserId,
+                User = m.User?.FirstName + " " + m.User?.LastName,
+                SenderName = m.User?.FirstName + " " + m.User?.LastName,
+                m.Content,
+                m.CreatedAt,
+                m.IsEdited,
+                m.EditedAt,
+                m.Reactions,
+                m.IsFromAI,
+                m.MessageType,
+                m.ReplyToMessageId,
+                Time = m.CreatedAt.ToString("h:mm tt")
+            }).ToList();
+
+            return Json(formattedMessages);
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, error = ex.Message });
+        }
     }
 
     [HttpPost("GetSuggestions")]

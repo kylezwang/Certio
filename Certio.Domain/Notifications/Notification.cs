@@ -27,32 +27,30 @@ namespace Certio.Domain.Notifications
         [StringLength(20)]
         public string Category { get; set; } = ""; // Matter, Document, Service, System, AI
         
-        public int? MatterId { get; set; }
-        public int? DocumentId { get; set; }
-        public int? ServiceRequestId { get; set; }
-        public int? StatusItemId { get; set; }
-        public int? ConversationId { get; set; }
-        
-        [StringLength(100)]
-        public string? ActionUrl { get; set; }
-        
-        [StringLength(50)]
-        public string? ActionText { get; set; }
-        
-        public bool IsRead { get; set; } = false;
-        public bool IsArchived { get; set; } = false;
-        
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime? ReadAt { get; set; }
-        public DateTime? ArchivedAt { get; set; }
-        
-        // Navigation properties
-        public virtual User User { get; set; } = null!;
-        public virtual Matter? Matter { get; set; }
-        public virtual Document? Document { get; set; }
-        public virtual ServiceRequest? ServiceRequest { get; set; }
-        public virtual StatusItem? StatusItem { get; set; }
-        public virtual Conversation? Conversation { get; set; }
+    public int? MatterId { get; set; }
+    public int? DocumentId { get; set; }
+    public int? StatusItemId { get; set; }
+    public int? ConversationId { get; set; }
+    
+    [StringLength(100)]
+    public string? ActionUrl { get; set; }
+    
+    [StringLength(50)]
+    public string? ActionText { get; set; }
+    
+    public bool IsRead { get; set; } = false;
+    public bool IsArchived { get; set; } = false;
+    
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? ReadAt { get; set; }
+    public DateTime? ArchivedAt { get; set; }
+    
+    // Navigation properties
+    public virtual User User { get; set; } = null!;
+    public virtual Matter? Matter { get; set; }
+    public virtual Document? Document { get; set; }
+    public virtual StatusItem? StatusItem { get; set; }
+    public virtual Conversation? Conversation { get; set; }
     }
     
     public class NotificationTemplate

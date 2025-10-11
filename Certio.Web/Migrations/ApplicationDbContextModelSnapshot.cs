@@ -864,9 +864,6 @@ namespace Certio.Web.Migrations
                     b.Property<DateTime?>("ReadAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("ServiceRequestId")
-                        .HasColumnType("int");
-
                     b.Property<int?>("StatusItemId")
                         .HasColumnType("int");
 
@@ -890,8 +887,6 @@ namespace Certio.Web.Migrations
                     b.HasIndex("DocumentId");
 
                     b.HasIndex("MatterId");
-
-                    b.HasIndex("ServiceRequestId");
 
                     b.HasIndex("StatusItemId");
 
@@ -1238,9 +1233,6 @@ namespace Certio.Web.Migrations
                     b.Property<int?>("ReviewedById")
                         .HasColumnType("int");
 
-                    b.Property<int?>("ServiceRequestId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -1255,8 +1247,6 @@ namespace Certio.Web.Migrations
                     b.HasIndex("MatterId");
 
                     b.HasIndex("ReviewedById");
-
-                    b.HasIndex("ServiceRequestId");
 
                     b.ToTable("AIAgentResults");
                 });
@@ -1273,6 +1263,9 @@ namespace Certio.Web.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<int?>("ChannelId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -1282,6 +1275,15 @@ namespace Certio.Web.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("EditedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsChannelMessage")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsEdited")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsFromAI")
                         .HasColumnType("bit");
@@ -1308,6 +1310,9 @@ namespace Certio.Web.Migrations
 
                     b.Property<int?>("ParentMessageId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Reactions")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("ReplyToMessageId")
                         .HasColumnType("int");
@@ -1474,9 +1479,6 @@ namespace Certio.Web.Migrations
                     b.Property<string>("SecondaryGoals")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("ServiceRequestId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Timeline")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
@@ -1486,8 +1488,6 @@ namespace Certio.Web.Migrations
                     b.HasIndex("ConversationId");
 
                     b.HasIndex("MatterId");
-
-                    b.HasIndex("ServiceRequestId");
 
                     b.ToTable("ClientGoals");
                 });
@@ -1502,6 +1502,15 @@ namespace Certio.Web.Migrations
 
                     b.Property<DateTime?>("ArchivedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("ChannelDescription")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("ChannelType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("ConversationType")
                         .IsRequired()
@@ -1521,7 +1530,13 @@ namespace Certio.Web.Migrations
                     b.Property<bool>("IsArchived")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsChannel")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsPrivate")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPrivateChannel")
                         .HasColumnType("bit");
 
                     b.Property<DateTime?>("LastMessageAt")
@@ -1531,9 +1546,6 @@ namespace Certio.Web.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("OrganizationId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ServiceRequestId")
                         .HasColumnType("int");
 
                     b.Property<string>("Status")
@@ -1553,8 +1565,6 @@ namespace Certio.Web.Migrations
                     b.HasIndex("CreatedById");
 
                     b.HasIndex("MatterId");
-
-                    b.HasIndex("ServiceRequestId");
 
                     b.HasIndex("OrganizationId", "CreatedAt");
 
@@ -1627,9 +1637,6 @@ namespace Certio.Web.Migrations
                     b.Property<bool>("RequiresLegalReview")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("ServiceRequestId")
-                        .HasColumnType("int");
-
                     b.Property<string>("SuggestedReply")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -1643,193 +1650,7 @@ namespace Certio.Web.Migrations
 
                     b.HasIndex("ConversationId");
 
-                    b.HasIndex("ServiceRequestId");
-
                     b.ToTable("ReplySuggestions");
-                });
-
-            modelBuilder.Entity("Certio.Domain.Services.ServiceRequest", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("AssignedToId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ClientGoals")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<int?>("ClientId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("CompletedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<DateTime?>("DueDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("LastModifiedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("MatterId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("MatterId1")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<string>("Priority")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("Requirements")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<string>("ServiceType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AssignedToId");
-
-                    b.HasIndex("ClientId");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("MatterId");
-
-                    b.HasIndex("MatterId1");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("ServiceRequests");
-                });
-
-            modelBuilder.Entity("Certio.Domain.Services.ServiceRequestAttachment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("FileName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("FilePath")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("FileSize")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<int?>("MessageId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("MimeType")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<int>("ServiceRequestId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("UploadedById")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MessageId");
-
-                    b.HasIndex("ServiceRequestId");
-
-                    b.HasIndex("UploadedById");
-
-                    b.ToTable("ServiceRequestAttachments");
-                });
-
-            modelBuilder.Entity("Certio.Domain.Services.ServiceRequestMessage", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsInternal")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime?>("LastModifiedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("MessageType")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<int?>("ParentMessageId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ServiceRequestId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ParentMessageId");
-
-                    b.HasIndex("ServiceRequestId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("ServiceRequestMessages");
                 });
 
             modelBuilder.Entity("Certio.Domain.Tasks.SubTaskAssignment", b =>
@@ -3075,11 +2896,6 @@ namespace Certio.Web.Migrations
                         .HasForeignKey("MatterId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Certio.Domain.Services.ServiceRequest", "ServiceRequest")
-                        .WithMany()
-                        .HasForeignKey("ServiceRequestId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("Certio.Domain.Matters.StatusItem", "StatusItem")
                         .WithMany()
                         .HasForeignKey("StatusItemId")
@@ -3096,8 +2912,6 @@ namespace Certio.Web.Migrations
                     b.Navigation("Document");
 
                     b.Navigation("Matter");
-
-                    b.Navigation("ServiceRequest");
 
                     b.Navigation("StatusItem");
 
@@ -3208,11 +3022,6 @@ namespace Certio.Web.Migrations
                         .HasForeignKey("ReviewedById")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Certio.Domain.Services.ServiceRequest", "ServiceRequest")
-                        .WithMany()
-                        .HasForeignKey("ServiceRequestId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.Navigation("Conversation");
 
                     b.Navigation("Document");
@@ -3220,8 +3029,6 @@ namespace Certio.Web.Migrations
                     b.Navigation("Matter");
 
                     b.Navigation("ReviewedBy");
-
-                    b.Navigation("ServiceRequest");
                 });
 
             modelBuilder.Entity("Certio.Domain.Services.ChatMessage", b =>
@@ -3296,16 +3103,9 @@ namespace Certio.Web.Migrations
                         .HasForeignKey("MatterId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Certio.Domain.Services.ServiceRequest", "ServiceRequest")
-                        .WithMany()
-                        .HasForeignKey("ServiceRequestId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.Navigation("Conversation");
 
                     b.Navigation("Matter");
-
-                    b.Navigation("ServiceRequest");
                 });
 
             modelBuilder.Entity("Certio.Domain.Services.Conversation", b =>
@@ -3327,18 +3127,11 @@ namespace Certio.Web.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Certio.Domain.Services.ServiceRequest", "ServiceRequest")
-                        .WithMany()
-                        .HasForeignKey("ServiceRequestId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.Navigation("CreatedBy");
 
                     b.Navigation("Matter");
 
                     b.Navigation("Organization");
-
-                    b.Navigation("ServiceRequest");
                 });
 
             modelBuilder.Entity("Certio.Domain.Services.ConversationParticipant", b =>
@@ -3367,97 +3160,7 @@ namespace Certio.Web.Migrations
                         .HasForeignKey("ConversationId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Certio.Domain.Services.ServiceRequest", "ServiceRequest")
-                        .WithMany()
-                        .HasForeignKey("ServiceRequestId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.Navigation("Conversation");
-
-                    b.Navigation("ServiceRequest");
-                });
-
-            modelBuilder.Entity("Certio.Domain.Services.ServiceRequest", b =>
-                {
-                    b.HasOne("Certio.Domain.Users.User", "AssignedTo")
-                        .WithMany()
-                        .HasForeignKey("AssignedToId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("Certio.Domain.Users.User", "Client")
-                        .WithMany()
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("Certio.Domain.Matters.Matter", "Matter")
-                        .WithMany()
-                        .HasForeignKey("MatterId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Certio.Domain.Matters.Matter", null)
-                        .WithMany("ServiceRequests")
-                        .HasForeignKey("MatterId1");
-
-                    b.HasOne("Certio.Domain.Users.User", null)
-                        .WithMany("ServiceRequests")
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("AssignedTo");
-
-                    b.Navigation("Client");
-
-                    b.Navigation("Matter");
-                });
-
-            modelBuilder.Entity("Certio.Domain.Services.ServiceRequestAttachment", b =>
-                {
-                    b.HasOne("Certio.Domain.Services.ServiceRequestMessage", "Message")
-                        .WithMany()
-                        .HasForeignKey("MessageId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Certio.Domain.Services.ServiceRequest", "ServiceRequest")
-                        .WithMany("Attachments")
-                        .HasForeignKey("ServiceRequestId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Certio.Domain.Users.User", "UploadedBy")
-                        .WithMany()
-                        .HasForeignKey("UploadedById")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.Navigation("Message");
-
-                    b.Navigation("ServiceRequest");
-
-                    b.Navigation("UploadedBy");
-                });
-
-            modelBuilder.Entity("Certio.Domain.Services.ServiceRequestMessage", b =>
-                {
-                    b.HasOne("Certio.Domain.Services.ServiceRequestMessage", "ParentMessage")
-                        .WithMany("Replies")
-                        .HasForeignKey("ParentMessageId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Certio.Domain.Services.ServiceRequest", "ServiceRequest")
-                        .WithMany("Messages")
-                        .HasForeignKey("ServiceRequestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Certio.Domain.Users.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("ParentMessage");
-
-                    b.Navigation("ServiceRequest");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Certio.Domain.Tasks.SubTaskAssignment", b =>
@@ -3791,8 +3494,6 @@ namespace Certio.Web.Migrations
 
                     b.Navigation("Permissions");
 
-                    b.Navigation("ServiceRequests");
-
                     b.Navigation("StatusItems");
                 });
 
@@ -3836,18 +3537,6 @@ namespace Certio.Web.Migrations
                     b.Navigation("Messages");
 
                     b.Navigation("Participants");
-                });
-
-            modelBuilder.Entity("Certio.Domain.Services.ServiceRequest", b =>
-                {
-                    b.Navigation("Attachments");
-
-                    b.Navigation("Messages");
-                });
-
-            modelBuilder.Entity("Certio.Domain.Services.ServiceRequestMessage", b =>
-                {
-                    b.Navigation("Replies");
                 });
 
             modelBuilder.Entity("Certio.Domain.Tasks.SubTaskItem", b =>
@@ -3897,8 +3586,6 @@ namespace Certio.Web.Migrations
                     b.Navigation("CreatedJoinCodes");
 
                     b.Navigation("MatterAssignments");
-
-                    b.Navigation("ServiceRequests");
 
                     b.Navigation("TeamMemberships");
 

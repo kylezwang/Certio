@@ -11,38 +11,38 @@ let insightsVisible = false;
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, initializing chat...');
     
-    // Initialize chat layout
+    // Initialize chat layout immediately (synchronous, fast)
     initializeChatLayout();
     
-    // Load conversations for the global chat panel
-    loadConversationsForPanel();
-    
-    // Debug: Check conversation items
-    const conversationItems = document.querySelectorAll('.conversation-tab');
-    console.log('Found conversation items:', conversationItems.length);
-    conversationItems.forEach((item, index) => {
-        console.log(`Conversation ${index}:`, {
-            element: item,
-            id: item.dataset.conversationId,
-            title: item.querySelector('.tab-title')?.textContent
-        });
+    // Load conversations immediately after DOM is ready
+    // No delay needed since we're using Redis caching for fast responses
+    window.addEventListener('load', () => {
+        console.log('Page fully loaded, now loading AI conversations...');
+        console.log('AI chat panel exists:', document.getElementById('chatPanel') !== null);
+        console.log('Tab list exists:', document.querySelector('.tab-list') !== null);
+        loadAIConversationsForPanel();
     });
     
-    // Initialize SignalR connection (optional)
-    if (typeof signalR !== 'undefined') {
-        connection = new signalR.HubConnectionBuilder()
-            .withUrl("/hubs/chat")
-            .build();
+    // Initialize SignalR connection with significant delay (non-critical)
+    setTimeout(() => {
+        if (typeof signalR !== 'undefined') {
+            if (!connection || connection.state === signalR.HubConnectionState.Disconnected) {
+                connection = new signalR.HubConnectionBuilder()
+                    .withUrl("/hubs/chat")
+                    .withAutomaticReconnect()
+                    .build();
 
-        // Start connection
-        connection.start().then(function () {
-            console.log("SignalR Connected");
-        }).catch(function (err) {
-            console.error("SignalR Connection Error: ", err.toString());
-        });
-    } else {
-        console.log("SignalR not available, using fallback communication");
-    }
+                // Start connection
+                connection.start().then(function () {
+                    console.log("SignalR Connected");
+                }).catch(function (err) {
+                    console.error("SignalR Connection Error: ", err.toString());
+                });
+            }
+        } else {
+            console.log("SignalR not available, using fallback communication");
+        }
+    }, 1000); // 1 second delay for SignalR
 
     // Event listeners
     document.getElementById('sendButton')?.addEventListener('click', sendMessage);
@@ -417,22 +417,44 @@ function getCurrentUserType() {
 
 // Get current organization ID from URL or data attribute
 function getCurrentOrganizationId() {
+    console.log('getCurrentOrganizationId() called');
+    console.log('currentOrganizationId cached:', currentOrganizationId);
+    
     if (currentOrganizationId) {
+        console.log('Returning cached orgId:', currentOrganizationId);
         return currentOrganizationId;
     }
     
     // Try to get from URL path (e.g., /Client/123/Chat/... or /Client/123/Matter)
-    const pathMatch = window.location.pathname.match(/\/Client\/(\d+)\/(?:Dashboard|Chat|Matter|Services|Documents|Teams|Settings|Tasks|Calendar)/);
+    console.log('Checking URL path:', window.location.pathname);
+    const pathMatch = window.location.pathname.match(/\/Client\/(\d+)\/(?:Dashboard|Chat|Matter|Services|Documents|Teams|Settings|Tasks|Calendar|Communications)/);
     if (pathMatch) {
         currentOrganizationId = parseInt(pathMatch[1]);
+        console.log('Found orgId from URL:', currentOrganizationId);
         return currentOrganizationId;
     }
     
-    // Fallback to data attribute
-    const orgId = document.querySelector('[data-organization-id]')?.dataset.organizationId;
-    if (orgId) {
-        currentOrganizationId = parseInt(orgId);
-        return currentOrganizationId;
+    // Try to get from /Home/Communications or similar paths - look for organization in ViewBag/ViewContext
+    console.log('Checking data-organization-id element...');
+    const orgIdElement = document.querySelector('[data-organization-id]');
+    if (orgIdElement) {
+        const orgId = orgIdElement.dataset.organizationId;
+        console.log('Found data-organization-id:', orgId);
+        if (orgId && orgId !== '') {
+            currentOrganizationId = parseInt(orgId);
+            console.log('Parsed orgId from data attribute:', currentOrganizationId);
+            return currentOrganizationId;
+        }
+    }
+    
+    // Try to get from meta tag
+    const metaOrgId = document.querySelector('meta[name="organization-id"]');
+    if (metaOrgId) {
+        const orgId = metaOrgId.getAttribute('content');
+        if (orgId && orgId !== '') {
+            currentOrganizationId = parseInt(orgId);
+            return currentOrganizationId;
+        }
     }
     
     console.error('Could not determine organization ID');
@@ -1546,8 +1568,8 @@ function initializeChatLayout() {
     }
 }
 
-// Load conversations for the global chat panel
-async function loadConversationsForPanel() {
+// Load AI-only conversations for the global chat panel
+async function loadAIConversationsForPanel() {
     console.log('Loading conversations for panel...');
     const tabList = document.querySelector('.tab-list');
     if (!tabList) {
@@ -1555,123 +1577,71 @@ async function loadConversationsForPanel() {
         return;
     }
     
-    // Only skip if we already have conversations loaded
-    if (tabList.children.length > 0) {
+    // Check if we have actual conversation tabs (not just the loading indicator)
+    const hasConversationTabs = tabList.querySelector('.conversation-tab') !== null;
+    if (hasConversationTabs) {
         console.log('Conversations already loaded');
         return;
     }
     
-    console.log('No conversations found, creating default...');
+    console.log('No conversations found, loading AI-only...');
 
     try {
         const orgId = getCurrentOrganizationId();
+        console.log('getCurrentOrganizationId() returned:', orgId);
+        console.log('Current URL:', window.location.pathname);
+        console.log('data-organization-id element:', document.querySelector('[data-organization-id]'));
+        
         if (!orgId) {
             console.error('Organization ID not found');
-            await createDefaultConversationTab();
+            // Clear loading indicator and show message
+            tabList.innerHTML = '<div style="padding: 1rem; text-align: center; color: #9ca3af; font-size: 0.875rem;">No organization selected</div>';
             return;
         }
         
-        const response = await fetch(`/Client/${orgId}/Chat/GetConversations`);
+        const response = await fetch(`/Client/${orgId}/Chat/GetAIConversations`);
         if (!response.ok) {
             console.log('No conversations endpoint available, using fallback');
-            // Create a default conversation tab for demo purposes
-            await createDefaultConversationTab();
+            // Clear loading indicator
+            tabList.innerHTML = '<div style="padding: 1rem; text-align: center; color: #9ca3af; font-size: 0.875rem;">No AI conversations yet</div>';
             return;
         }
         
         const conversations = await response.json();
         console.log('Loaded conversations:', conversations);
         
-        if (tabList) {
-            tabList.innerHTML = '';
-            
-            if (conversations && conversations.length > 0) {
-                conversations.forEach(conversation => {
-                    const tab = document.createElement('div');
-                    tab.className = 'conversation-tab';
-                    tab.dataset.conversationId = conversation.id.toString();
-                    tab.title = conversation.title;
-                    tab.innerHTML = `
-                        <span class="tab-title">${conversation.title}</span>
-                        <button class="tab-close" onclick="event.stopPropagation(); deleteConversation('${conversation.id}')">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    `;
-                    tabList.appendChild(tab);
-                });
-                
-                // Restore the last selected conversation after loading
-                restoreSelectedConversation();
-            } else {
-                // Create a default conversation tab if no conversations exist
-                await createDefaultConversationTab();
-            }
-        }
-    } catch (error) {
-        console.error('Error loading conversations:', error);
-        // Create a default conversation tab as fallback
-        await createDefaultConversationTab();
-    }
-}
-
-// Create a default conversation tab
-async function createDefaultConversationTab() {
-    console.log('Creating default conversation tab...');
-    const tabList = document.querySelector('.tab-list');
-    if (!tabList) {
-        console.error('Tab list not found in createDefaultConversationTab');
-        return;
-    }
-    
-    // Create a real conversation instead of a default one
-    const orgId = getCurrentOrganizationId();
-    if (!orgId) {
-        console.error('Organization ID not found');
-        return;
-    }
-    
-    console.log('Creating conversation with orgId:', orgId);
-    
-    try {
-        const response = await fetch(`/Client/${orgId}/Chat/CreateConversation`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `title=${encodeURIComponent('New Chat')}&description=${encodeURIComponent('New conversation started')}`
-        });
+        // Clear loading indicator and populate conversations
+        tabList.innerHTML = '';
         
-        if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.conversationId) {
-                // Create tab with real conversation ID
+        if (conversations && conversations.length > 0) {
+            conversations.forEach(conversation => {
                 const tab = document.createElement('div');
-                tab.className = 'conversation-tab active';
-                tab.dataset.conversationId = data.conversationId;
-                tab.title = data.title;
+                tab.className = 'conversation-tab';
+                tab.dataset.conversationId = conversation.id.toString();
+                tab.title = conversation.title;
                 tab.innerHTML = `
-                    <span class="tab-title">${data.title}</span>
-                    <button class="tab-close" onclick="event.stopPropagation(); deleteConversation('${data.conversationId}')">
+                    <span class="tab-title">${conversation.title}</span>
+                    <button class="tab-close" onclick="event.stopPropagation(); deleteConversation('${conversation.id}')">
                         <i class="fas fa-times"></i>
                     </button>
                 `;
                 tabList.appendChild(tab);
-                
-                // Set as current conversation
-                currentConversationId = data.conversationId;
-                
-                // Restore the last selected conversation after creating tab
-                restoreSelectedConversation();
-            } else {
-                console.error('Failed to create default conversation:', data.error);
-            }
+            });
+            
+            // Restore the last selected conversation after loading
+            restoreSelectedConversation();
         } else {
-            console.error('Failed to create default conversation:', response.statusText);
+            // No conversations found
+            tabList.innerHTML = '<div style="padding: 1rem; text-align: center; color: #9ca3af; font-size: 0.875rem;">No AI conversations yet</div>';
         }
     } catch (error) {
-        console.error('Error creating default conversation:', error);
+        console.error('Error loading conversations:', error);
+        // Clear loading indicator and show error
+        tabList.innerHTML = '<div style="padding: 1rem; text-align: center; color: #ef4444; font-size: 0.875rem;">Failed to load conversations</div>';
     }
 }
+
+// Note: creation of new conversations should be explicit (e.g., via modal) and not auto-run globally
 
 // Force refresh conversations (useful after creating new conversations)
 function refreshConversations() {
