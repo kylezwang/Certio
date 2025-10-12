@@ -14,8 +14,11 @@ namespace Certio.Domain.Audit
         public int EntityId { get; set; }
         
         [Required]
+        [StringLength(30)]
+        public string Action { get; set; } = ""; // Create, Update, Delete, View, AUTH_FAILURE, etc.
+        
         [StringLength(20)]
-        public string Action { get; set; } = ""; // Create, Update, Delete, View, etc.
+        public string? Result { get; set; } // SUCCESS, FAILURE
         
         public int? UserId { get; set; }
         

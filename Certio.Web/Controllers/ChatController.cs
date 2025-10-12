@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Certio.Application.Services;
+using Certio.Web.Security;
+using Certio.Web.Services;
 using System.Security.Claims;
 using Certio.Domain.Services;
 
@@ -11,10 +13,20 @@ namespace Certio.Web.Controllers;
 public class ChatController : Controller
 {
     private readonly IChatService _chatService;
+    private readonly AuthorizationHelper _authHelper;
+    private readonly IAuditService _auditService;
+    private readonly ILogger<ChatController> _logger;
 
-    public ChatController(IChatService chatService)
+    public ChatController(
+        IChatService chatService,
+        AuthorizationHelper authHelper,
+        IAuditService auditService,
+        ILogger<ChatController> logger)
     {
         _chatService = chatService;
+        _authHelper = authHelper;
+        _auditService = auditService;
+        _logger = logger;
     }
 
     [HttpGet("")]
@@ -115,11 +127,36 @@ public class ChatController : Controller
     }
 
     [HttpGet("channel/{channelId}/messages")]
-    [AllowAnonymous] // Allow for now, add proper auth later
-    public async Task<IActionResult> GetChannelMessages(int channelId)
+    [Authorize(Policy = "OrgMember")] // SECURITY FIX: Removed AllowAnonymous!
+    public async Task<IActionResult> GetChannelMessages(int orgId, int channelId)
     {
         try
         {
+            // Input validation
+            if (!InputValidator.IsValidId(channelId) || !InputValidator.IsValidId(orgId))
+            {
+                _logger.LogWarning("Invalid channel or org ID in GetChannelMessages: channel={ChannelId}, org={OrgId}", channelId, orgId);
+                return Json(new { success = false, error = "Invalid parameters" });
+            }
+
+            // Get current user
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                _logger.LogWarning("CustomUser not found in HttpContext for GetChannelMessages");
+                return Json(new { success = false, error = "User not authenticated" });
+            }
+
+            // SECURITY FIX: Validate user has access to the channel
+            // For now, check if user is in the organization
+            var canAccess = await _authHelper.ValidateUserInOrganizationAsync(customUser.Id, orgId);
+            if (!canAccess)
+            {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to access channel {ChannelId} in unauthorized org {OrgId}", 
+                    customUser.Id, channelId, orgId);
+                return Json(new { success = false, error = "Access denied" });
+            }
+
             var messages = await _chatService.GetChannelMessagesAsync(channelId);
             
             // Transform to match expected format
@@ -145,7 +182,8 @@ public class ChatController : Controller
         }
         catch (Exception ex)
         {
-            return Json(new { success = false, error = ex.Message });
+            _logger.LogError(ex, "Error retrieving channel messages for channel {ChannelId}", channelId);
+            return Json(new { success = false, error = "An error occurred" });
         }
     }
 
@@ -248,12 +286,53 @@ public class ChatController : Controller
     {
         try
         {
+            // Input validation
+            if (!InputValidator.IsValidId(request.ConversationId) || !InputValidator.IsValidId(orgId))
+            {
+                _logger.LogWarning("Invalid conversation or org ID in DeleteConversation: conv={ConvId}, org={OrgId}", request.ConversationId, orgId);
+                return Json(new { success = false, error = "Invalid parameters" });
+            }
+
+            // Get current user
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                _logger.LogWarning("CustomUser not found in HttpContext for DeleteConversation");
+                return Json(new { success = false, error = "User not authenticated" });
+            }
+
+            // SECURITY FIX: Validate user has access to this conversation
+            var canAccess = await _authHelper.ValidateUserCanAccessConversationAsync(request.ConversationId, customUser.Id, orgId);
+            if (!canAccess)
+            {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to delete unauthorized conversation {ConvId}", 
+                    customUser.Id, request.ConversationId);
+                return Json(new { success = false, error = "Access denied" });
+            }
+
             var success = await _chatService.DeleteConversationAsync(request.ConversationId, orgId);
+
+            // Audit log the deletion
+            if (success)
+            {
+                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                await _auditService.LogDeleteAsync(
+                    customUser.Id,
+                    orgId,
+                    "Conversation",
+                    request.ConversationId,
+                    ipAddress);
+
+                _logger.LogInformation("User {UserId} deleted conversation {ConvId} in org {OrgId}", 
+                    customUser.Id, request.ConversationId, orgId);
+            }
+
             return Json(new { success = success, error = success ? null : "Failed to delete conversation" });
         }
         catch (Exception ex)
         {
-            return Json(new { success = false, error = ex.Message });
+            _logger.LogError(ex, "Error deleting conversation {ConvId}", request.ConversationId);
+            return Json(new { success = false, error = "An error occurred" });
         }
     }
 

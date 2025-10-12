@@ -2,7 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Certio.Web.ViewModels;
 using Certio.Domain.Matters;
+using Certio.Domain.Users;
 using Certio.Web.Data;
+using Certio.Web.Security;
+using Certio.Web.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Certio.Web.Controllers
@@ -11,10 +14,20 @@ namespace Certio.Web.Controllers
     public class MatterController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly AuthorizationHelper _authHelper;
+        private readonly IAuditService _auditService;
+        private readonly ILogger<MatterController> _logger;
 
-        public MatterController(ApplicationDbContext context)
+        public MatterController(
+            ApplicationDbContext context,
+            AuthorizationHelper authHelper,
+            IAuditService auditService,
+            ILogger<MatterController> logger)
         {
             _context = context;
+            _authHelper = authHelper;
+            _auditService = auditService;
+            _logger = logger;
         }
 
         // GET: Matter
@@ -33,11 +46,31 @@ namespace Certio.Web.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            var matters = await _context.Matters
-                .Where(p => p.OrganizationId == primaryOrg.OrganizationId)
-                .Include(p => p.Assignments)
+            // Get user's organization membership to determine user type
+            var userOrgMembership = customUser.GetOrganizationMembership(primaryOrg.OrganizationId);
+            var userType = userOrgMembership?.UserType ?? UserTypes.Client;
+
+            // Build query with proper filtering based on user type and assignments
+            IQueryable<Matter> mattersQuery = _context.Matters
+                .Where(m => m.OrganizationId == primaryOrg.OrganizationId)
+                .Include(m => m.Assignments)
                     .ThenInclude(a => a.User)
-                .ToListAsync();
+                .Include(m => m.Permissions);
+
+            // Filter based on AccessLevel and user assignments
+            // Users should see matters where:
+            // 1. AccessLevel is "Everyone" (all org members can see)
+            // 2. AccessLevel is "Specific" AND user has explicit permission (via MatterPermissions)
+            // 3. User is assigned to the matter (via MatterAssignments)
+            mattersQuery = mattersQuery.Where(m => 
+                // All org members see "Everyone" access level matters
+                m.AccessLevel == "Everyone" ||
+                // Users with specific permissions
+                m.Permissions.Any(p => p.UserId == customUser.Id && p.RevokedAt == null) ||
+                // Users assigned to the matter
+                m.Assignments.Any(a => a.UserId == customUser.Id && a.RemovedAt == null));
+
+            var matters = await mattersQuery.ToListAsync();
 
             // If no matters exist, add some sample data for demonstration
             if (!matters.Any())
@@ -49,9 +82,7 @@ namespace Certio.Web.Controllers
                         Title = "Contract Review Automation",
                         Description = "AI-powered contract analysis and risk assessment system",
                         Status = "In Progress",
-                        Priority = "High",
                         PracticeArea = "AI/ML",
-                        MatterType = "Contract Management",
                         OrganizationId = primaryOrg.OrganizationId,
                         DueDate = new DateTime(2024, 2, 15),
                         CreatedAt = DateTime.UtcNow,
@@ -62,9 +93,7 @@ namespace Certio.Web.Controllers
                         Title = "Client Portal Dashboard",
                         Description = "Secure client access portal with document sharing capabilities",
                         Status = "Review",
-                        Priority = "Medium",
                         PracticeArea = "Frontend",
-                        MatterType = "Client Portal",
                         OrganizationId = primaryOrg.OrganizationId,
                         DueDate = new DateTime(2024, 2, 28),
                         CreatedAt = DateTime.UtcNow,
@@ -75,9 +104,7 @@ namespace Certio.Web.Controllers
                         Title = "Compliance Tracking System",
                         Description = "Automated regulatory compliance monitoring and reporting",
                         Status = "Planning",
-                        Priority = "High",
                         PracticeArea = "Backend",
-                        MatterType = "Compliance Tracking",
                         OrganizationId = primaryOrg.OrganizationId,
                         DueDate = new DateTime(2024, 3, 10),
                         CreatedAt = DateTime.UtcNow,
@@ -88,9 +115,7 @@ namespace Certio.Web.Controllers
                         Title = "Legal Research Assistant",
                         Description = "Natural language processing for legal document search",
                         Status = "Completed",
-                        Priority = "Medium",
                         PracticeArea = "AI/ML",
-                        MatterType = "Legal Research",
                         OrganizationId = primaryOrg.OrganizationId,
                         DueDate = new DateTime(2024, 1, 30),
                         CreatedAt = DateTime.UtcNow,
@@ -129,8 +154,10 @@ namespace Certio.Web.Controllers
         // GET: Matter/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
+            // Input validation
+            if (!id.HasValue || !InputValidator.IsValidId(id.Value))
             {
+                _logger.LogWarning("Invalid matter ID in Details request: {Id}", id);
                 return NotFound();
             }
 
@@ -138,25 +165,36 @@ namespace Certio.Web.Controllers
             var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
             if (customUser == null)
             {
+                _logger.LogWarning("CustomUser not found in HttpContext for Details request");
                 return RedirectToAction("Index", "Home");
             }
 
             var primaryOrg = customUser.GetPrimaryOrganization();
             if (primaryOrg == null)
             {
+                _logger.LogWarning("User {UserId} has no primary organization", customUser.Id);
                 return RedirectToAction("Index", "Home");
             }
 
-            var matter = await _context.Matters
-                .Where(p => p.Id == id && p.OrganizationId == primaryOrg.OrganizationId)
-                .Include(p => p.Assignments)
-                    .ThenInclude(a => a.User)
-                .FirstOrDefaultAsync();
+            // Use AuthorizationHelper for secure retrieval
+            var matter = await _authHelper.GetMatterIfAuthorizedAsync(id.Value, customUser.Id, primaryOrg.OrganizationId, HttpContext);
 
             if (matter == null)
             {
+                // Return consistent 404 to prevent information disclosure
+                _logger.LogWarning("User {UserId} attempted to access unauthorized matter {MatterId}", customUser.Id, id.Value);
                 return NotFound();
             }
+
+            // Audit log for viewing sensitive data
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            await _auditService.LogOperationAsync(
+                customUser.Id,
+                primaryOrg.OrganizationId,
+                "VIEW",
+                "Matter",
+                matter.Id,
+                ipAddress);
 
             // Set ViewBag for client layout navigation
             ViewBag.OrganizationId = primaryOrg.OrganizationId;
@@ -293,22 +331,18 @@ namespace Certio.Web.Controllers
                         return View(model);
                     }
 
-                    // Trim and cap lengths server-side to defend against oversized input
-                    string TrimTo(string? value, int max) => string.IsNullOrWhiteSpace(value) ? "" : (value!.Trim().Length <= max ? value.Trim() : value.Trim()[..max]);
-
+                    // Sanitize and validate input using InputValidator
                     var matter = new Matter
                     {
-                        Title = TrimTo(model.Title, 200),
-                        Description = TrimTo(model.Description, 1000),
-                        PracticeArea = TrimTo(model.PracticeArea, 100),
-                        MatterType = TrimTo(model.MatterType, 100),
-                        Status = TrimTo(model.Status, 50),
-                        Priority = TrimTo(model.Priority, 20),
+                        Title = InputValidator.Sanitize(model.Title, InputValidator.MAX_TITLE_LENGTH),
+                        Description = InputValidator.Sanitize(model.Description, InputValidator.MAX_DESCRIPTION_LENGTH),
+                        PracticeArea = InputValidator.Sanitize(model.PracticeArea, 100),
+                        Status = InputValidator.Sanitize(model.Status, 50),
                         StartDate = model.StartDate,
                         DueDate = model.DueDate,
                         PendingDate = model.PendingDate,
                         StatuteOfLimitationsDate = model.StatuteOfLimitationsDate,
-                        AccessLevel = TrimTo(model.AccessLevel, 20),
+                        AccessLevel = InputValidator.Sanitize(model.AccessLevel, 20),
                         OrganizationId = primaryOrg.OrganizationId,
                         CreatedAt = DateTime.UtcNow,
                         LastModifiedDate = DateTime.UtcNow
@@ -316,6 +350,20 @@ namespace Certio.Web.Controllers
 
                     _context.Matters.Add(matter);
                     await _context.SaveChangesAsync();
+
+                    // Audit log the creation
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+                    await _auditService.LogCreateAsync(
+                        customUser.Id,
+                        primaryOrg.OrganizationId,
+                        "Matter",
+                        matter.Id,
+                        ipAddress,
+                        userAgent);
+
+                    _logger.LogInformation("User {UserId} created matter {MatterId} ({Title}) in org {OrgId}", 
+                        customUser.Id, matter.Id, matter.Title, primaryOrg.OrganizationId);
 
                     // Create MatterAssignments for firm assignments and relevant contacts
                     var allAssignments = new List<MatterAssignment>();
@@ -330,7 +378,7 @@ namespace Certio.Web.Controllers
                                 MatterId = matter.Id,
                                 UserId = fa.UserId.Value,
                                 AssignmentType = fa.AssignmentType,
-                                Role = TrimTo(fa.Role, 100),
+                                Role = InputValidator.Sanitize(fa.Role, 100),
                                 IsNotifyRecipient = fa.IsNotifyRecipient,
                                 AssignedAt = DateTime.UtcNow
                             })
@@ -348,7 +396,7 @@ namespace Certio.Web.Controllers
                                 MatterId = matter.Id,
                                 UserId = rc.UserId.Value,
                                 AssignmentType = "RelevantContact",
-                                Role = TrimTo(rc.Involvement, 100),
+                                Role = InputValidator.Sanitize(rc.Involvement, 100),
                                 IsNotifyRecipient = rc.IsNotifyRecipient,
                                 AssignedAt = DateTime.UtcNow
                             })
@@ -414,28 +462,18 @@ namespace Certio.Web.Controllers
                     ModelState.AddModelError("Title", "Matter title is required");
                     isValid = false;
                 }
-                if (string.IsNullOrWhiteSpace(model.PracticeArea))
-                {
-                    ModelState.AddModelError("PracticeArea", "Please select a category");
-                    isValid = false;
-                }
-                if (string.IsNullOrWhiteSpace(model.MatterType))
-                {
-                    ModelState.AddModelError("MatterType", "Please select a matter type");
-                    isValid = false;
-                }
             }
             else if (model.Step == 2)
             {
                 // Validate Step 2 fields
+                if (string.IsNullOrWhiteSpace(model.PracticeArea))
+                {
+                    ModelState.AddModelError("PracticeArea", "Please select a practice area");
+                    isValid = false;
+                }
                 if (string.IsNullOrWhiteSpace(model.Status))
                 {
                     ModelState.AddModelError("Status", "Please select a status");
-                    isValid = false;
-                }
-                if (string.IsNullOrWhiteSpace(model.Priority))
-                {
-                    ModelState.AddModelError("Priority", "Please select a priority");
                     isValid = false;
                 }
             }
@@ -477,21 +515,11 @@ namespace Certio.Web.Controllers
                 ModelState.AddModelError("PracticeArea", "Please select a category");
                 isValid = false;
             }
-            if (string.IsNullOrWhiteSpace(model.MatterType))
-            {
-                ModelState.AddModelError("MatterType", "Please select a matter type");
-                isValid = false;
-            }
 
             // Validate Step 2 fields
             if (string.IsNullOrWhiteSpace(model.Status))
             {
                 ModelState.AddModelError("Status", "Please select a status");
-                isValid = false;
-            }
-            if (string.IsNullOrWhiteSpace(model.Priority))
-            {
-                ModelState.AddModelError("Priority", "Please select a priority");
                 isValid = false;
             }
 
@@ -533,8 +561,8 @@ namespace Certio.Web.Controllers
             if (model.Step == 2)
             {
                 // Clear Step 2 data when going back from Step 2 to Step 1
+                model.PracticeArea = "";
                 model.Status = "";
-                model.Priority = "";
                 model.StartDate = null;
                 model.DueDate = null;
                 model.PendingDate = null;
@@ -597,8 +625,10 @@ namespace Certio.Web.Controllers
         // GET: Matter/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
+            // Input validation
+            if (!id.HasValue || !InputValidator.IsValidId(id.Value))
             {
+                _logger.LogWarning("Invalid matter ID in Edit request: {Id}", id);
                 return NotFound();
             }
 
@@ -606,18 +636,23 @@ namespace Certio.Web.Controllers
             var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
             if (customUser == null)
             {
+                _logger.LogWarning("CustomUser not found in HttpContext for Edit request");
                 return RedirectToAction("Index", "Home");
             }
 
             var primaryOrg = customUser.GetPrimaryOrganization();
             if (primaryOrg == null)
             {
+                _logger.LogWarning("User {UserId} has no primary organization", customUser.Id);
                 return RedirectToAction("Index", "Home");
             }
 
-            var matter = await _context.Matters.FindAsync(id);
+            // SECURITY FIX: Use AuthorizationHelper instead of direct FindAsync
+            var matter = await _authHelper.GetMatterIfAuthorizedAsync(id.Value, customUser.Id, primaryOrg.OrganizationId, HttpContext);
             if (matter == null)
             {
+                // Return consistent 404 to prevent information disclosure
+                _logger.LogWarning("SECURITY: User {UserId} attempted to edit unauthorized matter {MatterId}", customUser.Id, id.Value);
                 return NotFound();
             }
 
@@ -630,9 +665,7 @@ namespace Certio.Web.Controllers
                 Title = matter.Title,
                 Description = matter.Description,
                 PracticeArea = matter.PracticeArea,
-                MatterType = matter.MatterType,
                 Status = matter.Status,
-                Priority = matter.Priority,
                 StartDate = matter.StartDate,
                 DueDate = matter.DueDate,
                 PendingDate = matter.PendingDate,
@@ -664,35 +697,56 @@ namespace Certio.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, MatterFormViewModel model)
         {
-            if (id != model.Id)
+            // Input validation
+            if (!InputValidator.IsValidId(id) || id != model.Id)
             {
+                _logger.LogWarning("Invalid ID mismatch in Edit POST: {Id} vs {ModelId}", id, model.Id);
                 return NotFound();
             }
 
             // Get current user and their organization for ViewBag
             var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
-            var primaryOrg = customUser?.GetPrimaryOrganization();
-            if (primaryOrg != null)
+            if (customUser == null)
             {
-                ViewBag.OrganizationId = primaryOrg.OrganizationId;
+                _logger.LogWarning("CustomUser not found in HttpContext for Edit POST");
+                return RedirectToAction("Index", "Home");
+            }
+
+            var primaryOrg = customUser.GetPrimaryOrganization();
+            if (primaryOrg == null)
+            {
+                _logger.LogWarning("User {UserId} has no primary organization", customUser.Id);
+                return RedirectToAction("Index", "Home");
+            }
+
+            ViewBag.OrganizationId = primaryOrg.OrganizationId;
+
+            // Validate input strings
+            if (!InputValidator.IsValidString(model.Title, InputValidator.MAX_TITLE_LENGTH, required: true))
+            {
+                ModelState.AddModelError("Title", "Title is required and must be less than 200 characters");
+            }
+            if (!InputValidator.IsValidString(model.Description, InputValidator.MAX_DESCRIPTION_LENGTH, required: false))
+            {
+                ModelState.AddModelError("Description", "Description must be less than 5000 characters");
             }
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    var matter = await _context.Matters.FindAsync(id);
+                    // SECURITY FIX: Verify user has access before updating
+                    var matter = await _authHelper.GetMatterIfAuthorizedAsync(id, customUser.Id, primaryOrg.OrganizationId, HttpContext);
                     if (matter == null)
                     {
+                        _logger.LogWarning("SECURITY: User {UserId} attempted to edit unauthorized matter {MatterId}", customUser.Id, id);
                         return NotFound();
                     }
 
                     matter.Title = model.Title;
                     matter.Description = model.Description;
                     matter.PracticeArea = model.PracticeArea;
-                    matter.MatterType = model.MatterType;
                     matter.Status = model.Status;
-                    matter.Priority = model.Priority;
                     matter.StartDate = model.StartDate;
                     matter.DueDate = model.DueDate;
                     matter.PendingDate = model.PendingDate;
@@ -754,10 +808,24 @@ namespace Certio.Web.Controllers
                     _context.Update(matter);
                     await _context.SaveChangesAsync();
 
+                    // Audit log the update
+                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+                    await _auditService.LogUpdateAsync(
+                        customUser.Id,
+                        primaryOrg.OrganizationId,
+                        "Matter",
+                        matter.Id,
+                        $"Updated: {model.Title}",
+                        ipAddress,
+                        userAgent);
+
                     TempData["SuccessMessage"] = "Matter updated successfully!";
+                    _logger.LogInformation("User {UserId} updated matter {MatterId} in org {OrgId}", customUser.Id, matter.Id, primaryOrg.OrganizationId);
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (DbUpdateConcurrencyException ex)
                 {
+                    _logger.LogError(ex, "Concurrency error updating matter {MatterId} by user {UserId}", id, customUser.Id);
                     if (!MatterExists(id))
                     {
                         return NotFound();
@@ -775,8 +843,10 @@ namespace Certio.Web.Controllers
         // GET: Matter/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
+            // Input validation
+            if (!id.HasValue || !InputValidator.IsValidId(id.Value))
             {
+                _logger.LogWarning("Invalid matter ID in Delete request: {Id}", id);
                 return NotFound();
             }
 
@@ -784,22 +854,22 @@ namespace Certio.Web.Controllers
             var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
             if (customUser == null)
             {
+                _logger.LogWarning("CustomUser not found in HttpContext for Delete request");
                 return RedirectToAction("Index", "Home");
             }
 
             var primaryOrg = customUser.GetPrimaryOrganization();
             if (primaryOrg == null)
             {
+                _logger.LogWarning("User {UserId} has no primary organization", customUser.Id);
                 return RedirectToAction("Index", "Home");
             }
 
-            var matter = await _context.Matters
-                .Include(p => p.Assignments)
-                    .ThenInclude(a => a.User)
-                .FirstOrDefaultAsync(m => m.Id == id);
-
+            // SECURITY FIX: Verify user has access before showing delete confirmation
+            var matter = await _authHelper.GetMatterIfAuthorizedAsync(id.Value, customUser.Id, primaryOrg.OrganizationId, HttpContext);
             if (matter == null)
             {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to access delete page for unauthorized matter {MatterId}", customUser.Id, id.Value);
                 return NotFound();
             }
 
@@ -814,12 +884,61 @@ namespace Certio.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var matter = await _context.Matters.FindAsync(id);
-            if (matter != null)
+            // Input validation
+            if (!InputValidator.IsValidId(id))
             {
+                _logger.LogWarning("Invalid matter ID in DeleteConfirmed: {Id}", id);
+                return NotFound();
+            }
+
+            // Get current user and their organization
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                _logger.LogWarning("CustomUser not found in HttpContext for DeleteConfirmed");
+                return RedirectToAction("Index", "Home");
+            }
+
+            var primaryOrg = customUser.GetPrimaryOrganization();
+            if (primaryOrg == null)
+            {
+                _logger.LogWarning("User {UserId} has no primary organization", customUser.Id);
+                return RedirectToAction("Index", "Home");
+            }
+
+            // SECURITY FIX: Verify user has access before deleting
+            var matter = await _authHelper.GetMatterIfAuthorizedAsync(id, customUser.Id, primaryOrg.OrganizationId, HttpContext);
+            if (matter == null)
+            {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to delete unauthorized matter {MatterId}", customUser.Id, id);
+                return NotFound();
+            }
+
+            try
+            {
+                // Store title for audit log before deletion
+                var matterTitle = matter.Title;
+
                 _context.Matters.Remove(matter);
                 await _context.SaveChangesAsync();
+
+                // Audit log the deletion
+                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                await _auditService.LogDeleteAsync(
+                    customUser.Id,
+                    primaryOrg.OrganizationId,
+                    "Matter",
+                    id,
+                    ipAddress);
+
                 TempData["SuccessMessage"] = "Matter deleted successfully!";
+                _logger.LogInformation("User {UserId} deleted matter {MatterId} ({Title}) in org {OrgId}", 
+                    customUser.Id, id, matterTitle, primaryOrg.OrganizationId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting matter {MatterId} by user {UserId}", id, customUser.Id);
+                TempData["ErrorMessage"] = "An error occurred while deleting the matter.";
             }
 
             return RedirectToAction(nameof(Index));

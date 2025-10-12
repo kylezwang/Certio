@@ -244,9 +244,15 @@
                                             <div class="task-due-date-column">
                                                     @if (task.DueDate.HasValue)
                                                     {
-                                                        var daysUntilDue = (task.DueDate.Value - DateTime.UtcNow).Days;
-                                                        var dueDateClass = daysUntilDue < 0 ? "task-due overdue" : (daysUntilDue <= 1 ? "text-dark" : "text-muted");
-                                                    <span class="@dueDateClass task-card-date-btn" style="font-size: 0.75em; cursor: pointer;" 
+                                                        var today = DateTime.Now.Date;
+                                                        var dueDate = task.DueDate.Value.Date;
+                                                        var daysUntilDue = (dueDate - today).Days;
+                                                        var isOverdue = daysUntilDue < 0;
+                                                        var isTodayOrTomorrow = !isOverdue && daysUntilDue <= 1;
+                                                        var dueDateClass = "task-card-date-btn";
+                                                        var dueDateColor = isOverdue ? "#c62828" : (isTodayOrTomorrow ? "#1e1e1e" : "#6b7280");
+                                                        var dueDateWeight = "600";
+                                                    <span class="@dueDateClass" style="font-size: 0.75em; cursor: pointer; color: @dueDateColor !important; font-weight: @dueDateWeight !important;" 
                                                           data-task-id="@task.Id" title="Click to edit dates">
                                                         <i class="fa-solid fa-calendar-day"></i> @task.DueDate.Value.ToString("MMM dd, yyyy")
                                                         </span>
@@ -377,9 +383,15 @@
                                             <div class="task-due-date-column">
                                                     @if (task.DueDate.HasValue)
                                                     {
-                                                        var daysUntilDue = (task.DueDate.Value - DateTime.UtcNow).Days;
-                                                        var dueDateClass = daysUntilDue < 0 ? "task-due overdue" : (daysUntilDue <= 1 ? "text-dark" : "text-muted");
-                                                    <span class="@dueDateClass task-card-date-btn" style="font-size: 0.75em; cursor: pointer;" 
+                                                        var today = DateTime.Now.Date;
+                                                        var dueDate = task.DueDate.Value.Date;
+                                                        var daysUntilDue = (dueDate - today).Days;
+                                                        var isOverdue = daysUntilDue < 0;
+                                                        var isTodayOrTomorrow = !isOverdue && daysUntilDue <= 1;
+                                                        var dueDateClass = "task-card-date-btn";
+                                                        var dueDateColor = isOverdue ? "#c62828" : (isTodayOrTomorrow ? "#1e1e1e" : "#6b7280");
+                                                        var dueDateWeight = "600";
+                                                    <span class="@dueDateClass" style="font-size: 0.75em; cursor: pointer; color: @dueDateColor !important; font-weight: @dueDateWeight !important;" 
                                                           data-task-id="@task.Id" title="Click to edit dates">
                                                         <i class="fa-solid fa-calendar-day"></i> @task.DueDate.Value.ToString("MMM dd, yyyy")
                                                         </span>
@@ -510,9 +522,15 @@
                                             <div class="task-due-date-column">
                                                     @if (task.DueDate.HasValue)
                                                     {
-                                                        var daysUntilDue = (task.DueDate.Value - DateTime.UtcNow).Days;
-                                                        var dueDateClass = daysUntilDue < 0 ? "task-due overdue" : (daysUntilDue <= 1 ? "text-dark" : "text-muted");
-                                                    <span class="@dueDateClass task-card-date-btn" style="font-size: 0.75em; cursor: pointer;" 
+                                                        var today = DateTime.Now.Date;
+                                                        var dueDate = task.DueDate.Value.Date;
+                                                        var daysUntilDue = (dueDate - today).Days;
+                                                        var isOverdue = daysUntilDue < 0;
+                                                        var isTodayOrTomorrow = !isOverdue && daysUntilDue <= 1;
+                                                        var dueDateClass = "task-card-date-btn";
+                                                        var dueDateColor = isOverdue ? "#c62828" : (isTodayOrTomorrow ? "#1e1e1e" : "#6b7280");
+                                                        var dueDateWeight = "600";
+                                                    <span class="@dueDateClass" style="font-size: 0.75em; cursor: pointer; color: @dueDateColor !important; font-weight: @dueDateWeight !important;" 
                                                           data-task-id="@task.Id" title="Click to edit dates">
                                                         <i class="fa-solid fa-calendar-day"></i> @task.DueDate.Value.ToString("MMM dd, yyyy")
                                                         </span>
@@ -643,9 +661,15 @@
                                             <div class="task-due-date-column">
                                                     @if (task.DueDate.HasValue)
                                                     {
-                                                        var daysUntilDue = (task.DueDate.Value - DateTime.UtcNow).Days;
-                                                        var dueDateClass = daysUntilDue < 0 ? "task-due overdue" : (daysUntilDue <= 2 ? "text-warning" : "text-muted");
-                                                    <span class="@dueDateClass task-card-date-btn" style="font-size: 0.75em; cursor: pointer;" 
+                                                        var today = DateTime.Now.Date;
+                                                        var dueDate = task.DueDate.Value.Date;
+                                                        var daysUntilDue = (dueDate - today).Days;
+                                                        var isOverdue = daysUntilDue < 0;
+                                                        var isTodayOrTomorrow = !isOverdue && daysUntilDue <= 1;
+                                                        var dueDateClass = "task-card-date-btn";
+                                                        var dueDateColor = isOverdue ? "#c62828" : (isTodayOrTomorrow ? "#1e1e1e" : "#6b7280");
+                                                        var dueDateWeight = "600";
+                                                    <span class="@dueDateClass" style="font-size: 0.75em; cursor: pointer; color: @dueDateColor !important; font-weight: @dueDateWeight !important;" 
                                                           data-task-id="@task.Id" title="Click to edit dates">
                                                         <i class="fa-solid fa-calendar-day"></i> @task.DueDate.Value.ToString("MMM dd, yyyy")
                                                         </span>
