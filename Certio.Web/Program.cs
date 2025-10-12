@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Certio.Web.Data;
+using Certio.Infrastructure.Data;
 using Certio.Web.Hubs;
 using Certio.Web.Middleware;
 using Certio.Web.Security;
@@ -274,8 +274,15 @@ builder.Services.AddScoped<ILawFirmRoleResolutionService, LawFirmRoleResolutionS
 builder.Services.AddScoped<IFirmAccessAuditService, FirmAccessAuditService>();
 
 // PHASE 1 SECURITY SERVICES
-builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddScoped<Certio.Application.Interfaces.IAuditService, AuditService>();
 builder.Services.AddScoped<Certio.Web.Security.AuthorizationHelper>();
+
+// PHASE 2 SERVICE LAYER
+builder.Services.AddScoped<Certio.Application.Interfaces.IPermissionService, Certio.Application.Services.PermissionService>();
+builder.Services.AddScoped<Certio.Application.Interfaces.IOrganizationContextService, Certio.Application.Services.OrganizationContextService>();
+builder.Services.AddScoped<Certio.Application.Interfaces.IMatterService, Certio.Application.Services.MatterService>();
+builder.Services.AddScoped<Certio.Application.Interfaces.ITaskService, Certio.Application.Services.TaskService>();
+builder.Services.AddScoped<Certio.Application.Interfaces.ISubTaskService, Certio.Application.Services.SubTaskService>();
 
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(options =>

@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Certio.Domain.Services;
-using Certio.Web.Data;
+using Certio.Infrastructure.Data;
 using Certio.Application.Services;
 using Certio.Application.Interfaces;
 

@@ -1,6 +1,6 @@
 using Certio.Domain.Users;
 using Certio.Domain.Organizations;
-using Certio.Web.Data;
+using Certio.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace Certio.Web.Services

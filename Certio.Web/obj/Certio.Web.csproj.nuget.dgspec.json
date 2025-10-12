@@ -35,6 +35,9 @@
             "projectReferences": {
               "C:\\Projects\\Certio\\Certio.Domain\\Certio.Domain.csproj": {
                 "projectPath": "C:\\Projects\\Certio\\Certio.Domain\\Certio.Domain.csproj"
+              },
+              "C:\\Projects\\Certio\\Certio.Infrastructure\\Certio.Infrastructure.csproj": {
+                "projectPath": "C:\\Projects\\Certio\\Certio.Infrastructure\\Certio.Infrastructure.csproj"
               }
             }
           }
@@ -57,15 +60,19 @@
           "dependencies": {
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",
-              "version": "[9.0.8, )"
+              "version": "[8.0.8, )"
             },
             "Microsoft.Extensions.Configuration.Abstractions": {
               "target": "Package",
-              "version": "[9.0.0, )"
+              "version": "[8.0.0, )"
             },
             "Microsoft.Extensions.Http": {
               "target": "Package",
-              "version": "[9.0.0, )"
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.Extensions.Logging.Abstractions": {
+              "target": "Package",
+              "version": "[8.0.0, )"
             }
           },
           "imports": [
@@ -204,6 +211,20 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
+          "dependencies": {
+            "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.8, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.8, )"
+            },
+            "Microsoft.EntityFrameworkCore.SqlServer": {
+              "target": "Package",
+              "version": "[8.0.8, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",

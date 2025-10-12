@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Certio.Web.Data;
+using Certio.Infrastructure.Data;
 using Certio.Web.Scripts;
 
 namespace Certio.Web.Controllers

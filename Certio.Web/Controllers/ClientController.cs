@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Certio.Domain.Users;
 using Certio.Domain.Organizations;
-using Certio.Web.Data;
+using Certio.Infrastructure.Data;
 using Certio.Web.ViewModels;
 using Certio.Domain.Matters;
 using Certio.Web.Services;

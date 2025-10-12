@@ -12,7 +12,7 @@ using Certio.Domain.Audit;
 using Certio.Domain.Organizations;
 using Certio.Domain.Tasks;
 
-namespace Certio.Web.Data
+namespace Certio.Infrastructure.Data
 {
     public class ApplicationDbContext : IdentityDbContext
     {

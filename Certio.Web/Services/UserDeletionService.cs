@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Certio.Domain.Users;
 using Certio.Domain.Audit;
-using Certio.Web.Data;
+using Certio.Infrastructure.Data;
 using Certio.Web.Configuration;
 using Microsoft.Extensions.Options;
 

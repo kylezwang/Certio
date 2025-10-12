@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Certio.Web.Data;
+using Certio.Infrastructure.Data;
 using Certio.Domain.Users;
 
 namespace Certio.Web.Services
