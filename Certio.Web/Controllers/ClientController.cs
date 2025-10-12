@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Certio.Domain.Users;
+using Certio.Domain.Organizations;
 using Certio.Web.Data;
 using Certio.Web.ViewModels;
 using Certio.Domain.Matters;
@@ -559,53 +560,275 @@ namespace Certio.Web.Controllers
         [HttpGet("/Client/{orgId:int}/AddPeople")]
         public async Task<IActionResult> AddPeople(int orgId)
         {
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                TempData["Error"] = "Unable to resolve current user.";
+                return RedirectToAction("Teams", new { orgId });
+            }
+
+            var org = await _db.Organizations
+                .FirstOrDefaultAsync(o => o.Id == orgId);
+            
+            if (org == null)
+            {
+                TempData["Error"] = "Organization not found.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var model = await PrepareAddPeopleViewModel(orgId, customUser);
+            
             ViewBag.OrganizationId = orgId;
-            var org = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync();
-            ViewBag.OrganizationName = org?.Name ?? "Client";
-            return View("~/Views/Home/AddPeople.cshtml", new AddPeopleViewModel());
+            ViewBag.OrganizationName = org.Name;
+            
+            return View("~/Views/Home/AddPeople.cshtml", model);
         }
 
         // POST /Client/{orgId}/AddPeople
         [Authorize(Policy = "OrgMember")]
         [HttpPost("/Client/{orgId:int}/AddPeople")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddPeople(int orgId, AddPeopleViewModel model, CancellationToken ct)
+        public async Task<IActionResult> AddPeople(int orgId, AddPeopleFormViewModel model, string? action, CancellationToken ct)
         {
-            if (!ModelState.IsValid)
-            {
-                ViewBag.OrganizationId = orgId;
-                var org = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync(ct);
-                ViewBag.OrganizationName = org?.Name ?? "Client";
-                return View("~/Views/Home/AddPeople.cshtml", model);
-            }
-
             var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
             if (customUser == null)
             {
                 TempData["Error"] = "Unable to resolve current user.";
+                return RedirectToAction("Teams", new { orgId });
+            }
+
+            var org = await _db.Organizations.FirstOrDefaultAsync(o => o.Id == orgId, ct);
+            if (org == null)
+            {
+                TempData["Error"] = "Organization not found.";
+                return RedirectToAction("Index", "Home");
+            }
+
                 ViewBag.OrganizationId = orgId;
-                var org2 = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync(ct);
-                ViewBag.OrganizationName = org2?.Name ?? "Client";
+            ViewBag.OrganizationName = org.Name;
+
+            // Re-populate context info
+            model = await PrepareAddPeopleViewModel(orgId, customUser, model);
+
+            // Handle step navigation
+            if (action == "back")
+            {
+                model.Step = 1;
+                model.SelectionType = null;
+                ModelState.Clear();
                 return View("~/Views/Home/AddPeople.cshtml", model);
             }
 
-            // Authorization is handled by the [Authorize(Policy = "OrgMember")] attribute
+            // Client users or step 1 selection
+            if (model.Step == 1 || !model.IsLawFirmUser)
+            {
+                if (!string.IsNullOrEmpty(model.SelectionType))
+                {
+                    // Law firm user selected a card, move to step 2
+                    model.Step = 2;
+                    ModelState.Clear();
+                    return View("~/Views/Home/AddPeople.cshtml", model);
+                }
+            }
+
+            // Step 2: Process the form submission
+            if (model.Step == 2 || !model.IsLawFirmUser)
+            {
+                return await ProcessAddPeopleSubmission(orgId, model, customUser, ct);
+            }
+
+            return View("~/Views/Home/AddPeople.cshtml", model);
+        }
+
+        private async Task<AddPeopleFormViewModel> PrepareAddPeopleViewModel(int orgId, Certio.Domain.Users.User customUser, AddPeopleFormViewModel? existingModel = null)
+        {
+            var model = existingModel ?? new AddPeopleFormViewModel();
+            
+            // Determine user context
+            var userOrgMembership = customUser.UserOrganizations
+                .FirstOrDefault(uo => uo.IsActive && uo.IsPrimary);
+
+            model.IsLawFirmUser = userOrgMembership?.UserType == UserTypes.LawFirm;
+
+            // Check if current org is a client organization (has a relationship with a law firm)
+            if (model.IsLawFirmUser && userOrgMembership != null)
+            {
+                var lawFirmOrgId = userOrgMembership.OrganizationId;
+                model.LawFirmOrganizationId = lawFirmOrgId;
+                
+                var lawFirmOrg = await _db.Organizations
+                    .FirstOrDefaultAsync(o => o.Id == lawFirmOrgId);
+                model.LawFirmOrganizationName = lawFirmOrg?.Name;
+
+                // Check if user is in their own law firm org or a client org
+                if (orgId == lawFirmOrgId)
+                {
+                    // User is in their own law firm organization - simple form
+                    model.IsClientOrganization = false;
+                }
+                else
+                {
+                    // Check if there's a relationship between law firm and current org
+                    var relationship = await _db.OrganizationRelationships
+                        .FirstOrDefaultAsync(or => 
+                            or.SourceOrganizationId == lawFirmOrgId && 
+                            or.TargetOrganizationId == orgId &&
+                            or.IsActive &&
+                            !or.IsDeleted);
+
+                    model.IsClientOrganization = relationship != null;
+
+                    // If in client org context and selecting InternalTeam, load law firm members
+                    if (model.IsClientOrganization && model.SelectionType == "InternalTeam")
+                    {
+                        // Get law firm members
+                        var lawFirmMembers = await _db.UserOrganizations
+                            .Include(uo => uo.User)
+                            .Where(uo => 
+                                uo.OrganizationId == lawFirmOrgId &&
+                                uo.UserType == UserTypes.LawFirm &&
+                                uo.IsActive)
+                            .ToListAsync();
+
+                        // Get already assigned users for this relationship
+                        var assignedUserIds = await _db.Set<OrganizationRelationshipAssignedUser>()
+                            .Where(orau => orau.RelationshipId == relationship.Id)
+                            .Select(orau => orau.UserId)
+                            .ToListAsync();
+
+                        model.AlreadyAssignedUserIds = assignedUserIds;
+                        model.AvailableTeamMembers = lawFirmMembers.Select(uo => new OrgMemberDto
+                        {
+                            Id = uo.UserId,
+                            Name = $"{uo.User.FirstName} {uo.User.LastName}".Trim(),
+                            Email = uo.User.Email,
+                            Role = uo.Role,
+                            UserType = uo.UserType,
+                            IsCurrentUser = uo.UserId == customUser.Id,
+                            IsAlreadyAssigned = assignedUserIds.Contains(uo.UserId)
+                        }).ToList();
+                    }
+                }
+            }
+            else
+            {
+                model.IsClientOrganization = false;
+            }
+
+            return model;
+        }
+
+        private async Task<IActionResult> ProcessAddPeopleSubmission(int orgId, AddPeopleFormViewModel model, Certio.Domain.Users.User customUser, CancellationToken ct)
+        {
+            ViewBag.OrganizationId = orgId;
+            var org = await _db.Organizations.FirstOrDefaultAsync(o => o.Id == orgId, ct);
+            ViewBag.OrganizationName = org?.Name ?? "Client";
+
+            // Client context -> Internal Team -> Assign existing law firm members
+            if (model.IsClientOrganization && model.SelectionType == "InternalTeam")
+            {
+                if (model.SelectedUserIds == null || !model.SelectedUserIds.Any())
+                {
+                    ModelState.AddModelError("SelectedUserIds", "Please select at least one team member.");
+                    return View("~/Views/Home/AddPeople.cshtml", model);
+                }
+
+                // Get the relationship
+                var relationship = await _db.OrganizationRelationships
+                    .FirstOrDefaultAsync(or => 
+                        or.SourceOrganizationId == model.LawFirmOrganizationId &&
+                        or.TargetOrganizationId == orgId &&
+                        or.IsActive &&
+                        !or.IsDeleted, ct);
+
+                if (relationship == null)
+                {
+                    TempData["Error"] = "Organization relationship not found.";
+                    return View("~/Views/Home/AddPeople.cshtml", model);
+                }
+
+                // Get already assigned users
+                var existingAssignments = await _db.Set<OrganizationRelationshipAssignedUser>()
+                    .Where(orau => orau.RelationshipId == relationship.Id)
+                    .Select(orau => orau.UserId)
+                    .ToListAsync(ct);
+
+                // Create assignments for new users
+                var newAssignments = model.SelectedUserIds
+                    .Where(userId => !existingAssignments.Contains(userId))
+                    .Select(userId => new OrganizationRelationshipAssignedUser
+                    {
+                        RelationshipId = relationship.Id,
+                        UserId = userId,
+                        AssignedAt = DateTime.UtcNow,
+                        AssignedById = customUser.Id
+                    })
+                    .ToList();
+
+                if (newAssignments.Any())
+                {
+                    _db.Set<OrganizationRelationshipAssignedUser>().AddRange(newAssignments);
+                    await _db.SaveChangesAsync(ct);
+                    TempData["Success"] = $"Successfully assigned {newAssignments.Count} team member(s) to {org?.Name}.";
+                }
+                else
+                {
+                    TempData["Info"] = "All selected members were already assigned.";
+                }
+
+                return RedirectToAction("Teams", new { orgId });
+            }
+
+            // All other cases: Generate join code
+            if (string.IsNullOrWhiteSpace(model.Email))
+            {
+                ModelState.AddModelError("Email", "Email is required.");
+                return View("~/Views/Home/AddPeople.cshtml", model);
+            }
 
             if (!customUser.CanCreateJoinCodes(orgId))
             {
                 TempData["Error"] = "You do not have permission to create join codes.";
-                ViewBag.OrganizationId = orgId;
-                var org3 = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync(ct);
-                ViewBag.OrganizationName = org3?.Name ?? "Client";
                 return View("~/Views/Home/AddPeople.cshtml", model);
             }
 
-            // If Law Firm is selected, ignore the provided role and set a conservative default; otherwise pass through
-            var invitedUserType = model.UserType;
-            var invitedRole = model.Role;
-            if (string.Equals(invitedUserType, Certio.Domain.Users.UserTypes.LawFirm, StringComparison.OrdinalIgnoreCase))
+            // Determine UserType and Role based on selection
+            string invitedUserType;
+            string invitedRole;
+
+            if (!model.IsLawFirmUser)
             {
-                invitedRole = Certio.Domain.Users.OrganizationRoles.Staff;
+                // Client users always invite as Client
+                invitedUserType = UserTypes.Client;
+                invitedRole = model.Role ?? OrganizationRoles.Member;
+            }
+            else if (model.IsLawFirmUser && !model.IsClientOrganization)
+            {
+                // Law firm user in their own law firm org -> always invite as LawFirm
+                invitedUserType = UserTypes.LawFirm;
+                invitedRole = model.Role ?? OrganizationRoles.Staff;
+            }
+            else if (model.SelectionType == "InternalTeam")
+            {
+                // Law firm user in client context -> InternalTeam -> invite as LawFirm
+                invitedUserType = UserTypes.LawFirm;
+                invitedRole = model.Role ?? OrganizationRoles.Staff;
+            }
+            else if (model.SelectionType == "Client")
+            {
+                // Law firm user in client context -> Client -> invite as Client
+                invitedUserType = UserTypes.Client;
+                invitedRole = model.Role ?? OrganizationRoles.Member;
+            }
+            else if (model.SelectionType == "External")
+            {
+                invitedUserType = UserTypes.External;
+                invitedRole = model.Role ?? OrganizationRoles.Other;
+            }
+            else
+            {
+                TempData["Error"] = "Invalid selection type.";
+                return View("~/Views/Home/AddPeople.cshtml", model);
             }
 
             var join = await _joinCodeService.GenerateAsync(
@@ -618,16 +841,14 @@ namespace Certio.Web.Controllers
                 ttl: TimeSpan.FromDays(7),
                 ct: ct);
 
-            ViewBag.OrganizationId = orgId;
-            var org4 = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync(ct);
-            ViewBag.OrganizationName = org4?.Name ?? "Client";
             ViewBag.JoinCode = join.Code;
-            TempData["Success"] = "Join code generated.";
-            return View("~/Views/Home/AddPeople.cshtml", new AddPeopleViewModel
-            {
-                UserType = model.UserType,
-                Role = model.Role
-            });
+            TempData["Success"] = "Join code generated successfully.";
+            
+            // Reset model for new invitation
+            model = await PrepareAddPeopleViewModel(orgId, customUser);
+            model.Step = 1;
+            
+            return View("~/Views/Home/AddPeople.cshtml", model);
         }
     }
 }

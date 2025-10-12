@@ -269,9 +269,13 @@ builder.Services.AddRazorPages();
 builder.Services.AddScoped<Certio.Web.Services.IJoinCodeService, Certio.Web.Services.JoinCodeService>();
 
 // Firm relationship services
-            builder.Services.AddScoped<IFirmRelationshipCacheService, FirmRelationshipCacheService>();
-            builder.Services.AddScoped<ILawFirmRoleResolutionService, LawFirmRoleResolutionService>();
+builder.Services.AddScoped<IFirmRelationshipCacheService, FirmRelationshipCacheService>();
+builder.Services.AddScoped<ILawFirmRoleResolutionService, LawFirmRoleResolutionService>();
 builder.Services.AddScoped<IFirmAccessAuditService, FirmAccessAuditService>();
+
+// PHASE 1 SECURITY SERVICES
+builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddScoped<Certio.Web.Security.AuthorizationHelper>();
 
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(options =>

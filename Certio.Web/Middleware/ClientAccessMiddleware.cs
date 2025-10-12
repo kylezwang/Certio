@@ -44,12 +44,16 @@ namespace Certio.Web.Middleware
                     var hasFirmAccess = await cacheService.HasFirmAccessAsync(customUser.Id, orgId);
                     if (!hasFirmAccess)
                     {
-                        // Log denied access attempt
+                        // Log denied access attempt with IP and UserAgent
+                        var ipAddress = context.Connection?.RemoteIpAddress?.ToString();
+                        var userAgent = context.Request?.Headers["User-Agent"].ToString();
                         await auditService.LogFirmAccessDeniedAsync(
                             customUser.Id, 
                             orgId, 
-                            "No firm relationship found",
-                            $"User attempted to access organization {orgId} but has no firm-based access");
+                            "NoFirmRelationship",
+                            $"FAILURE: NoFirmRelationship",
+                            ipAddress,
+                            userAgent);
 
                         context.Response.StatusCode = StatusCodes.Status403Forbidden;
                         await context.Response.WriteAsync("Forbidden: You are not a member of this client and do not have firm-based access.");

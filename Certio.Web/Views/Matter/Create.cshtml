@@ -73,13 +73,11 @@
                             {
                                 <input type="hidden" asp-for="Title" />
                                 <input type="hidden" asp-for="Description" />
-                                <input type="hidden" asp-for="PracticeArea" />
-                                <input type="hidden" asp-for="MatterType" />
                             }
                             @if (Model.Step != 2)
                             {
+                                <input type="hidden" asp-for="PracticeArea" />
                                 <input type="hidden" asp-for="Status" />
-                                <input type="hidden" asp-for="Priority" />
                                 <input type="hidden" asp-for="StartDate" />
                                 <input type="hidden" asp-for="DueDate" />
                                 <input type="hidden" asp-for="PendingDate" />
@@ -134,36 +132,6 @@
                                                       placeholder="Describe what this matter aims to accomplish..."></textarea>
                                             <span asp-validation-for="Description" class="text-danger"></span>
                                         </div>
-
-                                        <div class="col-md-6 mb-4">
-                                            <label asp-for="PracticeArea" class="form-label fw-bold text-dark">
-                                                <i class="fas fa-gem me-2" style="color: #0b365e;"></i>
-                                                Practice Area <span class="text-danger">*</span>
-                                            </label>
-                                            <select asp-for="PracticeArea" class="form-select form-select-lg">
-                                                <option value="">Select practice area</option>
-                                                @foreach (var category in Model.PracticeAreas)
-                                                {
-                                                    <option value="@category">@category</option>
-                                                }
-                                            </select>
-                                            <span asp-validation-for="PracticeArea" class="text-danger"></span>
-                                        </div>
-
-                                        <div class="col-md-6 mb-4">
-                                            <label asp-for="MatterType" class="form-label fw-bold text-dark">
-                                                <i class="fas fa-bars me-2" style="color: #0b365e;"></i>
-                                                Matter Type <span class="text-danger">*</span>
-                                            </label>
-                                            <select asp-for="MatterType" class="form-select form-select-lg">
-                                                <option value="">Select matter type</option>
-                                                @foreach (var matterType in Model.MatterTypes)
-                                                {
-                                                    <option value="@matterType">@matterType</option>
-                                                }
-                                            </select>
-                                            <span asp-validation-for="MatterType" class="text-danger"></span>
-                                        </div>
                                     </div>
 
                                     <!-- Example Matter Names -->
@@ -202,18 +170,18 @@
                                         </div>
 
                                         <div class="col-md-6 mb-4">
-                                            <label asp-for="Priority" class="form-label fw-bold text-dark">
-                                                <i class="fas fa-flag me-2" style="color: #0b365e;"></i>
-                                                Priority <span class="text-danger">*</span>
+                                            <label asp-for="PracticeArea" class="form-label fw-bold text-dark">
+                                                <i class="fas fa-gem me-2" style="color: #0b365e;"></i>
+                                                Practice Area <span class="text-danger">*</span>
                                             </label>
-                                            <select asp-for="Priority" class="form-select form-select-lg">
-                                                <option value="">Select matter priority</option>
-                                                @foreach (var priority in Model.Priorities)
+                                            <select asp-for="PracticeArea" class="form-select form-select-lg">
+                                                <option value="">Select practice area</option>
+                                                @foreach (var category in Model.PracticeAreas)
                                                 {
-                                                    <option value="@priority">@priority</option>
+                                                    <option value="@category">@category</option>
                                                 }
                                             </select>
-                                            <span asp-validation-for="Priority" class="text-danger"></span>
+                                            <span asp-validation-for="PracticeArea" class="text-danger"></span>
                                         </div>
 
                                         <div class="col-md-6 mb-4">
@@ -539,14 +507,8 @@
                                                                 <div class="mb-2">
                                                                     <strong>Title:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.Title) ? "Not specified" : Model.Title)</span>
                                                                 </div>
-                                                                <div class="mb-2">
-                                                                    <strong>Description:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.Description) ? "Not specified" : Model.Description)</span>
-                                                                </div>
-                                                                <div class="mb-2">
-                                                                    <strong>Practice Area:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.PracticeArea) ? "Not specified" : Model.PracticeArea)</span>
-                                                                </div>
                                                                 <div class="mb-0">
-                                                                    <strong>Matter Type:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.MatterType) ? "Not specified" : Model.MatterType)</span>
+                                                                    <strong>Description:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.Description) ? "Not specified" : Model.Description)</span>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -561,15 +523,15 @@
                                                                 <i class="fas fa-cog fs-4 me-3" style="color: #0b365e;"></i>
                                                                 <div>
                                                                     <h6 class="fw-bold text-dark mb-1">Matter Settings</h6>
-                                                                    <p class="text-muted mb-0 small">Timeline and priority settings</p>
+                                                                    <p class="text-muted mb-0 small">Timeline and settings</p>
                                                                 </div>
                                                             </div>
                                                             <div class="snapshot-content">
                                                                 <div class="mb-2">
-                                                                    <strong>Status:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.Status) ? "Not specified" : Model.Status)</span>
+                                                                    <strong>Practice Area:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.PracticeArea) ? "Not specified" : Model.PracticeArea)</span>
                                                                 </div>
                                                                 <div class="mb-2">
-                                                                    <strong>Priority:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.Priority) ? "Not specified" : Model.Priority)</span>
+                                                                    <strong>Status:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.Status) ? "Not specified" : Model.Status)</span>
                                                                 </div>
                                                                 <div class="mb-2">
                                                                     <strong>Start Date:</strong> <span class="text-muted">@(Model.StartDate?.ToString("MMM dd, yyyy") ?? "Not specified")</span>
@@ -774,11 +736,6 @@
                                                 @(string.IsNullOrEmpty(Model.Description) ? "Matter description will appear here..." : Model.Description)
                                             </p>
                                         </div>
-                                    </div>
-                                    <div class="flex-shrink-0 ms-2">
-                                        <span class="badge" style="font-size: 0.7rem; padding: 0.25rem 0.5rem; white-space: nowrap; @GetPriorityStyles(string.IsNullOrEmpty(Model.Priority) ? "Medium" : Model.Priority)">
-                                            @(string.IsNullOrEmpty(Model.Priority) ? "Medium" : Model.Priority)
-                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -1097,30 +1054,6 @@
 </style>
 
 @functions {
-    string GetPriorityClass(string priority)
-    {
-        return priority switch
-        {
-            "High" => "",
-            "Medium" => "",
-            "Low" => "",
-            "Critical" => "",
-            _ => ""
-        };
-    }
-    
-    string GetPriorityStyles(string priority)
-    {
-        return priority switch
-        {
-            "Critical" => "color: #dc3545; background-color: #f5b7b1;",
-            "High" => "color: #fd7e14; background-color: #ffeaa7;",
-            "Medium" => "color: #0d6efd; background-color: #cfe2ff;",
-            "Low" => "color: #6c757d; background-color: #e9ecef;",
-            _ => "color: #0d6efd; background-color: #cfe2ff;"
-        };
-    }
-
     string GetStatusClass(string status)
     {
         return status switch
@@ -1159,9 +1092,7 @@
                 title: @Html.Raw(Json.Serialize(Model.Title ?? "")),
                 description: @Html.Raw(Json.Serialize(Model.Description ?? "")),
                 category: @Html.Raw(Json.Serialize(Model.PracticeArea ?? "")),
-                matterType: @Html.Raw(Json.Serialize(Model.MatterType ?? "")),
                 status: @Html.Raw(Json.Serialize(Model.Status ?? "")),
-                priority: @Html.Raw(Json.Serialize(Model.Priority ?? "")),
                 dueDate: @Html.Raw(Json.Serialize(Model.DueDate?.ToString("yyyy-MM-dd") ?? "")),
                 startDate: @Html.Raw(Json.Serialize(Model.StartDate?.ToString("yyyy-MM-dd") ?? "")),
                 pendingDate: @Html.Raw(Json.Serialize(Model.PendingDate?.ToString("yyyy-MM-dd") ?? "")),
@@ -1177,7 +1108,6 @@
             const previewDescription = document.querySelector('.card-text');
             const previewPracticeArea = document.querySelector('.category-badge');
             const previewStatus = document.querySelector('.status-badge');
-            const previewPriority = document.querySelector('.card-header .badge');
             const previewDueDate = document.querySelector('.due-date-text');
             const previewAssigneesCount = document.querySelector('.assignees-count-text');
             const teamAvatars = document.querySelector('.team-avatars');
@@ -1201,9 +1131,6 @@
                 // Update status
                 updateStatusBadge(currentValues.status || 'Planning');
                 
-                // Update priority
-                updatePriorityBadge(currentValues.priority || 'Medium');
-                
                 // Update due date
                 updateDueDate(currentValues.dueDate);
                 
@@ -1219,8 +1146,8 @@
             function clearCurrentStepData(step) {
                 if (step === 2) {
                     // Clear Step 2 data when going back from Step 2 to Step 1
+                    currentValues.category = '';
                     currentValues.status = '';
-                    currentValues.priority = '';
                     currentValues.dueDate = '';
                     currentValues.startDate = '';
                     currentValues.pendingDate = '';
@@ -1245,13 +1172,6 @@
                 if (statusIcon) {
                     statusIcon.className = getStatusIcon(status);
                 }
-            }
-            
-            function updatePriorityBadge(priority) {
-                if (!previewPriority) return;
-                
-                previewPriority.textContent = priority;
-                previewPriority.setAttribute('style', previewPriority.getAttribute('style').replace(/color:[^;]*; background-color:[^;]*;/, '') + ' ' + getPriorityClass(priority));
             }
             
             function updateDueDate(dueDate) {
@@ -1396,16 +1316,6 @@
                 }
             }
             
-            function getPriorityClass(priority) {
-                switch(priority) {
-                    case 'Critical': return 'color: #dc3545; background-color: #f5b7b1;';
-                    case 'High': return 'color: #fd7e14; background-color: #ffeaa7;';
-                    case 'Medium': return 'color: #0d6efd; background-color: #cfe2ff;';
-                    case 'Low': return 'color: #6c757d; background-color: #e9ecef;';
-                    default: return 'color: #0d6efd; background-color: #cfe2ff;';
-                }
-            }
-            
             function getStatusIcon(status) {
                 switch(status) {
                     case 'Completed': return 'fas fa-check-circle text-success';
@@ -1424,9 +1334,7 @@
             const titleInput = document.querySelector('input[name="Title"]');
             const descriptionInput = document.querySelector('textarea[name="Description"]');
             const categorySelect = document.querySelector('select[name="PracticeArea"]');
-            const matterTypeSelect = document.querySelector('select[name="MatterType"]');
             const statusSelect = document.querySelector('select[name="Status"]');
-            const prioritySelect = document.querySelector('select[name="Priority"]');
             const dueDateInput = document.querySelector('input[name="DueDate"]');
             const startDateInput = document.querySelector('input[name="StartDate"]');
             const pendingDateInput = document.querySelector('input[name="PendingDate"]');
@@ -1453,21 +1361,9 @@
                 });
             }
             
-            if (matterTypeSelect) {
-                matterTypeSelect.addEventListener('change', function() {
-                    updateValue('matterType', this.value);
-                });
-            }
-            
             if (statusSelect) {
                 statusSelect.addEventListener('change', function() {
                     updateValue('status', this.value);
-                });
-            }
-            
-            if (prioritySelect) {
-                prioritySelect.addEventListener('change', function() {
-                    updateValue('priority', this.value);
                 });
             }
             

@@ -21,15 +21,8 @@ public class Matter
     [StringLength(50)]
     public string Status { get; set; } = "Planning"; // Planning, InProgress, Review, Completed, OnHold, Cancelled
     
-    [Required]
-    [StringLength(20)]
-    public string Priority { get; set; } = "Medium"; // High, Medium, Low
-    
     [StringLength(100)]
     public string PracticeArea { get; set; } = ""; // Contract Review, LLC Formation, Real Estate, etc.
-    
-    [StringLength(100)]
-    public string MatterType { get; set; } = "Legal"; // Legal, Business, Compliance, etc.
     
     [StringLength(20)]
     public string AccessLevel { get; set; } = ""; // Everyone, Specific

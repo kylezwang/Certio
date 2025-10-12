@@ -6,6 +6,8 @@ using Certio.Domain.Tasks;
 using Certio.Domain.Users;
 using Certio.Domain.Organizations;
 using Certio.Web.Data;
+using Certio.Web.Security;
+using Certio.Web.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
@@ -17,11 +19,22 @@ namespace Certio.Web.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly GoogleMapsConfiguration _googleMapsConfig;
+        private readonly AuthorizationHelper _authHelper;
+        private readonly IAuditService _auditService;
+        private readonly ILogger<TasksController> _logger;
 
-        public TasksController(ApplicationDbContext context, IOptions<GoogleMapsConfiguration> googleMapsConfig)
+        public TasksController(
+            ApplicationDbContext context, 
+            IOptions<GoogleMapsConfiguration> googleMapsConfig,
+            AuthorizationHelper authHelper,
+            IAuditService auditService,
+            ILogger<TasksController> logger)
         {
             _context = context;
             _googleMapsConfig = googleMapsConfig.Value;
+            _authHelper = authHelper;
+            _auditService = auditService;
+            _logger = logger;
         }
 
         // GET: /Client/{orgId}/Tasks or /Tasks/Index
@@ -96,8 +109,17 @@ namespace Certio.Web.Controllers
                     .Where(t => t.OrgId == organizationId || clientOrgIds.Contains(t.OrgId));
             }
 
-            var tasks = await tasksQuery
+            // Apply task-level filtering based on user assignments and matter access
+            // Users should see tasks where:
+            // 1. They are directly assigned to the task (via TaskAssignments)
+            // 2. They are assigned to the task's matter (via MatterAssignments)
+            // 3. The matter has "Everyone" access level
+            // 4. They have specific permission to the matter (via MatterPermissions)
+            tasksQuery = tasksQuery
                 .Include(t => t.Matter)
+                    .ThenInclude(m => m.Assignments)
+                .Include(t => t.Matter)
+                    .ThenInclude(m => m.Permissions)
                 .Include(t => t.TaskAssignments)
                     .ThenInclude(ta => ta.User)
                 .Include(t => t.Comments)
@@ -105,11 +127,22 @@ namespace Certio.Web.Controllers
                 .Include(t => t.SubTasks)
                     .ThenInclude(st => st.Assignments)
                         .ThenInclude(sta => sta.User)
-                .OrderBy(t => t.Order)
-                .ToListAsync();
+                .Where(t => 
+                    // User is assigned to the task directly
+                    t.TaskAssignments.Any(ta => ta.UserId == customUser.Id && ta.RemovedAt == null) ||
+                    // User is assigned to the matter
+                    t.Matter.Assignments.Any(ma => ma.UserId == customUser.Id && ma.RemovedAt == null) ||
+                    // Matter has "Everyone" access level
+                    t.Matter.AccessLevel == "Everyone" ||
+                    // User has specific permission to the matter
+                    t.Matter.Permissions.Any(p => p.UserId == customUser.Id && p.RevokedAt == null))
+                .OrderBy(t => t.Order);
+
+            var tasks = await tasksQuery.ToListAsync();
 
             IQueryable<Matter> mattersQuery = _context.Matters
                 .Include(m => m.Assignments)
+                .Include(m => m.Permissions)
                 .Where(m => m.OrganizationId == organizationId);  // Own organization matters
 
             if (isLawFirmUser)
@@ -118,8 +151,19 @@ namespace Certio.Web.Controllers
                 // Include matters from all connected client organizations
                 mattersQuery = _context.Matters
                     .Include(m => m.Assignments)
+                    .Include(m => m.Permissions)
                     .Where(m => m.OrganizationId == organizationId || clientOrgIds.Contains(m.OrganizationId));
             }
+
+            // Apply matter-level filtering based on user access
+            // Users should see matters where:
+            // 1. AccessLevel is "Everyone" (all org members can see)
+            // 2. AccessLevel is "Specific" AND user has explicit permission
+            // 3. User is assigned to the matter
+            mattersQuery = mattersQuery.Where(m => 
+                m.AccessLevel == "Everyone" ||
+                m.Permissions.Any(p => p.UserId == customUser.Id && p.RevokedAt == null) ||
+                m.Assignments.Any(a => a.UserId == customUser.Id && a.RemovedAt == null));
 
             var viewModel = new TasksViewModel
             {
@@ -217,32 +261,63 @@ namespace Certio.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Update([FromBody] UpdateTaskRequest request)
         {
+            // Input validation
+            if (!InputValidator.IsValidId(request.Id))
+            {
+                _logger.LogWarning("Invalid task ID in Update request: {Id}", request.Id);
+                return Json(new { success = false, message = "Invalid task ID" });
+            }
+
             var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
             if (customUser == null)
             {
+                _logger.LogWarning("CustomUser not found in HttpContext for Update request");
                 return Json(new { success = false, message = "User not authenticated" });
             }
 
-            var task = await _context.TaskItems.FindAsync(request.Id);
+            // SECURITY FIX: Verify user has access to this task
+            var task = await _authHelper.GetTaskIfAuthorizedAsync(request.Id, customUser.Id, HttpContext);
             if (task == null)
             {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to update unauthorized task {TaskId}", customUser.Id, request.Id);
                 return Json(new { success = false, message = "Task not found" });
             }
 
+            // Validate and sanitize inputs
             if (!string.IsNullOrEmpty(request.Title))
-                task.Title = request.Title;
+            {
+                if (!InputValidator.IsValidString(request.Title, InputValidator.MAX_TITLE_LENGTH))
+                    return Json(new { success = false, message = "Title is too long" });
+                task.Title = InputValidator.Sanitize(request.Title, InputValidator.MAX_TITLE_LENGTH);
+            }
+
             if (!string.IsNullOrEmpty(request.Description))
-                task.Description = request.Description;
+            {
+                if (!InputValidator.IsValidString(request.Description, InputValidator.MAX_DESCRIPTION_LENGTH))
+                    return Json(new { success = false, message = "Description is too long" });
+                task.Description = InputValidator.Sanitize(request.Description, InputValidator.MAX_DESCRIPTION_LENGTH);
+            }
+
             if (!string.IsNullOrEmpty(request.Status))
+            {
+                if (!InputValidator.IsValidTaskStatus(request.Status))
+                    return Json(new { success = false, message = "Invalid status value" });
                 task.Status = request.Status;
+            }
+
             if (!string.IsNullOrEmpty(request.Priority))
+            {
+                if (!InputValidator.IsValidPriority(request.Priority))
+                    return Json(new { success = false, message = "Invalid priority value" });
                 task.Priority = request.Priority;
+            }
+
             if (request.StartedAt.HasValue)
                 task.StartedAt = request.StartedAt.Value;
             if (request.DueDate.HasValue)
                 task.DueDate = request.DueDate.Value;
             if (!string.IsNullOrEmpty(request.Location))
-                task.Location = request.Location;
+                task.Location = InputValidator.Sanitize(request.Location, 200);
             if (request.Order.HasValue)
                 task.Order = request.Order.Value;
 
@@ -255,6 +330,20 @@ namespace Certio.Web.Controllers
 
             await _context.SaveChangesAsync();
 
+            // Audit log the update
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+            await _auditService.LogUpdateAsync(
+                customUser.Id,
+                task.OrgId,
+                "Task",
+                task.Id,
+                $"Updated: {task.Title}",
+                ipAddress,
+                userAgent);
+
+            _logger.LogInformation("User {UserId} updated task {TaskId} in org {OrgId}", customUser.Id, task.Id, task.OrgId);
+
             return Json(new { success = true });
         }
 
@@ -263,9 +352,30 @@ namespace Certio.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateStatus([FromBody] UpdateStatusRequest request)
         {
-            var task = await _context.TaskItems.FindAsync(request.TaskId);
+            // Input validation
+            if (!InputValidator.IsValidId(request.TaskId))
+            {
+                _logger.LogWarning("Invalid task ID in UpdateStatus request: {TaskId}", request.TaskId);
+                return Json(new { success = false, message = "Invalid task ID" });
+            }
+
+            if (!InputValidator.IsValidTaskStatus(request.Status))
+            {
+                return Json(new { success = false, message = "Invalid status value" });
+            }
+
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                _logger.LogWarning("CustomUser not found in HttpContext for UpdateStatus");
+                return Json(new { success = false, message = "User not authenticated" });
+            }
+
+            // SECURITY FIX: Verify user has access to this task
+            var task = await _authHelper.GetTaskIfAuthorizedAsync(request.TaskId, customUser.Id, HttpContext);
             if (task == null)
             {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to update status of unauthorized task {TaskId}", customUser.Id, request.TaskId);
                 return Json(new { success = false, message = "Task not found" });
             }
 
@@ -285,6 +395,18 @@ namespace Certio.Web.Controllers
 
             await _context.SaveChangesAsync();
 
+            // Audit log the status change
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+            await _auditService.LogUpdateAsync(
+                customUser.Id,
+                task.OrgId,
+                "Task",
+                task.Id,
+                $"Status changed to: {request.Status}",
+                ipAddress,
+                userAgent);
+
             return Json(new { success = true });
         }
 
@@ -292,20 +414,25 @@ namespace Certio.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Get(int id)
         {
-            var task = await _context.TaskItems
-                .Where(t => t.Id == id)
-                .Include(t => t.Matter)
-                .Include(t => t.TaskAssignments)
-                    .ThenInclude(ta => ta.User)
-                .Include(t => t.Comments)
-                    .ThenInclude(c => c.User)
-                .Include(t => t.SubTasks)
-                    .ThenInclude(st => st.Assignments)
-                        .ThenInclude(sta => sta.User)
-                .FirstOrDefaultAsync();
+            // Input validation
+            if (!InputValidator.IsValidId(id))
+            {
+                _logger.LogWarning("Invalid task ID in Get request: {Id}", id);
+                return Json(new { success = false, message = "Invalid task ID" });
+            }
 
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                _logger.LogWarning("CustomUser not found in HttpContext for Get request");
+                return Json(new { success = false, message = "User not authenticated" });
+            }
+
+            // SECURITY FIX: Verify user has access to this task
+            var task = await _authHelper.GetTaskIfAuthorizedAsync(id, customUser.Id, HttpContext);
             if (task == null)
             {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to view unauthorized task {TaskId}", customUser.Id, id);
                 return Json(new { success = false, message = "Task not found" });
             }
 
@@ -318,14 +445,46 @@ namespace Certio.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            var task = await _context.TaskItems.FindAsync(id);
+            // Input validation
+            if (!InputValidator.IsValidId(id))
+            {
+                _logger.LogWarning("Invalid task ID in Delete request: {Id}", id);
+                return Json(new { success = false, message = "Invalid task ID" });
+            }
+
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                _logger.LogWarning("CustomUser not found in HttpContext for Delete request");
+                return Json(new { success = false, message = "User not authenticated" });
+            }
+
+            // SECURITY FIX: Verify user has access to this task before deleting
+            var task = await _authHelper.GetTaskIfAuthorizedAsync(id, customUser.Id, HttpContext);
             if (task == null)
             {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to delete unauthorized task {TaskId}", customUser.Id, id);
                 return Json(new { success = false, message = "Task not found" });
             }
 
+            // Store info for audit log before deletion
+            var taskTitle = task.Title;
+            var taskOrgId = task.OrgId;
+
             _context.TaskItems.Remove(task);
             await _context.SaveChangesAsync();
+
+            // Audit log the deletion
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            await _auditService.LogDeleteAsync(
+                customUser.Id,
+                taskOrgId,
+                "Task",
+                id,
+                ipAddress);
+
+            _logger.LogInformation("User {UserId} deleted task {TaskId} ({Title}) in org {OrgId}", 
+                customUser.Id, id, taskTitle, taskOrgId);
 
             return Json(new { success = true });
         }
@@ -514,14 +673,50 @@ namespace Certio.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RemoveAssignment(int id)
         {
-            var assignment = await _context.TaskAssignments.FindAsync(id);
+            // Input validation
+            if (!InputValidator.IsValidId(id))
+            {
+                _logger.LogWarning("Invalid assignment ID in RemoveAssignment request: {Id}", id);
+                return Json(new { success = false, message = "Invalid assignment ID" });
+            }
+
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                _logger.LogWarning("CustomUser not found in HttpContext for RemoveAssignment");
+                return Json(new { success = false, message = "User not authenticated" });
+            }
+
+            var assignment = await _context.TaskAssignments
+                .Include(ta => ta.TaskItem)
+                .FirstOrDefaultAsync(ta => ta.Id == id);
+
             if (assignment == null)
             {
                 return Json(new { success = false, message = "Assignment not found" });
             }
 
+            // SECURITY FIX: Verify user has access to the parent task
+            var canAccess = await _authHelper.ValidateUserCanAccessTaskAsync(assignment.TaskItemId, customUser.Id);
+            if (!canAccess)
+            {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to remove assignment from unauthorized task {TaskId}", 
+                    customUser.Id, assignment.TaskItemId);
+                return Json(new { success = false, message = "Assignment not found" });
+            }
+
             _context.TaskAssignments.Remove(assignment);
             await _context.SaveChangesAsync();
+
+            // Audit log
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            await _auditService.LogOperationAsync(
+                customUser.Id,
+                assignment.TaskItem.OrgId,
+                "REMOVE_ASSIGNMENT",
+                "TaskAssignment",
+                id,
+                ipAddress);
 
             return Json(new { success = true });
         }
@@ -551,14 +746,50 @@ namespace Certio.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RemoveSubTaskAssignment(int id)
         {
-            var assignment = await _context.SubTaskAssignments.FindAsync(id);
+            // Input validation
+            if (!InputValidator.IsValidId(id))
+            {
+                _logger.LogWarning("Invalid subtask assignment ID in RemoveSubTaskAssignment request: {Id}", id);
+                return Json(new { success = false, message = "Invalid assignment ID" });
+            }
+
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                _logger.LogWarning("CustomUser not found in HttpContext for RemoveSubTaskAssignment");
+                return Json(new { success = false, message = "User not authenticated" });
+            }
+
+            var assignment = await _context.SubTaskAssignments
+                .Include(sta => sta.SubTaskItem)
+                .FirstOrDefaultAsync(sta => sta.Id == id);
+
             if (assignment == null)
             {
                 return Json(new { success = false, message = "Assignment not found" });
             }
 
+            // SECURITY FIX: Verify user has access to the parent subtask
+            var canAccess = await _authHelper.ValidateUserCanAccessSubTaskAsync(assignment.SubTaskItemId, customUser.Id);
+            if (!canAccess)
+            {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to remove assignment from unauthorized subtask {SubTaskId}", 
+                    customUser.Id, assignment.SubTaskItemId);
+                return Json(new { success = false, message = "Assignment not found" });
+            }
+
             _context.SubTaskAssignments.Remove(assignment);
             await _context.SaveChangesAsync();
+
+            // Audit log
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            await _auditService.LogOperationAsync(
+                customUser.Id,
+                assignment.SubTaskItem.OrgId,
+                "REMOVE_SUBTASK_ASSIGNMENT",
+                "SubTaskAssignment",
+                id,
+                ipAddress);
 
             return Json(new { success = true });
         }
@@ -568,9 +799,25 @@ namespace Certio.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateSubTaskStatus([FromBody] UpdateSubTaskStatusRequest request)
         {
-            var subTask = await _context.SubTaskItems.FindAsync(request.SubTaskId);
+            // Input validation
+            if (!InputValidator.IsValidId(request.SubTaskId))
+            {
+                _logger.LogWarning("Invalid subtask ID in UpdateSubTaskStatus request: {SubTaskId}", request.SubTaskId);
+                return Json(new { success = false, message = "Invalid subtask ID" });
+            }
+
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                _logger.LogWarning("CustomUser not found in HttpContext for UpdateSubTaskStatus");
+                return Json(new { success = false, message = "User not authenticated" });
+            }
+
+            // SECURITY FIX: Verify user has access to this subtask
+            var subTask = await _authHelper.GetSubTaskIfAuthorizedAsync(request.SubTaskId, customUser.Id);
             if (subTask == null)
             {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to update unauthorized subtask {SubTaskId}", customUser.Id, request.SubTaskId);
                 return Json(new { success = false, message = "SubTask not found" });
             }
 
@@ -587,6 +834,18 @@ namespace Certio.Web.Controllers
             }
 
             await _context.SaveChangesAsync();
+
+            // Audit log
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+            await _auditService.LogUpdateAsync(
+                customUser.Id,
+                subTask.OrgId,
+                "SubTask",
+                subTask.Id,
+                $"Status: {(request.IsCompleted ? "Completed" : "Not Completed")}",
+                ipAddress,
+                userAgent);
 
             return Json(new { success = true });
         }

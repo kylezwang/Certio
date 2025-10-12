@@ -16,7 +16,7 @@ namespace Certio.Web.Services
             _logger = logger;
         }
 
-        public async Task LogFirmAccessAsync(int userId, int targetOrganizationId, string action, string? description = null)
+        public async Task LogFirmAccessAsync(int userId, int targetOrganizationId, string action, string? description = null, string? ipAddress = null, string? userAgent = null)
         {
             try
             {
@@ -27,6 +27,9 @@ namespace Certio.Web.Services
                     Action = action,
                     UserId = userId,
                     Description = description ?? $"Firm-based access to organization {targetOrganizationId}",
+                    IPAddress = ipAddress,
+                    UserAgent = userAgent,
+                    Result = "SUCCESS",
                     Timestamp = DateTime.UtcNow
                 };
 
@@ -43,7 +46,7 @@ namespace Certio.Web.Services
             }
         }
 
-        public async Task LogFirmRelationshipCreatedAsync(int relationshipId, int createdByUserId, string? description = null)
+        public async Task LogFirmRelationshipCreatedAsync(int relationshipId, int createdByUserId, string? description = null, string? ipAddress = null, string? userAgent = null)
         {
             try
             {
@@ -62,7 +65,7 @@ namespace Certio.Web.Services
                 {
                     EntityType = "OrganizationRelationship",
                     EntityId = relationshipId,
-                    Action = "Create",
+                    Action = "CREATE",
                     UserId = createdByUserId,
                     Description = description ?? $"Created firm relationship between {relationship.SourceOrganization.Name} and {relationship.TargetOrganization.Name}",
                     NewValues = System.Text.Json.JsonSerializer.Serialize(new
@@ -73,6 +76,9 @@ namespace Certio.Web.Services
                         AccessLevel = relationship.AccessLevel,
                         ExpiresAt = relationship.ExpiresAt
                     }),
+                    IPAddress = ipAddress,
+                    UserAgent = userAgent,
+                    Result = "SUCCESS",
                     Timestamp = DateTime.UtcNow
                 };
 
@@ -89,7 +95,7 @@ namespace Certio.Web.Services
             }
         }
 
-        public async Task LogFirmRelationshipModifiedAsync(int relationshipId, int modifiedByUserId, string? description = null)
+        public async Task LogFirmRelationshipModifiedAsync(int relationshipId, int modifiedByUserId, string? description = null, string? ipAddress = null, string? userAgent = null)
         {
             try
             {
@@ -108,7 +114,7 @@ namespace Certio.Web.Services
                 {
                     EntityType = "OrganizationRelationship",
                     EntityId = relationshipId,
-                    Action = "Update",
+                    Action = "UPDATE",
                     UserId = modifiedByUserId,
                     Description = description ?? $"Modified firm relationship between {relationship.SourceOrganization.Name} and {relationship.TargetOrganization.Name}",
                     NewValues = System.Text.Json.JsonSerializer.Serialize(new
@@ -120,6 +126,9 @@ namespace Certio.Web.Services
                         ExpiresAt = relationship.ExpiresAt,
                         IsActive = relationship.IsActive
                     }),
+                    IPAddress = ipAddress,
+                    UserAgent = userAgent,
+                    Result = "SUCCESS",
                     Timestamp = DateTime.UtcNow
                 };
 
@@ -136,7 +145,7 @@ namespace Certio.Web.Services
             }
         }
 
-        public async Task LogFirmRelationshipDeletedAsync(int relationshipId, int deletedByUserId, string? description = null)
+        public async Task LogFirmRelationshipDeletedAsync(int relationshipId, int deletedByUserId, string? description = null, string? ipAddress = null, string? userAgent = null)
         {
             try
             {
@@ -155,7 +164,7 @@ namespace Certio.Web.Services
                 {
                     EntityType = "OrganizationRelationship",
                     EntityId = relationshipId,
-                    Action = "Delete",
+                    Action = "DELETE",
                     UserId = deletedByUserId,
                     Description = description ?? $"Deleted firm relationship between {relationship.SourceOrganization.Name} and {relationship.TargetOrganization.Name}",
                     OldValues = System.Text.Json.JsonSerializer.Serialize(new
@@ -166,6 +175,9 @@ namespace Certio.Web.Services
                         AccessLevel = relationship.AccessLevel,
                         ExpiresAt = relationship.ExpiresAt
                     }),
+                    IPAddress = ipAddress,
+                    UserAgent = userAgent,
+                    Result = "SUCCESS",
                     Timestamp = DateTime.UtcNow
                 };
 
@@ -182,7 +194,7 @@ namespace Certio.Web.Services
             }
         }
 
-        public async Task LogFirmAccessDeniedAsync(int userId, int targetOrganizationId, string reason, string? description = null)
+        public async Task LogFirmAccessDeniedAsync(int userId, int targetOrganizationId, string reason, string? description = null, string? ipAddress = null, string? userAgent = null)
         {
             try
             {
@@ -190,9 +202,12 @@ namespace Certio.Web.Services
                 {
                     EntityType = "FirmAccess",
                     EntityId = targetOrganizationId,
-                    Action = "AccessDenied",
+                    Action = "AUTH_FAILURE",
                     UserId = userId,
-                    Description = description ?? $"Firm-based access denied to organization {targetOrganizationId}: {reason}",
+                    Description = description ?? $"FAILURE: {reason}",
+                    IPAddress = ipAddress,
+                    UserAgent = userAgent,
+                    Result = "FAILURE",
                     Timestamp = DateTime.UtcNow
                 };
 

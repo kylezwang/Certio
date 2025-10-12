@@ -1,10 +1,10 @@
-@model Certio.Web.ViewModels.AddPeopleViewModel
+@model Certio.Web.ViewModels.AddPeopleFormViewModel
 @{
     ViewData["Title"] = "Add People";
     Layout = "_ClientLayout";
 }
 
-<div class="min-h-screen bg-gradient-subtle py-8">
+<div class="min-h-screen py-8">
     <div class="container-fluid">
         <div class="mb-4">
             <a href="@Url.Action("Teams", "Client", new { orgId = ViewBag.OrganizationId ?? 0 })" class="btn btn-ghost d-flex align-items-center gap-2 text-decoration-none">
@@ -13,70 +13,495 @@
             </a>
         </div>
 
-        <div class="row">
-            <div class="col-lg-8">
-                <div class="card shadow-elegant border-0">
-                    <div class="card-body p-4">
-                        <h1 class="display-6 fw-bold text-dark mb-2">Add people</h1>
-                        <p class="lead text-muted" style="font-size: 1.1rem;">Invite a new person to your organization by generating a join code.</p>
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+        }
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">@TempData["Success"]</div>
+        }
+        @if (TempData["Info"] != null)
+        {
+            <div class="alert alert-info">@TempData["Info"]</div>
+        }
 
-                        @if (TempData["Error"] != null)
-                        {
-                            <div class="alert alert-danger">@TempData["Error"]</div>
-                        }
-                        @if (TempData["Success"] != null)
-                        {
-                            <div class="alert alert-success">@TempData["Success"]</div>
-                        }
-                        @* Modal is triggered below when JoinCode is present *@
+        @if (Model.IsLawFirmUser && Model.IsClientOrganization)
+        {
+            <!-- Law Firm User in Client Organization (2-Step Wizard) -->
+            
+            @if (Model.Step == 1)
+            {
+                <!-- Step 1: Card Selection -->
+                <div class="row">
+                    <div class="col-lg-10 mx-auto">
+                        <div class="text-center mb-5">
+                            <h1 class="display-6 fw-bold text-dark mb-2">Add People to @ViewBag.OrganizationName</h1>
+                            <p class="lead text-muted" style="font-size: 1.1rem;">Choose who you'd like to add</p>
+                            @if (Model.IsClientOrganization)
+                            {
+                                <span class="badge bg-info text-white mt-2">Client Organization</span>
+                            }
+                        </div>
 
                         <form asp-action="AddPeople" asp-controller="Client" asp-route-orgId="@ViewBag.OrganizationId" method="post">
-                            <div class="mb-4">
-                                <label asp-for="Email" class="form-label fw-bold text-dark">Email <span class="text-danger">*</span></label>
-                                <input asp-for="Email" class="form-control form-control-lg" placeholder="name@example.com" />
-                                <span asp-validation-for="Email" class="text-danger"></span>
-                            </div>
-                            <div class="mb-4">
-                                <label asp-for="UserType" class="form-label fw-bold text-dark">User Type <span class="text-danger">*</span></label>
-                                <select asp-for="UserType" class="form-select form-select-lg" id="userTypeSelect">
-                                    <option value="@Certio.Domain.Users.UserTypes.Client">Client</option>
-                                    <option value="@Certio.Domain.Users.UserTypes.LawFirm">Law Firm</option>
-                                    <option value="@Certio.Domain.Users.UserTypes.External">External</option>
-                                    <option value="@Certio.Domain.Users.UserTypes.Certio">Certio</option>
-                                </select>
-                                <span asp-validation-for="UserType" class="text-danger"></span>
-                            </div>
+                            <input type="hidden" asp-for="Step" />
+                            <input type="hidden" asp-for="IsLawFirmUser" />
+                            <input type="hidden" asp-for="IsClientOrganization" />
+                            <input type="hidden" asp-for="LawFirmOrganizationId" />
+                            <input type="hidden" asp-for="LawFirmOrganizationName" />
+                            <input type="hidden" asp-for="SelectionType" id="selectionTypeInput" />
 
-                            <div id="lawFirmNote" class="alert alert-secondary d-none">
-                                This invitation will add the user as a <strong>Law Firm</strong> member. Their actual firm role will be resolved automatically after they connect their Law Firm.
-                            </div>
+                            <div class="row mb-5">
+                                <!-- Internal Team Card -->
+                                <div class="col-md-4 mb-3">
+                                    <div class="card h-100 border-0 shadow-elegant user-type-card" data-type="InternalTeam" style="cursor: pointer; transition: all 0.3s ease;">
+                                        <div class="card-body p-4">
+                                            <div class="text-center mb-3">
+                                                <div class="p-3 icon-bg-primary rounded-circle d-inline-flex" style="background: rgba(13, 110, 253, 0.1);">
+                                                    <i class="fas fa-user-tie text-primary fs-1"></i>
+                                                </div>
+                                            </div>
+                                            <h5 class="fw-bold text-dark text-center mb-2">Internal Team</h5>
+                                            <p class="text-muted text-center mb-0 small">
+                                                @if (Model.IsClientOrganization)
+                                                {
+                                                    <text>Add members from @Model.LawFirmOrganizationName to work on this client's matters</text>
+                                                }
+                                                else
+                                                {
+                                                    <text>Add attorneys, paralegals, or staff members to your firm</text>
+                                                }
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
 
-                            <div id="roleContainer" class="mb-4">
-                                <label asp-for="Role" class="form-label fw-bold text-dark">Role <span id="roleRequiredAsterisk" class="text-danger">*</span></label>
-                                <select asp-for="Role" class="form-select form-select-lg" id="roleSelect">
-                                    <option value="">Select role</option>
-                                </select>
-                                <span asp-validation-for="Role" class="text-danger"></span>
-                            </div>
+                                <!-- Client Card -->
+                                <div class="col-md-4 mb-3">
+                                    <div class="card h-100 border-0 shadow-elegant user-type-card" data-type="Client" style="cursor: pointer; transition: all 0.3s ease;">
+                                        <div class="card-body p-4">
+                                            <div class="text-center mb-3">
+                                                <div class="p-3 rounded-circle d-inline-flex" style="background: rgba(25, 135, 84, 0.1);">
+                                                    <i class="fas fa-building text-success fs-1"></i>
+                                                </div>
+                                            </div>
+                                            <h5 class="fw-bold text-dark text-center mb-2">Client</h5>
+                                            <p class="text-muted text-center mb-0 small">
+                                                @if (Model.IsClientOrganization)
+                                                {
+                                                    <text>Invite @ViewBag.OrganizationName employees to collaborate on their matters</text>
+                                                }
+                                                else
+                                                {
+                                                    <text>Create a new client organization and invite their representatives</text>
+                                                }
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
 
-                            <div class="d-flex justify-content-end">
-                                <button type="submit" class="btn btn-primary btn-lg d-flex align-items-center gap-2">
-                                    <span>Generate Join Code</span>
-                                    <i class="fas fa-key"></i>
-                                </button>
+                                <!-- External Party Card -->
+                                <div class="col-md-4 mb-3">
+                                    <div class="card h-100 border-0 shadow-elegant user-type-card" data-type="External" style="cursor: pointer; transition: all 0.3s ease;">
+                                        <div class="card-body p-4">
+                                            <div class="text-center mb-3">
+                                                <div class="p-3 rounded-circle d-inline-flex" style="background: rgba(255, 193, 7, 0.1);">
+                                                    <i class="fas fa-handshake text-warning fs-1"></i>
+                                                </div>
+                                            </div>
+                                            <h5 class="fw-bold text-dark text-center mb-2">External Party</h5>
+                                            <p class="text-muted text-center mb-0 small">
+                                                Add external contacts who don't belong to your firm or client organizations
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </form>
                     </div>
                 </div>
-            </div>
+            }
+            else if (Model.Step == 2)
+            {
+                <!-- Step 2: Form Based on Selection -->
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card shadow-elegant border-0">
+                            <div class="card-body p-4">
+                                @if (Model.IsClientOrganization && Model.SelectionType == "InternalTeam")
+                                {
+                                    <!-- Client Context -> Internal Team -> Team Member Selection -->
+                                    <h1 class="display-6 fw-bold text-dark mb-2">Assign Firm Members to @ViewBag.OrganizationName</h1>
+                                    <p class="lead text-muted mb-4" style="font-size: 1.1rem;">Select team members from @Model.LawFirmOrganizationName to work on this client</p>
 
-            <div class="col-lg-4">
-                <div class="card border-0">
-                    <div class="card-body p-3">
-                        <h5 class="fw-bold text-dark mb-2">Invitation Info</h5>
-                        <p class="text-muted mb-4">Client invites for Law Firm users do not require a role selection. The system assigns their role based on their Law Firm membership.</p>
+                                    <form asp-action="AddPeople" asp-controller="Client" asp-route-orgId="@ViewBag.OrganizationId" method="post" id="teamSelectionForm">
+                                        <input type="hidden" asp-for="Step" />
+                                        <input type="hidden" asp-for="SelectionType" />
+                                        <input type="hidden" asp-for="IsLawFirmUser" />
+                                        <input type="hidden" asp-for="IsClientOrganization" />
+                                        <input type="hidden" asp-for="LawFirmOrganizationId" />
+                                        <input type="hidden" asp-for="LawFirmOrganizationName" />
+
+                                        <!-- Search Box -->
+                                        <div class="mb-4">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <i class="fas fa-search fs-4 me-3" style="color: #0b365e;"></i>
+                                                <div>
+                                                    <h5 class="fw-bold text-dark mb-1">Find Team Members</h5>
+                                                    <p class="text-muted mb-0 small">Search by name or email</p>
+                                                </div>
+                                            </div>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control form-control-lg" id="teamMemberSearch" placeholder="Search by name or email...">
+                                                <button class="btn btn-outline-secondary" type="button">
+                                                    <i class="fas fa-search"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Selected Team Members -->
+                                        <div id="selectedMembersContainer" class="mb-4">
+                                            <label class="form-label fw-bold text-dark">Selected Team Members</label>
+                                            <div id="selectedMembersList" class="border rounded p-3" style="min-height: 60px; background-color: #f8f9fa;">
+                                                <p class="text-muted mb-0 small" id="emptySelectionMessage">No team members selected yet.</p>
+                                                <div id="selectedMembersChips" class="d-flex flex-wrap gap-2"></div>
+                                            </div>
+                                            <span asp-validation-for="SelectedUserIds" class="text-danger"></span>
+                                        </div>
+
+                                        <!-- Available Team Members List -->
+                                        <div id="availableMembersContainer" class="mb-4">
+                                            <label class="form-label fw-bold text-dark">Available Team Members from @Model.LawFirmOrganizationName</label>
+                                            <div id="availableMembersList" class="border rounded" style="max-height: 300px; overflow-y: auto; padding: 0.5rem;">
+                                                @if (Model.AvailableTeamMembers.Any())
+                                                {
+                                                    @foreach (var member in Model.AvailableTeamMembers)
+                                                    {
+                                                        <div class="form-check user-item py-2 px-2 @(member.IsAlreadyAssigned ? "already-assigned" : "")" 
+                                                             data-user-id="@member.Id" 
+                                                             data-user-name="@member.Name" 
+                                                             data-user-email="@member.Email"
+                                                             data-user-role="@member.Role"
+                                                             style="@(member.IsAlreadyAssigned ? "background-color: #f8f9fa; opacity: 0.6;" : "")">
+                                                            <input class="form-check-input member-checkbox" 
+                                                                   type="checkbox" 
+                                                                   name="SelectedUserIds" 
+                                                                   id="user_@member.Id" 
+                                                                   value="@member.Id"
+                                                                   @(member.IsCurrentUser || member.IsAlreadyAssigned ? "checked disabled" : "")>
+                                                            <label class="form-check-label" for="user_@member.Id" style="cursor: pointer; width: 100%;">
+                                                                <div class="d-flex align-items-center">
+                                                                    <div class="flex-grow-1">
+                                                                        <strong>@member.Name</strong>
+                                                                        @if (member.IsCurrentUser)
+                                                                        {
+                                                                            <span class="badge bg-primary text-white ms-2" style="font-size: 0.65rem;">YOU</span>
+                                                                        }
+                                                                        <small class="text-muted d-block">@member.Email</small>
+                                                                        <small class="text-muted">@member.Role</small>
+                                                                    </div>
+                                                                    @if (member.IsAlreadyAssigned)
+                                                                    {
+                                                                        <span class="badge bg-secondary" style="font-size: 0.7rem;">Already Assigned</span>
+                                                                    }
+                                                                </div>
+                                                            </label>
+                                                        </div>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <p class="text-muted text-center py-3 mb-0">No team members available</p>
+                                                }
+                                            </div>
+                                        </div>
+
+                                        <!-- Navigation Buttons -->
+                                        <div class="d-flex justify-content-between">
+                                            <button type="submit" name="action" value="back" class="btn btn-outline-secondary btn-lg d-flex align-items-center gap-2">
+                                                <i class="fas fa-arrow-left"></i>
+                                                Back
+                                            </button>
+                                            <button type="submit" class="btn btn-primary btn-lg d-flex align-items-center gap-2">
+                                                <span>Assign Selected Members</span>
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <!-- All other cases: Join Code Form -->
+                                    string titleText = "";
+                                    string descriptionText = "";
+                                    string roleLabel = "Role";
+                                    var roleOptions = new List<string>();
+
+                                    if (Model.SelectionType == "InternalTeam")
+                                    {
+                                        titleText = "Invite Internal Team Member";
+                                        descriptionText = "This person will be added to " + (Model.IsClientOrganization ? ViewBag.OrganizationName : Model.LawFirmOrganizationName);
+                                        roleLabel = "Law Firm Role";
+                                        roleOptions = new List<string> { "Partner", "Associate", "Paralegal", "Staff" };
+                                    }
+                                    else if (Model.SelectionType == "Client")
+                                    {
+                                        titleText = "Invite Client Representative";
+                                        descriptionText = "This person will be added as a member of " + ViewBag.OrganizationName;
+                                        roleLabel = "Client Role";
+                                        roleOptions = new List<string> { "Owner", "Manager", "Member", "Lawyer" };
+                                    }
+                                    else if (Model.SelectionType == "External")
+                                    {
+                                        titleText = "Invite External Party";
+                                        descriptionText = "This person will be added as an external contact";
+                                        roleLabel = "External Role";
+                                        roleOptions = new List<string> { "OpposingCounsel", "ExpertWitness", "CourtPersonnel", "RegulatoryBody", "Other" };
+                                    }
+
+                                    <h1 class="display-6 fw-bold text-dark mb-2">@titleText</h1>
+                                    <p class="lead text-muted mb-4" style="font-size: 1.1rem;">@descriptionText</p>
+
+                                    <form asp-action="AddPeople" asp-controller="Client" asp-route-orgId="@ViewBag.OrganizationId" method="post">
+                                        <input type="hidden" asp-for="Step" />
+                                        <input type="hidden" asp-for="SelectionType" />
+                                        <input type="hidden" asp-for="IsLawFirmUser" />
+                                        <input type="hidden" asp-for="IsClientOrganization" />
+                                        <input type="hidden" asp-for="LawFirmOrganizationId" />
+                                        <input type="hidden" asp-for="LawFirmOrganizationName" />
+
+                                        <div class="mb-4">
+                                            <label asp-for="Email" class="form-label fw-bold text-dark">Email Address <span class="text-danger">*</span></label>
+                                            <input asp-for="Email" class="form-control form-control-lg" placeholder="name@example.com" />
+                                            <span asp-validation-for="Email" class="text-danger"></span>
+                                        </div>
+
+                                        <div class="mb-4">
+                                            <label asp-for="Role" class="form-label fw-bold text-dark">@roleLabel <span class="text-danger">*</span></label>
+                                            <select asp-for="Role" class="form-select form-select-lg">
+                                                <option value="">Select role</option>
+                                                @foreach (var role in roleOptions)
+                                                {
+                                                    <option value="@role">@role</option>
+                                                }
+                                            </select>
+                                            <span asp-validation-for="Role" class="text-danger"></span>
+                                        </div>
+
+                                        @if (Model.SelectionType == "InternalTeam" || Model.SelectionType == "Client")
+                                        {
+                                            <div class="mb-4">
+                                                <label asp-for="Department" class="form-label fw-bold text-dark">Department (Optional)</label>
+                                                <input asp-for="Department" class="form-control form-control-lg" placeholder="e.g., Litigation, Corporate" />
+                                            </div>
+
+                                            <div class="mb-4">
+                                                <label asp-for="JobTitle" class="form-label fw-bold text-dark">Job Title (Optional)</label>
+                                                <input asp-for="JobTitle" class="form-control form-control-lg" placeholder="e.g., Senior Attorney" />
+                                            </div>
+                                        }
+
+                                        <div class="d-flex justify-content-between">
+                                            <button type="submit" name="action" value="back" class="btn btn-outline-secondary btn-lg d-flex align-items-center gap-2">
+                                                <i class="fas fa-arrow-left"></i>
+                                                Back
+                                            </button>
+                                            <button type="submit" class="btn btn-primary btn-lg d-flex align-items-center gap-2">
+                                                <span>Generate Join Code</span>
+                                                <i class="fas fa-key"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Sidebar - Info Card -->
+                    <div class="col-lg-4">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body p-3">
+                                <h5 class="fw-bold text-dark mb-2">
+                                    @if (Model.IsClientOrganization && Model.SelectionType == "InternalTeam")
+                                    {
+                                        <text>Team Assignment</text>
+                                    }
+                                    else
+                                    {
+                                        <text>Invitation Info</text>
+                                    }
+                                </h5>
+                                <p class="text-muted mb-0 small">
+                                    @if (Model.IsClientOrganization && Model.SelectionType == "InternalTeam")
+                                    {
+                                        <text>Selected team members will be assigned to work on matters for @ViewBag.OrganizationName. They will maintain their connection to @Model.LawFirmOrganizationName.</text>
+                                    }
+                                    else if (Model.SelectionType == "InternalTeam")
+                                    {
+                                        <text>This person will be added to your law firm and will appear in team selection for matters and tasks.</text>
+                                    }
+                                    else if (Model.SelectionType == "Client")
+                                    {
+                                        <text>The invited person will join as a client member and can collaborate on matters based on their assigned role.</text>
+                                    }
+                                    else if (Model.SelectionType == "External")
+                                    {
+                                        <text>External contacts can be assigned to specific matters but won't have organization-wide access.</text>
+                                    }
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            }
+        }
+        else if (Model.IsLawFirmUser && !Model.IsClientOrganization)
+        {
+            <!-- Law Firm User in Their Own Law Firm Organization (Simple Single Page) -->
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card shadow-elegant border-0">
+                        <div class="card-body p-4">
+                            <h1 class="display-6 fw-bold text-dark mb-2">Add Team Member to @ViewBag.OrganizationName</h1>
+                            <p class="lead text-muted" style="font-size: 1.1rem;">Invite an attorney, paralegal, or staff member to your law firm.</p>
+
+                            <form asp-action="AddPeople" asp-controller="Client" asp-route-orgId="@ViewBag.OrganizationId" method="post">
+                                <input type="hidden" asp-for="IsLawFirmUser" />
+                                <input type="hidden" asp-for="IsClientOrganization" />
+
+                                <div class="mb-4">
+                                    <label asp-for="Email" class="form-label fw-bold text-dark">Email Address <span class="text-danger">*</span></label>
+                                    <input asp-for="Email" class="form-control form-control-lg" placeholder="name@example.com" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label asp-for="Role" class="form-label fw-bold text-dark">Law Firm Role <span class="text-danger">*</span></label>
+                                    <select asp-for="Role" class="form-select form-select-lg">
+                                        <option value="">Select role</option>
+                                        <option value="Partner">Partner</option>
+                                        <option value="Associate">Associate</option>
+                                        <option value="Paralegal">Paralegal</option>
+                                        <option value="Staff">Staff</option>
+                                    </select>
+                                    <span asp-validation-for="Role" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label asp-for="Department" class="form-label fw-bold text-dark">Department (Optional)</label>
+                                    <input asp-for="Department" class="form-control form-control-lg" placeholder="e.g., Litigation, Corporate" />
+                                </div>
+
+                                <div class="mb-4">
+                                    <label asp-for="JobTitle" class="form-label fw-bold text-dark">Job Title (Optional)</label>
+                                    <input asp-for="JobTitle" class="form-control form-control-lg" placeholder="e.g., Senior Attorney" />
+                                </div>
+
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-primary btn-lg d-flex align-items-center gap-2">
+                                        <span>Generate Join Code</span>
+                                        <i class="fas fa-key"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-3">
+                            <h5 class="fw-bold text-dark mb-2">Internal Team Member</h5>
+                            <p class="text-muted mb-0 small">This person will be added to your law firm and will appear in team selection for matters and tasks across all client organizations.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Client User Experience (Simple Single Page) -->
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card shadow-elegant border-0">
+                        <div class="card-body p-4">
+                            <h1 class="display-6 fw-bold text-dark mb-2">Add People to @ViewBag.OrganizationName</h1>
+                            <p class="lead text-muted" style="font-size: 1.1rem;">Invite a new person to your organization by generating a join code.</p>
+
+                            <form asp-action="AddPeople" asp-controller="Client" asp-route-orgId="@ViewBag.OrganizationId" method="post">
+                                <input type="hidden" asp-for="IsLawFirmUser" />
+                                <input type="hidden" asp-for="SelectionType" value="Client" />
+
+                                <div class="mb-4">
+                                    <label asp-for="Email" class="form-label fw-bold text-dark">Email Address <span class="text-danger">*</span></label>
+                                    <input asp-for="Email" class="form-control form-control-lg" placeholder="name@example.com" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label asp-for="Role" class="form-label fw-bold text-dark">Role <span class="text-danger">*</span></label>
+                                    <select asp-for="Role" class="form-select form-select-lg">
+                                        <option value="">Select role</option>
+                                        <option value="Owner">Owner</option>
+                                        <option value="Manager">Manager</option>
+                                        <option value="Member">Member</option>
+                                        <option value="Lawyer">Lawyer</option>
+                                    </select>
+                                    <span asp-validation-for="Role" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label asp-for="Department" class="form-label fw-bold text-dark">Department (Optional)</label>
+                                    <input asp-for="Department" class="form-control form-control-lg" placeholder="e.g., Operations, Legal" />
+                                </div>
+
+                                <div class="mb-4">
+                                    <label asp-for="JobTitle" class="form-label fw-bold text-dark">Job Title (Optional)</label>
+                                    <input asp-for="JobTitle" class="form-control form-control-lg" placeholder="e.g., VP of Operations" />
+                                </div>
+
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-primary btn-lg d-flex align-items-center gap-2">
+                                        <span>Generate Join Code</span>
+                                        <i class="fas fa-key"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-3">
+                            <h5 class="fw-bold text-dark mb-2">Invitation Info</h5>
+                            <p class="text-muted mb-0 small">This person will join your organization as a client member with the selected role. They'll be able to view and collaborate based on their role permissions.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@* Join Code Modal *@
+<div class="modal fade" id="joinCodeModal" tabindex="-1" aria-labelledby="joinCodeLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="joinCodeLabel">Join Code Generated</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <input type="text" class="form-control form-control-lg" id="joinCodeValue" readonly value="@ViewBag.JoinCode">
+                    <button class="btn btn-outline-secondary" type="button" id="copyJoinCodeBtn"><i class="fas fa-copy"></i></button>
+                </div>
+                <small class="text-muted d-block mt-2">Share this code with the invitee. It expires in 7 days.</small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button>
             </div>
         </div>
     </div>
@@ -84,95 +509,157 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    @* Join Code Modal *@
-    <div class="modal fade" id="joinCodeModal" tabindex="-1" aria-labelledby="joinCodeLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="joinCodeLabel">Join Code</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="joinCodeValue" readonly value="@ViewBag.JoinCode">
-                        <button class="btn btn-outline-secondary" type="button" id="copyJoinCodeBtn"><i class="fas fa-copy"></i></button>
-                    </div>
-                    <small class="text-muted d-block mt-2">Share this code with the invitee. It expires in 7 days.</small>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const userTypeSelect = document.getElementById('userTypeSelect');
-            const roleSelect = document.getElementById('roleSelect');
-            const roleContainer = document.getElementById('roleContainer');
-            const lawFirmNote = document.getElementById('lawFirmNote');
-            const roleAsterisk = document.getElementById('roleRequiredAsterisk');
+            // Card selection for step 1
+            const selectionCards = document.querySelectorAll('.user-type-card');
+            const selectionTypeInput = document.getElementById('selectionTypeInput');
 
-            const RoleOptions = {
-                Client: ['Owner', 'Manager', 'Member', 'Lawyer'],
-                External: ['OpposingCounsel', 'ExpertWitness', 'CourtPersonnel', 'RegulatoryBody', 'Other'],
-                Certio: ['Admin', 'MatterManager', 'Support', 'Legal'],
-                LawFirm: ['Partner', 'Associate', 'Paralegal', 'Staff']
-            };
+            selectionCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const type = this.getAttribute('data-type');
+                    if (selectionTypeInput) {
+                        selectionTypeInput.value = type;
+                        this.closest('form').submit();
+                    }
+                });
 
-            function populateRoles(type) {
-                roleSelect.innerHTML = '<option value="">Select role</option>';
-                (RoleOptions[type] || []).forEach(r => {
-                    const opt = document.createElement('option');
-                    opt.value = r;
-                    opt.textContent = r;
-                    roleSelect.appendChild(opt);
+                // Hover effects
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-4px)';
+                    this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+                });
+
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+                });
+            });
+
+            // Team member search functionality
+            const searchInput = document.getElementById('teamMemberSearch');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    const userItems = document.querySelectorAll('.user-item');
+                    
+                    userItems.forEach(item => {
+                        const name = item.getAttribute('data-user-name').toLowerCase();
+                        const email = item.getAttribute('data-user-email').toLowerCase();
+                        
+                        if (name.includes(searchTerm) || email.includes(searchTerm)) {
+                            item.style.display = '';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
                 });
             }
 
-            function updateUI() {
-                const type = userTypeSelect.value;
-                if (type === 'LawFirm') {
-                    roleContainer.classList.add('d-none');
-                    lawFirmNote.classList.remove('d-none');
-                    roleAsterisk.style.visibility = 'hidden';
-                    roleSelect.value = '';
-                    roleSelect.setAttribute('disabled', 'disabled');
-                    // Clear any visible validation message for Role
-                    const validationSpan = roleContainer.querySelector('[data-valmsg-for="Role"]');
-                    if (validationSpan) { validationSpan.textContent = ''; }
-                } else {
-                    roleContainer.classList.remove('d-none');
-                    lawFirmNote.classList.add('d-none');
-                    roleAsterisk.style.visibility = 'visible';
-                    roleSelect.removeAttribute('disabled');
-                    populateRoles(type);
+            // Team member checkbox handling
+            const memberCheckboxes = document.querySelectorAll('.member-checkbox:not([disabled])');
+            const selectedChipsContainer = document.getElementById('selectedMembersChips');
+            const emptyMessage = document.getElementById('emptySelectionMessage');
+
+            function updateSelectedDisplay() {
+                if (!selectedChipsContainer) return;
+                
+                selectedChipsContainer.innerHTML = '';
+                const checkedBoxes = document.querySelectorAll('.member-checkbox:checked:not([disabled])');
+                
+                if (checkedBoxes.length > 0 && emptyMessage) {
+                    emptyMessage.style.display = 'none';
+                }
+                
+                checkedBoxes.forEach(checkbox => {
+                    const userItem = checkbox.closest('.user-item');
+                    const name = userItem.getAttribute('data-user-name');
+                    const role = userItem.getAttribute('data-user-role');
+                    const userId = userItem.getAttribute('data-user-id');
+                    
+                    const chip = document.createElement('div');
+                    chip.className = 'badge bg-primary text-white d-flex align-items-center gap-2';
+                    chip.style.fontSize = '0.9rem';
+                    chip.style.padding = '0.5rem 0.75rem';
+                    chip.innerHTML = `
+                        <div>
+                            <strong>${name}</strong>
+                            <small class="d-block" style="font-size: 0.75rem;">${role}</small>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white" style="font-size: 0.6rem;" data-user-id="${userId}"></button>
+                    `;
+                    
+                    chip.querySelector('.btn-close').addEventListener('click', function() {
+                        checkbox.checked = false;
+                        updateSelectedDisplay();
+                    });
+                    
+                    selectedChipsContainer.appendChild(chip);
+                });
+                
+                if (checkedBoxes.length === 0 && emptyMessage) {
+                    emptyMessage.style.display = '';
                 }
             }
 
-            // Initialize
-            populateRoles(userTypeSelect.value);
-            updateUI();
-            userTypeSelect.addEventListener('change', updateUI);
+            memberCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateSelectedDisplay);
+            });
 
-            // Show join code modal if present
+            // Initialize on page load
+            updateSelectedDisplay();
+
+            // Join code modal
             const joinCode = '@(ViewBag.JoinCode ?? "")';
             if (joinCode && joinCode.length > 0) {
                 const modalEl = document.getElementById('joinCodeModal');
                 const modal = new bootstrap.Modal(modalEl);
                 modal.show();
+                
                 const copyBtn = document.getElementById('copyJoinCodeBtn');
                 const input = document.getElementById('joinCodeValue');
-                copyBtn?.addEventListener('click', async () => {
-                    try {
-                        await navigator.clipboard.writeText(input.value);
-                        copyBtn.innerHTML = '<i class="fas fa-check"></i>';
-                        setTimeout(() => copyBtn.innerHTML = '<i class="fas fa-copy"></i>', 1500);
-                    } catch {}
-                });
+                
+                if (copyBtn && input) {
+                    copyBtn.addEventListener('click', async () => {
+                        try {
+                            await navigator.clipboard.writeText(input.value);
+                            copyBtn.innerHTML = '<i class="fas fa-check"></i>';
+                            setTimeout(() => copyBtn.innerHTML = '<i class="fas fa-copy"></i>', 1500);
+                        } catch (err) {
+                            console.error('Failed to copy:', err);
+                        }
+                    });
+                }
             }
         });
     </script>
+
+    <style>
+        .shadow-elegant {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .user-type-card {
+            border-radius: 12px;
+        }
+
+        .icon-bg-primary {
+            background: rgba(13, 110, 253, 0.1);
+        }
+
+        .user-item:hover:not(.already-assigned) {
+            background-color: #f8f9fa;
+        }
+
+        .user-item {
+            border-radius: 6px;
+            transition: background-color 0.2s ease;
+        }
+
+        .form-check-input:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+    </style>
 }
-
-
