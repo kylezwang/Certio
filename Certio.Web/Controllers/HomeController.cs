@@ -5,7 +5,7 @@ using Certio.Web.ViewModels;
 using Certio.Web.Services;
 using Certio.Domain.Matters;
 using Certio.Domain.Documents;
-using Certio.Web.Data;
+using Certio.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Certio.Domain.Users;
 

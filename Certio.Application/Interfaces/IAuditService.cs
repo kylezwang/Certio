@@ -1,4 +1,4 @@
-namespace Certio.Web.Services
+namespace Certio.Application.Interfaces
 {
     /// <summary>
     /// Service for logging security and audit events

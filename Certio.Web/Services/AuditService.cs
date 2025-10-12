@@ -1,6 +1,8 @@
 using Certio.Domain.Audit;
-using Certio.Web.Data;
+using Certio.Infrastructure.Data;
+using Certio.Application.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Certio.Web.Services
 {
@@ -8,7 +10,7 @@ namespace Certio.Web.Services
     /// Implementation of audit logging service
     /// All security-relevant operations should be logged here
     /// </summary>
-    public class AuditService : IAuditService
+    public class AuditService : Certio.Application.Interfaces.IAuditService
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<AuditService> _logger;

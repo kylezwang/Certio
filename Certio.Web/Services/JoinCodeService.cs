@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Certio.Domain.Organizations;
 using Certio.Domain.Users;
-using Certio.Web.Data;
+using Certio.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace Certio.Web.Services

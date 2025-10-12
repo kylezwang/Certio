@@ -1,7 +1,8 @@
 using Certio.Domain.Users;
 using Certio.Domain.Matters;
 using Certio.Domain.Tasks;
-using Certio.Web.Data;
+using Certio.Infrastructure.Data;
+using Certio.Application.Interfaces;
 using Certio.Web.Services;
 using Microsoft.EntityFrameworkCore;
 
