@@ -340,19 +340,38 @@ namespace Certio.Application.Services
                 }
                 else
                 {
-                    // Firm-based users: check their relationship AccessLevel
+                    // Firm-based users: check their relationship AccessLevel AND their role in the law firm
                     var firmRelationship = await _permissionService.GetFirmRelationshipAsync(userId, organizationId);
                     
-                    if (firmRelationship?.AccessLevel == "MatterSpecific" || 
+                    // Check if user is a Partner in their law firm
+                    var lawFirmMembership = await _context.UserOrganizations
+                        .FirstOrDefaultAsync(uo => uo.UserId == userId && 
+                                                   uo.IsActive && 
+                                                   uo.UserType == Certio.Domain.Users.UserTypes.LawFirm);
+                    
+                    var isPartner = lawFirmMembership?.Role == Certio.Domain.Users.OrganizationRoles.Partner;
+                    
+                    _logger.LogInformation("ListMatters: Firm user {UserId}, isPartner={IsPartner}, AccessLevel={AccessLevel}", 
+                        userId, isPartner, firmRelationship?.AccessLevel ?? "NULL");
+                    
+                    // Partners with Full/Limited access see all matters
+                    // Non-partners OR MatterSpecific/DocumentOnly access see only assigned matters
+                    if (!isPartner || 
+                        firmRelationship?.AccessLevel == "MatterSpecific" || 
                         firmRelationship?.AccessLevel == "DocumentOnly")
                     {
-                        // Matter-specific or document-only access: only show matters they're assigned to or have explicit permissions for
+                        _logger.LogInformation("ListMatters: Applying matter-specific filtering for user {UserId}", userId);
+                        
+                        // Only show matters they're assigned to or have explicit permissions for
                         query = query.Where(m => 
                             m.AccessLevel == "Everyone" || 
                             m.Permissions.Any(p => p.UserId == userId && p.RevokedAt == null) ||
                             m.Assignments.Any(a => a.UserId == userId && a.RemovedAt == null));
                     }
-                    // For "Full" or "Limited" AccessLevel: show all matters (no filtering needed)
+                    else
+                    {
+                        _logger.LogInformation("ListMatters: Partner with Full/Limited access, no filtering applied for user {UserId}", userId);
+                    }
                 }
 
                 // Apply filters

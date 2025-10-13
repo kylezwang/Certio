@@ -1,4 +1,5 @@
 using Certio.Domain.Users;
+using Certio.Application.DTOs;
 
 namespace Certio.Application.Interfaces
 {
@@ -35,15 +36,7 @@ namespace Certio.Application.Interfaces
         /// <summary>
         /// Gets organization details
         /// </summary>
-        Task<OrganizationDto?> GetOrganizationAsync(int organizationId);
-    }
-
-    public class OrganizationDto
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = "";
-        public string OrganizationType { get; set; } = "";
-        public bool IsActive { get; set; }
+        Task<OrganizationContextDto?> GetOrganizationAsync(int organizationId);
     }
 }
 

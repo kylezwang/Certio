@@ -1578,13 +1578,15 @@ async function loadAIConversationsForPanel() {
     }
     
     // Check if we have actual conversation tabs (not just the loading indicator)
+    // Skip this check if tabList is explicitly empty (cleared for refresh)
     const hasConversationTabs = tabList.querySelector('.conversation-tab') !== null;
-    if (hasConversationTabs) {
-        console.log('Conversations already loaded');
+    const isEmpty = tabList.innerHTML.trim() === '';
+    if (hasConversationTabs && !isEmpty) {
+        console.log('Conversations already loaded, skipping reload');
         return;
     }
     
-    console.log('No conversations found, loading AI-only...');
+    console.log('Loading AI conversations...');
 
     try {
         const orgId = getCurrentOrganizationId();
@@ -1647,9 +1649,11 @@ async function loadAIConversationsForPanel() {
 function refreshConversations() {
     const tabList = document.querySelector('.tab-list');
     if (tabList) {
+        // Clear all tabs to force reload
         tabList.innerHTML = '';
     }
-    loadConversationsForPanel();
+    // Call the correct function to reload AI conversations
+    loadAIConversationsForPanel();
 }
 
 function initializeResizeHandle() {

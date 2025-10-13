@@ -17,15 +17,18 @@ namespace Certio.Web.Controllers
     {
         private readonly ApplicationDbContext _context; // Used for PopulateOrgMembersData helper method only
         private readonly IMatterService _matterService;
+        private readonly IFirmRelationshipCacheService _firmRelationshipCache;
         private readonly ILogger<MatterController> _logger;
 
         public MatterController(
             ApplicationDbContext context,
             IMatterService matterService,
+            IFirmRelationshipCacheService firmRelationshipCache,
             ILogger<MatterController> logger)
         {
             _context = context;
             _matterService = matterService;
+            _firmRelationshipCache = firmRelationshipCache;
             _logger = logger;
         }
 
@@ -38,30 +41,62 @@ namespace Certio.Web.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            // Call service to get matters
-            var result = await _matterService.ListMattersAsync(user.Id, orgId);
-
-            if (!result.Success)
+            // Check if this is a LawFirm organization - if so, aggregate matters from all accessible clients
+            var currentOrg = await _context.Organizations
+                .FirstOrDefaultAsync(o => o.Id == orgId);
+            
+            List<MatterDto> allMatters;
+            
+            if (currentOrg?.Type == Certio.Domain.Organizations.OrganizationType.LawFirm)
             {
-                TempData["ErrorMessage"] = result.ErrorMessage;
-                _logger.LogWarning("Failed to list matters for user {UserId} in org {OrgId}: {Error}", 
-                    user.Id, orgId, result.ErrorMessage);
+                // Get all accessible client organizations for this user (respects user's access level and assignments)
+                var accessibleClients = await _firmRelationshipCache.GetAccessibleClientOrganizationsAsync(user.Id);
+                var clientOrgIds = accessibleClients.Select(c => c.Id).ToList();
                 
-                // Return empty view on error
-                var emptyViewModel = new MattersViewModel
+                // Add the LawFirm organization's own ID to include its matters too
+                clientOrgIds.Add(orgId);
+                
+                // Aggregate matters from all accessible organizations
+                allMatters = new List<MatterDto>();
+                
+                foreach (var clientOrgId in clientOrgIds)
                 {
-                    Matters = new List<Matter>(),
-                    ActiveMattersCount = 0,
-                    CompletedMattersCount = 0,
-                    InReviewMattersCount = 0,
-                    TeamMembersCount = 0
-                };
-                ViewBag.OrganizationId = orgId;
-                return View(emptyViewModel);
+                    var mattersResult = await _matterService.ListMattersAsync(user.Id, clientOrgId);
+                    if (mattersResult.Success)
+                    {
+                        allMatters.AddRange(mattersResult.Data!);
+                    }
+                }
+            }
+            else
+            {
+                // For client organizations, show only matters from this specific client
+                var result = await _matterService.ListMattersAsync(user.Id, orgId);
+
+                if (!result.Success)
+                {
+                    TempData["ErrorMessage"] = result.ErrorMessage;
+                    _logger.LogWarning("Failed to list matters for user {UserId} in org {OrgId}: {Error}", 
+                        user.Id, orgId, result.ErrorMessage);
+                    
+                    // Return empty view on error
+                    var emptyViewModel = new MattersViewModel
+                    {
+                        Matters = new List<Matter>(),
+                        ActiveMattersCount = 0,
+                        CompletedMattersCount = 0,
+                        InReviewMattersCount = 0,
+                        TeamMembersCount = 0
+                    };
+                    ViewBag.OrganizationId = orgId;
+                    return View(emptyViewModel);
+                }
+                
+                allMatters = result.Data!;
             }
 
             // Map DTOs to domain entities for the view (temporary - views should be updated to use DTOs)
-            var matters = result.Data!.Select(dto => new Matter
+            var matters = allMatters.Select(dto => new Matter
             {
                 Id = dto.Id,
                 Title = dto.Title,
