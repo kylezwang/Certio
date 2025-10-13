@@ -4,10 +4,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Certio.Infrastructure.Data;
 using Certio.Web.Scripts;
+using Certio.Web.Security;
+using Certio.Domain.Users;
 
 namespace Certio.Web.Controllers
 {
     [Authorize]
+    [RequirePermission(Permission.AccessAdminPanel)]
     public class AdminController : Controller
     {
         private readonly ApplicationDbContext _context;

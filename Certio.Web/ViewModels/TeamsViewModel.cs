@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Certio.Domain.Matters;
 
 namespace Certio.Web.ViewModels
 {
@@ -9,6 +10,7 @@ namespace Certio.Web.ViewModels
         public int LegalTeamCount { get; set; }
         public int ExternalTeamCount { get; set; }
         public int TotalMembersCount { get; set; }
+        public List<Matter> Matters { get; set; } = new List<Matter>();
     }
 
     public class TeamMember

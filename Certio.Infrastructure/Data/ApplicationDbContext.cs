@@ -386,7 +386,7 @@ namespace Certio.Infrastructure.Data
             // TaskItem -> Matter relationship
             builder.Entity<TaskItem>()
                 .HasOne(ti => ti.Matter)
-                .WithMany()
+                .WithMany(m => m.TaskItems)
                 .HasForeignKey(ti => ti.MatterId)
                 .OnDelete(DeleteBehavior.Cascade);
 

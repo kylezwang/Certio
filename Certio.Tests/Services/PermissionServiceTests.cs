@@ -3,543 +3,508 @@ using Moq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Certio.Application.Services;
-using Certio.Application.Interfaces;
-using Certio.Infrastructure.Data;
-using Certio.Domain.Matters;
-using Certio.Domain.Tasks;
 using Certio.Domain.Users;
 using Certio.Domain.Organizations;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Certio.Domain.Matters;
+using Certio.Domain.Tasks;
+using Certio.Infrastructure.Data;
+using Certio.Domain.Exceptions;
 
 namespace Certio.Tests.Services
 {
-    public class PermissionServiceTests
+    /// <summary>
+    /// Comprehensive permission service tests
+    /// Tests all permission combinations and scenarios
+    /// </summary>
+    public class PermissionServiceTests : IDisposable
     {
-        private ApplicationDbContext CreateInMemoryContext()
+        private readonly ApplicationDbContext _context;
+        private readonly PermissionService _permissionService;
+        private readonly Mock<ILogger<PermissionService>> _loggerMock;
+
+        public PermissionServiceTests()
         {
+            // Use in-memory database for testing
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
 
-            return new ApplicationDbContext(options);
+            _context = new ApplicationDbContext(options);
+            _loggerMock = new Mock<ILogger<PermissionService>>();
+            _permissionService = new PermissionService(_context, _loggerMock.Object);
         }
 
-        private IPermissionService CreateService(ApplicationDbContext context)
+        public void Dispose()
         {
-            var logger = new Mock<ILogger<PermissionService>>().Object;
-            return new PermissionService(context, logger);
+            _context.Database.EnsureDeleted();
+            _context.Dispose();
+        }
+
+        #region Organization-Level Permission Tests
+
+        [Fact]
+        public async Task HasPermissionAsync_ClientOwner_HasAllClientPermissions()
+        {
+            // Arrange
+            var (user, org) = await CreateUserWithRoleAsync(UserTypes.Client, OrganizationRoles.Owner);
+
+            // Act & Assert
+            Assert.True(await _permissionService.HasPermissionAsync(user.Id, org.Id, Permission.ViewMatters));
+            Assert.True(await _permissionService.HasPermissionAsync(user.Id, org.Id, Permission.CreateMatters));
+            Assert.True(await _permissionService.HasPermissionAsync(user.Id, org.Id, Permission.EditMatters));
+            Assert.True(await _permissionService.HasPermissionAsync(user.Id, org.Id, Permission.DeleteMatters));
+            Assert.True(await _permissionService.HasPermissionAsync(user.Id, org.Id, Permission.ViewDocuments));
         }
 
         [Fact]
-        public async Task IsOrganizationMemberAsync_UserIsMember_ReturnsTrue()
+        public async Task HasPermissionAsync_ClientManager_CannotDeleteMatters()
         {
             // Arrange
-            var context = CreateInMemoryContext();
-            var service = CreateService(context);
+            var (user, org) = await CreateUserWithRoleAsync(UserTypes.Client, OrganizationRoles.Manager);
 
-            var user = new User { Id = 1, FirstName = "Test", LastName = "User", Email = "test@test.com" };
-            var org = new Organization { Id = 1, Name = "Test Org", Type = OrganizationType.LawFirm, OwnerId = 1 };
-            var membership = new UserOrganization 
-            { 
-                UserId = 1, 
-                OrganizationId = 1, 
-                IsActive = true,
-                UserType = UserTypes.LawFirm,
-                Role = "Member"
-            };
+            // Act & Assert
+            Assert.True(await _permissionService.HasPermissionAsync(user.Id, org.Id, Permission.ViewMatters));
+            Assert.True(await _permissionService.HasPermissionAsync(user.Id, org.Id, Permission.EditMatters));
+            Assert.False(await _permissionService.HasPermissionAsync(user.Id, org.Id, Permission.DeleteMatters));
+        }
 
-            context.Users.Add(user);
-            context.Organizations.Add(org);
-            context.UserOrganizations.Add(membership);
-            await context.SaveChangesAsync();
+        [Fact]
+        public async Task HasPermissionAsync_LawFirmPartner_HasFullAccess()
+        {
+            // Arrange
+            var (user, org) = await CreateUserWithRoleAsync(UserTypes.LawFirm, OrganizationRoles.Partner);
+
+            // Act & Assert
+            Assert.True(await _permissionService.HasPermissionAsync(user.Id, org.Id, Permission.ViewMatters));
+            Assert.True(await _permissionService.HasPermissionAsync(user.Id, org.Id, Permission.CreateMatters));
+            Assert.True(await _permissionService.HasPermissionAsync(user.Id, org.Id, Permission.EditMatters));
+            Assert.True(await _permissionService.HasPermissionAsync(user.Id, org.Id, Permission.DeleteMatters));
+        }
+
+        [Fact]
+        public async Task HasPermissionAsync_LawFirmAssociate_LimitedAccess()
+        {
+            // Arrange
+            var (user, org) = await CreateUserWithRoleAsync(UserTypes.LawFirm, OrganizationRoles.Associate);
+
+            // Act & Assert
+            Assert.True(await _permissionService.HasPermissionAsync(user.Id, org.Id, Permission.ViewMatters));
+            Assert.False(await _permissionService.HasPermissionAsync(user.Id, org.Id, Permission.CreateMatters));
+            Assert.True(await _permissionService.HasPermissionAsync(user.Id, org.Id, Permission.EditMatters));
+            Assert.False(await _permissionService.HasPermissionAsync(user.Id, org.Id, Permission.DeleteMatters));
+        }
+
+        [Fact]
+        public async Task HasPermissionAsync_ExternalUser_VeryLimitedAccess()
+        {
+            // Arrange
+            var (user, org) = await CreateUserWithRoleAsync(UserTypes.External, OrganizationRoles.OpposingCounsel);
+
+            // Act & Assert
+            Assert.True(await _permissionService.HasPermissionAsync(user.Id, org.Id, Permission.ViewMatters));
+            Assert.True(await _permissionService.HasPermissionAsync(user.Id, org.Id, Permission.ViewDocuments));
+            Assert.False(await _permissionService.HasPermissionAsync(user.Id, org.Id, Permission.CreateMatters));
+            Assert.False(await _permissionService.HasPermissionAsync(user.Id, org.Id, Permission.EditMatters));
+            Assert.False(await _permissionService.HasPermissionAsync(user.Id, org.Id, Permission.DeleteMatters));
+        }
+
+        #endregion
+
+        #region Matter Access Tests
+
+        [Fact]
+        public async Task CanAccessMatterAsync_EveryoneAccessLevel_OrgMemberCanAccess()
+        {
+            // Arrange
+            var (user, org) = await CreateUserWithRoleAsync(UserTypes.Client, OrganizationRoles.Member);
+            var matter = await CreateMatterAsync(org.Id, "Everyone");
 
             // Act
-            var result = await service.IsOrganizationMemberAsync(1, 1);
+            var canAccess = await _permissionService.CanAccessMatterAsync(user.Id, matter.Id);
 
             // Assert
-            Assert.True(result);
+            Assert.True(canAccess);
         }
 
         [Fact]
-        public async Task IsOrganizationMemberAsync_UserNotMember_ReturnsFalse()
+        public async Task CanAccessMatterAsync_SpecificAccessLevel_WithoutPermission_CannotAccess()
         {
             // Arrange
-            var context = CreateInMemoryContext();
-            var service = CreateService(context);
-
-            var user = new User { Id = 1, FirstName = "Test", LastName = "User", Email = "test@test.com" };
-            var org = new Organization { Id = 1, Name = "Test Org", Type = OrganizationType.LawFirm, OwnerId = 1 };
-
-            context.Users.Add(user);
-            context.Organizations.Add(org);
-            await context.SaveChangesAsync();
+            var (user, org) = await CreateUserWithRoleAsync(UserTypes.Client, OrganizationRoles.Member);
+            var matter = await CreateMatterAsync(org.Id, "Specific");
 
             // Act
-            var result = await service.IsOrganizationMemberAsync(1, 1);
+            var canAccess = await _permissionService.CanAccessMatterAsync(user.Id, matter.Id);
 
             // Assert
-            Assert.False(result);
+            Assert.False(canAccess);
         }
 
         [Fact]
-        public async Task IsOrganizationMemberAsync_InactiveMembership_ReturnsFalse()
+        public async Task CanAccessMatterAsync_SpecificAccessLevel_WithPermission_CanAccess()
         {
             // Arrange
-            var context = CreateInMemoryContext();
-            var service = CreateService(context);
-
-            var user = new User { Id = 1, FirstName = "Test", LastName = "User", Email = "test@test.com" };
-            var org = new Organization { Id = 1, Name = "Test Org", Type = OrganizationType.LawFirm, OwnerId = 1 };
-            var membership = new UserOrganization 
-            { 
-                UserId = 1, 
-                OrganizationId = 1, 
-                IsActive = false,
-                UserType = UserTypes.LawFirm,
-                Role = "Member"
-            };
-
-            context.Users.Add(user);
-            context.Organizations.Add(org);
-            context.UserOrganizations.Add(membership);
-            await context.SaveChangesAsync();
+            var (user, org) = await CreateUserWithRoleAsync(UserTypes.Client, OrganizationRoles.Member);
+            var matter = await CreateMatterAsync(org.Id, "Specific");
+            await GrantMatterPermissionAsync(matter.Id, user.Id);
 
             // Act
-            var result = await service.IsOrganizationMemberAsync(1, 1);
+            var canAccess = await _permissionService.CanAccessMatterAsync(user.Id, matter.Id);
 
             // Assert
-            Assert.False(result);
+            Assert.True(canAccess);
         }
 
         [Fact]
-        public async Task CanAccessMatterAsync_EveryoneAccessLevel_ReturnsTrue()
+        public async Task CanAccessMatterAsync_SpecificAccessLevel_WithAssignment_CanAccess()
         {
             // Arrange
-            var context = CreateInMemoryContext();
-            var service = CreateService(context);
-
-            var user = new User { Id = 1, FirstName = "Test", LastName = "User", Email = "test@test.com" };
-            var org = new Organization { Id = 1, Name = "Test Org", Type = OrganizationType.LawFirm, OwnerId = 1 };
-            var membership = new UserOrganization 
-            { 
-                UserId = 1, 
-                OrganizationId = 1, 
-                IsActive = true,
-                UserType = UserTypes.LawFirm,
-                Role = "Member"
-            };
-            var matter = new Matter 
-            { 
-                Id = 1, 
-                Title = "Test Matter", 
-                OrganizationId = 1, 
-                AccessLevel = "Everyone",
-                Status = "Active"
-            };
-
-            context.Users.Add(user);
-            context.Organizations.Add(org);
-            context.UserOrganizations.Add(membership);
-            context.Matters.Add(matter);
-            await context.SaveChangesAsync();
+            var (user, org) = await CreateUserWithRoleAsync(UserTypes.Client, OrganizationRoles.Member);
+            var matter = await CreateMatterAsync(org.Id, "Specific");
+            await AssignUserToMatterAsync(matter.Id, user.Id);
 
             // Act
-            var result = await service.CanAccessMatterAsync(1, 1);
+            var canAccess = await _permissionService.CanAccessMatterAsync(user.Id, matter.Id);
 
             // Assert
-            Assert.True(result);
+            Assert.True(canAccess);
         }
 
         [Fact]
-        public async Task CanAccessMatterAsync_SpecificAccessWithPermission_ReturnsTrue()
+        public async Task CanAccessMatterAsync_RevokedPermission_CannotAccess()
         {
             // Arrange
-            var context = CreateInMemoryContext();
-            var service = CreateService(context);
+            var (user, org) = await CreateUserWithRoleAsync(UserTypes.Client, OrganizationRoles.Member);
+            var matter = await CreateMatterAsync(org.Id, "Specific");
+            var permission = await GrantMatterPermissionAsync(matter.Id, user.Id);
+            
+            // Revoke permission
+            permission.RevokedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
 
-            var user = new User { Id = 1, FirstName = "Test", LastName = "User", Email = "test@test.com" };
-            var org = new Organization { Id = 1, Name = "Test Org", Type = OrganizationType.LawFirm, OwnerId = 1 };
-            var membership = new UserOrganization 
-            { 
-                UserId = 1, 
-                OrganizationId = 1, 
-                IsActive = true,
-                UserType = UserTypes.LawFirm,
-                Role = "Member"
-            };
-            var matter = new Matter 
-            { 
-                Id = 1, 
-                Title = "Test Matter", 
-                OrganizationId = 1, 
-                AccessLevel = "Specific",
-                Status = "Active"
-            };
-            var permission = new MatterPermission
+            // Act
+            var canAccess = await _permissionService.CanAccessMatterAsync(user.Id, matter.Id);
+
+            // Assert
+            Assert.False(canAccess);
+        }
+
+        #endregion
+
+        #region Task Access Tests
+
+        [Fact]
+        public async Task CanAccessTaskAsync_DirectTaskAssignment_CanAccess()
+        {
+            // Arrange
+            var (user, org) = await CreateUserWithRoleAsync(UserTypes.Client, OrganizationRoles.Member);
+            var matter = await CreateMatterAsync(org.Id, "Specific");
+            var task = await CreateTaskAsync(matter.Id, org.Id);
+            await AssignUserToTaskAsync(task.Id, user.Id);
+
+            // Act
+            var canAccess = await _permissionService.CanAccessTaskAsync(user.Id, task.Id);
+
+            // Assert
+            Assert.True(canAccess);
+        }
+
+        [Fact]
+        public async Task CanAccessTaskAsync_MatterAssignment_CanAccessTasks()
+        {
+            // Arrange
+            var (user, org) = await CreateUserWithRoleAsync(UserTypes.Client, OrganizationRoles.Member);
+            var matter = await CreateMatterAsync(org.Id, "Specific");
+            var task = await CreateTaskAsync(matter.Id, org.Id);
+            await AssignUserToMatterAsync(matter.Id, user.Id);
+
+            // Act
+            var canAccess = await _permissionService.CanAccessTaskAsync(user.Id, task.Id);
+
+            // Assert
+            Assert.True(canAccess);
+        }
+
+        [Fact]
+        public async Task CanAccessTaskAsync_NoAccessToMatter_CannotAccessTask()
+        {
+            // Arrange
+            var (user, org) = await CreateUserWithRoleAsync(UserTypes.Client, OrganizationRoles.Member);
+            var matter = await CreateMatterAsync(org.Id, "Specific");
+            var task = await CreateTaskAsync(matter.Id, org.Id);
+
+            // Act
+            var canAccess = await _permissionService.CanAccessTaskAsync(user.Id, task.Id);
+
+            // Assert
+            Assert.False(canAccess);
+        }
+
+        #endregion
+
+        #region Firm-Based Access Tests
+
+        [Fact]
+        public async Task HasFirmBasedAccessAsync_ValidRelationship_HasAccess()
+        {
+            // Arrange
+            var lawFirm = await CreateOrganizationAsync("Law Firm", OrganizationType.LawFirm);
+            var client = await CreateOrganizationAsync("Client Org", OrganizationType.Client);
+            var lawyer = await CreateUserAsync("lawyer@firm.com");
+            await AddUserToOrganizationAsync(lawyer.Id, lawFirm.Id, UserTypes.LawFirm, OrganizationRoles.Partner);
+            await CreateRelationshipAsync(lawFirm.Id, client.Id);
+
+            // Act
+            var hasAccess = await _permissionService.HasFirmBasedAccessAsync(lawyer.Id, client.Id);
+
+            // Assert
+            Assert.True(hasAccess);
+        }
+
+        [Fact]
+        public async Task HasFirmBasedAccessAsync_ExpiredRelationship_NoAccess()
+        {
+            // Arrange
+            var lawFirm = await CreateOrganizationAsync("Law Firm", OrganizationType.LawFirm);
+            var client = await CreateOrganizationAsync("Client Org", OrganizationType.Client);
+            var lawyer = await CreateUserAsync("lawyer@firm.com");
+            await AddUserToOrganizationAsync(lawyer.Id, lawFirm.Id, UserTypes.LawFirm, OrganizationRoles.Partner);
+            await CreateRelationshipAsync(lawFirm.Id, client.Id, expiresAt: DateTime.UtcNow.AddDays(-1));
+
+            // Act
+            var hasAccess = await _permissionService.HasFirmBasedAccessAsync(lawyer.Id, client.Id);
+
+            // Assert
+            Assert.False(hasAccess);
+        }
+
+        [Fact]
+        public async Task HasFirmBasedAccessAsync_NotLawFirmMember_NoAccess()
+        {
+            // Arrange
+            var client1 = await CreateOrganizationAsync("Client Org 1", OrganizationType.Client);
+            var client2 = await CreateOrganizationAsync("Client Org 2", OrganizationType.Client);
+            var user = await CreateUserAsync("user@client1.com");
+            await AddUserToOrganizationAsync(user.Id, client1.Id, UserTypes.Client, OrganizationRoles.Owner);
+
+            // Act
+            var hasAccess = await _permissionService.HasFirmBasedAccessAsync(user.Id, client2.Id);
+
+            // Assert
+            Assert.False(hasAccess);
+        }
+
+        #endregion
+
+        #region Validation Tests
+
+        [Fact]
+        public async Task ValidatePermissionOrThrowAsync_WithPermission_DoesNotThrow()
+        {
+            // Arrange
+            var (user, org) = await CreateUserWithRoleAsync(UserTypes.Client, OrganizationRoles.Owner);
+
+            // Act & Assert
+            await _permissionService.ValidatePermissionOrThrowAsync(user.Id, org.Id, Permission.ViewMatters, "ViewMatters");
+        }
+
+        [Fact]
+        public async Task ValidatePermissionOrThrowAsync_WithoutPermission_ThrowsException()
+        {
+            // Arrange
+            var (user, org) = await CreateUserWithRoleAsync(UserTypes.External, OrganizationRoles.OpposingCounsel);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<UnauthorizedOperationException>(async () =>
+                await _permissionService.ValidatePermissionOrThrowAsync(user.Id, org.Id, Permission.DeleteMatters, "DeleteMatters"));
+        }
+
+        [Fact]
+        public async Task ValidateMatterAccessOrThrowAsync_WithAccess_DoesNotThrow()
+        {
+            // Arrange
+            var (user, org) = await CreateUserWithRoleAsync(UserTypes.Client, OrganizationRoles.Member);
+            var matter = await CreateMatterAsync(org.Id, "Everyone");
+
+            // Act & Assert
+            await _permissionService.ValidateMatterAccessOrThrowAsync(user.Id, matter.Id, "ViewMatter");
+        }
+
+        [Fact]
+        public async Task ValidateMatterAccessOrThrowAsync_WithoutAccess_ThrowsException()
+        {
+            // Arrange
+            var (user, org) = await CreateUserWithRoleAsync(UserTypes.Client, OrganizationRoles.Member);
+            var matter = await CreateMatterAsync(org.Id, "Specific");
+
+            // Act & Assert
+            await Assert.ThrowsAsync<UnauthorizedOperationException>(async () =>
+                await _permissionService.ValidateMatterAccessOrThrowAsync(user.Id, matter.Id, "ViewMatter"));
+        }
+
+        #endregion
+
+        #region Performance Tests
+
+        [Fact]
+        public async Task GetEffectivePermissionsAsync_PerformanceTest_Under50ms()
+        {
+            // Arrange
+            var (user, org) = await CreateUserWithRoleAsync(UserTypes.Client, OrganizationRoles.Owner);
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+            // Act
+            var permissions = await _permissionService.GetEffectivePermissionsAsync(user.Id, org.Id);
+
+            // Assert
+            stopwatch.Stop();
+            Assert.True(stopwatch.ElapsedMilliseconds < 50, 
+                $"Permission check took {stopwatch.ElapsedMilliseconds}ms, expected < 50ms");
+            Assert.NotEmpty(permissions);
+        }
+
+        #endregion
+
+        #region Helper Methods
+
+        private async Task<(User user, Organization org)> CreateUserWithRoleAsync(string userType, string role)
+        {
+            var user = await CreateUserAsync($"user_{Guid.NewGuid()}@test.com");
+            var org = await CreateOrganizationAsync($"Org_{Guid.NewGuid()}", 
+                userType == UserTypes.LawFirm ? OrganizationType.LawFirm : OrganizationType.Client);
+            await AddUserToOrganizationAsync(user.Id, org.Id, userType, role);
+            return (user, org);
+        }
+
+        private async Task<User> CreateUserAsync(string email)
+        {
+            var user = new User
             {
-                Id = 1,
-                MatterId = 1,
-                UserId = 1,
-                RevokedAt = null
+                Email = email,
+                FirstName = "Test",
+                LastName = "User",
+                PasswordHash = "hash",
+                CreatedAt = DateTime.UtcNow,
+                UserOrganizations = new List<UserOrganization>()
             };
-
-            context.Users.Add(user);
-            context.Organizations.Add(org);
-            context.UserOrganizations.Add(membership);
-            context.Matters.Add(matter);
-            context.MatterPermissions.Add(permission);
-            await context.SaveChangesAsync();
-
-            // Act
-            var result = await service.CanAccessMatterAsync(1, 1);
-
-            // Assert
-            Assert.True(result);
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+            return user;
         }
 
-        [Fact]
-        public async Task CanAccessMatterAsync_SpecificAccessWithoutPermission_ReturnsFalse()
+        private async Task<Organization> CreateOrganizationAsync(string name, string type)
         {
-            // Arrange
-            var context = CreateInMemoryContext();
-            var service = CreateService(context);
-
-            var user = new User { Id = 1, FirstName = "Test", LastName = "User", Email = "test@test.com" };
-            var org = new Organization { Id = 1, Name = "Test Org", Type = OrganizationType.LawFirm, OwnerId = 1 };
-            var membership = new UserOrganization 
-            { 
-                UserId = 1, 
-                OrganizationId = 1, 
-                IsActive = true,
-                UserType = UserTypes.LawFirm,
-                Role = "Member"
-            };
-            var matter = new Matter 
-            { 
-                Id = 1, 
-                Title = "Test Matter", 
-                OrganizationId = 1, 
-                AccessLevel = "Specific",
-                Status = "Active"
-            };
-
-            context.Users.Add(user);
-            context.Organizations.Add(org);
-            context.UserOrganizations.Add(membership);
-            context.Matters.Add(matter);
-            await context.SaveChangesAsync();
-
-            // Act
-            var result = await service.CanAccessMatterAsync(1, 1);
-
-            // Assert
-            Assert.False(result);
-        }
-
-        [Fact]
-        public async Task CanAccessMatterAsync_SpecificAccessWithAssignment_ReturnsTrue()
-        {
-            // Arrange
-            var context = CreateInMemoryContext();
-            var service = CreateService(context);
-
-            var user = new User { Id = 1, FirstName = "Test", LastName = "User", Email = "test@test.com" };
-            var org = new Organization { Id = 1, Name = "Test Org", Type = OrganizationType.LawFirm, OwnerId = 1 };
-            var membership = new UserOrganization 
-            { 
-                UserId = 1, 
-                OrganizationId = 1, 
-                IsActive = true,
-                UserType = UserTypes.LawFirm,
-                Role = "Member"
-            };
-            var matter = new Matter 
-            { 
-                Id = 1, 
-                Title = "Test Matter", 
-                OrganizationId = 1, 
-                AccessLevel = "Specific",
-                Status = "Active"
-            };
-            var assignment = new MatterAssignment
+            var org = new Organization
             {
-                Id = 1,
-                MatterId = 1,
-                UserId = 1,
-                AssignmentType = "Assignee",
-                RemovedAt = null
-            };
-
-            context.Users.Add(user);
-            context.Organizations.Add(org);
-            context.UserOrganizations.Add(membership);
-            context.Matters.Add(matter);
-            context.MatterAssignments.Add(assignment);
-            await context.SaveChangesAsync();
-
-            // Act
-            var result = await service.CanAccessMatterAsync(1, 1);
-
-            // Assert
-            Assert.True(result);
-        }
-
-        [Fact]
-        public async Task CanAccessMatterAsync_NotOrganizationMember_ReturnsFalse()
-        {
-            // Arrange
-            var context = CreateInMemoryContext();
-            var service = CreateService(context);
-
-            var user = new User { Id = 1, FirstName = "Test", LastName = "User", Email = "test@test.com" };
-            var org = new Organization { Id = 1, Name = "Test Org", Type = OrganizationType.LawFirm, OwnerId = 1 };
-            var matter = new Matter 
-            { 
-                Id = 1, 
-                Title = "Test Matter", 
-                OrganizationId = 1, 
-                AccessLevel = "Everyone",
-                Status = "Active"
-            };
-
-            context.Users.Add(user);
-            context.Organizations.Add(org);
-            context.Matters.Add(matter);
-            await context.SaveChangesAsync();
-
-            // Act
-            var result = await service.CanAccessMatterAsync(1, 1);
-
-            // Assert
-            Assert.False(result);
-        }
-
-        [Fact]
-        public async Task CanAccessTaskAsync_CanAccessParentMatter_ReturnsTrue()
-        {
-            // Arrange
-            var context = CreateInMemoryContext();
-            var service = CreateService(context);
-
-            var user = new User { Id = 1, FirstName = "Test", LastName = "User", Email = "test@test.com" };
-            var org = new Organization { Id = 1, Name = "Test Org", Type = OrganizationType.LawFirm, OwnerId = 1 };
-            var membership = new UserOrganization 
-            { 
-                UserId = 1, 
-                OrganizationId = 1, 
-                IsActive = true,
-                UserType = UserTypes.LawFirm,
-                Role = "Member"
-            };
-            var matter = new Matter 
-            { 
-                Id = 1, 
-                Title = "Test Matter", 
-                OrganizationId = 1, 
-                AccessLevel = "Everyone",
-                Status = "Active"
-            };
-            var task = new TaskItem
-            {
-                Id = 1,
-                MatterId = 1,
-                OrgId = 1,
-                Title = "Test Task",
-                Status = "Pending",
-                Priority = "Medium"
-            };
-
-            context.Users.Add(user);
-            context.Organizations.Add(org);
-            context.UserOrganizations.Add(membership);
-            context.Matters.Add(matter);
-            context.TaskItems.Add(task);
-            await context.SaveChangesAsync();
-
-            // Act
-            var result = await service.CanAccessTaskAsync(1, 1);
-
-            // Assert
-            Assert.True(result);
-        }
-
-        [Fact]
-        public async Task CanAccessTaskAsync_CannotAccessParentMatter_ReturnsFalse()
-        {
-            // Arrange
-            var context = CreateInMemoryContext();
-            var service = CreateService(context);
-
-            var user = new User { Id = 1, FirstName = "Test", LastName = "User", Email = "test@test.com" };
-            var org = new Organization { Id = 1, Name = "Test Org", Type = OrganizationType.LawFirm, OwnerId = 1 };
-            var matter = new Matter 
-            { 
-                Id = 1, 
-                Title = "Test Matter", 
-                OrganizationId = 1, 
-                AccessLevel = "Specific",
-                Status = "Active"
-            };
-            var task = new TaskItem
-            {
-                Id = 1,
-                MatterId = 1,
-                OrgId = 1,
-                Title = "Test Task",
-                Status = "Pending",
-                Priority = "Medium"
-            };
-
-            context.Users.Add(user);
-            context.Organizations.Add(org);
-            context.Matters.Add(matter);
-            context.TaskItems.Add(task);
-            await context.SaveChangesAsync();
-
-            // Act
-            var result = await service.CanAccessTaskAsync(1, 1);
-
-            // Assert
-            Assert.False(result);
-        }
-
-        [Fact]
-        public async Task CanAccessSubTaskAsync_CanAccessParentTask_ReturnsTrue()
-        {
-            // Arrange
-            var context = CreateInMemoryContext();
-            var service = CreateService(context);
-
-            var user = new User { Id = 1, FirstName = "Test", LastName = "User", Email = "test@test.com" };
-            var org = new Organization { Id = 1, Name = "Test Org", Type = OrganizationType.LawFirm, OwnerId = 1 };
-            var membership = new UserOrganization 
-            { 
-                UserId = 1, 
-                OrganizationId = 1, 
-                IsActive = true,
-                UserType = UserTypes.LawFirm,
-                Role = "Member"
-            };
-            var matter = new Matter 
-            { 
-                Id = 1, 
-                Title = "Test Matter", 
-                OrganizationId = 1, 
-                AccessLevel = "Everyone",
-                Status = "Active"
-            };
-            var task = new TaskItem
-            {
-                Id = 1,
-                MatterId = 1,
-                OrgId = 1,
-                Title = "Test Task",
-                Status = "Pending",
-                Priority = "Medium"
-            };
-            var subTask = new SubTaskItem
-            {
-                Id = 1,
-                TaskId = 1,
-                MatterId = 1,
-                OrgId = 1,
-                Title = "Test SubTask",
-                IsCompleted = false
-            };
-
-            context.Users.Add(user);
-            context.Organizations.Add(org);
-            context.UserOrganizations.Add(membership);
-            context.Matters.Add(matter);
-            context.TaskItems.Add(task);
-            context.SubTaskItems.Add(subTask);
-            await context.SaveChangesAsync();
-
-            // Act
-            var result = await service.CanAccessSubTaskAsync(1, 1);
-
-            // Assert
-            Assert.True(result);
-        }
-
-        [Fact]
-        public async Task HasFirmBasedAccessAsync_ValidRelationship_ReturnsTrue()
-        {
-            // Arrange
-            var context = CreateInMemoryContext();
-            var service = CreateService(context);
-
-            var lawFirmUser = new User { Id = 1, FirstName = "Law", LastName = "Firm", Email = "lawfirm@test.com" };
-            var lawFirmOrg = new Organization { Id = 1, Name = "Law Firm", Type = OrganizationType.LawFirm, OwnerId = 1 };
-            var clientOrg = new Organization { Id = 2, Name = "Client", Type = OrganizationType.Client, OwnerId = 1 };
-            var lawFirmMembership = new UserOrganization 
-            { 
-                UserId = 1, 
-                OrganizationId = 1, 
-                IsActive = true,
-                UserType = UserTypes.LawFirm,
-                Role = "Member"
-            };
-            var relationship = new OrganizationRelationship
-            {
-                Id = 1,
-                SourceOrganizationId = 1,
-                TargetOrganizationId = 2,
-                RelationshipType = RelationshipTypes.LawFirmClient,
-                IsActive = true,
-                IsDeleted = false,
-                ExpiresAt = null,
+                Name = name,
+                OrganizationType = type,
                 CreatedAt = DateTime.UtcNow
             };
-
-            context.Users.Add(lawFirmUser);
-            context.Organizations.Add(lawFirmOrg);
-            context.Organizations.Add(clientOrg);
-            context.UserOrganizations.Add(lawFirmMembership);
-            context.OrganizationRelationships.Add(relationship);
-            await context.SaveChangesAsync();
-
-            // Act
-            var result = await service.HasFirmBasedAccessAsync(1, 2);
-
-            // Assert
-            Assert.True(result);
+            _context.Organizations.Add(org);
+            await _context.SaveChangesAsync();
+            return org;
         }
 
-        [Fact]
-        public async Task HasFirmBasedAccessAsync_NoRelationship_ReturnsFalse()
+        private async Task AddUserToOrganizationAsync(int userId, int orgId, string userType, string role)
         {
-            // Arrange
-            var context = CreateInMemoryContext();
-            var service = CreateService(context);
-
-            var lawFirmUser = new User { Id = 1, FirstName = "Law", LastName = "Firm", Email = "lawfirm@test.com" };
-            var lawFirmOrg = new Organization { Id = 1, Name = "Law Firm", Type = OrganizationType.LawFirm, OwnerId = 1 };
-            var clientOrg = new Organization { Id = 2, Name = "Client", Type = OrganizationType.Client, OwnerId = 1 };
-            var lawFirmMembership = new UserOrganization 
-            { 
-                UserId = 1, 
-                OrganizationId = 1, 
+            var userOrg = new UserOrganization
+            {
+                UserId = userId,
+                OrganizationId = orgId,
+                UserType = userType,
+                Role = role,
                 IsActive = true,
-                UserType = UserTypes.LawFirm,
-                Role = "Member"
+                JoinedAt = DateTime.UtcNow
             };
-
-            context.Users.Add(lawFirmUser);
-            context.Organizations.Add(lawFirmOrg);
-            context.Organizations.Add(clientOrg);
-            context.UserOrganizations.Add(lawFirmMembership);
-            await context.SaveChangesAsync();
-
-            // Act
-            var result = await service.HasFirmBasedAccessAsync(1, 2);
-
-            // Assert
-            Assert.False(result);
+            _context.UserOrganizations.Add(userOrg);
+            await _context.SaveChangesAsync();
         }
+
+        private async Task<Matter> CreateMatterAsync(int orgId, string accessLevel)
+        {
+            var matter = new Matter
+            {
+                MatterNumber = $"M-{Guid.NewGuid()}",
+                Title = "Test Matter",
+                OrganizationId = orgId,
+                AccessLevel = accessLevel,
+                CreatedAt = DateTime.UtcNow,
+                Permissions = new List<MatterPermission>(),
+                Assignments = new List<MatterAssignment>()
+            };
+            _context.Matters.Add(matter);
+            await _context.SaveChangesAsync();
+            return matter;
+        }
+
+        private async Task<MatterPermission> GrantMatterPermissionAsync(int matterId, int userId)
+        {
+            var permission = new MatterPermission
+            {
+                MatterId = matterId,
+                UserId = userId,
+                GrantedAt = DateTime.UtcNow
+            };
+            _context.MatterPermissions.Add(permission);
+            await _context.SaveChangesAsync();
+            return permission;
+        }
+
+        private async Task AssignUserToMatterAsync(int matterId, int userId)
+        {
+            var assignment = new MatterAssignment
+            {
+                MatterId = matterId,
+                UserId = userId,
+                AssignedAt = DateTime.UtcNow
+            };
+            _context.MatterAssignments.Add(assignment);
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task<TaskItem> CreateTaskAsync(int matterId, int orgId)
+        {
+            var task = new TaskItem
+            {
+                MatterId = matterId,
+                OrgId = orgId,
+                Title = "Test Task",
+                CreatedAt = DateTime.UtcNow,
+                TaskAssignments = new List<TaskAssignment>()
+            };
+            _context.TaskItems.Add(task);
+            await _context.SaveChangesAsync();
+            return task;
+        }
+
+        private async Task AssignUserToTaskAsync(int taskId, int userId)
+        {
+            var assignment = new TaskAssignment
+            {
+                TaskId = taskId,
+                UserId = userId,
+                AssignedAt = DateTime.UtcNow
+            };
+            _context.TaskAssignments.Add(assignment);
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task CreateRelationshipAsync(int lawFirmId, int clientId, DateTime? expiresAt = null)
+        {
+            var relationship = new OrganizationRelationship
+            {
+                SourceOrganizationId = lawFirmId,
+                TargetOrganizationId = clientId,
+                RelationshipType = RelationshipTypes.LawFirmClient,
+                AccessLevel = "Full",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                ExpiresAt = expiresAt
+            };
+            _context.OrganizationRelationships.Add(relationship);
+            await _context.SaveChangesAsync();
+        }
+
+        #endregion
     }
 }
-

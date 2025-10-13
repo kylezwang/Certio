@@ -24,6 +24,7 @@
     <ProjectReference Include="..\Certio.Application\Certio.Application.csproj" />
     <ProjectReference Include="..\Certio.Domain\Certio.Domain.csproj" />
     <ProjectReference Include="..\Certio.Infrastructure\Certio.Infrastructure.csproj" />
+    <ProjectReference Include="..\Certio.Web\Certio.Web.csproj" />
   </ItemGroup>
 
 </Project>

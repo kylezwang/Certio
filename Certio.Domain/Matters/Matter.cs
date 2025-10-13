@@ -56,8 +56,8 @@ public class Matter
     public DateTime? LastModifiedDate { get; set; }
     
     // Computed properties for views
-    public int TasksCompleted => StatusItems.Count(si => si.Status == "Completed");
-    public int TotalTasks => StatusItems.Count;
+    public int TasksCompleted => TaskItems.Count(ti => ti.Status == "Completed");
+    public int TotalTasks => TaskItems.Count;
     public string Assignees => string.Join(", ", Assignments.Select(a => a.User.FirstName + " " + a.User.LastName));
     public int UniqueAssigneeCount => Assignments.Select(a => a.UserId).Distinct().Count();
     
@@ -70,7 +70,8 @@ public class Matter
     public virtual Certio.Domain.Organizations.Organization? Organization { get; set; }
     public virtual Team? Team { get; set; }
     public virtual User? Client { get; set; }
-    public virtual ICollection<StatusItem> StatusItems { get; set; } = new List<StatusItem>();
+    public virtual ICollection<StatusItem> StatusItems { get; set; } = new List<StatusItem>(); // Legacy - use TaskItems instead
+    public virtual ICollection<Certio.Domain.Tasks.TaskItem> TaskItems { get; set; } = new List<Certio.Domain.Tasks.TaskItem>();
     public virtual ICollection<MatterAssignment> Assignments { get; set; } = new List<MatterAssignment>();
     public virtual ICollection<Document> Documents { get; set; } = new List<Document>();
     public virtual ICollection<MatterPermission> Permissions { get; set; } = new List<MatterPermission>();

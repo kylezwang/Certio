@@ -257,6 +257,7 @@ namespace Certio.Application.Services
                         .ThenInclude(a => a.User)
                     .Include(m => m.Permissions)
                         .ThenInclude(p => p.User)
+                    .Include(m => m.TaskItems)
                     .FirstOrDefaultAsync(m => m.Id == matterId);
 
                 if (matter == null)
@@ -306,6 +307,7 @@ namespace Certio.Application.Services
                         .ThenInclude(a => a.User)
                     .Include(m => m.Permissions)
                         .ThenInclude(p => p.User)
+                    .Include(m => m.TaskItems)
                     .Where(m => m.OrganizationId == organizationId);
 
                 // Apply access filtering based on membership type
@@ -765,9 +767,9 @@ namespace Certio.Application.Services
 
         private async Task<MatterDto> MapToMatterDto(Matter matter)
         {
-            // Load status items for computed properties
+            // Load task items for computed properties
             await _context.Entry(matter)
-                .Collection(m => m.StatusItems)
+                .Collection(m => m.TaskItems)
                 .LoadAsync();
 
             return new MatterDto

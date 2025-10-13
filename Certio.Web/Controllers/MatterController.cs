@@ -142,6 +142,7 @@ namespace Certio.Web.Controllers
         }
 
         // GET: Matter/Details/5
+        [RequireMatterAccess("id")]
         public async Task<IActionResult> Details(int? id)
         {
             if (!id.HasValue || !InputValidator.IsValidId(id.Value))
@@ -206,6 +207,7 @@ namespace Certio.Web.Controllers
         }
 
         // GET: Matter/Create
+        [RequirePermission(Permission.CreateMatters)]
         public async Task<IActionResult> Create()
         {
             var (user, orgId) = GetUserContext();
@@ -225,6 +227,7 @@ namespace Certio.Web.Controllers
         // POST: Matter/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequirePermission(Permission.CreateMatters)]
         public async Task<IActionResult> Create(MatterFormViewModel model, string action)
         {
             var (user, orgId) = GetUserContext();
@@ -644,6 +647,7 @@ namespace Certio.Web.Controllers
         }
 
         // GET: Matter/Edit/5
+        [RequireMatterOperation(Permission.EditMatters, "id")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (!id.HasValue || !InputValidator.IsValidId(id.Value))
@@ -707,6 +711,7 @@ namespace Certio.Web.Controllers
         // POST: Matter/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequireMatterOperation(Permission.EditMatters, "id")]
         public async Task<IActionResult> Edit(int id, MatterFormViewModel model)
         {
             if (!InputValidator.IsValidId(id) || id != model.Id)
@@ -827,6 +832,7 @@ namespace Certio.Web.Controllers
         }
 
         // GET: Matter/Delete/5
+        [RequireMatterOperation(Permission.DeleteMatters, "id")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (!id.HasValue || !InputValidator.IsValidId(id.Value))
