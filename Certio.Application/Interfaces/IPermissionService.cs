@@ -49,20 +49,43 @@ namespace Certio.Application.Interfaces
         /// </summary>
         Task<bool> HasFirmBasedAccessAsync(int userId, int organizationId);
 
-        /// <summary>
-        /// Gets all organization IDs accessible to a user
-        /// </summary>
-        Task<List<int>> GetAccessibleOrganizationIdsAsync(int userId);
+    /// <summary>
+    /// Gets all organization IDs accessible to a user
+    /// </summary>
+    Task<List<int>> GetAccessibleOrganizationIdsAsync(int userId);
 
-        /// <summary>
-        /// Validates operation and throws exception if not authorized
-        /// </summary>
-        Task ValidatePermissionOrThrowAsync(int userId, int organizationId, Permission permission, string operation);
+    /// <summary>
+    /// Validates permission or throws UnauthorizedOperationException
+    /// </summary>
+    Task ValidatePermissionOrThrowAsync(int userId, int organizationId, Permission permission, string operation);
 
-        /// <summary>
-        /// Gets the firm relationship between a user's law firm and a target organization
-        /// </summary>
-        Task<OrganizationRelationship?> GetFirmRelationshipAsync(int userId, int targetOrganizationId);
+    /// <summary>
+    /// Validates matter access or throws UnauthorizedOperationException
+    /// </summary>
+    Task ValidateMatterAccessOrThrowAsync(int userId, int matterId, string operation);
+
+    /// <summary>
+    /// Validates task access or throws UnauthorizedOperationException
+    /// </summary>
+    Task ValidateTaskAccessOrThrowAsync(int userId, int taskId, string operation);
+
+    /// <summary>
+    /// Validates that user can perform a specific operation on a matter
+    /// Combines permission check with matter access check
+    /// </summary>
+    Task<bool> CanPerformOperationAsync(int userId, int matterId, Permission permission);
+
+    /// <summary>
+    /// Gets the organization relationship between user's law firm and target organization
+    /// Returns null if no relationship exists
+    /// </summary>
+    Task<Certio.Domain.Organizations.OrganizationRelationship?> GetFirmRelationshipAsync(int userId, int organizationId);
+
+    /// <summary>
+    /// Checks if a specific operation is allowed on a task
+    /// Validates both task access and the required permission
+    /// </summary>
+    Task<bool> CanPerformTaskOperationAsync(int userId, int taskId, Permission permission);
     }
 }
 

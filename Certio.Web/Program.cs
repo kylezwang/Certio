@@ -278,7 +278,10 @@ builder.Services.AddScoped<Certio.Application.Interfaces.IAuditService, AuditSer
 builder.Services.AddScoped<Certio.Web.Security.AuthorizationHelper>();
 
 // PHASE 2 SERVICE LAYER
-builder.Services.AddScoped<Certio.Application.Interfaces.IPermissionService, Certio.Application.Services.PermissionService>();
+// Register base PermissionService (without caching)
+builder.Services.AddScoped<Certio.Application.Services.PermissionService>();
+// Register CachedPermissionService as the IPermissionService implementation (PHASE 3)
+builder.Services.AddScoped<Certio.Application.Interfaces.IPermissionService, Certio.Web.Services.CachedPermissionService>();
 builder.Services.AddScoped<Certio.Application.Interfaces.IOrganizationContextService, Certio.Application.Services.OrganizationContextService>();
 builder.Services.AddScoped<Certio.Application.Interfaces.IMatterService, Certio.Application.Services.MatterService>();
 builder.Services.AddScoped<Certio.Application.Interfaces.ITaskService, Certio.Application.Services.TaskService>();

@@ -415,6 +415,72 @@ namespace Certio.Application.Services
                     $"User lacks required permission: {permission}");
             }
         }
+
+        public async Task ValidateMatterAccessOrThrowAsync(int userId, int matterId, string operation)
+        {
+            if (!await CanAccessMatterAsync(userId, matterId))
+            {
+                throw new UnauthorizedOperationException(
+                    userId, 
+                    operation, 
+                    "MatterAccess", 
+                    $"User does not have access to matter {matterId}");
+            }
+        }
+
+        public async Task ValidateTaskAccessOrThrowAsync(int userId, int taskId, string operation)
+        {
+            if (!await CanAccessTaskAsync(userId, taskId))
+            {
+                throw new UnauthorizedOperationException(
+                    userId, 
+                    operation, 
+                    "TaskAccess", 
+                    $"User does not have access to task {taskId}");
+            }
+        }
+
+        public async Task<bool> CanPerformOperationAsync(int userId, int matterId, Permission permission)
+        {
+            // First check if user can access the matter
+            if (!await CanAccessMatterAsync(userId, matterId))
+            {
+                return false;
+            }
+
+            // Then check if user has the required permission
+            var matter = await _context.Matters
+                .FirstOrDefaultAsync(m => m.Id == matterId);
+
+            if (matter == null)
+            {
+                return false;
+            }
+
+            return await HasPermissionAsync(userId, matter.OrganizationId, permission);
+        }
+
+        public async Task<bool> CanPerformTaskOperationAsync(int userId, int taskId, Permission permission)
+        {
+            // First check if user can access the task
+            if (!await CanAccessTaskAsync(userId, taskId))
+            {
+                return false;
+            }
+
+            // Get the task and its organization
+            var task = await _context.TaskItems
+                .Include(t => t.Matter)
+                .FirstOrDefaultAsync(t => t.Id == taskId);
+
+            if (task == null)
+            {
+                return false;
+            }
+
+            // Check if user has the required permission in the organization
+            return await HasPermissionAsync(userId, task.OrgId, permission);
+        }
     }
 }
 

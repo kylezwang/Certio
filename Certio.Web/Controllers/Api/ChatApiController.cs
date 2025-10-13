@@ -4,12 +4,15 @@ using Certio.Application.Services;
 using Certio.Application.Interfaces;
 using System.Security.Claims;
 using Certio.Domain.Services;
+using Certio.Web.Security;
+using Certio.Domain.Users;
 
 namespace Certio.Web.Controllers.Api;
 
 [ApiController]
 [Route("api/chat")]
-[AllowAnonymous] // Allow for now, add proper auth later
+[Authorize(Policy = "OrgMember")] // PHASE 3: Added proper authorization
+[RequirePermission(Permission.ViewMessages)] // PHASE 3: Require message viewing permission
 public class ChatApiController : Controller
 {
     private readonly IChatService _chatService;

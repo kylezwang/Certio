@@ -209,7 +209,37 @@ namespace Certio.Web.Controllers
                 Status = dto.Status,
                 PracticeArea = dto.PracticeArea,
                 CreatedAt = dto.CreatedAt,
-                OrganizationId = dto.OrganizationId
+                OrganizationId = dto.OrganizationId,
+                DueDate = dto.DueDate,
+                StartDate = dto.StartDate,
+                CompletedDate = dto.CompletedDate,
+                AccessLevel = dto.AccessLevel,
+                TeamId = dto.TeamId,
+                ClientId = dto.ClientId,
+                // Map assignments for assignee display
+                Assignments = dto.Assignments.Select(a => new MatterAssignment
+                {
+                    Id = a.Id,
+                    MatterId = a.MatterId,
+                    UserId = a.UserId,
+                    AssignmentType = a.AssignmentType,
+                    Role = a.Role,
+                    IsNotifyRecipient = a.IsNotifyRecipient,
+                    AssignedAt = a.AssignedAt,
+                    User = a.User != null ? new Certio.Domain.Users.User
+                    {
+                        Id = a.User.Id,
+                        FirstName = a.User.FirstName,
+                        LastName = a.User.LastName,
+                        Email = a.User.Email
+                    } : null!
+                }).ToList(),
+                // Map task items for task progress (use DTO counts to satisfy computed properties)
+                TaskItems = Enumerable.Range(0, dto.TasksCompleted)
+                    .Select(_ => new Certio.Domain.Tasks.TaskItem { Status = "Completed" })
+                    .Concat(Enumerable.Range(0, dto.TotalTasks - dto.TasksCompleted)
+                        .Select(_ => new Certio.Domain.Tasks.TaskItem { Status = "Pending" }))
+                    .ToList()
             }).ToList();
 
             var viewModel = new MattersViewModel
@@ -429,9 +459,16 @@ namespace Certio.Web.Controllers
         [HttpGet("/Client/{orgId:int}/Documents")]
         public async Task<IActionResult> Documents(int orgId)
         {
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
             ViewBag.OrganizationId = orgId;
             var org = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync();
             ViewBag.OrganizationName = org?.Name ?? "Client";
+            
             var useSample = _configuration.GetValue<bool>("Features:UseSampleData");
             DocumentsViewModel model;
             if (useSample)
@@ -463,6 +500,64 @@ namespace Certio.Web.Controllers
             {
                 model = new DocumentsViewModel();
             }
+
+            // Fetch real matters from all accessible organizations (including relationships)
+            var accessibleOrgsResult = await _organizationService.GetAccessibleOrganizationsAsync(customUser.Id);
+            List<MatterDto> allMatters = new List<MatterDto>();
+            
+            if (accessibleOrgsResult.Success)
+            {
+                // Get matters from all accessible organizations
+                foreach (var accessibleOrg in accessibleOrgsResult.Data!)
+                {
+                    var mattersResult = await _matterService.ListMattersAsync(customUser.Id, accessibleOrg.Id);
+                    if (mattersResult.Success && mattersResult.Data != null)
+                    {
+                        allMatters.AddRange(mattersResult.Data);
+                    }
+                }
+            }
+
+            // Map DTOs to entities for view
+            model.Matters = allMatters.Select(dto => new Matter
+            {
+                Id = dto.Id,
+                Title = dto.Title,
+                Description = dto.Description,
+                Status = dto.Status,
+                PracticeArea = dto.PracticeArea,
+                CreatedAt = dto.CreatedAt,
+                OrganizationId = dto.OrganizationId,
+                DueDate = dto.DueDate,
+                StartDate = dto.StartDate,
+                CompletedDate = dto.CompletedDate,
+                AccessLevel = dto.AccessLevel,
+                TeamId = dto.TeamId,
+                ClientId = dto.ClientId,
+                Assignments = dto.Assignments.Select(a => new MatterAssignment
+                {
+                    Id = a.Id,
+                    MatterId = a.MatterId,
+                    UserId = a.UserId,
+                    AssignmentType = a.AssignmentType,
+                    Role = a.Role,
+                    IsNotifyRecipient = a.IsNotifyRecipient,
+                    AssignedAt = a.AssignedAt,
+                    User = a.User != null ? new Certio.Domain.Users.User
+                    {
+                        Id = a.User.Id,
+                        FirstName = a.User.FirstName,
+                        LastName = a.User.LastName,
+                        Email = a.User.Email
+                    } : null!
+                }).ToList(),
+                TaskItems = Enumerable.Range(0, dto.TasksCompleted)
+                    .Select(_ => new Certio.Domain.Tasks.TaskItem { Status = "Completed" })
+                    .Concat(Enumerable.Range(0, dto.TotalTasks - dto.TasksCompleted)
+                        .Select(_ => new Certio.Domain.Tasks.TaskItem { Status = "Pending" }))
+                    .ToList()
+            }).ToList();
+
             return View("~/Views/Home/Documents.cshtml", model);
         }
 
@@ -556,6 +651,63 @@ namespace Certio.Web.Controllers
                 ExternalTeamCount = teamMembers.Count(m => m.Team == TeamType.External),
                 TotalMembersCount = teamMembers.Count
             };
+
+            // Fetch real matters from all accessible organizations (including relationships)
+            var accessibleOrgsResult = await _organizationService.GetAccessibleOrganizationsAsync(customUser.Id);
+            List<MatterDto> allMatters = new List<MatterDto>();
+            
+            if (accessibleOrgsResult.Success)
+            {
+                // Get matters from all accessible organizations
+                foreach (var accessibleOrg in accessibleOrgsResult.Data!)
+                {
+                    var mattersResult = await _matterService.ListMattersAsync(customUser.Id, accessibleOrg.Id);
+                    if (mattersResult.Success && mattersResult.Data != null)
+                    {
+                        allMatters.AddRange(mattersResult.Data);
+                    }
+                }
+            }
+
+            // Map DTOs to entities for view
+            model.Matters = allMatters.Select(dto => new Matter
+            {
+                Id = dto.Id,
+                Title = dto.Title,
+                Description = dto.Description,
+                Status = dto.Status,
+                PracticeArea = dto.PracticeArea,
+                CreatedAt = dto.CreatedAt,
+                OrganizationId = dto.OrganizationId,
+                DueDate = dto.DueDate,
+                StartDate = dto.StartDate,
+                CompletedDate = dto.CompletedDate,
+                AccessLevel = dto.AccessLevel,
+                TeamId = dto.TeamId,
+                ClientId = dto.ClientId,
+                Assignments = dto.Assignments.Select(a => new MatterAssignment
+                {
+                    Id = a.Id,
+                    MatterId = a.MatterId,
+                    UserId = a.UserId,
+                    AssignmentType = a.AssignmentType,
+                    Role = a.Role,
+                    IsNotifyRecipient = a.IsNotifyRecipient,
+                    AssignedAt = a.AssignedAt,
+                    User = a.User != null ? new Certio.Domain.Users.User
+                    {
+                        Id = a.User.Id,
+                        FirstName = a.User.FirstName,
+                        LastName = a.User.LastName,
+                        Email = a.User.Email
+                    } : null!
+                }).ToList(),
+                TaskItems = Enumerable.Range(0, dto.TasksCompleted)
+                    .Select(_ => new Certio.Domain.Tasks.TaskItem { Status = "Completed" })
+                    .Concat(Enumerable.Range(0, dto.TotalTasks - dto.TasksCompleted)
+                        .Select(_ => new Certio.Domain.Tasks.TaskItem { Status = "Pending" }))
+                    .ToList()
+            }).ToList();
 
             return View("~/Views/Home/Teams.cshtml", model);
         }

@@ -366,6 +366,7 @@ namespace Certio.Web.Controllers
 
         // GET: Tasks/Get/{id}
         [HttpGet]
+        [RequireTaskAccess("id")]
         public async Task<IActionResult> Get(int id)
         {
             if (!InputValidator.IsValidId(id))
@@ -398,6 +399,7 @@ namespace Certio.Web.Controllers
         // POST: Tasks/Delete
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequireTaskAccess("id")]
         public async Task<IActionResult> Delete(int id)
         {
             if (!InputValidator.IsValidId(id))
