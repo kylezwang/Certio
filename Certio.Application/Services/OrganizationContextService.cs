@@ -1,3 +1,4 @@
+using Certio.Application.DTOs;
 using Certio.Application.Interfaces;
 using Certio.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -72,7 +73,7 @@ namespace Certio.Application.Services
                 .ToListAsync();
         }
 
-        public async Task<OrganizationDto?> GetOrganizationAsync(int organizationId)
+        public async Task<OrganizationContextDto?> GetOrganizationAsync(int organizationId)
         {
             var org = await _context.Organizations
                 .FirstOrDefaultAsync(o => o.Id == organizationId);
@@ -82,7 +83,7 @@ namespace Certio.Application.Services
                 return null;
             }
 
-            return new OrganizationDto
+            return new OrganizationContextDto
             {
                 Id = org.Id,
                 Name = org.Name,

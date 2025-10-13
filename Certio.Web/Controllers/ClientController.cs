@@ -7,6 +7,8 @@ using Certio.Infrastructure.Data;
 using Certio.Web.ViewModels;
 using Certio.Domain.Matters;
 using Certio.Web.Services;
+using Certio.Application.Interfaces;
+using Certio.Application.DTOs;
 
 namespace Certio.Web.Controllers
 {
@@ -18,19 +20,34 @@ namespace Certio.Web.Controllers
         private readonly IConfiguration _configuration;
         private readonly IFirmRelationshipCacheService _firmRelationshipCache;
         private readonly IChannelManagementService _channelManagementService;
+        private readonly IMatterService _matterService;
+        private readonly IChatService _chatService;
+        private readonly IOrganizationService _organizationService;
+        private readonly ITeamService _teamService;
+        private readonly IOrganizationRelationshipService _relationshipService;
 
         public ClientController(
             ApplicationDbContext db, 
             IJoinCodeService joinCodeService, 
             IConfiguration configuration,
             IFirmRelationshipCacheService firmRelationshipCache,
-            IChannelManagementService channelManagementService)
+            IChannelManagementService channelManagementService,
+            IMatterService matterService,
+            IChatService chatService,
+            IOrganizationService organizationService,
+            ITeamService teamService,
+            IOrganizationRelationshipService relationshipService)
         {
             _db = db;
             _joinCodeService = joinCodeService;
             _configuration = configuration;
             _firmRelationshipCache = firmRelationshipCache;
             _channelManagementService = channelManagementService;
+            _matterService = matterService;
+            _chatService = chatService;
+            _organizationService = organizationService;
+            _teamService = teamService;
+            _relationshipService = relationshipService;
         }
 
         // GET /Client/List
@@ -43,48 +60,25 @@ namespace Certio.Web.Controllers
                 return Json(new { success = false, message = "User not authenticated." });
             }
 
-            // Get direct organization memberships
-            var directOrgs = await _db.UserOrganizations
-                .Where(uo => uo.UserId == customUser.Id && uo.IsActive)
-                .Select(uo => new {
-                    organizationId = uo.OrganizationId,
-                    organizationName = uo.Organization!.Name,
-                    ownerFirstName = uo.Organization!.Owner.FirstName,
-                    ownerLastName = uo.Organization!.Owner.LastName,
-                    isPersonal = uo.Organization.IsPersonal,
-                    isPrimary = uo.IsPrimary,
-                    organizationType = uo.Organization.Type.ToString()
-                })
-                .ToListAsync(ct);
+            // Use organization service to get accessible organizations
+            var result = await _organizationService.GetAccessibleOrganizationsAsync(customUser.Id);
+            
+            if (!result.Success)
+            {
+                return Json(new { success = false, message = result.ErrorMessage });
+            }
 
-            // Get organizations accessible via law firm relationships
-            var firmOrgs = await _db.UserOrganizations
-                .Where(uo => uo.UserId == customUser.Id && uo.IsActive && uo.UserType == Certio.Domain.Users.UserTypes.LawFirm)
-                .SelectMany(uo => uo.Organization!.OrganizationRelationships
-                    .Where(rel => 
-                        rel.IsActive && 
-                        !rel.IsDeleted && 
-                        rel.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient &&
-                        (!rel.ExpiresAt.HasValue || rel.ExpiresAt.Value > DateTime.UtcNow))
-                    .Select(rel => new {
-                        organizationId = rel.TargetOrganizationId,
-                        organizationName = rel.TargetOrganization!.Name,
-                        ownerFirstName = rel.TargetOrganization!.Owner.FirstName,
-                        ownerLastName = rel.TargetOrganization!.Owner.LastName,
-                        isPersonal = rel.TargetOrganization.IsPersonal,
-                        isPrimary = false, // Firm-based access is not primary
-                        organizationType = rel.TargetOrganization.Type.ToString()
-                    }))
-                .ToListAsync(ct);
-
-            // Combine and deduplicate by organizationId
-            var allOrgs = directOrgs
-                .Concat(firmOrgs)
-                .GroupBy(o => o.organizationId)
-                .Select(g => g.First()) // Take first occurrence (direct membership if exists)
-                .OrderByDescending(x => x.isPrimary)
-                .ThenBy(x => x.organizationName)
-                .ToList();
+            // Map DTOs to anonymous objects for JSON response
+            var allOrgs = result.Data!.Select(org => new
+            {
+                organizationId = org.Id,
+                organizationName = org.Name,
+                ownerFirstName = org.OwnerFirstName,
+                ownerLastName = org.OwnerLastName,
+                isPersonal = org.IsPersonal,
+                isPrimary = org.IsPrimary,
+                organizationType = org.Type.ToString()
+            }).ToList();
 
             return Json(new { success = true, organizations = allOrgs });
         }
@@ -102,17 +96,16 @@ namespace Certio.Web.Controllers
 
             // Authorization is handled by the [Authorize(Policy = "OrgMember")] attribute
 
-            var org = await _db.Organizations
-                .Where(o => o.Id == orgId)
-                .FirstOrDefaultAsync(ct);
-
+            // Use organization service to get organization info
+            var orgResult = await _organizationService.GetOrganizationBasicInfoAsync(orgId, customUser.Id);
+            
             ViewBag.OrganizationId = orgId;
-            ViewBag.OrganizationName = org?.Name ?? "Client";
+            ViewBag.OrganizationName = orgResult.Success ? orgResult.Data!.Name : "Client";
 
             // Create sample dashboard data
             var viewModel = new DashboardViewModel
             {
-                OrganizationType = org?.Type ?? Certio.Domain.Organizations.OrganizationType.Client,
+                OrganizationType = orgResult.Success ? orgResult.Data!.Type : Certio.Domain.Organizations.OrganizationType.Client,
                 NewMattersThisWeek = 4,
                 NewMattersPercentageChange = 15,
                 BillingBacklogPercentage = 20,
@@ -158,76 +151,73 @@ namespace Certio.Web.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            // Authorization is handled by the [Authorize(Policy = "OrgMember")] attribute
-
-            // Check if this is a LawFirm organization - if so, aggregate matters from all accessible clients
+            // Get organization info for ViewBag (view-specific, legitimate DB access)
             var currentOrg = await _db.Organizations
                 .FirstOrDefaultAsync(o => o.Id == orgId, ct);
 
-            List<Matter> matters;
-            int teamMembersCount;
-
+            // Check if this is a LawFirm organization - if so, aggregate matters from all accessible clients
+            List<MatterDto> allMatters;
+            
             if (currentOrg?.Type == Certio.Domain.Organizations.OrganizationType.LawFirm)
             {
-                // Get all accessible client organizations for this user
+                // Get all accessible client organizations for this user (respects user's access level and assignments)
                 var accessibleClients = await _firmRelationshipCache.GetAccessibleClientOrganizationsAsync(customUser.Id);
                 var clientOrgIds = accessibleClients.Select(c => c.Id).ToList();
-
+                
                 // Add the LawFirm organization's own ID to include its matters too
                 clientOrgIds.Add(orgId);
-
-                // Query matters from the LawFirm AND all accessible client organizations
-                matters = await _db.Matters
-                    .Where(p => clientOrgIds.Contains(p.OrganizationId))
-                    .Include(p => p.Assignments)
-                        .ThenInclude(a => a.User)
-                    .Include(p => p.Permissions)
-                    .Include(p => p.Organization) // Include to show which organization the matter belongs to
-                    .OrderByDescending(p => p.CreatedAt)
-                    .ToListAsync(ct);
-
-                // Apply role-based filtering for matters in the LAW FIRM organization
-                // Check user's role in the law firm
-                var userRole = await _db.UserOrganizations
-                    .Where(uo => uo.UserId == customUser.Id && uo.OrganizationId == orgId && uo.IsActive)
-                    .Select(uo => uo.Role)
-                    .FirstOrDefaultAsync(ct);
-
-                // Non-partners can only see matters they're assigned to (both law firm and client org matters)
-                if (userRole != Certio.Domain.Users.OrganizationRoles.Partner)
+                
+                // Aggregate matters from all accessible organizations
+                allMatters = new List<MatterDto>();
+                
+                foreach (var clientOrgId in clientOrgIds)
                 {
-                    matters = matters.Where(m =>
-                        m.Permissions.Any(p => p.UserId == customUser.Id && p.RevokedAt == null) || // Has explicit permissions
-                        m.Assignments.Any(a => a.UserId == customUser.Id && a.RemovedAt == null))   // Or is assigned to the matter
-                    .ToList();
+                    var mattersResult = await _matterService.ListMattersAsync(customUser.Id, clientOrgId);
+                    if (mattersResult.Success)
+                    {
+                        allMatters.AddRange(mattersResult.Data!);
+                    }
                 }
-
-                // Team members from the law firm
-                teamMembersCount = await _db.UserOrganizations
-                    .Where(uo => uo.OrganizationId == orgId && uo.IsActive)
-                    .CountAsync(ct);
             }
             else
             {
                 // For client organizations, show only matters from this specific client
-                matters = await _db.Matters
-                    .Where(p => p.OrganizationId == orgId)
-                    .Include(p => p.Assignments)
-                        .ThenInclude(a => a.User)
-                    .OrderByDescending(p => p.CreatedAt)
-                    .ToListAsync(ct);
-
-                teamMembersCount = await _db.UserOrganizations
-                    .Where(uo => uo.OrganizationId == orgId && uo.IsActive)
-                    .CountAsync(ct);
+                var result = await _matterService.ListMattersAsync(customUser.Id, orgId);
+                
+                if (!result.Success)
+                {
+                    TempData["Error"] = result.ErrorMessage;
+                    ViewBag.OrganizationId = orgId;
+                    ViewBag.OrganizationName = currentOrg?.Name ?? "Client";
+                    return View("~/Views/Matter/Index.cshtml", new MattersViewModel());
+                }
+                
+                allMatters = result.Data!;
             }
+
+            // Get team members count (view-specific, simple query)
+            var teamMembersCount = await _db.UserOrganizations
+                .Where(uo => uo.OrganizationId == orgId && uo.IsActive)
+                .CountAsync(ct);
+
+            // Map DTOs to entities for view (temporary until view uses DTOs directly)
+            var matters = allMatters.Select(dto => new Matter
+            {
+                Id = dto.Id,
+                Title = dto.Title,
+                Description = dto.Description,
+                Status = dto.Status,
+                PracticeArea = dto.PracticeArea,
+                CreatedAt = dto.CreatedAt,
+                OrganizationId = dto.OrganizationId
+            }).ToList();
 
             var viewModel = new MattersViewModel
             {
                 Matters = matters,
-                ActiveMattersCount = matters.Count(p => p.Status == "In Progress"),
-                CompletedMattersCount = matters.Count(p => p.Status == "Completed"),
-                InReviewMattersCount = matters.Count(p => p.Status == "Review"),
+                ActiveMattersCount = allMatters.Count(m => m.Status == "In Progress"),
+                CompletedMattersCount = allMatters.Count(m => m.Status == "Completed"),
+                InReviewMattersCount = allMatters.Count(m => m.Status == "Review"),
                 TeamMembersCount = teamMembersCount
             };
 
@@ -257,19 +247,8 @@ namespace Certio.Web.Controllers
             // Load real channels from database
             var channels = await _channelManagementService.GetOrganizationChannelsAsync(orgId);
             
-            // Load team members from organization - declare once for use in both paths
-            var orgTeamMembers = await _db.UserOrganizations
-                .Where(uo => uo.OrganizationId == orgId && uo.IsActive)
-                .Include(uo => uo.User)
-                .Select(uo => new CommunicationsTeamMember
-                {
-                    Name = $"{uo.User.FirstName} {uo.User.LastName}",
-                    Role = uo.Role.ToString(),
-                    Status = "offline", // Will be updated by SignalR
-                    Avatar = $"{uo.User.FirstName.Substring(0, 1)}{uo.User.LastName.Substring(0, 1)}",
-                    Activity = "Available"
-                })
-                .ToListAsync();
+            // Load team members from organization using service
+            var orgTeamMembers = await _channelManagementService.GetOrganizationTeamMembersAsync(orgId);
 
             CommunicationsViewModel viewModel;
             
@@ -344,17 +323,12 @@ namespace Certio.Web.Controllers
                     });
                 }
                 
-                // Load recent messages from the first channel
+                // Load recent messages from the first channel using ChatService
                 var firstChannel = channels.FirstOrDefault();
                 var messages = new List<Message>();
                 if (firstChannel != null)
                 {
-                    var recentMessages = await _db.ChatMessages
-                        .Where(m => m.ChannelId == firstChannel.Id && m.IsChannelMessage)
-                        .OrderByDescending(m => m.CreatedAt)
-                        .Take(50)
-                        .Include(m => m.User)
-                        .ToListAsync();
+                    var recentMessages = await _chatService.GetChannelMessagesAsync(firstChannel.Id);
                     
                     messages = recentMessages.OrderBy(m => m.CreatedAt).Select(m => new Message
                     {
@@ -497,15 +471,28 @@ namespace Certio.Web.Controllers
         [HttpGet("/Client/{orgId:int}/Teams")]
         public async Task<IActionResult> Teams(int orgId)
         {
-            ViewBag.OrganizationId = orgId;
-            var org = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync();
-            ViewBag.OrganizationName = org?.Name ?? "Client";
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
 
-            // Load active memberships for this organization with user info
-            var memberships = await _db.UserOrganizations
-                .Where(uo => uo.OrganizationId == orgId && uo.IsActive)
-                .Include(uo => uo.User)
-                .ToListAsync();
+            ViewBag.OrganizationId = orgId;
+            
+            // Use organization service to get organization info
+            var orgResult = await _organizationService.GetOrganizationBasicInfoAsync(orgId, customUser.Id);
+            ViewBag.OrganizationName = orgResult.Success ? orgResult.Data!.Name : "Client";
+
+            // Use team service to get team members
+            var teamMembersResult = await _teamService.GetTeamMembersAsync(orgId, customUser.Id);
+            
+            if (!teamMembersResult.Success)
+            {
+                TempData["Error"] = teamMembersResult.ErrorMessage;
+                return View("~/Views/Home/Teams.cshtml", new TeamsViewModel());
+            }
+
+            var teamMemberDtos = teamMembersResult.Data!;
 
             // Fallback colors to match existing UI palette
             static string GetTeamColor(TeamType team)
@@ -536,26 +523,24 @@ namespace Certio.Web.Controllers
                 return TeamType.Legal;
             }
 
-            var teamMembers = memberships
-                .Where(m => m.User != null)
-                .Select(m =>
+            // Map DTOs to view model
+            var teamMembers = teamMemberDtos
+                .Select(dto =>
                 {
-                    var team = MapTeam(m.UserType);
-                    var firstName = m.User!.FirstName ?? string.Empty;
-                    var lastName = m.User!.LastName ?? string.Empty;
-                    var name = ($"{firstName} {lastName}").Trim();
-                    var initials = !string.IsNullOrWhiteSpace(m.User.Avatar)
-                        ? m.User.Avatar!
-                        : GetInitials(firstName, lastName);
-                    var color = !string.IsNullOrWhiteSpace(m.User.Color) ? m.User.Color : GetTeamColor(team);
+                    var team = MapTeam(dto.UserType);
+                    var name = ($"{dto.FirstName} {dto.LastName}").Trim();
+                    var initials = !string.IsNullOrWhiteSpace(dto.Avatar)
+                        ? dto.Avatar
+                        : GetInitials(dto.FirstName, dto.LastName);
+                    var color = !string.IsNullOrWhiteSpace(dto.Color) ? dto.Color : GetTeamColor(team);
                     return new TeamMember
                     {
-                        Id = m.UserId.ToString(),
-                        Name = string.IsNullOrWhiteSpace(name) ? m.User.Email : name,
+                        Id = dto.UserId.ToString(),
+                        Name = string.IsNullOrWhiteSpace(name) ? dto.Email : name,
                         Initials = initials,
-                        Role = m.Role,
-                        Department = string.IsNullOrWhiteSpace(m.Department) ? m.User.Department : m.Department,
-                        Location = m.User.Location,
+                        Role = dto.Role,
+                        Department = dto.Department,
+                        Location = dto.Location,
                         Team = team,
                         Color = color
                     };
@@ -701,9 +686,9 @@ namespace Certio.Web.Controllers
                 var lawFirmOrgId = userOrgMembership.OrganizationId;
                 model.LawFirmOrganizationId = lawFirmOrgId;
                 
-                var lawFirmOrg = await _db.Organizations
-                    .FirstOrDefaultAsync(o => o.Id == lawFirmOrgId);
-                model.LawFirmOrganizationName = lawFirmOrg?.Name;
+                // Use organization service to get law firm name
+                var lawFirmOrgResult = await _organizationService.GetOrganizationBasicInfoAsync(lawFirmOrgId, customUser.Id);
+                model.LawFirmOrganizationName = lawFirmOrgResult.Success ? lawFirmOrgResult.Data!.Name : null;
 
                 // Check if user is in their own law firm org or a client org
                 if (orgId == lawFirmOrgId)
@@ -713,45 +698,43 @@ namespace Certio.Web.Controllers
                 }
                 else
                 {
-                    // Check if there's a relationship between law firm and current org
-                    var relationship = await _db.OrganizationRelationships
-                        .FirstOrDefaultAsync(or => 
-                            or.SourceOrganizationId == lawFirmOrgId && 
-                            or.TargetOrganizationId == orgId &&
-                            or.IsActive &&
-                            !or.IsDeleted);
+                    // Use relationship service to check if there's a relationship
+                    var relationshipResult = await _relationshipService.GetLawFirmRelationshipForClientAsync(
+                        lawFirmOrgId, 
+                        orgId, 
+                        customUser.Id);
 
+                    var relationship = relationshipResult.Success ? relationshipResult.Data : null;
                     model.IsClientOrganization = relationship != null;
 
                     // If in client org context and selecting InternalTeam, load law firm members
-                    if (model.IsClientOrganization && model.SelectionType == "InternalTeam")
+                    if (model.IsClientOrganization && model.SelectionType == "InternalTeam" && relationship != null)
                     {
-                        // Get law firm members
-                        var lawFirmMembers = await _db.UserOrganizations
-                            .Include(uo => uo.User)
-                            .Where(uo => 
-                                uo.OrganizationId == lawFirmOrgId &&
-                                uo.UserType == UserTypes.LawFirm &&
-                                uo.IsActive)
-                            .ToListAsync();
+                        // Use relationship service to get assignable users
+                        var assignableUsersResult = await _relationshipService.GetRelationshipAssignableUsersAsync(
+                            relationship.Id, 
+                            customUser.Id);
 
-                        // Get already assigned users for this relationship
-                        var assignedUserIds = await _db.Set<OrganizationRelationshipAssignedUser>()
-                            .Where(orau => orau.RelationshipId == relationship.Id)
-                            .Select(orau => orau.UserId)
-                            .ToListAsync();
-
-                        model.AlreadyAssignedUserIds = assignedUserIds;
-                        model.AvailableTeamMembers = lawFirmMembers.Select(uo => new OrgMemberDto
+                        if (assignableUsersResult.Success)
                         {
-                            Id = uo.UserId,
-                            Name = $"{uo.User.FirstName} {uo.User.LastName}".Trim(),
-                            Email = uo.User.Email,
-                            Role = uo.Role,
-                            UserType = uo.UserType,
-                            IsCurrentUser = uo.UserId == customUser.Id,
-                            IsAlreadyAssigned = assignedUserIds.Contains(uo.UserId)
-                        }).ToList();
+                            var assignableUsers = assignableUsersResult.Data!;
+                            
+                            model.AlreadyAssignedUserIds = assignableUsers
+                                .Where(u => u.IsAlreadyAssigned)
+                                .Select(u => u.Id)
+                                .ToList();
+                            
+                            model.AvailableTeamMembers = assignableUsers.Select(dto => new OrgMemberDto
+                            {
+                                Id = dto.Id,
+                                Name = dto.Name,
+                                Email = dto.Email,
+                                Role = dto.Role,
+                                UserType = dto.UserType,
+                                IsCurrentUser = dto.IsCurrentUser,
+                                IsAlreadyAssigned = dto.IsAlreadyAssigned
+                            }).ToList();
+                        }
                     }
                 }
             }
@@ -778,43 +761,43 @@ namespace Certio.Web.Controllers
                     return View("~/Views/Home/AddPeople.cshtml", model);
                 }
 
-                // Get the relationship
-                var relationship = await _db.OrganizationRelationships
-                    .FirstOrDefaultAsync(or => 
-                        or.SourceOrganizationId == model.LawFirmOrganizationId &&
-                        or.TargetOrganizationId == orgId &&
-                        or.IsActive &&
-                        !or.IsDeleted, ct);
+                // Get the relationship using relationship service
+                var relationshipResult = await _relationshipService.GetLawFirmRelationshipForClientAsync(
+                    model.LawFirmOrganizationId!.Value,
+                    orgId,
+                    customUser.Id);
 
-                if (relationship == null)
+                if (!relationshipResult.Success || relationshipResult.Data == null)
                 {
                     TempData["Error"] = "Organization relationship not found.";
                     return View("~/Views/Home/AddPeople.cshtml", model);
                 }
 
-                // Get already assigned users
-                var existingAssignments = await _db.Set<OrganizationRelationshipAssignedUser>()
-                    .Where(orau => orau.RelationshipId == relationship.Id)
-                    .Select(orau => orau.UserId)
-                    .ToListAsync(ct);
+                var relationship = relationshipResult.Data;
 
-                // Create assignments for new users
-                var newAssignments = model.SelectedUserIds
-                    .Where(userId => !existingAssignments.Contains(userId))
-                    .Select(userId => new OrganizationRelationshipAssignedUser
-                    {
-                        RelationshipId = relationship.Id,
-                        UserId = userId,
-                        AssignedAt = DateTime.UtcNow,
-                        AssignedById = customUser.Id
-                    })
-                    .ToList();
+                // Get IP address and User Agent for audit logging
+                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
 
-                if (newAssignments.Any())
+                // Use relationship service to assign users (handles business logic, duplicate checking, and audit logging)
+                var assignmentResult = await _relationshipService.AssignUsersToRelationshipAsync(
+                    relationship.Id,
+                    customUser.Id,
+                    model.SelectedUserIds,
+                    ipAddress,
+                    userAgent);
+
+                if (!assignmentResult.Success)
                 {
-                    _db.Set<OrganizationRelationshipAssignedUser>().AddRange(newAssignments);
-                    await _db.SaveChangesAsync(ct);
-                    TempData["Success"] = $"Successfully assigned {newAssignments.Count} team member(s) to {org?.Name}.";
+                    TempData["Error"] = assignmentResult.ErrorMessage;
+                    return View("~/Views/Home/AddPeople.cshtml", model);
+                }
+
+                // Set appropriate message based on results
+                var assignmentData = assignmentResult.Data!;
+                if (assignmentData.AssignedCount > 0)
+                {
+                    TempData["Success"] = $"Successfully assigned {assignmentData.AssignedCount} team member(s) to {org?.Name}.";
                 }
                 else
                 {

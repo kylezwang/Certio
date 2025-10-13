@@ -3,6 +3,8 @@ using Certio.Domain.Services;
 using Certio.Infrastructure.Data;
 using Certio.Application.Services;
 using Certio.Application.Interfaces;
+using Certio.Domain.Exceptions;
+using Microsoft.Extensions.Logging;
 
 namespace Certio.Web.Services;
 
@@ -13,23 +15,50 @@ public class ChatService : IChatService
     private readonly AIBackgroundService _aiBackgroundService;
     private readonly ICacheService _cacheService;
     private readonly IAuditService _auditService;
+    private readonly IPermissionService _permissionService;
+    private readonly ILogger<ChatService> _logger;
 
     public ChatService(
         ApplicationDbContext context, 
         IAIAgentService aiAgentService, 
         AIBackgroundService aiBackgroundService, 
         ICacheService cacheService,
-        IAuditService auditService)
+        IAuditService auditService,
+        IPermissionService permissionService,
+        ILogger<ChatService> logger)
     {
         _context = context;
         _aiAgentService = aiAgentService;
         _aiBackgroundService = aiBackgroundService;
         _cacheService = cacheService;
         _auditService = auditService;
+        _permissionService = permissionService;
+        _logger = logger;
     }
 
     public async Task<Conversation> CreateConversationAsync(int organizationId, int userId, string title, string description, int? matterId = null)
     {
+        // Validate user has access to organization (direct membership or firm-based access)
+        var isOrgMember = await _permissionService.IsOrganizationMemberAsync(userId, organizationId);
+        var hasFirmAccess = await _permissionService.HasFirmBasedAccessAsync(userId, organizationId);
+        
+        if (!isOrgMember && !hasFirmAccess)
+        {
+            _logger.LogWarning("User {UserId} attempted to create conversation in unauthorized org {OrgId}", userId, organizationId);
+            throw new UnauthorizedOperationException(userId, "create", "Conversation", "Not a member of organization");
+        }
+
+        // If linked to a matter, validate matter access
+        if (matterId.HasValue)
+        {
+            var canAccessMatter = await _permissionService.CanAccessMatterAsync(userId, matterId.Value);
+            if (!canAccessMatter)
+            {
+                _logger.LogWarning("User {UserId} attempted to create conversation linked to unauthorized matter {MatterId}", userId, matterId.Value);
+                throw new UnauthorizedOperationException(userId, "create", "Conversation", "No access to linked matter");
+            }
+        }
+
         var conversation = new Conversation
         {
             OrganizationId = organizationId,
@@ -44,14 +73,40 @@ public class ChatService : IChatService
         _context.Conversations.Add(conversation);
         await _context.SaveChangesAsync();
 
+        // Audit log
+        await _auditService.LogCreateAsync(userId, organizationId, "Conversation", conversation.Id, null, null);
+
         // Invalidate conversation cache for this user/organization
         await _cacheService.InvalidateUserConversationsCacheAsync(userId, organizationId);
+
+        _logger.LogInformation("User {UserId} created conversation {ConvId} in org {OrgId}", userId, conversation.Id, organizationId);
 
         return conversation;
     }
 
     public async Task<Conversation> CreateChannelAsync(int organizationId, int userId, string title, string description, string channelType = "Group", bool isPrivateChannel = false, int? matterId = null)
     {
+        // Validate user has access to organization (direct membership or firm-based access)
+        var isOrgMember = await _permissionService.IsOrganizationMemberAsync(userId, organizationId);
+        var hasFirmAccess = await _permissionService.HasFirmBasedAccessAsync(userId, organizationId);
+        
+        if (!isOrgMember && !hasFirmAccess)
+        {
+            _logger.LogWarning("User {UserId} attempted to create channel in unauthorized org {OrgId}", userId, organizationId);
+            throw new UnauthorizedOperationException(userId, "create", "Channel", "Not a member of organization");
+        }
+
+        // If linked to a matter, validate matter access
+        if (matterId.HasValue)
+        {
+            var canAccessMatter = await _permissionService.CanAccessMatterAsync(userId, matterId.Value);
+            if (!canAccessMatter)
+            {
+                _logger.LogWarning("User {UserId} attempted to create channel linked to unauthorized matter {MatterId}", userId, matterId.Value);
+                throw new UnauthorizedOperationException(userId, "create", "Channel", "No access to linked matter");
+            }
+        }
+
         var conversation = new Conversation
         {
             OrganizationId = organizationId,
@@ -69,6 +124,11 @@ public class ChatService : IChatService
 
         _context.Conversations.Add(conversation);
         await _context.SaveChangesAsync();
+
+        // Audit log
+        await _auditService.LogCreateAsync(userId, organizationId, "Channel", conversation.Id, null, null);
+
+        _logger.LogInformation("User {UserId} created channel {ChannelId} in org {OrgId}", userId, conversation.Id, organizationId);
 
         return conversation;
     }
@@ -274,16 +334,12 @@ public class ChatService : IChatService
             return cachedConversations;
         }
 
-        // AI-only conversations are those with at least one AI message (IsFromAI) or explicitly titled/typed
-        // Keep it simple and rely on AI messages to infer; fallback to conversation title marker if needed
-        var aiConversationIds = await _context.ChatMessages
-            .Where(m => m.UserId == null && m.IsFromAI)
-            .Select(m => m.ConversationId)
-            .Distinct()
-            .ToListAsync();
-
+        // Get all non-channel conversations created by the user
+        // Include all conversations (with or without messages) - the AI chat UI should show all user-created AI conversations
         var conversations = await _context.Conversations
-            .Where(c => c.OrganizationId == organizationId && c.CreatedById == userId && aiConversationIds.Contains(c.Id))
+            .Where(c => c.OrganizationId == organizationId && 
+                       c.CreatedById == userId && 
+                       !c.IsChannel) // Only filter out channels - include all conversations regardless of message count
             .OrderByDescending(c => c.LastMessageAt)
             .ToListAsync();
 

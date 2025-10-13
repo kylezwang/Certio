@@ -1,4 +1,5 @@
 using Certio.Domain.Services;
+using Certio.Web.ViewModels;
 
 namespace Certio.Web.Services;
 
@@ -9,5 +10,6 @@ public interface IChannelManagementService
     Task EnsureDefaultChannelsExistAsync(int organizationId, int createdById);
     Task<int> GetUnreadCountAsync(int conversationId, int userId);
     Task<List<int>> GetOnlineUserIdsAsync(int organizationId);
+    Task<List<CommunicationsTeamMember>> GetOrganizationTeamMembersAsync(int organizationId);
 }
 

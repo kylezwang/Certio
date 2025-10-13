@@ -3,6 +3,7 @@ using Certio.Domain.Services;
 using Certio.Infrastructure.Data;
 using Certio.Application.Services;
 using Certio.Application.Interfaces;
+using Certio.Web.ViewModels;
 
 namespace Certio.Web.Services;
 
@@ -93,6 +94,22 @@ public class ChannelManagementService : IChannelManagementService
             .CountAsync();
 
         return unreadCount;
+    }
+
+    public async Task<List<CommunicationsTeamMember>> GetOrganizationTeamMembersAsync(int organizationId)
+    {
+        return await _context.UserOrganizations
+            .Where(uo => uo.OrganizationId == organizationId && uo.IsActive)
+            .Include(uo => uo.User)
+            .Select(uo => new CommunicationsTeamMember
+            {
+                Name = $"{uo.User.FirstName} {uo.User.LastName}",
+                Role = uo.Role.ToString(),
+                Status = "offline", // Will be updated by SignalR
+                Avatar = $"{uo.User.FirstName.Substring(0, 1)}{uo.User.LastName.Substring(0, 1)}",
+                Activity = "Available"
+            })
+            .ToListAsync();
     }
 
     public async Task<List<int>> GetOnlineUserIdsAsync(int organizationId)

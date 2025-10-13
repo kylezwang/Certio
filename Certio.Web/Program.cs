@@ -283,6 +283,9 @@ builder.Services.AddScoped<Certio.Application.Interfaces.IOrganizationContextSer
 builder.Services.AddScoped<Certio.Application.Interfaces.IMatterService, Certio.Application.Services.MatterService>();
 builder.Services.AddScoped<Certio.Application.Interfaces.ITaskService, Certio.Application.Services.TaskService>();
 builder.Services.AddScoped<Certio.Application.Interfaces.ISubTaskService, Certio.Application.Services.SubTaskService>();
+builder.Services.AddScoped<Certio.Application.Interfaces.IOrganizationService, Certio.Application.Services.OrganizationService>();
+builder.Services.AddScoped<Certio.Application.Interfaces.ITeamService, Certio.Application.Services.TeamService>();
+builder.Services.AddScoped<Certio.Application.Interfaces.IOrganizationRelationshipService, Certio.Application.Services.OrganizationRelationshipService>();
 
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(options =>
