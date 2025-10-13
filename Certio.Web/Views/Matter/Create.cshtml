@@ -68,6 +68,32 @@
 
                         <form asp-action="Create" asp-controller="Matter" method="post" id="matterForm">
                             <input type="hidden" asp-for="Step" />
+                            
+                            <!-- Validation Summary -->
+                            @if (!ViewData.ModelState.IsValid)
+                            {
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <strong>Validation Error</strong>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    <ul class="mb-0 mt-2">
+                                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                        {
+                                            <li>@error.ErrorMessage</li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+                            
+                            @if (TempData["ErrorMessage"] != null)
+                            {
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    @TempData["ErrorMessage"]
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            }
+                            
                             <!-- Persist values from other steps so full state is posted each time -->
                             @if (Model.Step != 1)
                             {
@@ -85,18 +111,22 @@
                             }
                             @if (Model.Step != 3)
                             {
+                                <!-- DEBUG: Rendering hidden inputs for Step @Model.Step, FirmAssignments.Count = @Model.FirmAssignments.Count -->
                                 @for (int i = 0; i < Model.FirmAssignments.Count; i++)
                                 {
+                                    <!-- DEBUG: FirmAssignments[@i] - Type: @Model.FirmAssignments[i].AssignmentType, UserId: @Model.FirmAssignments[i].UserId, Role: @Model.FirmAssignments[i].Role -->
                                     <input type="hidden" name="FirmAssignments[@i].UserId" value="@Model.FirmAssignments[i].UserId" />
                                     <input type="hidden" name="FirmAssignments[@i].AssignmentType" value="@Model.FirmAssignments[i].AssignmentType" />
                                     <input type="hidden" name="FirmAssignments[@i].Role" value="@Model.FirmAssignments[i].Role" />
-                                    <input type="hidden" name="FirmAssignments[@i].IsNotifyRecipient" value="@Model.FirmAssignments[i].IsNotifyRecipient" />
+                                    <input type="hidden" name="FirmAssignments[@i].IsNotifyRecipient" value="@Model.FirmAssignments[i].IsNotifyRecipient.ToString().ToLower()" />
                                 }
+                                <!-- DEBUG: RelevantContacts.Count = @Model.RelevantContacts.Count -->
                                 @for (int i = 0; i < Model.RelevantContacts.Count; i++)
                                 {
+                                    <!-- DEBUG: RelevantContacts[@i] - UserId: @Model.RelevantContacts[i].UserId, Involvement: @Model.RelevantContacts[i].Involvement -->
                                     <input type="hidden" name="RelevantContacts[@i].UserId" value="@Model.RelevantContacts[i].UserId" />
                                     <input type="hidden" name="RelevantContacts[@i].Involvement" value="@Model.RelevantContacts[i].Involvement" />
-                                    <input type="hidden" name="RelevantContacts[@i].IsNotifyRecipient" value="@Model.RelevantContacts[i].IsNotifyRecipient" />
+                                    <input type="hidden" name="RelevantContacts[@i].IsNotifyRecipient" value="@Model.RelevantContacts[i].IsNotifyRecipient.ToString().ToLower()" />
                                 }
                             }
                             @if (Model.Step != 4)
@@ -313,7 +343,7 @@
                                                         <i class="fas fa-user-tie me-2" style="color: #0b365e;"></i>
                                                         Responsible Attorney
                                                     </label>
-                                                    <select class="form-select form-select-lg firm-assignment-select" data-assignment-type="ResponsibleAttorney">
+                                                    <select name="FirmAssignments[0].UserId" class="form-select form-select-lg firm-assignment-select" data-assignment-type="ResponsibleAttorney">
                                                         <option value="">Select responsible attorney</option>
                                                         @foreach (var member in Model.OrgMembers)
                                                         {
@@ -330,7 +360,7 @@
                                                         <i class="fas fa-user me-2" style="color: #0b365e;"></i>
                                                         Responsible Staff
                                                     </label>
-                                                    <select class="form-select form-select-lg firm-assignment-select" data-assignment-type="ResponsibleStaff">
+                                                    <select name="FirmAssignments[1].UserId" class="form-select form-select-lg firm-assignment-select" data-assignment-type="ResponsibleStaff">
                                                         <option value="">Select responsible staff</option>
                                                         @foreach (var member in Model.OrgMembers)
                                                         {
@@ -349,7 +379,7 @@
                                                         <i class="fas fa-user-tie me-2" style="color: #0b365e;"></i>
                                                         Originating Attorney
                                                     </label>
-                                                    <select class="form-select form-select-lg firm-assignment-select" data-assignment-type="OriginatingAttorney">
+                                                    <select name="FirmAssignments[2].UserId" class="form-select form-select-lg firm-assignment-select" data-assignment-type="OriginatingAttorney">
                                                         <option value="">Select originating attorney</option>
                                                         @foreach (var member in Model.OrgMembers)
                                                         {
@@ -400,8 +430,8 @@
                                                             </select>
                                                         </div>
                                                         <div class="flex-grow-1 flex-shrink-1" style="flex-basis: 0;">
-                                                            <label class="form-label fw-bold text-dark">Involvement</label>
-                                                            <input name="RelevantContacts[0].Involvement" class="form-control" placeholder="e.g., Decision maker, Billing contact" />
+                                                            <label class="form-label fw-bold text-dark">Involvement <span class="text-danger">*</span></label>
+                                                            <input name="RelevantContacts[0].Involvement" class="form-control" placeholder="e.g., Decision maker, Billing contact" required />
                                                         </div>
                                                         <div class="flex-shrink-0">
                                                             <button type="button" class="btn btn-outline-danger remove-contact" data-index="0">
@@ -441,8 +471,8 @@
                                                                 </select>
                                                             </div>
                                                             <div class="flex-grow-1 flex-shrink-1" style="flex-basis: 0;">
-                                                                <label class="form-label fw-bold text-dark">Involvement</label>
-                                                                <input asp-for="RelevantContacts[i].Involvement" class="form-control" placeholder="e.g., Decision maker, Billing contact" />
+                                                                <label class="form-label fw-bold text-dark">Involvement <span class="text-danger">*</span></label>
+                                                                <input asp-for="RelevantContacts[i].Involvement" class="form-control" placeholder="e.g., Decision maker, Billing contact" required />
                                                             </div>
                                                             <div class="flex-shrink-0">
                                                                 <button type="button" class="btn btn-outline-danger remove-contact" data-index="@i">
@@ -611,14 +641,14 @@
                                                     Access Level <span class="text-danger">*</span>
                                                 </label>
                                                 <div class="form-check mb-3 mt-2">
-                                                    <input class="form-check-input" type="radio" name="AccessLevel" id="accessEveryone" value="Everyone" @(Model.AccessLevel == "Everyone" ? "checked" : null)>
+                                                    <input class="form-check-input" type="radio" name="AccessLevel" id="accessEveryone" value="Everyone" @(Model.AccessLevel == "Everyone" ? "checked" : "")>
                                                     <label class="form-check-label" for="accessEveryone">
                                                         <span class="fw-bold">Everyone</span>
                                                         <small class="text-muted d-block">All organization members can view this matter</small>
                                                     </label>
                                                 </div>
                                                 <div class="form-check">
-                                                    <input class="form-check-input" type="radio" name="AccessLevel" id="accessSpecific" value="Specific" @(Model.AccessLevel == "Specific" ? "checked" : null)>
+                                                    <input class="form-check-input" type="radio" name="AccessLevel" id="accessSpecific" value="Specific" @(Model.AccessLevel == "Specific" ? "checked" : "")>
                                                     <label class="form-check-label" for="accessSpecific">
                                                         <span class="fw-bold">Specific users or groups</span>
                                                         <small class="text-muted d-block">Only selected users and groups can view this matter</small>
@@ -664,8 +694,9 @@
                                                 <div id="availableUsersList" class="border rounded" style="max-height: 200px; overflow-y: auto; padding-left: 0.5rem;">
                                                     @foreach (var member in Model.OrgMembers)
                                                     {
+                                                        var isSelected = Model.PermissionUserIds?.Contains(member.Id) ?? false;
                                                         <div class="form-check user-item" data-user-id="@member.Id" data-user-name="@member.Name" data-user-email="@member.Email">
-                                                            <input class="form-check-input user-checkbox" type="checkbox" id="user_@member.Id" value="@member.Id" style="margin-left: 0rem; margin-top: 0.8rem;">
+                                                            <input class="form-check-input user-checkbox" type="checkbox" id="user_@member.Id" value="@member.Id" @(isSelected ? "checked" : "") style="margin-left: 0rem; margin-top: 0.8rem;">
                                                             <label class="form-check-label" for="user_@member.Id" style="padding-left: 1rem;">
                                                                 <strong>@member.Name</strong>
                                                                 <small class="text-muted d-block">@member.Email</small>
@@ -763,6 +794,26 @@
                                 </div>
 
                                 <!-- Meta Info -->
+                                @{
+                                    // Collect all assigned user IDs for preview
+                                    var previewAssignedUserIds = new List<int>();
+                                    foreach (var fa in Model.FirmAssignments)
+                                    {
+                                        if (fa.UserId.HasValue)
+                                        {
+                                            previewAssignedUserIds.Add(fa.UserId.Value);
+                                        }
+                                    }
+                                    foreach (var rc in Model.RelevantContacts)
+                                    {
+                                        if (rc.UserId.HasValue)
+                                        {
+                                            previewAssignedUserIds.Add(rc.UserId.Value);
+                                        }
+                                    }
+                                    var previewUniqueAssignees = previewAssignedUserIds.Distinct().ToList();
+                                    var previewTotalAssignees = previewUniqueAssignees.Count;
+                                }
                                 <div class="d-flex justify-content-between align-items-center text-muted small mb-2" style="font-size: 0.75rem;">
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-calendar me-1"></i>
@@ -770,15 +821,41 @@
                                     </div>
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-users me-1"></i>
-                                        <span class="assignees-count-text">0 assignees</span>
+                                        <span class="assignees-count-text">@previewTotalAssignees assignee@(previewTotalAssignees != 1 ? "s" : "")</span>
                                     </div>
                                 </div>
 
-                                <!-- Team Placeholder -->
+                                <!-- Team Avatars -->
                                 <div class="d-flex align-items-center">
                                     <span class="text-muted small me-2" style="font-size: 0.75rem;">Team:</span>
                                     <div class="d-flex team-avatars">
-                                        <div class="assignee-avatar me-1 bg-muted text-muted" style="width: 24px; height: 24px; font-size: 0.6rem;">+0</div>
+                                        @if (previewTotalAssignees == 0)
+                                        {
+                                            <div class="assignee-avatar me-1" style="width: 24px; height: 24px; font-size: 0.6rem;">+0</div>
+                                        }
+                                        else
+                                        {
+                                            @foreach (var userId in previewUniqueAssignees)
+                                            {
+                                                var member = Model.OrgMembers.FirstOrDefault(m => m.Id == userId);
+                                                if (member != null)
+                                                {
+                                                    var initials = "";
+                                                    var nameParts = member.Name.Split(' ');
+                                                    if (nameParts.Length >= 2)
+                                                    {
+                                                        initials = $"{nameParts[0][0]}{nameParts[1][0]}";
+                                                    }
+                                                    else if (nameParts.Length == 1 && nameParts[0].Length >= 2)
+                                                    {
+                                                        initials = nameParts[0].Substring(0, 2);
+                                                    }
+                                                    <div class="assignee-avatar me-1" style="width: 24px; height: 24px; font-size: 0.6rem;">
+                                                        @initials.ToUpper()
+                                                    </div>
+                                                }
+                                            }
+                                        }
                                     </div>
                                 </div>
                             </div>
@@ -1097,11 +1174,13 @@
                 startDate: @Html.Raw(Json.Serialize(Model.StartDate?.ToString("yyyy-MM-dd") ?? "")),
                 pendingDate: @Html.Raw(Json.Serialize(Model.PendingDate?.ToString("yyyy-MM-dd") ?? "")),
                 statuteOfLimitationsDate: @Html.Raw(Json.Serialize(Model.StatuteOfLimitationsDate?.ToString("yyyy-MM-dd") ?? "")),
-                firmAssignments: @Html.Raw(Json.Serialize(Model.FirmAssignments.Select(fa => new { 
-                    AssignmentType = fa.AssignmentType, 
-                    UserId = fa.UserId?.ToString() ?? "", 
-                    Role = fa.Role ?? "" 
-                })))
+                firmAssignments: @Html.Raw(Json.Serialize(Model.FirmAssignments
+                    .Where(fa => fa.UserId.HasValue)
+                    .Select(fa => new { 
+                        AssignmentType = fa.AssignmentType, 
+                        UserId = fa.UserId.Value.ToString(), 
+                        Role = fa.Role ?? "" 
+                    })))
             };
             
             const previewTitle = document.querySelector('.card-title');
@@ -1218,6 +1297,31 @@
             }
 
             function updateTeamAvatarAndAssignees() {
+                // On Step 4, read from hidden fields as fallback if currentValues is empty
+                if (@Model.Step === 4 && currentValues.firmAssignments.length === 0) {
+                    const hiddenInputs = document.querySelectorAll('input[type="hidden"][name^="FirmAssignments"][name$=".UserId"]');
+                    hiddenInputs.forEach(input => {
+                        if (input.value && input.value.trim() !== '') {
+                            // Extract index from name like "FirmAssignments[0].UserId"
+                            const match = input.name.match(/FirmAssignments\[(\d+)\]\.UserId/);
+                            if (match) {
+                                const index = parseInt(match[1]);
+                                const assignmentTypeInput = document.querySelector(`input[name="FirmAssignments[${index}].AssignmentType"]`);
+                                const roleInput = document.querySelector(`input[name="FirmAssignments[${index}].Role"]`);
+                                
+                                if (assignmentTypeInput) {
+                                    currentValues.firmAssignments.push({
+                                        userId: input.value,
+                                        assignmentType: assignmentTypeInput.value,
+                                        role: roleInput ? roleInput.value : ''
+                                    });
+                                }
+                            }
+                        }
+                    });
+                    console.log('Recovered firmAssignments from hidden fields:', currentValues.firmAssignments);
+                }
+                
                 // Render avatars for: ResponsibleAttorney, OriginatingAttorney, ResponsibleStaff, plus each selected relevant contact
                 if (teamAvatars) {
                     teamAvatars.innerHTML = '';
@@ -1227,8 +1331,8 @@
 
                     // Role members first (preserve order)
                     const roleIds = currentValues.firmAssignments
-                        .filter(fa => fa.UserId && String(fa.UserId).trim() !== '')
-                        .map(fa => fa.UserId);
+                        .filter(fa => fa.userId && String(fa.userId).trim() !== '')
+                        .map(fa => fa.userId);
 
                     roleIds.forEach(id => {
                         const key = String(id);
@@ -1238,6 +1342,9 @@
                         addedIds.add(key);
                         const el = document.createElement('div');
                         el.className = 'assignee-avatar me-1';
+                        el.style.width = '24px';
+                        el.style.height = '24px';
+                        el.style.fontSize = '0.6rem';
                         el.textContent = getInitials(m.name);
                         avatars.push(el);
                     });
@@ -1255,6 +1362,9 @@
                             addedIds.add(key);
                             const el = document.createElement('div');
                             el.className = 'assignee-avatar me-1';
+                            el.style.width = '24px';
+                            el.style.height = '24px';
+                            el.style.fontSize = '0.6rem';
                             el.textContent = getInitials(m.name);
                             avatars.push(el);
                         });
@@ -1268,6 +1378,9 @@
                             addedIds.add(key);
                             const el = document.createElement('div');
                             el.className = 'assignee-avatar me-1';
+                            el.style.width = '24px';
+                            el.style.height = '24px';
+                            el.style.fontSize = '0.6rem';
                             el.textContent = getInitials(m.name);
                             avatars.push(el);
                         });
@@ -1276,7 +1389,7 @@
                     // If none selected, show placeholder +0
                     if (avatars.length === 0) {
                         const placeholder = document.createElement('div');
-                        placeholder.className = 'assignee-avatar me-1 bg-muted text-muted';
+                        placeholder.className = 'assignee-avatar me-1';
                         placeholder.style.width = '24px';
                         placeholder.style.height = '24px';
                         placeholder.style.fontSize = '0.6rem';
@@ -1290,7 +1403,7 @@
                 // Count distinct assignees: firm assignments plus relevant contacts
                 const allIds = [];
                 currentValues.firmAssignments
-                    .forEach(fa => { if (fa.UserId && String(fa.UserId).trim() !== '') allIds.push(String(fa.UserId)); });
+                    .forEach(fa => { if (fa.userId && String(fa.userId).trim() !== '') allIds.push(String(fa.userId)); });
                 const container = document.getElementById('relevant-contacts-container');
                 if (container) {
                     const selects = container.querySelectorAll('select.contact-select');
@@ -1329,6 +1442,17 @@
             
             // Initialize preview with current values
             updatePreview();
+            
+            // Debug logging for Step 4
+            if (@Model.Step === 4) {
+                console.log('Step 4 Debug - Model.FirmAssignments count:', @Model.FirmAssignments.Count);
+                console.log('Step 4 Debug - currentValues.firmAssignments:', currentValues.firmAssignments);
+                console.log('Step 4 Debug - Model.RelevantContacts count:', @Model.RelevantContacts.Count);
+                console.log('Step 4 Debug - initialRelevantContacts:', initialRelevantContacts);
+                
+                // Force update on Step 4 to ensure preview is populated
+                updateTeamAvatarAndAssignees();
+            }
             
             // Add event listeners for current step fields
             const titleInput = document.querySelector('input[name="Title"]');
@@ -1401,16 +1525,16 @@
                     };
                     const role = roleMap[assignmentType] || '';
                     
-                    const existingAssignment = currentValues.firmAssignments.find(fa => fa.AssignmentType === assignmentType);
+                    const existingAssignment = currentValues.firmAssignments.find(fa => fa.assignmentType === assignmentType);
                     if (existingAssignment) {
-                        existingAssignment.UserId = this.value;
-                        existingAssignment.Role = role;
+                        existingAssignment.userId = this.value;
+                        existingAssignment.role = role;
                     } else {
                         currentValues.firmAssignments.push({
-                            AssignmentType: assignmentType,
-                            UserId: this.value,
-                            Role: role,
-                            IsNotifyRecipient: true
+                            assignmentType: assignmentType,
+                            userId: this.value,
+                            role: role,
+                            isNotifyRecipient: true
                         });
                     }
                     
@@ -1436,13 +1560,55 @@
                 });
             }
             
-            // If on step 3, also update preview when relevant contacts change
+            // If on step 3, also update preview when firm assignments or relevant contacts change
             if (@Model.Step === 3) {
+                // Update preview when firm assignments OR relevant contacts change
                 document.addEventListener('change', function(e) {
+                    // Handle relevant contacts
                     if (e.target && e.target.matches('select.contact-select')) {
+                        updateTeamAvatarAndAssignees();
+                        return;
+                    }
+                    
+                    // Handle firm assignments
+                    if (e.target && e.target.matches('select.firm-assignment-select')) {
+                        // Update currentValues.firmAssignments with the new selection
+                        const assignmentType = e.target.getAttribute('data-assignment-type');
+                        const userId = e.target.value;
+                        
+                        console.log('Firm assignment changed:', assignmentType, userId);
+                        
+                        // Find and update the corresponding firm assignment, or add it if not found
+                        const existingIndex = currentValues.firmAssignments.findIndex(fa => fa.assignmentType === assignmentType);
+                        if (existingIndex !== -1) {
+                            // Update existing
+                            currentValues.firmAssignments[existingIndex].userId = userId;
+                            console.log('Updated existing at index', existingIndex);
+                        } else {
+                            // Add new assignment
+                            let roleName = '';
+                            if (assignmentType === 'ResponsibleAttorney') roleName = 'Responsible Attorney';
+                            else if (assignmentType === 'ResponsibleStaff') roleName = 'Responsible Staff';
+                            else if (assignmentType === 'OriginatingAttorney') roleName = 'Originating Attorney';
+                            
+                            currentValues.firmAssignments.push({
+                                assignmentType: assignmentType,
+                                userId: userId,
+                                role: roleName
+                            });
+                            console.log('Added new firm assignment');
+                        }
+                        
+                        console.log('currentValues.firmAssignments:', currentValues.firmAssignments);
+                        
+                        // Update the preview
                         updateTeamAvatarAndAssignees();
                     }
                 });
+                
+                // Initialize the preview with any existing firm assignments
+                console.log('Initializing preview, firmAssignments:', currentValues.firmAssignments);
+                updateTeamAvatarAndAssignees();
             }
             
             // Back button now posts with action=previous; client-side handler removed
@@ -1476,8 +1642,8 @@
                                 </select>
                             </div>
                             <div class="flex-grow-1 flex-shrink-1" style="flex-basis: 0;">
-                                <label class="form-label fw-bold text-dark">Involvement</label>
-                                <input name="RelevantContacts[${contactIndex}].Involvement" class="form-control" placeholder="e.g., Decision maker, Billing contact" />
+                                <label class="form-label fw-bold text-dark">Involvement <span class="text-danger">*</span></label>
+                                <input name="RelevantContacts[${contactIndex}].Involvement" class="form-control" placeholder="e.g., Decision maker, Billing contact" required />
                             </div>
                             <div class="flex-shrink-0">
                                 <button type="button" class="btn btn-outline-danger remove-contact" data-index="${contactIndex}">
@@ -1507,6 +1673,14 @@
                 tooltipTriggerList.map(function (tooltipTriggerEl) {
                     return new bootstrap.Tooltip(tooltipTriggerEl);
                 });
+                
+                // Add event listener to the new contact select to update preview
+                const newSelect = newRow.querySelector('select.contact-select');
+                if (newSelect && typeof updateTeamAvatarAndAssignees === 'function') {
+                    newSelect.addEventListener('change', function() {
+                        updateTeamAvatarAndAssignees();
+                    });
+                }
             });
             
             // Remove contact functionality
@@ -1515,6 +1689,11 @@
                     const button = e.target.closest('.remove-contact');
                     const row = button.closest('.relevant-contact-row');
                     row.remove();
+                    
+                    // Update preview after removing contact
+                    if (typeof updateTeamAvatarAndAssignees === 'function') {
+                        updateTeamAvatarAndAssignees();
+                    }
                 }
             });
         }
@@ -1665,8 +1844,44 @@
                 });
             });
 
-            // Initialize
+            // Initialize - pre-select already assigned users
             handleAccessLevelChange();
+            
+            // Pre-select users who are already assigned to the matter
+            const assignedUserIds = new Set();
+            
+            // Add firm assignments
+            @foreach (var fa in Model.FirmAssignments)
+            {
+                if (fa.UserId.HasValue)
+                {
+                    @:assignedUserIds.add('@fa.UserId.Value');
+                }
+            }
+            
+            // Add relevant contacts
+            @foreach (var rc in Model.RelevantContacts)
+            {
+                if (rc.UserId.HasValue)
+                {
+                    @:assignedUserIds.add('@rc.UserId.Value');
+                }
+            }
+            
+            // Check the checkboxes and add to selectedUsers
+            assignedUserIds.forEach(userId => {
+                const checkbox = document.getElementById(`user_${userId}`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                    selectedUsers.add(userId);
+                    checkbox.closest('.user-item').classList.add('selected');
+                }
+            });
+            
+            // Update the display if any users were pre-selected
+            if (selectedUsers.size > 0) {
+                updateSelectedUsersDisplay();
+            }
         }
 
     </script>

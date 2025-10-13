@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Certio.Application.Services;
+using Certio.Application.Interfaces;
 using Certio.Web.Services;
 using Certio.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;

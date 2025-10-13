@@ -14,19 +14,16 @@ namespace Certio.Web.Controllers;
 public class ChatController : Controller
 {
     private readonly IChatService _chatService;
-    private readonly AuthorizationHelper _authHelper;
-    private readonly IAuditService _auditService;
+    private readonly IOrganizationContextService _orgContextService;
     private readonly ILogger<ChatController> _logger;
 
     public ChatController(
         IChatService chatService,
-        AuthorizationHelper authHelper,
-        IAuditService auditService,
+        IOrganizationContextService orgContextService,
         ILogger<ChatController> logger)
     {
         _chatService = chatService;
-        _authHelper = authHelper;
-        _auditService = auditService;
+        _orgContextService = orgContextService;
         _logger = logger;
     }
 
@@ -128,7 +125,7 @@ public class ChatController : Controller
     }
 
     [HttpGet("channel/{channelId}/messages")]
-    [Authorize(Policy = "OrgMember")] // SECURITY FIX: Removed AllowAnonymous!
+    [Authorize(Policy = "OrgMember")]
     public async Task<IActionResult> GetChannelMessages(int orgId, int channelId)
     {
         try
@@ -148,9 +145,8 @@ public class ChatController : Controller
                 return Json(new { success = false, error = "User not authenticated" });
             }
 
-            // SECURITY FIX: Validate user has access to the channel
-            // For now, check if user is in the organization
-            var canAccess = await _authHelper.ValidateUserInOrganizationAsync(customUser.Id, orgId);
+            // Validate user has access to the organization
+            var canAccess = await _orgContextService.ValidateUserInOrganizationAsync(customUser.Id, orgId);
             if (!canAccess)
             {
                 _logger.LogWarning("SECURITY: User {UserId} attempted to access channel {ChannelId} in unauthorized org {OrgId}", 
@@ -302,8 +298,8 @@ public class ChatController : Controller
                 return Json(new { success = false, error = "User not authenticated" });
             }
 
-            // SECURITY FIX: Validate user has access to this conversation
-            var canAccess = await _authHelper.ValidateUserCanAccessConversationAsync(request.ConversationId, customUser.Id, orgId);
+            // Validate user has access to this conversation
+            var canAccess = await _chatService.CanUserAccessConversationAsync(request.ConversationId, customUser.Id, orgId);
             if (!canAccess)
             {
                 _logger.LogWarning("SECURITY: User {UserId} attempted to delete unauthorized conversation {ConvId}", 
@@ -311,19 +307,13 @@ public class ChatController : Controller
                 return Json(new { success = false, error = "Access denied" });
             }
 
-            var success = await _chatService.DeleteConversationAsync(request.ConversationId, orgId);
+            // Delete conversation (audit logging handled in service)
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+            var success = await _chatService.DeleteConversationAsync(request.ConversationId, orgId, customUser.Id, ipAddress, userAgent);
 
-            // Audit log the deletion
             if (success)
             {
-                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                await _auditService.LogDeleteAsync(
-                    customUser.Id,
-                    orgId,
-                    "Conversation",
-                    request.ConversationId,
-                    ipAddress);
-
                 _logger.LogInformation("User {UserId} deleted conversation {ConvId} in org {OrgId}", 
                     customUser.Id, request.ConversationId, orgId);
             }

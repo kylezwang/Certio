@@ -7,6 +7,7 @@ using Certio.Domain.Users;
 using Certio.Domain.Organizations;
 using Certio.Infrastructure.Data;
 using Certio.Application.Interfaces;
+using Certio.Application.DTOs;
 using Certio.Web.Security;
 using Certio.Web.Services;
 using Microsoft.EntityFrameworkCore;
@@ -18,23 +19,29 @@ namespace Certio.Web.Controllers
 {
     public class TasksController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ApplicationDbContext _context; // Used for Index action complex queries (optimization pending)
         private readonly GoogleMapsConfiguration _googleMapsConfig;
-        private readonly AuthorizationHelper _authHelper;
-        private readonly IAuditService _auditService;
+        private readonly ITaskService _taskService;
+        private readonly ISubTaskService _subTaskService;
+        private readonly IMatterService _matterService;
+        private readonly IFirmRelationshipCacheService _firmRelationshipCache;
         private readonly ILogger<TasksController> _logger;
 
         public TasksController(
             ApplicationDbContext context, 
             IOptions<GoogleMapsConfiguration> googleMapsConfig,
-            AuthorizationHelper authHelper,
-            IAuditService auditService,
+            ITaskService taskService,
+            ISubTaskService subTaskService,
+            IMatterService matterService,
+            IFirmRelationshipCacheService firmRelationshipCache,
             ILogger<TasksController> logger)
         {
             _context = context;
             _googleMapsConfig = googleMapsConfig.Value;
-            _authHelper = authHelper;
-            _auditService = auditService;
+            _taskService = taskService;
+            _subTaskService = subTaskService;
+            _matterService = matterService;
+            _firmRelationshipCache = firmRelationshipCache;
             _logger = logger;
         }
 
@@ -44,155 +51,147 @@ namespace Certio.Web.Controllers
         [HttpGet("/Tasks/Index")]
         public async Task<IActionResult> Index(int? orgId = null)
         {
-            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
-            if (customUser == null)
+            var (user, organizationId) = GetUserContext();
+            if (user == null || organizationId == 0)
             {
                 return RedirectToAction("Index", "Home");
             }
 
-            // If orgId not provided, use primary organization
-            int organizationId;
+            // Use provided orgId if available
             if (orgId.HasValue)
             {
                 organizationId = orgId.Value;
-            }
-            else
-            {
-                var primaryOrg = customUser.GetPrimaryOrganization();
-                if (primaryOrg == null)
-                {
-                    return RedirectToAction("Index", "Home");
-                }
-                organizationId = primaryOrg.OrganizationId;
             }
 
             // Set ViewBag for layout
             ViewBag.OrganizationId = organizationId;
             ViewBag.GoogleMapsApiKey = _googleMapsConfig.ApiKey;
             ViewBag.GoogleMapsEnabled = _googleMapsConfig.Enabled;
-            
-            // Set current user data for JavaScript
-            ViewBag.CurrentUserId = customUser.Id;
-            ViewBag.CurrentUserName = $"{customUser.FirstName} {customUser.LastName}";
-            ViewBag.CurrentUserInitials = $"{customUser.FirstName[0]}{customUser.LastName[0]}".ToUpper();
-            ViewBag.CurrentUserEmail = customUser.Email ?? "";
-            
+            ViewBag.CurrentUserId = user.Id;
+            ViewBag.CurrentUserName = $"{user.FirstName} {user.LastName}";
+            ViewBag.CurrentUserInitials = $"{user.FirstName[0]}{user.LastName[0]}".ToUpper();
+            ViewBag.CurrentUserEmail = user.Email ?? "";
+
+            // Get organization name
             var org = await _context.Organizations
                 .Where(o => o.Id == organizationId)
                 .FirstOrDefaultAsync();
-            
             ViewBag.OrganizationName = org?.Name ?? "Client";
 
-            // Get matters from the user's organization AND from client organizations they have relationships with
-            var userOrgMembership = customUser.GetOrganizationMembership(organizationId);
-            var isLawFirmUser = userOrgMembership?.UserType == UserTypes.LawFirm;
-
-            // Initialize client organization IDs list
-            var clientOrgIds = new List<int>();
-
-            // Get tasks from the user's organization AND from client organizations they have relationships with
-            IQueryable<TaskItem> tasksQuery = _context.TaskItems
-                .Where(t => t.OrgId == organizationId);  // Own organization tasks
-
-            if (isLawFirmUser)
+            // Check if this is a LawFirm organization - if so, aggregate tasks/matters from all accessible clients
+            var currentOrg = await _context.Organizations
+                .FirstOrDefaultAsync(o => o.Id == organizationId);
+            
+            List<TaskDto> allTasks;
+            List<MatterDto> allMatters;
+            
+            if (currentOrg?.Type == Certio.Domain.Organizations.OrganizationType.LawFirm)
             {
-                // Get all client organizations this law firm has relationships with
-                clientOrgIds = await _context.OrganizationRelationships
-                    .Where(r => r.SourceOrganizationId == organizationId &&
-                               r.RelationshipType == RelationshipTypes.LawFirmClient &&
-                               r.IsActive && !r.IsDeleted &&
-                               (!r.ExpiresAt.HasValue || r.ExpiresAt.Value > DateTime.UtcNow))
-                    .Select(r => r.TargetOrganizationId)
-                    .ToListAsync();
-
-                // Include tasks from all connected client organizations
-                tasksQuery = _context.TaskItems
-                    .Where(t => t.OrgId == organizationId || clientOrgIds.Contains(t.OrgId));
+                // Get all accessible client organizations for this user
+                var accessibleClients = await _firmRelationshipCache.GetAccessibleClientOrganizationsAsync(user.Id);
+                var clientOrgIds = accessibleClients.Select(c => c.Id).ToList();
+                
+                // Add the LawFirm organization's own ID to include its tasks/matters too
+                clientOrgIds.Add(organizationId);
+                
+                // Aggregate tasks from all accessible organizations
+                allTasks = new List<TaskDto>();
+                allMatters = new List<MatterDto>();
+                
+                foreach (var clientOrgId in clientOrgIds)
+                {
+                    var tasksResult = await _taskService.ListTasksAsync(user.Id, clientOrgId);
+                    if (tasksResult.Success)
+                    {
+                        allTasks.AddRange(tasksResult.Data!);
+                    }
+                    
+                    var mattersResult = await _matterService.ListMattersAsync(user.Id, clientOrgId);
+                    if (mattersResult.Success)
+                    {
+                        allMatters.AddRange(mattersResult.Data!);
+                    }
+                }
+            }
+            else
+            {
+                // For client organizations, show only tasks/matters from this specific client
+                var tasksResult = await _taskService.ListTasksAsync(user.Id, organizationId);
+                if (!tasksResult.Success)
+                {
+                    TempData["Error"] = tasksResult.ErrorMessage ?? "Failed to load tasks";
+                    return View(new TasksViewModel());
+                }
+                
+                var mattersResult = await _matterService.ListMattersAsync(user.Id, organizationId);
+                if (!mattersResult.Success)
+                {
+                    TempData["Error"] = mattersResult.ErrorMessage ?? "Failed to load matters";
+                    return View(new TasksViewModel());
+                }
+                
+                allTasks = tasksResult.Data!;
+                allMatters = mattersResult.Data!;
             }
 
-            // Apply task-level filtering based on user assignments and matter access
-            // Users should see tasks where:
-            // 1. They are directly assigned to the task (via TaskAssignments)
-            // 2. They are assigned to the task's matter (via MatterAssignments)
-            // 3. The matter has "Everyone" access level
-            // 4. They have specific permission to the matter (via MatterPermissions)
-            tasksQuery = tasksQuery
-                .Include(t => t.Matter)
-                    .ThenInclude(m => m.Assignments)
-                .Include(t => t.Matter)
-                    .ThenInclude(m => m.Permissions)
-                .Include(t => t.TaskAssignments)
-                    .ThenInclude(ta => ta.User)
-                .Include(t => t.Comments)
-                    .ThenInclude(c => c.User)
-                .Include(t => t.SubTasks)
-                    .ThenInclude(st => st.Assignments)
-                        .ThenInclude(sta => sta.User)
-                .Where(t => 
-                    // User is assigned to the task directly
-                    t.TaskAssignments.Any(ta => ta.UserId == customUser.Id && ta.RemovedAt == null) ||
-                    // User is assigned to the matter
-                    t.Matter.Assignments.Any(ma => ma.UserId == customUser.Id && ma.RemovedAt == null) ||
-                    // Matter has "Everyone" access level
-                    t.Matter.AccessLevel == "Everyone" ||
-                    // User has specific permission to the matter
-                    t.Matter.Permissions.Any(p => p.UserId == customUser.Id && p.RevokedAt == null))
-                .OrderBy(t => t.Order);
+            // Get users in organization (direct members + firm-based members)
+            var directUsers = await _context.UserOrganizations
+                .Where(uo => uo.OrganizationId == organizationId && uo.IsActive)
+                .Select(uo => new UserOption
+                {
+                    Id = uo.UserId,
+                    Name = uo.User.FirstName + " " + uo.User.LastName,
+                    Email = uo.User.Email ?? "",
+                    Initials = (uo.User.FirstName.Substring(0, 1) + uo.User.LastName.Substring(0, 1)).ToUpper()
+                })
+                .ToListAsync();
+            
+            // Get users from law firms that have relationships with this organization
+            var firmUsers = await _context.UserOrganizations
+                .Where(uo => uo.IsActive && uo.UserType == Certio.Domain.Users.UserTypes.LawFirm)
+                .Include(uo => uo.User)
+                .Include(uo => uo.Organization)
+                    .ThenInclude(o => o.OrganizationRelationships)
+                .Where(uo => uo.Organization.OrganizationRelationships.Any(rel =>
+                    rel.TargetOrganizationId == organizationId &&
+                    rel.IsActive &&
+                    !rel.IsDeleted &&
+                    rel.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient &&
+                    (!rel.ExpiresAt.HasValue || rel.ExpiresAt.Value > DateTime.UtcNow)))
+                .Select(uo => new UserOption
+                {
+                    Id = uo.User.Id,
+                    Name = uo.User.FirstName + " " + uo.User.LastName,
+                    Email = uo.User.Email ?? "",
+                    Initials = (uo.User.FirstName.Substring(0, 1) + uo.User.LastName.Substring(0, 1)).ToUpper()
+                })
+                .ToListAsync();
+            
+            // Combine and deduplicate
+            var users = directUsers
+                .Union(firmUsers, new UserOptionComparer())
+                .OrderBy(u => u.Name)
+                .ToList();
 
-            var tasks = await tasksQuery.ToListAsync();
+            // Map DTOs to ViewModels
+            var taskViewModels = allTasks.Select(MapDtoToViewModel).ToList();
 
-            IQueryable<Matter> mattersQuery = _context.Matters
-                .Include(m => m.Assignments)
-                .Include(m => m.Permissions)
-                .Where(m => m.OrganizationId == organizationId);  // Own organization matters
-
-            if (isLawFirmUser)
-            {
-                // Use the same clientOrgIds we already fetched for tasks
-                // Include matters from all connected client organizations
-                mattersQuery = _context.Matters
-                    .Include(m => m.Assignments)
-                    .Include(m => m.Permissions)
-                    .Where(m => m.OrganizationId == organizationId || clientOrgIds.Contains(m.OrganizationId));
-            }
-
-            // Apply matter-level filtering based on user access
-            // Users should see matters where:
-            // 1. AccessLevel is "Everyone" (all org members can see)
-            // 2. AccessLevel is "Specific" AND user has explicit permission
-            // 3. User is assigned to the matter
-            mattersQuery = mattersQuery.Where(m => 
-                m.AccessLevel == "Everyone" ||
-                m.Permissions.Any(p => p.UserId == customUser.Id && p.RevokedAt == null) ||
-                m.Assignments.Any(a => a.UserId == customUser.Id && a.RemovedAt == null));
-
+            // Organize tasks by status
             var viewModel = new TasksViewModel
             {
-                AllTasks = tasks.Select(t => MapToViewModel(t)).ToList(),
-                PlannedTasks = tasks.Where(t => t.Status == "Pending").Select(t => MapToViewModel(t)).ToList(),
-                InProgressTasks = tasks.Where(t => t.Status == "InProgress").Select(t => MapToViewModel(t)).ToList(),
-                ReviewTasks = tasks.Where(t => t.Status == "Review").Select(t => MapToViewModel(t)).ToList(),
-                CompletedTasks = tasks.Where(t => t.Status == "Completed").Select(t => MapToViewModel(t)).ToList(),
-                Matters = await mattersQuery
-                    .OrderBy(m => m.Title)
-                    .Select(m => new MatterOption
-                    {
-                        Id = m.Id,
-                        Title = m.Title,
-                        PracticeArea = m.PracticeArea,
-                        AssignedUserIds = m.Assignments.Select(a => a.UserId).ToList()
-                    })
-                    .ToListAsync(),
-                Users = await _context.UserOrganizations
-                    .Where(uo => uo.OrganizationId == organizationId && uo.IsActive)
-                    .Select(uo => new UserOption
-                    {
-                        Id = uo.UserId,
-                        Name = uo.User.FirstName + " " + uo.User.LastName,
-                        Email = uo.User.Email ?? "",
-                        Initials = (uo.User.FirstName.Substring(0, 1) + uo.User.LastName.Substring(0, 1)).ToUpper()
-                    })
-                    .ToListAsync()
+                AllTasks = taskViewModels,
+                PlannedTasks = taskViewModels.Where(t => t.Status == "Pending").ToList(),
+                InProgressTasks = taskViewModels.Where(t => t.Status == "InProgress").ToList(),
+                ReviewTasks = taskViewModels.Where(t => t.Status == "Review").ToList(),
+                CompletedTasks = taskViewModels.Where(t => t.Status == "Completed").ToList(),
+                Matters = allMatters.Select(m => new MatterOption
+                {
+                    Id = m.Id,
+                    Title = m.Title,
+                    PracticeArea = m.PracticeArea,
+                    AssignedUserIds = m.Assignments.Select(a => a.UserId).ToList()
+                }).ToList(),
+                Users = users
             };
 
             return View(viewModel);
@@ -203,58 +202,53 @@ namespace Certio.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([FromBody] CreateTaskRequest request)
         {
-            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
-            if (customUser == null)
+            var (user, _) = GetUserContext();
+            if (user == null)
             {
                 return Json(new { success = false, message = "User not authenticated" });
             }
 
-            var primaryOrg = customUser.GetPrimaryOrganization();
-            if (primaryOrg == null)
+            // Map request to DTO
+            var createDto = new CreateTaskDto
             {
-                return Json(new { success = false, message = "Organization not found" });
-            }
-
-            // Get the matter to determine the correct organization
-            var matter = await _context.Matters
-                .FirstOrDefaultAsync(m => m.Id == request.MatterId);
-
-            if (matter == null)
-            {
-                return Json(new { success = false, message = "Matter not found" });
-            }
-
-            var taskItem = new TaskItem
-            {
-                OrgId = matter.OrganizationId,
-                MatterId = request.MatterId,
                 Title = request.Title,
                 Description = request.Description,
                 Status = request.Status ?? "Pending",
                 Priority = request.Priority ?? "Medium",
-                StartedAt = request.StartedAt,
                 DueDate = request.DueDate,
                 Location = request.Location,
-                Order = request.Order,
-                CreatedAt = DateTime.UtcNow
+                Order = request.Order
             };
 
-            _context.TaskItems.Add(taskItem);
-            await _context.SaveChangesAsync();
+            // Call service to create task
+            var result = await _taskService.CreateTaskAsync(
+                user.Id,
+                request.MatterId,
+                createDto,
+                GetIpAddress(),
+                GetUserAgent());
 
-            // Auto-assign the creator to ensure visibility and notifications
-            var creatorAssignment = new TaskAssignment
+            if (!result.Success)
             {
-                TaskItemId = taskItem.Id,
-                UserId = customUser.Id,
-                AssignmentType = "Assignee",
-                Role = "Task Creator",
-                AssignedAt = DateTime.UtcNow
-            };
-            _context.TaskAssignments.Add(creatorAssignment);
-            await _context.SaveChangesAsync();
+                return Json(new { success = false, message = result.ErrorMessage });
+            }
 
-            return Json(new { success = true, taskId = taskItem.Id });
+            // Auto-assign creator
+            var assignDto = new AssignTaskDto
+            {
+                UserId = user.Id,
+                AssignmentType = "Assignee",
+                Role = "Task Creator"
+            };
+
+            await _taskService.AssignTaskAsync(
+                user.Id,
+                result.Data!.Id,
+                assignDto,
+                GetIpAddress(),
+                GetUserAgent());
+
+            return Json(new { success = true, taskId = result.Data.Id });
         }
 
         // POST: Tasks/Update
@@ -262,89 +256,60 @@ namespace Certio.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Update([FromBody] UpdateTaskRequest request)
         {
-            // Input validation
             if (!InputValidator.IsValidId(request.Id))
             {
                 _logger.LogWarning("Invalid task ID in Update request: {Id}", request.Id);
                 return Json(new { success = false, message = "Invalid task ID" });
             }
 
-            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
-            if (customUser == null)
+            var (user, _) = GetUserContext();
+            if (user == null)
             {
                 _logger.LogWarning("CustomUser not found in HttpContext for Update request");
                 return Json(new { success = false, message = "User not authenticated" });
             }
 
-            // SECURITY FIX: Verify user has access to this task
-            var task = await _authHelper.GetTaskIfAuthorizedAsync(request.Id, customUser.Id, HttpContext);
-            if (task == null)
+            // Validate inputs
+            if (!string.IsNullOrEmpty(request.Title) && !InputValidator.IsValidString(request.Title, InputValidator.MAX_TITLE_LENGTH))
+                return Json(new { success = false, message = "Title is too long" });
+            
+            if (!string.IsNullOrEmpty(request.Description) && !InputValidator.IsValidString(request.Description, InputValidator.MAX_DESCRIPTION_LENGTH))
+                return Json(new { success = false, message = "Description is too long" });
+            
+            if (!string.IsNullOrEmpty(request.Status) && !InputValidator.IsValidTaskStatus(request.Status))
+                return Json(new { success = false, message = "Invalid status value" });
+            
+            if (!string.IsNullOrEmpty(request.Priority) && !InputValidator.IsValidPriority(request.Priority))
+                return Json(new { success = false, message = "Invalid priority value" });
+
+            // Map to DTO
+            var updateDto = new UpdateTaskDto
             {
-                _logger.LogWarning("SECURITY: User {UserId} attempted to update unauthorized task {TaskId}", customUser.Id, request.Id);
-                return Json(new { success = false, message = "Task not found" });
+                Title = !string.IsNullOrEmpty(request.Title) ? InputValidator.Sanitize(request.Title, InputValidator.MAX_TITLE_LENGTH) : null,
+                Description = !string.IsNullOrEmpty(request.Description) ? InputValidator.Sanitize(request.Description, InputValidator.MAX_DESCRIPTION_LENGTH) : null,
+                Status = request.Status,
+                Priority = request.Priority,
+                Location = !string.IsNullOrEmpty(request.Location) ? InputValidator.Sanitize(request.Location, 200) : null,
+                DueDate = request.DueDate,
+                Order = request.Order
+            };
+
+            // Call service
+            var result = await _taskService.UpdateTaskAsync(
+                user.Id,
+                request.Id,
+                updateDto,
+                GetIpAddress(),
+                GetUserAgent());
+
+            if (!result.Success)
+            {
+                _logger.LogWarning("Failed to update task {TaskId} for user {UserId}: {Error}", 
+                    request.Id, user.Id, result.ErrorMessage);
+                return Json(new { success = false, message = result.ErrorMessage });
             }
 
-            // Validate and sanitize inputs
-            if (!string.IsNullOrEmpty(request.Title))
-            {
-                if (!InputValidator.IsValidString(request.Title, InputValidator.MAX_TITLE_LENGTH))
-                    return Json(new { success = false, message = "Title is too long" });
-                task.Title = InputValidator.Sanitize(request.Title, InputValidator.MAX_TITLE_LENGTH);
-            }
-
-            if (!string.IsNullOrEmpty(request.Description))
-            {
-                if (!InputValidator.IsValidString(request.Description, InputValidator.MAX_DESCRIPTION_LENGTH))
-                    return Json(new { success = false, message = "Description is too long" });
-                task.Description = InputValidator.Sanitize(request.Description, InputValidator.MAX_DESCRIPTION_LENGTH);
-            }
-
-            if (!string.IsNullOrEmpty(request.Status))
-            {
-                if (!InputValidator.IsValidTaskStatus(request.Status))
-                    return Json(new { success = false, message = "Invalid status value" });
-                task.Status = request.Status;
-            }
-
-            if (!string.IsNullOrEmpty(request.Priority))
-            {
-                if (!InputValidator.IsValidPriority(request.Priority))
-                    return Json(new { success = false, message = "Invalid priority value" });
-                task.Priority = request.Priority;
-            }
-
-            if (request.StartedAt.HasValue)
-                task.StartedAt = request.StartedAt.Value;
-            if (request.DueDate.HasValue)
-                task.DueDate = request.DueDate.Value;
-            if (!string.IsNullOrEmpty(request.Location))
-                task.Location = InputValidator.Sanitize(request.Location, 200);
-            if (request.Order.HasValue)
-                task.Order = request.Order.Value;
-
-            task.LastModifiedAt = DateTime.UtcNow;
-
-            if (task.Status == "Completed" && !task.CompletedAt.HasValue)
-            {
-                task.CompletedAt = DateTime.UtcNow;
-            }
-
-            await _context.SaveChangesAsync();
-
-            // Audit log the update
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-            await _auditService.LogUpdateAsync(
-                customUser.Id,
-                task.OrgId,
-                "Task",
-                task.Id,
-                $"Updated: {task.Title}",
-                ipAddress,
-                userAgent);
-
-            _logger.LogInformation("User {UserId} updated task {TaskId} in org {OrgId}", customUser.Id, task.Id, task.OrgId);
-
+            _logger.LogInformation("User {UserId} updated task {TaskId}", user.Id, request.Id);
             return Json(new { success = true });
         }
 
@@ -365,49 +330,37 @@ namespace Certio.Web.Controllers
                 return Json(new { success = false, message = "Invalid status value" });
             }
 
-            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
-            if (customUser == null)
+            var (user, _) = GetUserContext();
+            if (user == null)
             {
                 _logger.LogWarning("CustomUser not found in HttpContext for UpdateStatus");
                 return Json(new { success = false, message = "User not authenticated" });
             }
 
-            // SECURITY FIX: Verify user has access to this task
-            var task = await _authHelper.GetTaskIfAuthorizedAsync(request.TaskId, customUser.Id, HttpContext);
-            if (task == null)
+            // Map to DTO
+            var updateDto = new UpdateTaskDto
             {
-                _logger.LogWarning("SECURITY: User {UserId} attempted to update status of unauthorized task {TaskId}", customUser.Id, request.TaskId);
-                return Json(new { success = false, message = "Task not found" });
+                Status = request.Status,
+                Order = request.Order
+            };
+
+            // Call service
+            var result = await _taskService.UpdateTaskAsync(
+                user.Id,
+                request.TaskId,
+                updateDto,
+                GetIpAddress(),
+                GetUserAgent());
+
+            if (!result.Success)
+            {
+                _logger.LogWarning("Failed to update task status {TaskId} for user {UserId}: {Error}",
+                    request.TaskId, user.Id, result.ErrorMessage);
+                return Json(new { success = false, message = result.ErrorMessage });
             }
 
-            task.Status = request.Status;
-            task.Order = request.Order;
-            task.LastModifiedAt = DateTime.UtcNow;
-
-            if (request.Status != "Pending" && !task.StartedAt.HasValue)
-            {
-                task.StartedAt = DateTime.UtcNow;
-            }
-
-            if (request.Status == "Completed" && !task.CompletedAt.HasValue)
-            {
-                task.CompletedAt = DateTime.UtcNow;
-            }
-
-            await _context.SaveChangesAsync();
-
-            // Audit log the status change
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-            await _auditService.LogUpdateAsync(
-                customUser.Id,
-                task.OrgId,
-                "Task",
-                task.Id,
-                $"Status changed to: {request.Status}",
-                ipAddress,
-                userAgent);
-
+            _logger.LogInformation("User {UserId} updated task {TaskId} status to {Status}", 
+                user.Id, request.TaskId, request.Status);
             return Json(new { success = true });
         }
 
@@ -415,29 +368,30 @@ namespace Certio.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Get(int id)
         {
-            // Input validation
             if (!InputValidator.IsValidId(id))
             {
                 _logger.LogWarning("Invalid task ID in Get request: {Id}", id);
                 return Json(new { success = false, message = "Invalid task ID" });
             }
 
-            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
-            if (customUser == null)
+            var (user, _) = GetUserContext();
+            if (user == null)
             {
                 _logger.LogWarning("CustomUser not found in HttpContext for Get request");
                 return Json(new { success = false, message = "User not authenticated" });
             }
 
-            // SECURITY FIX: Verify user has access to this task
-            var task = await _authHelper.GetTaskIfAuthorizedAsync(id, customUser.Id, HttpContext);
-            if (task == null)
+            // Call service
+            var result = await _taskService.GetTaskAsync(user.Id, id);
+
+            if (!result.Success)
             {
-                _logger.LogWarning("SECURITY: User {UserId} attempted to view unauthorized task {TaskId}", customUser.Id, id);
-                return Json(new { success = false, message = "Task not found" });
+                _logger.LogWarning("User {UserId} attempted to view unauthorized task {TaskId}", user.Id, id);
+                return Json(new { success = false, message = result.ErrorMessage });
             }
 
-            var taskViewModel = MapToViewModel(task);
+            // Map DTO to ViewModel (temporary - ideally return DTO directly)
+            var taskViewModel = MapDtoToViewModel(result.Data!);
             return Json(new { success = true, task = taskViewModel });
         }
 
@@ -446,47 +400,34 @@ namespace Certio.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            // Input validation
             if (!InputValidator.IsValidId(id))
             {
                 _logger.LogWarning("Invalid task ID in Delete request: {Id}", id);
                 return Json(new { success = false, message = "Invalid task ID" });
             }
 
-            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
-            if (customUser == null)
+            var (user, _) = GetUserContext();
+            if (user == null)
             {
                 _logger.LogWarning("CustomUser not found in HttpContext for Delete request");
                 return Json(new { success = false, message = "User not authenticated" });
             }
 
-            // SECURITY FIX: Verify user has access to this task before deleting
-            var task = await _authHelper.GetTaskIfAuthorizedAsync(id, customUser.Id, HttpContext);
-            if (task == null)
+            // Call service
+            var result = await _taskService.DeleteTaskAsync(
+                user.Id,
+                id,
+                GetIpAddress(),
+                GetUserAgent());
+
+            if (!result.Success)
             {
-                _logger.LogWarning("SECURITY: User {UserId} attempted to delete unauthorized task {TaskId}", customUser.Id, id);
-                return Json(new { success = false, message = "Task not found" });
+                _logger.LogWarning("Failed to delete task {TaskId} for user {UserId}: {Error}", 
+                    id, user.Id, result.ErrorMessage);
+                return Json(new { success = false, message = result.ErrorMessage });
             }
 
-            // Store info for audit log before deletion
-            var taskTitle = task.Title;
-            var taskOrgId = task.OrgId;
-
-            _context.TaskItems.Remove(task);
-            await _context.SaveChangesAsync();
-
-            // Audit log the deletion
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-            await _auditService.LogDeleteAsync(
-                customUser.Id,
-                taskOrgId,
-                "Task",
-                id,
-                ipAddress);
-
-            _logger.LogInformation("User {UserId} deleted task {TaskId} ({Title}) in org {OrgId}", 
-                customUser.Id, id, taskTitle, taskOrgId);
-
+            _logger.LogInformation("User {UserId} deleted task {TaskId}", user.Id, id);
             return Json(new { success = true });
         }
 
@@ -494,43 +435,43 @@ namespace Certio.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> GetComments(int taskId)
         {
-            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
-            if (customUser == null)
+            var (user, _) = GetUserContext();
+            if (user == null)
             {
                 return Json(new { success = false, message = "User not authenticated" });
             }
 
-            var comments = await _context.TaskItemComments
-                .Where(c => c.TaskItemId == taskId)
-                .Include(c => c.User)
-                .Include(c => c.Mentions)
-                    .ThenInclude(m => m.MentionedUser)
-                .Include(c => c.Reactions)
-                .OrderByDescending(c => c.CreatedAt)
-                .ToListAsync();
+            // Call service
+            var result = await _taskService.GetTaskCommentsAsync(user.Id, taskId);
 
-            var result = comments.Select(c => new TaskCommentViewModel
+            if (!result.Success)
+            {
+                return Json(new { success = false, message = result.ErrorMessage });
+            }
+
+            // Map DTOs to ViewModels
+            var comments = result.Data!.Select(c => new TaskCommentViewModel
             {
                 Id = c.Id,
                 UserId = c.UserId,
-                UserName = $"{c.User.FirstName} {c.User.LastName}",
+                UserName = c.User?.FullName ?? "Unknown User",
                 Content = c.Content,
                 CreatedAt = c.CreatedAt,
                 TimeAgo = GetTimeAgo(c.CreatedAt),
                 Mentions = c.Mentions.Select(m => new UserOption
                 {
-                    Id = m.MentionedUserId,
-                    Name = $"{m.MentionedUser.FirstName} {m.MentionedUser.LastName}",
-                    Email = m.MentionedUser.Email ?? string.Empty,
-                    Initials = ($"{m.MentionedUser.FirstName[0]}{m.MentionedUser.LastName[0]}").ToUpper()
+                    Id = m.UserId,
+                    Name = m.User?.FullName ?? "Unknown",
+                    Email = m.User?.Email ?? "",
+                    Initials = m.User?.Initials ?? "??"
                 }).ToList(),
                 Reactions = c.Reactions
-                    .GroupBy(r => r.ReactionType)
+                    .GroupBy(r => r.Emoji)
                     .ToDictionary(g => g.Key, g => g.Count()),
-                UserReaction = c.Reactions.FirstOrDefault(r => r.UserId == customUser.Id)?.ReactionType ?? string.Empty
+                UserReaction = c.Reactions.FirstOrDefault(r => r.UserId == user.Id)?.Emoji ?? string.Empty
             }).ToList();
 
-            return Json(new { success = true, comments = result });
+            return Json(new { success = true, comments });
         }
 
         // POST: Tasks/AddComment
@@ -538,54 +479,47 @@ namespace Certio.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddComment([FromBody] AddCommentRequest request)
         {
-            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
-            if (customUser == null)
+            var (user, _) = GetUserContext();
+            if (user == null)
             {
                 return Json(new { success = false, message = "User not authenticated" });
             }
 
-            var comment = new TaskItemComment
+            // Map to DTO
+            var commentDto = new AddTaskCommentDto
             {
-                TaskItemId = request.TaskItemId,
-                UserId = customUser.Id,
                 Content = request.Content,
-                CreatedAt = DateTime.UtcNow
+                MentionedUserIds = request.MentionUserIds ?? new List<int>()
             };
 
-            _context.TaskItemComments.Add(comment);
-            await _context.SaveChangesAsync();
+            // Call service
+            var result = await _taskService.AddTaskCommentAsync(
+                user.Id,
+                request.TaskItemId,
+                commentDto,
+                GetIpAddress(),
+                GetUserAgent());
 
-            // Mentions
-            if (request.MentionUserIds != null && request.MentionUserIds.Count > 0)
+            if (!result.Success)
             {
-                var mentionEntities = request.MentionUserIds.Distinct().Select(uid => new TaskCommentMention
-                {
-                    CommentId = comment.Id,
-                    MentionedUserId = uid
-                }).ToList();
-                _context.TaskCommentMentions.AddRange(mentionEntities);
-                await _context.SaveChangesAsync();
+                return Json(new { success = false, message = result.ErrorMessage });
             }
 
-            // Return full view model for convenience
+            // Map to ViewModel
             var vm = new TaskCommentViewModel
             {
-                Id = comment.Id,
-                UserId = customUser.Id,
-                UserName = $"{customUser.FirstName} {customUser.LastName}",
-                Content = comment.Content,
-                CreatedAt = comment.CreatedAt,
-                TimeAgo = GetTimeAgo(comment.CreatedAt),
-                Mentions = (request.MentionUserIds ?? new List<int>()).Select(uid =>
+                Id = result.Data!.Id,
+                UserId = result.Data.UserId,
+                UserName = result.Data.User?.FullName ?? "Unknown User",
+                Content = result.Data.Content,
+                CreatedAt = result.Data.CreatedAt,
+                TimeAgo = GetTimeAgo(result.Data.CreatedAt),
+                Mentions = result.Data.Mentions.Select(m => new UserOption
                 {
-                    var u = _context.Users.FirstOrDefault(x => x.Id == uid);
-                    return new UserOption
-                    {
-                        Id = uid,
-                        Name = u != null ? $"{u.FirstName} {u.LastName}" : string.Empty,
-                        Email = u?.Email ?? string.Empty,
-                        Initials = u != null ? ($"{u.FirstName[0]}{u.LastName[0]}").ToUpper() : string.Empty
-                    };
+                    Id = m.UserId,
+                    Name = m.User?.FullName ?? "Unknown",
+                    Email = m.User?.Email ?? "",
+                    Initials = m.User?.Initials ?? "??"
                 }).ToList(),
                 Reactions = new Dictionary<string, int>(),
                 UserReaction = string.Empty
@@ -599,52 +533,25 @@ namespace Certio.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ReactToComment([FromBody] ReactToCommentRequest request)
         {
-            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
-            if (customUser == null)
+            var (user, _) = GetUserContext();
+            if (user == null)
             {
                 return Json(new { success = false, message = "User not authenticated" });
             }
 
-            var comment = await _context.TaskItemComments.FindAsync(request.CommentId);
-            if (comment == null)
+            // Call service to toggle reaction
+            var result = await _taskService.ToggleCommentReactionAsync(
+                user.Id,
+                request.CommentId,
+                request.ReactionType);
+
+            if (!result.Success)
             {
-                return Json(new { success = false, message = "Comment not found" });
+                return Json(new { success = false, message = result.ErrorMessage });
             }
 
-            // Toggle behavior: if same reaction exists, remove; else upsert
-            var existing = await _context.TaskCommentReactions
-                .FirstOrDefaultAsync(r => r.CommentId == request.CommentId && r.UserId == customUser.Id);
-
-            if (existing != null)
-            {
-                if (existing.ReactionType == request.ReactionType)
-                {
-                    _context.TaskCommentReactions.Remove(existing);
-                }
-                else
-                {
-                    existing.ReactionType = request.ReactionType;
-                }
-            }
-            else
-            {
-                _context.TaskCommentReactions.Add(new TaskCommentReaction
-                {
-                    CommentId = request.CommentId,
-                    UserId = customUser.Id,
-                    ReactionType = request.ReactionType,
-                    CreatedAt = DateTime.UtcNow
-                });
-            }
-
-            await _context.SaveChangesAsync();
-
-            // Return updated reaction summary
-            var summary = await _context.TaskCommentReactions
-                .Where(r => r.CommentId == request.CommentId)
-                .GroupBy(r => r.ReactionType)
-                .Select(g => new { Type = g.Key, Count = g.Count() })
-                .ToListAsync();
+            // Convert dictionary to list format for backward compatibility
+            var summary = result.Data!.Select(kvp => new { Type = kvp.Key, Count = kvp.Value }).ToList();
 
             return Json(new { success = true, reactions = summary });
         }
@@ -654,19 +561,34 @@ namespace Certio.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddAssignment([FromBody] AddAssignmentRequest request)
         {
-            var assignment = new TaskAssignment
+            var (user, _) = GetUserContext();
+            if (user == null)
             {
-                TaskItemId = request.TaskItemId,
+                return Json(new { success = false, message = "User not authenticated" });
+            }
+
+            // Map to DTO
+            var assignDto = new AssignTaskDto
+            {
                 UserId = request.UserId,
                 AssignmentType = request.AssignmentType ?? "Assignee",
-                Role = request.Role,
-                AssignedAt = DateTime.UtcNow
+                Role = request.Role
             };
 
-            _context.TaskAssignments.Add(assignment);
-            await _context.SaveChangesAsync();
+            // Call service
+            var result = await _taskService.AssignTaskAsync(
+                user.Id,
+                request.TaskItemId,
+                assignDto,
+                GetIpAddress(),
+                GetUserAgent());
 
-            return Json(new { success = true, assignmentId = assignment.Id });
+            if (!result.Success)
+            {
+                return Json(new { success = false, message = result.ErrorMessage });
+            }
+
+            return Json(new { success = true, assignmentId = result.Data!.Id });
         }
 
         // POST: Tasks/RemoveAssignment
@@ -681,43 +603,37 @@ namespace Certio.Web.Controllers
                 return Json(new { success = false, message = "Invalid assignment ID" });
             }
 
-            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
-            if (customUser == null)
+            var (user, _) = GetUserContext();
+            if (user == null)
             {
                 _logger.LogWarning("CustomUser not found in HttpContext for RemoveAssignment");
                 return Json(new { success = false, message = "User not authenticated" });
             }
 
+            // Get the assignment to find taskId and userId
             var assignment = await _context.TaskAssignments
-                .Include(ta => ta.TaskItem)
-                .FirstOrDefaultAsync(ta => ta.Id == id);
+                .Where(ta => ta.Id == id)
+                .Select(ta => new { ta.TaskItemId, ta.UserId })
+                .FirstOrDefaultAsync();
 
             if (assignment == null)
             {
                 return Json(new { success = false, message = "Assignment not found" });
             }
 
-            // SECURITY FIX: Verify user has access to the parent task
-            var canAccess = await _authHelper.ValidateUserCanAccessTaskAsync(assignment.TaskItemId, customUser.Id);
-            if (!canAccess)
+            // Call service
+            var result = await _taskService.RemoveTaskAssignmentAsync(
+                user.Id,
+                assignment.TaskItemId,
+                assignment.UserId,
+                GetIpAddress(),
+                GetUserAgent());
+
+            if (!result.Success)
             {
-                _logger.LogWarning("SECURITY: User {UserId} attempted to remove assignment from unauthorized task {TaskId}", 
-                    customUser.Id, assignment.TaskItemId);
-                return Json(new { success = false, message = "Assignment not found" });
+                _logger.LogWarning("Failed to remove assignment {AssignmentId}: {Error}", id, result.ErrorMessage);
+                return Json(new { success = false, message = result.ErrorMessage });
             }
-
-            _context.TaskAssignments.Remove(assignment);
-            await _context.SaveChangesAsync();
-
-            // Audit log
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-            await _auditService.LogOperationAsync(
-                customUser.Id,
-                assignment.TaskItem.OrgId,
-                "REMOVE_ASSIGNMENT",
-                "TaskAssignment",
-                id,
-                ipAddress);
 
             return Json(new { success = true });
         }
@@ -727,19 +643,34 @@ namespace Certio.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddSubTaskAssignment([FromBody] AddSubTaskAssignmentRequest request)
         {
-            var assignment = new SubTaskAssignment
+            var (user, _) = GetUserContext();
+            if (user == null)
             {
-                SubTaskItemId = request.SubTaskItemId,
+                return Json(new { success = false, message = "User not authenticated" });
+            }
+
+            // Map to DTO
+            var assignDto = new AssignSubTaskDto
+            {
                 UserId = request.UserId,
                 AssignmentType = request.AssignmentType ?? "Assignee",
-                Role = request.Role,
-                AssignedAt = DateTime.UtcNow
+                Role = request.Role
             };
 
-            _context.SubTaskAssignments.Add(assignment);
-            await _context.SaveChangesAsync();
+            // Call service
+            var result = await _subTaskService.AssignSubTaskAsync(
+                user.Id,
+                request.SubTaskItemId,
+                assignDto,
+                GetIpAddress(),
+                GetUserAgent());
 
-            return Json(new { success = true, assignmentId = assignment.Id });
+            if (!result.Success)
+            {
+                return Json(new { success = false, message = result.ErrorMessage });
+            }
+
+            return Json(new { success = true, assignmentId = result.Data!.Id });
         }
 
         // POST: Tasks/RemoveSubTaskAssignment
@@ -754,43 +685,37 @@ namespace Certio.Web.Controllers
                 return Json(new { success = false, message = "Invalid assignment ID" });
             }
 
-            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
-            if (customUser == null)
+            var (user, _) = GetUserContext();
+            if (user == null)
             {
                 _logger.LogWarning("CustomUser not found in HttpContext for RemoveSubTaskAssignment");
                 return Json(new { success = false, message = "User not authenticated" });
             }
 
+            // Get the assignment to find subTaskId and userId
             var assignment = await _context.SubTaskAssignments
-                .Include(sta => sta.SubTaskItem)
-                .FirstOrDefaultAsync(sta => sta.Id == id);
+                .Where(sta => sta.Id == id)
+                .Select(sta => new { sta.SubTaskItemId, sta.UserId })
+                .FirstOrDefaultAsync();
 
             if (assignment == null)
             {
                 return Json(new { success = false, message = "Assignment not found" });
             }
 
-            // SECURITY FIX: Verify user has access to the parent subtask
-            var canAccess = await _authHelper.ValidateUserCanAccessSubTaskAsync(assignment.SubTaskItemId, customUser.Id);
-            if (!canAccess)
+            // Call service
+            var result = await _subTaskService.RemoveSubTaskAssignmentAsync(
+                user.Id,
+                assignment.SubTaskItemId,
+                assignment.UserId,
+                GetIpAddress(),
+                GetUserAgent());
+
+            if (!result.Success)
             {
-                _logger.LogWarning("SECURITY: User {UserId} attempted to remove assignment from unauthorized subtask {SubTaskId}", 
-                    customUser.Id, assignment.SubTaskItemId);
-                return Json(new { success = false, message = "Assignment not found" });
+                _logger.LogWarning("Failed to remove subtask assignment {AssignmentId}: {Error}", id, result.ErrorMessage);
+                return Json(new { success = false, message = result.ErrorMessage });
             }
-
-            _context.SubTaskAssignments.Remove(assignment);
-            await _context.SaveChangesAsync();
-
-            // Audit log
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-            await _auditService.LogOperationAsync(
-                customUser.Id,
-                assignment.SubTaskItem.OrgId,
-                "REMOVE_SUBTASK_ASSIGNMENT",
-                "SubTaskAssignment",
-                id,
-                ipAddress);
 
             return Json(new { success = true });
         }
@@ -807,47 +732,29 @@ namespace Certio.Web.Controllers
                 return Json(new { success = false, message = "Invalid subtask ID" });
             }
 
-            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
-            if (customUser == null)
+            var (user, _) = GetUserContext();
+            if (user == null)
             {
                 _logger.LogWarning("CustomUser not found in HttpContext for UpdateSubTaskStatus");
                 return Json(new { success = false, message = "User not authenticated" });
             }
 
-            // SECURITY FIX: Verify user has access to this subtask
-            var subTask = await _authHelper.GetSubTaskIfAuthorizedAsync(request.SubTaskId, customUser.Id);
-            if (subTask == null)
+            // Call service to toggle completion status
+            var result = await _subTaskService.ToggleSubTaskCompletionAsync(
+                user.Id,
+                request.SubTaskId,
+                GetIpAddress(),
+                GetUserAgent());
+
+            if (!result.Success)
             {
-                _logger.LogWarning("SECURITY: User {UserId} attempted to update unauthorized subtask {SubTaskId}", customUser.Id, request.SubTaskId);
-                return Json(new { success = false, message = "SubTask not found" });
+                _logger.LogWarning("Failed to update subtask status {SubTaskId} for user {UserId}: {Error}",
+                    request.SubTaskId, user.Id, result.ErrorMessage);
+                return Json(new { success = false, message = result.ErrorMessage });
             }
 
-            subTask.IsCompleted = request.IsCompleted;
-            subTask.LastModifiedAt = DateTime.UtcNow;
-            
-            if (request.IsCompleted && !subTask.CompletedAt.HasValue)
-            {
-                subTask.CompletedAt = DateTime.UtcNow;
-            }
-            else if (!request.IsCompleted)
-            {
-                subTask.CompletedAt = null;
-            }
-
-            await _context.SaveChangesAsync();
-
-            // Audit log
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-            await _auditService.LogUpdateAsync(
-                customUser.Id,
-                subTask.OrgId,
-                "SubTask",
-                subTask.Id,
-                $"Status: {(request.IsCompleted ? "Completed" : "Not Completed")}",
-                ipAddress,
-                userAgent);
-
+            _logger.LogInformation("User {UserId} updated subtask {SubTaskId} status to {Status}",
+                user.Id, request.SubTaskId, request.IsCompleted ? "Completed" : "Not Completed");
             return Json(new { success = true });
         }
 
@@ -856,61 +763,53 @@ namespace Certio.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateSubTask([FromBody] CreateSubTaskRequest request)
         {
-            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
-            if (customUser == null)
+            var (user, _) = GetUserContext();
+            if (user == null)
             {
                 return Json(new { success = false, message = "User not authenticated" });
             }
 
-            var task = await _context.TaskItems.FindAsync(request.TaskId);
-            if (task == null)
+            // Map to DTO
+            var createDto = new CreateSubTaskDto
             {
-                return Json(new { success = false, message = "Task not found" });
-            }
-
-            var subTask = new SubTaskItem
-            {
-                TaskId = request.TaskId,
-                MatterId = task.MatterId,
-                OrgId = task.OrgId,
                 Title = request.Title,
                 DueDate = request.DueDate,
-                IsCompleted = false,
-                CreatedAt = DateTime.UtcNow
+                AssignedUserIds = request.Assignments?.Select(a => a.UserId).ToList()
             };
 
-            _context.SubTaskItems.Add(subTask);
-            await _context.SaveChangesAsync();
+            // Call service
+            var result = await _subTaskService.CreateSubTaskAsync(
+                user.Id,
+                request.TaskId,
+                createDto,
+                GetIpAddress(),
+                GetUserAgent());
 
-            // Add assignments if provided
-            if (request.Assignments != null && request.Assignments.Any())
+            if (!result.Success)
             {
-                var assignments = request.Assignments.Select(a => new SubTaskAssignment
+                return Json(new { success = false, message = result.ErrorMessage });
+            }
+
+            // Map DTO to ViewModel for response
+            var subTaskViewModel = new TaskItemViewModel
+            {
+                Id = result.Data!.Id,
+                MatterId = result.Data.MatterId,
+                Title = result.Data.Title,
+                Status = result.Data.IsCompleted ? "Completed" : "Pending",
+                DueDate = result.Data.DueDate,
+                CompletedAt = result.Data.CompletedAt,
+                CreatedAt = result.Data.CreatedAt,
+                Assignments = result.Data.Assignments.Select(a => new TaskAssignmentViewModel
                 {
-                    SubTaskItemId = subTask.Id,
+                    Id = a.Id,
                     UserId = a.UserId,
-                    AssignmentType = a.AssignmentType ?? "Assignee",
-                    Role = a.Role,
-                    AssignedAt = DateTime.UtcNow
-                }).ToList();
-
-                _context.SubTaskAssignments.AddRange(assignments);
-                await _context.SaveChangesAsync();
-            }
-
-            // Reload the subtask with all its navigation properties
-            var createdSubTask = await _context.SubTaskItems
-                .Where(st => st.Id == subTask.Id)
-                .Include(st => st.Assignments)
-                    .ThenInclude(a => a.User)
-                .FirstOrDefaultAsync();
-
-            if (createdSubTask == null)
-            {
-                return Json(new { success = false, message = "Failed to retrieve created subtask" });
-            }
-
-            var subTaskViewModel = MapToViewModel(createdSubTask);
+                    UserName = a.User?.FullName ?? "Unknown",
+                    UserInitials = a.User?.Initials ?? "??",
+                    AssignmentType = a.AssignmentType,
+                    Role = a.Role ?? ""
+                }).ToList()
+            };
             
             return Json(new { 
                 success = true, 
@@ -999,6 +898,98 @@ namespace Certio.Web.Controllers
             
             return date.ToString("MMM dd, yyyy");
         }
+
+        // ============================================================
+        // HELPER METHODS (Added during Phase 2 refactoring)
+        // ============================================================
+
+        /// <summary>
+        /// Extracts current user and organization context from HttpContext
+        /// </summary>
+        private (User? User, int OrganizationId) GetUserContext()
+        {
+            var customUser = HttpContext.Items["CustomUser"] as User;
+            var orgId = customUser?.GetPrimaryOrganization()?.OrganizationId ?? 0;
+            return (customUser, orgId);
+        }
+
+        /// <summary>
+        /// Gets the client IP address for audit logging
+        /// </summary>
+        private string? GetIpAddress()
+        {
+            return HttpContext.Connection.RemoteIpAddress?.ToString();
+        }
+
+        /// <summary>
+        /// Gets the user agent string for audit logging
+        /// </summary>
+        private string? GetUserAgent()
+        {
+            return HttpContext.Request.Headers["User-Agent"].ToString();
+        }
+
+        /// <summary>
+        /// Maps TaskDto to TaskItemViewModel (temporary - ideally use DTOs in views)
+        /// </summary>
+        private TaskItemViewModel MapDtoToViewModel(TaskDto dto)
+        {
+            return new TaskItemViewModel
+            {
+                Id = dto.Id,
+                MatterId = dto.MatterId,
+                Title = dto.Title,
+                Description = dto.Description ?? "",
+                Status = dto.Status,
+                Priority = dto.Priority,
+                Location = dto.Location ?? "",
+                Order = dto.Order,
+                CreatedAt = dto.CreatedAt,
+                StartedAt = dto.StartedAt,
+                DueDate = dto.DueDate,
+                CompletedAt = dto.CompletedAt,
+                MatterTitle = dto.MatterTitle ?? "",
+                Assignments = dto.Assignments.Select(a => new TaskAssignmentViewModel
+                {
+                    Id = a.Id,
+                    UserId = a.UserId,
+                    UserName = a.User?.FullName ?? "Unknown",
+                    UserInitials = a.User?.Initials ?? "??",
+                    AssignmentType = a.AssignmentType,
+                    Role = a.Role ?? ""
+                }).ToList(),
+                Comments = dto.Comments.Select(c => new TaskCommentViewModel
+                {
+                    Id = c.Id,
+                    UserId = c.UserId,
+                    UserName = c.User?.FullName ?? "Unknown",
+                    Content = c.Content,
+                    CreatedAt = c.CreatedAt,
+                    TimeAgo = GetTimeAgo(c.CreatedAt)
+                }).ToList(),
+                SubTasks = dto.SubTasks.Select(st => new TaskItemViewModel
+                {
+                    Id = st.Id,
+                    MatterId = st.MatterId,
+                    Title = st.Title,
+                    Status = st.IsCompleted ? "Completed" : "Pending",
+                    DueDate = st.DueDate,
+                    CompletedAt = st.CompletedAt,
+                    CreatedAt = st.CreatedAt,
+                    Assignments = st.Assignments.Select(a => new TaskAssignmentViewModel
+                    {
+                        Id = a.Id,
+                        UserId = a.UserId,
+                        UserName = a.User?.FullName ?? "Unknown",
+                        UserInitials = a.User?.Initials ?? "??",
+                        AssignmentType = a.AssignmentType,
+                        Role = a.Role ?? ""
+                    }).ToList()
+                }).ToList(),
+                TotalSubTasks = dto.SubTasks.Count,
+                CompletedSubTasks = dto.SubTasks.Count(st => st.IsCompleted)
+            };
+        }
     }
 
     // Request models
@@ -1083,6 +1074,21 @@ namespace Certio.Web.Controllers
     {
         public int SubTaskId { get; set; }
         public bool IsCompleted { get; set; }
+    }
+    
+    // Helper class for deduplicating UserOption by user ID
+    public class UserOptionComparer : IEqualityComparer<UserOption>
+    {
+        public bool Equals(UserOption? x, UserOption? y)
+        {
+            if (x == null || y == null) return false;
+            return x.Id == y.Id;
+        }
+
+        public int GetHashCode(UserOption obj)
+        {
+            return obj.Id.GetHashCode();
+        }
     }
 }
 

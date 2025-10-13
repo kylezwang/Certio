@@ -1,4 +1,5 @@
 using Certio.Domain.Users;
+using Certio.Domain.Organizations;
 
 namespace Certio.Application.Interfaces
 {
@@ -57,6 +58,11 @@ namespace Certio.Application.Interfaces
         /// Validates operation and throws exception if not authorized
         /// </summary>
         Task ValidatePermissionOrThrowAsync(int userId, int organizationId, Permission permission, string operation);
+
+        /// <summary>
+        /// Gets the firm relationship between a user's law firm and a target organization
+        /// </summary>
+        Task<OrganizationRelationship?> GetFirmRelationshipAsync(int userId, int targetOrganizationId);
     }
 }
 

@@ -309,7 +309,7 @@ builder.Services.AddScoped<IAuthorizationHandler, OrgMemberAuthorizationHandler>
 
 // AI Services
 builder.Services.AddHttpClient<Certio.Application.Services.IAIAgentService, Certio.Application.Services.AIAgentService>();
-builder.Services.AddScoped<Certio.Application.Services.IChatService, Certio.Web.Services.ChatService>();
+builder.Services.AddScoped<Certio.Application.Interfaces.IChatService, Certio.Web.Services.ChatService>();
 builder.Services.AddSingleton<Certio.Web.Services.AIBackgroundService>();
 
 // Channel Management Services

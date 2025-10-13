@@ -42,7 +42,23 @@
     <!-- Stats Cards -->
     <div class="row mb-3">
         <div class="col-md-3 mb-3">
-            <div class="card h-100  border-0">
+            <div class="card h-100 border-0 stats-filter-card" data-filter-status="Planning" style="cursor: pointer;">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="p-3 rounded-3 me-3" style="background-color: #6b72801C !important;">
+                            <i class="fas fa-clock text-secondary fs-4"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted mb-1 small">Planned</p>
+                            <h3 class="fw-bold text-dark mb-0">@Model.Matters.Count(m => m.Status == "Planning")</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card h-100 border-0 stats-filter-card" data-filter-status="In Progress" style="cursor: pointer;">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center">
                         <div class="p-3 icon-bg-primary rounded-3 me-3">
@@ -58,7 +74,7 @@
         </div>
         
         <div class="col-md-3 mb-3">
-            <div class="card h-100  border-0">
+            <div class="card h-100 border-0 stats-filter-card" data-filter-status="Review" style="cursor: pointer;">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center">
                         <div class="p-3 bg-warning bg-opacity-10 rounded-3 me-3">
@@ -74,7 +90,7 @@
         </div>
         
         <div class="col-md-3 mb-3">
-            <div class="card h-100  border-0">
+            <div class="card h-100 border-0 stats-filter-card" data-filter-status="Completed" style="cursor: pointer;">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center">
                         <div class="p-3 bg-success bg-opacity-10 rounded-3 me-3">
@@ -88,29 +104,13 @@
                 </div>
             </div>
         </div>
-        
-        <div class="col-md-3 mb-3">
-            <div class="card h-100  border-0">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center">
-                        <div class="p-3 bg-info bg-opacity-10 rounded-3 me-3">
-                            <i class="fas fa-users text-info fs-4"></i>
-                        </div>
-                        <div>
-                            <p class="text-muted mb-1 small">Team Members</p>
-                            <h3 class="fw-bold text-dark mb-0">@Model.TeamMembersCount</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Matters Grid -->
-    <div class="row">
+    <div class="row" id="matters-grid">
         @foreach (var matter in Model.Matters)
         {
-            <div class="col-lg-6 mb-3">
+            <div class="col-lg-6 mb-3 matter-card-wrapper" data-matter-status="@matter.Status">
                 <div class="card h-100 border-0 matter-card" style="padding-top: 0.5rem; position: relative;">
                     <div class="card-header bg-transparent border-0 pb-0">
                         <div class="mb-2">
@@ -164,24 +164,21 @@
                         </div>
 
                         <!-- Assignees -->
-                        <div class="d-flex align-items-center">
+                        <div class="d-flex align-items-center assignees-container" data-total-assignees="@matter.UniqueAssigneeCount">
                             <span class="text-muted me-2" style="font-size: 0.75rem;">Team:</span>
-                            <div class="d-flex">
+                            <div class="d-flex assignees-wrapper">
                                 @{
-                                    var uniqueAssignees = matter.Assignments.GroupBy(a => a.UserId).Select(g => g.First()).Take(3).ToList();
+                                    var uniqueAssignees = matter.Assignments.GroupBy(a => a.UserId).Select(g => g.First()).ToList();
                                 }
                                 @for (int i = 0; i < uniqueAssignees.Count; i++)
                                 {
-                                    <div class="assignee-avatar me-1">
+                                    <div class="assignee-avatar me-1" data-assignee-index="@i">
                                         @GetInitials(uniqueAssignees[i].User.FirstName + " " + uniqueAssignees[i].User.LastName)
                                     </div>
                                 }
-                                @if (matter.UniqueAssigneeCount > 3)
-                                {
-                                    <div class="assignee-avatar me-1 bg-muted text-muted">
-                                        +@(matter.UniqueAssigneeCount - 3)
-                                    </div>
-                                }
+                                <div class="assignee-avatar me-1 assignee-overflow" style="display: none;">
+                                    <span class="overflow-count"></span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -288,4 +285,146 @@
     .matters-container .row {
         --bs-gutter-x: 1rem; /* Reduce from default 1.5rem to 1rem */
     }
+
+    .assignee-overflow {
+        background: linear-gradient(135deg, #0b365e, #0b365e) !important;
+        color: white !important;
+    }
+
+    .stats-filter-card {
+        transition: all 0.3s ease;
+    }
+
+    .stats-filter-card:hover {
+        background-color: #eef1f3 !important;
+        transform: translateY(-1px);
+    }
+
+    .stats-filter-card.active-filter {
+        background-color: #eef1f3 !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+    }
+
+    .matter-card-wrapper {
+        transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .matter-card-wrapper.filtered-out {
+        display: none;
+    }
 </style>
+
+<script>
+    // State to track active filter
+    let activeFilter = null;
+
+    // Function to handle filter clicks
+    function setupFilterCards() {
+        document.querySelectorAll('.stats-filter-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const filterStatus = this.dataset.filterStatus;
+                
+                // If clicking the same filter, deactivate it
+                if (activeFilter === filterStatus) {
+                    activeFilter = null;
+                    this.classList.remove('active-filter');
+                    showAllMatters();
+                } else {
+                    // Remove active class from all filter cards
+                    document.querySelectorAll('.stats-filter-card').forEach(c => {
+                        c.classList.remove('active-filter');
+                    });
+                    
+                    // Set new active filter
+                    activeFilter = filterStatus;
+                    this.classList.add('active-filter');
+                    filterMatters(filterStatus);
+                }
+            });
+        });
+    }
+
+    // Function to filter matters by status
+    function filterMatters(status) {
+        document.querySelectorAll('.matter-card-wrapper').forEach(wrapper => {
+            const matterStatus = wrapper.dataset.matterStatus;
+            if (matterStatus === status) {
+                wrapper.classList.remove('filtered-out');
+            } else {
+                wrapper.classList.add('filtered-out');
+            }
+        });
+    }
+
+    // Function to show all matters
+    function showAllMatters() {
+        document.querySelectorAll('.matter-card-wrapper').forEach(wrapper => {
+            wrapper.classList.remove('filtered-out');
+        });
+    }
+
+    // Function to adjust assignee avatars based on available width
+    function adjustAssigneeAvatars() {
+        document.querySelectorAll('.assignees-container').forEach(container => {
+            const wrapper = container.querySelector('.assignees-wrapper');
+            const avatars = wrapper.querySelectorAll('.assignee-avatar[data-assignee-index]');
+            const overflowAvatar = wrapper.querySelector('.assignee-overflow');
+            const overflowCount = overflowAvatar.querySelector('.overflow-count');
+            const totalAssignees = parseInt(container.dataset.totalAssignees);
+            
+            if (avatars.length === 0) return;
+
+            // Reset all avatars to visible
+            avatars.forEach(avatar => avatar.style.display = 'flex');
+            overflowAvatar.style.display = 'none';
+
+            // Get available width (subtract Team label and some padding)
+            const containerWidth = container.offsetWidth;
+            const teamLabelWidth = container.querySelector('.text-muted').offsetWidth + 8; // +8 for margin
+            const availableWidth = containerWidth - teamLabelWidth - 40; // -40 for overflow avatar space
+
+            // Avatar width: 28px + 4px margin (me-1)
+            const avatarWidth = 32;
+            const overflowWidth = 40; // Slightly more space for "+X" text
+
+            // Calculate how many avatars can fit
+            let visibleCount = Math.floor((availableWidth - overflowWidth) / avatarWidth);
+            
+            // Ensure we show at least 2 avatars if there are that many
+            visibleCount = Math.max(2, Math.min(visibleCount, avatars.length));
+
+            // If all avatars fit, show them all
+            if (visibleCount >= avatars.length) {
+                visibleCount = avatars.length;
+            } else {
+                // Show the overflow indicator
+                const hiddenCount = totalAssignees - visibleCount;
+                if (hiddenCount > 0) {
+                    overflowCount.textContent = `+${hiddenCount}`;
+                    overflowAvatar.style.display = 'flex';
+                }
+            }
+
+            // Hide avatars that don't fit
+            avatars.forEach((avatar, index) => {
+                if (index >= visibleCount) {
+                    avatar.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    // Run on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        setupFilterCards();
+        adjustAssigneeAvatars();
+    });
+
+    // Run on window resize with debounce
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(adjustAssigneeAvatars, 150);
+    });
+</script>

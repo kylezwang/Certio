@@ -104,6 +104,14 @@ namespace Certio.Application.Interfaces
         Task<ServiceResult<List<TaskCommentDto>>> GetTaskCommentsAsync(
             int userId, 
             int taskId);
+
+        /// <summary>
+        /// Toggles a reaction on a task comment (add if not exists, remove if exists, or change reaction type)
+        /// </summary>
+        Task<ServiceResult<Dictionary<string, int>>> ToggleCommentReactionAsync(
+            int userId,
+            int commentId,
+            string reactionType);
     }
 }
 
