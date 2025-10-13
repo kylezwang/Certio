@@ -325,12 +325,43 @@ namespace Certio.Application.Services
                     .Include(t => t.SubTasks)
                     .Where(t => t.OrgId == organizationId);
 
-                // Apply matter-level access filtering
-                query = query.Where(t => 
-                    t.Matter.AccessLevel == "Everyone" || 
-                    t.Matter.Permissions.Any(p => p.UserId == userId && p.RevokedAt == null) ||
-                    t.Matter.Assignments.Any(a => a.UserId == userId && a.RemovedAt == null) ||
-                    t.TaskAssignments.Any(a => a.UserId == userId && a.RemovedAt == null));
+                // Apply matter-level access filtering based on membership type
+                var hasFirmAccess = await _permissionService.HasFirmBasedAccessAsync(userId, organizationId);
+                
+                if (!hasFirmAccess)
+                {
+                    // Direct members: check their role in the organization
+                    var userOrgMembership = await _context.UserOrganizations
+                        .FirstOrDefaultAsync(uo => uo.UserId == userId && uo.OrganizationId == organizationId && uo.IsActive);
+                    
+                    // Only Partners see all tasks; others ONLY see assigned tasks
+                    if (userOrgMembership?.Role != Certio.Domain.Users.OrganizationRoles.Partner)
+                    {
+                        // Non-partners: only show tasks they're assigned to or in matters they're assigned to
+                        query = query.Where(t => 
+                            t.Matter.Permissions.Any(p => p.UserId == userId && p.RevokedAt == null) ||
+                            t.Matter.Assignments.Any(a => a.UserId == userId && a.RemovedAt == null) ||
+                            t.TaskAssignments.Any(a => a.UserId == userId && a.RemovedAt == null));
+                    }
+                    // Partners see all tasks (no filtering needed)
+                }
+                else
+                {
+                    // Firm-based users: check their relationship AccessLevel
+                    var firmRelationship = await _permissionService.GetFirmRelationshipAsync(userId, organizationId);
+                    
+                    if (firmRelationship?.AccessLevel == "MatterSpecific" || 
+                        firmRelationship?.AccessLevel == "DocumentOnly")
+                    {
+                        // Matter-specific or document-only access: only show tasks in matters they're assigned to
+                        query = query.Where(t => 
+                            t.Matter.AccessLevel == "Everyone" || 
+                            t.Matter.Permissions.Any(p => p.UserId == userId && p.RevokedAt == null) ||
+                            t.Matter.Assignments.Any(a => a.UserId == userId && a.RemovedAt == null) ||
+                            t.TaskAssignments.Any(a => a.UserId == userId && a.RemovedAt == null));
+                    }
+                    // For "Full" or "Limited" AccessLevel: show all tasks (no filtering needed)
+                }
 
                 // Apply filters
                 if (filter != null)
@@ -417,10 +448,13 @@ namespace Certio.Application.Services
                     throw new UnauthorizedOperationException(userId, "assign", "Task", "No access to task");
                 }
 
-                // Validate assignee has access to the task's organization
-                if (!await _permissionService.IsOrganizationMemberAsync(assignmentDto.UserId, task.OrgId))
+                // Validate assignee has access to the task's organization (direct membership OR firm-based access)
+                var hasDirectMembership = await _permissionService.IsOrganizationMemberAsync(assignmentDto.UserId, task.OrgId);
+                var hasFirmAccess = await _permissionService.HasFirmBasedAccessAsync(assignmentDto.UserId, task.OrgId);
+
+                if (!hasDirectMembership && !hasFirmAccess)
                 {
-                    throw new BusinessRuleViolationException("UserMembership", "User must be a member of the organization");
+                    throw new BusinessRuleViolationException("UserMembership", "User must be a member of the organization or have firm-based access");
                 }
 
                 // Check if already assigned
@@ -817,6 +851,71 @@ namespace Certio.Application.Services
                 Email = user.Email ?? "",
                 PhoneNumber = user.PhoneNumber
             };
+        }
+
+        public async Task<ServiceResult<Dictionary<string, int>>> ToggleCommentReactionAsync(
+            int userId,
+            int commentId,
+            string reactionType)
+        {
+            // Validate comment exists and get parent task
+            var comment = await _context.TaskItemComments
+                .Include(c => c.TaskItem)
+                .FirstOrDefaultAsync(c => c.Id == commentId);
+
+            if (comment == null)
+            {
+                return ServiceResult<Dictionary<string, int>>.FailureResult(
+                    "Comment not found",
+                    "RESOURCE_NOT_FOUND");
+            }
+
+            // Check if user can access the parent task
+            var canAccess = await _permissionService.CanAccessTaskAsync(userId, comment.TaskItemId);
+            if (!canAccess)
+            {
+                throw new UnauthorizedOperationException(userId, "react to comment on", "Task");
+            }
+
+            // Toggle behavior: if same reaction exists, remove; else upsert
+            var existing = await _context.TaskCommentReactions
+                .FirstOrDefaultAsync(r => r.CommentId == commentId && r.UserId == userId);
+
+            if (existing != null)
+            {
+                if (existing.ReactionType == reactionType)
+                {
+                    // Remove reaction
+                    _context.TaskCommentReactions.Remove(existing);
+                }
+                else
+                {
+                    // Change reaction type
+                    existing.ReactionType = reactionType;
+                }
+            }
+            else
+            {
+                // Add new reaction
+                _context.TaskCommentReactions.Add(new TaskCommentReaction
+                {
+                    CommentId = commentId,
+                    UserId = userId,
+                    ReactionType = reactionType,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            await _context.SaveChangesAsync();
+
+            // Return updated reaction summary
+            var summary = await _context.TaskCommentReactions
+                .Where(r => r.CommentId == commentId)
+                .GroupBy(r => r.ReactionType)
+                .Select(g => new { Type = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.Type, x => x.Count);
+
+            return ServiceResult<Dictionary<string, int>>.SuccessResult(summary);
         }
     }
 }

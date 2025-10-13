@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Certio.Application.Services;
+using Certio.Application.Interfaces;
 using System.Security.Claims;
 using Certio.Domain.Services;
 

@@ -37,15 +37,152 @@ namespace Certio.Application.Services
                 return new List<Permission>();
             }
 
+            // Check direct membership
             var membership = user.UserOrganizations
                 .FirstOrDefault(uo => uo.OrganizationId == organizationId && uo.IsActive);
 
-            if (membership == null)
+            var directPermissions = membership != null 
+                ? user.GetEffectivePermissions(organizationId) 
+                : new List<Permission>();
+
+            // Check firm-based access for partner lawyers
+            var firmPermissions = new List<Permission>();
+            if (await HasFirmBasedAccessAsync(userId, organizationId))
             {
-                return new List<Permission>();
+                var relationship = await GetFirmRelationshipAsync(userId, organizationId);
+                if (relationship != null)
+                {
+                    // Grant permissions based on AccessLevel from the relationship
+                    firmPermissions = GetPartnerPermissions(relationship.AccessLevel);
+                    _logger.LogInformation(
+                        "Firm-based access found for user {UserId} to organization {OrgId} with {AccessLevel} level ({PermissionCount} permissions)",
+                        userId, organizationId, relationship.AccessLevel, firmPermissions.Count);
+                }
+                else
+                {
+                    _logger.LogWarning(
+                        "HasFirmBasedAccessAsync returned true but GetFirmRelationshipAsync returned null for user {UserId} to org {OrgId}",
+                        userId, organizationId);
+                }
             }
 
-            return user.GetEffectivePermissions(organizationId);
+            // Use whichever grants more permissions (union of both)
+            var effectivePermissions = directPermissions.Union(firmPermissions).ToList();
+            
+            if (effectivePermissions.Any())
+            {
+                _logger.LogInformation(
+                    "Effective permissions for user {UserId} in org {OrgId}: Direct={DirectCount}, Firm={FirmCount}, Final={FinalCount}",
+                    userId, organizationId, directPermissions.Count, firmPermissions.Count, effectivePermissions.Count);
+                return effectivePermissions;
+            }
+
+            _logger.LogWarning(
+                "No permissions found for user {UserId} in organization {OrgId} - no direct membership or partner access",
+                userId, organizationId);
+            return new List<Permission>();
+        }
+        
+        public async Task<Certio.Domain.Organizations.OrganizationRelationship?> GetFirmRelationshipAsync(int userId, int organizationId)
+        {
+            var lawFirmMembership = await _context.UserOrganizations
+                .Include(uo => uo.Organization)
+                    .ThenInclude(o => o.OrganizationRelationships)
+                        .ThenInclude(r => r.TargetOrganization)
+                .FirstOrDefaultAsync(uo => 
+                    uo.UserId == userId && 
+                    uo.IsActive && 
+                    uo.UserType == UserTypes.LawFirm);
+
+            if (lawFirmMembership == null)
+            {
+                return null;
+            }
+
+            var relationship = lawFirmMembership.Organization.OrganizationRelationships
+                .FirstOrDefault(rel => 
+                    rel.TargetOrganizationId == organizationId && 
+                    rel.IsActive && 
+                    !rel.IsDeleted &&
+                    rel.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient &&
+                    (!rel.ExpiresAt.HasValue || rel.ExpiresAt.Value > DateTime.UtcNow));
+
+            return relationship;
+        }
+        
+        private List<Permission> GetPartnerPermissions(string accessLevel)
+        {
+            // Grant permissions based on the relationship's AccessLevel
+            var permissions = accessLevel switch
+            {
+                "Full" or "FullAccess" => new List<Permission>
+                {
+                    // Full access - all matter and document permissions
+                    Permission.ViewMatters,
+                    Permission.CreateMatters,
+                    Permission.EditMatters,
+                    Permission.DeleteMatters,
+                    Permission.ManageMatterSettings,
+                    Permission.ViewDocuments,
+                    Permission.DownloadDocuments,
+                    Permission.UploadDocuments,
+                    Permission.DeleteDocuments,
+                    Permission.CommentOnDocuments,
+                    Permission.ViewMessages,
+                    Permission.SendMessages,
+                    Permission.ManageThreads
+                },
+                "Limited" or "LimitedAccess" => new List<Permission>
+                {
+                    // Limited access - view and basic operations
+                    Permission.ViewMatters,
+                    Permission.CreateMatters,
+                    Permission.EditMatters,
+                    Permission.ManageMatterSettings,
+                    Permission.ViewDocuments,
+                    Permission.DownloadDocuments,
+                    Permission.UploadDocuments,
+                    Permission.CommentOnDocuments,
+                    Permission.ViewMessages,
+                    Permission.SendMessages
+                },
+                "MatterSpecific" => new List<Permission>
+                {
+                    // Matter-specific access - can create and manage matters, view documents
+                    Permission.ViewMatters,
+                    Permission.CreateMatters,
+                    Permission.EditMatters,
+                    Permission.ManageMatterSettings,
+                    Permission.ViewDocuments,
+                    Permission.DownloadDocuments,
+                    Permission.ViewMessages
+                },
+                "DocumentOnly" => new List<Permission>
+                {
+                    // Document-only access - can view/manage documents but not create matters
+                    Permission.ViewMatters,
+                    Permission.ViewDocuments,
+                    Permission.DownloadDocuments,
+                    Permission.UploadDocuments,
+                    Permission.CommentOnDocuments,
+                    Permission.ViewMessages
+                },
+                "ReadOnly" or "ReadOnlyAccess" => new List<Permission>
+                {
+                    // Read-only access
+                    Permission.ViewMatters,
+                    Permission.ViewDocuments,
+                    Permission.DownloadDocuments,
+                    Permission.ViewMessages
+                },
+                _ => new List<Permission>()
+            };
+            
+            _logger.LogDebug(
+                "GetPartnerPermissions: AccessLevel={AccessLevel}, PermissionCount={Count}, Permissions={Permissions}",
+                accessLevel, permissions.Count, string.Join(", ", permissions));
+            
+            return permissions;
         }
 
         public async Task<bool> CanAccessMatterAsync(int userId, int matterId)
@@ -62,10 +199,14 @@ namespace Certio.Application.Services
                     return false;
                 }
 
-                // Check if user is in the organization
+                // Check if user has access to the organization (direct membership or firm-based access)
                 var isInOrg = await IsOrganizationMemberAsync(userId, matter.OrganizationId);
-                if (!isInOrg)
+                var hasFirmAccess = await HasFirmBasedAccessAsync(userId, matter.OrganizationId);
+                
+                if (!isInOrg && !hasFirmAccess)
                 {
+                    _logger.LogWarning("User {UserId} has no access to organization {OrgId} for matter {MatterId}", 
+                        userId, matter.OrganizationId, matterId);
                     return false;
                 }
 
@@ -148,22 +289,17 @@ namespace Certio.Application.Services
                     return false;
                 }
 
-                // Check if user is in the task's organization
+                // Check if user has access to the task's organization (direct or firm-based)
                 var isInOrg = await IsOrganizationMemberAsync(userId, task.OrgId);
-                if (isInOrg)
-                {
-                    // Also need to check matter access
-                    return await CanAccessMatterAsync(userId, task.MatterId);
-                }
-
-                // Check firm-based access
                 var hasFirmAccess = await HasFirmBasedAccessAsync(userId, task.OrgId);
-                if (hasFirmAccess)
+                
+                if (!isInOrg && !hasFirmAccess)
                 {
-                    return await CanAccessMatterAsync(userId, task.MatterId);
+                    return false;
                 }
 
-                return false;
+                // Also need to check matter access
+                return await CanAccessMatterAsync(userId, task.MatterId);
             }
             catch (Exception ex)
             {

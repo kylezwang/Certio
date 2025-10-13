@@ -43,7 +43,8 @@ namespace Certio.Web.Controllers
                 return Json(new { success = false, message = "User not authenticated." });
             }
 
-            var orgs = await _db.UserOrganizations
+            // Get direct organization memberships
+            var directOrgs = await _db.UserOrganizations
                 .Where(uo => uo.UserId == customUser.Id && uo.IsActive)
                 .Select(uo => new {
                     organizationId = uo.OrganizationId,
@@ -54,11 +55,38 @@ namespace Certio.Web.Controllers
                     isPrimary = uo.IsPrimary,
                     organizationType = uo.Organization.Type.ToString()
                 })
-                .OrderByDescending(x => x.isPrimary)
-                .ThenBy(x => x.organizationName)
                 .ToListAsync(ct);
 
-            return Json(new { success = true, organizations = orgs });
+            // Get organizations accessible via law firm relationships
+            var firmOrgs = await _db.UserOrganizations
+                .Where(uo => uo.UserId == customUser.Id && uo.IsActive && uo.UserType == Certio.Domain.Users.UserTypes.LawFirm)
+                .SelectMany(uo => uo.Organization!.OrganizationRelationships
+                    .Where(rel => 
+                        rel.IsActive && 
+                        !rel.IsDeleted && 
+                        rel.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient &&
+                        (!rel.ExpiresAt.HasValue || rel.ExpiresAt.Value > DateTime.UtcNow))
+                    .Select(rel => new {
+                        organizationId = rel.TargetOrganizationId,
+                        organizationName = rel.TargetOrganization!.Name,
+                        ownerFirstName = rel.TargetOrganization!.Owner.FirstName,
+                        ownerLastName = rel.TargetOrganization!.Owner.LastName,
+                        isPersonal = rel.TargetOrganization.IsPersonal,
+                        isPrimary = false, // Firm-based access is not primary
+                        organizationType = rel.TargetOrganization.Type.ToString()
+                    }))
+                .ToListAsync(ct);
+
+            // Combine and deduplicate by organizationId
+            var allOrgs = directOrgs
+                .Concat(firmOrgs)
+                .GroupBy(o => o.organizationId)
+                .Select(g => g.First()) // Take first occurrence (direct membership if exists)
+                .OrderByDescending(x => x.isPrimary)
+                .ThenBy(x => x.organizationName)
+                .ToList();
+
+            return Json(new { success = true, organizations = allOrgs });
         }
 
         // GET /Client/{orgId}/Dashboard
@@ -153,9 +181,26 @@ namespace Certio.Web.Controllers
                     .Where(p => clientOrgIds.Contains(p.OrganizationId))
                     .Include(p => p.Assignments)
                         .ThenInclude(a => a.User)
+                    .Include(p => p.Permissions)
                     .Include(p => p.Organization) // Include to show which organization the matter belongs to
                     .OrderByDescending(p => p.CreatedAt)
                     .ToListAsync(ct);
+
+                // Apply role-based filtering for matters in the LAW FIRM organization
+                // Check user's role in the law firm
+                var userRole = await _db.UserOrganizations
+                    .Where(uo => uo.UserId == customUser.Id && uo.OrganizationId == orgId && uo.IsActive)
+                    .Select(uo => uo.Role)
+                    .FirstOrDefaultAsync(ct);
+
+                // Non-partners can only see matters they're assigned to (both law firm and client org matters)
+                if (userRole != Certio.Domain.Users.OrganizationRoles.Partner)
+                {
+                    matters = matters.Where(m =>
+                        m.Permissions.Any(p => p.UserId == customUser.Id && p.RevokedAt == null) || // Has explicit permissions
+                        m.Assignments.Any(a => a.UserId == customUser.Id && a.RemovedAt == null))   // Or is assigned to the matter
+                    .ToList();
+                }
 
                 // Team members from the law firm
                 teamMembersCount = await _db.UserOrganizations

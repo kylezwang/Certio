@@ -40,15 +40,25 @@ namespace Certio.Application.Services
         {
             try
             {
-                // Validate user is in organization
-                if (!await _permissionService.IsOrganizationMemberAsync(userId, organizationId))
+                // Validate user is in organization (direct membership or firm-based access)
+                var isOrgMember = await _permissionService.IsOrganizationMemberAsync(userId, organizationId);
+                var hasFirmAccess = await _permissionService.HasFirmBasedAccessAsync(userId, organizationId);
+                
+                _logger.LogInformation($"CreateMatter access check: UserId={userId}, OrgId={organizationId}, IsOrgMember={isOrgMember}, HasFirmAccess={hasFirmAccess}");
+                
+                if (!isOrgMember && !hasFirmAccess)
                 {
                     throw new UnauthorizedOperationException(userId, "create", "Matter", "Not a member of organization");
                 }
 
                 // Check permission
-                if (!await _permissionService.HasPermissionAsync(userId, organizationId, Permission.CreateMatters))
+                var hasPermission = await _permissionService.HasPermissionAsync(userId, organizationId, Permission.CreateMatters);
+                _logger.LogInformation($"CreateMatter permission check: UserId={userId}, OrgId={organizationId}, HasPermission={hasPermission}");
+                
+                if (!hasPermission)
                 {
+                    var permissions = await _permissionService.GetEffectivePermissionsAsync(userId, organizationId);
+                    _logger.LogWarning($"User {userId} lacks CreateMatters permission in org {organizationId}. Effective permissions: {string.Join(", ", permissions)}");
                     throw new UnauthorizedOperationException(userId, "create", "Matter", "Lacks CreateMatters permission");
                 }
 
@@ -298,11 +308,52 @@ namespace Certio.Application.Services
                         .ThenInclude(p => p.User)
                     .Where(m => m.OrganizationId == organizationId);
 
-                // Apply access filtering
-                query = query.Where(m => 
-                    m.AccessLevel == "Everyone" || 
-                    m.Permissions.Any(p => p.UserId == userId && p.RevokedAt == null) ||
-                    m.Assignments.Any(a => a.UserId == userId && a.RemovedAt == null));
+                // Apply access filtering based on membership type
+                var hasFirmAccess = await _permissionService.HasFirmBasedAccessAsync(userId, organizationId);
+                
+                _logger.LogInformation("ListMatters: User {UserId} accessing Org {OrgId}, hasFirmAccess={HasFirmAccess}", 
+                    userId, organizationId, hasFirmAccess);
+                
+                if (!hasFirmAccess)
+                {
+                    // Direct members: check their role in the organization
+                    var userOrgMembership = await _context.UserOrganizations
+                        .FirstOrDefaultAsync(uo => uo.UserId == userId && uo.OrganizationId == organizationId && uo.IsActive);
+                    
+                    _logger.LogInformation("ListMatters: User {UserId} direct member with Role={Role}", 
+                        userId, userOrgMembership?.Role ?? "NULL");
+                    
+                    // Only Partners see all matters; others ONLY see assigned matters
+                    if (userOrgMembership?.Role != Certio.Domain.Users.OrganizationRoles.Partner)
+                    {
+                        _logger.LogInformation("ListMatters: Applying non-Partner filtering for user {UserId}", userId);
+                        
+                        // Non-partners: only show matters they're explicitly assigned to or have permissions for
+                        query = query.Where(m => 
+                            m.Permissions.Any(p => p.UserId == userId && p.RevokedAt == null) ||
+                            m.Assignments.Any(a => a.UserId == userId && a.RemovedAt == null));
+                    }
+                    else
+                    {
+                        _logger.LogInformation("ListMatters: User {UserId} is Partner, no filtering applied", userId);
+                    }
+                }
+                else
+                {
+                    // Firm-based users: check their relationship AccessLevel
+                    var firmRelationship = await _permissionService.GetFirmRelationshipAsync(userId, organizationId);
+                    
+                    if (firmRelationship?.AccessLevel == "MatterSpecific" || 
+                        firmRelationship?.AccessLevel == "DocumentOnly")
+                    {
+                        // Matter-specific or document-only access: only show matters they're assigned to or have explicit permissions for
+                        query = query.Where(m => 
+                            m.AccessLevel == "Everyone" || 
+                            m.Permissions.Any(p => p.UserId == userId && p.RevokedAt == null) ||
+                            m.Assignments.Any(a => a.UserId == userId && a.RemovedAt == null));
+                    }
+                    // For "Full" or "Limited" AccessLevel: show all matters (no filtering needed)
+                }
 
                 // Apply filters
                 if (filter != null)
@@ -405,19 +456,27 @@ namespace Certio.Application.Services
                     throw new UnauthorizedOperationException(userId, "assign", "Matter", "Lacks ManageMatterSettings permission");
                 }
 
-                // Validate assignee is in organization
-                if (!await _permissionService.IsOrganizationMemberAsync(assignmentDto.UserId, matter.OrganizationId))
+                // Validate assignee has access to organization (direct membership or firm-based access)
+                var hasDirectMembership = await _permissionService.IsOrganizationMemberAsync(assignmentDto.UserId, matter.OrganizationId);
+                var hasFirmAccess = await _permissionService.HasFirmBasedAccessAsync(assignmentDto.UserId, matter.OrganizationId);
+                
+                if (!hasDirectMembership && !hasFirmAccess)
                 {
-                    throw new BusinessRuleViolationException("UserMembership", "User must be a member of the organization");
+                    throw new BusinessRuleViolationException("UserMembership", "User must be a member of the organization or have firm-based access");
                 }
 
-                // Check if already assigned
+                // Check if already assigned with the same AssignmentType
+                // Allow same user to have multiple different assignment types (e.g., Originating Attorney + Responsible Attorney)
                 var existingAssignment = matter.Assignments
-                    .FirstOrDefault(a => a.UserId == assignmentDto.UserId && a.RemovedAt == null);
+                    .FirstOrDefault(a => 
+                        a.UserId == assignmentDto.UserId && 
+                        a.AssignmentType == assignmentDto.AssignmentType && 
+                        a.RemovedAt == null);
 
                 if (existingAssignment != null)
                 {
-                    throw new BusinessRuleViolationException("DuplicateAssignment", "User is already assigned to this matter");
+                    throw new BusinessRuleViolationException("DuplicateAssignment", 
+                        $"User is already assigned as {assignmentDto.AssignmentType} to this matter");
                 }
 
                 var assignment = new MatterAssignment

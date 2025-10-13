@@ -12,13 +12,20 @@ public class ChatService : IChatService
     private readonly IAIAgentService _aiAgentService;
     private readonly AIBackgroundService _aiBackgroundService;
     private readonly ICacheService _cacheService;
+    private readonly IAuditService _auditService;
 
-    public ChatService(ApplicationDbContext context, IAIAgentService aiAgentService, AIBackgroundService aiBackgroundService, ICacheService cacheService)
+    public ChatService(
+        ApplicationDbContext context, 
+        IAIAgentService aiAgentService, 
+        AIBackgroundService aiBackgroundService, 
+        ICacheService cacheService,
+        IAuditService auditService)
     {
         _context = context;
         _aiAgentService = aiAgentService;
         _aiBackgroundService = aiBackgroundService;
         _cacheService = cacheService;
+        _auditService = auditService;
     }
 
     public async Task<Conversation> CreateConversationAsync(int organizationId, int userId, string title, string description, int? matterId = null)
@@ -682,7 +689,7 @@ public class ChatService : IChatService
         }
     }
 
-    public async Task<bool> DeleteConversationAsync(int conversationId, int organizationId)
+    public async Task<bool> DeleteConversationAsync(int conversationId, int organizationId, int userId, string? ipAddress = null, string? userAgent = null)
     {
         try
         {
@@ -704,11 +711,51 @@ public class ChatService : IChatService
             
             await _context.SaveChangesAsync();
             
+            // Audit log the deletion
+            await _auditService.LogDeleteAsync(
+                userId,
+                organizationId,
+                "Conversation",
+                conversationId,
+                ipAddress);
+            
             return true;
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error deleting conversation: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<bool> CanUserAccessConversationAsync(int conversationId, int userId, int organizationId)
+    {
+        try
+        {
+            var conversation = await _context.Conversations
+                .Include(c => c.Participants)
+                .FirstOrDefaultAsync(c => c.Id == conversationId);
+
+            if (conversation == null)
+            {
+                return false;
+            }
+
+            // Check if conversation belongs to the organization
+            if (conversation.OrganizationId != organizationId)
+            {
+                return false;
+            }
+
+            // Check if user is a participant or creator
+            var isParticipant = conversation.Participants.Any(p => p.UserId == userId);
+            var isCreator = conversation.CreatedById == userId;
+
+            return isParticipant || isCreator;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error validating conversation access: {ex.Message}");
             return false;
         }
     }

@@ -5,6 +5,7 @@ using Certio.Domain.Matters;
 using Certio.Domain.Users;
 using Certio.Infrastructure.Data;
 using Certio.Application.Interfaces;
+using Certio.Application.DTOs;
 using Certio.Web.Security;
 using Certio.Web.Services;
 using Microsoft.EntityFrameworkCore;
@@ -14,126 +15,81 @@ namespace Certio.Web.Controllers
     [Authorize(Policy = "OrgMember")]
     public class MatterController : Controller
     {
-        private readonly ApplicationDbContext _context;
-        private readonly AuthorizationHelper _authHelper;
-        private readonly IAuditService _auditService;
+        private readonly ApplicationDbContext _context; // Used for PopulateOrgMembersData helper method only
+        private readonly IMatterService _matterService;
         private readonly ILogger<MatterController> _logger;
 
         public MatterController(
             ApplicationDbContext context,
-            AuthorizationHelper authHelper,
-            IAuditService auditService,
+            IMatterService matterService,
             ILogger<MatterController> logger)
         {
             _context = context;
-            _authHelper = authHelper;
-            _auditService = auditService;
+            _matterService = matterService;
             _logger = logger;
         }
 
         // GET: Matter
         public async Task<IActionResult> Index()
         {
-            // Get current user and their organization
-            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
-            if (customUser == null)
+            var (user, orgId) = GetUserContext();
+            if (user == null || orgId == 0)
             {
                 return RedirectToAction("Index", "Home");
             }
 
-            var primaryOrg = customUser.GetPrimaryOrganization();
-            if (primaryOrg == null)
+            // Call service to get matters
+            var result = await _matterService.ListMattersAsync(user.Id, orgId);
+
+            if (!result.Success)
             {
-                return RedirectToAction("Index", "Home");
-            }
-
-            // Get user's organization membership to determine user type
-            var userOrgMembership = customUser.GetOrganizationMembership(primaryOrg.OrganizationId);
-            var userType = userOrgMembership?.UserType ?? UserTypes.Client;
-
-            // Build query with proper filtering based on user type and assignments
-            IQueryable<Matter> mattersQuery = _context.Matters
-                .Where(m => m.OrganizationId == primaryOrg.OrganizationId)
-                .Include(m => m.Assignments)
-                    .ThenInclude(a => a.User)
-                .Include(m => m.Permissions);
-
-            // Filter based on AccessLevel and user assignments
-            // Users should see matters where:
-            // 1. AccessLevel is "Everyone" (all org members can see)
-            // 2. AccessLevel is "Specific" AND user has explicit permission (via MatterPermissions)
-            // 3. User is assigned to the matter (via MatterAssignments)
-            mattersQuery = mattersQuery.Where(m => 
-                // All org members see "Everyone" access level matters
-                m.AccessLevel == "Everyone" ||
-                // Users with specific permissions
-                m.Permissions.Any(p => p.UserId == customUser.Id && p.RevokedAt == null) ||
-                // Users assigned to the matter
-                m.Assignments.Any(a => a.UserId == customUser.Id && a.RemovedAt == null));
-
-            var matters = await mattersQuery.ToListAsync();
-
-            // If no matters exist, add some sample data for demonstration
-            if (!matters.Any())
-            {
-                var sampleMatters = new List<Matter>
-                {
-                    new Matter
-                    {
-                        Title = "Contract Review Automation",
-                        Description = "AI-powered contract analysis and risk assessment system",
-                        Status = "In Progress",
-                        PracticeArea = "AI/ML",
-                        OrganizationId = primaryOrg.OrganizationId,
-                        DueDate = new DateTime(2024, 2, 15),
-                        CreatedAt = DateTime.UtcNow,
-                        LastModifiedDate = DateTime.UtcNow
-                    },
-                    new Matter
-                    {
-                        Title = "Client Portal Dashboard",
-                        Description = "Secure client access portal with document sharing capabilities",
-                        Status = "Review",
-                        PracticeArea = "Frontend",
-                        OrganizationId = primaryOrg.OrganizationId,
-                        DueDate = new DateTime(2024, 2, 28),
-                        CreatedAt = DateTime.UtcNow,
-                        LastModifiedDate = DateTime.UtcNow
-                    },
-                    new Matter
-                    {
-                        Title = "Compliance Tracking System",
-                        Description = "Automated regulatory compliance monitoring and reporting",
-                        Status = "Planning",
-                        PracticeArea = "Backend",
-                        OrganizationId = primaryOrg.OrganizationId,
-                        DueDate = new DateTime(2024, 3, 10),
-                        CreatedAt = DateTime.UtcNow,
-                        LastModifiedDate = DateTime.UtcNow
-                    },
-                    new Matter
-                    {
-                        Title = "Legal Research Assistant",
-                        Description = "Natural language processing for legal document search",
-                        Status = "Completed",
-                        PracticeArea = "AI/ML",
-                        OrganizationId = primaryOrg.OrganizationId,
-                        DueDate = new DateTime(2024, 1, 30),
-                        CreatedAt = DateTime.UtcNow,
-                        LastModifiedDate = DateTime.UtcNow
-                    }
-                };
-
-                _context.Matters.AddRange(sampleMatters);
-                await _context.SaveChangesAsync();
+                TempData["ErrorMessage"] = result.ErrorMessage;
+                _logger.LogWarning("Failed to list matters for user {UserId} in org {OrgId}: {Error}", 
+                    user.Id, orgId, result.ErrorMessage);
                 
-                // Reload matters from database
-                matters = await _context.Matters
-                    .Where(p => p.OrganizationId == primaryOrg.OrganizationId)
-                    .Include(p => p.Assignments)
-                        .ThenInclude(a => a.User)
-                    .ToListAsync();
+                // Return empty view on error
+                var emptyViewModel = new MattersViewModel
+                {
+                    Matters = new List<Matter>(),
+                    ActiveMattersCount = 0,
+                    CompletedMattersCount = 0,
+                    InReviewMattersCount = 0,
+                    TeamMembersCount = 0
+                };
+                ViewBag.OrganizationId = orgId;
+                return View(emptyViewModel);
             }
+
+            // Map DTOs to domain entities for the view (temporary - views should be updated to use DTOs)
+            var matters = result.Data!.Select(dto => new Matter
+            {
+                Id = dto.Id,
+                Title = dto.Title,
+                Description = dto.Description,
+                Status = dto.Status,
+                PracticeArea = dto.PracticeArea,
+                AccessLevel = dto.AccessLevel,
+                OrganizationId = dto.OrganizationId,
+                TeamId = dto.TeamId,
+                ClientId = dto.ClientId,
+                StartDate = dto.StartDate,
+                DueDate = dto.DueDate,
+                CompletedDate = dto.CompletedDate,
+                PendingDate = dto.PendingDate,
+                StatuteOfLimitationsDate = dto.StatuteOfLimitationsDate,
+                CreatedAt = dto.CreatedAt,
+                LastModifiedDate = dto.LastModifiedDate,
+                Assignments = dto.Assignments.Select(a => new MatterAssignment
+                {
+                    Id = a.Id,
+                    MatterId = a.MatterId,
+                    UserId = a.UserId,
+                    AssignmentType = a.AssignmentType,
+                    Role = a.Role,
+                    IsNotifyRecipient = a.IsNotifyRecipient,
+                    AssignedAt = a.AssignedAt
+                }).ToList()
+            }).ToList();
 
             var viewModel = new MattersViewModel
             {
@@ -142,89 +98,90 @@ namespace Certio.Web.Controllers
                 CompletedMattersCount = matters.Count(p => p.Status == "Completed"),
                 InReviewMattersCount = matters.Count(p => p.Status == "Review"),
                 TeamMembersCount = await _context.UserOrganizations
-                    .Where(uo => uo.OrganizationId == primaryOrg.OrganizationId && uo.IsActive)
+                    .Where(uo => uo.OrganizationId == orgId && uo.IsActive)
                     .CountAsync()
             };
 
-            // Set ViewBag for client layout navigation
-            ViewBag.OrganizationId = primaryOrg.OrganizationId;
-
+            ViewBag.OrganizationId = orgId;
             return View(viewModel);
         }
 
         // GET: Matter/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            // Input validation
             if (!id.HasValue || !InputValidator.IsValidId(id.Value))
             {
                 _logger.LogWarning("Invalid matter ID in Details request: {Id}", id);
                 return NotFound();
             }
 
-            // Get current user and their organization
-            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
-            if (customUser == null)
+            var (user, orgId) = GetUserContext();
+            if (user == null)
             {
                 _logger.LogWarning("CustomUser not found in HttpContext for Details request");
                 return RedirectToAction("Index", "Home");
             }
 
-            var primaryOrg = customUser.GetPrimaryOrganization();
-            if (primaryOrg == null)
+            // Call service to get matter with permission check
+            var result = await _matterService.GetMatterAsync(user.Id, id.Value);
+
+            if (!result.Success)
             {
-                _logger.LogWarning("User {UserId} has no primary organization", customUser.Id);
-                return RedirectToAction("Index", "Home");
+                return HandleServiceError(result);
             }
 
-            // Use AuthorizationHelper for secure retrieval
-            var matter = await _authHelper.GetMatterIfAuthorizedAsync(id.Value, customUser.Id, primaryOrg.OrganizationId, HttpContext);
-
-            if (matter == null)
+            // Map DTO to domain entity for the view (temporary - view should be updated to use DTO)
+            var dto = result.Data!;
+            var matter = new Matter
             {
-                // Return consistent 404 to prevent information disclosure
-                _logger.LogWarning("User {UserId} attempted to access unauthorized matter {MatterId}", customUser.Id, id.Value);
-                return NotFound();
-            }
+                Id = dto.Id,
+                Title = dto.Title,
+                Description = dto.Description,
+                Status = dto.Status,
+                PracticeArea = dto.PracticeArea,
+                AccessLevel = dto.AccessLevel,
+                OrganizationId = dto.OrganizationId,
+                TeamId = dto.TeamId,
+                ClientId = dto.ClientId,
+                StartDate = dto.StartDate,
+                DueDate = dto.DueDate,
+                CompletedDate = dto.CompletedDate,
+                PendingDate = dto.PendingDate,
+                StatuteOfLimitationsDate = dto.StatuteOfLimitationsDate,
+                StatuteOfLimitationsSatisfied = dto.StatuteOfLimitationsSatisfied,
+                ClientGoals = dto.ClientGoals,
+                LegalRequirements = dto.LegalRequirements,
+                Notes = dto.Notes,
+                CreatedAt = dto.CreatedAt,
+                LastModifiedDate = dto.LastModifiedDate,
+                Assignments = dto.Assignments.Select(a => new MatterAssignment
+                {
+                    Id = a.Id,
+                    MatterId = a.MatterId,
+                    UserId = a.UserId,
+                    AssignmentType = a.AssignmentType,
+                    Role = a.Role,
+                    IsNotifyRecipient = a.IsNotifyRecipient,
+                    AssignedAt = a.AssignedAt
+                }).ToList()
+            };
 
-            // Audit log for viewing sensitive data
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-            await _auditService.LogOperationAsync(
-                customUser.Id,
-                primaryOrg.OrganizationId,
-                "VIEW",
-                "Matter",
-                matter.Id,
-                ipAddress);
-
-            // Set ViewBag for client layout navigation
-            ViewBag.OrganizationId = primaryOrg.OrganizationId;
-
+            ViewBag.OrganizationId = dto.OrganizationId;
             return View(matter);
         }
 
         // GET: Matter/Create
         public async Task<IActionResult> Create()
         {
-            // Get current user and their organization
-            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
-            if (customUser == null)
+            var (user, orgId) = GetUserContext();
+            if (user == null || orgId == 0)
             {
                 return RedirectToAction("Index", "Home");
             }
 
-            var primaryOrg = customUser.GetPrimaryOrganization();
-            if (primaryOrg == null)
-            {
-                return RedirectToAction("Index", "Home");
-            }
-
-            // Set ViewBag for client layout navigation
-            ViewBag.OrganizationId = primaryOrg.OrganizationId;
+            ViewBag.OrganizationId = orgId;
 
             var viewModel = new MatterFormViewModel();
-            
-            // Populate org members data
             await PopulateOrgMembersData(viewModel);
             
             return View(viewModel);
@@ -235,217 +192,189 @@ namespace Certio.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(MatterFormViewModel model, string action)
         {
-            // Get current user and their organization for ViewBag
-            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
-            var primaryOrg = customUser?.GetPrimaryOrganization();
-            if (primaryOrg != null)
+            var (user, orgId) = GetUserContext();
+            ViewBag.OrganizationId = orgId;
+            
+            // Debug logging for assignments
+            _logger.LogInformation($"Matter/Create POST - Step: {model.Step}, Action: {action}");
+            _logger.LogInformation($"FirmAssignments Count: {model.FirmAssignments?.Count ?? 0}");
+            if (model.FirmAssignments != null)
             {
-                ViewBag.OrganizationId = primaryOrg.OrganizationId;
+                foreach (var fa in model.FirmAssignments)
+                {
+                    _logger.LogInformation($"  - FirmAssignment: Type={fa.AssignmentType}, UserId={fa.UserId}, Role={fa.Role}");
+                }
             }
-
+            _logger.LogInformation($"RelevantContacts Count: {model.RelevantContacts?.Count ?? 0}");
+            if (model.RelevantContacts != null)
+            {
+                foreach (var rc in model.RelevantContacts)
+                {
+                    _logger.LogInformation($"  - RelevantContact: UserId={rc.UserId}, Involvement={rc.Involvement}");
+                }
+            }
+            
             // Always populate org members data
             await PopulateOrgMembersData(model);
             
-            
+            // Handle multi-step form navigation (UI concern - stays in controller)
             if (action == "next")
             {
-                // Clear previous validation errors for fields not in current step FIRST
                 ClearNonCurrentStepErrors(model);
-                
-                // Clear ModelState completely before validating current step
                 ModelState.Clear();
                 
-                // Validate current step before moving to next
                 if (ValidateCurrentStep(model))
                 {
+                    _logger.LogInformation($"Step {model.Step} validation passed, moving to step {model.Step + 1}");
+                    _logger.LogInformation($"Before step increment - FirmAssignments with UserIds: {model.FirmAssignments?.Count(fa => fa.UserId.HasValue) ?? 0}");
+                    
+                    // When moving from Step 3 to Step 4, auto-populate PermissionUserIds with assigned users
+                    if (model.Step == 3)
+                    {
+                        var assignedUserIds = new HashSet<int>();
+                        
+                        // Add all firm assignment users
+                        if (model.FirmAssignments != null)
+                        {
+                            foreach (var fa in model.FirmAssignments.Where(fa => fa.UserId.HasValue))
+                            {
+                                assignedUserIds.Add(fa.UserId!.Value);
+                            }
+                        }
+                        
+                        // Add all relevant contact users
+                        if (model.RelevantContacts != null)
+                        {
+                            foreach (var rc in model.RelevantContacts.Where(rc => rc.UserId.HasValue))
+                            {
+                                assignedUserIds.Add(rc.UserId!.Value);
+                            }
+                        }
+                        
+                        model.PermissionUserIds = assignedUserIds.ToList();
+                        // Don't set AccessLevel - let user explicitly choose
+                        
+                        _logger.LogInformation($"Auto-populated {model.PermissionUserIds.Count} users for matter permissions: {string.Join(", ", model.PermissionUserIds)}");
+                    }
+                    
                     model.Step++;
                     return View(model);
                 }
-                // If validation fails, return to current step with only current step errors
+                _logger.LogInformation($"Step {model.Step} validation failed");
                 return View(model);
             }
             else if (action == "previous")
             {
-                // Move to previous step - data is already cleared by JavaScript
                 if (model.Step > 1)
                 {
-                    // Ensure server-side state is also cleared for the step we're leaving
                     ClearCurrentStepData(model);
                     model.Step--;
                 }
-                // Clear any validation errors since we're going back
                 ModelState.Clear();
                 return View(model);
             }
             else if (action == "create")
             {
-                // Validate all required fields before creating
-                if (ValidateAllSteps(model))
+                if (!ValidateAllSteps(model))
                 {
-                    // Validate user and organization (already retrieved at top of method)
-                    if (customUser == null)
-                    {
-                        TempData["ErrorMessage"] = "User not found. Please log in again.";
-                        return RedirectToAction("Index", "Home");
-                    }
+                    _logger.LogWarning($"Matter creation validation failed. Errors: {string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage))}");
+                    TempData["ErrorMessage"] = "Please fix validation errors before creating the matter.";
+                    return View(model);
+                }
 
-                    if (primaryOrg == null)
-                    {
-                        TempData["ErrorMessage"] = "Organization not found. Please contact support.";
-                        return RedirectToAction("Index", "Home");
-                    }
+                if (user == null || orgId == 0)
+                {
+                    TempData["ErrorMessage"] = "User or organization not found. Please log in again.";
+                    return RedirectToAction("Index", "Home");
+                }
 
-                    // Validate that attorney/staff selections are members of the org
-                    var orgUserIds = await _context.UserOrganizations
-                        .Where(uo => uo.OrganizationId == primaryOrg.OrganizationId && uo.IsActive)
-                        .Select(uo => uo.UserId)
-                        .ToListAsync();
+                // Map ViewModel to DTO
+                var createDto = new CreateMatterDto
+                {
+                    Title = InputValidator.Sanitize(model.Title, InputValidator.MAX_TITLE_LENGTH),
+                    Description = InputValidator.Sanitize(model.Description, InputValidator.MAX_DESCRIPTION_LENGTH),
+                    PracticeArea = InputValidator.Sanitize(model.PracticeArea, 100),
+                    Status = InputValidator.Sanitize(model.Status, 50),
+                    StartDate = model.StartDate,
+                    DueDate = model.DueDate,
+                    PendingDate = model.PendingDate,
+                    StatuteOfLimitationsDate = model.StatuteOfLimitationsDate,
+                    AccessLevel = InputValidator.Sanitize(model.AccessLevel, 20),
+                    PermissionUserIds = model.PermissionUserIds
+                };
 
-                    bool invalidAssignment = false;
-                    // Validate firm assignments
-                    if (model.FirmAssignments != null)
-                    {
-                        foreach (var fa in model.FirmAssignments)
-                        {
-                            if (fa.UserId.HasValue && !orgUserIds.Contains(fa.UserId.Value))
-                            {
-                                ModelState.AddModelError("FirmAssignments", $"Selected {fa.AssignmentType} is not in your organization.");
-                                invalidAssignment = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (model.RelevantContacts != null)
-                    {
-                        foreach (var rc in model.RelevantContacts)
-                        {
-                            if (rc.UserId.HasValue && !orgUserIds.Contains(rc.UserId.Value))
-                            {
-                                ModelState.AddModelError("RelevantContacts", "One or more relevant contacts are not in your organization.");
-                                invalidAssignment = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (invalidAssignment)
-                    {
-                        return View(model);
-                    }
+                // Call service to create matter
+                var result = await _matterService.CreateMatterAsync(
+                    user.Id,
+                    orgId,
+                    createDto,
+                    GetIpAddress(),
+                    GetUserAgent());
 
-                    // Sanitize and validate input using InputValidator
-                    var matter = new Matter
+                if (!result.Success)
+                {
+                    ModelState.AddModelError("", result.ErrorMessage ?? "Failed to create matter");
+                    return View(model);
+                }
+
+                var matterId = result.Data!.Id;
+
+                // Handle assignments after matter creation
+                var allAssignments = new List<(int UserId, string AssignmentType, string Role, bool IsNotifyRecipient)>();
+
+                if (model.FirmAssignments != null)
+                {
+                    foreach (var fa in model.FirmAssignments.Where(fa => fa.UserId.HasValue))
                     {
-                        Title = InputValidator.Sanitize(model.Title, InputValidator.MAX_TITLE_LENGTH),
-                        Description = InputValidator.Sanitize(model.Description, InputValidator.MAX_DESCRIPTION_LENGTH),
-                        PracticeArea = InputValidator.Sanitize(model.PracticeArea, 100),
-                        Status = InputValidator.Sanitize(model.Status, 50),
-                        StartDate = model.StartDate,
-                        DueDate = model.DueDate,
-                        PendingDate = model.PendingDate,
-                        StatuteOfLimitationsDate = model.StatuteOfLimitationsDate,
-                        AccessLevel = InputValidator.Sanitize(model.AccessLevel, 20),
-                        OrganizationId = primaryOrg.OrganizationId,
-                        CreatedAt = DateTime.UtcNow,
-                        LastModifiedDate = DateTime.UtcNow
+                        allAssignments.Add((fa.UserId!.Value, fa.AssignmentType, fa.Role ?? "", fa.IsNotifyRecipient));
+                    }
+                }
+
+                if (model.RelevantContacts != null)
+                {
+                    foreach (var rc in model.RelevantContacts.Where(rc => rc.UserId.HasValue && !string.IsNullOrWhiteSpace(rc.Involvement)))
+                    {
+                        allAssignments.Add((rc.UserId!.Value, "RelevantContact", rc.Involvement!, rc.IsNotifyRecipient));
+                    }
+                }
+
+                // Create assignments via service
+                var assignmentErrors = new List<string>();
+                foreach (var (userId, assignmentType, role, isNotify) in allAssignments)
+                {
+                    var assignDto = new AssignUserToMatterDto
+                    {
+                        UserId = userId,
+                        AssignmentType = assignmentType,
+                        Role = InputValidator.Sanitize(role, 100),
+                        IsNotifyRecipient = isNotify
                     };
 
-                    _context.Matters.Add(matter);
-                    await _context.SaveChangesAsync();
-
-                    // Audit log the creation
-                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-                    await _auditService.LogCreateAsync(
-                        customUser.Id,
-                        primaryOrg.OrganizationId,
-                        "Matter",
-                        matter.Id,
-                        ipAddress,
-                        userAgent);
-
-                    _logger.LogInformation("User {UserId} created matter {MatterId} ({Title}) in org {OrgId}", 
-                        customUser.Id, matter.Id, matter.Title, primaryOrg.OrganizationId);
-
-                    // Create MatterAssignments for firm assignments and relevant contacts
-                    var allAssignments = new List<MatterAssignment>();
-
-                    // Add firm assignments
-                    if (model.FirmAssignments != null && model.FirmAssignments.Any())
+                    var assignResult = await _matterService.AssignUserToMatterAsync(
+                        user.Id,
+                        matterId,
+                        assignDto,
+                        GetIpAddress(),
+                        GetUserAgent());
+                    
+                    if (!assignResult.Success)
                     {
-                        var firmAssignments = model.FirmAssignments
-                            .Where(fa => fa.UserId.HasValue)
-                            .Select(fa => new MatterAssignment
-                            {
-                                MatterId = matter.Id,
-                                UserId = fa.UserId.Value,
-                                AssignmentType = fa.AssignmentType,
-                                Role = InputValidator.Sanitize(fa.Role, 100),
-                                IsNotifyRecipient = fa.IsNotifyRecipient,
-                                AssignedAt = DateTime.UtcNow
-                            })
-                            .ToList();
-                        allAssignments.AddRange(firmAssignments);
+                        _logger.LogWarning("Failed to assign user {UserId} to matter {MatterId}: {Error}", 
+                            userId, matterId, assignResult.ErrorMessage);
+                        assignmentErrors.Add($"User {userId} assignment failed: {assignResult.ErrorMessage}");
                     }
-
-                    // Add relevant contacts
-                    if (model.RelevantContacts != null && model.RelevantContacts.Any())
-                    {
-                        var relevantContactAssignments = model.RelevantContacts
-                            .Where(rc => rc.UserId.HasValue && !string.IsNullOrWhiteSpace(rc.Involvement))
-                            .Select(rc => new MatterAssignment
-                            {
-                                MatterId = matter.Id,
-                                UserId = rc.UserId.Value,
-                                AssignmentType = "RelevantContact",
-                                Role = InputValidator.Sanitize(rc.Involvement, 100),
-                                IsNotifyRecipient = rc.IsNotifyRecipient,
-                                AssignedAt = DateTime.UtcNow
-                            })
-                            .ToList();
-                        allAssignments.AddRange(relevantContactAssignments);
-                    }
-
-                    if (allAssignments.Any())
-                    {
-                        _context.MatterAssignments.AddRange(allAssignments);
-                        await _context.SaveChangesAsync();
-                    }
-
-                    // Create MatterPermissions when AccessLevel is Specific
-                    if (string.Equals(model.AccessLevel, "Specific", StringComparison.OrdinalIgnoreCase) && model.PermissionUserIds != null)
-                    {
-                        var uniqueUserIds = model.PermissionUserIds.Distinct().ToList();
-                        if (uniqueUserIds.Count > 0)
-                        {
-                            // Filter to only org members for safety
-                            var orgMemberIds = await _context.UserOrganizations
-                                .Where(uo => uo.OrganizationId == primaryOrg.OrganizationId && uo.IsActive)
-                                .Select(uo => uo.UserId)
-                                .ToListAsync();
-
-                            var validUserIds = uniqueUserIds.Where(id => orgMemberIds.Contains(id)).ToList();
-                            if (validUserIds.Count != uniqueUserIds.Count)
-                            {
-                                ModelState.AddModelError("PermissionUserIds", "One or more selected users are not in your organization.");
-                                return View(model);
-                            }
-
-                            var permissions = validUserIds.Select(uid => new MatterPermission
-                            {
-                                MatterId = matter.Id,
-                                UserId = uid,
-                                GrantedAt = DateTime.UtcNow,
-                                GrantedById = customUser.Id
-                            }).ToList();
-
-                            _context.MatterPermissions.AddRange(permissions);
-                            await _context.SaveChangesAsync();
-                        }
-                    }
-
-                    TempData["SuccessMessage"] = "Matter created successfully!";
-                    return RedirectToAction(nameof(Index));
                 }
+
+                if (assignmentErrors.Any())
+                {
+                    TempData["WarningMessage"] = $"Matter created successfully, but some assignments failed: {string.Join("; ", assignmentErrors)}";
+                }
+                else
+                {
+                TempData["SuccessMessage"] = "Matter created successfully!";
+                }
+                
+                return RedirectToAction(nameof(Index));
             }
 
             return View(model);
@@ -547,6 +476,20 @@ namespace Certio.Web.Controllers
                 ModelState.AddModelError("AccessLevel", "Access Level is required");
                 isValid = false;
             }
+            
+            // Validate relevant contacts have involvement text
+            if (model.RelevantContacts != null)
+            {
+                foreach (var rc in model.RelevantContacts.Where(rc => rc.UserId.HasValue))
+                {
+                    if (string.IsNullOrWhiteSpace(rc.Involvement))
+                    {
+                        ModelState.AddModelError("RelevantContacts", "The Involvement field is required for all contacts");
+                        isValid = false;
+                        break; // Only show error once
+                    }
+                }
+            }
 
             return isValid;
         }
@@ -579,26 +522,20 @@ namespace Certio.Web.Controllers
 
         private async Task PopulateOrgMembersData(MatterFormViewModel model)
         {
-            // Get current user and their organization
-            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
-            if (customUser == null)
+            // Get current user and organization context (respects partner org access)
+            var (user, orgId) = GetUserContext();
+            if (user == null || orgId == 0)
             {
                 // If no user context, return empty lists
                 model.OrgMembers = new List<OrgMemberOption>();
                 return;
             }
 
-            var primaryOrg = customUser.GetPrimaryOrganization();
-            if (primaryOrg == null)
-            {
-                // If no organization, return empty lists
-                model.OrgMembers = new List<OrgMemberOption>();
-                return;
-            }
+            _logger.LogInformation($"PopulateOrgMembersData: Loading members for organization {orgId}");
 
-            // Get all active organization members
-            var orgMembers = await _context.UserOrganizations
-                .Where(uo => uo.OrganizationId == primaryOrg.OrganizationId && uo.IsActive)
+            // Get all active organization members from the CURRENT organization context (direct membership)
+            var directMembers = await _context.UserOrganizations
+                .Where(uo => uo.OrganizationId == orgId && uo.IsActive)
                 .Include(uo => uo.User)
                 .Select(uo => new OrgMemberOption
                 {
@@ -608,11 +545,44 @@ namespace Certio.Web.Controllers
                     Company = uo.User.Company ?? "No Company"
                 })
                 .ToListAsync();
+            
+            _logger.LogInformation($"PopulateOrgMembersData: Found {directMembers.Count} direct members in organization {orgId}");
+
+            // Get users from law firms that have relationships with this organization
+            var firmMembers = await _context.UserOrganizations
+                .Where(uo => uo.IsActive && uo.UserType == Certio.Domain.Users.UserTypes.LawFirm)
+                .Include(uo => uo.User)
+                .Include(uo => uo.Organization)
+                    .ThenInclude(o => o.OrganizationRelationships)
+                .Where(uo => uo.Organization.OrganizationRelationships.Any(rel =>
+                    rel.TargetOrganizationId == orgId &&
+                    rel.IsActive &&
+                    !rel.IsDeleted &&
+                    rel.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient &&
+                    (!rel.ExpiresAt.HasValue || rel.ExpiresAt.Value > DateTime.UtcNow)))
+                .Select(uo => new OrgMemberOption
+                {
+                    Id = uo.User.Id,
+                    Name = $"{uo.User.FirstName} {uo.User.LastName}",
+                    Email = uo.User.Email,
+                    Company = uo.User.Company ?? uo.Organization.Name
+                })
+                .ToListAsync();
+            
+            _logger.LogInformation($"PopulateOrgMembersData: Found {firmMembers.Count} law firm members with access to organization {orgId}");
+
+            // Combine and deduplicate (in case a user has both direct and firm-based access)
+            var allMembers = directMembers
+                .Union(firmMembers, new OrgMemberOptionComparer())
+                .OrderBy(m => m.Name)
+                .ToList();
+            
+            _logger.LogInformation($"PopulateOrgMembersData: Total unique members: {allMembers.Count}");
 
             // If no org members exist, add some sample data
-            if (!orgMembers.Any())
+            if (!allMembers.Any())
             {
-                orgMembers = new List<OrgMemberOption>
+                allMembers = new List<OrgMemberOption>
                 {
                     new OrgMemberOption { Id = 1, Name = "John Smith", Email = "john@acme.com", Company = "Acme Corp" },
                     new OrgMemberOption { Id = 2, Name = "Jane Doe", Email = "jane@techsolutions.com", Company = "Tech Solutions" },
@@ -620,58 +590,64 @@ namespace Certio.Web.Controllers
                 };
             }
 
-            model.OrgMembers = orgMembers;
+            model.OrgMembers = allMembers;
+        }
+        
+        // Helper class for deduplicating OrgMemberOption by user ID
+        private class OrgMemberOptionComparer : IEqualityComparer<OrgMemberOption>
+        {
+            public bool Equals(OrgMemberOption? x, OrgMemberOption? y)
+            {
+                if (x == null || y == null) return false;
+                return x.Id == y.Id;
+            }
+
+            public int GetHashCode(OrgMemberOption obj)
+            {
+                return obj.Id.GetHashCode();
+            }
         }
 
         // GET: Matter/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            // Input validation
             if (!id.HasValue || !InputValidator.IsValidId(id.Value))
             {
                 _logger.LogWarning("Invalid matter ID in Edit request: {Id}", id);
                 return NotFound();
             }
 
-            // Get current user and their organization
-            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
-            if (customUser == null)
+            var (user, orgId) = GetUserContext();
+            if (user == null)
             {
                 _logger.LogWarning("CustomUser not found in HttpContext for Edit request");
                 return RedirectToAction("Index", "Home");
             }
 
-            var primaryOrg = customUser.GetPrimaryOrganization();
-            if (primaryOrg == null)
+            // Call service to get matter with permission check
+            var result = await _matterService.GetMatterAsync(user.Id, id.Value);
+
+            if (!result.Success)
             {
-                _logger.LogWarning("User {UserId} has no primary organization", customUser.Id);
-                return RedirectToAction("Index", "Home");
+                _logger.LogWarning("User {UserId} attempted to edit unauthorized matter {MatterId}", user.Id, id.Value);
+                return HandleServiceError(result);
             }
 
-            // SECURITY FIX: Use AuthorizationHelper instead of direct FindAsync
-            var matter = await _authHelper.GetMatterIfAuthorizedAsync(id.Value, customUser.Id, primaryOrg.OrganizationId, HttpContext);
-            if (matter == null)
-            {
-                // Return consistent 404 to prevent information disclosure
-                _logger.LogWarning("SECURITY: User {UserId} attempted to edit unauthorized matter {MatterId}", customUser.Id, id.Value);
-                return NotFound();
-            }
-
-            // Set ViewBag for client layout navigation
-            ViewBag.OrganizationId = primaryOrg.OrganizationId;
+            var dto = result.Data!;
+            ViewBag.OrganizationId = dto.OrganizationId;
 
             var viewModel = new MatterFormViewModel
             {
-                Id = matter.Id,
-                Title = matter.Title,
-                Description = matter.Description,
-                PracticeArea = matter.PracticeArea,
-                Status = matter.Status,
-                StartDate = matter.StartDate,
-                DueDate = matter.DueDate,
-                PendingDate = matter.PendingDate,
-                StatuteOfLimitationsDate = matter.StatuteOfLimitationsDate,
-                FirmAssignments = matter.Assignments
+                Id = dto.Id,
+                Title = dto.Title,
+                Description = dto.Description,
+                PracticeArea = dto.PracticeArea,
+                Status = dto.Status,
+                StartDate = dto.StartDate,
+                DueDate = dto.DueDate,
+                PendingDate = dto.PendingDate,
+                StatuteOfLimitationsDate = dto.StatuteOfLimitationsDate,
+                FirmAssignments = dto.Assignments
                     .Where(a => a.AssignmentType != "RelevantContact")
                     .Select(a => new FirmAssignmentViewModel
                     {
@@ -680,7 +656,7 @@ namespace Certio.Web.Controllers
                         Role = a.Role,
                         IsNotifyRecipient = a.IsNotifyRecipient
                     }).ToList(),
-                RelevantContacts = matter.Assignments
+                RelevantContacts = dto.Assignments
                     .Where(a => a.AssignmentType == "RelevantContact")
                     .Select(a => new RelevantContactViewModel
                     {
@@ -698,31 +674,22 @@ namespace Certio.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, MatterFormViewModel model)
         {
-            // Input validation
             if (!InputValidator.IsValidId(id) || id != model.Id)
             {
                 _logger.LogWarning("Invalid ID mismatch in Edit POST: {Id} vs {ModelId}", id, model.Id);
                 return NotFound();
             }
 
-            // Get current user and their organization for ViewBag
-            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
-            if (customUser == null)
+            var (user, orgId) = GetUserContext();
+            if (user == null)
             {
                 _logger.LogWarning("CustomUser not found in HttpContext for Edit POST");
                 return RedirectToAction("Index", "Home");
             }
 
-            var primaryOrg = customUser.GetPrimaryOrganization();
-            if (primaryOrg == null)
-            {
-                _logger.LogWarning("User {UserId} has no primary organization", customUser.Id);
-                return RedirectToAction("Index", "Home");
-            }
+            ViewBag.OrganizationId = orgId;
 
-            ViewBag.OrganizationId = primaryOrg.OrganizationId;
-
-            // Validate input strings
+            // Validate input
             if (!InputValidator.IsValidString(model.Title, InputValidator.MAX_TITLE_LENGTH, required: true))
             {
                 ModelState.AddModelError("Title", "Title is required and must be less than 200 characters");
@@ -732,151 +699,137 @@ namespace Certio.Web.Controllers
                 ModelState.AddModelError("Description", "Description must be less than 5000 characters");
             }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                try
-                {
-                    // SECURITY FIX: Verify user has access before updating
-                    var matter = await _authHelper.GetMatterIfAuthorizedAsync(id, customUser.Id, primaryOrg.OrganizationId, HttpContext);
-                    if (matter == null)
-                    {
-                        _logger.LogWarning("SECURITY: User {UserId} attempted to edit unauthorized matter {MatterId}", customUser.Id, id);
-                        return NotFound();
-                    }
-
-                    matter.Title = model.Title;
-                    matter.Description = model.Description;
-                    matter.PracticeArea = model.PracticeArea;
-                    matter.Status = model.Status;
-                    matter.StartDate = model.StartDate;
-                    matter.DueDate = model.DueDate;
-                    matter.PendingDate = model.PendingDate;
-                    matter.StatuteOfLimitationsDate = model.StatuteOfLimitationsDate;
-                    matter.LastModifiedDate = DateTime.UtcNow;
-
-                    // Update MatterAssignments
-                    var existingAssignments = await _context.MatterAssignments
-                        .Where(ma => ma.MatterId == matter.Id)
-                        .ToListAsync();
-
-                    // Remove existing assignments
-                    _context.MatterAssignments.RemoveRange(existingAssignments);
-
-                    // Add new assignments
-                    var allAssignments = new List<MatterAssignment>();
-
-                    // Add firm assignments
-                    if (model.FirmAssignments != null && model.FirmAssignments.Any())
-                    {
-                        var firmAssignments = model.FirmAssignments
-                            .Where(fa => fa.UserId.HasValue)
-                            .Select(fa => new MatterAssignment
-                            {
-                                MatterId = matter.Id,
-                                UserId = fa.UserId.Value,
-                                AssignmentType = fa.AssignmentType,
-                                Role = fa.Role ?? "",
-                                IsNotifyRecipient = fa.IsNotifyRecipient,
-                                AssignedAt = DateTime.UtcNow
-                            })
-                            .ToList();
-                        allAssignments.AddRange(firmAssignments);
-                    }
-
-                    // Add relevant contacts
-                    if (model.RelevantContacts != null && model.RelevantContacts.Any())
-                    {
-                        var relevantContactAssignments = model.RelevantContacts
-                            .Where(rc => rc.UserId.HasValue && !string.IsNullOrWhiteSpace(rc.Involvement))
-                            .Select(rc => new MatterAssignment
-                            {
-                                MatterId = matter.Id,
-                                UserId = rc.UserId.Value,
-                                AssignmentType = "RelevantContact",
-                                Role = rc.Involvement,
-                                IsNotifyRecipient = rc.IsNotifyRecipient,
-                                AssignedAt = DateTime.UtcNow
-                            })
-                            .ToList();
-                        allAssignments.AddRange(relevantContactAssignments);
-                    }
-
-                    if (allAssignments.Any())
-                    {
-                        _context.MatterAssignments.AddRange(allAssignments);
-                    }
-
-                    _context.Update(matter);
-                    await _context.SaveChangesAsync();
-
-                    // Audit log the update
-                    var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
-                    await _auditService.LogUpdateAsync(
-                        customUser.Id,
-                        primaryOrg.OrganizationId,
-                        "Matter",
-                        matter.Id,
-                        $"Updated: {model.Title}",
-                        ipAddress,
-                        userAgent);
-
-                    TempData["SuccessMessage"] = "Matter updated successfully!";
-                    _logger.LogInformation("User {UserId} updated matter {MatterId} in org {OrgId}", customUser.Id, matter.Id, primaryOrg.OrganizationId);
-                }
-                catch (DbUpdateConcurrencyException ex)
-                {
-                    _logger.LogError(ex, "Concurrency error updating matter {MatterId} by user {UserId}", id, customUser.Id);
-                    if (!MatterExists(id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                return View(model);
             }
-            return View(model);
+
+            // Map ViewModel to UpdateDto
+            var updateDto = new UpdateMatterDto
+            {
+                Title = model.Title,
+                Description = model.Description,
+                PracticeArea = model.PracticeArea,
+                Status = model.Status,
+                StartDate = model.StartDate,
+                DueDate = model.DueDate,
+                PendingDate = model.PendingDate,
+                StatuteOfLimitationsDate = model.StatuteOfLimitationsDate
+            };
+
+            // Call service to update matter
+            var result = await _matterService.UpdateMatterAsync(
+                user.Id,
+                id,
+                updateDto,
+                GetIpAddress(),
+                GetUserAgent());
+
+            if (!result.Success)
+            {
+                ModelState.AddModelError("", result.ErrorMessage ?? "Failed to update matter");
+                return View(model);
+            }
+
+            // Handle assignment updates - remove all existing and add new ones
+            // First, get current assignments
+            var currentMatter = await _matterService.GetMatterAsync(user.Id, id);
+            if (currentMatter.Success && currentMatter.Data!.Assignments.Any())
+            {
+                // Remove all existing assignments
+                foreach (var assignment in currentMatter.Data.Assignments)
+                {
+                    await _matterService.RemoveUserFromMatterAsync(
+                        user.Id,
+                        id,
+                        assignment.UserId,
+                        GetIpAddress(),
+                        GetUserAgent());
+                }
+            }
+
+            // Add new assignments
+            var allAssignments = new List<(int UserId, string AssignmentType, string Role, bool IsNotifyRecipient)>();
+
+            if (model.FirmAssignments != null)
+            {
+                foreach (var fa in model.FirmAssignments.Where(fa => fa.UserId.HasValue))
+                {
+                    allAssignments.Add((fa.UserId!.Value, fa.AssignmentType, fa.Role ?? "", fa.IsNotifyRecipient));
+                }
+            }
+
+            if (model.RelevantContacts != null)
+            {
+                foreach (var rc in model.RelevantContacts.Where(rc => rc.UserId.HasValue && !string.IsNullOrWhiteSpace(rc.Involvement)))
+                {
+                    allAssignments.Add((rc.UserId!.Value, "RelevantContact", rc.Involvement!, rc.IsNotifyRecipient));
+                }
+            }
+
+            foreach (var (userId, assignmentType, role, isNotify) in allAssignments)
+            {
+                var assignDto = new AssignUserToMatterDto
+                {
+                    UserId = userId,
+                    AssignmentType = assignmentType,
+                    Role = role,
+                    IsNotifyRecipient = isNotify
+                };
+
+                await _matterService.AssignUserToMatterAsync(
+                    user.Id,
+                    id,
+                    assignDto,
+                    GetIpAddress(),
+                    GetUserAgent());
+            }
+
+            TempData["SuccessMessage"] = "Matter updated successfully!";
+            _logger.LogInformation("User {UserId} updated matter {MatterId} in org {OrgId}", user.Id, id, orgId);
+            
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Matter/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            // Input validation
             if (!id.HasValue || !InputValidator.IsValidId(id.Value))
             {
                 _logger.LogWarning("Invalid matter ID in Delete request: {Id}", id);
                 return NotFound();
             }
 
-            // Get current user and their organization
-            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
-            if (customUser == null)
+            var (user, _) = GetUserContext();
+            if (user == null)
             {
                 _logger.LogWarning("CustomUser not found in HttpContext for Delete request");
                 return RedirectToAction("Index", "Home");
             }
 
-            var primaryOrg = customUser.GetPrimaryOrganization();
-            if (primaryOrg == null)
+            // Call service to get matter with permission check
+            var result = await _matterService.GetMatterAsync(user.Id, id.Value);
+
+            if (!result.Success)
             {
-                _logger.LogWarning("User {UserId} has no primary organization", customUser.Id);
-                return RedirectToAction("Index", "Home");
+                _logger.LogWarning("User {UserId} attempted to access delete page for unauthorized matter {MatterId}", user.Id, id.Value);
+                return HandleServiceError(result);
             }
 
-            // SECURITY FIX: Verify user has access before showing delete confirmation
-            var matter = await _authHelper.GetMatterIfAuthorizedAsync(id.Value, customUser.Id, primaryOrg.OrganizationId, HttpContext);
-            if (matter == null)
+            // Map DTO to entity for view
+            var dto = result.Data!;
+            var matter = new Matter
             {
-                _logger.LogWarning("SECURITY: User {UserId} attempted to access delete page for unauthorized matter {MatterId}", customUser.Id, id.Value);
-                return NotFound();
-            }
+                Id = dto.Id,
+                Title = dto.Title,
+                Description = dto.Description,
+                Status = dto.Status,
+                PracticeArea = dto.PracticeArea,
+                OrganizationId = dto.OrganizationId,
+                CreatedAt = dto.CreatedAt
+            };
 
-            // Set ViewBag for client layout navigation
-            ViewBag.OrganizationId = primaryOrg.OrganizationId;
-
+            ViewBag.OrganizationId = dto.OrganizationId;
             return View(matter);
         }
 
@@ -885,69 +838,113 @@ namespace Certio.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            // Input validation
             if (!InputValidator.IsValidId(id))
             {
                 _logger.LogWarning("Invalid matter ID in DeleteConfirmed: {Id}", id);
                 return NotFound();
             }
 
-            // Get current user and their organization
-            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
-            if (customUser == null)
+            var (user, _) = GetUserContext();
+            if (user == null)
             {
                 _logger.LogWarning("CustomUser not found in HttpContext for DeleteConfirmed");
                 return RedirectToAction("Index", "Home");
             }
 
-            var primaryOrg = customUser.GetPrimaryOrganization();
-            if (primaryOrg == null)
+            // Call service to delete matter
+            var result = await _matterService.DeleteMatterAsync(
+                user.Id,
+                id,
+                GetIpAddress(),
+                GetUserAgent());
+
+            if (!result.Success)
             {
-                _logger.LogWarning("User {UserId} has no primary organization", customUser.Id);
-                return RedirectToAction("Index", "Home");
+                _logger.LogWarning("Failed to delete matter {MatterId} for user {UserId}: {Error}", 
+                    id, user.Id, result.ErrorMessage);
+                TempData["ErrorMessage"] = result.ErrorMessage ?? "An error occurred while deleting the matter.";
+                return RedirectToAction(nameof(Index));
             }
 
-            // SECURITY FIX: Verify user has access before deleting
-            var matter = await _authHelper.GetMatterIfAuthorizedAsync(id, customUser.Id, primaryOrg.OrganizationId, HttpContext);
-            if (matter == null)
-            {
-                _logger.LogWarning("SECURITY: User {UserId} attempted to delete unauthorized matter {MatterId}", customUser.Id, id);
-                return NotFound();
-            }
-
-            try
-            {
-                // Store title for audit log before deletion
-                var matterTitle = matter.Title;
-
-                _context.Matters.Remove(matter);
-                await _context.SaveChangesAsync();
-
-                // Audit log the deletion
-                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                await _auditService.LogDeleteAsync(
-                    customUser.Id,
-                    primaryOrg.OrganizationId,
-                    "Matter",
-                    id,
-                    ipAddress);
-
-                TempData["SuccessMessage"] = "Matter deleted successfully!";
-                _logger.LogInformation("User {UserId} deleted matter {MatterId} ({Title}) in org {OrgId}", 
-                    customUser.Id, id, matterTitle, primaryOrg.OrganizationId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error deleting matter {MatterId} by user {UserId}", id, customUser.Id);
-                TempData["ErrorMessage"] = "An error occurred while deleting the matter.";
-            }
-
+            TempData["SuccessMessage"] = "Matter deleted successfully!";
+            _logger.LogInformation("User {UserId} deleted matter {MatterId}", user.Id, id);
+            
             return RedirectToAction(nameof(Index));
         }
 
-        private bool MatterExists(int id)
+        // ============================================================
+        // HELPER METHODS
+        // ============================================================
+
+        /// <summary>
+        /// Extracts current user and organization context from HttpContext
+        /// </summary>
+        private (User? User, int OrganizationId) GetUserContext()
         {
-            return _context.Matters.Any(e => e.Id == id);
+            var customUser = HttpContext.Items["CustomUser"] as User;
+            // Use CurrentOrganizationId from middleware (handles partner org context)
+            var orgId = HttpContext.Items.TryGetValue("CurrentOrganizationId", out var orgObj) && orgObj is int currentOrgId
+                ? currentOrgId
+                : customUser?.GetPrimaryOrganization()?.OrganizationId ?? 0;
+            
+            _logger.LogInformation($"GetUserContext: User={customUser?.Id}, OrgId={orgId} (from {(HttpContext.Items.ContainsKey("CurrentOrganizationId") ? "CurrentOrganizationId" : "PrimaryOrg")})");
+            
+            return (customUser, orgId);
+        }
+
+        /// <summary>
+        /// Gets the client IP address for audit logging
+        /// </summary>
+        private string? GetIpAddress()
+        {
+            return HttpContext.Connection.RemoteIpAddress?.ToString();
+        }
+
+        /// <summary>
+        /// Gets the user agent string for audit logging
+        /// </summary>
+        private string? GetUserAgent()
+        {
+            return HttpContext.Request.Headers["User-Agent"].ToString();
+        }
+
+        /// <summary>
+        /// Converts ServiceResult errors to appropriate HTTP responses
+        /// </summary>
+        private IActionResult HandleServiceError<T>(ServiceResult<T> result)
+        {
+            switch (result.ErrorCode)
+            {
+                case "RESOURCE_NOT_FOUND":
+                    return NotFound();
+
+                case "UNAUTHORIZED_OPERATION":
+                    return Forbid();
+
+                case "VALIDATION_ERROR":
+                    if (result.ValidationErrors != null)
+                    {
+                        foreach (var error in result.ValidationErrors)
+                        {
+                            foreach (var message in error.Value)
+                            {
+                                ModelState.AddModelError(error.Key, message);
+                            }
+                        }
+                    }
+                    return BadRequest(ModelState);
+
+                case "ORGANIZATION_MISMATCH":
+                    return Forbid();
+
+                case "BUSINESS_RULE_VIOLATION":
+                    return BadRequest(result.ErrorMessage);
+
+                default:
+                    _logger.LogError("Service error: {ErrorCode} - {ErrorMessage}",
+                        result.ErrorCode, result.ErrorMessage);
+                    return StatusCode(500, "An error occurred while processing your request");
+            }
         }
     }
 }

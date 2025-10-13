@@ -360,10 +360,13 @@ namespace Certio.Application.Services
                     throw new UnauthorizedOperationException(userId, "assign", "SubTask", "No access to subtask");
                 }
 
-                // Validate assignee has access to the organization
-                if (!await _permissionService.IsOrganizationMemberAsync(assignmentDto.UserId, subTask.OrgId))
+                // Validate assignee has access to the organization (direct membership OR firm-based access)
+                var hasDirectMembership = await _permissionService.IsOrganizationMemberAsync(assignmentDto.UserId, subTask.OrgId);
+                var hasFirmAccess = await _permissionService.HasFirmBasedAccessAsync(assignmentDto.UserId, subTask.OrgId);
+
+                if (!hasDirectMembership && !hasFirmAccess)
                 {
-                    throw new BusinessRuleViolationException("UserMembership", "User must be a member of the organization");
+                    throw new BusinessRuleViolationException("UserMembership", "User must be a member of the organization or have firm-based access");
                 }
 
                 // Check if already assigned
