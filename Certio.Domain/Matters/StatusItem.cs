@@ -35,8 +35,17 @@ namespace Certio.Domain.Matters
         public DateTime? DueDate { get; set; }
         public DateTime? CompletedDate { get; set; }
         
+        // Audit fields
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime? LastModifiedDate { get; set; }
+        public int? CreatedById { get; set; }
+        public DateTime? ModifiedAt { get; set; }
+        public int? ModifiedById { get; set; }
+        public DateTime? LastModifiedDate { get; set; } // Legacy - use ModifiedAt
+        
+        // Soft delete fields
+        public bool IsDeleted { get; set; } = false;
+        public DateTime? DeletedAt { get; set; }
+        public int? DeletedById { get; set; }
         
         // Navigation properties
         public virtual Matter Matter { get; set; } = null!;

@@ -74,7 +74,7 @@ public class ChatService : IChatService
         await _context.SaveChangesAsync();
 
         // Audit log
-        await _auditService.LogCreateAsync(userId, organizationId, "Conversation", conversation.Id, null, null);
+        // Audit logging now handled automatically by AuditInterceptor
 
         // Invalidate conversation cache for this user/organization
         await _cacheService.InvalidateUserConversationsCacheAsync(userId, organizationId);
@@ -126,7 +126,7 @@ public class ChatService : IChatService
         await _context.SaveChangesAsync();
 
         // Audit log
-        await _auditService.LogCreateAsync(userId, organizationId, "Channel", conversation.Id, null, null);
+        // Audit logging now handled automatically by AuditInterceptor
 
         _logger.LogInformation("User {UserId} created channel {ChannelId} in org {OrgId}", userId, conversation.Id, organizationId);
 
@@ -768,12 +768,7 @@ public class ChatService : IChatService
             await _context.SaveChangesAsync();
             
             // Audit log the deletion
-            await _auditService.LogDeleteAsync(
-                userId,
-                organizationId,
-                "Conversation",
-                conversationId,
-                ipAddress);
+            // Audit logging now handled automatically by AuditInterceptor
             
             return true;
         }

@@ -35,11 +35,40 @@ namespace Certio.Domain.Tasks
         
         public int Order { get; set; } = 0;
         
+        // Audit fields
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public int? CreatedById { get; set; }
+        public DateTime? ModifiedAt { get; set; }
+        public int? ModifiedById { get; set; }
         public DateTime? StartedAt { get; set; }
-        public DateTime? LastModifiedAt { get; set; }
+        public DateTime? LastModifiedAt { get; set; } // Legacy - use ModifiedAt
         public DateTime? DueDate { get; set; }
         public DateTime? CompletedAt { get; set; }
+        
+        // Soft delete fields
+        public bool IsDeleted { get; set; } = false;
+        public DateTime? DeletedAt { get; set; }
+        public int? DeletedById { get; set; }
+        
+        // AI generation fields
+        public bool IsAIGenerated { get; set; } = false;
+        
+        [StringLength(50)]
+        public string? AIAgentType { get; set; }
+        
+        public string? AIGenerationMetadata { get; set; } // JSON
+        public int? SourceConversationId { get; set; }
+        public int? SourceMessageId { get; set; }
+        
+        // Approval fields for AI-generated content
+        [StringLength(20)]
+        public string? ApprovalStatus { get; set; } // Pending, Approved, Rejected
+        
+        public int? ApprovedById { get; set; }
+        public DateTime? ApprovedAt { get; set; }
+        
+        [StringLength(500)]
+        public string? ApprovalNotes { get; set; }
         
         // Parent-Child relationship for SubTasks
         public int? ParentTaskItemId { get; set; }

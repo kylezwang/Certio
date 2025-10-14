@@ -105,7 +105,6 @@ namespace Certio.Application.Services
                 }
 
                 // Audit log
-                await _auditService.LogCreateAsync(userId, organizationId, "Matter", matter.Id, ipAddress, userAgent);
 
                 _logger.LogInformation("User {UserId} created matter {MatterId} in org {OrgId}", userId, matter.Id, organizationId);
 
@@ -177,7 +176,6 @@ namespace Certio.Application.Services
                 await _context.SaveChangesAsync();
 
                 // Audit log
-                await _auditService.LogUpdateAsync(userId, matter.OrganizationId, "Matter", matter.Id, null, ipAddress, userAgent);
 
                 _logger.LogInformation("User {UserId} updated matter {MatterId}", userId, matterId);
 
@@ -230,7 +228,6 @@ namespace Certio.Application.Services
                 await _context.SaveChangesAsync();
 
                 // Audit log
-                await _auditService.LogDeleteAsync(userId, matter.OrganizationId, "Matter", matter.Id, ipAddress, userAgent);
 
                 _logger.LogInformation("User {UserId} deleted matter {MatterId}", userId, matterId);
 
@@ -516,9 +513,7 @@ namespace Certio.Application.Services
                 // Reload to get user info
                 await _context.Entry(assignment).Reference(a => a.User).LoadAsync();
 
-                // Audit log
-                await _auditService.LogOperationAsync(userId, matter.OrganizationId, "ASSIGN", "Matter", matterId, 
-                    ipAddress, userAgent, $"Assigned user {assignmentDto.UserId} as {assignmentDto.AssignmentType}");
+                // Audit logging now handled automatically by AuditInterceptor
 
                 _logger.LogInformation("User {UserId} assigned user {AssigneeId} to matter {MatterId}", 
                     userId, assignmentDto.UserId, matterId);
@@ -578,9 +573,7 @@ namespace Certio.Application.Services
                 assignment.RemovedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
 
-                // Audit log
-                await _auditService.LogOperationAsync(userId, matter.OrganizationId, "UNASSIGN", "Matter", matterId, 
-                    ipAddress, userAgent, $"Removed user {assigneeId}");
+                // Audit logging now handled automatically by AuditInterceptor
 
                 _logger.LogInformation("User {UserId} removed user {AssigneeId} from matter {MatterId}", 
                     userId, assigneeId, matterId);
@@ -655,9 +648,7 @@ namespace Certio.Application.Services
                 _context.MatterPermissions.Add(permission);
                 await _context.SaveChangesAsync();
 
-                // Audit log
-                await _auditService.LogOperationAsync(userId, matter.OrganizationId, "GRANT_ACCESS", "Matter", matterId, 
-                    ipAddress, userAgent, $"Granted access to user {granteeId}");
+                // Audit logging now handled automatically by AuditInterceptor
 
                 _logger.LogInformation("User {UserId} granted matter access to user {GranteeId} for matter {MatterId}", 
                     userId, granteeId, matterId);
@@ -718,9 +709,7 @@ namespace Certio.Application.Services
                 permission.RevokedById = userId;
                 await _context.SaveChangesAsync();
 
-                // Audit log
-                await _auditService.LogOperationAsync(userId, matter.OrganizationId, "REVOKE_ACCESS", "Matter", matterId, 
-                    ipAddress, userAgent, $"Revoked access from user {granteeId}");
+                // Audit logging now handled automatically by AuditInterceptor
 
                 _logger.LogInformation("User {UserId} revoked matter access from user {GranteeId} for matter {MatterId}", 
                     userId, granteeId, matterId);

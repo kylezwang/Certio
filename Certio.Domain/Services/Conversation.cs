@@ -44,9 +44,17 @@ public class Conversation
     public bool IsPrivate { get; set; } = false;
     public bool IsArchived { get; set; } = false;
     
+    // Audit fields
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? ModifiedAt { get; set; }
+    public int? ModifiedById { get; set; }
     public DateTime? LastMessageAt { get; set; }
     public DateTime? ArchivedAt { get; set; }
+    
+    // Soft delete fields
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public int? DeletedById { get; set; }
     
     // Navigation properties
     public virtual Organization Organization { get; set; } = null!;

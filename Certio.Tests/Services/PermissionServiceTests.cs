@@ -248,8 +248,8 @@ namespace Certio.Tests.Services
         public async Task HasFirmBasedAccessAsync_ValidRelationship_HasAccess()
         {
             // Arrange
-            var lawFirm = await CreateOrganizationAsync("Law Firm", OrganizationType.LawFirm);
-            var client = await CreateOrganizationAsync("Client Org", OrganizationType.Client);
+            var lawFirm = await CreateOrganizationAsync("Law Firm", "LawFirm");
+            var client = await CreateOrganizationAsync("Client Org", "Client");
             var lawyer = await CreateUserAsync("lawyer@firm.com");
             await AddUserToOrganizationAsync(lawyer.Id, lawFirm.Id, UserTypes.LawFirm, OrganizationRoles.Partner);
             await CreateRelationshipAsync(lawFirm.Id, client.Id);
@@ -265,8 +265,8 @@ namespace Certio.Tests.Services
         public async Task HasFirmBasedAccessAsync_ExpiredRelationship_NoAccess()
         {
             // Arrange
-            var lawFirm = await CreateOrganizationAsync("Law Firm", OrganizationType.LawFirm);
-            var client = await CreateOrganizationAsync("Client Org", OrganizationType.Client);
+            var lawFirm = await CreateOrganizationAsync("Law Firm", "LawFirm");
+            var client = await CreateOrganizationAsync("Client Org", "Client");
             var lawyer = await CreateUserAsync("lawyer@firm.com");
             await AddUserToOrganizationAsync(lawyer.Id, lawFirm.Id, UserTypes.LawFirm, OrganizationRoles.Partner);
             await CreateRelationshipAsync(lawFirm.Id, client.Id, expiresAt: DateTime.UtcNow.AddDays(-1));
@@ -282,8 +282,8 @@ namespace Certio.Tests.Services
         public async Task HasFirmBasedAccessAsync_NotLawFirmMember_NoAccess()
         {
             // Arrange
-            var client1 = await CreateOrganizationAsync("Client Org 1", OrganizationType.Client);
-            var client2 = await CreateOrganizationAsync("Client Org 2", OrganizationType.Client);
+            var client1 = await CreateOrganizationAsync("Client Org 1", "Client");
+            var client2 = await CreateOrganizationAsync("Client Org 2", "Client");
             var user = await CreateUserAsync("user@client1.com");
             await AddUserToOrganizationAsync(user.Id, client1.Id, UserTypes.Client, OrganizationRoles.Owner);
 
@@ -371,7 +371,7 @@ namespace Certio.Tests.Services
         {
             var user = await CreateUserAsync($"user_{Guid.NewGuid()}@test.com");
             var org = await CreateOrganizationAsync($"Org_{Guid.NewGuid()}", 
-                userType == UserTypes.LawFirm ? OrganizationType.LawFirm : OrganizationType.Client);
+                userType == UserTypes.LawFirm ? "LawFirm" : "Client");
             await AddUserToOrganizationAsync(user.Id, org.Id, userType, role);
             return (user, org);
         }
@@ -383,7 +383,6 @@ namespace Certio.Tests.Services
                 Email = email,
                 FirstName = "Test",
                 LastName = "User",
-                PasswordHash = "hash",
                 CreatedAt = DateTime.UtcNow,
                 UserOrganizations = new List<UserOrganization>()
             };
@@ -397,7 +396,8 @@ namespace Certio.Tests.Services
             var org = new Organization
             {
                 Name = name,
-                OrganizationType = type,
+                Type = type == "LawFirm" ? OrganizationType.LawFirm : OrganizationType.Client,
+                OwnerId = 1, // Set a default owner ID for tests
                 CreatedAt = DateTime.UtcNow
             };
             _context.Organizations.Add(org);
@@ -424,7 +424,6 @@ namespace Certio.Tests.Services
         {
             var matter = new Matter
             {
-                MatterNumber = $"M-{Guid.NewGuid()}",
                 Title = "Test Matter",
                 OrganizationId = orgId,
                 AccessLevel = accessLevel,
@@ -481,7 +480,7 @@ namespace Certio.Tests.Services
         {
             var assignment = new TaskAssignment
             {
-                TaskId = taskId,
+                TaskItemId = taskId,
                 UserId = userId,
                 AssignedAt = DateTime.UtcNow
             };

@@ -275,17 +275,7 @@ namespace Certio.Application.Services
                     _context.Set<OrganizationRelationshipAssignedUser>().AddRange(newAssignments);
                     await _context.SaveChangesAsync();
 
-                    // Audit log for each assignment
-                    foreach (var assignment in newAssignments)
-                    {
-                        await _auditService.LogCreateAsync(
-                            userId, 
-                            relationship.SourceOrganizationId, 
-                            "OrganizationRelationshipAssignment",
-                            assignment.Id,
-                            ipAddress,
-                            userAgent);
-                    }
+                    // Audit logging now handled automatically by AuditInterceptor
 
                     _logger.LogInformation(
                         "User {UserId} assigned {Count} users to relationship {RelationshipId}", 

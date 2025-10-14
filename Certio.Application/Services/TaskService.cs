@@ -90,7 +90,6 @@ namespace Certio.Application.Services
                 }
 
                 // Audit log
-                await _auditService.LogCreateAsync(userId, matter.OrganizationId, "Task", task.Id, ipAddress, userAgent);
 
                 _logger.LogInformation("User {UserId} created task {TaskId} in matter {MatterId}", userId, task.Id, matterId);
 
@@ -156,7 +155,6 @@ namespace Certio.Application.Services
                 await _context.SaveChangesAsync();
 
                 // Audit log
-                await _auditService.LogUpdateAsync(userId, task.OrgId, "Task", task.Id, null, ipAddress, userAgent);
 
                 _logger.LogInformation("User {UserId} updated task {TaskId}", userId, taskId);
 
@@ -200,7 +198,6 @@ namespace Certio.Application.Services
                 await _context.SaveChangesAsync();
 
                 // Audit log
-                await _auditService.LogDeleteAsync(userId, task.OrgId, "Task", task.Id, ipAddress, userAgent);
 
                 _logger.LogInformation("User {UserId} deleted task {TaskId}", userId, taskId);
 
@@ -482,9 +479,7 @@ namespace Certio.Application.Services
                 // Reload to get user info
                 await _context.Entry(assignment).Reference(a => a.User).LoadAsync();
 
-                // Audit log
-                await _auditService.LogOperationAsync(userId, task.OrgId, "ASSIGN", "Task", taskId, 
-                    ipAddress, userAgent, $"Assigned user {assignmentDto.UserId}");
+                // Audit logging now handled automatically by AuditInterceptor
 
                 _logger.LogInformation("User {UserId} assigned user {AssigneeId} to task {TaskId}", 
                     userId, assignmentDto.UserId, taskId);
@@ -538,9 +533,7 @@ namespace Certio.Application.Services
                 assignment.RemovedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
 
-                // Audit log
-                await _auditService.LogOperationAsync(userId, task.OrgId, "UNASSIGN", "Task", taskId, 
-                    ipAddress, userAgent, $"Removed user {assigneeId}");
+                // Audit logging now handled automatically by AuditInterceptor
 
                 _logger.LogInformation("User {UserId} removed user {AssigneeId} from task {TaskId}", 
                     userId, assigneeId, taskId);
@@ -590,9 +583,7 @@ namespace Certio.Application.Services
 
                 await _context.SaveChangesAsync();
 
-                // Audit log
-                await _auditService.LogOperationAsync(userId, task.OrgId, "COMPLETE", "Task", taskId, 
-                    ipAddress, userAgent, "Marked task as completed");
+                // Audit logging now handled automatically by AuditInterceptor
 
                 _logger.LogInformation("User {UserId} completed task {TaskId}", userId, taskId);
 
@@ -667,9 +658,7 @@ namespace Certio.Application.Services
                         .ThenInclude(m => m.MentionedUser)
                     .FirstAsync(c => c.Id == comment.Id);
 
-                // Audit log
-                await _auditService.LogOperationAsync(userId, task.OrgId, "COMMENT", "Task", taskId, 
-                    ipAddress, userAgent, "Added comment");
+                // Audit logging now handled automatically by AuditInterceptor
 
                 _logger.LogInformation("User {UserId} added comment to task {TaskId}", userId, taskId);
 

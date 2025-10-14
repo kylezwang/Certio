@@ -41,9 +41,15 @@ namespace Certio.Domain.Notifications
     public bool IsRead { get; set; } = false;
     public bool IsArchived { get; set; } = false;
     
+    // Audit fields
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public int? CreatedById { get; set; }
     public DateTime? ReadAt { get; set; }
     public DateTime? ArchivedAt { get; set; }
+    
+    // Soft delete fields (notifications can be soft-deleted for cleanup)
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
     
     // Navigation properties
     public virtual User User { get; set; } = null!;

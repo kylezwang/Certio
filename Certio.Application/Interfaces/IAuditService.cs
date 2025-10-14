@@ -1,68 +1,56 @@
+using Certio.Application.DTOs;
+using Certio.Domain.Audit;
+
 namespace Certio.Application.Interfaces
 {
     /// <summary>
-    /// Service for logging security and audit events
+    /// Service for querying audit logs and tracking changes
     /// </summary>
     public interface IAuditService
     {
         /// <summary>
-        /// Logs a successful operation to the audit trail
+        /// Get complete history for a specific entity
         /// </summary>
-        Task LogOperationAsync(
-            int userId, 
-            int organizationId, 
-            string action, 
-            string entityType, 
-            int entityId, 
-            string? ipAddress = null,
-            string? userAgent = null,
-            string? details = null);
+        Task<List<AuditLog>> GetEntityHistoryAsync(string entityType, int entityId);
 
         /// <summary>
-        /// Logs an authorization failure for security monitoring
+        /// Get all activity for a specific user within a date range
         /// </summary>
-        Task LogAuthorizationFailureAsync(
-            int userId, 
-            int organizationId, 
-            string entityType, 
-            int entityId, 
-            string reason,
-            string? ipAddress = null,
-            string? userAgent = null);
+        Task<List<AuditLog>> GetUserActivityAsync(int userId, DateTime? startDate = null, DateTime? endDate = null);
 
         /// <summary>
-        /// Logs a create operation
+        /// Get all AI-generated content within a date range, optionally filtered by agent type
         /// </summary>
-        Task LogCreateAsync(
-            int userId, 
-            int organizationId, 
-            string entityType, 
-            int entityId,
-            string? ipAddress = null,
-            string? userAgent = null);
+        Task<List<AuditLog>> GetAIGeneratedContentAsync(DateTime? startDate = null, DateTime? endDate = null, string? agentType = null);
 
         /// <summary>
-        /// Logs an update operation with before/after values
+        /// Get all AI-generated content awaiting review/approval
         /// </summary>
-        Task LogUpdateAsync(
-            int userId, 
-            int organizationId, 
-            string entityType, 
-            int entityId,
-            string? changes = null,
-            string? ipAddress = null,
-            string? userAgent = null);
+        Task<List<AuditLogDTO>> GetUnreviewedAIContentAsync(int? organizationId = null);
 
         /// <summary>
-        /// Logs a delete operation
+        /// Get audit logs for a specific organization
         /// </summary>
-        Task LogDeleteAsync(
-            int userId, 
-            int organizationId, 
-            string entityType, 
-            int entityId,
-            string? ipAddress = null,
-            string? userAgent = null);
+        Task<List<AuditLog>> GetOrganizationAuditLogsAsync(int organizationId, DateTime? startDate = null, DateTime? endDate = null);
+
+        /// <summary>
+        /// Get audit logs for a specific matter
+        /// </summary>
+        Task<List<AuditLog>> GetMatterAuditLogsAsync(int matterId, DateTime? startDate = null, DateTime? endDate = null);
+
+        /// <summary>
+        /// Export audit logs to CSV for compliance
+        /// </summary>
+        Task<byte[]> ExportAuditLogsAsync(DateTime startDate, DateTime endDate, int? organizationId = null);
+
+        /// <summary>
+        /// Get audit summary statistics
+        /// </summary>
+        Task<AuditSummaryDTO> GetAuditSummaryAsync(DateTime startDate, DateTime endDate, int? organizationId = null);
+
+        /// <summary>
+        /// Track a custom audit event
+        /// </summary>
+        Task LogAuditEventAsync(string entityType, int entityId, string action, int? userId = null, string? description = null);
     }
 }
-
