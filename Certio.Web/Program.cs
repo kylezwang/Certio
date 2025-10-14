@@ -182,10 +182,20 @@ if (!string.IsNullOrWhiteSpace(aiApiKey))
     builder.Configuration["AIService:ApiKey"] = aiApiKey;
 }
 
+// Add HTTP Context Accessor for audit interceptor
+builder.Services.AddHttpContextAccessor();
+
+// Register audit interceptor as singleton
+builder.Services.AddSingleton<Certio.Infrastructure.Interceptors.AuditInterceptor>();
+
 // Smart database selection based on internet connectivity
 var connectionString = await GetConnectionStringAsync(builder.Configuration);
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+builder.Services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
+{
+    var interceptor = serviceProvider.GetRequiredService<Certio.Infrastructure.Interceptors.AuditInterceptor>();
+    options.UseSqlServer(connectionString)
+           .AddInterceptors(interceptor);
+});
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options => {
@@ -274,7 +284,8 @@ builder.Services.AddScoped<ILawFirmRoleResolutionService, LawFirmRoleResolutionS
 builder.Services.AddScoped<IFirmAccessAuditService, FirmAccessAuditService>();
 
 // PHASE 1 SECURITY SERVICES
-builder.Services.AddScoped<Certio.Application.Interfaces.IAuditService, AuditService>();
+builder.Services.AddScoped<Certio.Application.Interfaces.IAuditService, Certio.Application.Services.AuditService>();
+builder.Services.AddScoped<Certio.Application.Interfaces.INotificationService, Certio.Web.Services.NotificationService>();
 builder.Services.AddScoped<Certio.Web.Security.AuthorizationHelper>();
 
 // PHASE 2 SERVICE LAYER
@@ -398,6 +409,7 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapHub<UpdatesHub>("/hubs/updates");
 app.MapHub<Certio.Web.Hubs.ChatHub>("/hubs/chat");
+app.MapHub<Certio.Web.Hubs.NotificationHub>("/hubs/notifications");
 app.MapGet("/healthz", () => Results.Ok(new { ok = true }));
 
 app.Run();

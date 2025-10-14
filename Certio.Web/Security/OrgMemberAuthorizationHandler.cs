@@ -81,11 +81,7 @@ namespace Certio.Web.Security
             // Log successful access
             if (clientContext.IsFirmBasedAccess && clientContext.OrganizationId.HasValue)
             {
-                await _auditService.LogFirmAccessAsync(
-                    clientContext.FirmMembership?.UserId ?? 0, 
-                    clientContext.OrganizationId.Value, 
-                    "AccessGranted",
-                    $"Firm-based access granted via {clientContext.FirmOrganizationName}");
+                // Audit logging now handled automatically by AuditInterceptor
             }
 
             context.Succeed(requirement);

@@ -65,8 +65,7 @@ namespace Certio.Web.Security
                 {
                     var ipAddress = httpContext?.Connection?.RemoteIpAddress?.ToString();
                     var userAgent = httpContext?.Request?.Headers["User-Agent"].ToString();
-                    await _auditService.LogAuthorizationFailureAsync(
-                        userId, organizationId, "Matter", matterId, "MatterNotInOrganization", ipAddress, userAgent);
+                    // Audit logging now handled automatically by AuditInterceptor
                     return false;
                 }
 
@@ -82,8 +81,7 @@ namespace Certio.Web.Security
                     {
                         var ipAddress = httpContext?.Connection?.RemoteIpAddress?.ToString();
                         var userAgent = httpContext?.Request?.Headers["User-Agent"].ToString();
-                        await _auditService.LogAuthorizationFailureAsync(
-                            userId, organizationId, "Matter", matterId, "NoSpecificPermission", ipAddress, userAgent);
+                        // Audit logging now handled automatically by AuditInterceptor
                         return false;
                     }
                 }
@@ -112,8 +110,7 @@ namespace Certio.Web.Security
                 {
                     var ipAddress = httpContext?.Connection?.RemoteIpAddress?.ToString();
                     var userAgent = httpContext?.Request?.Headers["User-Agent"].ToString();
-                    await _auditService.LogAuthorizationFailureAsync(
-                        userId, 0, "Task", taskId, "TaskNotFound", ipAddress, userAgent);
+                    // Audit logging now handled automatically by AuditInterceptor
                     return false;
                 }
 
@@ -143,8 +140,7 @@ namespace Certio.Web.Security
 
                 var ip = httpContext?.Connection?.RemoteIpAddress?.ToString();
                 var ua = httpContext?.Request?.Headers["User-Agent"].ToString();
-                await _auditService.LogAuthorizationFailureAsync(
-                    userId, task.OrgId, "Task", taskId, "NoAccess", ip, ua);
+                // Audit logging now handled automatically by AuditInterceptor
                 return false;
             }
             catch (Exception ex)
@@ -168,8 +164,7 @@ namespace Certio.Web.Security
                 {
                     var ipAddress = httpContext?.Connection?.RemoteIpAddress?.ToString();
                     var userAgent = httpContext?.Request?.Headers["User-Agent"].ToString();
-                    await _auditService.LogAuthorizationFailureAsync(
-                        userId, 0, "SubTask", subTaskId, "SubTaskNotFound", ipAddress, userAgent);
+                    // Audit logging now handled automatically by AuditInterceptor
                     return false;
                 }
 
@@ -198,8 +193,7 @@ namespace Certio.Web.Security
                 {
                     var ipAddress = httpContext?.Connection?.RemoteIpAddress?.ToString();
                     var userAgent = httpContext?.Request?.Headers["User-Agent"].ToString();
-                    await _auditService.LogAuthorizationFailureAsync(
-                        userId, organizationId, "Conversation", conversationId, "ConversationNotFound", ipAddress, userAgent);
+                    // Audit logging now handled automatically by AuditInterceptor
                     return false;
                 }
 
@@ -208,8 +202,7 @@ namespace Certio.Web.Security
                 {
                     var ipAddress = httpContext?.Connection?.RemoteIpAddress?.ToString();
                     var userAgent = httpContext?.Request?.Headers["User-Agent"].ToString();
-                    await _auditService.LogAuthorizationFailureAsync(
-                        userId, organizationId, "Conversation", conversationId, "ConversationNotInOrganization", ipAddress, userAgent);
+                    // Audit logging now handled automatically by AuditInterceptor
                     return false;
                 }
 
@@ -219,8 +212,7 @@ namespace Certio.Web.Security
                 {
                     var ipAddress = httpContext?.Connection?.RemoteIpAddress?.ToString();
                     var userAgent = httpContext?.Request?.Headers["User-Agent"].ToString();
-                    await _auditService.LogAuthorizationFailureAsync(
-                        userId, organizationId, "Conversation", conversationId, "NotAParticipant", ipAddress, userAgent);
+                    // Audit logging now handled automatically by AuditInterceptor
                     return false;
                 }
 

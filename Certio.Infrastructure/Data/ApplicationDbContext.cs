@@ -79,6 +79,7 @@ namespace Certio.Infrastructure.Data
         // Notification Entities
         public DbSet<Notification> Notifications => Set<Notification>();
         public DbSet<NotificationTemplate> NotificationTemplates => Set<NotificationTemplate>();
+        public DbSet<NotificationPreference> NotificationPreferences => Set<NotificationPreference>();
         
         // Audit Entities
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
@@ -298,7 +299,7 @@ namespace Certio.Infrastructure.Data
             // Configure Team relationship for Matter
             builder.Entity<Matter>()
                 .HasOne(p => p.Team)
-                .WithMany()
+                .WithMany(t => t.Matters)
                 .HasForeignKey(p => p.TeamId)
                 .OnDelete(DeleteBehavior.SetNull);
 
@@ -350,7 +351,7 @@ namespace Certio.Infrastructure.Data
             // Configure MatterAssignment relationships
             builder.Entity<MatterAssignment>()
                 .HasOne(pa => pa.User)
-                .WithMany()
+                .WithMany(u => u.MatterAssignments)
                 .HasForeignKey(pa => pa.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
@@ -571,7 +572,7 @@ namespace Certio.Infrastructure.Data
             // Configure Matter relationship for Document
             builder.Entity<Document>()
                 .HasOne(d => d.Matter)
-                .WithMany()
+                .WithMany(m => m.Documents)
                 .HasForeignKey(d => d.MatterId)
                 .OnDelete(DeleteBehavior.SetNull);
 

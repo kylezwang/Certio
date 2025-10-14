@@ -40,6 +40,11 @@ if ($redisContainer -eq "redis-certio") {
 Write-Host ""
 
 Write-Host "You can now use Docker commands with environment variables." -ForegroundColor Cyan
-Write-Host "Example: docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P `$env:SQL_PASSWORD -C -N -W -s',' -Q `"SELECT Id, Title, Description, ConversationType, Status, CreatedAt, LastMessageAt FROM CertioLocal.dbo.Conversations ORDER BY CreatedAt DESC`"" -ForegroundColor Yellow
+Write-Host "Docker Command Example: docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P `$env:SQL_PASSWORD -C -N -W -s',' -Q `"SELECT Id, Title, Description, ConversationType, Status, CreatedAt, LastMessageAt FROM CertioLocal.dbo.Conversations ORDER BY CreatedAt DESC`"" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "Create Migration Command Example: dotnet ef migrations add MigrationName --project Certio.Infrastructure --startup-project Certio.Web --context ApplicationDbContext
+" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "Apply Migration Command Example: dotnet ef database update --project Certio.Infrastructure --startup-project Certio.Web --context ApplicationDbContext" -ForegroundColor Yellow
 Write-Host ""
 Read-Host "Press Enter to continue"
