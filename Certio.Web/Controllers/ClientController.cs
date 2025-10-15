@@ -19,7 +19,7 @@ namespace Certio.Web.Controllers
         private readonly IJoinCodeService _joinCodeService;
         private readonly IConfiguration _configuration;
         private readonly IFirmRelationshipCacheService _firmRelationshipCache;
-        private readonly IChannelManagementService _channelManagementService;
+        private readonly Certio.Web.Services.IChannelManagementService _channelManagementService;
         private readonly IMatterService _matterService;
         private readonly IChatService _chatService;
         private readonly IOrganizationService _organizationService;
@@ -31,7 +31,7 @@ namespace Certio.Web.Controllers
             IJoinCodeService joinCodeService, 
             IConfiguration configuration,
             IFirmRelationshipCacheService firmRelationshipCache,
-            IChannelManagementService channelManagementService,
+            Certio.Web.Services.IChannelManagementService channelManagementService,
             IMatterService matterService,
             IChatService chatService,
             IOrganizationService organizationService,
@@ -274,182 +274,229 @@ namespace Certio.Web.Controllers
             ViewBag.CurrentUserId = customUser?.Id;
             ViewBag.CurrentUserName = customUser != null ? $"{customUser.FirstName} {customUser.LastName}".Trim() : "";
 
-            // Load real channels from database
-            var channels = await _channelManagementService.GetOrganizationChannelsAsync(orgId);
+            if (customUser == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Get current organization to check if it's a law firm
+            var isLawFirm = org?.Type == OrganizationType.LawFirm;
             
             // Load team members from organization using service
             var orgTeamMembers = await _channelManagementService.GetOrganizationTeamMembersAsync(orgId);
 
-            CommunicationsViewModel viewModel;
-            
-            // Check if we have real data
-            if (channels.Any())
+            List<ChannelCategory> channelCategories;
+
+            if (isLawFirm)
             {
-                // Build channel categories from real data
-                var channelCategories = new List<ChannelCategory>();
+                // LAW FIRM VIEW - Hierarchical structure with firm channels at top and client organizations below
+                channelCategories = new List<ChannelCategory>();
+
+                // 1. Get law firm's own channels (general, urgent-matters, client-onboarding)
+                var firmChannels = await _channelManagementService.GetOrganizationChannelsAsync(orgId);
+                var firmChannelsWithUnread = new List<Channel>();
                 
-                // Group channels by type
-                var publicChannels = channels.Where(c => !c.IsPrivateChannel && c.ChannelType != "Voice").ToList();
-                var privateChannels = channels.Where(c => c.IsPrivateChannel && c.ChannelType != "Voice").ToList();
-                var voiceChannels = channels.Where(c => c.ChannelType == "Voice").ToList();
-                
-                // CLIENT COMMUNICATIONS category
-                if (publicChannels.Any())
+                foreach (var channel in firmChannels)
                 {
+                    var unreadCount = await _channelManagementService.GetUnreadCountAsync(channel.Id, customUser.Id);
+                    firmChannelsWithUnread.Add(new Channel
+                    {
+                        Id = channel.Id,
+                        Name = channel.Title,
+                        Unread = unreadCount,
+                        Type = ChannelType.Text,
+                        IsPrivate = channel.IsPrivateChannel,
+                        MatterId = channel.MatterId,
+                        MatterTitle = channel.Matter?.Title
+                    });
+                }
+
+                // Separate firm's general channels from matter channels
+                var firmGeneralChannels = firmChannelsWithUnread.Where(c => !c.MatterId.HasValue && !c.IsPrivate).ToList();
+                var firmMatterChannels = firmChannelsWithUnread.Where(c => c.MatterId.HasValue && !c.IsPrivate).ToList();
+                var firmPrivateChannels = firmChannelsWithUnread.Where(c => c.IsPrivate).ToList();
+
+                // Add law firm organization category at the top with subcategories
+                var firmSubcategories = new List<ChannelSubcategory>();
+                
+                // Add Firm Matters subsection if there are matter channels
+                if (firmMatterChannels.Any())
+                {
+                    firmSubcategories.Add(new ChannelSubcategory
+                    {
+                        Name = "Firm Matters",
+                        OrganizationId = orgId,
+                        Channels = firmMatterChannels
+                    });
+                }
+
+                    channelCategories.Add(new ChannelCategory
+                    {
+                    Name = org?.Name?.ToUpperInvariant() ?? "LAW FIRM",
+                    Channels = firmGeneralChannels,
+                    Subcategories = firmSubcategories
+                });
+
+                // 2. Get all client organizations and their channels
+                var clientOrgChannelsDict = await _channelManagementService.GetClientOrganizationChannelsForLawFirmAsync(orgId);
+                
+                if (clientOrgChannelsDict.Any())
+                {
+                    var clientSubcategories = new List<ChannelSubcategory>();
+
+                    foreach (var kvp in clientOrgChannelsDict)
+                    {
+                        var clientOrgId = kvp.Key;
+                        var clientChannels = kvp.Value;
+
+                        var clientOrg = await _db.Organizations.FindAsync(clientOrgId);
+                        if (clientOrg == null) continue;
+
+                        var clientChannelsWithUnread = new List<Channel>();
+                        foreach (var channel in clientChannels)
+                        {
+                            var unreadCount = await _channelManagementService.GetUnreadCountAsync(channel.Id, customUser.Id);
+                            clientChannelsWithUnread.Add(new Channel
+                            {
+                                Id = channel.Id,
+                                Name = channel.Title,
+                                Unread = unreadCount,
+                                Type = ChannelType.Text,
+                                IsPrivate = channel.IsPrivateChannel,
+                                MatterId = channel.MatterId,
+                                MatterTitle = channel.Matter?.Title
+                            });
+                        }
+
+                        clientSubcategories.Add(new ChannelSubcategory
+                        {
+                            Name = clientOrg.Name,
+                            OrganizationId = clientOrgId,
+                            Channels = clientChannelsWithUnread
+                        });
+                    }
+
+                    // Add Client Communications category with subcategories for each client
                     channelCategories.Add(new ChannelCategory
                     {
                         Name = "CLIENT COMMUNICATIONS",
                         Channels = new List<Channel>(),
-                        Subcategories = new List<ChannelSubcategory>
-                        {
-                            new ChannelSubcategory
-                            {
-                                Name = "Client Organizations",
-                                Channels = publicChannels.Select(c => new Channel
-                                {
-                                    Id = c.Id,
-                                    Name = c.Title,
-                                    Unread = 0, // TODO: Calculate unread count
-                                    Type = c.ChannelType == "Voice" ? ChannelType.Voice : ChannelType.Text,
-                                    IsPrivate = c.IsPrivateChannel
-                                }).ToList()
-                            }
-                        }
+                        Subcategories = clientSubcategories
                     });
                 }
+
+                // Add private channels if any exist
+                if (firmPrivateChannels.Any())
+                {
+                    channelCategories.Add(new ChannelCategory
+                    {
+                        Name = "LEGAL TEAM",
+                        Channels = firmPrivateChannels
+                    });
+                }
+
+                // Add voice channels category (placeholder for future)
+                    channelCategories.Add(new ChannelCategory
+                    {
+                        Name = "VOICE CHANNELS",
+                    Channels = new List<Channel>
+                    {
+                        new Channel { Id = -1, Name = "Client Consultations", Unread = 0, Type = ChannelType.Voice, IsPrivate = false, Users = new List<string>() },
+                        new Channel { Id = -2, Name = "Team Meetings", Unread = 0, Type = ChannelType.Voice, IsPrivate = true, Users = new List<string>() }
+                    }
+                });
+            }
+            else
+            {
+                // CLIENT VIEW - Original structure
+                var channels = await _channelManagementService.GetOrganizationChannelsAsync(orgId);
                 
-                // LEGAL TEAM category
+                // Get unread counts for each channel
+                var channelsWithUnread = new List<Channel>();
+                foreach (var channel in channels)
+                {
+                    var unreadCount = await _channelManagementService.GetUnreadCountAsync(channel.Id, customUser.Id);
+                    channelsWithUnread.Add(new Channel
+                    {
+                        Id = channel.Id,
+                        Name = channel.Title,
+                        Unread = unreadCount,
+                        Type = ChannelType.Text,
+                        IsPrivate = channel.IsPrivateChannel,
+                        MatterId = channel.MatterId,
+                        MatterTitle = channel.Matter?.Title
+                    });
+                }
+
+                // Organize channels into categories
+                var publicChannels = channelsWithUnread.Where(c => !c.IsPrivate).ToList();
+                var privateChannels = channelsWithUnread.Where(c => c.IsPrivate).ToList();
+
+                channelCategories = new List<ChannelCategory>
+                {
+                    new ChannelCategory
+                    {
+                        Name = "CLIENT COMMUNICATIONS",
+                        Channels = publicChannels
+                    }
+                };
+
+                // Add private channels if any exist
                 if (privateChannels.Any())
                 {
                     channelCategories.Add(new ChannelCategory
                     {
                         Name = "LEGAL TEAM",
-                        Channels = privateChannels.Select(c => new Channel
-                        {
-                            Id = c.Id,
-                            Name = c.Title,
-                            Unread = 0, // TODO: Calculate unread count
-                            Type = c.ChannelType == "Voice" ? ChannelType.Voice : ChannelType.Text,
-                            IsPrivate = c.IsPrivateChannel
-                        }).ToList()
+                        Channels = privateChannels
                     });
                 }
-                
-                // VOICE CHANNELS category
-                if (voiceChannels.Any())
-                {
-                    channelCategories.Add(new ChannelCategory
-                    {
-                        Name = "VOICE CHANNELS",
-                        Channels = voiceChannels.Select(c => new Channel
-                        {
-                            Id = c.Id,
-                            Name = c.Title,
-                            Unread = 0,
-                            Type = ChannelType.Voice,
-                            IsPrivate = c.IsPrivateChannel,
-                            Users = new List<string>() // TODO: Get active users from SignalR
-                        }).ToList()
-                    });
-                }
-                
-                // Load recent messages from the first channel using ChatService
-                var firstChannel = channels.FirstOrDefault();
-                var messages = new List<Message>();
-                if (firstChannel != null)
-                {
-                    var recentMessages = await _chatService.GetChannelMessagesAsync(firstChannel.Id);
-                    
-                    messages = recentMessages.OrderBy(m => m.CreatedAt).Select(m => new Message
-                    {
-                        Id = m.Id,
-                        User = !string.IsNullOrEmpty(m.Sender) ? m.Sender : $"{m.User?.FirstName} {m.User?.LastName}",
-                        Avatar = m.User != null ? $"{m.User.FirstName.Substring(0, 1)}{m.User.LastName.Substring(0, 1)}" : "??",
-                        Time = m.CreatedAt.ToLocalTime().ToString("h:mm tt"),
-                        Content = m.Content,
-                        Reactions = new List<Reaction>() // TODO: Parse reactions from JSON
-                    }).ToList();
-                }
-                
-                viewModel = new CommunicationsViewModel
-                {
-                    ChannelCategories = channelCategories,
-                    Messages = messages,
-                    TeamMembers = orgTeamMembers,
-                    ActiveChannel = firstChannel?.Title ?? "general",
-                    OnlineMembersCount = 0 // Will be updated by SignalR
-                };
-            }
-            else
-            {
-                // Fallback to sample data if no channels exist yet
-                // Copy of HomeController.Communications sample data
-                var channelCategories = new List<ChannelCategory>
-                {
-                    new ChannelCategory
-                    {
-                        Name = "CLIENT COMMUNICATIONS",
-                        Channels = new List<Channel>(),
-                        Subcategories = new List<ChannelSubcategory>
-                        {
-                            new ChannelSubcategory
-                            {
-                                Name = "Client Organizations",
-                                Channels = new List<Channel>
-                                {
-                                    new Channel { Id = 1, Name = "general-client-chat", Unread = 0, Type = ChannelType.Text, IsPrivate = false },
-                                    new Channel { Id = 2, Name = "urgent-matters", Unread = 3, Type = ChannelType.Text, IsPrivate = false },
-                                    new Channel { Id = 3, Name = "client-onboarding", Unread = 1, Type = ChannelType.Text, IsPrivate = false }
-                                }
-                            }
-                        }
-                    },
-                    new ChannelCategory
-                    {
-                        Name = "LEGAL TEAM",
-                        Channels = new List<Channel>
-                        {
-                            new Channel { Id = 4, Name = "contract-reviews", Unread = 0, Type = ChannelType.Text, IsPrivate = true },
-                            new Channel { Id = 5, Name = "case-discussions", Unread = 2, Type = ChannelType.Text, IsPrivate = true },
-                            new Channel { Id = 6, Name = "compliance-alerts", Unread = 0, Type = ChannelType.Text, IsPrivate = true }
-                        }
-                    },
-                    new ChannelCategory
+
+                // Add voice channels category (placeholder for future)
+                channelCategories.Add(new ChannelCategory
                     {
                         Name = "VOICE CHANNELS",
                         Channels = new List<Channel>
                         {
-                            new Channel { Id = 7, Name = "Client Consultations", Unread = 0, Type = ChannelType.Voice, IsPrivate = false, Users = new List<string> { "SJ", "MC" } },
-                            new Channel { Id = 8, Name = "Team Meetings", Unread = 0, Type = ChannelType.Voice, IsPrivate = true, Users = new List<string>() }
-                        }
+                        new Channel { Id = -1, Name = "Client Consultations", Unread = 0, Type = ChannelType.Voice, IsPrivate = false, Users = new List<string>() },
+                        new Channel { Id = -2, Name = "Team Meetings", Unread = 0, Type = ChannelType.Voice, IsPrivate = true, Users = new List<string>() }
                     }
-                };
+                });
+            }
 
-                var messages = new List<Message>
-                {
-                    new Message { Id = 1, User = "Sarah Johnson", Avatar = "SJ", Time = "9:42 AM", Content = "The contract review for Morrison Industries is complete. Found 3 high-priority items that need attention.", Reactions = new List<Reaction> { new Reaction { Emoji = "✅", Count = 2 }, new Reaction { Emoji = "👍", Count = 1 } } },
-                    new Message { Id = 2, User = "Mike Chen", Avatar = "MC", Time = "9:45 AM", Content = "Great work! Can you share the summary report in the contract-reviews channel?", Reactions = new List<Reaction>() },
-                    new Message { Id = 3, User = "Alex Rodriguez", Avatar = "AR", Time = "10:15 AM", Content = "New client onboarding documents uploaded to the secure portal. All stakeholders have been notified.", Reactions = new List<Reaction> { new Reaction { Emoji = "🎉", Count = 3 } } },
-                };
+            // Set active channel to the first available channel
+            var firstCategory = channelCategories.FirstOrDefault();
+            var activeChannel = firstCategory?.Channels.FirstOrDefault()?.Name ?? 
+                               firstCategory?.Subcategories.FirstOrDefault()?.Channels.FirstOrDefault()?.Name ?? 
+                               "general";
 
-                // Use real team members or sample data if no real users exist
-                var sampleTeamMembers = new List<CommunicationsTeamMember>
-                {
-                    new CommunicationsTeamMember { Name = "Sarah Johnson", Role = "Senior Legal Counsel", Status = "online", Avatar = "SJ", Activity = "Reviewing Morrison contract" },
-                    new CommunicationsTeamMember { Name = "Mike Chen", Role = "Legal Tech Specialist", Status = "online", Avatar = "MC", Activity = "Debugging case management system" }
-                };
+            // Load messages from first available channel
+            var firstChannelId = channelCategories.FirstOrDefault()?.Channels.FirstOrDefault()?.Id ??
+                                channelCategories.FirstOrDefault()?.Subcategories.FirstOrDefault()?.Channels.FirstOrDefault()?.Id;
+            
+            var messages = new List<Message>();
+            if (firstChannelId.HasValue && firstChannelId.Value > 0)
+            {
+                var recentMessages = await _chatService.GetChannelMessagesAsync(firstChannelId.Value);
                 
-                var displayTeamMembers = orgTeamMembers.Any() ? orgTeamMembers : sampleTeamMembers;
+                messages = recentMessages.OrderBy(m => m.CreatedAt).Select(m => new Message
+                {
+                    Id = m.Id,
+                    User = !string.IsNullOrEmpty(m.Sender) ? m.Sender : $"{m.User?.FirstName} {m.User?.LastName}",
+                    Avatar = m.User != null ? $"{m.User.FirstName.Substring(0, 1)}{m.User.LastName.Substring(0, 1)}" : "??",
+                    Time = m.CreatedAt.ToLocalTime().ToString("h:mm tt"),
+                    Content = m.Content,
+                    Reactions = new List<Reaction>()
+                }).ToList();
+            }
 
-                viewModel = new CommunicationsViewModel
+            var viewModel = new CommunicationsViewModel
                 {
                     ChannelCategories = channelCategories,
                     Messages = messages,
-                    TeamMembers = displayTeamMembers,
-                    ActiveChannel = "general-client-chat",
-                    OnlineMembersCount = displayTeamMembers.Count(m => m.Status == "online")
-                };
-            }
+                TeamMembers = orgTeamMembers,
+                ActiveChannel = activeChannel,
+                OnlineMembersCount = 0 // Will be updated by SignalR
+            };
 
             return View("~/Views/Home/Communications.cshtml", viewModel);
         }
@@ -595,7 +642,7 @@ namespace Certio.Web.Controllers
                 return team switch
                 {
                     TeamType.Client => "#3b82f6",
-                    TeamType.Legal => "#0b365e",
+                    TeamType.Legal => "#3d1019",
                     TeamType.External => "#10b981",
                     _ => "#3b82f6"
                 };

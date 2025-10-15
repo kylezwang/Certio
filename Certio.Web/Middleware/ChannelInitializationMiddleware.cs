@@ -15,7 +15,7 @@ public class ChannelInitializationMiddleware
         _next = next;
     }
 
-    public async Task InvokeAsync(HttpContext context, ApplicationDbContext db, IChannelManagementService channelService)
+    public async Task InvokeAsync(HttpContext context, ApplicationDbContext db, Certio.Web.Services.IChannelManagementService channelService)
     {
         // Check if we have an organization context
         if (context.Items.TryGetValue("CurrentOrganizationId", out var orgObj) && orgObj is int orgId)

@@ -178,19 +178,62 @@ async function loadChannelMessages(channelId, loadOlder = false) {
             loadingOlderMessages = true;
         }
         
-        // Build URL with pagination if loading older messages
-        let url = `/api/chat/channel/${channelId}/messages`;
+        // Build URL with organization context - use the proper endpoint
+        let url = `/Client/${communicationsOrganizationId}/Chat/channel/${channelId}/messages`;
         if (loadOlder && oldestMessageId) {
             url += `?before=${oldestMessageId}&limit=50`;
         }
         
+        console.log(`Loading messages from: ${url}`);
         const response = await fetch(url);
         
         if (!response.ok) {
-            throw new Error('Failed to load messages');
+            console.error(`Failed to load messages: ${response.status} ${response.statusText}`);
+            const errorText = await response.text();
+            console.error(`Response body: ${errorText.substring(0, 200)}`);
+            
+            // Don't clear existing messages on API error - keep server-rendered messages
+            const messagesContainer = document.querySelector('.messages-list');
+            const existingMessages = messagesContainer?.querySelectorAll('.message-item');
+            
+            if (!loadOlder && (!existingMessages || existingMessages.length === 0)) {
+                // Only show empty state if we have no existing messages
+                displayMessages([]);
+            } else {
+                console.log(`Keeping ${existingMessages?.length || 0} existing server-rendered messages`);
+                // Remove loading spinner but keep messages
+                const loadingDiv = messagesContainer?.querySelector('.loading-messages');
+                if (loadingDiv) {
+                    loadingDiv.remove();
+                }
+            }
+            return;
+        }
+
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            console.error(`Expected JSON but got: ${contentType}`);
+            const errorText = await response.text();
+            console.error(`Response body: ${errorText.substring(0, 200)}`);
+            
+            // Don't clear existing messages on API error
+            const messagesContainer = document.querySelector('.messages-list');
+            const existingMessages = messagesContainer?.querySelectorAll('.message-item');
+            
+            if (!loadOlder && (!existingMessages || existingMessages.length === 0)) {
+                displayMessages([]);
+            } else {
+                console.log(`Keeping ${existingMessages?.length || 0} existing server-rendered messages`);
+                const loadingDiv = messagesContainer?.querySelector('.loading-messages');
+                if (loadingDiv) {
+                    loadingDiv.remove();
+                }
+            }
+            return;
         }
 
         const messages = await response.json();
+        console.log(`Loaded ${messages.length} messages for channel ${channelId}`);
         
         // Check if we have more messages to load
         hasMoreMessages = messages.length >= 50;
@@ -210,6 +253,22 @@ async function loadChannelMessages(channelId, loadOlder = false) {
         
     } catch (err) {
         console.error("Error loading messages:", err);
+        
+        // Don't clear existing messages on error - preserve server-rendered content
+        const messagesContainer = document.querySelector('.messages-list');
+        const existingMessages = messagesContainer?.querySelectorAll('.message-item');
+        
+        if (!loadOlder && (!existingMessages || existingMessages.length === 0)) {
+            // Only show empty state if we have no messages at all
+            displayMessages([]);
+        } else {
+            console.log(`Error occurred but keeping ${existingMessages?.length || 0} existing messages`);
+            // Remove loading spinner but keep messages
+            const loadingDiv = messagesContainer?.querySelector('.loading-messages');
+            if (loadingDiv) {
+                loadingDiv.remove();
+            }
+        }
     } finally {
         if (loadOlder) {
             loadingOlderMessages = false;
@@ -246,27 +305,18 @@ function displayMessages(messages) {
         return;
     }
 
-    // Don't clear if we're showing sample messages and no real messages are loaded
-    if (messages && messages.length > 0) {
-        // Check if we already have messages displayed (from server-side rendering)
-        const existingMessages = messagesContainer.querySelectorAll('.message-item');
-        const hasExistingMessages = existingMessages.length > 0;
-        
-        if (hasExistingMessages) {
-            // Only clear if we have more messages from API than from server-side rendering
-            if (messages.length > existingMessages.length) {
-                messagesContainer.innerHTML = '';
-            } else {
-                return;
-            }
-        } else {
-            messagesContainer.innerHTML = '';
-        }
-        
+    // Always clear and display fresh messages
+    messagesContainer.innerHTML = '';
+    
+    // Check if we actually have messages
+    if (Array.isArray(messages) && messages.length > 0) {
         messages.forEach(message => {
             appendMessage(message, false);
         });
         scrollToBottom();
+    } else {
+        // Show empty state for channels with no messages
+        messagesContainer.innerHTML = '<div class="no-messages" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #9ca3af; font-size: 0.95rem; white-space: nowrap;">No messages yet. Start the conversation!</div>';
     }
 }
 
@@ -580,26 +630,24 @@ function createReactionsHTML(reactions) {
 }
 
 // Switch channel
-async function switchChannel(channelId, channelName) {
-    // Update UI
-    document.querySelectorAll('.channel-item').forEach(item => {
-        item.classList.remove('active');
-    });
-    const channelButton = document.querySelector(`[data-channel-id="${channelId}"]`);
-    if (channelButton) {
-        channelButton.classList.add('active');
+async function switchChannel(channelId, channelName, isMatterChannel, matterTitle) {
+    // UI is already updated by the inline click handler in Communications.cshtml
+    // This function now focuses on the data/SignalR operations
+    
+    // Reset pagination state for the new channel
+    oldestMessageId = null;
+    hasMoreMessages = true;
+    
+    // Show simple loading indicator while switching
+    const messagesContainer = document.querySelector('.messages-list');
+    if (messagesContainer) {
+        messagesContainer.innerHTML = '<div class="loading-messages" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"><div class="spinner" style="width: 40px; height: 40px; border: 3px solid rgba(61, 16, 25, 0.1); border-top-color: #3d1019; border-radius: 50%; animation: spin 0.8s linear infinite;"></div></div>';
     }
-
-    // Update channel header
-    const channelTitle = document.querySelector('.channel-title');
-    if (channelTitle) {
-        channelTitle.textContent = `# ${channelName}`;
-    }
-
-    // Join new channel
+    
+    // Join new channel (this will update currentChannelId internally)
     await joinChannel(channelId);
 
-    // Load messages
+    // Load messages for the new channel
     await loadChannelMessages(channelId);
 }
 

@@ -22,6 +22,8 @@ namespace Certio.Web.ViewModels
     {
         public string Name { get; set; } = string.Empty;
         public List<Channel> Channels { get; set; } = new List<Channel>();
+        public int? OrganizationId { get; set; }
+        public int? OrganizationRelationshipId { get; set; }
     }
 
     public class Channel
@@ -32,6 +34,8 @@ namespace Certio.Web.ViewModels
         public ChannelType Type { get; set; }
         public bool IsPrivate { get; set; }
         public List<string> Users { get; set; } = new List<string>();
+        public int? MatterId { get; set; }
+        public string? MatterTitle { get; set; }
     }
 
     public enum ChannelType
