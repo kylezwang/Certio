@@ -16,19 +16,22 @@ namespace Certio.Application.Services
         private readonly IOrganizationContextService _orgContextService;
         private readonly IAuditService _auditService;
         private readonly ILogger<MatterService> _logger;
+        private readonly Certio.Application.Interfaces.IChannelManagementService? _channelManagementService;
 
         public MatterService(
             ApplicationDbContext context,
             IPermissionService permissionService,
             IOrganizationContextService orgContextService,
             IAuditService auditService,
-            ILogger<MatterService> logger)
+            ILogger<MatterService> logger,
+            Certio.Application.Interfaces.IChannelManagementService? channelManagementService = null)
         {
             _context = context;
             _permissionService = permissionService;
             _orgContextService = orgContextService;
             _auditService = auditService;
             _logger = logger;
+            _channelManagementService = channelManagementService;
         }
 
         public async Task<ServiceResult<MatterDto>> CreateMatterAsync(
@@ -102,6 +105,33 @@ namespace Certio.Application.Services
 
                     _context.MatterPermissions.AddRange(permissions);
                     await _context.SaveChangesAsync();
+                }
+
+                // Auto-create channel for this matter
+                if (_channelManagementService != null)
+                {
+                    try
+                    {
+                        _logger.LogInformation("Attempting to create channel for matter {MatterId} in organization {OrganizationId} by user {UserId}", matter.Id, organizationId, userId);
+                        var channel = await _channelManagementService.CreateMatterChannelAsync(matter.Id, organizationId, userId);
+                        if (channel != null)
+                        {
+                            _logger.LogInformation("Successfully created channel {ChannelId} for matter {MatterId}", channel.Id, matter.Id);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Channel creation returned null for matter {MatterId}", matter.Id);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to create channel for matter {MatterId}, but matter was created successfully", matter.Id);
+                        // Don't fail the matter creation if channel creation fails
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("ChannelManagementService is null - cannot create channel for matter {MatterId}", matter.Id);
                 }
 
                 // Audit log

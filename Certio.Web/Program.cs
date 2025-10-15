@@ -331,6 +331,7 @@ builder.Services.AddSingleton<Certio.Web.Services.AIBackgroundService>();
 
 // Channel Management Services
 builder.Services.AddScoped<Certio.Web.Services.IChannelManagementService, Certio.Web.Services.ChannelManagementService>();
+builder.Services.AddScoped<Certio.Application.Interfaces.IChannelManagementService, Certio.Web.Services.ChannelManagementService>();
 builder.Services.AddSingleton<Certio.Web.Services.IUserPresenceService, Certio.Web.Services.UserPresenceService>();
 
 // User Sync Services
@@ -386,6 +387,8 @@ app.UseClientAccessGuard();
 app.UseAuthorization();
 
 app.MapRazorPages();
+// Enable attribute routing for API controllers
+app.MapControllers();
 // Client-scoped routes needed for MatterController (Create/Edit/etc.) under /Client/{orgId}/Matter
 app.MapControllerRoute(
     name: "client_matter",
@@ -395,11 +398,6 @@ app.MapControllerRoute(
 app.MapControllerRoute(
     name: "client_chat",
     pattern: "Client/{orgId:int}/Chat/{action=Index}/{id?}",
-    defaults: new { controller = "Chat" });
-// API routes for chat
-app.MapControllerRoute(
-    name: "api_chat",
-    pattern: "api/chat/{action=Index}/{id?}",
     defaults: new { controller = "Chat" });
 app.MapControllerRoute(
     name: "admin",

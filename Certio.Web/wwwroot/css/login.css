@@ -22,7 +22,7 @@
 }
 
 .form-control:focus {
-  border-color: #0b365e;
+  border-color: #3d1019;
   box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
   outline: none;
   background-color: #ffffff !important;
@@ -154,7 +154,7 @@
   
   .form-control:focus {
     background-color: #374151;
-    border-color: #0b365e;
+    border-color: #3d1019;
   }
   
   .form-control::placeholder {

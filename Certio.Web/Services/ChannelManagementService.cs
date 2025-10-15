@@ -4,18 +4,22 @@ using Certio.Infrastructure.Data;
 using Certio.Application.Services;
 using Certio.Application.Interfaces;
 using Certio.Web.ViewModels;
+using Microsoft.Extensions.Logging;
+using Certio.Domain.Organizations;
 
 namespace Certio.Web.Services;
 
-public class ChannelManagementService : IChannelManagementService
+public class ChannelManagementService : Certio.Web.Services.IChannelManagementService
 {
     private readonly ApplicationDbContext _context;
     private readonly IChatService _chatService;
+    private readonly ILogger<ChannelManagementService> _logger;
 
-    public ChannelManagementService(ApplicationDbContext context, IChatService chatService)
+    public ChannelManagementService(ApplicationDbContext context, IChatService chatService, ILogger<ChannelManagementService> logger)
     {
         _context = context;
         _chatService = chatService;
+        _logger = logger;
     }
 
     public async Task<List<Conversation>> GetOrganizationChannelsAsync(int organizationId)
@@ -56,13 +60,23 @@ public class ChannelManagementService : IChannelManagementService
 
     public async Task EnsureDefaultChannelsExistAsync(int organizationId, int createdById)
     {
-        // Define default channels
+        // Check if this is a law firm organization - only law firms should have default channels
+        var organization = await _context.Organizations.FindAsync(organizationId);
+        if (organization?.Type != Domain.Organizations.OrganizationType.LawFirm)
+        {
+            _logger.LogInformation("Skipping default channel creation for non-law-firm organization {OrganizationId} of type {OrganizationType}", organizationId, organization?.Type);
+            return;
+        }
+
+        // Define default channels for law firms only
         var defaultChannels = new[]
         {
             new { Name = "general", Description = "General organization discussions and announcements", Type = "Public" },
             new { Name = "urgent-matters", Description = "Time-sensitive legal matters requiring immediate attention", Type = "Public" },
             new { Name = "client-onboarding", Description = "New client onboarding discussions and coordination", Type = "Public" }
         };
+
+        _logger.LogInformation("Creating default channels for law firm organization {OrganizationId}", organizationId);
 
         foreach (var channelDef in defaultChannels)
         {
@@ -126,6 +140,123 @@ public class ChannelManagementService : IChannelManagementService
             .ToListAsync();
 
         return onlineUserIds;
+    }
+
+    public async Task<Conversation?> CreateMatterChannelAsync(int matterId, int organizationId, int createdById)
+    {
+        try
+        {
+            var matter = await _context.Matters.FindAsync(matterId);
+            if (matter == null)
+            {
+                _logger.LogWarning("Matter {MatterId} not found", matterId);
+                return null;
+            }
+
+            var channelName = ConvertToKebabCase(matter.Title);
+            var description = $"Discussion channel for matter: {matter.Title}";
+
+            _logger.LogInformation("Creating channel for matter {MatterId} with title '{MatterTitle}' -> channel name '{ChannelName}'", matterId, matter.Title, channelName);
+
+            // Check if channel already exists for this matter
+            var existingChannel = await _context.Conversations
+                .FirstOrDefaultAsync(c => c.OrganizationId == organizationId && 
+                                          c.MatterId == matterId && 
+                                          c.IsChannel);
+
+            if (existingChannel != null)
+            {
+                _logger.LogInformation("Channel already exists for matter {MatterId}: {ChannelId}", matterId, existingChannel.Id);
+                return existingChannel;
+            }
+
+            // Create new matter channel using ChatService
+            _logger.LogInformation("Calling ChatService.CreateChannelAsync for matter {MatterId}", matterId);
+            var channel = await _chatService.CreateChannelAsync(
+                organizationId,
+                createdById,
+                channelName,
+                description,
+                "Public",
+                false,
+                matterId
+            );
+
+            _logger.LogInformation("Successfully created channel {ChannelId} for matter {MatterId}", channel.Id, matterId);
+            return channel;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating channel for matter {MatterId}", matterId);
+            return null;
+        }
+    }
+
+    public async Task<List<Conversation>> GetMatterChannelsForOrganizationAsync(int organizationId)
+    {
+        return await _context.Conversations
+            .Where(c => c.OrganizationId == organizationId && 
+                       c.IsChannel && 
+                       c.MatterId.HasValue)
+            .Include(c => c.Matter)
+            .Include(c => c.Messages)
+            .OrderBy(c => c.Title)
+            .ToListAsync();
+    }
+
+    public async Task<Dictionary<int, List<Conversation>>> GetClientOrganizationChannelsForLawFirmAsync(int lawFirmOrgId)
+    {
+        // Get all valid client relationships for this law firm
+        var relationships = await _context.OrganizationRelationships
+            .Where(or => or.SourceOrganizationId == lawFirmOrgId &&
+                        or.IsActive &&
+                        !or.IsDeleted &&
+                        or.RelationshipType == "LawFirmClient" &&
+                        (!or.ExpiresAt.HasValue || or.ExpiresAt.Value > DateTime.UtcNow))
+            .Include(or => or.TargetOrganization)
+            .ToListAsync();
+
+        var result = new Dictionary<int, List<Conversation>>();
+
+        foreach (var relationship in relationships)
+        {
+            var clientOrgId = relationship.TargetOrganizationId;
+
+            // Get all channels for this client organization (both general and matter-specific)
+            var channels = await _context.Conversations
+                .Where(c => c.OrganizationId == clientOrgId && c.IsChannel)
+                .Include(c => c.Matter)
+                .Include(c => c.Messages)
+                .OrderBy(c => c.MatterId.HasValue ? 1 : 0) // General channels first, then matter channels
+                .ThenBy(c => c.Title)
+                .ToListAsync();
+
+            result[clientOrgId] = channels;
+        }
+
+        return result;
+    }
+
+    private static string ConvertToKebabCase(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return "untitled";
+        }
+
+        // Convert to lowercase
+        var result = input.ToLowerInvariant();
+
+        // Replace spaces and special characters with hyphens
+        result = System.Text.RegularExpressions.Regex.Replace(result, @"[^a-z0-9]+", "-");
+
+        // Remove leading/trailing hyphens
+        result = result.Trim('-');
+
+        // Replace multiple consecutive hyphens with a single hyphen
+        result = System.Text.RegularExpressions.Regex.Replace(result, @"-+", "-");
+
+        return string.IsNullOrEmpty(result) ? "untitled" : result;
     }
 }
 

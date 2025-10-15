@@ -33,106 +33,118 @@
                         </button>
                         
                         <div class="channels-list" data-category="@category.Name">
-                            @if (category.Subcategories.Any())
+                            @* Show category-level channels first (e.g., firm's general channels) *@
+                            @foreach (var channel in category.Channels)
                             {
-                                @foreach (var subcategory in category.Subcategories)
-                                {
-                                    <div class="subcategory-section">
-                                        <button class="subcategory-toggle" data-subcategory="@subcategory.Name">
-                                            <i class="fas fa-chevron-down subcategory-icon"></i>
-                                            @subcategory.Name
-                                        </button>
-                                        <div class="subcategory-channels" data-subcategory="@subcategory.Name">
-                                            @foreach (var channel in subcategory.Channels)
+                                <button class="channel-item @(channel.Name == Model.ActiveChannel ? "active" : "") @(channel.MatterId.HasValue ? "matter-channel" : "")" 
+                                        data-channel="@channel.Name"
+                                        data-channel-id="@channel.Id"
+                                        data-type="@channel.Type.ToString().ToLower()"
+                                        data-private="@channel.IsPrivate.ToString().ToLower()"
+                                        data-matter-id="@(channel.MatterId?.ToString() ?? "")"
+                                        data-matter-title="@(channel.MatterTitle ?? "")"
+                                        title="@(channel.MatterId.HasValue ? channel.MatterTitle : channel.Name)">
+                                    <div class="channel-info">
+                                        @if (channel.Type == ChannelType.Voice)
+                                        {
+                                            <i class="fas fa-volume-up channel-icon"></i>
+                                        }
+                                        else
+                                        {
+                                            @if (channel.MatterId.HasValue)
                                             {
-                                                <button class="channel-item @(channel.Name == Model.ActiveChannel ? "active" : "")" 
-                                                        data-channel="@channel.Name"
-                                                        data-channel-id="@channel.Id"
-                                                        data-type="@channel.Type.ToString().ToLower()"
-                                                        data-private="@channel.IsPrivate.ToString().ToLower()">
-                                                    <div class="channel-info">
-                                                        @if (channel.Type == ChannelType.Voice)
-                                                        {
-                                                            <i class="fas fa-volume-up channel-icon"></i>
-                                                        }
-                                                        else
-                                                        {
-                                                            @if (channel.IsPrivate)
-                                                            {
-                                                                <i class="fas fa-lock channel-icon"></i>
-                                                            }
-                                                            else
-                                                            {
-                                                                <i class="fas fa-hashtag channel-icon"></i>
-                                                            }
-                                                        }
-                                                        <span class="channel-name">@channel.Name</span>
-                                                    </div>
-                                                    <div class="channel-meta">
-                                                        @if (channel.Type == ChannelType.Voice && channel.Users.Any())
-                                                        {
-                                                            <div class="voice-users">
-                                                                @foreach (var user in channel.Users.Take(3))
-                                                                {
-                                                                    <div class="voice-user-avatar">@user</div>
-                                                                }
-                                                            </div>
-                                                        }
-                                                        @if (channel.Unread > 0)
-                                                        {
-                                                            <span class="unread-badge">@channel.Unread</span>
-                                                        }
-                                                    </div>
-                                                </button>
+                                                <i class="fas fa-folder channel-icon"></i>
                                             }
-                                        </div>
-                                    </div>
-                                }
-                            }
-                            else
-                            {
-                                @foreach (var channel in category.Channels)
-                                {
-                                    <button class="channel-item @(channel.Name == Model.ActiveChannel ? "active" : "")" 
-                                            data-channel="@channel.Name"
-                                            data-channel-id="@channel.Id"
-                                            data-type="@channel.Type.ToString().ToLower()"
-                                            data-private="@channel.IsPrivate.ToString().ToLower()">
-                                        <div class="channel-info">
-                                            @if (channel.Type == ChannelType.Voice)
+                                            else if (channel.IsPrivate)
                                             {
-                                                <i class="fas fa-volume-up channel-icon"></i>
+                                                <i class="fas fa-lock channel-icon"></i>
                                             }
                                             else
                                             {
-                                                @if (channel.IsPrivate)
-                                                {
-                                                    <i class="fas fa-lock channel-icon"></i>
-                                                }
-                                                else
-                                                {
-                                                    <i class="fas fa-hashtag channel-icon"></i>
-                                                }
+                                                <i class="fas fa-hashtag channel-icon"></i>
                                             }
-                                            <span class="channel-name">@channel.Name</span>
-                                        </div>
-                                        <div class="channel-meta">
-                                            @if (channel.Type == ChannelType.Voice && channel.Users.Any())
-                                            {
-                                                <div class="voice-users">
-                                                    @foreach (var user in channel.Users.Take(3))
+                                        }
+                                        <span class="channel-name">@channel.Name</span>
+                                    </div>
+                                    <div class="channel-meta">
+                                        @if (channel.Type == ChannelType.Voice && channel.Users.Any())
+                                        {
+                                            <div class="voice-users">
+                                                @foreach (var user in channel.Users.Take(3))
+                                                {
+                                                    <div class="voice-user-avatar">@user</div>
+                                                }
+                                            </div>
+                                        }
+                                        @if (channel.Unread > 0)
+                                        {
+                                            <span class="unread-badge">@channel.Unread</span>
+                                        }
+                                    </div>
+                                </button>
+                            }
+                            
+                            @* Then show subcategories (e.g., Firm Matters) *@
+                            @foreach (var subcategory in category.Subcategories)
+                            {
+                                <div class="subcategory-section">
+                                    <button class="subcategory-toggle" data-subcategory="@subcategory.Name">
+                                        <i class="fas fa-chevron-down subcategory-icon"></i>
+                                        @subcategory.Name
+                                    </button>
+                                    <div class="subcategory-channels" data-subcategory="@subcategory.Name">
+                                        @foreach (var channel in subcategory.Channels)
+                                        {
+                                            <button class="channel-item @(channel.Name == Model.ActiveChannel ? "active" : "") @(channel.MatterId.HasValue ? "matter-channel" : "")" 
+                                                    data-channel="@channel.Name"
+                                                    data-channel-id="@channel.Id"
+                                                    data-type="@channel.Type.ToString().ToLower()"
+                                                    data-private="@channel.IsPrivate.ToString().ToLower()"
+                                                    data-matter-id="@(channel.MatterId?.ToString() ?? "")"
+                                                    data-matter-title="@(channel.MatterTitle ?? "")"
+                                                    data-org-id="@(subcategory.OrganizationId?.ToString() ?? "")"
+                                                    title="@(channel.MatterId.HasValue ? channel.MatterTitle : channel.Name)">
+                                                <div class="channel-info">
+                                                    @if (channel.Type == ChannelType.Voice)
                                                     {
-                                                        <div class="voice-user-avatar">@user</div>
+                                                        <i class="fas fa-volume-up channel-icon"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        @if (channel.MatterId.HasValue)
+                                                        {
+                                                            <i class="fas fa-folder channel-icon"></i>
+                                                        }
+                                                        else if (channel.IsPrivate)
+                                                        {
+                                                            <i class="fas fa-lock channel-icon"></i>
+                                                        }
+                                                        else
+                                                        {
+                                                            <i class="fas fa-hashtag channel-icon"></i>
+                                                        }
+                                                    }
+                                                    <span class="channel-name">@channel.Name</span>
+                                                </div>
+                                                <div class="channel-meta">
+                                                    @if (channel.Type == ChannelType.Voice && channel.Users.Any())
+                                                    {
+                                                        <div class="voice-users">
+                                                            @foreach (var user in channel.Users.Take(3))
+                                                            {
+                                                                <div class="voice-user-avatar">@user</div>
+                                                            }
+                                                        </div>
+                                                    }
+                                                    @if (channel.Unread > 0)
+                                                    {
+                                                        <span class="unread-badge">@channel.Unread</span>
                                                     }
                                                 </div>
-                                            }
-                                            @if (channel.Unread > 0)
-                                            {
-                                                <span class="unread-badge">@channel.Unread</span>
-                                            }
-                                        </div>
-                                    </button>
-                                }
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
                             }
                         </div>
                     </div>
@@ -404,17 +416,20 @@
                     
                     const channelId = channelItem.dataset.channelId;
                     const channelName = channelItem.dataset.channel;
+                    const channelType = channelItem.dataset.type;
+                    const isPrivate = channelItem.dataset.private === 'true';
+                    const isMatterChannel = channelItem.dataset.matterId && channelItem.dataset.matterId !== '';
+                    const matterTitle = channelItem.dataset.matterTitle || channelName;
                     
                     // Remove active class from all channels
                     document.querySelectorAll('.channel-item').forEach(ch => ch.classList.remove('active'));
                     // Add active class to clicked channel
                     channelItem.classList.add('active');
                     
-                    // Update channel title
+                    // Update channel title - show just the name without prefix
                     document.querySelector('.channel-title').textContent = channelName;
                     
                     // Update channel description based on type
-                    const channelType = channelItem.dataset.type;
                     const channelDescription = channelType === 'voice' ? 'Voice Channel' : 'Secure legal communications';
                     document.querySelector('.channel-description').textContent = channelDescription;
                     
@@ -422,14 +437,17 @@
                     const headerIcon = document.querySelector('.channel-header-icon');
                     if (channelType === 'voice') {
                         headerIcon.className = 'fas fa-volume-up channel-header-icon';
+                    } else if (isMatterChannel) {
+                        headerIcon.className = 'fas fa-folder channel-header-icon';
+                    } else if (isPrivate) {
+                        headerIcon.className = 'fas fa-lock channel-header-icon';
                     } else {
-                        const isPrivate = channelItem.dataset.private === 'true';
-                        headerIcon.className = isPrivate ? 'fas fa-lock channel-header-icon' : 'fas fa-hashtag channel-header-icon';
+                        headerIcon.className = 'fas fa-hashtag channel-header-icon';
                     }
                     
                     // Call switchChannel if available (from communications.js)
                     if (typeof switchChannel === 'function') {
-                        switchChannel(parseInt(channelId), channelName);
+                        switchChannel(parseInt(channelId), channelName, isMatterChannel, matterTitle);
                     } else {
                         console.log('switchChannel function not available yet, UI updated only');
                     }
