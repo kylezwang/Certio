@@ -2701,9 +2701,7 @@ body {
 /* Ensure main content is properly positioned */
 .main-content .px-4 {
   width: 100%;
-  padding: 1rem;
   background-color: #ffffff;
-  min-height: 100vh;
   position: relative;
   z-index: 1;
 }
@@ -3711,12 +3709,18 @@ body.communications-page .communications-layout {
   width: 2rem;
   height: 2rem;
   border-radius: 50%;
-  background: linear-gradient(135deg, #a32b43, #3d1019);
+  background: #3d1019;
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
+  font-size: 0.875rem;
+}
+
+/* Current user gets the linear gradient */
+.team-member[data-user-id] .member-avatar.current-user-avatar {
+  background: linear-gradient(135deg, #a32b43, #3d1019);
   font-size: 0.875rem;
 }
 
@@ -3910,10 +3914,11 @@ body.communications-page .communications-layout {
 .communications-container .message-item {
   display: flex;
   gap: 0.75rem;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
   padding: 0.25rem 0;
   border-radius: 0.375rem;
   transition: background 0.2s ease;
+  max-width: fit-content;
 }
 
 .communications-container .message-item:hover {
@@ -3924,20 +3929,100 @@ body.communications-page .communications-layout {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 50%;
-  background: linear-gradient(135deg, #a32b43, #3d1019);
+  background: #3d1019;
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.875rem;
   flex-shrink: 0;
   margin-top: 0.125rem;
+}
+
+/* Current user's message avatar gets the linear gradient */
+.communications-container .message-item.current-user-message .message-avatar {
+  background: linear-gradient(135deg, #a32b43, #3d1019);
+}
+
+/* Current user messages are right-aligned */
+.communications-container .message-item.current-user-message {
+  flex-direction: row-reverse;
+  margin-left: auto;
+  max-width: 95%;
+}
+
+.communications-container .message-item.current-user-message .message-avatar {
+  margin-right: 0;
+  margin-left: 0.75rem;
+}
+
+/* Current user message content alignment */
+.communications-container .message-item.current-user-message .message-header {
+  justify-content: flex-end;
+}
+
+.communications-container .message-item.current-user-message .message-text {
+  text-align: left;
+}
+
+/* Grouped messages (consecutive messages from same user) */
+.communications-container .message-item.grouped-message {
+  margin-top: 0.125rem;
+  margin-bottom: 0.125rem;
+}
+
+/* Remove top margin for grouped messages to make them closer */
+.communications-container .message-item.grouped-message {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.communications-container .message-item.grouped-message .message-avatar {
+  visibility: hidden;
+}
+
+.communications-container .message-item.grouped-message .message-header {
+  display: none;
+}
+
+/* Hover timestamp for grouped messages */
+.communications-container .message-item.grouped-message .hover-timestamp {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.75rem;
+  color: #6b7280;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.communications-container .message-item.grouped-message:hover .hover-timestamp {
+  opacity: 1;
+}
+
+/* Position hover timestamp for regular (left-aligned) messages */
+.communications-container .message-item.grouped-message .hover-timestamp {
+  left: 0;
+}
+
+/* Position hover timestamp for current user (right-aligned) messages */
+.communications-container .message-item.grouped-message.current-user-message .hover-timestamp {
+  left: auto;
+  right: 0;
+}
+
+/* Make grouped messages position relative for absolute positioning of timestamp */
+.communications-container .message-item.grouped-message {
+  position: relative;
 }
 
 .communications-container .message-content {
   flex: 1;
   min-width: 0;
+  max-width: 28rem;
 }
 
 .communications-container .message-header {
@@ -5392,4 +5477,352 @@ body.dark-mode .text-dark {
 /* Dark mode: Quick Access Matters icon color */
 body.dark-mode .global-dashboard-main .quick-access-icon .fa-briefcase {
   color: #3d1019 !important;
+}
+
+/* ========================================
+   Matter Details Page Styles
+   ======================================== */
+
+/* Matter Details Container */
+.matter-details-container {
+  background: #ffffff;
+  min-height: 100vh;
+}
+
+/* Header Section */
+.matter-details-header {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.matter-icon-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #3d1019, #3d1019);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.matter-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.matter-subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Tab Navigation */
+.matter-tabs {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.matter-tabs .d-flex {
+  display: flex !important;
+  width: 100%;
+}
+
+.matter-tab-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex: 1;
+  text-align: center;
+}
+
+.matter-tab-link:hover {
+  color: #1f2937;
+  border-bottom-color: #e5e7eb;
+  background-color: #f9fafb;
+}
+
+.matter-tab-link.active {
+  color: #3d1019;
+  border-bottom-color: #3d1019;
+  background-color: transparent;
+}
+
+.matter-tab-link i {
+  font-size: 1rem;
+}
+
+/* Tab Content */
+.matter-content-container {
+  background: #f9fafb;
+  min-height: calc(100vh - 200px);
+}
+
+.tab-content-section {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Icon Background Helper Classes */
+.icon-bg-primary {
+  background-color: rgba(61, 16, 25, 0.1) !important;
+}
+
+/* Stat Cards - Reuse and enhance existing styles */
+.stats-card {
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.stats-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+}
+
+/* Summary Cards */
+.card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Progress Bar Enhancements */
+.progress {
+  border-radius: 4px;
+  background-color: #e5e7eb;
+  height: 8px;
+}
+
+.progress-bar {
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+/* Donut Chart Styling */
+.tab-content-section svg circle {
+  transition: stroke-dasharray 0.6s ease;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .matter-title {
+    font-size: 1rem;
+  }
+  
+  .matter-subtitle {
+    font-size: 0.75rem;
+  }
+  
+  .matter-icon-badge {
+    width: 32px;
+    height: 32px;
+    font-size: 0.875rem;
+  }
+  
+  .matter-tab-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+  
+  .matter-tab-link span {
+    display: none;
+  }
+  
+  .matter-tab-link i {
+    font-size: 1.125rem;
+  }
+}
+
+/* Ensure proper spacing */
+.matter-content-container .container-fluid {
+  max-width: 100%;
+}
+
+/* Matter Index - Clickable Cards */
+.matter-card-wrapper a {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.matter-card-wrapper a:hover .matter-card {
+  background-color: #eef1f3;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Matter Details Summary Grid - Match Matter/Index spacing */
+#matters-grid {
+  --bs-gutter-x: 1rem;
+}
+
+#matters-grid .matter-card {
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+
+#matters-grid .matter-card:hover {
+  background-color: #eef1f3;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Matter Info Carousel */
+.matter-info-carousel {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  cursor: grab;
+}
+
+.matter-info-carousel:active {
+  cursor: grabbing;
+}
+
+.carousel-slider {
+  display: flex;
+  transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  width: 100%;
+  will-change: transform;
+}
+
+.carousel-slide {
+  min-width: 100%;
+  flex-shrink: 0;
+  padding-right: 0.25rem;
+  overflow: hidden;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.carousel-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0;
+}
+
+.carousel-arrow {
+  background: transparent;
+  border: none;
+  color: #3d1019;
+  font-size: 0.95rem; /* smaller arrows */
+  cursor: pointer;
+  padding: 0.25rem 0.35rem;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.carousel-arrow:hover:not(:disabled) {
+  background-color: rgba(61, 16, 25, 0.1);
+  transform: scale(1.1);
+}
+
+.carousel-arrow:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.carousel-dots {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.carousel-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #d1d5db;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.carousel-dot.active {
+  background-color: #3d1019;
+  width: 18px;
+  border-radius: 4px;
+}
+
+.carousel-dot:hover {
+  background-color: #9ca3af;
+}
+
+/* Carousel snapshot content styling */
+.carousel-slide .snapshot-content {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  white-space: normal;
+  overflow: hidden;
+}
+
+/* Prevent Bootstrap row negative margins from causing horizontal overflow inside slides */
+.matter-info-carousel .row {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.matter-info-carousel [class^="col-"],
+.matter-info-carousel [class*=" col-"] {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  box-sizing: border-box;
+}
+
+/* Ensure form controls don't expand slide width */
+.matter-info-carousel .form-control,
+.matter-info-carousel .form-select {
+  max-width: 100%;
+}
+
+.carousel-slide .snapshot-content strong {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.carousel-slide .snapshot-content .text-muted {
+  color: #6b7280;
+}
+
+/* Prevent hover effect on carousel card */
+#matters-grid .matter-card-wrapper.carousel-wrapper .matter-card:hover {
+  transform: none;
+  background-color: transparent;
 }

@@ -792,6 +792,43 @@ public class ChatService : IChatService
                 return false;
             }
 
+            // For channels, check multiple access paths
+            if (conversation.IsChannel)
+            {
+                // 1. Direct organization membership - conversation belongs to current organization
+                if (conversation.OrganizationId == organizationId)
+                {
+                    // Check if user is a member of the organization
+                    var isOrgMember = await _permissionService.IsOrganizationMemberAsync(userId, organizationId);
+                    if (isOrgMember)
+                    {
+                        return true;
+                    }
+                }
+
+                // 2. Cross-organization access through firm relationships
+                // Check if user's law firm has access to the channel's organization
+                var hasFirmAccess = await _permissionService.HasFirmBasedAccessAsync(userId, conversation.OrganizationId);
+                if (hasFirmAccess)
+                {
+                    _logger.LogInformation("User {UserId} granted firm-based access to channel {ConversationId} in org {OrgId}", userId, conversationId, conversation.OrganizationId);
+                    return true;
+                }
+
+                // 3. Matter-based access - if channel is linked to a matter, check matter access
+                if (conversation.MatterId.HasValue)
+                {
+                    var canAccessMatter = await _permissionService.CanAccessMatterAsync(userId, conversation.MatterId.Value);
+                    if (canAccessMatter)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            // For non-channel conversations, use original logic
             // Check if conversation belongs to the organization
             if (conversation.OrganizationId != organizationId)
             {
@@ -806,7 +843,7 @@ public class ChatService : IChatService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error validating conversation access: {ex.Message}");
+            _logger.LogError(ex, "Error validating conversation access for user {UserId} and conversation {ConversationId}", userId, conversationId);
             return false;
         }
     }

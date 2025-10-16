@@ -153,9 +153,39 @@
                 <!-- Direct Messages -->
                 <h3 class="team-title">Direct Messages — @Model.OnlineMembersCount Online</h3>
                 <div class="team-members">
-                    @foreach (var member in Model.TeamMembers)
+                    @* Show current user first *@
+                    @foreach (var member in Model.TeamMembers.Where(m => m.UserId == ViewBag.CurrentUserId))
                     {
-                        <div class="team-member">
+                        <div class="team-member @(member.CanDirectMessage ? "dm-user-item" : "dm-user-disabled")" 
+                             data-user-id="@member.UserId" 
+                             data-user-name="@member.Name"
+                             data-can-dm="@member.CanDirectMessage.ToString().ToLower()"
+                             data-org-id="@member.OrganizationId"
+                             data-org-name="@member.OrganizationName"
+                             style="cursor: @(member.CanDirectMessage ? "pointer" : "not-allowed"); @(member.CanDirectMessage ? "" : "opacity: 0.6;")">
+                            <div class="member-avatar current-user-avatar">
+                                <span>@member.Avatar</span>
+                                <div class="status-indicator @member.Status"></div>
+                            </div>
+                            <div class="member-info">
+                                <div class="member-name-row">
+                                    <span class="member-name">@member.Name</span>
+                                    <span class="you-label" style="font-weight: 500; color: #888888; font-size: 0.9em;">(You)</span>
+                                </div>
+                                <p class="member-activity">@member.Activity</p>
+                            </div>
+                        </div>
+                    }
+                    @* Then show all other members *@
+                    @foreach (var member in Model.TeamMembers.Where(m => m.UserId != ViewBag.CurrentUserId))
+                    {
+                        <div class="team-member @(member.CanDirectMessage ? "dm-user-item" : "dm-user-disabled")" 
+                             data-user-id="@member.UserId" 
+                             data-user-name="@member.Name"
+                             data-can-dm="@member.CanDirectMessage.ToString().ToLower()"
+                             data-org-id="@member.OrganizationId"
+                             data-org-name="@member.OrganizationName"
+                             style="cursor: @(member.CanDirectMessage ? "pointer" : "not-allowed"); @(member.CanDirectMessage ? "" : "opacity: 0.6;")">
                             <div class="member-avatar">
                                 <span>@member.Avatar</span>
                                 <div class="status-indicator @member.Status"></div>
@@ -163,7 +193,7 @@
                             <div class="member-info">
                                 <div class="member-name-row">
                                     <span class="member-name">@member.Name</span>
-                                    <i class="@member.RoleIcon @member.RoleColor"></i>
+                                    <i class="@member.RoleIcon @member.RoleColor" style="font-size: 0.875rem;"></i>
                                 </div>
                                 <p class="member-activity">@member.Activity</p>
                             </div>
@@ -203,10 +233,30 @@
             <!-- Messages -->
             <div class="messages-container">
                 <div class="messages-list">
+                    @{
+                        Message? previousMessage = null;
+                        var currentUserId = ViewBag.CurrentUserId;
+                    }
                     @foreach (var message in Model.Messages)
                     {
                         var member = Model.TeamMembers.FirstOrDefault(m => m.Name == message.User);
-                        <div class="message-item">
+                        var isCurrentUser = message.UserId.HasValue && currentUserId != null && message.UserId.Value.ToString() == currentUserId.ToString();
+                        
+                        // Check if message should be grouped with previous
+                        var isGrouped = false;
+                        if (previousMessage != null && message.UserId.HasValue && previousMessage.UserId.HasValue && 
+                            message.UserId.Value == previousMessage.UserId.Value && 
+                            message.CreatedAt.HasValue && previousMessage.CreatedAt.HasValue)
+                        {
+                            var diffInMinutes = (message.CreatedAt.Value - previousMessage.CreatedAt.Value).TotalMinutes;
+                            isGrouped = diffInMinutes <= 15;
+                        }
+                        
+                        var messageClasses = "message-item";
+                        if (isCurrentUser) { messageClasses += " current-user-message"; }
+                        if (isGrouped) { messageClasses += " grouped-message"; }
+                        
+                        <div class="@messageClasses" data-message-id="@message.Id">
                             <div class="message-avatar">
                                 <span>@message.Avatar</span>
                             </div>
@@ -235,7 +285,13 @@
                                     </div>
                                 }
                             </div>
+                            @if (isGrouped)
+                            {
+                                <div class="hover-timestamp">@message.Time</div>
+                            }
                         </div>
+                        
+                        previousMessage = message;
                     }
                 </div>
             </div>
@@ -275,6 +331,10 @@
     
     <!-- Communications Script -->
     <script src="~/js/communications.js"></script>
+    
+    <!-- Direct Messages Script -->
+    <script src="~/js/direct-messages.js"></script>
+    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Get current user and organization info
@@ -317,6 +377,13 @@
                     const message = messageInput.value.trim();
                     console.log('Sending message:', message);
                     
+                    // Check if in DM mode first
+                    if (typeof sendCurrentDirectMessage === 'function' && sendCurrentDirectMessage(message)) {
+                        console.log('Sent as direct message');
+                        return;
+                    }
+                    
+                    // Otherwise send as channel message
                     if (typeof sendChannelMessage === 'function') {
                         sendChannelMessage(message);
                     } else {
@@ -328,6 +395,12 @@
                 }
             };
 
+            // Initialize Direct Messaging
+            if (typeof initializeDirectMessaging === 'function') {
+                initializeDirectMessaging(currentUserId, currentOrganizationId);
+                console.log('Direct messaging initialized');
+            }
+            
             // Message input handlers
             const messageInput = document.getElementById('messageInput');
             const sendButton = document.getElementById('sendButton');
@@ -453,7 +526,43 @@
                     }
                 }
             });
-
+            
+            // Direct Message user click handlers
+            document.addEventListener('click', function(event) {
+                const dmUserItem = event.target.closest('.dm-user-item, .dm-user-disabled');
+                if (dmUserItem) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    
+                    const userId = dmUserItem.dataset.userId;
+                    const userName = dmUserItem.dataset.userName;
+                    const canDm = dmUserItem.dataset.canDm === 'true';
+                    const orgName = dmUserItem.dataset.orgName;
+                    
+                    console.log('Clicked user:', userName, 'ID:', userId, 'CanDM:', canDm);
+                    
+                    if (!canDm) {
+                        // Show notification that DM is not allowed
+                        const message = orgName 
+                            ? `Cannot send direct messages to ${userName} (${orgName}). Direct messages are only available within the same organization.`
+                            : `Cannot send direct messages to ${userName}. They are in a different organization.`;
+                        
+                        if (typeof showNotification === 'function') {
+                            showNotification(message, 'warning');
+                        } else {
+                            alert(message);
+                        }
+                        return;
+                    }
+                    
+                    // Open direct message thread
+                    if (typeof openDirectThread === 'function') {
+                        openDirectThread(userId, userName);
+                    } else {
+                        console.error('openDirectThread function not available');
+                    }
+                }
+            });
 
             // Auto-scroll to bottom of messages
             function scrollToBottom() {

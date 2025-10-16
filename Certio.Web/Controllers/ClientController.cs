@@ -481,9 +481,11 @@ namespace Certio.Web.Controllers
                 messages = recentMessages.OrderBy(m => m.CreatedAt).Select(m => new Message
                 {
                     Id = m.Id,
+                    UserId = m.UserId, // Add UserId for proper server-side rendering
                     User = !string.IsNullOrEmpty(m.Sender) ? m.Sender : $"{m.User?.FirstName} {m.User?.LastName}",
                     Avatar = m.User != null ? $"{m.User.FirstName.Substring(0, 1)}{m.User.LastName.Substring(0, 1)}" : "??",
                     Time = m.CreatedAt.ToLocalTime().ToString("h:mm tt"),
+                    CreatedAt = m.CreatedAt, // Add CreatedAt for message grouping
                     Content = m.Content,
                     Reactions = new List<Reaction>()
                 }).ToList();

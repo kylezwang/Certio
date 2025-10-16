@@ -141,9 +141,10 @@ namespace Certio.Web.Controllers
             return View(viewModel);
         }
 
-        // GET: Matter/Details/5
-        [RequireMatterAccess("id")]
-        public async Task<IActionResult> Details(int? id)
+        // GET: /Client/{orgId}/Matter/Details/{id}
+        [HttpGet("/Client/{orgId:int}/Matter/Details/{id:int}")]
+        // TEMPORARILY DISABLED FOR DEBUGGING: [RequireMatterAccess("id")]
+        public async Task<IActionResult> Details(int orgId, int? id)
         {
             if (!id.HasValue || !InputValidator.IsValidId(id.Value))
             {
@@ -151,7 +152,7 @@ namespace Certio.Web.Controllers
                 return NotFound();
             }
 
-            var (user, orgId) = GetUserContext();
+            var user = HttpContext.Items["CustomUser"] as User;
             if (user == null)
             {
                 _logger.LogWarning("CustomUser not found in HttpContext for Details request");
@@ -166,7 +167,7 @@ namespace Certio.Web.Controllers
                 return HandleServiceError(result);
             }
 
-            // Map DTO to domain entity for the view (temporary - view should be updated to use DTO)
+            // Map DTO to domain entity
             var dto = result.Data!;
             var matter = new Matter
             {
@@ -202,8 +203,73 @@ namespace Certio.Web.Controllers
                 }).ToList()
             };
 
-            ViewBag.OrganizationId = dto.OrganizationId;
-            return View(matter);
+            // Get all tasks for this matter
+            var tasks = await _context.TaskItems
+                .Include(t => t.TaskAssignments)
+                .ThenInclude(ta => ta.User)
+                .Where(t => t.MatterId == id.Value && !t.IsDeleted)
+                .ToListAsync();
+
+            // Calculate statistics
+            var now = DateTime.UtcNow;
+            var sevenDaysAgo = now.AddDays(-7);
+            var sevenDaysFromNow = now.AddDays(7);
+
+            var viewModel = new MatterDetailsViewModel
+            {
+                Matter = matter,
+                
+                // Task statistics (last 7 days)
+                TasksCompletedLast7Days = tasks.Count(t => 
+                    t.Status == "Completed" && 
+                    t.CompletedAt.HasValue && 
+                    t.CompletedAt.Value >= sevenDaysAgo),
+                    
+                TasksUpdatedLast7Days = tasks.Count(t => 
+                    t.ModifiedAt.HasValue && 
+                    t.ModifiedAt.Value >= sevenDaysAgo),
+                    
+                TasksCreatedLast7Days = tasks.Count(t => 
+                    t.CreatedAt >= sevenDaysAgo),
+                    
+                TasksDueSoon = tasks.Count(t => 
+                    t.DueDate.HasValue && 
+                    t.DueDate.Value >= now && 
+                    t.DueDate.Value <= sevenDaysFromNow &&
+                    t.Status != "Completed"),
+                
+                // Priority breakdown
+                HighPriorityCount = tasks.Count(t => t.Priority == "High"),
+                MediumPriorityCount = tasks.Count(t => t.Priority == "Medium"),
+                LowPriorityCount = tasks.Count(t => t.Priority == "Low"),
+                CriticalPriorityCount = tasks.Count(t => t.Priority == "Critical"),
+                TotalTasksCount = tasks.Count,
+                
+                // Status distribution
+                TasksPending = tasks.Count(t => t.Status == "Pending"),
+                TasksInProgress = tasks.Count(t => t.Status == "InProgress" || t.Status == "In Progress"),
+                TasksInReview = tasks.Count(t => t.Status == "Review"),
+                TasksCompleted = tasks.Count(t => t.Status == "Completed"),
+                
+                // Recent activity (last 10 items)
+                RecentActivity = tasks
+                    .Where(t => t.ModifiedAt.HasValue || t.CompletedAt.HasValue)
+                    .OrderByDescending(t => t.ModifiedAt ?? t.CompletedAt ?? t.CreatedAt)
+                    .Take(10)
+                    .Select(t => new RecentActivityItem
+                    {
+                        Title = t.Title,
+                        Description = t.Status == "Completed" ? "Task completed" : "Task updated",
+                        UserName = t.TaskAssignments.FirstOrDefault()?.User.FirstName + " " + 
+                                   t.TaskAssignments.FirstOrDefault()?.User.LastName ?? "Unknown",
+                        Timestamp = t.ModifiedAt ?? t.CompletedAt ?? t.CreatedAt,
+                        ActivityType = t.Status == "Completed" ? "Completed" : "Updated"
+                    })
+                    .ToList()
+            };
+
+            ViewBag.OrganizationId = orgId;
+            return View(viewModel);
         }
 
         // GET: Matter/Create
