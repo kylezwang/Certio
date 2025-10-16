@@ -112,18 +112,63 @@ public class ChannelManagementService : Certio.Web.Services.IChannelManagementSe
 
     public async Task<List<CommunicationsTeamMember>> GetOrganizationTeamMembersAsync(int organizationId)
     {
-        return await _context.UserOrganizations
-            .Where(uo => uo.OrganizationId == organizationId && uo.IsActive)
+        // Get direct organization members
+        var directMembers = await _context.UserOrganizations
+            .Where(uo => uo.OrganizationId == organizationId && 
+                         uo.IsActive && 
+                         uo.User != null && 
+                         uo.User.IsActive && 
+                         !uo.User.IsDeleted)
             .Include(uo => uo.User)
             .Select(uo => new CommunicationsTeamMember
             {
+                UserId = uo.UserId,
                 Name = $"{uo.User.FirstName} {uo.User.LastName}",
-                Role = uo.Role.ToString(),
+                Role = uo.Role ?? "Member",
                 Status = "offline", // Will be updated by SignalR
                 Avatar = $"{uo.User.FirstName.Substring(0, 1)}{uo.User.LastName.Substring(0, 1)}",
-                Activity = "Available"
+                Activity = "Available",
+                RoleIcon = "", // Remove role icons
+                RoleColor = "" // Remove role colors
             })
             .ToListAsync();
+
+        // Get organization relationship members (firm-based access)
+        var relationshipMembers = await _context.OrganizationRelationships
+            .Where(or => (or.SourceOrganizationId == organizationId || or.TargetOrganizationId == organizationId) && 
+                         or.IsActive && 
+                         or.RelationshipType == "LawFirmClient")
+            .Include(or => or.SourceOrganization)
+                .ThenInclude(so => so.UserOrganizations)
+                    .ThenInclude(uo => uo.User)
+            .Include(or => or.TargetOrganization)
+                .ThenInclude(to => to.UserOrganizations)
+                    .ThenInclude(uo => uo.User)
+            .SelectMany(or => or.SourceOrganization.UserOrganizations.Concat(or.TargetOrganization.UserOrganizations))
+            .Where(uo => uo.IsActive && 
+                         uo.User != null && 
+                         uo.User.IsActive && 
+                         !uo.User.IsDeleted)
+            .Select(uo => new CommunicationsTeamMember
+            {
+                UserId = uo.UserId,
+                Name = $"{uo.User.FirstName} {uo.User.LastName}",
+                Role = uo.Role ?? "Member",
+                Status = "offline", // Will be updated by SignalR
+                Avatar = $"{uo.User.FirstName.Substring(0, 1)}{uo.User.LastName.Substring(0, 1)}",
+                Activity = "Available",
+                RoleIcon = "", // Remove role icons
+                RoleColor = "" // Remove role colors
+            })
+            .ToListAsync();
+
+        // Combine and deduplicate by UserId
+        var allMembers = directMembers.Concat(relationshipMembers)
+            .GroupBy(m => m.UserId)
+            .Select(g => g.First())
+            .ToList();
+
+        return allMembers;
     }
 
     public async Task<List<int>> GetOnlineUserIdsAsync(int organizationId)

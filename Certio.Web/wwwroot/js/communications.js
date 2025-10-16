@@ -310,8 +310,9 @@ function displayMessages(messages) {
     
     // Check if we actually have messages
     if (Array.isArray(messages) && messages.length > 0) {
-        messages.forEach(message => {
-            appendMessage(message, false);
+        messages.forEach((message, index) => {
+            const previousMessage = index > 0 ? messages[index - 1] : null;
+            appendMessage(message, false, previousMessage);
         });
         scrollToBottom();
     } else {
@@ -321,14 +322,30 @@ function displayMessages(messages) {
 }
 
 // Append a single message
-function appendMessage(message, animate = true) {
+function appendMessage(message, animate = true, previousMessage = null) {
     const messagesContainer = document.querySelector('.messages-list');
     if (!messagesContainer) {
         console.error('Messages container not found');
         return;
     }
 
-    const messageElement = createMessageElement(message);
+    // If no previousMessage provided, extract it from the last message in the container
+    if (!previousMessage && messagesContainer.children.length > 0) {
+        const lastMessageElement = messagesContainer.children[messagesContainer.children.length - 1];
+        if (lastMessageElement?.dataset?.messageData) {
+            try {
+                previousMessage = JSON.parse(lastMessageElement.dataset.messageData);
+            } catch (e) {
+                console.warn('Failed to parse previous message data:', e);
+            }
+        }
+    }
+
+    const messageElement = createMessageElement(message, previousMessage);
+    
+    // Store message data in the element for consecutive message grouping
+    messageElement.dataset.messageData = JSON.stringify(message);
+    
     if (animate) {
         messageElement.style.opacity = '0';
         messageElement.style.transform = 'translateY(10px)';
@@ -346,10 +363,40 @@ function appendMessage(message, animate = true) {
 }
 
 // Create message element
-function createMessageElement(message) {
+function createMessageElement(message, previousMessage = null) {
     const messageDiv = document.createElement('div');
     messageDiv.className = 'message-item';
     messageDiv.dataset.messageId = message.Id || message.id;
+
+    // Check if this is a message from the current user
+    const messageUserId = message.UserId || message.userId || message.senderId;
+    const isCurrentUserMessage = messageUserId && currentUserId && 
+        (parseInt(messageUserId) === parseInt(currentUserId) || 
+         messageUserId.toString() === currentUserId.toString());
+
+    if (isCurrentUserMessage) {
+        messageDiv.classList.add('current-user-message');
+    }
+
+    // Check if we should group this message with the previous one
+    let isGrouped = false;
+    if (previousMessage) {
+        const prevUserId = previousMessage.UserId || previousMessage.userId || previousMessage.senderId;
+        const isSameSender = messageUserId && prevUserId && 
+            (parseInt(messageUserId) === parseInt(prevUserId) || 
+             messageUserId.toString() === prevUserId.toString());
+        
+        if (isSameSender) {
+            const currentTime = new Date(message.CreatedAt || message.createdAt);
+            const previousTime = new Date(previousMessage.CreatedAt || previousMessage.createdAt);
+            const diffInMinutes = (currentTime - previousTime) / (1000 * 60);
+            isGrouped = diffInMinutes <= 15;
+        }
+    }
+
+    if (isGrouped) {
+        messageDiv.classList.add('grouped-message');
+    }
 
     // Better sender name handling with more fallbacks
     let senderName = 'Unknown';
@@ -390,6 +437,7 @@ function createMessageElement(message) {
             <div class="message-text">${content}</div>
             ${message.Reactions || message.reactions ? createReactionsHTML(message.Reactions || message.reactions) : ''}
         </div>
+        ${isGrouped ? `<div class="hover-timestamp">${time}</div>` : ''}
     `;
 
     return messageDiv;

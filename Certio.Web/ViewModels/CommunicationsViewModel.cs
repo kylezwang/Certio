@@ -47,11 +47,13 @@ namespace Certio.Web.ViewModels
     public class Message
     {
         public int Id { get; set; }
+        public int? UserId { get; set; }
         public string User { get; set; } = string.Empty;
         public string Avatar { get; set; } = string.Empty;
         public string Time { get; set; } = string.Empty;
         public string Content { get; set; } = string.Empty;
         public List<Reaction> Reactions { get; set; } = new List<Reaction>();
+        public DateTime? CreatedAt { get; set; }
     }
 
     public class Reaction
@@ -62,6 +64,8 @@ namespace Certio.Web.ViewModels
 
     public class CommunicationsTeamMember
     {
+        public int UserId { get; set; }
+        public int OrganizationId { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
@@ -69,6 +73,8 @@ namespace Certio.Web.ViewModels
         public string Activity { get; set; } = string.Empty;
         public string RoleColor { get; set; } = string.Empty;
         public string RoleIcon { get; set; } = string.Empty;
+        public bool CanDirectMessage { get; set; } = true;
+        public string? OrganizationName { get; set; }
     }
 }
 

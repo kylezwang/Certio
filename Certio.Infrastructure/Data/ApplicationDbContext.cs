@@ -63,6 +63,11 @@ namespace Certio.Infrastructure.Data
         public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
         public DbSet<ConversationParticipant> ConversationParticipants => Set<ConversationParticipant>();
         
+        // Direct Message Entities
+        public DbSet<DirectThread> DirectThreads => Set<DirectThread>();
+        public DbSet<DirectParticipant> DirectParticipants => Set<DirectParticipant>();
+        public DbSet<DirectMessage> DirectMessages => Set<DirectMessage>();
+        
         // AI Agent Entities
         public DbSet<AIAgent> AIAgents => Set<AIAgent>();
         public DbSet<AIAgentExecution> AIAgentExecutions => Set<AIAgentExecution>();
@@ -111,6 +116,7 @@ namespace Certio.Infrastructure.Data
             ConfigureSubTaskRelationships(builder);
             ConfigureDocumentRelationships(builder);
             ConfigureChatRelationships(builder);
+            ConfigureDirectMessageRelationships(builder);
             ConfigureAIAgentRelationships(builder);
             ConfigureWorkflowRelationships(builder);
             ConfigureNotificationRelationships(builder);
@@ -692,6 +698,93 @@ namespace Certio.Infrastructure.Data
             
             builder.Entity<ChatMessage>()
                 .HasIndex(cm => new { cm.ConversationId, cm.CreatedAt });
+        }
+
+        private void ConfigureDirectMessageRelationships(ModelBuilder builder)
+        {
+            // DirectThread -> Organization relationship
+            builder.Entity<DirectThread>()
+                .HasOne(dt => dt.Organization)
+                .WithMany()
+                .HasForeignKey(dt => dt.OrganizationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // DirectThread -> UserA relationship
+            builder.Entity<DirectThread>()
+                .HasOne(dt => dt.UserA)
+                .WithMany()
+                .HasForeignKey(dt => dt.UserAId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // DirectThread -> UserB relationship
+            builder.Entity<DirectThread>()
+                .HasOne(dt => dt.UserB)
+                .WithMany()
+                .HasForeignKey(dt => dt.UserBId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // DirectThread -> DeletedBy relationship
+            builder.Entity<DirectThread>()
+                .HasOne(dt => dt.DeletedBy)
+                .WithMany()
+                .HasForeignKey(dt => dt.DeletedById)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // DirectThread -> Messages relationship
+            builder.Entity<DirectThread>()
+                .HasMany(dt => dt.Messages)
+                .WithOne(dm => dm.Thread)
+                .HasForeignKey(dm => dm.ThreadId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // DirectThread -> Participants relationship
+            builder.Entity<DirectThread>()
+                .HasMany(dt => dt.Participants)
+                .WithOne(dp => dp.Thread)
+                .HasForeignKey(dp => dp.ThreadId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // DirectParticipant -> User relationship
+            builder.Entity<DirectParticipant>()
+                .HasOne(dp => dp.User)
+                .WithMany()
+                .HasForeignKey(dp => dp.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // DirectMessage -> Sender relationship
+            builder.Entity<DirectMessage>()
+                .HasOne(dm => dm.Sender)
+                .WithMany()
+                .HasForeignKey(dm => dm.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // DirectMessage -> DeletedBy relationship
+            builder.Entity<DirectMessage>()
+                .HasOne(dm => dm.DeletedBy)
+                .WithMany()
+                .HasForeignKey(dm => dm.DeletedById)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Indexes for performance
+            builder.Entity<DirectThread>()
+                .HasIndex(dt => new { dt.OrganizationId, dt.UserAId, dt.UserBId })
+                .IsUnique();
+            
+            builder.Entity<DirectThread>()
+                .HasIndex(dt => new { dt.UserAId, dt.LastMessageAt });
+            
+            builder.Entity<DirectThread>()
+                .HasIndex(dt => new { dt.UserBId, dt.LastMessageAt });
+
+            builder.Entity<DirectParticipant>()
+                .HasIndex(dp => new { dp.ThreadId, dp.UserId })
+                .IsUnique();
+            
+            builder.Entity<DirectParticipant>()
+                .HasIndex(dp => new { dp.UserId, dp.Pinned, dp.Archived });
+
+            builder.Entity<DirectMessage>()
+                .HasIndex(dm => new { dm.ThreadId, dm.CreatedAt });
         }
 
         private void ConfigureAIAgentRelationships(ModelBuilder builder)

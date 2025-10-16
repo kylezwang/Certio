@@ -329,6 +329,9 @@ builder.Services.AddHttpClient<Certio.Application.Services.IAIAgentService, Cert
 builder.Services.AddScoped<Certio.Application.Interfaces.IChatService, Certio.Web.Services.ChatService>();
 builder.Services.AddSingleton<Certio.Web.Services.AIBackgroundService>();
 
+// Direct Message Services
+builder.Services.AddScoped<Certio.Application.Interfaces.IDirectMessageService, Certio.Web.Services.DirectMessageService>();
+
 // Channel Management Services
 builder.Services.AddScoped<Certio.Web.Services.IChannelManagementService, Certio.Web.Services.ChannelManagementService>();
 builder.Services.AddScoped<Certio.Application.Interfaces.IChannelManagementService, Certio.Web.Services.ChannelManagementService>();
@@ -407,6 +410,7 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapHub<UpdatesHub>("/hubs/updates");
 app.MapHub<Certio.Web.Hubs.ChatHub>("/hubs/chat");
+app.MapHub<Certio.Web.Hubs.DirectHub>("/hubs/direct");
 app.MapHub<Certio.Web.Hubs.NotificationHub>("/hubs/notifications");
 app.MapGet("/healthz", () => Results.Ok(new { ok = true }));
 

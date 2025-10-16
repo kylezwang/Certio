@@ -1189,14 +1189,28 @@ namespace Certio.Web.Controllers
                 });
             }
 
+            // NOTE: When integrating real channel messages from database, ensure to populate:
+            // - UserId field for each message
+            // - CreatedAt field for each message
+            // This enables proper message grouping and current user detection on server-side
+            
+            // For demo purposes, set some messages as from the current user
+            var baseTime = DateTime.Now.AddHours(-3);
+            var demoUserId1 = 1001; // Sarah Johnson
+            var demoUserId2 = 1002; // Mike Chen  
+            var demoUserId3 = 1003; // Alex Rodriguez
+            var demoUserId4 = 1004; // Emily Davis
+            
             var messages = new List<Message>
             {
                 new Message
                 {
                     Id = 1,
+                    UserId = demoUserId1,
                     User = "Sarah Johnson",
                     Avatar = "SJ",
                     Time = "9:42 AM",
+                    CreatedAt = baseTime,
                     Content = "The contract review for Morrison Industries is complete. Found 3 high-priority items that need attention.",
                     Reactions = new List<Reaction>
                     {
@@ -1207,18 +1221,22 @@ namespace Certio.Web.Controllers
                 new Message
                 {
                     Id = 2,
+                    UserId = demoUserId2,
                     User = "Mike Chen",
                     Avatar = "MC",
                     Time = "9:45 AM",
+                    CreatedAt = baseTime.AddMinutes(3),
                     Content = "Great work! Can you share the summary report in the contract-reviews channel?",
                     Reactions = new List<Reaction>()
                 },
                 new Message
                 {
                     Id = 3,
+                    UserId = demoUserId3,
                     User = "Alex Rodriguez",
                     Avatar = "AR",
                     Time = "10:15 AM",
+                    CreatedAt = baseTime.AddMinutes(33),
                     Content = "New client onboarding documents uploaded to the secure portal. All stakeholders have been notified.",
                     Reactions = new List<Reaction>
                     {
@@ -1363,31 +1381,184 @@ namespace Certio.Web.Controllers
                     }
                 }
             };
+            
+            // Assign UserIds to messages for proper server-side rendering
+            // Assign specific user IDs to simulate different users (for demo)
+            var messageUserMapping = new Dictionary<int, int>
+            {
+                { 1, demoUserId1 }, // Sarah Johnson
+                { 2, demoUserId2 }, // Mike Chen
+                { 3, demoUserId3 }, // Alex Rodriguez
+                { 4, demoUserId4 }, // Emily Davis
+                { 5, demoUserId1 }, // Sarah Johnson
+                { 6, customUser.Id }, // Current logged-in user
+                { 7, customUser.Id }, // Current logged-in user (consecutive message)
+                { 8, demoUserId4 }, // Emily Davis
+                { 9, demoUserId1 }, // Sarah Johnson
+                { 10, demoUserId2 }, // Mike Chen
+                { 11, demoUserId3 }, // Alex Rodriguez
+                { 12, demoUserId4 }, // Emily Davis
+                { 13, demoUserId1 }, // Sarah Johnson
+                { 14, demoUserId2 }  // Mike Chen
+            };
+            
+            // Apply the UserIds and CreatedAt times
+            for (int i = 0; i < messages.Count; i++)
+            {
+                var message = messages[i];
+                if (messageUserMapping.ContainsKey(message.Id))
+                {
+                    message.UserId = messageUserMapping[message.Id];
+                }
+                // Set CreatedAt if not already set
+                if (!message.CreatedAt.HasValue)
+                {
+                    message.CreatedAt = baseTime.AddMinutes(i * 15);
+                }
+                // Update user name and avatar for current user messages
+                if (message.UserId == customUser.Id)
+                {
+                    message.User = $"{customUser.FirstName} {customUser.LastName}".Trim();
+                    message.Avatar = $"{customUser.FirstName?.FirstOrDefault() ?? '?'}{customUser.LastName?.FirstOrDefault() ?? '?'}".ToUpper();
+                }
+            }
 
-            // Get real team members from organization
+            // Get team members from current organization
             var orgUsers = await _context.UserOrganizations
                 .Include(uo => uo.User)
-                .Where(uo => uo.OrganizationId == organizationId && uo.IsActive)
+                .Include(uo => uo.Organization)
+                .Where(uo => uo.OrganizationId == organizationId && 
+                             uo.IsActive && 
+                             uo.UserId > 0 &&
+                             uo.User != null && 
+                             uo.User.IsActive && 
+                             !uo.User.IsDeleted)
                 .ToListAsync();
+
+            Console.WriteLine($"[DEBUG] Found {orgUsers.Count} users in current org {organizationId}");
+
+            // Get users from related organizations (if this is a law firm)
+            var relatedOrgUsers = new List<(UserOrganization uo, int relatedOrgId, string relatedOrgName)>();
+            
+            if (isLawFirm)
+            {
+                // Get all client organizations related to this law firm
+                var clientRelationships = await _context.OrganizationRelationships
+                    .Include(or => or.TargetOrganization)
+                    .Where(or => or.SourceOrganizationId == organizationId && 
+                                 or.IsActive &&
+                                 or.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient)
+                    .ToListAsync();
+
+                Console.WriteLine($"[DEBUG] Found {clientRelationships.Count} client relationships");
+
+                foreach (var relationship in clientRelationships)
+                {
+                    var clientOrgId = relationship.TargetOrganizationId;
+                    var clientOrgName = relationship.TargetOrganization?.Name ?? "Unknown";
+                    
+                    // Get users from this client organization
+                    var clientUsers = await _context.UserOrganizations
+                        .Include(uo => uo.User)
+                        .Include(uo => uo.Organization)
+                        .Where(uo => uo.OrganizationId == clientOrgId && 
+                                     uo.IsActive && 
+                                     uo.UserId > 0 &&
+                                     uo.User != null && 
+                                     uo.User.IsActive && 
+                                     !uo.User.IsDeleted)
+                        .ToListAsync();
+
+                    Console.WriteLine($"[DEBUG] Found {clientUsers.Count} users in client org {clientOrgId} ({clientOrgName})");
+                    
+                    foreach (var clientUser in clientUsers)
+                    {
+                        relatedOrgUsers.Add((clientUser, clientOrgId, clientOrgName));
+                    }
+                }
+            }
 
             var onlineUserIds = await _channelManagementService.GetOnlineUserIdsAsync(organizationId);
 
+            // Map current org users (can DM)
             var teamMembers = orgUsers.Select(uo =>
             {
                 var isOnline = onlineUserIds.Contains(uo.UserId);
-                var initials = string.IsNullOrEmpty(uo.User.FirstName) && string.IsNullOrEmpty(uo.User.LastName)
-                    ? uo.User.Email?.Substring(0, 2).ToUpper() ?? "??"
-                    : $"{uo.User.FirstName?.FirstOrDefault() ?? '?'}{uo.User.LastName?.FirstOrDefault() ?? '?'}";
+                var initials = string.IsNullOrEmpty(uo.User?.FirstName) && string.IsNullOrEmpty(uo.User?.LastName)
+                    ? uo.User?.Email?.Substring(0, 2).ToUpper() ?? "??"
+                    : $"{uo.User?.FirstName?.FirstOrDefault() ?? '?'}{uo.User?.LastName?.FirstOrDefault() ?? '?'}";
 
-                return new CommunicationsTeamMember
+                var role = uo.Role ?? "Team Member";
+                var roleIcon = role.ToLower() switch
                 {
-                    Name = $"{uo.User.FirstName} {uo.User.LastName}".Trim(),
-                    Role = uo.Role ?? "Team Member",
+                    "partner" or "managing partner" => "fas fa-crown",
+                    "associate" or "lawyer" => "fas fa-gavel",
+                    "paralegal" => "fas fa-file-alt",
+                    "admin" or "administrator" => "fas fa-cog",
+                    _ => "fas fa-user"
+                };
+                var roleColor = role.ToLower() switch
+                {
+                    "partner" or "managing partner" => "text-warning",
+                    "associate" or "lawyer" => "text-primary",
+                    "paralegal" => "text-info",
+                    "admin" or "administrator" => "text-secondary",
+                    _ => "text-muted"
+                };
+
+                var actualUserId = uo.User?.Id ?? uo.UserId;
+                
+                var member = new CommunicationsTeamMember
+                {
+                    UserId = actualUserId,
+                    OrganizationId = uo.OrganizationId,
+                    Name = $"{uo.User?.FirstName ?? ""} {uo.User?.LastName ?? ""}".Trim(),
+                    Role = role,
                     Status = isOnline ? "online" : "offline",
                     Avatar = initials,
-                    Activity = isOnline ? "Available" : $"Last seen {GetRelativeTime(uo.User.LastLoginDate ?? DateTime.UtcNow.AddHours(-1))}"
+                    Activity = isOnline ? "Available" : $"Last seen {GetRelativeTime(uo.User?.LastLoginDate ?? DateTime.UtcNow.AddHours(-1))}",
+                    RoleIcon = roleIcon,
+                    RoleColor = roleColor,
+                    CanDirectMessage = true, // Same org, can DM
+                    OrganizationName = uo.Organization?.Name
                 };
+                Console.WriteLine($"[DEBUG] Current org member: UserId={member.UserId}, Name={member.Name}, CanDM=true");
+                return member;
             }).ToList();
+
+            // Add related org users (CAN now DM via relationship)
+            foreach (var (uo, relatedOrgId, relatedOrgName) in relatedOrgUsers)
+            {
+                var isOnline = onlineUserIds.Contains(uo.UserId);
+                var initials = string.IsNullOrEmpty(uo.User?.FirstName) && string.IsNullOrEmpty(uo.User?.LastName)
+                    ? uo.User?.Email?.Substring(0, 2).ToUpper() ?? "??"
+                    : $"{uo.User?.FirstName?.FirstOrDefault() ?? '?'}{uo.User?.LastName?.FirstOrDefault() ?? '?'}";
+
+                var role = uo.Role ?? "Team Member";
+                var roleIcon = "fas fa-building"; // Client user icon
+                var roleColor = "text-info"; // Client user color
+
+                var actualUserId = uo.User?.Id ?? uo.UserId;
+                
+                var member = new CommunicationsTeamMember
+                {
+                    UserId = actualUserId,
+                    OrganizationId = relatedOrgId,
+                    Name = $"{uo.User?.FirstName ?? ""} {uo.User?.LastName ?? ""}".Trim(),
+                    Role = $"{role} ({relatedOrgName})",
+                    Status = isOnline ? "online" : "offline",
+                    Avatar = initials,
+                    Activity = isOnline ? "Available" : $"Last seen {GetRelativeTime(uo.User?.LastLoginDate ?? DateTime.UtcNow.AddHours(-1))}",
+                    RoleIcon = roleIcon,
+                    RoleColor = roleColor,
+                    CanDirectMessage = true, // NOW ALLOWED via relationship
+                    OrganizationName = relatedOrgName
+                };
+                Console.WriteLine($"[DEBUG] Related org member: UserId={member.UserId}, Name={member.Name}, Org={relatedOrgName}, CanDM=true");
+                teamMembers.Add(member);
+            }
+            
+            Console.WriteLine($"[DEBUG] Final teamMembers count: {teamMembers.Count}");
 
             // Set active channel to the first available channel
             var firstCategory = channelCategories.FirstOrDefault();
@@ -1408,6 +1579,12 @@ namespace Certio.Web.Controllers
                 ActiveChannel = activeChannel,
                 OnlineMembersCount = teamMembers.Count(m => m.Status == "online")
             };
+
+            Console.WriteLine($"[DEBUG] ViewModel created with {viewModel.TeamMembers.Count} team members");
+            foreach (var member in viewModel.TeamMembers)
+            {
+                Console.WriteLine($"[DEBUG] ViewModel member: UserId={member.UserId}, Name={member.Name}");
+            }
 
             return View(viewModel);
         }

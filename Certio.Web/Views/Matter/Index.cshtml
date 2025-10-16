@@ -111,7 +111,8 @@
         @foreach (var matter in Model.Matters)
         {
             <div class="col-lg-6 mb-3 matter-card-wrapper" data-matter-status="@matter.Status">
-                <div class="card h-100 border-0 matter-card" style="padding-top: 0.5rem; position: relative;">
+                <a href="/Client/@ViewBag.OrganizationId/Matter/Details/@matter.Id" class="text-decoration-none" style="color: inherit;">
+                    <div class="card h-100 border-0 matter-card" style="padding-top: 0.5rem; position: relative;">
                     <div class="card-header bg-transparent border-0 pb-0">
                         <div class="mb-2">
                             <div class="d-flex align-items-start">
@@ -183,6 +184,7 @@
                         </div>
                     </div>
                 </div>
+                </a>
             </div>
         }
     </div>

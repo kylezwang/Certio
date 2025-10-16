@@ -1,0 +1,714 @@
+@model Certio.Web.ViewModels.MatterDetailsViewModel
+@{
+    ViewData["Title"] = Model.Matter.Title;
+    Layout = "_ClientLayout";
+}
+
+<div class="matter-details-container">
+    <!-- Header Section -->
+    <div class="matter-details-header bg-white border-bottom">
+        <div class="row pt-2 pb-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="matter-icon-badge">
+                        @{
+                            var initials = Model.Matter.Title.Split(' ')
+                                .Take(2)
+                                .Select(w => w.Length > 0 ? w[0].ToString().ToUpper() : "")
+                                .Aggregate((a, b) => a + b);
+                        }
+                        @initials
+                    </div>
+                    <div>
+                        <h1 class="matter-title mb-1">@Model.Matter.Title</h1>
+                        <div class="d-flex align-items-baseline gap-2 flex-wrap">
+                            <i class="@GetStatusIcon(Model.Matter.Status)" style="font-size: 0.85rem;"></i>
+                            <span class="badge @GetStatusClass(Model.Matter.Status)" style="font-size: 0.6rem;">@Model.Matter.Status</span>
+                            <span class="badge bg-secondary" style="font-size: 0.6rem;">@Model.Matter.PracticeArea</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-secondary btn-sm" title="Share" style="margin-right:0.5rem;">
+                        <i class="fas fa-share-alt"></i>
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" title="Maximize">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <nav class="matter-tabs bg-white border-bottom">
+        <div class="row">
+            <div class="d-flex gap-1">
+                <a href="#summary" class="matter-tab-link active" data-tab="summary">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Summary</span>
+                </a>
+                <a href="#tasks" class="matter-tab-link" data-tab="tasks">
+                    <i class="fas fa-tasks"></i>
+                    <span>Tasks</span>
+                </a>
+                <a href="#timeline" class="matter-tab-link" data-tab="timeline">
+                    <i class="fas fa-stream"></i>
+                    <span>Timeline</span>
+                </a>
+                <a href="#calendar" class="matter-tab-link" data-tab="calendar">
+                    <i class="fas fa-calendar"></i>
+                    <span>Calendar</span>
+                </a>
+                <a href="#communications" class="matter-tab-link" data-tab="communications">
+                    <i class="fas fa-comments"></i>
+                    <span>Communications</span>
+                </a>
+                <a href="#documents" class="matter-tab-link" data-tab="documents">
+                    <i class="fas fa-folder"></i>
+                    <span>Documents</span>
+                </a>
+                <a href="#billing" class="matter-tab-link" data-tab="billing">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Billing</span>
+                </a>
+                <a href="#history" class="matter-tab-link" data-tab="history">
+                    <i class="fas fa-history"></i>
+                    <span>History</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Tab Content Container -->
+    <div class="matter-content-container">
+        <!-- Summary Tab -->
+        <div id="tab-summary" class="tab-content-section active">
+            <div class="container-fluid" style="padding: 1.5rem 0rem;">
+                <!-- Stats Cards -->
+                <div class="row mb-3" style="--bs-gutter-x: 1rem;">
+                    <div class="col-md-3">
+                        <div class="card h-100 border-0 stats-filter-card" data-filter-status="Total Billed" style="cursor: pointer;">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="p-3 rounded-3 me-3" style="background-color: #6b72801C !important;">
+                                        <i class="fas fa-clock text-secondary fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-muted mb-1 small">Total Billed</p>
+                                        <h3 class="fw-bold text-dark mb-0">$0.00</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="card h-100 border-0 stats-filter-card" data-filter-status="Unpaid Balance" style="cursor: pointer;">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="p-3 icon-bg-primary rounded-3 me-3">
+                                        <i class="fas fa-play-circle text-primary fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-muted mb-1 small">Unpaid Balance</p>
+                                        <h3 class="fw-bold text-dark mb-0">$0.00</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="card h-100 border-0 stats-filter-card" data-filter-status="Billing Rate" style="cursor: pointer;">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="p-3 bg-warning bg-opacity-10 rounded-3 me-3">
+                                        <i class="fas fa-exclamation-circle text-warning fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-muted mb-1 small">Billing Rate</p>
+                                        <h3 class="fw-bold text-dark mb-0">$0/hr</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="card h-100 border-0 stats-filter-card" data-filter-status="Hours Logged" style="cursor: pointer;">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="p-3 bg-success bg-opacity-10 rounded-3 me-3">
+                                        <i class="fas fa-check-circle text-success fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-1 small"">Hours Logged</p>
+                                        <h3 class="fw-bold mb-0">0 hrs</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Matters Grid (2 columns like Matter/Index) -->
+                <div class="row" id="matters-grid">
+                    <!-- Matter Info Carousel -->
+                    <div class="col-lg-6 mb-3 matter-card-wrapper carousel-wrapper">
+                        <div class="card h-100 border-0 matter-card" style="padding-top: 0.5rem; position: relative;">
+                            <div class="card-header bg-transparent border-0 pb-0">
+                                <div class="mb-2">
+                                    <div class="d-flex align-items-start">
+                                        <i class="fas fa-info-circle fs-5 me-2 flex-shrink-0 text-muted" style="margin-top: 2px;"></i>
+                                        <div class="flex-grow-1">
+                                            <h5 class="card-title fw-bold mb-2" style="color: black; font-size: 1rem; line-height: 1.3;">Matter Information</h5>
+                                        </div>
+                                    </div>
+                                    <p class="card-text text-muted mb-0" style="font-size: 0.8rem; line-height: 1.4; padding-left: 30px;">
+                                        View essential details about this matter. Scroll or use arrows to navigate.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="card-body pt-2">
+                                <!-- Carousel Container -->
+                                <div class="matter-info-carousel">
+                                    <div class="carousel-slider">
+                                        <!-- Slide 1: Basic Information (replica of Create - Step 1) -->
+                                        <div class="carousel-slide">
+                                            <div class="d-flex align-items-center mb-3" style="margin-left:0.25rem;">
+                                                <i class="fas fa-file-alt fs-5 me-2" style="color: #3d1019;"></i>
+                                                <div>
+                                                    <h6 class="fw-bold text-dark mb-0" style="font-size: 0.95rem;">Basic Information</h6>
+                                                    <p class="text-muted mb-0 small" style="font-size: 0.75rem;">Provide the essential details for your matter.</p>
+                                                </div>
+                                            </div>
+                                            <div class="container-fluid px-0">
+                                                <div class="row">
+                                                    <div class="col-12 mb-3">
+                                                        <label class="form-label fw-bold text-dark">
+                                                            Matter Title <span class="text-danger">*</span>
+                                                        </label>
+                                                        <input type="text" class="form-control form-control-lg" value="@Model.Matter.Title" />
+                                                    </div>
+                                                    <div class="col-12 mb-3">
+                                                        <label class="form-label fw-bold text-dark">Description</label>
+                                                        <textarea class="form-control" rows="4" >@Model.Matter.Description</textarea>
+                                                    </div>
+                                                        <div class="row small text-muted" style="padding: 0rem;">
+                                                        <div class="col-md-6 mb-2"><strong class="text-dark">Created:</strong> @Model.Matter.CreatedAt.ToString("MMM dd, yyyy")</div>
+                                                        <div class="col-md-6 mb-2"><strong class="text-dark">Last Updated:</strong> @(Model.Matter.ModifiedAt?.ToString("MMM dd, yyyy") ?? Model.Matter.CreatedAt.ToString("MMM dd, yyyy"))</div>
+                                                        <div class="col-md-6 mb-2"><strong class="text-dark">Statute of Limitations:</strong> @(Model.Matter.StatuteOfLimitationsDate?.ToString("MMM dd, yyyy") ?? "Not specified")</div>
+                                                        <div class="col-md-6 mb-2"><strong class="text-dark">Total Tasks:</strong> @Model.TotalTasksCount</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Slide 2: Matter Settings (replica of Create - Step 2) -->
+                                        <div class="carousel-slide">
+                                            <div class="d-flex align-items-center mb-3" style="margin-left:0.25rem;">
+                                                <i class="fas fa-cog fs-5 me-2" style="color: #3d1019;"></i>
+                                                <div>
+                                                    <h6 class="fw-bold text-dark mb-0" style="font-size: 0.95rem;">Matter Settings</h6>
+                                                    <p class="text-muted mb-0 small" style="font-size: 0.75rem;">Configure timeline, priority, and matter status.</p>
+                                                </div>
+                                            </div>
+                                            <div class="container-fluid px-0">
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label fw-bold text-dark">
+                                                            <i class="fas fa-clock me-2" style="color: #3d1019;"></i>
+                                                            Status <span class="text-danger">*</span>
+                                                        </label>
+                                                        <input type="text" class="form-control form-control-lg" value="@Model.Matter.Status" />
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label fw-bold text-dark">
+                                                            <i class="fas fa-gem me-2" style="color: #3d1019;"></i>
+                                                            Practice Area <span class="text-danger">*</span>
+                                                        </label>
+                                                        <input type="text" class="form-control form-control-lg" value="@Model.Matter.PracticeArea" />
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label fw-bold text-dark">
+                                                            <i class="fas fa-calendar me-2" style="color: #3d1019;"></i>
+                                                            Start Date
+                                                        </label>
+                                                        <input type="date" class="form-control form-control-lg" value="@(Model.Matter.StartDate?.ToString("yyyy-MM-dd"))" />
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label fw-bold text-dark">
+                                                            <i class="fas fa-calendar me-2" style="color: #3d1019;"></i>
+                                                            Due Date
+                                                        </label>
+                                                        <input type="date" class="form-control form-control-lg" value="@(Model.Matter.DueDate?.ToString("yyyy-MM-dd"))" />
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label fw-bold text-dark">
+                                                            <i class="fas fa-calendar me-2" style="color: #3d1019;"></i>
+                                                            Pending Date
+                                                        </label>
+                                                        <input type="date" class="form-control form-control-lg" value="@(Model.Matter.PendingDate?.ToString("yyyy-MM-dd"))" />
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label fw-bold text-dark">
+                                                            <i class="fas fa-calendar me-2" style="color: #3d1019;"></i>
+                                                            Statute of Limitations Date
+                                                        </label>
+                                                        <input type="date" class="form-control form-control-lg" value="@(Model.Matter.StatuteOfLimitationsDate?.ToString("yyyy-MM-dd"))" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Slide 3: Firm & Contacts (replica of Create - Step 3) -->
+                                        <div class="carousel-slide">
+                                            <div class="d-flex align-items-center mb-3" style="margin-left:0.25rem;">
+                                                <i class="fas fa-building-columns fs-5 me-2" style="color: #3d1019;"></i>
+                                                <div>
+                                                    <h6 class="fw-bold text-dark mb-0" style="font-size: 0.95rem;">Firm & Contacts</h6>
+                                                    <p class="text-muted mb-0 small" style="font-size: 0.75rem;">Assign attorneys and staff responsible for this matter.</p>
+                                                </div>
+                                            </div>
+                                            <div class="container-fluid px-0">
+                                                @{
+                                                    var originatingAttorney = Model.Matter.Assignments?.FirstOrDefault(ma => ma.AssignmentType == "OriginatingAttorney");
+                                                    var responsibleAttorney = Model.Matter.Assignments?.FirstOrDefault(ma => ma.AssignmentType == "ResponsibleAttorney");
+                                                    var responsibleStaff = Model.Matter.Assignments?.FirstOrDefault(ma => ma.AssignmentType == "ResponsibleStaff");
+                                                    var relevantContacts = Model.Matter.Assignments?.Where(ma => ma.AssignmentType == "RelevantContact").ToList() ?? new List<Certio.Domain.Matters.MatterAssignment>();
+                                                }
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label fw-bold text-dark">
+                                                            <i class="fas fa-user-tie me-2" style="color: #3d1019;"></i>
+                                                            Responsible Attorney
+                                                        </label>
+                                                        <input type="text" class="form-control form-control-lg" value="@(responsibleAttorney?.User != null ? responsibleAttorney.User.FirstName + " " + responsibleAttorney.User.LastName : "Not specified")" />
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label fw-bold text-dark">
+                                                            <i class="fas fa-user me-2" style="color: #3d1019;"></i>
+                                                            Responsible Staff
+                                                        </label>
+                                                        <input type="text" class="form-control form-control-lg" value="@(responsibleStaff?.User != null ? responsibleStaff.User.FirstName + " " + responsibleStaff.User.LastName : "Not specified")" />
+                                                    </div>
+                                                    <div class="col-12 mb-3">
+                                                        <label class="form-label fw-bold text-dark">
+                                                            <i class="fas fa-user-tie me-2" style="color: #3d1019;"></i>
+                                                            Originating Attorney
+                                                        </label>
+                                                        <input type="text" class="form-control form-control-lg" value="@(originatingAttorney?.User != null ? originatingAttorney.User.FirstName + " " + originatingAttorney.User.LastName : "Not specified")" />
+                                                    </div>
+                                                </div>
+                                                <div class="mb-3" style="padding: 0rem 0.5rem;">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <i class="fas fa-users fs-6 me-2" style="color: #3d1019;"></i>
+                                                        <h6 class="fw-bold text-dark mb-0" style="font-size: 0.9rem;">Relevant contacts</h6>
+                                                    </div>
+                                                    @if (relevantContacts.Count == 0)
+                                                    {
+                                                        <div class="alert alert-info mb-0">
+                                                            <i class="fas fa-info-circle me-2"></i>
+                                                            Information for relevant contacts appears on the matter dashboard.
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="border rounded p-3" style="background-color: #f8f9fa;">
+                                                            @foreach (var rc in relevantContacts)
+                                                            {
+                                                                var contactName = rc.User != null ? ($"{rc.User.FirstName} {rc.User.LastName}") : "Unknown contact";
+                                                                var contactRole = string.IsNullOrWhiteSpace(rc.Role) ? "Contact" : rc.Role;
+                                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                                    <div class="text-dark">@contactName</div>
+                                                                    <span class="badge bg-secondary">@contactRole</span>
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Slide 4: Review & Permissions (replica of Create - Step 4) -->
+                                        <div class="carousel-slide">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <i class="fas fa-eye fs-5 me-2" style="color: #3d1019;"></i>
+                                                <div>
+                                                    <h6 class="fw-bold text-dark mb-0" style="font-size: 0.95rem;">Permissions</h6>
+                                                    <p class="text-muted mb-0 small" style="font-size: 0.75rem;">Review your matter's access level.</p>
+                                                </div>
+                                            </div>
+                                            <div class="container-fluid px-0">
+                                                <div class="mb-3" style="padding: 0rem 0.5rem;">
+                                                    <div class="d-flex align-items-center mb-2" style="margin-left:0.25rem;">
+                                                        <i class="fas fa-shield-alt fs-6 me-2" style="color: #3d1019;"></i>
+                                                        <h6 class="fw-bold text-dark mb-0" style="font-size: 0.9rem;">Matter Permissions</h6>
+                                                    </div>
+                                                    <div class="form-check mb-2" style="margin: 1rem 0.5rem 0.5rem;">
+                                                        <input class="form-check-input" type="radio" disabled @(Model.Matter.AccessLevel == "Everyone" ? "checked" : "")>
+                                                        <label class="form-check-label">
+                                                            <span class="fw-bold">Everyone</span>
+                                                            <small class="text-muted d-block">All organization members can view this matter</small>
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check" style="margin: 0rem 0.5rem;">
+                                                        <input class="form-check-input" type="radio" disabled @(Model.Matter.AccessLevel == "Specific" ? "checked" : "")>
+                                                        <label class="form-check-label">
+                                                            <span class="fw-bold">Specific users or groups</span>
+                                                            <small class="text-muted d-block">Only selected users and groups can view this matter</small>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Carousel Controls -->
+                                <div class="carousel-controls">
+                                    <button class="carousel-arrow carousel-prev" aria-label="Previous slide">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <div class="carousel-dots">
+                                        <button class="carousel-dot active" aria-label="Go to slide 1"></button>
+                                        <button class="carousel-dot" aria-label="Go to slide 2"></button>
+                                        <button class="carousel-dot" aria-label="Go to slide 3"></button>
+                                        <button class="carousel-dot" aria-label="Go to slide 4"></button>
+                                    </div>
+                                    <button class="carousel-arrow carousel-next" aria-label="Next slide">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <!-- Status Overview -->
+                    <div class="col-lg-6 mb-3 matter-card-wrapper">
+                        <div class="card h-100 border-0 matter-card" style="padding-top: 0.5rem; position: relative;">
+                            <div class="card-header bg-transparent border-0 pb-0">
+                                <div class="mb-2">
+                                    <div class="d-flex align-items-start">
+                                        <i class="fas fa-chart-pie fs-5 me-2 flex-shrink-0 text-muted" style="margin-top: 2px;"></i>
+                                        <div class="flex-grow-1">
+                                            <h5 class="card-title fw-bold mb-2" style="color: black; font-size: 1rem; line-height: 1.3;">Status overview</h5>
+                                        </div>
+                                    </div>
+                                    <p class="card-text text-muted mb-0" style="font-size: 0.8rem; line-height: 1.4; padding-left: 30px;">
+                                        Get a snapshot of the status of your work items. 
+                                        <a href="/Client/@ViewBag.OrganizationId/Matter/@Model.Matter.Id/Tasks" class="text-primary text-decoration-none">View all work items</a>
+                                    </p>
+                                </div>
+                            </div>
+                                <div class="card-body pt-2 d-flex flex-column align-items-center justify-content-center">
+                                    @if (Model.TotalTasksCount > 0)
+                                    {
+                                        var r = 80.0; 
+                                        var c = 2 * Math.PI * r; 
+                                        var total = Math.Max(1, Model.TotalTasksCount);
+                                        var segPlanned = (double)Model.TasksPending / total * c; // Planned/Pending
+                                        var segInProgress = (double)Model.TasksInProgress / total * c;
+                                        var segReview = (double)Model.TasksInReview / total * c;
+                                        var segCompleted = (double)Model.TasksCompleted / total * c;
+                                        var offsetPlanned = 0.0;
+                                        var offsetInProgress = offsetPlanned + segPlanned;
+                                        var offsetReview = offsetInProgress + segInProgress;
+                                        var offsetCompleted = offsetReview + segReview;
+                                        <div class="position-relative mb-3" style="width: 192px; height: 192px;">
+                                            <svg class="w-100 h-100" style="transform: rotate(-90deg);" viewBox="0 0 192 192">
+                                                <!-- track -->
+                                                <circle cx="96" cy="96" r="80" stroke="#e5e7eb" stroke-width="16" fill="none" />
+                                                <!-- Planned / Pending (secondary gray) -->
+                                                @if (Model.TasksPending > 0)
+                                                {
+                                                    <circle cx="96" cy="96" r="80" style="stroke: rgba(var(--bs-secondary-rgb), 1); stroke-linecap: butt;" stroke-width="16" fill="none"
+                                                            stroke-dasharray="@segPlanned @c" stroke-dashoffset="-@offsetPlanned" />
+                                                }
+                                                <!-- In Progress (primary) -->
+                                                @if (Model.TasksInProgress > 0)
+                                                {
+                                                    <circle cx="96" cy="96" r="80" style="stroke: rgba(var(--bs-primary-rgb), 1); stroke-linecap: butt;" stroke-width="16" fill="none"
+                                                            stroke-dasharray="@segInProgress @c" stroke-dashoffset="-@offsetInProgress" />
+                                                }
+                                                <!-- Review (amber) -->
+                                                @if (Model.TasksInReview > 0)
+                                                {
+                                                    <circle cx="96" cy="96" r="80" style="stroke: rgba(var(--bs-warning-rgb), 1); stroke-linecap: butt;" stroke-width="16" fill="none"
+                                                            stroke-dasharray="@segReview @c" stroke-dashoffset="-@offsetReview" />
+                                                }
+                                                <!-- Completed (green) -->
+                                                @if (Model.TasksCompleted > 0)
+                                                {
+                                                    <circle cx="96" cy="96" r="80" style="stroke: rgba(var(--bs-success-rgb), 1); stroke-linecap: butt;" stroke-width="16" fill="none"
+                                                            stroke-dasharray="@segCompleted @c" stroke-dashoffset="-@offsetCompleted" />
+                                                }
+                                            </svg>
+                                            <div class="position-absolute top-50 start-50 translate-middle text-center">
+                                                <div class="fs-1 fw-bold text-dark">@Model.TotalTasksCount</div>
+                                                <div class="small text-muted">Total work items</div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex flex-wrap justify-content-center gap-3 small">
+                                            <div class="d-flex align-items-center gap-2"><span class="rounded" style="width:12px;height:12px;background-color: rgba(var(--bs-secondary-rgb), 1);"></span><span class="text-muted">Planned: @Model.TasksPending</span></div>
+                                            <div class="d-flex align-items-center gap-2"><span class="rounded" style="width:12px;height:12px;background-color: rgba(var(--bs-primary-rgb), 1);"></span><span class="text-muted">In Progress: @Model.TasksInProgress</span></div>
+                                            <div class="d-flex align-items-center gap-2"><span class="rounded" style="width:12px;height:12px;background-color: rgba(var(--bs-warning-rgb), 1);"></span><span class="text-muted">Review: @Model.TasksInReview</span></div>
+                                            <div class="d-flex align-items-center gap-2"><span class="rounded" style="width:12px;height:12px;background-color: rgba(var(--bs-success-rgb), 1);"></span><span class="text-muted">Completed: @Model.TasksCompleted</span></div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-center py-5">
+                                            <div class="mb-3">
+                                                <i class="fas fa-tasks text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
+                                            </div>
+                                            <h6 class="fw-semibold text-dark mb-2">No work items yet</h6>
+                                            <p class="text-muted small mb-0">Create tasks to track your work</p>
+                                        </div>
+                                    }
+                                </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="col-lg-6 mb-3 matter-card-wrapper">
+                        <div class="card h-100 border-0 matter-card" style="padding-top: 0.5rem; position: relative;">
+                            <div class="card-header bg-transparent border-0 pb-0">
+                                <div class="mb-2">
+                                    <div class="d-flex align-items-start">
+                                        <i class="fas fa-clock fs-5 me-2 flex-shrink-0 text-muted" style="margin-top: 2px;"></i>
+                                        <div class="flex-grow-1">
+                                            <h5 class="card-title fw-bold mb-2" style="color: black; font-size: 1rem; line-height: 1.3;">Recent Activity</h5>
+                                        </div>
+                                    </div>
+                                    <p class="card-text text-muted mb-0" style="font-size: 0.8rem; line-height: 1.4; padding-left: 30px;">Track your team's latest updates</p>
+                                </div>
+                            </div>
+                            <div class="card-body pt-2 d-flex flex-column align-items-center justify-content-center text-center">
+                                @if (Model.RecentActivity.Any())
+                                {
+                                    <div class="w-100">
+                                        @foreach (var activity in Model.RecentActivity.Take(5))
+                                        {
+                                            <div class="d-flex align-items-start mb-3 pb-3 border-bottom">
+                                                <div class="me-3">
+                                                    <i class="fas fa-circle-notch text-primary"></i>
+                                                </div>
+                                                <div class="flex-grow-1 text-start">
+                                                    <p class="mb-1 fw-medium">@activity.Title</p>
+                                                    <p class="small text-muted mb-0">@activity.Description</p>
+                                                    <p class="small text-muted mb-0">@activity.Timestamp.ToString("MMM dd, yyyy")</p>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="rounded-3 d-flex align-items-center justify-content-center mb-3" 
+                                         style="width: 80px; height: 80px; background-color: rgba(61, 16, 25, 0.1);">
+                                        <i class="fas fa-check-circle text-primary" style="font-size: 2.5rem;"></i>
+                                    </div>
+                                    <h6 class="fw-semibold text-dark mb-2">No activity yet</h6>
+                                    <p class="text-muted small mb-0" style="max-width: 320px;">
+                                        Create a few work items and invite some teammates to your space to see your space activity.
+                                    </p>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Priority Breakdown -->
+                    <div class="col-lg-6 mb-3 matter-card-wrapper">
+                        <div class="card h-100 border-0 matter-card" style="padding-top: 0.5rem; position: relative;">
+                            <div class="card-header bg-transparent border-0 pb-0">
+                                <div class="mb-2">
+                                    <div class="d-flex align-items-start">
+                                        <i class="fas fa-signal fs-5 me-2 flex-shrink-0 text-muted" style="margin-top: 2px;"></i>
+                                        <div class="flex-grow-1">
+                                            <h5 class="card-title fw-bold mb-2" style="color: black; font-size: 1rem; line-height: 1.3;">Priority breakdown</h5>
+                                        </div>
+                                    </div>
+                                    <p class="card-text text-muted mb-0" style="font-size: 0.8rem; line-height: 1.4; padding-left: 30px;">
+                                        Get a holistic view of how work is being prioritized.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="card-body pt-2">
+                                @if (Model.TotalTasksCount > 0)
+                                {
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="text-muted small">High Priority</span>
+                                            <span class="fw-medium small">@Model.HighPriorityCount</span>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-danger" style="width: @Model.HighPriorityPercentage%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="text-muted small">Medium Priority</span>
+                                            <span class="fw-medium small">@Model.MediumPriorityCount</span>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar" style="width: @Model.MediumPriorityPercentage%; background-color: #3b82f6;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="text-muted small">Low Priority</span>
+                                            <span class="fw-medium small">@Model.LowPriorityCount</span>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-secondary" style="width: @Model.LowPriorityPercentage%"></div>
+                                        </div>
+                                    </div>
+                                    @if (Model.CriticalPriorityCount > 0)
+                                    {
+                                        <div class="mb-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span class="text-muted small">Critical Priority</span>
+                                                <span class="fw-medium small">@Model.CriticalPriorityCount</span>
+                                            </div>
+                                            <div class="progress" style="height: 8px;">
+                                                <div class="progress-bar" style="width: @Model.CriticalPriorityPercentage%; background-color: #dc2626;"></div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="text-center py-4">
+                                        <p class="text-muted small mb-0">No priority data available</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                </div>
+            </div>
+        </div>
+
+        <!-- Tasks Tab (Placeholder) -->
+        <div id="tab-tasks" class="tab-content-section" style="display: none;">
+            <div class="container-fluid px-4 py-4">
+                <div class="text-center py-5">
+                    <i class="fas fa-tasks text-muted mb-3" style="font-size: 3rem;"></i>
+                    <h4 class="text-dark mb-2">Tasks for this Matter</h4>
+                    <p class="text-muted">This section will display all tasks associated with this matter.</p>
+                    <p class="text-muted small">(To be implemented in a future phase)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline Tab (Placeholder) -->
+        <div id="tab-timeline" class="tab-content-section" style="display: none;">
+            <div class="container-fluid px-4 py-4">
+                <div class="text-center py-5">
+                    <i class="fas fa-stream text-muted mb-3" style="font-size: 3rem;"></i>
+                    <h4 class="text-dark mb-2">Matter Timeline</h4>
+                    <p class="text-muted">This section will display a timeline of events and milestones for this matter.</p>
+                    <p class="text-muted small">(To be implemented in a future phase)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar Tab (Placeholder) -->
+        <div id="tab-calendar" class="tab-content-section" style="display: none;">
+            <div class="container-fluid px-4 py-4">
+                <div class="text-center py-5">
+                    <i class="fas fa-calendar text-muted mb-3" style="font-size: 3rem;"></i>
+                    <h4 class="text-dark mb-2">Matter Calendar</h4>
+                    <p class="text-muted">This section will display calendar events related to this matter's due dates and milestones.</p>
+                    <p class="text-muted small">(To be implemented in a future phase)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Communications Tab (Placeholder) -->
+        <div id="tab-communications" class="tab-content-section" style="display: none;">
+            <div class="container-fluid px-4 py-4">
+                <div class="text-center py-5">
+                    <i class="fas fa-comments text-muted mb-3" style="font-size: 3rem;"></i>
+                    <h4 class="text-dark mb-2">Matter Communications</h4>
+                    <p class="text-muted">This section will display all communications, messages, and discussions related to this matter.</p>
+                    <p class="text-muted small">(To be implemented in a future phase)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Documents Tab (Placeholder) -->
+        <div id="tab-documents" class="tab-content-section" style="display: none;">
+            <div class="container-fluid px-4 py-4">
+                <div class="text-center py-5">
+                    <i class="fas fa-folder text-muted mb-3" style="font-size: 3rem;"></i>
+                    <h4 class="text-dark mb-2">Matter Documents</h4>
+                    <p class="text-muted">This section will display all documents and files associated with this matter.</p>
+                    <p class="text-muted small">(To be implemented in a future phase)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Billing Tab (Placeholder) -->
+        <div id="tab-billing" class="tab-content-section" style="display: none;">
+            <div class="container-fluid px-4 py-4">
+                <div class="text-center py-5">
+                    <i class="fas fa-credit-card text-muted mb-3" style="font-size: 3rem;"></i>
+                    <h4 class="text-dark mb-2">Matter Billing</h4>
+                    <p class="text-muted">This section will display billing information and time tracking for this matter.</p>
+                    <p class="text-muted small">(To be implemented in a future phase)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Tab (Placeholder) -->
+        <div id="tab-history" class="tab-content-section" style="display: none;">
+            <div class="container-fluid px-4 py-4">
+                <div class="text-center py-5">
+                    <i class="fas fa-history text-muted mb-3" style="font-size: 3rem;"></i>
+                    <h4 class="text-dark mb-2">Matter History</h4>
+                    <p class="text-muted">This section will display the change history and audit log for this matter.</p>
+                    <p class="text-muted small">(To be implemented in a future phase)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/matter-details.js"></script>
+    <script src="~/js/matter-info-carousel.js"></script>
+}
+
+@functions {
+    string GetStatusClass(string status)
+    {
+        return status switch
+        {
+            "Completed" => "bg-success text-white",
+            "In Progress" => "bg-primary text-white",
+            "Review" => "bg-warning text-dark",
+            "Planning" => "bg-secondary text-white",
+            _ => "bg-secondary text-white"
+        };
+    }
+
+    string GetStatusIcon(string status)
+    {
+        return status switch
+        {
+            "Completed" => "fas fa-check-circle text-success",
+            "In Progress" => "fas fa-play-circle text-primary",
+            "Review" => "fas fa-exclamation-circle text-warning",
+            "Planning" => "fas fa-clock text-muted",
+            _ => "fas fa-clock text-muted"
+        };
+    }
+}
+

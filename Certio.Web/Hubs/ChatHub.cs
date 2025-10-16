@@ -63,6 +63,7 @@ public class ChatHub : Hub
     {
         var conversationId = int.Parse(channelId);
         var organizationId = GetCurrentOrganizationId();
+        var userId = GetCurrentUserId();
         
         if (!organizationId.HasValue)
         {
@@ -70,9 +71,15 @@ public class ChatHub : Hub
             return;
         }
         
-        // Verify user has access to this channel
-        var conversation = await _chatService.GetConversationAsync(conversationId, organizationId.Value);
-        if (conversation == null || !conversation.IsChannel)
+        if (!userId.HasValue)
+        {
+            await Clients.Caller.SendAsync("Error", "User not authenticated");
+            return;
+        }
+        
+        // Verify user has access to this channel (includes firm-based access)
+        var hasAccess = await _chatService.CanUserAccessConversationAsync(conversationId, userId.Value, organizationId.Value);
+        if (!hasAccess)
         {
             await Clients.Caller.SendAsync("Error", "Channel not found or access denied");
             return;
@@ -87,7 +94,7 @@ public class ChatHub : Hub
         // Notify others in the channel that user joined
         await Clients.Group($"channel_{channelId}").SendAsync("UserJoinedChannel", new
         {
-            UserId = GetCurrentUserId(),
+            UserId = userId.Value,
             UserName = GetCurrentUserName(),
             ChannelId = channelId,
             Timestamp = DateTime.UtcNow
@@ -173,10 +180,10 @@ public class ChatHub : Hub
                 return;
             }
             
-            // Verify user has access to this channel
-            var conversation = await _chatService.GetConversationAsync(conversationId, organizationId.Value);
+            // Verify user has access to this channel (includes firm-based access)
+            var hasAccess = await _chatService.CanUserAccessConversationAsync(conversationId, userIdInt, organizationId.Value);
             
-            if (conversation == null || !conversation.IsChannel)
+            if (!hasAccess)
             {
                 await Clients.Caller.SendAsync("Error", "Channel not found or access denied");
                 return;
@@ -612,16 +619,29 @@ public class ChatHub : Hub
 
     private int? GetCurrentUserId()
     {
-        var user = Context.User;
-        
-        if (user?.Identity?.IsAuthenticated == true && 
-            user.HasClaim("UserId", ""))
+        // First try to get from HttpContext.Items (set by UserSyncMiddleware)
+        var httpContext = Context.GetHttpContext();
+        if (httpContext?.Items.TryGetValue("CustomUserId", out var customUserId) == true && customUserId is int userId)
         {
-            var userIdClaim = user.FindFirst("UserId")?.Value;
-            
-            if (int.TryParse(userIdClaim, out var userId))
+            return userId;
+        }
+
+        // Fallback to claims
+        var user = Context.User;
+        if (user?.Identity?.IsAuthenticated == true)
+        {
+            // Try NameIdentifier first (standard claim)
+            var userIdClaim = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out var claimUserId))
             {
-                return userId;
+                return claimUserId;
+            }
+
+            // Try custom UserId claim
+            userIdClaim = user.FindFirst("UserId")?.Value;
+            if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out claimUserId))
+            {
+                return claimUserId;
             }
         }
         
