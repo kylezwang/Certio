@@ -269,6 +269,18 @@ namespace Certio.Web.Controllers
             };
 
             ViewBag.OrganizationId = orgId;
+            
+            // Always set the organization name for proper display in the header
+            // For cross-organization matter access, show the matter's originating organization name
+            // For firm-owned matters, show the firm's organization name
+            var displayOrgId = dto.OrganizationId != orgId ? dto.OrganizationId : orgId;
+            var displayOrg = await _context.Organizations
+                .FirstOrDefaultAsync(o => o.Id == displayOrgId);
+            if (displayOrg != null)
+            {
+                ViewBag.OrganizationName = displayOrg.Name;
+            }
+            
             return View(viewModel);
         }
 
