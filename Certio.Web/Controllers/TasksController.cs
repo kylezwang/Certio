@@ -197,6 +197,152 @@ namespace Certio.Web.Controllers
             return View(viewModel);
         }
 
+        // GET: /Client/{orgId}/Matter/{matterId}/Tasks
+        [Authorize(Policy = "OrgMember")]
+        [HttpGet("/Client/{orgId:int}/Matter/{matterId:int}/Tasks")]
+        public async Task<IActionResult> MatterTasks(int orgId, int matterId)
+        {
+            var (user, organizationId) = GetUserContext();
+            if (user == null || organizationId == 0)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Verify the matter exists and user has access to it
+            var matterResult = await _matterService.GetMatterAsync(user.Id, matterId);
+            if (!matterResult.Success)
+            {
+                TempData["Error"] = matterResult.ErrorMessage ?? "Matter not found";
+                return RedirectToAction("Index", "Matter");
+            }
+
+            var matter = matterResult.Data!;
+            
+            // Set ViewBag for layout
+            ViewBag.OrganizationId = orgId;
+            ViewBag.MatterId = matterId;
+            ViewBag.GoogleMapsApiKey = _googleMapsConfig.ApiKey;
+            ViewBag.GoogleMapsEnabled = _googleMapsConfig.Enabled;
+            ViewBag.CurrentUserId = user.Id;
+            ViewBag.CurrentUserName = $"{user.FirstName} {user.LastName}";
+            ViewBag.CurrentUserInitials = $"{user.FirstName[0]}{user.LastName[0]}".ToUpper();
+            ViewBag.CurrentUserEmail = user.Email ?? "";
+
+            // Get organization name
+            var org = await _context.Organizations
+                .Where(o => o.Id == orgId)
+                .FirstOrDefaultAsync();
+            ViewBag.OrganizationName = org?.Name ?? "Client";
+
+            // Check if this is a LawFirm organization - if so, aggregate tasks from all accessible clients
+            var currentOrg = await _context.Organizations
+                .FirstOrDefaultAsync(o => o.Id == orgId);
+            
+            List<TaskDto> allTasks;
+            
+            if (currentOrg?.Type == Certio.Domain.Organizations.OrganizationType.LawFirm)
+            {
+                // Get all accessible client organizations for this user
+                var accessibleClients = await _firmRelationshipCache.GetAccessibleClientOrganizationsAsync(user.Id);
+                var clientOrgIds = accessibleClients.Select(c => c.Id).ToList();
+                
+                // Add the LawFirm organization's own ID to include its tasks/matters too
+                clientOrgIds.Add(orgId);
+                
+                // Aggregate tasks from all accessible organizations
+                allTasks = new List<TaskDto>();
+                
+                foreach (var clientOrgId in clientOrgIds)
+                {
+                    var tasksResult = await _taskService.ListTasksAsync(user.Id, clientOrgId);
+                    if (tasksResult.Success)
+                    {
+                        allTasks.AddRange(tasksResult.Data!);
+                    }
+                }
+            }
+            else
+            {
+                // For client organizations, show only tasks from this specific client
+                var tasksResult = await _taskService.ListTasksAsync(user.Id, orgId);
+                if (!tasksResult.Success)
+                {
+                    TempData["Error"] = tasksResult.ErrorMessage ?? "Failed to load tasks";
+                    return View("_MatterTasks", new TasksViewModel());
+                }
+                
+                allTasks = tasksResult.Data!;
+            }
+
+            // Filter tasks to only include those for this matter
+            var matterTasks = allTasks.Where(t => t.MatterId == matterId).ToList();
+
+            // Get users in organization (direct members + firm-based members)
+            var directUsers = await _context.UserOrganizations
+                .Where(uo => uo.OrganizationId == orgId && uo.IsActive)
+                .Select(uo => new UserOption
+                {
+                    Id = uo.UserId,
+                    Name = uo.User.FirstName + " " + uo.User.LastName,
+                    Email = uo.User.Email ?? "",
+                    Initials = (uo.User.FirstName.Substring(0, 1) + uo.User.LastName.Substring(0, 1)).ToUpper()
+                })
+                .ToListAsync();
+            
+            // Get users from law firms that have relationships with this organization
+            var firmUsers = await _context.UserOrganizations
+                .Where(uo => uo.IsActive && uo.UserType == Certio.Domain.Users.UserTypes.LawFirm)
+                .Include(uo => uo.User)
+                .Include(uo => uo.Organization)
+                    .ThenInclude(o => o.OrganizationRelationships)
+                .Where(uo => uo.Organization.OrganizationRelationships.Any(rel =>
+                    rel.TargetOrganizationId == orgId &&
+                    rel.IsActive &&
+                    !rel.IsDeleted &&
+                    rel.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient &&
+                    (!rel.ExpiresAt.HasValue || rel.ExpiresAt.Value > DateTime.UtcNow)))
+                .Select(uo => new UserOption
+                {
+                    Id = uo.User.Id,
+                    Name = uo.User.FirstName + " " + uo.User.LastName,
+                    Email = uo.User.Email ?? "",
+                    Initials = (uo.User.FirstName.Substring(0, 1) + uo.User.LastName.Substring(0, 1)).ToUpper()
+                })
+                .ToListAsync();
+            
+            // Combine and deduplicate
+            var users = directUsers
+                .Union(firmUsers, new UserOptionComparer())
+                .OrderBy(u => u.Name)
+                .ToList();
+
+            // Map DTOs to ViewModels
+            var taskViewModels = matterTasks.Select(MapDtoToViewModel).ToList();
+
+            // Organize tasks by status
+            var viewModel = new TasksViewModel
+            {
+                AllTasks = taskViewModels,
+                PlannedTasks = taskViewModels.Where(t => t.Status == "Pending").ToList(),
+                InProgressTasks = taskViewModels.Where(t => t.Status == "InProgress").ToList(),
+                ReviewTasks = taskViewModels.Where(t => t.Status == "Review").ToList(),
+                CompletedTasks = taskViewModels.Where(t => t.Status == "Completed").ToList(),
+                Matters = new List<MatterOption> // Only show the current matter
+                {
+                    new MatterOption
+                    {
+                        Id = matter.Id,
+                        Title = matter.Title,
+                        PracticeArea = matter.PracticeArea,
+                        AssignedUserIds = matter.Assignments.Select(a => a.UserId).ToList()
+                    }
+                },
+                Users = users
+            };
+
+            return View("_MatterTasks", viewModel);
+        }
+
         // POST: Tasks/Create
         [HttpPost]
         [ValidateAntiForgeryToken]

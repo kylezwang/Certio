@@ -29,6 +29,17 @@
   color: #374151 !important;
 }
 
+/* Autofill styling - override browser default light blue background */
+.form-control:-webkit-autofill,
+.form-control:-webkit-autofill:hover,
+.form-control:-webkit-autofill:focus,
+.form-control:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #eee9e9 inset !important;
+  -webkit-text-fill-color: #374151 !important;
+  background-color: #eee9e9 !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 .form-control.is-invalid {
   border-color: #dc2626;
   box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);

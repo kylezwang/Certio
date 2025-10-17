@@ -4,7 +4,44 @@
     Layout = "_ClientLayout";
 }
 
-<div class="matter-details-container">
+<meta name="organization-id" content="@ViewBag.OrganizationId" />
+<meta name="matter-id" content="@Model.Matter.Id" />
+
+<style>
+    /* Override the tasks.css padding reset when loaded in matter details context */
+    /* This ensures the 1rem padding is maintained for the ENTIRE page (header, tabs, and content) */
+    /* Use :has() to target the parent .main-content when it contains .matter-details-container */
+    .main-content.client-main-content:has(.matter-details-container) {
+        padding: 1rem !important; /* Restore proper padding for ALL matter details content */
+    }
+    
+    /* Ensure matter tasks content doesn't interfere with main layout */
+    .matter-tasks-content {
+        /* Removed padding: 0; and margin: 0; to allow parent padding to apply */
+        background: transparent;
+    }
+    
+    .matter-tasks-content .tasks-page-header {
+        margin-bottom: 1rem;
+    }
+    
+    .matter-tasks-content .bottom-navbar {
+        position: relative;
+        margin-top: 1rem;
+    }
+    
+    /* Remove extra padding from tab content since parent now has it */
+    #tab-tasks {
+        padding: 0;
+    }
+    
+    #tab-tasks .container-fluid {
+        padding-left: 0;
+        padding-right: 0;
+    }
+</style>
+
+<div class="matter-details-container" data-matter-id="@Model.Matter.Id" data-organization-id="@ViewBag.OrganizationId">
     <!-- Header Section -->
     <div class="matter-details-header bg-white border-bottom">
         <div class="row pt-2 pb-3">
@@ -49,7 +86,7 @@
                     <span>Summary</span>
                 </a>
                 <a href="#tasks" class="matter-tab-link" data-tab="tasks">
-                    <i class="fas fa-tasks"></i>
+                    <i class="fa-solid fa-bars-progress"></i>
                     <span>Tasks</span>
                 </a>
                 <a href="#timeline" class="matter-tab-link" data-tab="timeline">
@@ -96,7 +133,7 @@
                                     </div>
                                     <div>
                                         <p class="text-muted mb-1 small">Total Billed</p>
-                                        <h3 class="fw-bold text-dark mb-0">$0.00</h3>
+                                        <h3 class="fw-bold text-dark mb-0" style="font-size: 1.6rem;">$0.00</h3>
                                     </div>
                                 </div>
                             </div>
@@ -112,7 +149,7 @@
                                     </div>
                                     <div>
                                         <p class="text-muted mb-1 small">Unpaid Balance</p>
-                                        <h3 class="fw-bold text-dark mb-0">$0.00</h3>
+                                        <h3 class="fw-bold text-dark mb-0" style="font-size: 1.6rem;">$0.00</h3>
                                     </div>
                                 </div>
                             </div>
@@ -128,7 +165,7 @@
                                     </div>
                                     <div>
                                         <p class="text-muted mb-1 small">Billing Rate</p>
-                                        <h3 class="fw-bold text-dark mb-0">$0/hr</h3>
+                                        <h3 class="fw-bold text-dark mb-0" style="font-size: 1.6rem;">$0/hr</h3>
                                     </div>
                                 </div>
                             </div>
@@ -144,7 +181,7 @@
                                     </div>
                                     <div>
                                         <p class="mb-1 small"">Hours Logged</p>
-                                        <h3 class="fw-bold mb-0">0 hrs</h3>
+                                        <h3 class="fw-bold mb-0" style="font-size: 1.6rem;">0 hrs</h3>
                                     </div>
                                 </div>
                             </div>
@@ -365,22 +402,22 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <!-- Carousel Controls -->
-                                <div class="carousel-controls">
-                                    <button class="carousel-arrow carousel-prev" aria-label="Previous slide">
-                                        <i class="fas fa-chevron-left"></i>
-                                    </button>
-                                    <div class="carousel-dots">
-                                        <button class="carousel-dot active" aria-label="Go to slide 1"></button>
-                                        <button class="carousel-dot" aria-label="Go to slide 2"></button>
-                                        <button class="carousel-dot" aria-label="Go to slide 3"></button>
-                                        <button class="carousel-dot" aria-label="Go to slide 4"></button>
+                                    <!-- Carousel Controls -->
+                                    <div class="carousel-controls">
+                                        <button class="carousel-arrow carousel-prev" aria-label="Previous slide">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </button>
+                                        <div class="carousel-dots">
+                                            <button class="carousel-dot active" aria-label="Go to slide 1"></button>
+                                            <button class="carousel-dot" aria-label="Go to slide 2"></button>
+                                            <button class="carousel-dot" aria-label="Go to slide 3"></button>
+                                            <button class="carousel-dot" aria-label="Go to slide 4"></button>
+                                        </div>
+                                        <button class="carousel-arrow carousel-next" aria-label="Next slide">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </button>
                                     </div>
-                                    <button class="carousel-arrow carousel-next" aria-label="Next slide">
-                                        <i class="fas fa-chevron-right"></i>
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -463,9 +500,9 @@
                                     {
                                         <div class="text-center py-5">
                                             <div class="mb-3">
-                                                <i class="fas fa-tasks text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
+                                                <i class="fa-solid fa-bars-progress text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
                                             </div>
-                                            <h6 class="fw-semibold text-dark mb-2">No work items yet</h6>
+                                            <h6 class="fw-semibold text-dark mb-2">No task items yet</h6>
                                             <p class="text-muted small mb-0">Create tasks to track your work</p>
                                         </div>
                                     }
@@ -595,16 +632,9 @@
             </div>
         </div>
 
-        <!-- Tasks Tab (Placeholder) -->
+        <!-- Tasks Tab (AJAX Loaded) -->
         <div id="tab-tasks" class="tab-content-section" style="display: none;">
-            <div class="container-fluid px-4 py-4">
-                <div class="text-center py-5">
-                    <i class="fas fa-tasks text-muted mb-3" style="font-size: 3rem;"></i>
-                    <h4 class="text-dark mb-2">Tasks for this Matter</h4>
-                    <p class="text-muted">This section will display all tasks associated with this matter.</p>
-                    <p class="text-muted small">(To be implemented in a future phase)</p>
-                </div>
-            </div>
+            <!-- Content will be loaded via AJAX when tab is first accessed -->
         </div>
 
         <!-- Timeline Tab (Placeholder) -->
