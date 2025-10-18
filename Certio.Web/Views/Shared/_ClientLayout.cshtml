@@ -10,7 +10,7 @@
 <style>
     /* Prevent white flash by setting background immediately */
     body {
-        background-color: #eee9e9;
+        background-color: #C7B7A340;
     }
     .client-main-content-wrapper {
         background-color: rgba(11, 54, 94, 0.085);
@@ -60,8 +60,9 @@
         align-items: center;
         justify-content: center;
         font-weight: 600;
-        font-size: 1.1rem;
+        font-size: 1.5rem;
         box-shadow: 0 2px 8px #eee9e9;
+        padding-bottom: 0.5rem;
     }
     .message-content {
         flex: 1;
@@ -294,7 +295,7 @@
 
     .client-sidebar .logo-section .logo-text {
         color: #3d1019;
-        font-family: 'Righteous', sans-serif;
+        font-family: 'Katibeh', sans-serif;
         font-size: 2.6rem;
         font-weight: 600;
     }
@@ -1041,8 +1042,8 @@
             
             <div class="flex-fill text-sm fw-semibold text-center">
                 <div class="d-flex align-items-center justify-content-center">
-                    <span style="color: #3d1019; font-family: 'Righteous', sans-serif; font-size: 2.6rem; line-height: 0.5;">
-                        Certio
+                    <span style="color: #3d1019; font-family: 'Katibeh', sans-serif; font-size: 2.6rem; line-height: 0.5;">
+                        Notal
                     </span>
                 </div>
             </div>
@@ -1052,8 +1053,8 @@
         <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileSidebar">
             <div class="offcanvas-header">
                 <div class="d-flex align-items-center justify-content-center" style="margin-left: -0.75rem;">
-                    <span class="fw-semibold" style="color: #3d1019; font-family: 'Righteous', sans-serif; font-size: 2.6rem;">
-                        Certio
+                    <span class="fw-semibold" style="color: #3d1019; font-family: 'Katibeh', sans-serif; font-size: 2.6rem;">
+                        Notal
                     </span>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
@@ -1168,7 +1169,7 @@
                     <i class="fas fa-arrow-left"></i>
                 </button>
                 <div class="header-info">
-                    <h5>Certio AI Assistant</h5>
+                    <h5>Notal AI Assistant</h5>
                     <span class="status-indicator">Online</span>
                 </div>
                 <button class="btn btn-link" id="menuButton">
@@ -1194,16 +1195,16 @@
                 <div class="welcome-message" id="welcomeMessage">
                     <div class="ai-message-bubble">
                         <div class="message-avatar">
-                            <div class="avatar-icon">C</div>
+                            <div class="avatar-icon" style="font-family: Katibeh">N</div>
                         </div>
                         <div class="message-content">
                             <div class="message-header">
-                                <span class="sender-name">Certio</span>
+                                <span class="sender-name">Notal</span>
                                 <span class="ai-badge">AI Agent</span>
                                 <span class="timestamp">Just now</span>
                             </div>
                             <div class="message-text">
-                                Hi! I'm Certio, your AI legal assistant. Please select/add a chat above to get started!
+                                Hi! I'm Notal, your AI legal assistant. Please select/add a chat above to get started!
                             </div>
                         </div>
                     </div>
@@ -1212,7 +1213,7 @@
             
             <div class="chat-input" style="display: none;">
                 <div class="input-container">
-                    <input type="text" class="message-input" id="messageInput" placeholder="Reply to Certio...">
+                    <input type="text" class="message-input" id="messageInput" placeholder="Reply to Notal...">
                     <button class="send-button" id="sendButton">
                         <i class="fas fa-arrow-up"></i>
                     </button>
@@ -1226,7 +1227,7 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-6">
-                &copy; 2025 - Certio AI Legal Assistant
+                &copy; 2025 - Notal AI Legal Assistant
             </div>
             <div class="col-md-6 text-end">
                 <a asp-controller="Home" asp-action="Privacy">Privacy</a>

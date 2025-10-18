@@ -144,6 +144,11 @@
                         <div class="task-checkbox-column">
                         </div>
                         
+                        <!-- Status Column -->
+                        <div class="task-status-column">
+                            <button class="column-header-btn" id="statusColumnToggle" style="padding: 0.375rem 0.5rem; border: none; background: white; color: #2d3748; font-size: 0.75rem; font-weight: 600; border-radius: 0.5rem; cursor: pointer; text-align: center; width: 100%;" title="Click to toggle status view">Status</button>
+                        </div>
+                        
                         <!-- Title Column -->
                         <div class="task-title-column">
                             <button class="column-header-btn" style="padding: 0.375rem 0.5rem; border: none; background: white; color: #2d3748; font-size: 0.75rem; font-weight: 600; border-radius: 0.5rem; cursor: pointer; text-align: left; width: 100%;">Title</button>
@@ -208,6 +213,11 @@
                                                            @(task.Status == "Completed" ? "checked" : "")
                                                            onclick="event.stopPropagation();">
                                                 </div>
+                                            </div>
+                                            
+                                            <!-- Status Column -->
+                                            <div class="task-status-column">
+                                                <i class="@GetStatusIcon(task.Status) task-status-icon" title="@task.Status"></i>
                                             </div>
                                             
                                             <!-- Title Column -->
@@ -349,6 +359,11 @@
                                                 </div>
                                             </div>
                                             
+                                            <!-- Status Column -->
+                                            <div class="task-status-column">
+                                                <i class="@GetStatusIcon(task.Status) task-status-icon" title="@task.Status"></i>
+                                            </div>
+                                            
                                             <!-- Title Column -->
                                             <div class="task-title-column" style="display: flex; flex-direction: column; align-items: flex-start;">
                                                 <div class="task-matter-badge" style="display: none; margin-bottom: 0.4rem;">
@@ -488,6 +503,11 @@
                                                 </div>
                                             </div>
                                             
+                                            <!-- Status Column -->
+                                            <div class="task-status-column">
+                                                <i class="@GetStatusIcon(task.Status) task-status-icon" title="@task.Status"></i>
+                                            </div>
+                                            
                                             <!-- Title Column -->
                                             <div class="task-title-column" style="display: flex; flex-direction: column; align-items: flex-start;">
                                                 <div class="task-matter-badge" style="display: none; margin-bottom: 0.4rem;">
@@ -625,6 +645,11 @@
                                                            @(task.Status == "Completed" ? "checked" : "")
                                                            onclick="event.stopPropagation();">
                                                 </div>
+                                            </div>
+                                            
+                                            <!-- Status Column -->
+                                            <div class="task-status-column">
+                                                <i class="@GetStatusIcon(task.Status) task-status-icon" title="@task.Status"></i>
                                             </div>
                                             
                                             <!-- Title Column -->
@@ -4945,6 +4970,56 @@
         // Update title widths when window is resized
         window.addEventListener('resize', function() {
             updateInboxTitleWidths();
+        });
+        
+        // ==========================================
+        // Status View Toggle Functionality
+        // ==========================================
+        
+        // Load saved view preference
+        function loadStatusViewPreference() {
+            const inboxContainer = document.querySelector('.inbox-container');
+            const isLegacyView = localStorage.getItem('certio_status_view_legacy') === 'true';
+            
+            if (inboxContainer) {
+                if (isLegacyView) {
+                    inboxContainer.classList.add('legacy-status-view');
+                } else {
+                    inboxContainer.classList.remove('legacy-status-view');
+                }
+            }
+        }
+        
+        // Toggle status view
+        function toggleStatusView() {
+            const inboxContainer = document.querySelector('.inbox-container');
+            
+            if (inboxContainer) {
+                const isLegacyView = inboxContainer.classList.toggle('legacy-status-view');
+                
+                // Save preference
+                localStorage.setItem('certio_status_view_legacy', isLegacyView);
+                
+                // Update title widths after toggle
+                setTimeout(() => {
+                    updateInboxTitleWidths();
+                }, 100);
+            }
+        }
+        
+        // Initialize status view toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load saved preference
+            loadStatusViewPreference();
+            
+            // Add click handler to status column toggle button
+            const statusToggleBtn = document.getElementById('statusColumnToggle');
+            if (statusToggleBtn) {
+                statusToggleBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    toggleStatusView();
+                });
+            }
         });
     </script>
 }

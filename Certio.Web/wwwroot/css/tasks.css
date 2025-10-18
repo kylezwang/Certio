@@ -170,7 +170,7 @@
     overflow-x: auto;
     overflow-y: hidden;
     padding: 1rem;
-    background: #a59094;
+    background: #864f4fE6;
     border-radius: 12px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     margin-top: 1rem; /* Add top margin to compensate for removed page padding */
@@ -804,7 +804,7 @@
 .inbox-container {
     width: 100%;
     height: 85vh;
-    background: #e4dbdb;
+    background: #C7B7A366;
     display: flex;
     flex-direction: column;
     padding: 1rem 0.6rem 5rem 1rem;
@@ -1765,6 +1765,23 @@
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.task-status-column {
+    flex: 0 0 auto;
+    width: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.task-status-icon {
+    font-size: 1.1rem;
+    transition: transform 0.2s ease;
+}
+
+.task-status-icon:hover {
+    transform: scale(1.15);
 }
 
 .task-title-column {
@@ -2826,6 +2843,42 @@
     transition: all 0.2s ease;
 }
 
+/* Status View Toggle Styles */
+
+/* Default view - hide status sections, show status column in cards */
+.inbox-container:not(.legacy-status-view) .inbox-status-header {
+    display: none;
+}
+
+.inbox-container:not(.legacy-status-view) .inbox-status-section {
+    margin-bottom: 0;
+}
+
+.inbox-container:not(.legacy-status-view) .inbox-status-tasks {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+/* Legacy view - show status sections, hide status column in cards */
+.inbox-container.legacy-status-view .task-status-column {
+    display: none !important;
+}
+
+.inbox-container.legacy-status-view .inbox-status-header {
+    display: block;
+}
+
+/* Status column header positioning - moves to left when in legacy view */
+.inbox-container.legacy-status-view .task-column-header-card .task-status-column {
+    order: -1; /* Move to left, before checkbox */
+    margin-right: 0.5rem;
+}
+
+.inbox-container.legacy-status-view .task-column-header-card .task-checkbox-column {
+    order: 0;
+}
+
 /* Inbox Task Card Multi-View Adjustments */
 
 /* When 2 views are selected - hide extra columns and keep essential ones in a single row */
@@ -2840,7 +2893,8 @@
 .tasks-content.multi-view:not(.all-views) .inbox-task-card .task-align-column,
 .tasks-content.multi-view:not(.all-views) .inbox-task-card .task-priority-column,
 .tasks-content.multi-view:not(.all-views) .inbox-task-card .task-progress-column,
-.tasks-content.multi-view:not(.all-views) .inbox-task-card .task-actions-column {
+.tasks-content.multi-view:not(.all-views) .inbox-task-card .task-actions-column,
+.tasks-content.multi-view:not(.all-views) .inbox-task-card .task-status-column {
     display: none;
 }
 
@@ -2885,7 +2939,8 @@
 .tasks-content.all-views .inbox-task-card .task-align-column,
 .tasks-content.all-views .inbox-task-card .task-priority-column,
 .tasks-content.all-views .inbox-task-card .task-progress-column,
-.tasks-content.all-views .inbox-task-card .task-actions-column {
+.tasks-content.all-views .inbox-task-card .task-actions-column,
+.tasks-content.all-views .inbox-task-card .task-status-column {
     display: none;
 }
 
@@ -2975,5 +3030,6 @@
     height: 1.25rem;
     font-size: 0.55rem;
 }
+
 
 
