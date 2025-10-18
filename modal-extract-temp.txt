@@ -1,0 +1,600 @@
+    <script>
+        // Pass model data to JavaScript
+        window.tasksData = {
+            matters: @Html.Raw(Json.Serialize(Model.Matters)),
+            users: @Html.Raw(Json.Serialize(Model.Users)),
+            allTasks: @Html.Raw(Json.Serialize(Model.AllTasks))
+        };
+
+        // Pass current user data to JavaScript
+        window.currentUser = {
+            id: @ViewBag.CurrentUserId,
+            name: '@ViewBag.CurrentUserName',
+            initials: '@ViewBag.CurrentUserInitials',
+            email: '@ViewBag.CurrentUserEmail'
+        };
+
+        // Task Details Modal functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const taskDetailsModal = document.getElementById('taskDetailsModal');
+            const closeTaskModal = document.getElementById('closeTaskModal');
+            const addTaskButton = document.getElementById('addTaskButton');
+            
+            // Open modal for creating new task when clicking "Add a task" button
+            if (addTaskButton) {
+                addTaskButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openTaskModal(null, 'Pending'); // null taskId means create new
+                });
+            }
+            
+            // Open modal when clicking on task cards (exclude only direct checkbox clicks)
+            const taskCardItems = document.querySelectorAll('.task-card-item');
+            taskCardItems.forEach(card => {
+                card.addEventListener('click', function(e) {
+                    if (e.target.closest('input')) {
+                        return; // don't open modal when interacting with checkbox directly
+                    }
+                    const taskId = this.getAttribute('data-task-id');
+                    if (taskId && taskDetailsModal) {
+                        // Load task data and open modal in edit mode
+                        openTaskModal(parseInt(taskId));
+                    }
+                });
+            });
+
+            // Ensure clicking the label (task text) opens modal
+            const taskLabels = document.querySelectorAll('.task-card-item label');
+            taskLabels.forEach(label => {
+                label.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const taskCard = this.closest('.task-card-item');
+                    const taskId = taskCard?.getAttribute('data-task-id');
+                    if (taskId && taskDetailsModal) {
+                        openTaskModal(parseInt(taskId));
+                    }
+                });
+            });
+            
+            if (closeTaskModal) {
+                closeTaskModal.addEventListener('click', function() {
+                    checkUnsavedChangesBeforeClose();
+                });
+            }
+            
+            // Close modal when clicking on backdrop (outside modal content)
+            if (taskDetailsModal) {
+                taskDetailsModal.addEventListener('click', function(e) {
+                    // Only close if clicking directly on the backdrop (taskDetailsModal itself)
+                    if (e.target === taskDetailsModal) {
+                        checkUnsavedChangesBeforeClose();
+                    }
+                });
+            }
+            
+            // Function to check for unsaved changes before closing modal
+            function checkUnsavedChangesBeforeClose() {
+                if (hasUnsavedChanges || pendingSubtasks.length > 0 || modifiedExistingSubtasks.size > 0) {
+                    showUnsavedChangesDialog();
+                } else {
+                    closeTaskModalFinal();
+                }
+            }
+            
+            // Function to actually close the modal
+            function closeTaskModalFinal() {
+                taskDetailsModal.style.display = 'none';
+                resetTaskModal();
+                // Reset unsaved changes tracking
+                hasUnsavedChanges = false;
+                pendingSubtasks = [];
+            }
+            
+            // Function to show unsaved changes warning dialog
+            function showUnsavedChangesDialog() {
+                const dialogHtml = `
+                    <div class="unsaved-changes-dialog" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 10001; padding: 1.5rem; min-width: 400px;">
+                        <h5 style="margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600;">Unsaved Changes</h5>
+                        <p style="margin-bottom: 1.5rem; color: #666;">You have unsaved changes. What would you like to do?</p>
+                        <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+                            <button class="btn btn-secondary" id="discardChangesBtn" style="padding: 0.5rem 1rem;">Discard Changes</button>
+                            <button class="btn btn-primary" id="continueEditingBtn" style="padding: 0.5rem 1rem;">Continue Editing</button>
+                        </div>
+                    </div>
+                    <div class="unsaved-changes-backdrop" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000;"></div>
+                `;
+                
+                const dialogContainer = document.createElement('div');
+                dialogContainer.className = 'unsaved-changes-container';
+                dialogContainer.innerHTML = dialogHtml;
+                document.body.appendChild(dialogContainer);
+                
+                // Handle buttons
+                document.getElementById('discardChangesBtn').addEventListener('click', function() {
+                    dialogContainer.remove();
+                    closeTaskModalFinal();
+                });
+                
+                document.getElementById('continueEditingBtn').addEventListener('click', function() {
+                    dialogContainer.remove();
+                });
+            }
+            
+            // Initialize save task button
+            initializeSaveTask();
+
+            // Initialize matter selector (wrapped to avoid breaking other handlers)
+            try {
+                initializeMatterSelector();
+            } catch (err) {
+                console.error('Error initializing matter selector:', err);
+            }
+            
+            // Initialize task card button handlers for navbar functionality
+            initializeTaskCardButtons();
+        });
+
+        // Matter selection state (for view filtering)
+        let currentMatterId = null;
+        // Current task's matter ID (for task/subtask assignment filtering)
+        let currentTaskMatterId = null;
+
+        // Initialize Matter Selector
+        function initializeMatterSelector() {
+            const switchMattersBtn = document.getElementById('switchMattersBtn');
+            const matterPopup = document.getElementById('matterPopup');
+            const matterItems = document.querySelectorAll('.matter-item');
+
+            // Initialize top matter selector - now uses same popup as bottom navbar
+            const topMatterSelectorBtn = document.getElementById('topMatterSelectorBtn');
+
+            // Load saved matter from localStorage or default to "View All Matters"
+            const savedMatterId = localStorage.getItem('certio_selected_matter_id');
+            
+            if (savedMatterId === 'all') {
+                selectMatter('all');
+            } else if (savedMatterId && window.tasksData && window.tasksData.matters) {
+                // Check all possible ways the matter might be stored (Id vs id for JSON serialization)
+                const savedMatterIdNum = parseInt(savedMatterId);
+                const foundMatter = window.tasksData.matters.find(m => 
+                    m.Id === savedMatterIdNum || 
+                    m.Id === savedMatterId ||
+                    m.Id == savedMatterIdNum ||
+                    m.Id == savedMatterId ||
+                    m.id === savedMatterIdNum ||
+                    m.id === savedMatterId ||
+                    m.id == savedMatterIdNum ||
+                    m.id == savedMatterId
+                );
+                
+                if (foundMatter) {
+                    selectMatter(parseInt(savedMatterId));
+                } else {
+                    selectMatter('all');
+                }
+            } else {
+                // Default to "View All Matters" when loading fresh
+                selectMatter('all');
+            }
+
+            // Toggle popup above navbar
+            if (switchMattersBtn && matterPopup) {
+                switchMattersBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const isVisible = matterPopup.style.display === 'block' || matterPopup.style.display === 'flex';
+                    matterPopup.style.display = isVisible ? 'none' : 'block';
+                    // Remove top positioning class for bottom navbar
+                    matterPopup.classList.remove('top-positioned');
+                    console.log('Bottom navbar clicked - removed top-positioned class');
+                    // Trigger custom event for popup positioning system
+                    if (!isVisible) {
+                        setTimeout(() => {
+                            document.dispatchEvent(new CustomEvent('matterPopupShown', { detail: { source: 'bottom' } }));
+                        }, 10);
+                    }
+                });
+            }
+
+            // Toggle top matter popup - now uses same popup as bottom navbar
+            if (topMatterSelectorBtn && matterPopup) {
+                topMatterSelectorBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const isVisible = matterPopup.style.display === 'block' || matterPopup.style.display === 'flex';
+                    matterPopup.style.display = isVisible ? 'none' : 'block';
+                    // Add top positioning class for top selector
+                    matterPopup.classList.add('top-positioned');
+                    console.log('Top selector clicked - added top-positioned class');
+                    // Trigger custom event for popup positioning system
+                    if (!isVisible) {
+                        setTimeout(() => {
+                            document.dispatchEvent(new CustomEvent('matterPopupShown', { detail: { source: 'top' } }));
+                        }, 10);
+                    }
+                });
+            }
+
+            // Close when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!matterPopup) return;
+                const clickInsidePopup = matterPopup.contains(e.target);
+                const clickOnSwitchButton = switchMattersBtn && switchMattersBtn.contains(e.target);
+                const clickOnTopButton = topMatterSelectorBtn && topMatterSelectorBtn.contains(e.target);
+                if (!clickInsidePopup && !clickOnSwitchButton && !clickOnTopButton) {
+                    matterPopup.style.display = 'none';
+                    // Remove positioning class when closing
+                    matterPopup.classList.remove('top-positioned');
+                }
+            });
+
+            // Handle matter selection
+            matterItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const matterId = this.dataset.matterId;
+                    
+                    // Handle "View All Matters" case
+                    if (matterId === 'all') {
+                        selectMatter('all');
+                    } else {
+                        const mId = parseInt(matterId);
+                        if (!Number.isFinite(mId)) return;
+                        selectMatter(mId);
+                    }
+                    
+                    if (matterPopup) {
+                        matterPopup.style.display = 'none';
+                        // Remove positioning class when closing
+                        matterPopup.classList.remove('top-positioned');
+                    }
+                });
+            });
+        }
+
+        // Select a matter and filter tasks
+        function selectMatter(matterId) {
+            // Remove prefilter style if it exists
+            const prefilterStyle = document.getElementById('matter-prefilter');
+            if (prefilterStyle) {
+                prefilterStyle.remove();
+            }
+            
+            if (matterId === 'all') {
+                currentMatterId = 'all';
+                localStorage.setItem('certio_selected_matter_id', 'all');
+                
+                // Show matter badges when viewing all matters
+                document.querySelectorAll('.task-matter-badge').forEach(badge => {
+                    badge.style.display = 'block';
+                });
+                
+                // Update top matter selector text
+                const topMatterSelectorText = document.getElementById('topMatterSelectorText');
+                if (topMatterSelectorText) {
+                    topMatterSelectorText.textContent = 'Viewing All Matters';
+                }
+                
+                // Show all tasks
+                showAllTasks();
+                return;
+            }
+            
+            if (!Number.isFinite(matterId)) {
+                // Fallback to "View All Matters"
+                selectMatter('all');
+                return;
+            }
+            currentMatterId = matterId;
+            localStorage.setItem('certio_selected_matter_id', matterId);
+            
+            // Hide matter badges when viewing specific matter
+            document.querySelectorAll('.task-matter-badge').forEach(badge => {
+                badge.style.display = 'none';
+            });
+
+            // Update top matter selector text
+            const topMatterSelectorText = document.getElementById('topMatterSelectorText');
+            if (topMatterSelectorText && window.tasksData?.matters) {
+                // Try different property name variations
+                let selectedMatter = window.tasksData.matters.find(m => m.Id == matterId);
+                if (!selectedMatter) {
+                    selectedMatter = window.tasksData.matters.find(m => m.id == matterId);
+                }
+                if (!selectedMatter) {
+                    selectedMatter = window.tasksData.matters.find(m => m.MatterId == matterId);
+                }
+                if (!selectedMatter) {
+                    selectedMatter = window.tasksData.matters.find(m => m.matterId == matterId);
+                }
+                
+                if (selectedMatter) {
+                    const title = selectedMatter.Title || selectedMatter.title || selectedMatter.Name || selectedMatter.name;
+                    topMatterSelectorText.textContent = title;
+                }
+            }
+
+            // Filter inbox tasks
+            filterTasksByMatter(matterId);
+        }
+
+        // Show all tasks (no filtering)
+        function showAllTasks() {
+            // Show all inbox tasks
+            const inboxTasks = document.querySelectorAll('.task-cards-container .task-card-item');
+            inboxTasks.forEach(task => {
+                task.style.display = '';
+            });
+
+            // Show all inbox sections
+            const inboxSections = document.querySelectorAll('.inbox-status-section');
+            inboxSections.forEach(section => {
+                section.style.display = '';
+            });
+
+            // Update inbox section counts to original values
+            updateInboxSectionCounts('all');
+
+            // Show all board cards
+            const boardCards = document.querySelectorAll('.kanban-board .task-card');
+            boardCards.forEach(card => {
+                card.style.display = '';
+            });
+
+            // Update column counts
+            updateBoardColumnCountsLocal();
+        }
+
+        // Filter tasks by matter across views
+        function filterTasksByMatter(matterId) {
+            // Inbox items
+            const inboxTasks = document.querySelectorAll('.task-cards-container .task-card-item');
+            let visibleCount = 0;
+            inboxTasks.forEach(task => {
+                const taskMatterId = parseInt(task.getAttribute('data-matter-id'));
+                if (!isNaN(taskMatterId) && taskMatterId === matterId) {
+                    task.style.display = '';
+                    visibleCount++;
+                } else {
+                    task.style.display = 'none';
+                }
+            });
+
+            // Handle inbox sections (hide empty sections and update counts)
+            updateInboxSectionCounts(matterId);
+
+            // Empty state handling
+            const emptyState = document.querySelector('.task-cards-container .text-center.text-muted');
+            if (emptyState) {
+                emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
+            }
+
+            // Board cards
+            const boardCards = document.querySelectorAll('.kanban-board .task-card');
+            boardCards.forEach(card => {
+                const taskMatterId = parseInt(card.getAttribute('data-matter-id'));
+                if (!isNaN(taskMatterId) && taskMatterId === matterId) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Update column counts locally
+            updateBoardColumnCountsLocal();
+        }
+
+        // Local recount for board columns (visible cards only)
+        function updateBoardColumnCountsLocal() {
+            document.querySelectorAll('.kanban-column').forEach(column => {
+                const visibleCards = Array.from(column.querySelectorAll('.task-card')).filter(el => el.style.display !== 'none');
+                const badge = column.querySelector('.badge');
+                if (badge) badge.textContent = visibleCards.length;
+            });
+        }
+
+        // Update inbox section counts and visibility based on filtered tasks
+        function updateInboxSectionCounts(matterIdOrAll) {
+            const sections = document.querySelectorAll('.inbox-status-section');
+            
+            sections.forEach(section => {
+                const tasksContainer = section.querySelector('.inbox-status-tasks');
+                if (!tasksContainer) return;
+                
+                // Count visible tasks in this section
+                const tasks = tasksContainer.querySelectorAll('.task-card-item');
+                let visibleCount = 0;
+                
+                tasks.forEach(task => {
+                    if (task.style.display !== 'none') {
+                        visibleCount++;
+                    }
+                });
+                
+                // Update the badge count
+                const badge = section.querySelector('.badge');
+                if (badge) {
+                    // Extract the status name from the badge text (e.g., "Planned (5)" -> "Planned")
+                    const badgeText = badge.textContent;
+                    const statusName = badgeText.split('(')[0].trim();
+                    badge.textContent = `${statusName} (${visibleCount})`;
+                }
+                
+                // Hide section if no visible tasks, show if has tasks
+                if (visibleCount === 0) {
+                    section.style.display = 'none';
+                } else {
+                    section.style.display = '';
+                }
+            });
+        }
+        
+        // Open task modal for create or edit
+        window.openTaskModal = function(taskId = null, defaultStatus = 'Pending') {
+            const taskDetailsModal = document.getElementById('taskDetailsModal');
+            
+            // Always clear placeholders and reset UI first to avoid stale default content
+            clearTaskModal();
+
+            if (taskId) {
+                // Edit mode - load task data
+                loadTaskData(taskId);
+            } else {
+                // Create mode - clear all fields
+                document.getElementById('statusDropdown').value = defaultStatus;
+                document.getElementById('status-field').value = defaultStatus;
+                updateTaskTitleIconFromModal(defaultStatus);
+                
+                // Set task matter ID for new tasks (use selected matter or first matter)
+                currentTaskMatterId = currentMatterId && currentMatterId !== 'all' 
+                    ? currentMatterId 
+                    : (window.tasksData?.matters?.[0]?.Id || window.tasksData?.matters?.[0]?.id || null);
+                
+                // Auto-add current user as the task creator
+                if (window.currentUser) {
+                    const creatorAssignment = {
+                        userId: window.currentUser.id,
+                        userName: window.currentUser.name,
+                        userInitials: window.currentUser.initials,
+                        userEmail: window.currentUser.email || '',
+                        assignmentType: 'Assignee',
+                        role: 'Task Creator'
+                    };
+                    
+                    // Set current and original assignments
+                    currentTaskAssignments = [creatorAssignment];
+                    originalTaskAssignments = [creatorAssignment];
+                    
+                    // Render the creator in the UI immediately
+                    renderTaskAssignees(currentTaskAssignments);
+                }
+            }
+            
+            // Show modal
+            taskDetailsModal.style.display = 'flex';
+            
+            // Initialize subtasks functionality
+            initializeSubtasks();
+            
+            // Initialize task assignment button
+            initializeTaskAssignmentButton();
+            
+            // Initialize scroll-to-field functionality
+            setupScrollToField();
+
+            // Load comments directly by taskId to avoid races with dataset timing
+            const commentsList = document.getElementById('commentsList');
+            if (taskId) {
+                window.loadComments && window.loadComments(parseInt(taskId));
+            } else if (commentsList) {
+                commentsList.innerHTML = '<div class="text-muted">Save the task to start commenting.</div>';
+            }
+            
+            // Focus on title field
+            setTimeout(() => {
+                const titleField = document.querySelector('.task-title');
+                if (titleField) {
+                    titleField.focus();
+                }
+            }, 100);
+        }
+        
+        // Clear task modal for new task creation
+        function clearTaskModal() {
+            // Clear task matter ID
+            currentTaskMatterId = null;
+            
+            // Clear title
+            const taskTitle = document.querySelector('.task-title');
+            if (taskTitle) {
+                taskTitle.textContent = '';
+                taskTitle.dataset.taskId = '';
+            }
+            
+            // Clear description
+            const descriptionField = document.querySelector('.task-description-textarea');
+            if (descriptionField) {
+                descriptionField.value = '';
+            }
+            
+            // Reset status and priority to defaults
+            const statusDropdown = document.getElementById('statusDropdown');
+            const statusField = document.getElementById('status-field');
+            const priorityField = document.getElementById('priority-field');
+            
+            if (statusDropdown) statusDropdown.value = 'Pending';
+            if (statusField) statusField.value = 'Pending';
+            if (priorityField) priorityField.value = 'Medium';
+            
+            // Clear dates
+            const startDateField = document.getElementById('start-date-field');
+            const dueDateField = document.getElementById('due-date-field');
+            if (startDateField) startDateField.value = '';
+            if (dueDateField) dueDateField.value = '';
+            
+            // Clear location
+            const locationInput = document.getElementById('locationSearchInput');
+            const locationDisplay = document.getElementById('locationDisplay');
+            const mapContainer = document.getElementById('mapContainer');
+            
+            if (locationInput) locationInput.value = '';
+            if (locationDisplay) locationDisplay.style.display = 'none';
+            if (mapContainer) {
+                mapContainer.innerHTML = `
+                    <div class="map-placeholder">
+                        <i class="fas fa-map-marked-alt" style="font-size: 3rem; color: #d1d5db;"></i>
+                        <p class="text-muted mt-2">No location selected</p>
+                        <small class="text-muted">Search for a location to display it on the map</small>
+                    </div>
+                `;
+            }
+            
+            // Clear subtasks
+            const checklistItems = document.querySelector('.checklist-items');
+            if (checklistItems) {
+                checklistItems.innerHTML = `
+                    <div class="text-muted text-center py-3">
+                        <i class="fas fa-info-circle"></i> No subtasks yet. Add your first subtask below.
+                    </div>
+                `;
+            }
+            
+            // Clear assignments
+            currentTaskAssignments = [];
+            originalTaskAssignments = [];
+            renderTaskAssignees([]);
+            
+            // Update progress to 0%
+            updateChecklistProgressManual(0);
+        }
+        
+        // Reset task modal
+        function resetTaskModal() {
+            clearTaskModal();
+            // Clear pending subtasks when modal is reset
+            pendingSubtasks = [];
+            hasUnsavedChanges = false;
+            // Clear subtask tracking maps
+            originalSubtaskStates.clear();
+            modifiedExistingSubtasks.clear();
+        }
+        
+        // Get current location data from the modal
+        function getLocationData() {
+            const locationDisplay = document.getElementById('locationDisplay');
+            const locationName = document.getElementById('locationName');
+            const locationAddress = document.getElementById('locationAddress');
+            
+            // Check if location is selected
+            if (locationDisplay && locationDisplay.style.display !== 'none' && locationName && locationAddress) {
+                return {
+                    name: locationName.textContent || '',
+                    address: locationAddress.textContent || '',
+                    formatted_address: locationAddress.textContent || '',
+                    // Store the current location data if available
+                    place_id: window.currentLocationData?.place_id || null,
+                    geometry: window.currentLocationData?.geometry || null
+                };
+            }
+            
+            return null;

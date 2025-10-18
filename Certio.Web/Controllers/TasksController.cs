@@ -268,7 +268,7 @@ namespace Certio.Web.Controllers
                 if (!tasksResult.Success)
                 {
                     TempData["Error"] = tasksResult.ErrorMessage ?? "Failed to load tasks";
-                    return View("_MatterTasks", new TasksViewModel());
+                    return View("~/Views/Matter/_MatterTasks.cshtml", new TasksViewModel());
                 }
                 
                 allTasks = tasksResult.Data!;
@@ -340,7 +340,7 @@ namespace Certio.Web.Controllers
                 Users = users
             };
 
-            return View("_MatterTasks", viewModel);
+            return View("~/Views/Matter/_MatterTasks.cshtml", viewModel);
         }
 
         // POST: Tasks/Create

@@ -208,11 +208,49 @@
             return response.text();
         })
         .then(html => {
+            console.log('Received HTML content, length:', html.length);
+            
+            // Set the HTML content
             targetElement.innerHTML = html;
             loadedTabs.add(tabName);
             
-            // Initialize any scripts that might be needed for the loaded content
-            initializeTabScripts(tabName);
+            console.log('HTML content set, now executing inline scripts...');
+            
+            // Manually execute script tags (innerHTML doesn't auto-execute them)
+            const scripts = targetElement.querySelectorAll('script');
+            console.log('Found', scripts.length, 'script tags to execute');
+            
+            scripts.forEach((oldScript, index) => {
+                console.log(`Executing script ${index + 1}/${scripts.length}`);
+                const newScript = document.createElement('script');
+                
+                // Copy attributes
+                Array.from(oldScript.attributes).forEach(attr => {
+                    newScript.setAttribute(attr.name, attr.value);
+                });
+                
+                // Copy inline script content or src
+                if (oldScript.src) {
+                    console.log(`Script ${index + 1} has src:`, oldScript.src);
+                    newScript.src = oldScript.src;
+                } else {
+                    console.log(`Script ${index + 1} is inline, length:`, oldScript.innerHTML.length);
+                    newScript.textContent = oldScript.innerHTML;
+                }
+                
+                // Replace old script with new one (this executes it)
+                oldScript.parentNode.replaceChild(newScript, oldScript);
+                console.log(`Script ${index + 1} executed`);
+            });
+            
+            console.log('All scripts executed, waiting before initialization...');
+            
+            // Wait a bit for scripts to fully initialize
+            setTimeout(() => {
+                console.log('Now calling initializeTabScripts...');
+                // Initialize any scripts that might be needed for the loaded content
+                initializeTabScripts(tabName);
+            }, 200);
         })
         .catch(error => {
             console.error('Error loading tab content:', error);
@@ -234,12 +272,53 @@
 
     function initializeTabScripts(tabName) {
         // Initialize scripts specific to each tab
+        console.log('=== initializeTabScripts called for tab:', tabName, '===');
+        
         switch (tabName) {
             case 'tasks':
                 // Initialize task management scripts if they exist
-                if (typeof initializeTasks === 'function') {
-                    initializeTasks();
+                console.log('Initializing task scripts for Matter Details Tasks tab...');
+                
+                // Check what functions are available
+                console.log('Checking available functions:');
+                console.log('- window.initializeMatterTasks:', typeof window.initializeMatterTasks);
+                console.log('- window.initializeTasks:', typeof window.initializeTasks);
+                console.log('- window.openTaskModal:', typeof window.openTaskModal);
+                console.log('- window.initializeBottomNavbar:', typeof window.initializeBottomNavbar);
+                
+                // Call the Matter Tasks initialization function
+                if (typeof window.initializeMatterTasks === 'function') {
+                    console.log('✓ Found initializeMatterTasks, calling it...');
+                    try {
+                        window.initializeMatterTasks();
+                        console.log('✓ initializeMatterTasks completed successfully');
+                    } catch (error) {
+                        console.error('✗ Error calling initializeMatterTasks:', error);
+                    }
+                } else {
+                    console.error('✗ window.initializeMatterTasks function not available');
+                    console.log('Available window functions:', Object.keys(window).filter(k => k.includes('initialize')));
                 }
+                
+                // Also try the generic initialization if available
+                if (typeof window.initializeTasks === 'function') {
+                    console.log('✓ Found initializeTasks, calling it...');
+                    try {
+                        window.initializeTasks();
+                        console.log('✓ initializeTasks completed successfully');
+                    } catch (error) {
+                        console.error('✗ Error calling initializeTasks:', error);
+                    }
+                }
+                
+                // Verify bottom navbar was initialized
+                const navItems = document.querySelectorAll('.bottom-navbar .nav-item');
+                console.log('Bottom navbar items found:', navItems.length);
+                navItems.forEach((item, i) => {
+                    console.log(`  Nav item ${i}:`, item.getAttribute('data-view'), 'listeners:', item.onclick ? 'has onclick' : 'no onclick');
+                });
+                
+                console.log('=== Task scripts initialization complete ===');
                 break;
             // Add other tab-specific initializations here as needed
         }
