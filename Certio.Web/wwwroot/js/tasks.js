@@ -1135,6 +1135,184 @@
     // Expose functions globally for Google Maps callback
     window.initializeLocationSearch = initializeLocationSearch;
     window.displayLocationFromPlace = displayLocationFromPlace;
+    
+    // Expose initialization functions globally
+    window.initializeInboxCheckboxes = initializeInboxCheckboxes;
+    window.initializeCardCheckboxes = initializeCardCheckboxes;
+    window.initializeDragAndDrop = initializeDragAndDrop;
+
+    // View switching functionality for bottom navbar (reusable for both Tasks page and Matter Tasks tab)
+    function initializeBottomNavbar() {
+        console.log('*** initializeBottomNavbar() called from tasks.js ***');
+        
+        const navItems = document.querySelectorAll('.bottom-navbar .nav-item');
+        const viewContainers = document.querySelectorAll('.view-container');
+        const tasksContent = document.querySelector('.tasks-content, .matter-tasks-content');
+        
+        console.log('Bottom navbar elements check:', {
+            navItems: navItems.length,
+            viewContainers: viewContainers.length,
+            tasksContent: !!tasksContent
+        });
+        
+        if (!navItems.length || !viewContainers.length || !tasksContent) {
+            console.warn('✗ Bottom navbar elements not found, skipping initialization');
+            console.warn('Missing:', {
+                navItems: !navItems.length,
+                viewContainers: !viewContainers.length,
+                tasksContent: !tasksContent
+            });
+            return;
+        }
+        
+        console.log('✓ All required elements found, setting up view switching...');
+        
+        // Track active views
+        let activeViews = new Set(['inbox']); // Default to inbox only
+        
+        // Initialize the layout
+        updateViewLayout();
+
+        navItems.forEach((item, index) => {
+            console.log(`Adding click listener to nav item ${index}:`, item.getAttribute('data-view'));
+            item.addEventListener('click', function() {
+                const view = this.getAttribute('data-view');
+                console.log('*** Nav item clicked:', view);
+                
+                // Skip switch matters
+                if (view === 'switch') {
+                    console.log('Skipping switch matters button');
+                    return;
+                }
+                
+                // Toggle the view
+                if (activeViews.has(view)) {
+                    // If it's the only active view, don't remove it
+                    if (activeViews.size === 1) {
+                        console.log('Cannot remove last active view');
+                        return;
+                    }
+                    console.log('Removing view:', view);
+                    activeViews.delete(view);
+                } else {
+                    console.log('Adding view:', view);
+                    activeViews.add(view);
+                }
+                
+                updateViewLayout();
+            });
+        });
+        
+        console.log('✓ Bottom navbar initialization complete, active views:', Array.from(activeViews));
+
+        // Update the view layout based on active views
+        function updateViewLayout() {
+            // Convert Set to Array for easier manipulation
+            const activeViewsArray = Array.from(activeViews);
+            const viewCount = activeViewsArray.length;
+            
+            console.log('Updating view layout. Active views:', activeViewsArray);
+            
+            // Hide all views and resizers first
+            viewContainers.forEach(container => {
+                container.classList.add('d-none');
+                container.style.width = '';
+            });
+            
+            const resizers = document.querySelectorAll('.view-resizer');
+            resizers.forEach(resizer => {
+                resizer.classList.add('d-none');
+            });
+            
+            // Update nav items active state
+            navItems.forEach(item => {
+                const view = item.getAttribute('data-view');
+                if (view === 'switch') return; // Skip switch matters
+                
+                if (activeViews.has(view)) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+            
+            // Show active views and configure layout
+            if (viewCount === 1) {
+                // Single view mode
+                tasksContent.classList.remove('multi-view', 'all-views');
+                const viewId = activeViewsArray[0] + 'View';
+                const viewElement = document.getElementById(viewId);
+                if (viewElement) {
+                    viewElement.classList.remove('d-none');
+                    viewElement.style.width = '100%';
+                }
+            } else if (viewCount === 2) {
+                // Two view mode
+                tasksContent.classList.add('multi-view');
+                tasksContent.classList.remove('all-views');
+                
+                const view1 = activeViewsArray[0] + 'View';
+                const view2 = activeViewsArray[1] + 'View';
+                const view1Element = document.getElementById(view1);
+                const view2Element = document.getElementById(view2);
+                
+                if (view1Element && view2Element) {
+                    view1Element.classList.remove('d-none');
+                    view2Element.classList.remove('d-none');
+                    view1Element.style.width = '50%';
+                    view2Element.style.width = '50%';
+                    
+                    // Show resizer between the two views
+                    const resizerId = view1.replace('View', '') + view2.replace('View', '').charAt(0).toUpperCase() + view2.replace('View', '').slice(1) + 'Resizer';
+                    const resizerElement = document.getElementById(resizerId);
+                    if (resizerElement) {
+                        resizerElement.classList.remove('d-none');
+                    }
+                }
+            } else if (viewCount === 3) {
+                // Three view mode
+                tasksContent.classList.add('multi-view', 'all-views');
+                
+                const view1Element = document.getElementById('inboxView');
+                const view2Element = document.getElementById('plannerView');
+                const view3Element = document.getElementById('boardView');
+                
+                if (view1Element && view2Element && view3Element) {
+                    view1Element.classList.remove('d-none');
+                    view2Element.classList.remove('d-none');
+                    view3Element.classList.remove('d-none');
+                    view1Element.style.width = '33.33%';
+                    view2Element.style.width = '33.33%';
+                    view3Element.style.width = '33.33%';
+                    
+                    // Show both resizers
+                    const resizer1 = document.getElementById('inboxPlannerResizer');
+                    const resizer2 = document.getElementById('plannerBoardResizer');
+                    if (resizer1) resizer1.classList.remove('d-none');
+                    if (resizer2) resizer2.classList.remove('d-none');
+                }
+            }
+            
+            // Reinitialize drag and drop if board view is visible
+            if (activeViews.has('board') && typeof reinitializeDragAndDropIfNeeded === 'function') {
+                reinitializeDragAndDropIfNeeded();
+            }
+            
+            // Update inbox title widths if needed
+            if (activeViews.has('inbox') && typeof updateInboxTitleWidths === 'function') {
+                setTimeout(() => {
+                    updateInboxTitleWidths();
+                }, 100);
+            }
+        }
+    }
+
+    // Expose bottom navbar initialization globally
+    console.log('*** Exposing initializeBottomNavbar globally from tasks.js ***');
+    window.initializeBottomNavbar = initializeBottomNavbar;
+    console.log('✓ window.initializeBottomNavbar =', typeof window.initializeBottomNavbar);
 
 })();
+
+console.log('*** tasks.js loaded and initialized ***');
 
