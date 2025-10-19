@@ -133,19 +133,9 @@
                 loadedTabs.add(tabName);
                 return;
             case 'communications':
-                // Placeholder for future implementation
-                targetElement.innerHTML = `
-                    <div class="container-fluid px-4 py-4">
-                        <div class="text-center py-5">
-                            <i class="fas fa-comments text-muted mb-3" style="font-size: 3rem;"></i>
-                            <h4 class="text-dark mb-2">Matter Communications</h4>
-                            <p class="text-muted">This section will display all communications, messages, and discussions related to this matter.</p>
-                            <p class="text-muted small">(To be implemented in a future phase)</p>
-                        </div>
-                    </div>
-                `;
-                loadedTabs.add(tabName);
-                return;
+                // Use CommunicationsController for matter communications
+                url = `/Client/${orgId}/Matter/${matterId}/Communications`;
+                break;
             case 'documents':
                 // Placeholder for future implementation
                 targetElement.innerHTML = `
@@ -320,6 +310,27 @@
                 
                 console.log('=== Task scripts initialization complete ===');
                 break;
+            
+            case 'communications':
+                // Initialize communications scripts if they exist
+                console.log('Initializing communications scripts for Matter Details Communications tab...');
+                
+                // Check what functions are available
+                console.log('Checking available functions:');
+                console.log('- window.initializeCommunicationsChat:', typeof window.initializeCommunicationsChat);
+                console.log('- window.initializeDirectMessaging:', typeof window.initializeDirectMessaging);
+                
+                // The communications scripts are already loaded and initialized via inline scripts in the partial view
+                // Just verify they loaded correctly
+                if (typeof window.initializeCommunicationsChat === 'function') {
+                    console.log('✓ Communications chat functions are available');
+                } else {
+                    console.warn('⚠ Communications chat functions may not be fully loaded yet');
+                }
+                
+                console.log('=== Communications scripts initialization complete ===');
+                break;
+            
             // Add other tab-specific initializations here as needed
         }
     }

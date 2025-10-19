@@ -39,6 +39,40 @@
         padding-left: 0;
         padding-right: 0;
     }
+    
+    /* Communications tab - remove padding and prevent overflow */
+    #tab-communications {
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+    }
+    
+    /* When communications tab is active, prevent matter-content-container from creating scrollbar */
+    .matter-content-container:has(#tab-communications.active) {
+        overflow: hidden !important;
+        min-height: unset !important;
+    }
+    
+    /* Ensure main-content doesn't create scrollbar when communications tab is active */
+    .main-content:has(#tab-communications.active) {
+        overflow: hidden !important;
+    }
+    
+    /* Make matter-details-container constrain height when communications is active */
+    .matter-details-container:has(#tab-communications.active) {
+        height: 100vh;
+        max-height: 100vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .matter-details-container:has(#tab-communications.active) .matter-content-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
 </style>
 
 <div class="matter-details-container" data-matter-id="@Model.Matter.Id" data-organization-id="@ViewBag.OrganizationId">
@@ -128,11 +162,11 @@
                         <div class="card h-100 border-0 stats-filter-card" data-filter-status="Total Billed" style="cursor: pointer;">
                             <div class="card-body p-4">
                                 <div class="d-flex align-items-center">
-                                    <div class="p-3 rounded-3 me-3" style="background-color: #6b72801C !important;">
-                                        <i class="fas fa-clock text-secondary fs-4"></i>
+                                    <div class="p-3 icon-bg-financial-earned rounded-3 me-3">
+                                        <i class="fa-solid fa-money-check-dollar fs-4" style="font-size: 1.35rem;"></i>
                                     </div>
                                     <div>
-                                        <p class="text-muted mb-1 small">Total Billed</p>
+                                        <p class="text-muted mb-1 small" style="font-size: 0.9rem;">Total Billed</p>
                                         <h3 class="fw-bold text-dark mb-0" style="font-size: 1.6rem;">$0.00</h3>
                                     </div>
                                 </div>
@@ -144,11 +178,11 @@
                         <div class="card h-100 border-0 stats-filter-card" data-filter-status="Unpaid Balance" style="cursor: pointer;">
                             <div class="card-body p-4">
                                 <div class="d-flex align-items-center">
-                                    <div class="p-3 icon-bg-primary rounded-3 me-3">
-                                        <i class="fas fa-play-circle text-primary fs-4"></i>
+                                    <div class="p-3 icon-bg-financial-debt rounded-3 me-3">
+                                        <i class="fa-solid fa-hourglass-half fs-4" style="font-size: 1.35rem;"></i>
                                     </div>
                                     <div>
-                                        <p class="text-muted mb-1 small">Unpaid Balance</p>
+                                        <p class="text-muted mb-1 small" style="font-size: 0.9rem;">Unpaid Balance</p>
                                         <h3 class="fw-bold text-dark mb-0" style="font-size: 1.6rem;">$0.00</h3>
                                     </div>
                                 </div>
@@ -160,11 +194,11 @@
                         <div class="card h-100 border-0 stats-filter-card" data-filter-status="Billing Rate" style="cursor: pointer;">
                             <div class="card-body p-4">
                                 <div class="d-flex align-items-center">
-                                    <div class="p-3 bg-warning bg-opacity-10 rounded-3 me-3">
-                                        <i class="fas fa-exclamation-circle text-warning fs-4"></i>
+                                    <div class="p-3 icon-bg-financial-rate rounded-3 me-3">
+                                        <i class="fa-solid fa-dollar-sign fs-4" style="font-size: 1.35rem;"></i>
                                     </div>
                                     <div>
-                                        <p class="text-muted mb-1 small">Billing Rate</p>
+                                        <p class="text-muted mb-1 small" style="font-size: 0.9rem;">Billing Rate</p>
                                         <h3 class="fw-bold text-dark mb-0" style="font-size: 1.6rem;">$0/hr</h3>
                                     </div>
                                 </div>
@@ -176,11 +210,11 @@
                         <div class="card h-100 border-0 stats-filter-card" data-filter-status="Hours Logged" style="cursor: pointer;">
                             <div class="card-body p-4">
                                 <div class="d-flex align-items-center">
-                                    <div class="p-3 bg-success bg-opacity-10 rounded-3 me-3">
-                                        <i class="fas fa-check-circle text-success fs-4"></i>
+                                    <div class="p-3 icon-bg-financial-time rounded-3 me-3">
+                                        <i class="fa-solid fa-stopwatch fs-4" style="font-size: 1.35rem;"></i>
                                     </div>
                                     <div>
-                                        <p class="mb-1 small"">Hours Logged</p>
+                                        <p class="mb-1 small" style="font-size: 0.9rem;">Hours Logged</p>
                                         <h3 class="fw-bold mb-0" style="font-size: 1.6rem;">0 hrs</h3>
                                     </div>
                                 </div>
@@ -201,7 +235,7 @@
                                         <!-- Slide 1: Basic Information (replica of Create - Step 1) -->
                                         <div class="carousel-slide">
                                             <div class="d-flex align-items-center mb-3" style="margin-left:0.25rem;">
-                                                <i class="fas fa-file-alt fs-5 me-2" style="color: #3d1019;"></i>
+                                                <i class="fas fa-file-alt fs-5 me-2" style="color: #3d1019; font-size: 1.35rem;"></i>
                                                 <div>
                                                     <h6 class="fw-bold text-dark mb-1" style="font-size: 1rem;">Basic Information</h6>
                                                     <p class="text-muted mb-0 small" style="font-size: 0.8rem;">View or edit the essential details for your matter. Scroll or use arrows to navigate.</p>
@@ -210,14 +244,14 @@
                                             <div class="container-fluid px-0">
                                                 <div class="row">
                                                     <div class="col-12 mb-3">
-                                                        <label class="form-label fw-bold text-dark">
+                                                        <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
                                                             Matter Title <span class="text-danger">*</span>
                                                         </label>
-                                                        <input type="text" class="form-control form-control-lg" value="@Model.Matter.Title" />
+                                                        <input type="text" class="form-control form-control-lg" value="@Model.Matter.Title" style="font-size: 0.9rem;" />
                                                     </div>
                                                     <div class="col-12 mb-3">
-                                                        <label class="form-label fw-bold text-dark">Description</label>
-                                                        <textarea class="form-control" rows="4" >@Model.Matter.Description</textarea>
+                                                        <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">Description</label>
+                                                        <textarea class="form-control" rows="4" style="font-size: 0.9rem;">@Model.Matter.Description</textarea>
                                                     </div>
                                                         <div class="row small text-muted" style="padding: 0rem;">
                                                         <div class="col-md-6 mb-2"><strong class="text-dark">Created:</strong> @Model.Matter.CreatedAt.ToString("MMM dd, yyyy")</div>
@@ -232,7 +266,7 @@
                                         <!-- Slide 2: Matter Settings (replica of Create - Step 2) -->
                                         <div class="carousel-slide">
                                             <div class="d-flex align-items-center mb-3" style="margin-left:0.25rem;">
-                                                <i class="fas fa-cog fs-5 me-2" style="color: #3d1019;"></i>
+                                                <i class="fas fa-cog fs-5 me-2" style="color: #3d1019; font-size: 1.35rem;"></i>
                                                 <div>
                                                     <h6 class="fw-bold text-dark mb-1" style="font-size: 1rem;">Matter Settings</h6>
                                                     <p class="text-muted mb-0 small" style="font-size: 0.8rem;">Configure timeline, priority, and matter status.</p>
@@ -241,46 +275,46 @@
                                             <div class="container-fluid px-0">
                                                 <div class="row">
                                                     <div class="col-md-6 mb-3">
-                                                        <label class="form-label fw-bold text-dark">
+                                                        <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
                                                             <i class="fas fa-clock me-2" style="color: #3d1019;"></i>
                                                             Status <span class="text-danger">*</span>
                                                         </label>
-                                                        <input type="text" class="form-control form-control-lg" value="@Model.Matter.Status" />
+                                                        <input type="text" class="form-control form-control-lg" value="@Model.Matter.Status" style="font-size: 0.9rem;" />
                                                     </div>
                                                     <div class="col-md-6 mb-3">
-                                                        <label class="form-label fw-bold text-dark">
+                                                        <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
                                                             <i class="fas fa-gem me-2" style="color: #3d1019;"></i>
                                                             Practice Area <span class="text-danger">*</span>
                                                         </label>
-                                                        <input type="text" class="form-control form-control-lg" value="@Model.Matter.PracticeArea" />
+                                                        <input type="text" class="form-control form-control-lg" value="@Model.Matter.PracticeArea" style="font-size: 0.9rem;" />
                                                     </div>
                                                     <div class="col-md-6 mb-3">
-                                                        <label class="form-label fw-bold text-dark">
+                                                        <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
                                                             <i class="fas fa-calendar me-2" style="color: #3d1019;"></i>
                                                             Start Date
                                                         </label>
-                                                        <input type="date" class="form-control form-control-lg" value="@(Model.Matter.StartDate?.ToString("yyyy-MM-dd"))" />
+                                                        <input type="date" class="form-control form-control-lg" value="@(Model.Matter.StartDate?.ToString("yyyy-MM-dd"))" style="font-size: 0.9rem;" />
                                                     </div>
                                                     <div class="col-md-6 mb-3">
-                                                        <label class="form-label fw-bold text-dark">
+                                                        <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
                                                             <i class="fas fa-calendar me-2" style="color: #3d1019;"></i>
                                                             Due Date
                                                         </label>
-                                                        <input type="date" class="form-control form-control-lg" value="@(Model.Matter.DueDate?.ToString("yyyy-MM-dd"))" />
+                                                        <input type="date" class="form-control form-control-lg" value="@(Model.Matter.DueDate?.ToString("yyyy-MM-dd"))" style="font-size: 0.9rem;" />
                                                     </div>
                                                     <div class="col-md-6 mb-3">
-                                                        <label class="form-label fw-bold text-dark">
+                                                        <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
                                                             <i class="fas fa-calendar me-2" style="color: #3d1019;"></i>
                                                             Pending Date
                                                         </label>
-                                                        <input type="date" class="form-control form-control-lg" value="@(Model.Matter.PendingDate?.ToString("yyyy-MM-dd"))" />
+                                                        <input type="date" class="form-control form-control-lg" value="@(Model.Matter.PendingDate?.ToString("yyyy-MM-dd"))" style="font-size: 0.9rem;" />
                                                     </div>
                                                     <div class="col-md-6 mb-3">
-                                                        <label class="form-label fw-bold text-dark">
+                                                        <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
                                                             <i class="fas fa-calendar me-2" style="color: #3d1019;"></i>
                                                             Statute of Limitations Date
                                                         </label>
-                                                        <input type="date" class="form-control form-control-lg" value="@(Model.Matter.StatuteOfLimitationsDate?.ToString("yyyy-MM-dd"))" />
+                                                        <input type="date" class="form-control form-control-lg" value="@(Model.Matter.StatuteOfLimitationsDate?.ToString("yyyy-MM-dd"))" style="font-size: 0.9rem;" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -289,7 +323,7 @@
                                         <!-- Slide 3: Firm & Contacts (replica of Create - Step 3) -->
                                         <div class="carousel-slide">
                                             <div class="d-flex align-items-center mb-3" style="margin-left:0.25rem;">
-                                                <i class="fas fa-building-columns fs-5 me-2" style="color: #3d1019;"></i>
+                                                <i class="fas fa-building-columns fs-5 me-2" style="color: #3d1019; font-size: 1.35rem;"></i>
                                                 <div>
                                                     <h6 class="fw-bold text-dark mb-1" style="font-size: 1rem;">Firm & Contacts</h6>
                                                     <p class="text-muted mb-0 small" style="font-size: 0.8rem;">Assign attorneys and staff responsible for this matter.</p>
@@ -304,30 +338,30 @@
                                                 }
                                                 <div class="row">
                                                     <div class="col-md-6 mb-3">
-                                                        <label class="form-label fw-bold text-dark">
+                                                        <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
                                                             <i class="fas fa-user-tie me-2" style="color: #3d1019;"></i>
                                                             Responsible Attorney
                                                         </label>
-                                                        <input type="text" class="form-control form-control-lg" value="@(responsibleAttorney?.User != null ? responsibleAttorney.User.FirstName + " " + responsibleAttorney.User.LastName : "Not specified")" />
+                                                        <input type="text" class="form-control form-control-lg" value="@(responsibleAttorney?.User != null ? responsibleAttorney.User.FirstName + " " + responsibleAttorney.User.LastName : "Not specified")" style="font-size: 0.9rem;" />
                                                     </div>
                                                     <div class="col-md-6 mb-3">
-                                                        <label class="form-label fw-bold text-dark">
+                                                        <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
                                                             <i class="fas fa-user me-2" style="color: #3d1019;"></i>
                                                             Responsible Staff
                                                         </label>
-                                                        <input type="text" class="form-control form-control-lg" value="@(responsibleStaff?.User != null ? responsibleStaff.User.FirstName + " " + responsibleStaff.User.LastName : "Not specified")" />
+                                                        <input type="text" class="form-control form-control-lg" value="@(responsibleStaff?.User != null ? responsibleStaff.User.FirstName + " " + responsibleStaff.User.LastName : "Not specified")" style="font-size: 0.9rem;" />
                                                     </div>
                                                     <div class="col-12 mb-3">
-                                                        <label class="form-label fw-bold text-dark">
+                                                        <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
                                                             <i class="fas fa-user-tie me-2" style="color: #3d1019;"></i>
                                                             Originating Attorney
                                                         </label>
-                                                        <input type="text" class="form-control form-control-lg" value="@(originatingAttorney?.User != null ? originatingAttorney.User.FirstName + " " + originatingAttorney.User.LastName : "Not specified")" />
+                                                        <input type="text" class="form-control form-control-lg" value="@(originatingAttorney?.User != null ? originatingAttorney.User.FirstName + " " + originatingAttorney.User.LastName : "Not specified")" style="font-size: 0.9rem;" />
                                                     </div>
                                                 </div>
                                                 <div class="mb-3" style="padding: 0rem 0.5rem;">
                                                     <div class="d-flex align-items-center mb-2">
-                                                        <i class="fas fa-users fs-6 me-2" style="color: #3d1019;"></i>
+                                                        <i class="fas fa-users fs-6 me-2" style="color: #3d1019; font-size: 1.125rem;"></i>
                                                         <h6 class="fw-bold text-dark mb-0" style="font-size: 0.9rem;">Relevant contacts</h6>
                                                     </div>
                                                     @if (relevantContacts.Count == 0)
@@ -358,7 +392,7 @@
                                         <!-- Slide 4: Review & Permissions (replica of Create - Step 4) -->
                                         <div class="carousel-slide">
                                             <div class="d-flex align-items-center mb-3">
-                                                <i class="fas fa-eye fs-5 me-2" style="color: #3d1019;"></i>
+                                                <i class="fas fa-eye fs-5 me-2" style="color: #3d1019; font-size: 1.35rem;"></i>
                                                 <div>
                                                     <h6 class="fw-bold text-dark mb-1" style="font-size: 1rem;">Permissions</h6>
                                                     <p class="text-muted mb-0 small" style="font-size: 0.8rem;">Review your matter's access level.</p>
@@ -367,20 +401,20 @@
                                             <div class="container-fluid px-0">
                                                 <div class="mb-3" style="padding: 0rem 0.5rem;">
                                                     <div class="d-flex align-items-center mb-2" style="margin-left:0.25rem;">
-                                                        <i class="fas fa-shield-alt fs-6 me-2" style="color: #3d1019;"></i>
+                                                        <i class="fas fa-shield-alt fs-6 me-2" style="color: #3d1019; font-size: 1.125rem;"></i>
                                                         <h6 class="fw-bold text-dark mb-1" style="font-size: 0.9rem;">Matter Permissions</h6>
                                                     </div>
                                                     <div class="form-check mb-2" style="margin: 1rem 0.5rem 0.5rem;">
-                                                        <input class="form-check-input" type="radio" disabled @(Model.Matter.AccessLevel == "Everyone" ? "checked" : "")>
+                                                        <input class="form-check-input" style="margin-top:0.35rem;" type="radio" disabled @(Model.Matter.AccessLevel == "Everyone" ? "checked" : "")>
                                                         <label class="form-check-label">
-                                                            <span class="fw-bold">Everyone</span>
+                                                            <span class="fw-bold" style="font-size: 0.9rem;">Everyone</span>
                                                             <small class="text-muted d-block">All organization members can view this matter</small>
                                                         </label>
                                                     </div>
                                                     <div class="form-check" style="margin: 0rem 0.5rem;">
-                                                        <input class="form-check-input" type="radio" disabled @(Model.Matter.AccessLevel == "Specific" ? "checked" : "")>
+                                                        <input class="form-check-input" style="margin-top:0.35rem;" type="radio" disabled @(Model.Matter.AccessLevel == "Specific" ? "checked" : "")>
                                                         <label class="form-check-label">
-                                                            <span class="fw-bold">Specific users or groups</span>
+                                                            <span class="fw-bold" style="font-size: 0.9rem;">Specific users or groups</span>
                                                             <small class="text-muted d-block">Only selected users and groups can view this matter</small>
                                                         </label>
                                                     </div>
@@ -423,8 +457,8 @@
                                         </div>
                                     </div>
                                     <p class="card-text text-muted mb-0" style="font-size: 0.8rem; line-height: 1.4; padding-left: 30px;">
-                                        Get a snapshot of the status of your work items. 
-                                        <a href="/Client/@ViewBag.OrganizationId/Matter/@Model.Matter.Id/Tasks" class="text-primary text-decoration-none">View all work items</a>
+                                        Get a snapshot of the status of your task items. 
+                                        <a href="/Client/@ViewBag.OrganizationId/Matter/@Model.Matter.Id/Tasks" class="text-primary text-decoration-none">View all task items</a>
                                     </p>
                                 </div>
                             </div>
@@ -473,14 +507,14 @@
                                             </svg>
                                             <div class="position-absolute top-50 start-50 translate-middle text-center">
                                                 <div class="fs-1 fw-bold text-dark">@Model.TotalTasksCount</div>
-                                                <div class="small text-muted">Total work items</div>
+                                                <div class="small text-muted">Total task items</div>
                                             </div>
                                         </div>
                                         <div class="d-flex flex-wrap justify-content-center gap-3 small">
-                                            <div class="d-flex align-items-center gap-2"><span class="rounded" style="width:12px;height:12px;background-color: rgba(var(--bs-secondary-rgb), 1);"></span><span class="text-muted">Planned: @Model.TasksPending</span></div>
-                                            <div class="d-flex align-items-center gap-2"><span class="rounded" style="width:12px;height:12px;background-color: rgba(var(--bs-primary-rgb), 1);"></span><span class="text-muted">In Progress: @Model.TasksInProgress</span></div>
-                                            <div class="d-flex align-items-center gap-2"><span class="rounded" style="width:12px;height:12px;background-color: rgba(var(--bs-warning-rgb), 1);"></span><span class="text-muted">Review: @Model.TasksInReview</span></div>
-                                            <div class="d-flex align-items-center gap-2"><span class="rounded" style="width:12px;height:12px;background-color: rgba(var(--bs-success-rgb), 1);"></span><span class="text-muted">Completed: @Model.TasksCompleted</span></div>
+                                            <div class="d-flex align-items-center gap-2"><span class="rounded" style="width:12px;height:12px;background-color: rgba(var(--bs-secondary-rgb), 1); margin-top:0.6rem;"></span><span class="text-muted">Planned: @Model.TasksPending</span></div>
+                                            <div class="d-flex align-items-center gap-2"><span class="rounded" style="width:12px;height:12px;background-color: rgba(var(--bs-primary-rgb), 1); margin-top:0.6rem;"></span><span class="text-muted">In Progress: @Model.TasksInProgress</span></div>
+                                            <div class="d-flex align-items-center gap-2"><span class="rounded" style="width:12px;height:12px;background-color: rgba(var(--bs-warning-rgb), 1); margin-top:0.6rem;"></span><span class="text-muted">Review: @Model.TasksInReview</span></div>
+                                            <div class="d-flex align-items-center gap-2"><span class="rounded" style="width:12px;height:12px;background-color: rgba(var(--bs-success-rgb), 1); margin-top:0.6rem;"></span><span class="text-muted">Completed: @Model.TasksCompleted</span></div>
                                         </div>
                                     }
                                     else
@@ -648,16 +682,9 @@
             </div>
         </div>
 
-        <!-- Communications Tab (Placeholder) -->
+        <!-- Communications Tab (AJAX Loaded) -->
         <div id="tab-communications" class="tab-content-section" style="display: none;">
-            <div class="container-fluid px-4 py-4">
-                <div class="text-center py-5">
-                    <i class="fas fa-comments text-muted mb-3" style="font-size: 3rem;"></i>
-                    <h4 class="text-dark mb-2">Matter Communications</h4>
-                    <p class="text-muted">This section will display all communications, messages, and discussions related to this matter.</p>
-                    <p class="text-muted small">(To be implemented in a future phase)</p>
-                </div>
-            </div>
+            <!-- Content will be loaded via AJAX when tab is first accessed -->
         </div>
 
         <!-- Documents Tab (Placeholder) -->

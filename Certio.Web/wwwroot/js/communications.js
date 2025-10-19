@@ -329,6 +329,12 @@ function appendMessage(message, animate = true, previousMessage = null) {
         return;
     }
 
+    // Hide "No messages yet" hint if it exists
+    const noMessagesHint = messagesContainer.querySelector('.no-messages');
+    if (noMessagesHint) {
+        noMessagesHint.remove();
+    }
+
     // If no previousMessage provided, extract it from the last message in the container
     if (!previousMessage && messagesContainer.children.length > 0) {
         const lastMessageElement = messagesContainer.children[messagesContainer.children.length - 1];

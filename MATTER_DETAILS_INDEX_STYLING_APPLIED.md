@@ -73,7 +73,7 @@ All card content was tracked and preserved exactly:
 
 ### Status Overview Card
 - Donut chart SVG with in-progress visualization
-- Total work items count display
+- Total task items count display
 - Empty state with icon and message
 
 ### Recent Activity Card  

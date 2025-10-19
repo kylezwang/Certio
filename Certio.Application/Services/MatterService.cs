@@ -86,7 +86,8 @@ namespace Certio.Application.Services
                     ClientGoals = createDto.ClientGoals,
                     LegalRequirements = createDto.LegalRequirements,
                     Notes = createDto.Notes,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedById = userId
                 };
 
                 _context.Matters.Add(matter);
@@ -498,10 +499,13 @@ namespace Certio.Application.Services
                     throw new UnauthorizedOperationException(userId, "assign", "Matter", "No access to matter");
                 }
 
-                // Check permission to manage matter settings
-                if (!await _permissionService.HasPermissionAsync(userId, matter.OrganizationId, Permission.ManageMatterSettings))
+                // Check permission to manage matter settings OR if user created the matter (allow assignment during creation)
+                var hasManagePermission = await _permissionService.HasPermissionAsync(userId, matter.OrganizationId, Permission.ManageMatterSettings);
+                var isCreator = matter.CreatedById == userId;
+                
+                if (!hasManagePermission && !isCreator)
                 {
-                    throw new UnauthorizedOperationException(userId, "assign", "Matter", "Lacks ManageMatterSettings permission");
+                    throw new UnauthorizedOperationException(userId, "assign", "Matter", "Lacks ManageMatterSettings permission and is not the matter creator");
                 }
 
                 // Validate assignee has access to organization (direct membership or firm-based access)

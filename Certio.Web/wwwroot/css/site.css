@@ -1686,6 +1686,27 @@ body {
   color: #3b82f6;
 }
 
+/* Financial Flow Palette - Semantic Colors for Matter Details Stats */
+.icon-bg-financial-earned {
+  background-color: #ecfdf5; /* Light green */
+  color: #059669; /* Rich green - Money earned/positive */
+}
+
+.icon-bg-financial-debt {
+  background-color: #fef2f2; /* Light red */
+  color: #dc2626; /* Alert red - Outstanding debt/urgent */
+}
+
+.icon-bg-financial-rate {
+  background-color: #fffbeb; /* Light gold */
+  color: #efa24a; /* Gold - Value/premium pricing */
+}
+
+.icon-bg-financial-time {
+  background-color: #dbeafe; /* Light blue */
+  color: #2563eb; /* Professional blue - Time tracking/productivity */
+}
+
 /* Responsive adjustments for Matters page */
 @media (max-width: 768px) {
   .matters-container {
@@ -1781,21 +1802,34 @@ body {
 
 /* Custom Scrollbar for Tasks Page Inbox Container */
 .inbox-container::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 5px;
+    height: 5px;
 }
 
 .inbox-container::-webkit-scrollbar-track {
-    background: transparent;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
 }
 
 .inbox-container::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 3px;
 }
 
 .inbox-container::-webkit-scrollbar-thumb:hover {
-    background: #999;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.inbox-container::-webkit-scrollbar-button:start:increment {
+  height: 1%;
+  display: block;
+  background: transparent;
+}
+
+.inbox-container::-webkit-scrollbar-button:end:increment {
+    height: 1%;
+    display: block;
+    background: transparent;
 }
 
 /* Documents Page Styles */
@@ -3922,7 +3956,7 @@ body.communications-page .communications-layout {
 }
 
 .communications-container .message-item:hover {
-  background: rgba(156, 163, 175, 0.1);
+  background: rgba(156, 163, 175, 0.15);
 }
 
 .communications-container .message-avatar {
@@ -5587,7 +5621,6 @@ body.dark-mode .global-dashboard-main .quick-access-icon .fa-briefcase {
 
 /* Icon Background Helper Classes */
 .icon-bg-primary {
-  background-color: rgba(61, 16, 25, 0.1) !important;
 }
 
 /* Stat Cards - Reuse and enhance existing styles */
