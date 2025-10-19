@@ -1,0 +1,241 @@
+# Docker Commands to Check Matter Data
+
+## 1. Check all Matters
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, Title, Description, Status, PracticeArea, AccessLevel, OrganizationId, TeamId, ClientId, CreatedById, CreatedAt FROM CertioLocal.dbo.Matters ORDER BY CreatedAt DESC"
+
+## 2. Check Matter Assignments
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, MatterId, UserId, AssignmentType, Role, IsNotifyRecipient, AssignedAt FROM CertioLocal.dbo.MatterAssignments ORDER BY AssignedAt DESC"
+
+## 3. Check Matter Permissions
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, MatterId, UserId, GrantedAt, GrantedById, RevokedAt FROM CertioLocal.dbo.MatterPermissions ORDER BY GrantedAt DESC"
+
+## 4. Check latest Matter with full details (for the most recent matter)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT TOP 5 m.Id, m.Title, m.Status, m.OrganizationId, m.CreatedById, m.CreatedAt, COUNT(ma.Id) AS AssignmentCount FROM CertioLocal.dbo.Matters m LEFT JOIN CertioLocal.dbo.MatterAssignments ma ON m.Id = ma.MatterId GROUP BY m.Id, m.Title, m.Status, m.OrganizationId, m.CreatedById, m.CreatedAt ORDER BY m.CreatedAt DESC"
+
+## 5. Check Users for reference
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, FirstName, LastName, Email, UserType FROM CertioLocal.dbo.Users ORDER BY Id"
+
+# ===========================================
+# COMPREHENSIVE ENTITY DATA CHECKING COMMANDS
+# ===========================================
+
+# ===========================================
+# USER MANAGEMENT ENTITIES
+# ===========================================
+
+## 6. Check All Users (Basic Info)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, FirstName, LastName, Email, PhoneNumber, Company, JobTitle, Department, Location, IsActive, CreatedAt, LastLoginDate FROM CertioLocal.dbo.Users ORDER BY CreatedAt DESC"
+
+## 7. Check User Organizations (Memberships)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, UserId, OrganizationId, UserType, Role, Department, JobTitle, IsActive, IsPrimary, JoinedAt, LeftAt FROM CertioLocal.dbo.UserOrganizations ORDER BY JoinedAt DESC"
+
+## 8. Check User-Organization Memberships with User Details
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT uo.Id, u.FirstName + ' ' + u.LastName AS UserName, u.Email, o.Name AS OrganizationName, uo.UserType, uo.Role, uo.IsActive, uo.JoinedAt FROM CertioLocal.dbo.UserOrganizations uo INNER JOIN CertioLocal.dbo.Users u ON uo.UserId = u.Id INNER JOIN CertioLocal.dbo.Organizations o ON uo.OrganizationId = o.Id ORDER BY uo.JoinedAt DESC"
+
+# ===========================================
+# ORGANIZATION ENTITIES
+# ===========================================
+
+## 9. Check All Organizations
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, Name, Description, OwnerId, Type, IsPersonal, IsActive, Color, Logo, CreatedAt, CreatedById FROM CertioLocal.dbo.Organizations ORDER BY CreatedAt DESC"
+
+## 10. Check Organization Relationships (Law Firm-Client connections)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, SourceOrganizationId, TargetOrganizationId, RelationshipType, AccessLevel, Description, IsActive, ExpiresAt, CreatedAt, CreatedById FROM CertioLocal.dbo.OrganizationRelationships ORDER BY CreatedAt DESC"
+
+## 11. Check Organization Relationships with Names
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT or.Id, so.Name AS SourceOrg, to.Name AS TargetOrg, or.RelationshipType, or.AccessLevel, or.IsActive, or.ExpiresAt FROM CertioLocal.dbo.OrganizationRelationships or INNER JOIN CertioLocal.dbo.Organizations so ON or.SourceOrganizationId = so.Id INNER JOIN CertioLocal.dbo.Organizations to ON or.TargetOrganizationId = to.Id ORDER BY or.CreatedAt DESC"
+
+# ===========================================
+# MATTER ENTITIES (DETAILED)
+# ===========================================
+
+## 12. Check Matter Details with Organization Info
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT m.Id, m.Title, m.Status, m.PracticeArea, m.AccessLevel, o.Name AS OrganizationName, m.CreatedById, m.CreatedAt, m.StartDate, m.DueDate FROM CertioLocal.dbo.Matters m INNER JOIN CertioLocal.dbo.Organizations o ON m.OrganizationId = o.Id ORDER BY m.CreatedAt DESC"
+
+## 13. Check Matter Assignments with User Details
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT ma.Id, m.Title AS MatterTitle, u.FirstName + ' ' + u.LastName AS UserName, ma.AssignmentType, ma.Role, ma.IsNotifyRecipient, ma.AssignedAt FROM CertioLocal.dbo.MatterAssignments ma INNER JOIN CertioLocal.dbo.Matters m ON ma.MatterId = m.Id INNER JOIN CertioLocal.dbo.Users u ON ma.UserId = u.Id ORDER BY ma.AssignedAt DESC"
+
+## 14. Check Matter Permissions with User Details
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT mp.Id, m.Title AS MatterTitle, u.FirstName + ' ' + u.LastName AS UserName, mp.GrantedAt, mp.GrantedById, mp.RevokedAt FROM CertioLocal.dbo.MatterPermissions mp INNER JOIN CertioLocal.dbo.Matters m ON mp.MatterId = m.Id INNER JOIN CertioLocal.dbo.Users u ON mp.UserId = u.Id ORDER BY mp.GrantedAt DESC"
+
+# ===========================================
+# TASK ENTITIES
+# ===========================================
+
+## 15. Check All Task Items
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, OrgId, MatterId, Title, Description, Status, Priority, Location, Order, CreatedAt, CreatedById, DueDate, CompletedAt FROM CertioLocal.dbo.TaskItems ORDER BY CreatedAt DESC"
+
+## 16. Check Task Items with Matter Details
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT ti.Id, ti.Title, ti.Status, ti.Priority, m.Title AS MatterTitle, o.Name AS OrganizationName, ti.CreatedAt, ti.DueDate, ti.CompletedAt FROM CertioLocal.dbo.TaskItems ti INNER JOIN CertioLocal.dbo.Matters m ON ti.MatterId = m.Id INNER JOIN CertioLocal.dbo.Organizations o ON ti.OrgId = o.Id ORDER BY ti.CreatedAt DESC"
+
+## 17. Check Task Assignments
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, TaskItemId, UserId, AssignmentType, Role, IsNotifyRecipient, AssignedAt, CompletedAt, RemovedAt FROM CertioLocal.dbo.TaskAssignments ORDER BY AssignedAt DESC"
+
+## 18. Check Task Assignments with User and Task Details
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT ta.Id, ti.Title AS TaskTitle, u.FirstName + ' ' + u.LastName AS UserName, ta.AssignmentType, ta.Role, ta.AssignedAt, ta.CompletedAt FROM CertioLocal.dbo.TaskAssignments ta INNER JOIN CertioLocal.dbo.TaskItems ti ON ta.TaskItemId = ti.Id INNER JOIN CertioLocal.dbo.Users u ON ta.UserId = u.Id ORDER BY ta.AssignedAt DESC"
+
+## 19. Check Task Comments
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, TaskItemId, UserId, Content, ParentCommentId, CreatedAt, LastModifiedAt FROM CertioLocal.dbo.TaskItemComments ORDER BY CreatedAt DESC"
+
+## 20. Check Task Dependencies
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, TaskItemId, DependsOnTaskItemId, DependencyType, CreatedAt FROM CertioLocal.dbo.TaskItemDependencies ORDER BY CreatedAt DESC"
+
+# ===========================================
+# TEAM ENTITIES
+# ===========================================
+
+## 21. Check All Teams
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, Name, Description, OrganizationId, TeamType, Color, Icon, IsActive, IsPrivate, CreatedAt, CreatedById FROM CertioLocal.dbo.Teams ORDER BY CreatedAt DESC"
+
+## 22. Check Team Memberships
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, UserId, TeamId, Role, Status, JoinedAt, LeftAt, LastActiveAt FROM CertioLocal.dbo.TeamMemberships ORDER BY JoinedAt DESC"
+
+## 23. Check Team Memberships with User and Team Details
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT tm.Id, t.Name AS TeamName, u.FirstName + ' ' + u.LastName AS UserName, tm.Role, tm.Status, tm.JoinedAt FROM CertioLocal.dbo.TeamMemberships tm INNER JOIN CertioLocal.dbo.Teams t ON tm.TeamId = t.Id INNER JOIN CertioLocal.dbo.Users u ON tm.UserId = u.Id ORDER BY tm.JoinedAt DESC"
+
+# ===========================================
+# DOCUMENT ENTITIES
+# ===========================================
+
+## 24. Check All Documents
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, Name, Description, Type, FileSize, FilePath, FileExtension, MimeType, MatterId, StatusItemId, CreatedById, Status, Visibility, DocumentType, IsTemplate, RequiresSignature, IsSigned, CreatedAt FROM CertioLocal.dbo.Documents ORDER BY CreatedAt DESC"
+
+## 25. Check Documents with Matter Details
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT d.Id, d.Name, d.Type, d.Status, d.Visibility, m.Title AS MatterTitle, u.FirstName + ' ' + u.LastName AS CreatedBy, d.CreatedAt FROM CertioLocal.dbo.Documents d LEFT JOIN CertioLocal.dbo.Matters m ON d.MatterId = m.Id LEFT JOIN CertioLocal.dbo.Users u ON d.CreatedById = u.Id ORDER BY d.CreatedAt DESC"
+
+## 26. Check Document Versions
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, DocumentId, VersionNumber, ChangeDescription, FilePath, CreatedById, CreatedAt FROM CertioLocal.dbo.DocumentVersions ORDER BY CreatedAt DESC"
+
+## 27. Check Document Reviews
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, DocumentId, ReviewerId, Status, Comments, ReviewedAt, CreatedAt FROM CertioLocal.dbo.DocumentReviews ORDER BY CreatedAt DESC"
+
+## 28. Check Document Comments
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, DocumentId, UserId, Content, ParentCommentId, CreatedAt, LastModifiedDate FROM CertioLocal.dbo.DocumentComments ORDER BY CreatedAt DESC"
+
+## 29. Check Document Signatures
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, DocumentId, SignerId, IPAddress, UserAgent, SignedAt FROM CertioLocal.dbo.DocumentSignatures ORDER BY SignedAt DESC"
+
+# ===========================================
+# COMMUNICATION ENTITIES
+# ===========================================
+
+## 30. Check All Conversations
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, Title, Description, Status, ConversationType, ChannelType, IsChannel, OrganizationId, CreatedById, MatterId, IsPrivate, IsArchived, CreatedAt, LastMessageAt FROM CertioLocal.dbo.Conversations ORDER BY CreatedAt DESC"
+
+## 31. Check Conversations with Organization and Creator Details
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT c.Id, c.Title, c.ConversationType, c.Status, o.Name AS OrganizationName, u.FirstName + ' ' + u.LastName AS CreatedBy, c.CreatedAt, c.LastMessageAt FROM CertioLocal.dbo.Conversations c INNER JOIN CertioLocal.dbo.Organizations o ON c.OrganizationId = o.Id INNER JOIN CertioLocal.dbo.Users u ON c.CreatedById = u.Id ORDER BY c.CreatedAt DESC"
+
+## 32. Check Chat Messages
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, ConversationId, UserId, Content, MessageType, IsEdited, IsDeleted, CreatedAt, ModifiedAt FROM CertioLocal.dbo.ChatMessages ORDER BY CreatedAt DESC"
+
+## 33. Check Chat Messages with User Details
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT cm.Id, c.Title AS ConversationTitle, u.FirstName + ' ' + u.LastName AS UserName, cm.Content, cm.MessageType, cm.CreatedAt FROM CertioLocal.dbo.ChatMessages cm INNER JOIN CertioLocal.dbo.Conversations c ON cm.ConversationId = c.Id INNER JOIN CertioLocal.dbo.Users u ON cm.UserId = u.Id ORDER BY cm.CreatedAt DESC"
+
+## 34. Check Conversation Participants
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, ConversationId, UserId, JoinedAt, LeftAt, LastReadAt FROM CertioLocal.dbo.ConversationParticipants ORDER BY JoinedAt DESC"
+
+# ===========================================
+# SUMMARY AND STATISTICS QUERIES
+# ===========================================
+
+## 35. Count All Entities (Summary Statistics)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT 'Users' AS Entity, COUNT(*) AS Count FROM CertioLocal.dbo.Users UNION ALL SELECT 'Organizations', COUNT(*) FROM CertioLocal.dbo.Organizations UNION ALL SELECT 'Matters', COUNT(*) FROM CertioLocal.dbo.Matters UNION ALL SELECT 'TaskItems', COUNT(*) FROM CertioLocal.dbo.TaskItems UNION ALL SELECT 'Documents', COUNT(*) FROM CertioLocal.dbo.Documents UNION ALL SELECT 'Conversations', COUNT(*) FROM CertioLocal.dbo.Conversations UNION ALL SELECT 'Teams', COUNT(*) FROM CertioLocal.dbo.Teams ORDER BY Entity"
+
+## 36. Check Recent Activity (Last 7 Days)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT 'Matters Created' AS Activity, COUNT(*) AS Count FROM CertioLocal.dbo.Matters WHERE CreatedAt >= DATEADD(day, -7, GETDATE()) UNION ALL SELECT 'Tasks Created', COUNT(*) FROM CertioLocal.dbo.TaskItems WHERE CreatedAt >= DATEADD(day, -7, GETDATE()) UNION ALL SELECT 'Documents Uploaded', COUNT(*) FROM CertioLocal.dbo.Documents WHERE CreatedAt >= DATEADD(day, -7, GETDATE()) UNION ALL SELECT 'Messages Sent', COUNT(*) FROM CertioLocal.dbo.ChatMessages WHERE CreatedAt >= DATEADD(day, -7, GETDATE()) ORDER BY Activity"
+
+## 37. Check Matter Status Distribution
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Status, COUNT(*) AS Count FROM CertioLocal.dbo.Matters GROUP BY Status ORDER BY Count DESC"
+
+## 38. Check Task Status Distribution
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Status, COUNT(*) AS Count FROM CertioLocal.dbo.TaskItems GROUP BY Status ORDER BY Count DESC"
+
+## 39. Check User Types Distribution
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT UserType, COUNT(*) AS Count FROM CertioLocal.dbo.UserOrganizations GROUP BY UserType ORDER BY Count DESC"
+
+## 40. Check Organization Types Distribution
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Type, COUNT(*) AS Count FROM CertioLocal.dbo.Organizations GROUP BY Type ORDER BY Count DESC"
+
+# ===========================================
+# AUDIT LOGGING ENTITIES
+# ===========================================
+
+## 41. Check All Audit Logs (Basic Info)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, EntityType, EntityId, Action, Result, UserId, UserName, IPAddress, Description, Timestamp FROM CertioLocal.dbo.AuditLogs ORDER BY Timestamp DESC"
+
+## 42. Check Audit Logs with User Details
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT al.Id, al.EntityType, al.EntityId, al.Action, al.Result, u.FirstName + ' ' + u.LastName AS UserName, u.Email, al.IPAddress, al.Description, al.Timestamp FROM CertioLocal.dbo.AuditLogs al LEFT JOIN CertioLocal.dbo.Users u ON al.UserId = u.Id ORDER BY al.Timestamp DESC"
+
+## 43. Check Recent Audit Activity (Last 24 Hours)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, EntityType, EntityId, Action, Result, UserName, IPAddress, Description, Timestamp FROM CertioLocal.dbo.AuditLogs WHERE Timestamp >= DATEADD(hour, -24, GETDATE()) ORDER BY Timestamp DESC"
+
+## 44. Check Audit Logs by Action Type
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Action, COUNT(*) AS Count FROM CertioLocal.dbo.AuditLogs GROUP BY Action ORDER BY Count DESC"
+
+## 45. Check Audit Logs by Entity Type
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT EntityType, COUNT(*) AS Count FROM CertioLocal.dbo.AuditLogs GROUP BY EntityType ORDER BY Count DESC"
+
+## 46. Check Failed Actions (Audit Failures)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, EntityType, EntityId, Action, UserName, IPAddress, Description, Timestamp FROM CertioLocal.dbo.AuditLogs WHERE Result = 'FAILURE' ORDER BY Timestamp DESC"
+
+## 47. Check Login Activities
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, UserName, IPAddress, UserAgent, Result, Description, Timestamp FROM CertioLocal.dbo.AuditLogs WHERE Action IN ('Login', 'LoginFailed', 'Logout') ORDER BY Timestamp DESC"
+
+## 48. Check Failed Login Attempts
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, UserName, IPAddress, UserAgent, Description, Timestamp FROM CertioLocal.dbo.AuditLogs WHERE Action = 'LoginFailed' ORDER BY Timestamp DESC"
+
+## 49. Check AI-Related Audit Logs
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, EntityType, EntityId, Action, AIAgentType, SourceConversationId, SourceMessageId, UserName, Description, Timestamp FROM CertioLocal.dbo.AuditLogs WHERE IsAIAction = 1 ORDER BY Timestamp DESC"
+
+## 50. Check AI-Generated Content Actions
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, EntityType, EntityId, AIAgentType, SourceConversationId, SourceMessageId, UserName, Description, Timestamp FROM CertioLocal.dbo.AuditLogs WHERE Action IN ('AIGenerated', 'AIApproved', 'AIRejected') ORDER BY Timestamp DESC"
+
+## 51. Check Matter-Specific Audit Logs
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT al.Id, al.EntityType, al.EntityId, al.Action, al.Result, m.Title AS MatterTitle, al.UserName, al.Description, al.Timestamp FROM CertioLocal.dbo.AuditLogs al LEFT JOIN CertioLocal.dbo.Matters m ON al.MatterId = m.Id WHERE al.MatterId IS NOT NULL ORDER BY al.Timestamp DESC"
+
+## 52. Check Organization-Specific Audit Logs
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT al.Id, al.EntityType, al.EntityId, al.Action, al.Result, o.Name AS OrganizationName, al.UserName, al.Description, al.Timestamp FROM CertioLocal.dbo.AuditLogs al LEFT JOIN CertioLocal.dbo.Organizations o ON al.OrganizationId = o.Id WHERE al.OrganizationId IS NOT NULL ORDER BY al.Timestamp DESC"
+
+## 53. Check User Activity Summary (Top Active Users)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT UserId, UserName, COUNT(*) AS ActionCount FROM CertioLocal.dbo.AuditLogs WHERE UserId IS NOT NULL GROUP BY UserId, UserName ORDER BY ActionCount DESC"
+
+## 54. Check Audit Logs by IP Address
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT IPAddress, COUNT(*) AS RequestCount, COUNT(DISTINCT UserId) AS UniqueUsers FROM CertioLocal.dbo.AuditLogs WHERE IPAddress IS NOT NULL GROUP BY IPAddress ORDER BY RequestCount DESC"
+
+## 55. Check Document-Related Audit Logs
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, EntityType, EntityId, Action, Result, UserName, Description, Timestamp FROM CertioLocal.dbo.AuditLogs WHERE EntityType = 'Document' OR Action IN ('DocumentSigned', 'DocumentShared') ORDER BY Timestamp DESC"
+
+## 56. Check Permission-Related Audit Logs
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, EntityType, EntityId, Action, UserName, Description, Timestamp FROM CertioLocal.dbo.AuditLogs WHERE Action IN ('PermissionGranted', 'PermissionRevoked') ORDER BY Timestamp DESC"
+
+## 57. Check Audit Logs with Request Details (HTTP Info)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, EntityType, Action, UserName, RequestUrl, HttpMethod, ResponseCode, DurationMs, Timestamp FROM CertioLocal.dbo.AuditLogs WHERE RequestUrl IS NOT NULL ORDER BY Timestamp DESC"
+
+## 58. Check Session-Based Audit Logs
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, SessionId, UserName, Action, EntityType, IPAddress, Timestamp FROM CertioLocal.dbo.AuditLogs WHERE SessionId IS NOT NULL ORDER BY SessionId, Timestamp DESC"
+
+## 59. Check Audit Logs with Old/New Values (Data Changes)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, EntityType, EntityId, Action, UserName, OldValues, NewValues, Description, Timestamp FROM CertioLocal.dbo.AuditLogs WHERE OldValues IS NOT NULL OR NewValues IS NOT NULL ORDER BY Timestamp DESC"
+
+## 60. Check Audit Logs by Time Period (Last 7 Days)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT CAST(Timestamp AS DATE) AS Date, COUNT(*) AS ActionCount, COUNT(DISTINCT UserId) AS UniqueUsers FROM CertioLocal.dbo.AuditLogs WHERE Timestamp >= DATEADD(day, -7, GETDATE()) GROUP BY CAST(Timestamp AS DATE) ORDER BY Date DESC"
+
+# ===========================================
+# AUDIT SUMMARY AND ANALYTICS QUERIES
+# ===========================================
+
+## 61. Audit Log Summary Statistics
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT 'Total Actions' AS Metric, COUNT(*) AS Count FROM CertioLocal.dbo.AuditLogs UNION ALL SELECT 'Unique Users', COUNT(DISTINCT UserId) FROM CertioLocal.dbo.AuditLogs WHERE UserId IS NOT NULL UNION ALL SELECT 'Failed Actions', COUNT(*) FROM CertioLocal.dbo.AuditLogs WHERE Result = 'FAILURE' UNION ALL SELECT 'AI Actions', COUNT(*) FROM CertioLocal.dbo.AuditLogs WHERE IsAIAction = 1 UNION ALL SELECT 'Login Attempts', COUNT(*) FROM CertioLocal.dbo.AuditLogs WHERE Action IN ('Login', 'LoginFailed') ORDER BY Metric"
+
+## 62. Check Audit Logs by Result Status
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Result, COUNT(*) AS Count FROM CertioLocal.dbo.AuditLogs GROUP BY Result ORDER BY Count DESC"
+
+## 63. Check Most Active Entities (Most Audited)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT EntityType, EntityId, COUNT(*) AS AuditCount FROM CertioLocal.dbo.AuditLogs GROUP BY EntityType, EntityId ORDER BY AuditCount DESC"
+
+## 64. Check Audit Logs by Hour (Activity Pattern)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT DATEPART(hour, Timestamp) AS Hour, COUNT(*) AS ActionCount FROM CertioLocal.dbo.AuditLogs WHERE Timestamp >= DATEADD(day, -7, GETDATE()) GROUP BY DATEPART(hour, Timestamp) ORDER BY Hour"
+
+## 65. Check Audit Logs by Day of Week (Activity Pattern)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT DATENAME(weekday, Timestamp) AS DayOfWeek, COUNT(*) AS ActionCount FROM CertioLocal.dbo.AuditLogs WHERE Timestamp >= DATEADD(day, -30, GETDATE()) GROUP BY DATENAME(weekday, Timestamp), DATEPART(weekday, Timestamp) ORDER BY DATEPART(weekday, Timestamp)"
+

@@ -210,6 +210,13 @@ namespace Certio.Application.Services
                     return false;
                 }
 
+                // Matter creators always have access to their own matters
+                if (matter.CreatedById.HasValue && matter.CreatedById.Value == userId)
+                {
+                    _logger.LogDebug("User {UserId} granted access to matter {MatterId} as creator", userId, matterId);
+                    return true;
+                }
+
                 // If AccessLevel is "Everyone", org membership is sufficient
                 if (matter.AccessLevel == "Everyone")
                 {

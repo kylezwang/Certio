@@ -7,14 +7,29 @@
 <div class="calendar-page-container">
     <!-- Calendar Header with Month/Year and Navigation -->
     <div class="calendar-header-bar">
-        <div class="calendar-month-label">October 2025</div>
-        <div class="calendar-nav-controls">
-            <button class="btn btn-sm" id="prevMonthBtn">
-                <i class="fas fa-chevron-left"></i>
-            </button>
-            <button class="btn btn-sm" id="nextMonthBtn">
-                <i class="fas fa-chevron-right"></i>
-            </button>
+        <div class="d-flex align-items-center">
+            <div class="calendar-month-label">October 2025</div>
+            <div class="calendar-nav-controls ms-3">
+                <button class="btn btn-sm" id="prevMonthBtn">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="btn btn-sm" id="nextMonthBtn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+        <div class="calendar-create-section">
+            <div class="dropdown">
+                <button class="btn create-btn qa-card" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-plus me-2"></i>
+                    <span>Create</span>
+                    <i class="fas fa-chevron-down ms-2 dropdown-arrow"></i>
+                </button>
+                <ul class="dropdown-menu calendar-dropdown">
+                    <li><a class="dropdown-item" href="#"><i class="fas fa-calendar-plus me-2"></i>Event</a></li>
+                    <li><a class="dropdown-item" href="#"><i class="fa-solid fa-bars-progress me-2"></i>Task</a></li>
+                </ul>
+            </div>
         </div>
     </div>
 
@@ -176,6 +191,75 @@
         padding: 1rem 1.5rem;
         background: #ffffff;
         border-bottom: 1px solid #e5e7eb;
+    }
+
+    .calendar-create-section {
+        display: flex;
+        align-items: center;
+    }
+
+    .create-btn {
+        background: #fff;
+        border: none;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        color: #374151;
+        transition: transform 0.2s ease, background-color 0.2s ease;
+        display: flex;
+        align-items: center;
+    }
+
+    .create-btn:hover {
+        background-color: #eef1f3;
+        color: inherit;
+        text-decoration: none;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    .create-btn:focus {
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    /* Keep Create button in hover state when dropdown is open */
+    .create-btn[aria-expanded="true"] {
+        background-color: #eef1f3 !important;
+        color: inherit !important;
+        text-decoration: none !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    .dropdown-arrow {
+        font-size: 0.65em; /* 25% smaller than default */
+        margin-top: 0.1rem;
+    }
+
+    .calendar-dropdown {
+        padding: 0.3rem;
+        background-color: #eef1f3;
+        border: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .calendar-dropdown .dropdown-item {
+        font-weight: 500;
+        color: #374151;
+        font-size: 0.85em; /* 15% smaller than Create button text */
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.25rem;
+        margin-bottom: 0.125rem;
+    }
+
+    .calendar-dropdown .dropdown-item:hover {
+        background-color: #d1d5db; /* Slightly darker than #eef1f3 */
+        color: #1f2937;
+    }
+
+    .calendar-dropdown .dropdown-item:last-child {
+        margin-bottom: 0;
     }
 
     .calendar-month-label {
