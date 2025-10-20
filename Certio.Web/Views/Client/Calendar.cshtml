@@ -19,6 +19,17 @@
             </div>
         </div>
         <div class="calendar-create-section">
+            <div class="dropdown me-3">
+                <button class="btn create-btn month-btn qa-card" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span>Month</span>
+                    <i class="fas fa-chevron-down ms-2 dropdown-arrow"></i>
+                </button>
+                <ul class="dropdown-menu calendar-dropdown">
+                    <li><a class="dropdown-item" href="#"><i class="fas fa-calendar-day me-2"></i>Day</a></li>
+                    <li><a class="dropdown-item" href="#"><i class="fas fa-calendar-week me-2"></i>Week</a></li>
+                    <li><a class="dropdown-item" href="#"><i class="fas fa-calendar-alt me-2"></i>Month</a></li>
+                </ul>
+            </div>
             <div class="dropdown">
                 <button class="btn create-btn qa-card" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="fas fa-plus me-2"></i>
@@ -230,6 +241,12 @@
         text-decoration: none !important;
         transform: translateY(-2px) !important;
         box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    /* Month button - 10% smaller than Create button */
+    .month-btn {
+        font-size: 0.9em;
+        padding: 0.45rem 0.9rem; /* 10% smaller padding */
     }
 
     .dropdown-arrow {
