@@ -99,7 +99,7 @@
         position: fixed;
         top: 7vh; /* Position below the header */
         left: 6vw;
-        width: 19.5vw; /* Slightly narrower to create padding */
+        width: 16.5vw; /* Reduced by 3vw from 19.5vw */
         height: calc(100vh - 7vh); /* Adjust height to account for header */
         z-index: 999;
         display: flex;
@@ -107,45 +107,15 @@
         padding: 0rem 0.5rem 0rem 1rem;
         transform: translateX(0);
         transition: transform 0.3s ease;
-        overflow-y: auto; /* Stable layout with reserved gutter */
-        scrollbar-gutter: stable both-edges; /* Reserve space to prevent shift */
-        scrollbar-width: thin; /* Firefox */
+        overflow-y: auto;
+        scrollbar-width: none; /* Firefox - hide scrollbar */
     }
 
-    /* Custom scrollbar styling for global dashboard sidebar - hidden by default */
+    /* Hide scrollbar for webkit browsers */
     .global-dashboard-sidebar::-webkit-scrollbar {
-        width: 8px; /* Keep constant width to avoid layout shift */
-        background: transparent;
+        display: none;
     }
 
-    .global-dashboard-sidebar:hover { /* Firefox hover colors */
-        scrollbar-color: rgba(11, 54, 94, 0.3) rgba(0, 0, 0, 0.05);
-    }
-
-    .global-dashboard-sidebar { /* Firefox default colors - transparent */
-        scrollbar-color: transparent transparent;
-    }
-
-    .global-dashboard-sidebar:hover::-webkit-scrollbar-track {
-        background: rgba(0, 0, 0, 0.05);
-        border-radius: 4px;
-    }
-
-    .global-dashboard-sidebar::-webkit-scrollbar-thumb {
-        background: transparent; /* Transparent by default to hide visual but keep width */
-        border-radius: 4px;
-        transition: background 0.2s ease;
-    }
-
-    .global-dashboard-sidebar:hover::-webkit-scrollbar-thumb {
-        background: rgba(11, 54, 94, 0.3);
-        border-radius: 4px;
-        transition: background 0.2s ease;
-    }
-
-    .global-dashboard-sidebar:hover::-webkit-scrollbar-thumb:hover {
-        background: rgba(11, 54, 94, 0.5);
-    }
 
     .global-dashboard-content {
         display: flex;
@@ -400,7 +370,7 @@
 
     /* Adjust main content wrapper for global dashboard */
     .client-main-content-wrapper.global-dashboard-layout {
-        left: 26vw; /* Start after global navbar (6vw) + global dashboard sidebar (20vw) */
+        left: 23vw; /* Start after global navbar (6vw) + global dashboard sidebar (16.5vw) + 0.5vw gap */
     }
 
     /* Adjust positioning when sidebar is hidden - keep rounded corners */
@@ -745,6 +715,17 @@
         color: #3d1019;
     }
 
+    /* Active state for communications button */
+    .ai-toggle.active {
+        background-color: #3d1019;
+        color: white;
+    }
+
+    .ai-toggle.active:hover {
+        background-color: #3d1019;
+        color: white;
+    }
+
     /* Chat panel hidden state with animation */
     .chat-panel {
         transition: transform 0.3s ease, opacity 0.3s ease;
@@ -836,7 +817,7 @@
     @{
         var controller = ViewContext.RouteData.Values["controller"]?.ToString();
         var action = ViewContext.RouteData.Values["action"]?.ToString();
-        var isGlobalDashboard = controller == "Global" || (controller == "Client" && action == "Calendar");
+        var isGlobalDashboard = controller == "Global" || controller == "Calendar";
     }
     <div class="d-none d-xl-block @(isGlobalDashboard ? "global-dashboard-sidebar" : "client-sidebar")">
         
@@ -993,7 +974,7 @@
                 </div>
                 <div class="nav-item">
                     <a href="/Client/@ViewBag.OrganizationId/Communications" 
-                       class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Communications" ? "active" : "")">
+                       class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" && ViewContext.RouteData.Values["controller"]?.ToString() == "Communications" ? "active" : "")">
                         <i class="fas fa-comments"></i>
                         <span>Communications</span>
                     </a>
@@ -1441,6 +1422,23 @@
             darkModeToggle.addEventListener('click', function() {
                 document.body.classList.toggle('dark-mode');
                 localStorage.setItem('darkMode', document.body.classList.contains('dark-mode') ? 'true' : 'false');
+            });
+        }
+
+        // Communications button handling
+        const communicationsBtn = document.getElementById('communicationsBtn');
+        if (communicationsBtn) {
+            // Check if we're on the communications page and set active state
+            const currentAction = '@ViewContext.RouteData.Values["action"]?.ToString()';
+            if (currentAction === 'Communications') {
+                communicationsBtn.classList.add('active');
+            }
+            
+            // Handle communications button click
+            communicationsBtn.addEventListener('click', function() {
+                // Navigate to communications page
+                const orgId = '@ViewBag.OrganizationId';
+                window.location.href = `/Client/${orgId}/Communications`;
             });
         }
 

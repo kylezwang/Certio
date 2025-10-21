@@ -11,6 +11,7 @@ using Certio.Domain.Notifications;
 using Certio.Domain.Audit;
 using Certio.Domain.Organizations;
 using Certio.Domain.Tasks;
+using Certio.Domain.Calendar;
 
 namespace Certio.Infrastructure.Data
 {
@@ -50,6 +51,10 @@ namespace Certio.Infrastructure.Data
         public DbSet<TaskItemDependency> TaskItemDependencies => Set<TaskItemDependency>();
         public DbSet<SubTaskItem> SubTaskItems => Set<SubTaskItem>();
         public DbSet<SubTaskAssignment> SubTaskAssignments => Set<SubTaskAssignment>();
+        
+        // Calendar Entities
+        public DbSet<CalendarEvent> CalendarEvents => Set<CalendarEvent>();
+        public DbSet<CalendarEventAttendee> CalendarEventAttendees => Set<CalendarEventAttendee>();
         
         // Document Entities
         public DbSet<Document> Documents => Set<Document>();
@@ -102,6 +107,12 @@ namespace Certio.Infrastructure.Data
             builder.Entity<StatusItem>().HasIndex(si => si.MatterId);
             builder.Entity<TaskItem>().HasIndex(ti => ti.MatterId);
             builder.Entity<TaskItem>().HasIndex(ti => ti.OrgId);
+            builder.Entity<CalendarEvent>().HasIndex(ce => ce.OrgId);
+            builder.Entity<CalendarEvent>().HasIndex(ce => ce.MatterId);
+            builder.Entity<CalendarEvent>().HasIndex(ce => ce.StartDateTime);
+            builder.Entity<CalendarEvent>().HasIndex(ce => ce.EndDateTime);
+            builder.Entity<CalendarEvent>().HasIndex(ce => new { ce.OrgId, ce.StartDateTime });
+            builder.Entity<CalendarEvent>().HasIndex(ce => ce.IsDeleted);
             builder.Entity<Notification>().HasIndex(n => new { n.UserId, n.IsRead });
             builder.Entity<AuditLog>().HasIndex(a => new { a.EntityType, a.EntityId });
             
@@ -114,6 +125,7 @@ namespace Certio.Infrastructure.Data
             ConfigureMatterRelationships(builder);
             ConfigureTaskRelationships(builder);
             ConfigureSubTaskRelationships(builder);
+            ConfigureCalendarRelationships(builder);
             ConfigureDocumentRelationships(builder);
             ConfigureChatRelationships(builder);
             ConfigureDirectMessageRelationships(builder);
@@ -540,6 +552,59 @@ namespace Certio.Infrastructure.Data
             
             builder.Entity<SubTaskAssignment>()
                 .HasIndex(sta => sta.UserId);
+        }
+
+        private void ConfigureCalendarRelationships(ModelBuilder builder)
+        {
+            // CalendarEvent -> Organization relationship
+            builder.Entity<CalendarEvent>()
+                .HasOne(ce => ce.Organization)
+                .WithMany()
+                .HasForeignKey(ce => ce.OrgId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // CalendarEvent -> Matter relationship (optional)
+            builder.Entity<CalendarEvent>()
+                .HasOne(ce => ce.Matter)
+                .WithMany()
+                .HasForeignKey(ce => ce.MatterId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // CalendarEvent -> CreatedBy relationship
+            builder.Entity<CalendarEvent>()
+                .HasOne(ce => ce.CreatedBy)
+                .WithMany()
+                .HasForeignKey(ce => ce.CreatedById)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // CalendarEvent -> ModifiedBy relationship
+            builder.Entity<CalendarEvent>()
+                .HasOne(ce => ce.ModifiedBy)
+                .WithMany()
+                .HasForeignKey(ce => ce.ModifiedById)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // CalendarEvent -> Attendees relationship
+            builder.Entity<CalendarEvent>()
+                .HasMany(ce => ce.Attendees)
+                .WithOne(cea => cea.CalendarEvent)
+                .HasForeignKey(cea => cea.CalendarEventId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // CalendarEventAttendee -> User relationship
+            builder.Entity<CalendarEventAttendee>()
+                .HasOne(cea => cea.User)
+                .WithMany()
+                .HasForeignKey(cea => cea.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Add indexes for performance
+            builder.Entity<CalendarEventAttendee>()
+                .HasIndex(cea => new { cea.CalendarEventId, cea.UserId })
+                .IsUnique();
+
+            builder.Entity<CalendarEventAttendee>()
+                .HasIndex(cea => cea.UserId);
         }
 
         private void ConfigureDocumentRelationships(ModelBuilder builder)

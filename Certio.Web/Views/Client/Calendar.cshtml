@@ -4,11 +4,14 @@
     ViewData["BodyClass"] = "calendar-page";
 }
 
+<!-- Include tasks.css for modal styling -->
+<link rel="stylesheet" href="~/css/tasks.css" />
+
 <div class="calendar-page-container">
     <!-- Calendar Header with Month/Year and Navigation -->
     <div class="calendar-header-bar">
         <div class="d-flex align-items-center">
-            <div class="calendar-month-label">October 2025</div>
+            <div class="calendar-month-label" id="calendarMonthLabel">Loading...</div>
             <div class="calendar-nav-controls ms-3">
                 <button class="btn btn-sm" id="prevMonthBtn">
                     <i class="fas fa-chevron-left"></i>
@@ -27,7 +30,7 @@
                 <ul class="dropdown-menu calendar-dropdown">
                     <li><a class="dropdown-item" href="#"><i class="fas fa-calendar-day me-2"></i>Day</a></li>
                     <li><a class="dropdown-item" href="#"><i class="fas fa-calendar-week me-2"></i>Week</a></li>
-                    <li><a class="dropdown-item" href="#"><i class="fas fa-calendar-alt me-2"></i>Month</a></li>
+                    <li><a class="dropdown-item" href="#"><i class="fas fa-calendar me-2"></i>Month</a></li>
                 </ul>
             </div>
             <div class="dropdown">
@@ -37,15 +40,15 @@
                     <i class="fas fa-chevron-down ms-2 dropdown-arrow"></i>
                 </button>
                 <ul class="dropdown-menu calendar-dropdown">
-                    <li><a class="dropdown-item" href="#"><i class="fas fa-calendar-plus me-2"></i>Event</a></li>
-                    <li><a class="dropdown-item" href="#"><i class="fa-solid fa-bars-progress me-2"></i>Task</a></li>
+                    <li><a class="dropdown-item" href="#" id="createEventBtn"><i class="fas fa-calendar-plus me-2"></i>Event</a></li>
+                    <li><a class="dropdown-item" href="#" id="createTaskBtn"><i class="fa-solid fa-bars-progress me-2"></i>Task</a></li>
                 </ul>
             </div>
         </div>
     </div>
 
     <!-- Calendar Grid -->
-    <div class="calendar-grid-container">
+    <div class="calendar-grid-container" id="calendarGrid">
         <!-- Day Headers -->
         <div class="calendar-day-header">SUN</div>
         <div class="calendar-day-header">MON</div>
@@ -54,132 +57,16 @@
         <div class="calendar-day-header">THU</div>
         <div class="calendar-day-header">FRI</div>
         <div class="calendar-day-header">SAT</div>
-
-        <!-- Week 1: Sept 28 - Oct 4 -->
-        <div class="calendar-day-cell other-month">
-            <div class="day-number">28</div>
+        <!-- Loading state -->
+        <div class="calendar-loading-state" id="calendarLoadingState" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10;">
+            <div class="spinner" style="width: 40px; height: 40px; border: 3px solid rgba(61, 16, 25, 0.1); border-top-color: #3d1019; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
         </div>
-        <div class="calendar-day-cell other-month">
-            <div class="day-number">29</div>
-        </div>
-        <div class="calendar-day-cell other-month">
-            <div class="day-number">30</div>
-        </div>
-        <div class="calendar-day-cell">
-            <div class="day-number">Oct 1</div>
-            <div class="event-item event-dot purple">1:30pm Example Task #2</div>
-        </div>
-        <div class="calendar-day-cell">
-            <div class="day-number">2</div>
-            <div class="event-item event-dot purple">1:30pm Example Task #2</div>
-        </div>
-        <div class="calendar-day-cell">
-            <div class="day-number">3</div>
-            <div class="event-item event-dot purple">1:30pm Example Task #3</div>
-        </div>
-        <div class="calendar-day-cell">
-            <div class="day-number">4</div>
-        </div>
-
-        <!-- Week 2: Oct 5-11 -->
-        <div class="calendar-day-cell today">
-            <div class="day-number">5</div>
-            <div class="event-item event-dot blue">4:30pm Coby and Kyle's Zoo</div>
-        </div>
-        <div class="calendar-day-cell">
-            <div class="day-number">6</div>
-        </div>
-        <div class="calendar-day-cell">
-            <div class="day-number">7</div>
-        </div>
-        <div class="calendar-day-cell">
-            <div class="day-number">8</div>
-        </div>
-        <div class="calendar-day-cell">
-            <div class="day-number">9</div>
-        </div>
-        <div class="calendar-day-cell">
-            <div class="day-number">10</div>
-        </div>
-        <div class="calendar-day-cell">
-            <div class="day-number">11</div>
-        </div>
-
-        <!-- Week 3: Oct 12-18 -->
-        <div class="calendar-day-cell">
-            <div class="day-number">12</div>
-        </div>
-        <div class="calendar-day-cell">
-            <div class="day-number">13</div>
-            <div class="event-item event-pill purple-pill">Columbus Day</div>
-        </div>
-        <div class="calendar-day-cell">
-            <div class="day-number">14</div>
-        </div>
-        <div class="calendar-day-cell">
-            <div class="day-number">15</div>
-        </div>
-        <div class="calendar-day-cell">
-            <div class="day-number">16</div>
-            <div class="event-item event-dot red">8am Diocesan Sophia Institu</div>
-        </div>
-        <div class="calendar-day-cell">
-            <div class="day-number">17</div>
-        </div>
-        <div class="calendar-day-cell">
-            <div class="day-number">18</div>
-        </div>
-
-        <!-- Week 4: Oct 19-25 -->
-        <div class="calendar-day-cell">
-            <div class="day-number">19</div>
-        </div>
-        <div class="calendar-day-cell">
-            <div class="day-number">20</div>
-        </div>
-        <div class="calendar-day-cell">
-            <div class="day-number">21</div>
-        </div>
-        <div class="calendar-day-cell">
-            <div class="day-number">22</div>
-        </div>
-        <div class="calendar-day-cell">
-            <div class="day-number">23</div>
-            <div class="event-item event-dot red">9am Diocesan Technology C</div>
-        </div>
-        <div class="calendar-day-cell">
-            <div class="day-number">24</div>
-        </div>
-        <div class="calendar-day-cell">
-            <div class="day-number">25</div>
-        </div>
-
-        <!-- Week 5: Oct 26 - Nov 1 -->
-        <div class="calendar-day-cell">
-            <div class="day-number">26</div>
-        </div>
-        <div class="calendar-day-cell">
-            <div class="day-number">27</div>
-        </div>
-        <div class="calendar-day-cell">
-            <div class="day-number">28</div>
-        </div>
-        <div class="calendar-day-cell">
-            <div class="day-number">29</div>
-        </div>
-        <div class="calendar-day-cell">
-            <div class="day-number">30</div>
-        </div>
-        <div class="calendar-day-cell">
-            <div class="day-number">31</div>
-            <div class="event-item event-pill purple-pill">Halloween</div>
-        </div>
-        <div class="calendar-day-cell other-month">
-            <div class="day-number">Nov 1</div>
-            <div class="event-item event-pill blue-pill">Wedding Photobooth Job Rei</div>
-        </div>
+        <!-- Calendar cells will be dynamically generated by JavaScript -->
     </div>
 </div>
+
+<!-- Include Calendar Event Modal -->
+<partial name="_CalendarEventModal" />
 
 @section GlobalSidebarFinalCard {
     <partial name="_CalendarFilters" />
@@ -307,6 +194,9 @@
         background: #e5e7eb;
         gap: 1px;
         overflow: hidden;
+        position: relative;
+        background-color: #ffffff;
+        min-height: 500px;
     }
 
     /* Day Headers */
@@ -415,6 +305,18 @@
         background: #ef4444;
     }
 
+    .event-dot.green::before {
+        background: #10b981;
+    }
+
+    .event-dot.orange::before {
+        background: #f59e0b;
+    }
+
+    .event-dot.gray::before {
+        background: #6b7280;
+    }
+
     .event-dot:hover {
         color: #1f2937;
         font-weight: 500;
@@ -440,6 +342,18 @@
 
     .event-pill.red-pill {
         background: #ef4444;
+    }
+
+    .event-pill.green-pill {
+        background: #10b981;
+    }
+
+    .event-pill.orange-pill {
+        background: #f59e0b;
+    }
+
+    .event-pill.gray-pill {
+        background: #6b7280;
     }
 
     .event-pill:hover {
@@ -478,93 +392,1463 @@
         // Calendar state
         let currentDate = new Date();
         const orgId = @ViewBag.OrganizationId;
-        
-        // Listen for calendar filter changes
-        window.addEventListener('calendarFiltersChanged', function(event) {
-            const selectedCalendars = event.detail.selectedCalendars;
-            console.log('Calendar page received filter update:', selectedCalendars);
+        const currentUserId = @ViewBag.CurrentUserId;
+        let allEvents = [];
+        let allMatters = [];
+        let allUsers = [];
+        let currentEventId = null; // For edit mode
+        let eventAttendees = []; // Track attendees for new/edited event
+
+        // Initialize calendar on page load
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadMatters();
+            await loadUsers();
+            await fetchAndRenderCalendar();
+            initializeEventHandlers();
+            initializeModalHandlers();
             
-            // TODO: Update the calendar view based on selected filters
-            // This will filter events displayed in the calendar scoped to this org
-            // Fetch: /Client/{orgId}/Calendar/Events?calendarIds=...
+            // Initialize location search if Google Maps is ready, otherwise it will be initialized by callback
+            if (window.google && google.maps && google.maps.places) {
+                initializeEventLocationSearch();
+            } else {
+                // Try again after a delay in case Google Maps is still loading
+                setTimeout(function() {
+                    if (window.google && google.maps && google.maps.places) {
+                        initializeEventLocationSearch();
+                    }
+                }, 2000);
+            }
         });
 
-        // Month navigation
-        document.addEventListener('DOMContentLoaded', function() {
-            const prevBtn = document.getElementById('prevMonthBtn');
-            const nextBtn = document.getElementById('nextMonthBtn');
-            const monthLabel = document.querySelector('.calendar-month-label');
+        // Load matters for dropdown
+        async function loadMatters() {
+            try {
+                const response = await fetch(`/Client/${orgId}/Calendar/Matters`, {
+                    credentials: 'include'
+                });
+                const result = await response.json();
+                if (result.success) {
+                    allMatters = result.matters;
+                    populateMatterPopup();
+                    initializeMatterSelector();
+                }
+            } catch (error) {
+                console.error('Error loading matters:', error);
+            }
+        }
 
-            if (prevBtn) {
-                prevBtn.addEventListener('click', function() {
-                    currentDate.setMonth(currentDate.getMonth() - 1);
-                    updateCalendar();
+        // Load users for attendee selection
+        async function loadUsers() {
+            try {
+                const response = await fetch(`/Client/${orgId}/Users`, {
+                    credentials: 'include'
+                });
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.users) {
+                        allUsers = result.users;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+                // Fallback: use current user
+                allUsers = [{ id: currentUserId, name: '@ViewBag.CurrentUserName', initials: '@ViewBag.CurrentUserInitials' }];
+            }
+        }
+
+        // Populate matter popup in modal header
+        function populateMatterPopup() {
+            const matterPopupList = document.getElementById('eventMatterPopupList');
+            matterPopupList.innerHTML = `
+                <button type="button" class="event-matter-item" data-matter-id="" title="Select a Matter">
+                    <i class="fas fa-folder-open"></i>
+                    <span class="event-matter-item-text">Select a Matter</span>
+                </button>
+            `;
+            
+            allMatters.forEach(matter => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'event-matter-item';
+                button.dataset.matterId = matter.id;
+                button.title = matter.title;
+                button.innerHTML = `
+                    <i class="fas fa-folder"></i>
+                    <span class="event-matter-item-text">${matter.title}</span>
+                `;
+                matterPopupList.appendChild(button);
+            });
+
+            // Add click handlers to matter items
+            document.querySelectorAll('.event-matter-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const matterId = this.dataset.matterId;
+                    const matterText = this.querySelector('.event-matter-item-text').textContent;
+                    
+                    // Update button text
+                    document.getElementById('eventMatterSelectorText').textContent = matterText;
+                    
+                    // Store selected matter ID
+                    document.getElementById('eventMatterSelectorBtn').dataset.selectedMatterId = matterId;
+                    
+                    // Hide popup
+                    document.getElementById('eventMatterPopup').style.display = 'none';
+                });
+            });
+        }
+
+        // Initialize matter selector button
+        function initializeMatterSelector() {
+            const matterBtn = document.getElementById('eventMatterSelectorBtn');
+            const matterPopup = document.getElementById('eventMatterPopup');
+            
+            if (matterBtn && matterPopup) {
+                matterBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const isVisible = matterPopup.style.display === 'block';
+                    matterPopup.style.display = isVisible ? 'none' : 'block';
                 });
             }
 
-            if (nextBtn) {
-                nextBtn.addEventListener('click', function() {
-                    currentDate.setMonth(currentDate.getMonth() + 1);
-                    updateCalendar();
-                });
-            }
+            // Close popup when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!matterPopup) return;
+                const clickInsidePopup = matterPopup.contains(e.target);
+                const clickOnButton = matterBtn && matterBtn.contains(e.target);
+                if (!clickInsidePopup && !clickOnButton) {
+                    matterPopup.style.display = 'none';
+                }
+            });
+        }
 
-            function updateCalendar() {
+
+
+        // Fetch and render calendar
+        async function fetchAndRenderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            // Get first and last day of month
+            const startDate = new Date(year, month, 1);
+            const endDate = new Date(year, month + 1, 0);
+            
+            try {
+                const response = await fetch(
+                    `/Client/${orgId}/Calendar/Events?start=${startDate.toISOString()}&end=${endDate.toISOString()}`,
+                    { credentials: 'include' }
+                );
+                const result = await response.json();
+                
+                if (result.success) {
+                    allEvents = result.events;
+                    renderCalendar(year, month, allEvents);
+                }
+            } catch (error) {
+                console.error('Error fetching events:', error);
+            }
+        }
+
+        // Render calendar grid
+        function renderCalendar(year, month, events) {
+            // Hide loading state
+            const loadingState = document.getElementById('calendarLoadingState');
+            if (loadingState) {
+                loadingState.style.display = 'none';
+            }
+            
                 // Update month label
                 const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
                                   'July', 'August', 'September', 'October', 'November', 'December'];
-                monthLabel.textContent = `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
-                
-                // TODO: Fetch events for the new month from the server scoped to this org
-                // Fetch: /Client/{orgId}/Calendar/Events?year=2025&month=10
-                console.log('Calendar updated to:', monthLabel.textContent, 'for org:', orgId);
+            document.querySelector('.calendar-month-label').textContent = `${monthNames[month]} ${year}`;
+            
+            // Clear existing calendar
+            const gridContainer = document.querySelector('.calendar-grid-container');
+            const dayHeaders = gridContainer.querySelectorAll('.calendar-day-header');
+            gridContainer.innerHTML = '';
+            
+            // Re-add day headers
+            dayHeaders.forEach(header => gridContainer.appendChild(header.cloneNode(true)));
+            
+            // Calculate calendar dates
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const prevLastDay = new Date(year, month, 0);
+            const firstDayOfWeek = firstDay.getDay(); // 0 = Sunday
+            const daysInMonth = lastDay.getDate();
+            const daysInPrevMonth = prevLastDay.getDate();
+            
+            // Generate calendar days
+            let dayCounter = 1;
+            let nextMonthCounter = 1;
+            
+            for (let week = 0; week < 6; week++) {
+                for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
+                    const cellIndex = week * 7 + dayOfWeek;
+                    const dayCell = document.createElement('div');
+                    dayCell.classList.add('calendar-day-cell');
+                    
+                    let currentDayDate;
+                    
+                    if (cellIndex < firstDayOfWeek) {
+                        // Previous month days
+                        const day = daysInPrevMonth - firstDayOfWeek + cellIndex + 1;
+                        dayCell.classList.add('other-month');
+                        dayCell.innerHTML = `<div class="day-number">${day}</div>`;
+                        currentDayDate = new Date(year, month - 1, day);
+                    } else if (dayCounter <= daysInMonth) {
+                        // Current month days
+                        const isToday = year === new Date().getFullYear() && 
+                                       month === new Date().getMonth() && 
+                                       dayCounter === new Date().getDate();
+                        
+                        if (isToday) {
+                            dayCell.classList.add('today');
+                        }
+                        
+                        const dayLabel = dayCounter === 1 ? `${monthNames[month].substring(0, 3)} 1` : dayCounter;
+                        dayCell.innerHTML = `<div class="day-number">${dayLabel}</div>`;
+                        currentDayDate = new Date(year, month, dayCounter);
+                        dayCounter++;
+                    } else {
+                        // Next month days
+                        dayCell.classList.add('other-month');
+                        const dayLabel = nextMonthCounter === 1 ? `${monthNames[(month + 1) % 12].substring(0, 3)} 1` : nextMonthCounter;
+                        dayCell.innerHTML = `<div class="day-number">${dayLabel}</div>`;
+                        currentDayDate = new Date(year, month + 1, nextMonthCounter);
+                        nextMonthCounter++;
+                    }
+                    
+                    // Add events for this day
+                    if (events && events.length > 0) {
+                        const dayEvents = events.filter(event => {
+                            const eventStart = new Date(event.startDateTime);
+                            return eventStart.toDateString() === currentDayDate.toDateString();
+                        });
+                        
+                        dayEvents.forEach(event => {
+                            const eventEl = createEventElement(event);
+                            dayCell.appendChild(eventEl);
+                        });
+                    }
+                    
+                    // Add click handler for day cell
+                    dayCell.addEventListener('click', function(e) {
+                        if (!e.target.closest('.event-item')) {
+                            // Clicked on empty space, could open create event modal
+                            // For now, just select the day
+                            document.querySelectorAll('.calendar-day-cell.selected').forEach(el => 
+                                el.classList.remove('selected'));
+                            this.classList.add('selected');
+                        }
+                    });
+                    
+                    gridContainer.appendChild(dayCell);
+                }
             }
+        }
 
-            // Event click handlers
-            const eventItems = document.querySelectorAll('.event-item');
-            eventItems.forEach(item => {
-                item.addEventListener('click', function(e) {
+        // Create event element for calendar
+        function createEventElement(event) {
+            const eventEl = document.createElement('div');
+            eventEl.classList.add('event-item');
+            eventEl.setAttribute('data-event-id', event.id);
+            
+            if (event.isAllDayEvent) {
+                // All-day event - pill style
+                eventEl.classList.add('event-pill', `${event.color}-pill`);
+                eventEl.textContent = event.title;
+            } else {
+                // Timed event - dot style
+                eventEl.classList.add('event-dot', event.color);
+                const startTime = new Date(event.startDateTime);
+                const timeStr = startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                eventEl.textContent = `${timeStr} ${event.title}`;
+            }
+            
+            // Add click handler to open event modal
+            eventEl.addEventListener('click', function(e) {
                     e.stopPropagation();
-                    console.log('Event clicked:', this.textContent);
-                    // TODO: Show event details modal or navigate to event page
-                });
+                openEventModal(event.id);
+            });
+            
+            return eventEl;
+        }
+
+        // Initialize event handlers
+        function initializeEventHandlers() {
+            // Month navigation
+            document.getElementById('prevMonthBtn').addEventListener('click', function() {
+                currentDate.setMonth(currentDate.getMonth() - 1);
+                fetchAndRenderCalendar();
             });
 
-            // Day selection behavior (mirror sidebar calendar)
-            function clearSelected() {
-                document.querySelectorAll('.calendar-day-cell.selected').forEach(function (el) {
-                    el.classList.remove('selected');
-                });
-                // Remove automatic today highlight once a selection is made
-                document.querySelectorAll('.calendar-day-cell.today').forEach(function (el) {
-                    el.classList.remove('today');
-                });
-            }
-
-            const dayCells = document.querySelectorAll('.calendar-day-cell');
-            dayCells.forEach(cell => {
-                cell.addEventListener('click', function() {
-                    clearSelected();
-                    this.classList.add('selected');
-                    const dayText = this.querySelector('.day-number')?.textContent || '';
-                    const dayNum = parseInt(dayText.replace(/[^0-9]/g, ''), 10);
-                    // Broadcast to sidebar calendar
-                    window.dispatchEvent(new CustomEvent('calendarDaySelected', { detail: { day: dayNum } }));
-                    // TODO: Open create event modal for this org
-                });
+            document.getElementById('nextMonthBtn').addEventListener('click', function() {
+                currentDate.setMonth(currentDate.getMonth() + 1);
+                fetchAndRenderCalendar();
             });
 
-            // Listen for selection from sidebar to reflect here
-            window.addEventListener('calendarDaySelected', function(e) {
-                if (!e || !e.detail || !e.detail.day) return;
-                const target = Array.from(document.querySelectorAll('.calendar-day-cell .day-number'))
-                    .find(el => (el.textContent || '').trim().replace(/[^0-9]/g, '') === String(e.detail.day));
-                if (target) {
-                    clearSelected();
-                    target.closest('.calendar-day-cell')?.classList.add('selected');
+            // Create event button
+            document.getElementById('createEventBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                openEventModal();
+            });
+
+            // Create task button
+            document.getElementById('createTaskBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                // Redirect to Tasks page with create modal open
+                window.location.href = `/Client/${orgId}/Tasks`;
+            });
+
+            // Listen for calendar filter changes
+            window.addEventListener('calendarFiltersChanged', async function(event) {
+                const selectedCalendars = event.detail.selectedCalendars;
+                console.log('Calendar filters changed:', selectedCalendars);
+                // TODO: Implement filtering based on selected calendars
+                await fetchAndRenderCalendar();
+            });
+        }
+
+        // Initialize modal handlers
+        function initializeModalHandlers() {
+            const modal = document.getElementById('calendarEventModal');
+            const closeBtn = document.getElementById('closeEventModal');
+            const saveBtn = document.getElementById('saveEventBtn');
+            const headerDeleteBtn = document.getElementById('headerDeleteBtn');
+            const addAttendeeBtn = document.getElementById('addAttendeeBtn');
+            const allDayCheckbox = document.getElementById('eventAllDayCheck');
+
+            // Close modal
+            if (closeBtn) closeBtn.addEventListener('click', closeEventModal);
+
+            // Click outside to close
+            if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeEventModal();
                 }
             });
-        });
+            }
+
+            // Save event
+            if (saveBtn) saveBtn.addEventListener('click', saveEvent);
+
+            // Delete event
+            if (headerDeleteBtn) headerDeleteBtn.addEventListener('click', deleteEvent);
+
+            // Add attendee
+            if (addAttendeeBtn) {
+                addAttendeeBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showAttendeePopup();
+                });
+            }
+
+            // All-day checkbox toggle
+            if (allDayCheckbox) {
+            allDayCheckbox.addEventListener('change', function() {
+                    const startInput = document.getElementById('eventStartInput');
+                    const endInput = document.getElementById('eventEndInput');
+                
+                if (this.checked) {
+                    // Convert to date-only inputs
+                    startInput.type = 'date';
+                    endInput.type = 'date';
+                } else {
+                    // Convert back to datetime-local
+                    startInput.type = 'datetime-local';
+                    endInput.type = 'datetime-local';
+                }
+            });
+            }
+
+            // Color picker
+            const colorOptions = document.querySelectorAll('.color-option');
+            colorOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove selected from all
+                    colorOptions.forEach(opt => opt.classList.remove('selected'));
+                    // Add selected to this one
+                    this.classList.add('selected');
+                    // Update color indicator
+                    const color = this.dataset.color;
+                    updateEventColorIndicator(color);
+                });
+            });
+
+            // Collapsible sections toggle
+            const collapsibleHeaders = document.querySelectorAll('.collapsible-header');
+            collapsibleHeaders.forEach(header => {
+                const section = header.closest('.collapsible-section');
+                const content = section.querySelector('.task-section-content');
+                
+                // Function to expand section permanently
+                function expandSection() {
+                    section.classList.add('expanded');
+                    section.classList.remove('hover-disabled');
+                    content.style.display = 'block';
+                }
+                
+                // Function to collapse section
+                function collapseSection() {
+                    section.classList.remove('expanded');
+                    section.classList.add('hover-disabled');
+                    content.style.display = 'none';
+                }
+                
+                // Click handler for actual expansion/collapse
+                header.addEventListener('click', function() {
+                    if (section.classList.contains('expanded')) {
+                        collapseSection();
+                    } else {
+                        expandSection();
+                    }
+                });
+                
+                // Click handler for content - expand section when clicking inside
+                content.addEventListener('click', function(e) {
+                    // Only expand if this is a real user click (not programmatic)
+                    if (e.isTrusted && !section.classList.contains('expanded')) {
+                        expandSection();
+                    }
+                });
+                
+                // Hover handlers for preview behavior
+                header.addEventListener('mouseenter', function() {
+                    // Only show content if section is not already expanded AND hover is not disabled
+                    if (!section.classList.contains('expanded') && !section.classList.contains('hover-disabled')) {
+                        content.style.display = 'block';
+                    }
+                });
+                
+                header.addEventListener('mouseleave', function() {
+                    // Only hide content if section is not actually expanded
+                    if (!section.classList.contains('expanded')) {
+                        content.style.display = 'none';
+                    }
+                    // Re-enable hover effects when mouse leaves
+                    section.classList.remove('hover-disabled');
+                });
+            });
+        }
+
+        // Update event color (only updates icon color now)
+        function updateEventColorIndicator(color) {
+            const colorMap = {
+                blue: '#2563eb',
+                purple: '#8b5cf6',
+                red: '#ef4444',
+                green: '#10b981',
+                orange: '#f59e0b',
+                gray: '#6b7280'
+            };
+            const icon = document.getElementById('eventTitleIcon');
+            if (icon) {
+                icon.style.color = colorMap[color] || colorMap.blue;
+            }
+        }
+
+        // Open event modal (create or edit)
+        async function openEventModal(eventId = null) {
+            currentEventId = eventId;
+            eventAttendees = [];
+            let selectedColor = 'blue';
+            
+            const modal = document.getElementById('calendarEventModal');
+            const headerDeleteBtn = document.getElementById('headerDeleteBtn');
+            const titleInput = document.getElementById('eventTitleInput');
+            
+            // Clear form
+            titleInput.textContent = '';
+            document.getElementById('eventDescriptionInput').value = '';
+            document.getElementById('eventTypeField').value = 'Meeting';
+            document.getElementById('eventMatterSelectorBtn').dataset.selectedMatterId = '';
+            document.getElementById('eventMatterSelectorText').textContent = 'Select a Matter';
+            clearEventLocation(); // Clear location using new function
+            document.getElementById('eventAllDayCheck').checked = false;
+            document.getElementById('eventAttendeesList').innerHTML = '';
+            
+            // Reset metadata
+            document.getElementById('eventCreatedDate').textContent = '--';
+            document.getElementById('eventCreatedBy').textContent = '--';
+            document.getElementById('eventModifiedDate').textContent = '--';
+            document.getElementById('eventModifiedBy').textContent = '--';
+            
+            if (eventId) {
+                // Edit mode - load event data
+                headerDeleteBtn.style.display = 'block';
+                
+                try {
+                    const response = await fetch(`/Client/${orgId}/Calendar/Events/${eventId}`, {
+                        credentials: 'include'
+                    });
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        const event = result.event;
+                        titleInput.textContent = event.title;
+                        document.getElementById('eventDescriptionInput').value = event.description || '';
+                        document.getElementById('eventTypeField').value = event.eventType;
+                        
+                        // Set matter selector
+                        const matterId = event.matterId || '';
+                        document.getElementById('eventMatterSelectorBtn').dataset.selectedMatterId = matterId;
+                        if (matterId) {
+                            const selectedMatter = allMatters.find(m => m.id == matterId);
+                            if (selectedMatter) {
+                                document.getElementById('eventMatterSelectorText').textContent = selectedMatter.title;
+                            } else {
+                                document.getElementById('eventMatterSelectorText').textContent = 'Select a Matter';
+                            }
+                        } else {
+                            document.getElementById('eventMatterSelectorText').textContent = 'Select a Matter';
+                        }
+                        
+                        // Set location data using new function
+                        if (event.location) {
+                            try {
+                                const locationData = JSON.parse(event.location);
+                                setEventLocationData(locationData);
+                            } catch (e) {
+                                // If location is not JSON (old format), clear it
+                                console.warn('Event location is not in JSON format:', event.location);
+                                clearEventLocation();
+                            }
+                        } else {
+                            clearEventLocation();
+                        }
+                        
+                        document.getElementById('eventAllDayCheck').checked = event.isAllDayEvent;
+                        
+                        // Set color
+                        selectedColor = event.color;
+                        document.querySelectorAll('.color-option').forEach(opt => {
+                            if (opt.dataset.color === selectedColor) {
+                                opt.classList.add('selected');
+                            } else {
+                                opt.classList.remove('selected');
+                            }
+                        });
+                        updateEventColorIndicator(selectedColor);
+                        
+                        // Set dates
+                        const startDate = new Date(event.startDateTime);
+                        const endDate = new Date(event.endDateTime);
+                        const startInput = document.getElementById('eventStartInput');
+                        const endInput = document.getElementById('eventEndInput');
+                        
+                        if (event.isAllDayEvent) {
+                            startInput.type = 'date';
+                            endInput.type = 'date';
+                            startInput.value = startDate.toISOString().split('T')[0];
+                            endInput.value = endDate.toISOString().split('T')[0];
+                        } else {
+                            startInput.type = 'datetime-local';
+                            endInput.type = 'datetime-local';
+                            startInput.value = toLocalISOString(startDate).slice(0, 16);
+                            endInput.value = toLocalISOString(endDate).slice(0, 16);
+                        }
+                        
+                        // Load attendees - map from server format to client format
+                        eventAttendees = (event.attendees || []).map(a => ({
+                            userId: a.userId,
+                            name: a.user ? `${a.user.firstName} ${a.user.lastName}` : 'Unknown',
+                            initials: a.user ? a.user.initials : '??',
+                            attendeeType: a.attendeeType
+                        }));
+                        renderAttendees();
+                        
+                        // Set metadata
+                        if (event.createdAt) {
+                            const createdDate = new Date(event.createdAt);
+                            document.getElementById('eventCreatedDate').textContent = createdDate.toLocaleString();
+                        }
+                        if (event.createdBy) {
+                            document.getElementById('eventCreatedBy').textContent = event.createdBy.fullName || 'Unknown';
+                        }
+                        if (event.modifiedAt) {
+                            const modifiedDate = new Date(event.modifiedAt);
+                            document.getElementById('eventModifiedDate').textContent = modifiedDate.toLocaleString();
+                        }
+                        if (event.modifiedBy) {
+                            document.getElementById('eventModifiedBy').textContent = event.modifiedBy.fullName || 'Unknown';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading event:', error);
+                }
+            } else {
+                // Create mode
+                headerDeleteBtn.style.display = 'none';
+                
+                // Set default color to blue
+                document.querySelector('.color-option[data-color="blue"]')?.classList.add('selected');
+                updateEventColorIndicator('blue');
+                
+                // Set default date/time to now
+                const now = new Date();
+                const startInput = document.getElementById('eventStartInput');
+                const endInput = document.getElementById('eventEndInput');
+                startInput.value = toLocalISOString(now).slice(0, 16);
+                const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
+                endInput.value = toLocalISOString(oneHourLater).slice(0, 16);
+                
+                // Add current user as default attendee
+                const currentUser = allUsers.find(u => u.id === currentUserId);
+                if (currentUser) {
+                    eventAttendees = [{
+                        userId: currentUser.id,
+                        name: currentUser.name,
+                        initials: currentUser.initials,
+                        attendeeType: 'Required'
+                    }];
+                    renderAttendees();
+                }
+            }
+            
+            modal.style.display = 'flex';
+            titleInput.focus();
+        }
+
+        // Close event modal
+        function closeEventModal() {
+            document.getElementById('calendarEventModal').style.display = 'none';
+            currentEventId = null;
+            eventAttendees = [];
+            clearEventLocation(); // Clear location data
+        }
+
+        // Save event (create or update)
+        async function saveEvent() {
+            // Get values
+            const title = document.getElementById('eventTitleInput').textContent.trim();
+            const description = document.getElementById('eventDescriptionInput').value;
+            const eventType = document.getElementById('eventTypeField').value;
+            const matterIdValue = document.getElementById('eventMatterSelectorBtn').dataset.selectedMatterId;
+            const matterId = matterIdValue ? parseInt(matterIdValue) || null : null;
+            
+            // Get location data using the new function
+            const locationData = getEventLocationData();
+            const location = locationData ? JSON.stringify(locationData) : null;
+            
+            const isAllDayEvent = document.getElementById('eventAllDayCheck').checked;
+            const startInput = document.getElementById('eventStartInput');
+            const endInput = document.getElementById('eventEndInput');
+            
+            // Get selected color
+            const selectedColorOption = document.querySelector('.color-option.selected');
+            const color = selectedColorOption ? selectedColorOption.dataset.color : 'blue';
+            
+            // Validation
+            if (!title) {
+                alert('Please enter an event title');
+                document.getElementById('eventTitleInput').focus();
+                return;
+            }
+            
+            if (!startInput.value || !endInput.value) {
+                alert('Please select start and end dates');
+                return;
+            }
+            
+            const eventData = {
+                title: title,
+                description: description,
+                eventType: eventType,
+                color: color,
+                matterId: matterId,
+                location: location,
+                isAllDayEvent: isAllDayEvent,
+                startDateTime: new Date(startInput.value).toISOString(),
+                endDateTime: new Date(endInput.value).toISOString(),
+                attendeeUserIds: eventAttendees.map(a => a.userId)
+            };
+            
+            try {
+                let response;
+                if (currentEventId) {
+                    // Update existing event
+                    response = await fetch(`/Client/${orgId}/Calendar/Events/${currentEventId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify(eventData)
+                    });
+                } else {
+                    // Create new event
+                    response = await fetch(`/Client/${orgId}/Calendar/Events`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify(eventData)
+                    });
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    closeEventModal();
+                    await fetchAndRenderCalendar();
+                } else {
+                    alert('Error saving event: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error saving event:', error);
+                alert('Error saving event. Please try again.');
+            }
+        }
+
+        // Delete event
+        async function deleteEvent() {
+            if (!confirm('Are you sure you want to delete this event?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/Client/${orgId}/Calendar/Events/${currentEventId}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    closeEventModal();
+                    await fetchAndRenderCalendar();
+                } else {
+                    alert('Error deleting event: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error deleting event:', error);
+                alert('Error deleting event. Please try again.');
+            }
+        }
+
+        // Show attendee popup (same style as Task assignment popup)
+        function showAttendeePopup() {
+            const addAttendeeBtn = document.getElementById('addAttendeeBtn');
+            if (!addAttendeeBtn) return;
+            
+            // Create popup container
+            const popup = document.createElement('div');
+            popup.className = 'event-attendee-popup';
+            
+            // Get button position
+            const btnRect = addAttendeeBtn.getBoundingClientRect();
+            
+            // Position popup to the right of the button
+            popup.style.cssText = `
+                position: fixed;
+                top: ${btnRect.top - 200}px;
+                left: ${btnRect.right + 10}px;
+                background: white;
+                border-radius: 0.5rem;
+                padding: 1rem;
+                width: 400px;
+                max-height: 500px;
+                overflow-y: auto;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+                border: 1px solid #dee2e6;
+                z-index: 1100;
+            `;
+            
+            // Clone current attendees
+            const selectedUsers = [...eventAttendees];
+            
+            // Ensure current user is always in the list
+            if (!selectedUsers.some(a => a.userId === currentUserId)) {
+                const currentUser = allUsers.find(u => u.id === currentUserId);
+                if (currentUser) {
+                    selectedUsers.push({
+                        userId: currentUser.id,
+                        name: currentUser.name,
+                        initials: currentUser.initials,
+                        attendeeType: 'Required'
+                    });
+                }
+            }
+            
+            popup.innerHTML = `
+                <div class="mb-2">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-search me-2" style="color: #3d1019; font-size: 1rem;"></i>
+                            <div>
+                                <h6 class="fw-bold text-dark mb-0" style="font-size: 0.9rem;">Find attendees</h6>
+                                <p class="text-muted mb-0" style="font-size: 0.75rem;">Search and select attendees for this event.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-2">
+                    <label class="form-label fw-bold text-dark mb-1" style="font-size: 0.85rem;">Search Users</label>
+                    <div class="input-group input-group-sm">
+                        <input type="text" class="form-control" id="attendeeUserSearch" placeholder="Search by name or email..." style="font-size: 0.875rem;">
+                        <button class="btn btn-outline-secondary" type="button">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mb-2">
+                    <label class="form-label fw-bold text-dark mb-1" style="font-size: 0.85rem;">Selected Attendees</label>
+                    <div id="selectedAttendeesList" class="border rounded p-2" style="min-height: 50px; background-color: #f8f9fa; font-size: 0.875rem;">
+                        <p class="text-muted mb-0 small">No attendees selected yet.</p>
+                    </div>
+                </div>
+                
+                <div class="mb-2">
+                    <label class="form-label fw-bold text-dark mb-1" style="font-size: 0.85rem;">Available Users</label>
+                    <div id="availableAttendeesList" class="border rounded" style="max-height: 10rem; overflow-y: auto; padding-left: 1.75rem;">
+                        <!-- Users will be loaded here -->
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-end gap-2 mt-2">
+                    <button class="btn btn-secondary btn-sm" id="attendeeCancel" style="border-radius: 0.5rem;">Cancel</button>
+                    <button class="btn btn-primary btn-sm" id="attendeeDone" style="border-radius: 0.5rem;">Done</button>
+                </div>
+            `;
+            
+            document.body.appendChild(popup);
+            
+            const availableUsersList = popup.querySelector('#availableAttendeesList');
+            const selectedUsersList = popup.querySelector('#selectedAttendeesList');
+            const searchInput = popup.querySelector('#attendeeUserSearch');
+            
+            function renderUsers(filterText = '') {
+                const filtered = allUsers.filter(u => 
+                    !filterText || 
+                    u.name.toLowerCase().includes(filterText.toLowerCase()) || 
+                    (u.email && u.email.toLowerCase().includes(filterText.toLowerCase()))
+                );
+                
+                availableUsersList.innerHTML = filtered.map(user => `
+                    <div class="form-check user-item" style="padding: 0.4rem;">
+                        <input class="form-check-input user-checkbox" type="checkbox" 
+                               id="attendee_user_${user.id}" value="${user.id}"
+                               ${selectedUsers.some(a => a.userId === user.id) ? 'checked' : ''}
+                               ${user.id === currentUserId ? 'disabled' : ''}
+                               style="margin-top: 0.75rem;">
+                        <label class="form-check-label" for="attendee_user_${user.id}" style="cursor: pointer; font-size: 0.875rem;">
+                            <strong>${user.name}${user.id === currentUserId ? ' (You)' : ''}</strong>
+                            ${user.email ? `<small class="text-muted d-block" style="font-size: 0.75rem;">${user.email}</small>` : ''}
+                        </label>
+                    </div>
+                `).join('');
+                
+                // Add checkbox event listeners
+                availableUsersList.querySelectorAll('.user-checkbox').forEach(checkbox => {
+                    checkbox.addEventListener('change', function() {
+                        const userId = parseInt(this.value);
+                        const user = allUsers.find(u => u.id === userId);
+                        
+                        if (this.checked) {
+                            if (!selectedUsers.some(a => a.userId === userId)) {
+                                selectedUsers.push({
+                                    userId: userId,
+                                    name: user.name,
+                                    initials: user.initials,
+                                    attendeeType: 'Required'
+                                });
+                            }
+                        } else {
+                            // Don't allow removing current user
+                            if (userId === currentUserId) {
+                                this.checked = true;
+                                return;
+                            }
+                            const index = selectedUsers.findIndex(a => a.userId === userId);
+                            if (index > -1) {
+                                selectedUsers.splice(index, 1);
+                            }
+                        }
+                        updateSelectedDisplay();
+                    });
+                });
+            }
+            
+            function updateSelectedDisplay() {
+                if (selectedUsers.length === 0) {
+                    selectedUsersList.innerHTML = '<p class="text-muted mb-0" style="font-size: 0.75rem;">No attendees selected yet.</p>';
+                } else {
+                    selectedUsersList.innerHTML = selectedUsers.map(attendee => `
+                        <span class="badge bg-primary me-1 mb-1" style="font-size: 0.75rem;">
+                            ${attendee.name}${attendee.userId === currentUserId ? ' (You)' : ''}
+                            ${attendee.userId !== currentUserId ? `<i class="fas fa-times ms-1" style="cursor: pointer;" data-user-id="${attendee.userId}"></i>` : ''}
+                        </span>
+                    `).join('');
+                    
+                    // Add remove handlers (except for current user)
+                    selectedUsersList.querySelectorAll('.fa-times').forEach(icon => {
+                        icon.addEventListener('click', function() {
+                            const userId = parseInt(this.dataset.userId);
+                            if (userId === currentUserId) return; // Don't allow removing current user
+                            
+                            const index = selectedUsers.findIndex(a => a.userId === userId);
+                            if (index > -1) {
+                                selectedUsers.splice(index, 1);
+                            }
+                            const checkbox = availableUsersList.querySelector(`#attendee_user_${userId}`);
+                            if (checkbox) checkbox.checked = false;
+                            updateSelectedDisplay();
+                        });
+                    });
+                }
+            }
+            
+            // Initialize display
+            renderUsers();
+            updateSelectedDisplay();
+            
+            // Search functionality
+            searchInput.addEventListener('input', function() {
+                renderUsers(this.value);
+            });
+            
+            // Handle Done button
+            popup.querySelector('#attendeeDone').addEventListener('click', function() {
+                eventAttendees = selectedUsers;
+                renderAttendees();
+                popup.remove();
+                document.removeEventListener('click', outsideClickHandler);
+            });
+            
+            // Handle Cancel button
+            popup.querySelector('#attendeeCancel').addEventListener('click', function() {
+                popup.remove();
+                document.removeEventListener('click', outsideClickHandler);
+            });
+            
+            // Close on outside click
+            const outsideClickHandler = function(e) {
+                if (!popup.contains(e.target) && e.target !== addAttendeeBtn) {
+                    popup.remove();
+                    document.removeEventListener('click', outsideClickHandler);
+                }
+            };
+            
+            // Add click handler after a short delay to avoid immediate closing
+            setTimeout(() => {
+                document.addEventListener('click', outsideClickHandler);
+            }, 100);
+        }
+
+        // Render attendees as avatars
+        function renderAttendees() {
+            const container = document.getElementById('eventAttendeesList');
+            
+            if (eventAttendees.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            container.innerHTML = '';
+            eventAttendees.forEach((attendee, index) => {
+                const avatarEl = document.createElement('div');
+                avatarEl.classList.add('assignee-avatar');
+                const isCurrentUser = attendee.userId === currentUserId;
+                avatarEl.title = `${attendee.name}${isCurrentUser ? ' (You)' : ''} (${attendee.attendeeType || 'Required'})`;
+                avatarEl.innerHTML = `
+                    ${attendee.initials || attendee.name.substring(0, 2).toUpperCase()}
+                    ${!isCurrentUser ? `<span class="remove-assignee" data-index="${index}"><i class="fas fa-times"></i></span>` : ''}
+                `;
+                
+                // Remove attendee handler (only if not current user)
+                if (!isCurrentUser) {
+                    const removeBtn = avatarEl.querySelector('.remove-assignee');
+                    if (removeBtn) {
+                        removeBtn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            eventAttendees.splice(index, 1);
+                            renderAttendees();
+                        });
+                    }
+                }
+                
+                container.appendChild(avatarEl);
+            });
+        }
+
+        // Helper function to convert Date to local ISO string
+        function toLocalISOString(date) {
+            const offset = date.getTimezoneOffset();
+            const localDate = new Date(date.getTime() - offset * 60 * 1000);
+            return localDate.toISOString();
+        }
+    </script>
+
+    @if (ViewBag.GoogleMapsEnabled == true && !string.IsNullOrEmpty(ViewBag.GoogleMapsApiKey))
+    {
+        <script>
+            // Google Maps initialization callback must be defined before async load
+            window.initGoogleMapsCalendar = function() {
+                try {
+                    console.log('Google Maps API loaded successfully for Calendar');
+                    window.googleMapsReady = true;
+                    setTimeout(function() {
+                        if (typeof initializeEventLocationSearch === 'function') {
+                            initializeEventLocationSearch();
+                        } else {
+                            console.warn('initializeEventLocationSearch function not found');
+                        }
+                    }, 100);
+                } catch (err) {
+                    console.error('Error in initGoogleMapsCalendar:', err);
+                }
+            }
+        </script>
+        <script src="https://maps.googleapis.com/maps/api/js?key=@ViewBag.GoogleMapsApiKey&libraries=places&callback=initGoogleMapsCalendar" async defer></script>
+    }
+
+    <script>
+        // Event Location Search functionality
+        let eventPlacesSessionToken = null;
+        let currentEventLocationData = null;
+        let eventLocationSearchInitialized = false;
+
+        // Initialize Google Places Autocomplete for Event modal
+        function initializeEventLocationSearch() {
+            console.log('Initializing event location search...');
+            
+            // Prevent multiple initializations
+            if (eventLocationSearchInitialized) {
+                console.log('Event location search already initialized');
+                return;
+            }
+            
+            const searchInput = document.getElementById('eventLocationSearchInput');
+            
+            if (!searchInput) {
+                console.error('Event location search input not found');
+                return;
+            }
+            
+            if (!window.google || !google.maps.places) {
+                console.warn('Google Maps API not loaded yet for events, retrying...');
+                setTimeout(initializeEventLocationSearch, 1000);
+                return;
+            }
+
+            console.log('Google Maps API is ready for events, setting up location search');
+            eventLocationSearchInitialized = true;
+            searchInput.disabled = false;
+            searchInput.placeholder = 'Start typing a location...';
+
+            // Handle typing and show custom dropdown
+            let typingTimeout = null;
+            searchInput.addEventListener('input', function() {
+                clearTimeout(typingTimeout);
+                const query = this.value.trim();
+                console.log('Event location search input:', query);
+                
+                if (query.length > 2) {
+                    if (!eventPlacesSessionToken || query.length === 3) {
+                        eventPlacesSessionToken = new google.maps.places.AutocompleteSessionToken();
+                    }
+                    typingTimeout = setTimeout(() => {
+                        console.log('Triggering autocomplete for event:', query);
+                        showEventAutocomplete(query);
+                    }, 300);
+                } else {
+                    hideEventAutocompleteDropdown();
+                }
+            });
+
+            // Handle keyboard navigation
+            searchInput.addEventListener('keydown', handleEventKeyboardNavigation);
+
+            // Click outside to close dropdown
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('#eventLocationSearchInput') && !e.target.closest('#eventAutocompleteDropdown')) {
+                    hideEventAutocompleteDropdown();
+                }
+            });
+
+            // Initialize event location action buttons
+            initializeEventLocationActions();
+        }
+
+        // Show event autocomplete dropdown
+        function showEventAutocomplete(query) {
+            const dropdown = document.getElementById('eventAutocompleteDropdown');
+            const list = document.getElementById('eventAutocompleteList');
+            const loadingIndicator = document.getElementById('eventSearchLoadingIndicator');
+            
+            if (!dropdown || !list || !query) {
+                console.warn('Missing event autocomplete elements or empty query');
+                return;
+            }
+
+            loadingIndicator.style.display = 'block';
+
+            // Use Places API to get suggestions
+            const service = new google.maps.places.AutocompleteService();
+            
+            service.getPlacePredictions({
+                input: query,
+                types: ['establishment', 'geocode'],
+                sessionToken: eventPlacesSessionToken
+            }, function(predictions, status) {
+                loadingIndicator.style.display = 'none';
+                
+                if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
+                    populateEventAutocompleteDropdown(predictions);
+                    showEventAutocompleteDropdown();
+                } else if (status === google.maps.places.PlacesServiceStatus.REQUEST_DENIED) {
+                    console.error('Places API request denied for events.');
+                    hideEventAutocompleteDropdown();
+                } else {
+                    console.log('No predictions or error for events. Status:', status);
+                    hideEventAutocompleteDropdown();
+                }
+            });
+        }
+
+        // Populate event autocomplete dropdown
+        function populateEventAutocompleteDropdown(predictions) {
+            const list = document.getElementById('eventAutocompleteList');
+            if (!list) return;
+
+            list.innerHTML = '';
+            
+            predictions.slice(0, 5).forEach((prediction) => {
+                const item = document.createElement('li');
+                item.className = 'autocomplete-item';
+                item.dataset.placeId = prediction.place_id;
+                item.dataset.prediction = prediction.description;
+                
+                // Extract primary and secondary text
+                const description = prediction.description;
+                const commaIndex = description.indexOf(', ');
+                const primaryText = commaIndex > -1 ? description.substring(0, commaIndex) : description;
+                const secondaryText = commaIndex > -1 ? description.substring(commaIndex + 2) : '';
+                
+                item.innerHTML = `
+                    <div class="autocomplete-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="autocomplete-text">
+                        <div class="autocomplete-primary-text">${primaryText}</div>
+                        ${secondaryText ? `<div class="autocomplete-secondary-text">${secondaryText}</div>` : ''}
+                    </div>
+                `;
+                
+                // Handle click selection
+                item.addEventListener('click', function() {
+                    selectEventLocationFromDropdown(prediction);
+                });
+                
+                // Handle keyboard navigation
+                item.addEventListener('mouseenter', function() {
+                    clearActiveEventAutocompleteItem();
+                    this.classList.add('active');
+                });
+                
+                list.appendChild(item);
+            });
+        }
+
+        // Handle autocomplete selection from dropdown
+        function selectEventLocationFromDropdown(prediction) {
+            const searchInput = document.getElementById('eventLocationSearchInput');
+            searchInput.value = prediction.description;
+            
+            // Get place details
+            const service = new google.maps.places.PlacesService(document.createElement('div'));
+            service.getDetails({
+                placeId: prediction.place_id,
+                fields: ['name', 'formatted_address', 'geometry'],
+                sessionToken: eventPlacesSessionToken
+            }, function(place, status) {
+                hideEventAutocompleteDropdown();
+                
+                if (status === google.maps.places.PlacesServiceStatus.OK) {
+                    displayEventLocationFromPlace(place);
+                    eventPlacesSessionToken = null; // reset after successful selection
+                } else {
+                    console.error('Could not load event location details');
+                }
+            });
+        }
+
+        // Display event location from Google Place object
+        function displayEventLocationFromPlace(place) {
+            const locationDisplay = document.getElementById('eventLocationDisplay');
+            const locationName = document.getElementById('eventLocationName');
+            const locationAddress = document.getElementById('eventLocationAddress');
+
+            // Update location info
+            locationName.textContent = place.name || 'Selected Location';
+            locationAddress.textContent = place.formatted_address;
+
+            // Show location display
+            locationDisplay.style.display = 'flex';
+
+            // Store the full location data globally for saving
+            currentEventLocationData = {
+                name: place.name || 'Selected Location',
+                address: place.formatted_address,
+                formatted_address: place.formatted_address,
+                place_id: place.place_id,
+                geometry: {
+                    location: {
+                        lat: place.geometry.location.lat(),
+                        lng: place.geometry.location.lng()
+                    }
+                }
+            };
+
+            // Load embedded map
+            loadEventEmbeddedMap(place.geometry.location, place.name || 'Location', place.formatted_address);
+        }
+
+        // Load embedded Google Map for event
+        function loadEventEmbeddedMap(location, name, address) {
+            const mapContainer = document.getElementById('eventMapContainer');
+            
+            // Create map URL for embedded display
+            const locationStr = location.lat() + ',' + location.lng();
+            const encodedName = encodeURIComponent(name);
+            const encodedAddress = encodeURIComponent(address);
+            
+            const mapUrl = `https://maps.google.com/maps?q=${encodedName}|${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+            
+            // Create iframe for embedded map
+            mapContainer.innerHTML = `
+                <iframe 
+                    class="embedded-map loaded"
+                    src="${mapUrl}"
+                    frameborder="0"
+                    allowfullscreen>
+                </iframe>
+            `;
+        }
+
+        // Load embedded map from stored location data (for existing events)
+        function loadEventEmbeddedMapFromData(location, name, address) {
+            const mapContainer = document.getElementById('eventMapContainer');
+            
+            if (!mapContainer) return;
+            
+            // Create map URL for embedded display
+            const locationStr = location.lat + ',' + location.lng;
+            const encodedName = encodeURIComponent(name);
+            const encodedAddress = encodeURIComponent(address);
+            
+            const mapUrl = `https://maps.google.com/maps?q=${encodedName}|${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+            
+            // Create iframe for embedded map
+            mapContainer.innerHTML = `
+                <iframe 
+                    class="embedded-map loaded"
+                    src="${mapUrl}"
+                    frameborder="0"
+                    allowfullscreen>
+                </iframe>
+            `;
+        }
+
+        // Initialize event location action buttons
+        function initializeEventLocationActions() {
+            // Remove location button
+            const removeLocationBtn = document.getElementById('eventRemoveLocationBtn');
+            if (removeLocationBtn) {
+                removeLocationBtn.addEventListener('click', function() {
+                    removeEventLocation();
+                });
+            }
+
+            // Get directions button
+            const directionsBtn = document.getElementById('eventGetDirectionsBtn');
+            if (directionsBtn) {
+                directionsBtn.addEventListener('click', function() {
+                    const locationName = document.getElementById('eventLocationName')?.textContent;
+                    const locationAddress = document.getElementById('eventLocationAddress')?.textContent;
+                    
+                    if (locationName && locationAddress) {
+                        const searchQuery = encodeURIComponent(`${locationName}, ${locationAddress}`);
+                        window.open(`https://www.google.com/maps/dir/?api=1&destination=${searchQuery}`, '_blank');
+                    }
+                });
+            }
+        }
+
+        // Remove event location
+        function removeEventLocation() {
+            const locationDisplay = document.getElementById('eventLocationDisplay');
+            const mapContainer = document.getElementById('eventMapContainer');
+            const searchInput = document.getElementById('eventLocationSearchInput');
+            
+            // Hide location display
+            if (locationDisplay) locationDisplay.style.display = 'none';
+            
+            // Reset map container
+            if (mapContainer) {
+                mapContainer.innerHTML = `
+                    <div class="map-placeholder">
+                        <i class="fas fa-map-marked-alt" style="font-size: 3rem; color: #d1d5db;"></i>
+                        <p class="text-muted mt-2">No location selected</p>
+                        <small class="text-muted">Search for a location to display it on the map</small>
+                    </div>
+                `;
+            }
+            
+            // Clear search input
+            if (searchInput) searchInput.value = '';
+            
+            // Clear location data
+            currentEventLocationData = null;
+        }
+
+        // Handle keyboard navigation in event autocomplete
+        function handleEventKeyboardNavigation(e) {
+            const dropdown = document.getElementById('eventAutocompleteDropdown');
+            const list = document.getElementById('eventAutocompleteList');
+            
+            if (!dropdown || !list || dropdown.style.display === 'none') return;
+
+            const items = list.querySelectorAll('.autocomplete-item');
+            const activeItem = list.querySelector('.autocomplete-item.active');
+            let nextActiveIndex = -1;
+
+            switch (e.key) {
+                case 'ArrowDown':
+                    e.preventDefault();
+                    nextActiveIndex = activeItem ? Array.from(items).indexOf(activeItem) + 1 : 0;
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    nextActiveIndex = activeItem ? Array.from(items).indexOf(activeItem) - 1 : items.length - 1;
+                    break;
+                case 'Enter':
+                    e.preventDefault();
+                    if (activeItem) {
+                        activeItem.click();
+                    }
+                    return;
+                case 'Escape':
+                    e.preventDefault();
+                    hideEventAutocompleteDropdown();
+                    return;
+                default:
+                    return;
+            }
+
+            if (nextActiveIndex >= 0 && nextActiveIndex < items.length) {
+                clearActiveEventAutocompleteItem();
+                items[nextActiveIndex].classList.add('active');
+            }
+        }
+
+        // Clear active event autocomplete item
+        function clearActiveEventAutocompleteItem() {
+            const activeItem = document.querySelector('#eventAutocompleteList .autocomplete-item.active');
+            if (activeItem) {
+                activeItem.classList.remove('active');
+            }
+        }
+
+        // Show event autocomplete dropdown
+        function showEventAutocompleteDropdown() {
+            const dropdown = document.getElementById('eventAutocompleteDropdown');
+            if (dropdown) {
+                dropdown.style.display = 'block';
+            }
+        }
+
+        // Hide event autocomplete dropdown
+        function hideEventAutocompleteDropdown() {
+            const dropdown = document.getElementById('eventAutocompleteDropdown');
+            if (dropdown) {
+                dropdown.style.display = 'none';
+            }
+            clearActiveEventAutocompleteItem();
+        }
+
+        // Get event location data for saving
+        function getEventLocationData() {
+            const locationDisplay = document.getElementById('eventLocationDisplay');
+            const locationName = document.getElementById('eventLocationName');
+            const locationAddress = document.getElementById('eventLocationAddress');
+            
+            // Check if location is selected
+            if (locationDisplay && locationDisplay.style.display !== 'none' && locationName && locationAddress) {
+                return {
+                    name: locationName.textContent || '',
+                    address: locationAddress.textContent || '',
+                    formatted_address: locationAddress.textContent || '',
+                    place_id: currentEventLocationData?.place_id || null,
+                    geometry: currentEventLocationData?.geometry || null
+                };
+            }
+            
+            return null;
+        }
+
+        // Set event location data (for loading existing events)
+        function setEventLocationData(locationData) {
+            if (!locationData) return;
+            
+            const locationDisplay = document.getElementById('eventLocationDisplay');
+            const locationName = document.getElementById('eventLocationName');
+            const locationAddress = document.getElementById('eventLocationAddress');
+            const locationInput = document.getElementById('eventLocationSearchInput');
+            
+            if (locationDisplay && locationName && locationAddress) {
+                locationName.textContent = locationData.name || '';
+                locationAddress.textContent = locationData.address || locationData.formatted_address || '';
+                locationDisplay.style.display = 'flex';
+                
+                // Store the location data globally for map display
+                currentEventLocationData = locationData;
+                
+                // Load the map if we have coordinates
+                if (locationData.geometry && locationData.geometry.location) {
+                    loadEventEmbeddedMapFromData(locationData.geometry.location, locationData.name, locationData.address || locationData.formatted_address);
+                }
+                
+                // Update the search input
+                if (locationInput) {
+                    locationInput.value = locationData.name || '';
+                }
+            }
+        }
+
+        // Clear event location (for modal reset)
+        function clearEventLocation() {
+            const locationInput = document.getElementById('eventLocationSearchInput');
+            const locationDisplay = document.getElementById('eventLocationDisplay');
+            const mapContainer = document.getElementById('eventMapContainer');
+            
+            if (locationInput) locationInput.value = '';
+            if (locationDisplay) locationDisplay.style.display = 'none';
+            if (mapContainer) {
+                mapContainer.innerHTML = `
+                    <div class="map-placeholder">
+                        <i class="fas fa-map-marked-alt" style="font-size: 3rem; color: #d1d5db;"></i>
+                        <p class="text-muted mt-2">No location selected</p>
+                        <small class="text-muted">Search for a location to display it on the map</small>
+                    </div>
+                `;
+            }
+            
+            currentEventLocationData = null;
+        }
+
+        // Make functions globally available
+        window.initializeEventLocationSearch = initializeEventLocationSearch;
+        window.getEventLocationData = getEventLocationData;
+        window.setEventLocationData = setEventLocationData;
+        window.clearEventLocation = clearEventLocation;
+
+        // Try to initialize on DOM ready if Google Maps is already loaded
+        if (window.google && google.maps && google.maps.places) {
+            initializeEventLocationSearch();
+        }
     </script>
 }
 

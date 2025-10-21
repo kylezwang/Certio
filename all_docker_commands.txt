@@ -221,21 +221,130 @@ docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433
 docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT CAST(Timestamp AS DATE) AS Date, COUNT(*) AS ActionCount, COUNT(DISTINCT UserId) AS UniqueUsers FROM CertioLocal.dbo.AuditLogs WHERE Timestamp >= DATEADD(day, -7, GETDATE()) GROUP BY CAST(Timestamp AS DATE) ORDER BY Date DESC"
 
 # ===========================================
+# CALENDAR EVENT ENTITIES
+# ===========================================
+
+## 61. Check All Calendar Events (Basic Info)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, OrgId, MatterId, Title, Description, Location, StartDateTime, EndDateTime, IsAllDayEvent, EventType, Color, CreatedAt, CreatedById, ModifiedAt, ModifiedById, IsDeleted, DeletedAt FROM CertioLocal.dbo.CalendarEvents ORDER BY CreatedAt DESC"
+
+## 62. Check Calendar Events with Organization Details
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT ce.Id, ce.Title, ce.EventType, ce.StartDateTime, ce.EndDateTime, ce.IsAllDayEvent, o.Name AS OrganizationName, ce.CreatedAt FROM CertioLocal.dbo.CalendarEvents ce INNER JOIN CertioLocal.dbo.Organizations o ON ce.OrgId = o.Id WHERE ce.IsDeleted = 0 ORDER BY ce.StartDateTime DESC"
+
+## 63. Check Calendar Events with Matter Details
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT ce.Id, ce.Title, ce.EventType, ce.StartDateTime, ce.EndDateTime, m.Title AS MatterTitle, o.Name AS OrganizationName, ce.CreatedAt FROM CertioLocal.dbo.CalendarEvents ce INNER JOIN CertioLocal.dbo.Organizations o ON ce.OrgId = o.Id LEFT JOIN CertioLocal.dbo.Matters m ON ce.MatterId = m.Id WHERE ce.IsDeleted = 0 ORDER BY ce.StartDateTime DESC"
+
+## 64. Check Calendar Events with Creator Details
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT ce.Id, ce.Title, ce.EventType, ce.StartDateTime, ce.EndDateTime, u.FirstName + ' ' + u.LastName AS CreatedBy, ce.CreatedAt FROM CertioLocal.dbo.CalendarEvents ce LEFT JOIN CertioLocal.dbo.Users u ON ce.CreatedById = u.Id WHERE ce.IsDeleted = 0 ORDER BY ce.StartDateTime DESC"
+
+## 65. Check Calendar Event Attendees
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, CalendarEventId, UserId, AttendeeType, ResponseStatus, IsNotifyRecipient, AddedAt, ResponseAt FROM CertioLocal.dbo.CalendarEventAttendees ORDER BY AddedAt DESC"
+
+## 66. Check Calendar Event Attendees with Event and User Details
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT cea.Id, ce.Title AS EventTitle, ce.StartDateTime, u.FirstName + ' ' + u.LastName AS AttendeeName, cea.AttendeeType, cea.ResponseStatus, cea.AddedAt, cea.ResponseAt FROM CertioLocal.dbo.CalendarEventAttendees cea INNER JOIN CertioLocal.dbo.CalendarEvents ce ON cea.CalendarEventId = ce.Id INNER JOIN CertioLocal.dbo.Users u ON cea.UserId = u.Id WHERE ce.IsDeleted = 0 ORDER BY ce.StartDateTime DESC"
+
+## 67. Check Calendar Events by Event Type
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT EventType, COUNT(*) AS Count FROM CertioLocal.dbo.CalendarEvents WHERE IsDeleted = 0 GROUP BY EventType ORDER BY Count DESC"
+
+## 68. Check Calendar Events by Color
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Color, COUNT(*) AS Count FROM CertioLocal.dbo.CalendarEvents WHERE IsDeleted = 0 GROUP BY Color ORDER BY Count DESC"
+
+## 69. Check Upcoming Calendar Events (Next 30 Days)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT ce.Id, ce.Title, ce.EventType, ce.StartDateTime, ce.EndDateTime, ce.IsAllDayEvent, o.Name AS OrganizationName FROM CertioLocal.dbo.CalendarEvents ce INNER JOIN CertioLocal.dbo.Organizations o ON ce.OrgId = o.Id WHERE ce.IsDeleted = 0 AND ce.StartDateTime >= GETDATE() AND ce.StartDateTime <= DATEADD(day, 30, GETDATE()) ORDER BY ce.StartDateTime ASC"
+
+## 70. Check Past Calendar Events (Last 30 Days)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT ce.Id, ce.Title, ce.EventType, ce.StartDateTime, ce.EndDateTime, ce.IsAllDayEvent, o.Name AS OrganizationName FROM CertioLocal.dbo.CalendarEvents ce INNER JOIN CertioLocal.dbo.Organizations o ON ce.OrgId = o.Id WHERE ce.IsDeleted = 0 AND ce.StartDateTime >= DATEADD(day, -30, GETDATE()) AND ce.StartDateTime < GETDATE() ORDER BY ce.StartDateTime DESC"
+
+## 71. Check All-Day Events
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT ce.Id, ce.Title, ce.EventType, ce.StartDateTime, ce.EndDateTime, o.Name AS OrganizationName FROM CertioLocal.dbo.CalendarEvents ce INNER JOIN CertioLocal.dbo.Organizations o ON ce.OrgId = o.Id WHERE ce.IsDeleted = 0 AND ce.IsAllDayEvent = 1 ORDER BY ce.StartDateTime DESC"
+
+## 72. Check Calendar Events with Location Data
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT ce.Id, ce.Title, ce.EventType, ce.StartDateTime, ce.Location, o.Name AS OrganizationName FROM CertioLocal.dbo.CalendarEvents ce INNER JOIN CertioLocal.dbo.Organizations o ON ce.OrgId = o.Id WHERE ce.IsDeleted = 0 AND ce.Location IS NOT NULL AND ce.Location != '' ORDER BY ce.StartDateTime DESC"
+
+## 73. Check Calendar Events by Organization
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT o.Name AS OrganizationName, COUNT(*) AS EventCount FROM CertioLocal.dbo.CalendarEvents ce INNER JOIN CertioLocal.dbo.Organizations o ON ce.OrgId = o.Id WHERE ce.IsDeleted = 0 GROUP BY o.Name ORDER BY EventCount DESC"
+
+## 74. Check Calendar Events by Matter (Matter-Scoped Events)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT m.Title AS MatterTitle, COUNT(*) AS EventCount FROM CertioLocal.dbo.CalendarEvents ce INNER JOIN CertioLocal.dbo.Matters m ON ce.MatterId = m.Id WHERE ce.IsDeleted = 0 GROUP BY m.Title ORDER BY EventCount DESC"
+
+## 75. Check Calendar Event Attendee Response Status
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT ResponseStatus, COUNT(*) AS Count FROM CertioLocal.dbo.CalendarEventAttendees GROUP BY ResponseStatus ORDER BY Count DESC"
+
+## 76. Check Calendar Event Attendee Types
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT AttendeeType, COUNT(*) AS Count FROM CertioLocal.dbo.CalendarEventAttendees GROUP BY AttendeeType ORDER BY Count DESC"
+
+## 77. Check Calendar Events with External Integration Fields
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT ce.Id, ce.Title, ce.ExternalCalendarId, ce.ExternalCalendarSource, ce.SyncStatus, ce.LastSyncedAt FROM CertioLocal.dbo.CalendarEvents ce WHERE ce.IsDeleted = 0 AND (ce.ExternalCalendarId IS NOT NULL OR ce.ExternalCalendarSource IS NOT NULL) ORDER BY ce.LastSyncedAt DESC"
+
+## 78. Check Recurring Calendar Events
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT ce.Id, ce.Title, ce.EventType, ce.StartDateTime, ce.IsRecurring, ce.RecurrenceRule, ce.RecurrenceEndDate FROM CertioLocal.dbo.CalendarEvents ce WHERE ce.IsDeleted = 0 AND ce.IsRecurring = 1 ORDER BY ce.StartDateTime DESC"
+
+## 79. Check Calendar Events Created Today
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT ce.Id, ce.Title, ce.EventType, ce.StartDateTime, u.FirstName + ' ' + u.LastName AS CreatedBy FROM CertioLocal.dbo.CalendarEvents ce LEFT JOIN CertioLocal.dbo.Users u ON ce.CreatedById = u.Id WHERE ce.IsDeleted = 0 AND CAST(ce.CreatedAt AS DATE) = CAST(GETDATE() AS DATE) ORDER BY ce.CreatedAt DESC"
+
+## 80. Check Calendar Events Modified Today
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT ce.Id, ce.Title, ce.EventType, ce.StartDateTime, u.FirstName + ' ' + u.LastName AS ModifiedBy, ce.ModifiedAt FROM CertioLocal.dbo.CalendarEvents ce LEFT JOIN CertioLocal.dbo.Users u ON ce.ModifiedById = u.Id WHERE ce.IsDeleted = 0 AND CAST(ce.ModifiedAt AS DATE) = CAST(GETDATE() AS DATE) ORDER BY ce.ModifiedAt DESC"
+
+## 81. Check Deleted Calendar Events
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT ce.Id, ce.Title, ce.EventType, ce.StartDateTime, u.FirstName + ' ' + u.LastName AS DeletedBy, ce.DeletedAt FROM CertioLocal.dbo.CalendarEvents ce LEFT JOIN CertioLocal.dbo.Users u ON ce.DeletedById = u.Id WHERE ce.IsDeleted = 1 ORDER BY ce.DeletedAt DESC"
+
+## 82. Check Calendar Events with Most Attendees
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT ce.Id, ce.Title, ce.EventType, ce.StartDateTime, COUNT(cea.Id) AS AttendeeCount FROM CertioLocal.dbo.CalendarEvents ce LEFT JOIN CertioLocal.dbo.CalendarEventAttendees cea ON ce.Id = cea.CalendarEventId WHERE ce.IsDeleted = 0 GROUP BY ce.Id, ce.Title, ce.EventType, ce.StartDateTime ORDER BY AttendeeCount DESC"
+
+## 83. Check Calendar Events by Time Range (This Week)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT ce.Id, ce.Title, ce.EventType, ce.StartDateTime, ce.EndDateTime, ce.IsAllDayEvent, o.Name AS OrganizationName FROM CertioLocal.dbo.CalendarEvents ce INNER JOIN CertioLocal.dbo.Organizations o ON ce.OrgId = o.Id WHERE ce.IsDeleted = 0 AND ce.StartDateTime >= DATEADD(week, DATEDIFF(week, 0, GETDATE()), 0) AND ce.StartDateTime < DATEADD(week, DATEDIFF(week, 0, GETDATE()) + 1, 0) ORDER BY ce.StartDateTime ASC"
+
+## 84. Check Calendar Events by Time Range (This Month)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT ce.Id, ce.Title, ce.EventType, ce.StartDateTime, ce.EndDateTime, ce.IsAllDayEvent, o.Name AS OrganizationName FROM CertioLocal.dbo.CalendarEvents ce INNER JOIN CertioLocal.dbo.Organizations o ON ce.OrgId = o.Id WHERE ce.IsDeleted = 0 AND ce.StartDateTime >= DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0) AND ce.StartDateTime < DATEADD(month, DATEDIFF(month, 0, GETDATE()) + 1, 0) ORDER BY ce.StartDateTime ASC"
+
+## 85. Check Calendar Events Summary Statistics
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT 'Total Events' AS Metric, COUNT(*) AS Count FROM CertioLocal.dbo.CalendarEvents WHERE IsDeleted = 0 UNION ALL SELECT 'All-Day Events', COUNT(*) FROM CertioLocal.dbo.CalendarEvents WHERE IsDeleted = 0 AND IsAllDayEvent = 1 UNION ALL SELECT 'Events with Location', COUNT(*) FROM CertioLocal.dbo.CalendarEvents WHERE IsDeleted = 0 AND Location IS NOT NULL AND Location != '' UNION ALL SELECT 'Matter-Scoped Events', COUNT(*) FROM CertioLocal.dbo.CalendarEvents WHERE IsDeleted = 0 AND MatterId IS NOT NULL UNION ALL SELECT 'Recurring Events', COUNT(*) FROM CertioLocal.dbo.CalendarEvents WHERE IsDeleted = 0 AND IsRecurring = 1 UNION ALL SELECT 'Events with External Sync', COUNT(*) FROM CertioLocal.dbo.CalendarEvents WHERE IsDeleted = 0 AND ExternalCalendarId IS NOT NULL ORDER BY Metric"
+
+## 86. Check Calendar Events Activity (Last 7 Days)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT 'Events Created' AS Activity, COUNT(*) AS Count FROM CertioLocal.dbo.CalendarEvents WHERE CreatedAt >= DATEADD(day, -7, GETDATE()) UNION ALL SELECT 'Events Modified', COUNT(*) FROM CertioLocal.dbo.CalendarEvents WHERE ModifiedAt >= DATEADD(day, -7, GETDATE()) UNION ALL SELECT 'Events Deleted', COUNT(*) FROM CertioLocal.dbo.CalendarEvents WHERE DeletedAt >= DATEADD(day, -7, GETDATE()) UNION ALL SELECT 'Attendees Added', COUNT(*) FROM CertioLocal.dbo.CalendarEventAttendees WHERE AddedAt >= DATEADD(day, -7, GETDATE()) ORDER BY Activity"
+
+## 87. Check Calendar Events by Hour of Day (Activity Pattern)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT DATEPART(hour, StartDateTime) AS Hour, COUNT(*) AS EventCount FROM CertioLocal.dbo.CalendarEvents WHERE IsDeleted = 0 AND StartDateTime >= DATEADD(day, -30, GETDATE()) GROUP BY DATEPART(hour, StartDateTime) ORDER BY Hour"
+
+## 88. Check Calendar Events by Day of Week (Activity Pattern)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT DATENAME(weekday, StartDateTime) AS DayOfWeek, COUNT(*) AS EventCount FROM CertioLocal.dbo.CalendarEvents WHERE IsDeleted = 0 AND StartDateTime >= DATEADD(day, -30, GETDATE()) GROUP BY DATENAME(weekday, StartDateTime), DATEPART(weekday, StartDateTime) ORDER BY DATEPART(weekday, StartDateTime)"
+
+## 89. Check Calendar Events with Full Details (Most Recent 10)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT TOP 10 ce.Id, ce.Title, ce.Description, ce.EventType, ce.Color, ce.StartDateTime, ce.EndDateTime, ce.IsAllDayEvent, ce.Location, o.Name AS OrganizationName, m.Title AS MatterTitle, u.FirstName + ' ' + u.LastName AS CreatedBy, ce.CreatedAt FROM CertioLocal.dbo.CalendarEvents ce INNER JOIN CertioLocal.dbo.Organizations o ON ce.OrgId = o.Id LEFT JOIN CertioLocal.dbo.Matters m ON ce.MatterId = m.Id LEFT JOIN CertioLocal.dbo.Users u ON ce.CreatedById = u.Id WHERE ce.IsDeleted = 0 ORDER BY ce.CreatedAt DESC"
+
+## 90. Check Calendar Event Attendees with Response Details
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT cea.Id, ce.Title AS EventTitle, ce.StartDateTime, u.FirstName + ' ' + u.LastName AS AttendeeName, u.Email, cea.AttendeeType, cea.ResponseStatus, cea.IsNotifyRecipient, cea.AddedAt, cea.ResponseAt FROM CertioLocal.dbo.CalendarEventAttendees cea INNER JOIN CertioLocal.dbo.CalendarEvents ce ON cea.CalendarEventId = ce.Id INNER JOIN CertioLocal.dbo.Users u ON cea.UserId = u.Id WHERE ce.IsDeleted = 0 ORDER BY ce.StartDateTime DESC, cea.AddedAt DESC"
+
+# ===========================================
 # AUDIT SUMMARY AND ANALYTICS QUERIES
 # ===========================================
 
-## 61. Audit Log Summary Statistics
+## 91. Audit Log Summary Statistics
 docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT 'Total Actions' AS Metric, COUNT(*) AS Count FROM CertioLocal.dbo.AuditLogs UNION ALL SELECT 'Unique Users', COUNT(DISTINCT UserId) FROM CertioLocal.dbo.AuditLogs WHERE UserId IS NOT NULL UNION ALL SELECT 'Failed Actions', COUNT(*) FROM CertioLocal.dbo.AuditLogs WHERE Result = 'FAILURE' UNION ALL SELECT 'AI Actions', COUNT(*) FROM CertioLocal.dbo.AuditLogs WHERE IsAIAction = 1 UNION ALL SELECT 'Login Attempts', COUNT(*) FROM CertioLocal.dbo.AuditLogs WHERE Action IN ('Login', 'LoginFailed') ORDER BY Metric"
 
-## 62. Check Audit Logs by Result Status
+## 92. Check Audit Logs by Result Status
 docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Result, COUNT(*) AS Count FROM CertioLocal.dbo.AuditLogs GROUP BY Result ORDER BY Count DESC"
 
-## 63. Check Most Active Entities (Most Audited)
+## 93. Check Most Active Entities (Most Audited)
 docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT EntityType, EntityId, COUNT(*) AS AuditCount FROM CertioLocal.dbo.AuditLogs GROUP BY EntityType, EntityId ORDER BY AuditCount DESC"
 
-## 64. Check Audit Logs by Hour (Activity Pattern)
+## 94. Check Audit Logs by Hour (Activity Pattern)
 docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT DATEPART(hour, Timestamp) AS Hour, COUNT(*) AS ActionCount FROM CertioLocal.dbo.AuditLogs WHERE Timestamp >= DATEADD(day, -7, GETDATE()) GROUP BY DATEPART(hour, Timestamp) ORDER BY Hour"
 
-## 65. Check Audit Logs by Day of Week (Activity Pattern)
+## 95. Check Audit Logs by Day of Week (Activity Pattern)
 docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT DATENAME(weekday, Timestamp) AS DayOfWeek, COUNT(*) AS ActionCount FROM CertioLocal.dbo.AuditLogs WHERE Timestamp >= DATEADD(day, -30, GETDATE()) GROUP BY DATENAME(weekday, Timestamp), DATEPART(weekday, Timestamp) ORDER BY DATEPART(weekday, Timestamp)"
+
+## 96. Check CalendarEvent-Related Audit Logs
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT al.Id, al.EntityType, al.EntityId, al.Action, al.Result, al.UserName, al.IPAddress, al.Description, al.Timestamp FROM CertioLocal.dbo.AuditLogs al WHERE al.EntityType = 'CalendarEvent' ORDER BY al.Timestamp DESC"
+
+## 97. Check CalendarEvent Audit Logs with Event Details
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT al.Id, al.Action, al.Result, ce.Title AS EventTitle, ce.EventType, ce.StartDateTime, al.UserName, al.Description, al.Timestamp FROM CertioLocal.dbo.AuditLogs al LEFT JOIN CertioLocal.dbo.CalendarEvents ce ON al.EntityId = ce.Id WHERE al.EntityType = 'CalendarEvent' ORDER BY al.Timestamp DESC"
+
+## 98. Check CalendarEvent Audit Logs by Action Type
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT al.Action, COUNT(*) AS Count FROM CertioLocal.dbo.AuditLogs al WHERE al.EntityType = 'CalendarEvent' GROUP BY al.Action ORDER BY Count DESC"
+
+## 99. Check Recent CalendarEvent Audit Activity (Last 24 Hours)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT al.Id, al.Action, al.Result, ce.Title AS EventTitle, al.UserName, al.Description, al.Timestamp FROM CertioLocal.dbo.AuditLogs al LEFT JOIN CertioLocal.dbo.CalendarEvents ce ON al.EntityId = ce.Id WHERE al.EntityType = 'CalendarEvent' AND al.Timestamp >= DATEADD(hour, -24, GETDATE()) ORDER BY al.Timestamp DESC"
+
+## 100. Check CalendarEvent Audit Logs with Old/New Values (Data Changes)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT al.Id, al.Action, ce.Title AS EventTitle, al.UserName, al.OldValues, al.NewValues, al.Description, al.Timestamp FROM CertioLocal.dbo.AuditLogs al LEFT JOIN CertioLocal.dbo.CalendarEvents ce ON al.EntityId = ce.Id WHERE al.EntityType = 'CalendarEvent' AND (al.OldValues IS NOT NULL OR al.NewValues IS NOT NULL) ORDER BY al.Timestamp DESC"
 

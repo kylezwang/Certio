@@ -1,0 +1,923 @@
+<!-- Calendar Event Details Modal -->
+<div class="task-details-modal" id="calendarEventModal" style="display: none; border-radius: 12px;">
+    
+
+    <div class="modal-dialog" style="margin-top: 3rem; margin-bottom: 1.5rem;">
+        <div class="task-details-content">
+            <!-- Matter Selector Header (positioned above modal) -->
+            <div class="event-modal-matter-header">
+                <div class="event-matter-selector-container">
+                    <button class="event-matter-selector-btn" id="eventMatterSelectorBtn">
+                        <i class="fas fa-folder"></i>
+                        <span class="event-matter-selector-text" id="eventMatterSelectorText">Select a Matter</span>
+                        <i class="fas fa-chevron-down event-matter-selector-arrow"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Header -->
+            <div class="task-details-header">
+                <div class="task-details-header-left">
+                </div>
+                <div class="task-details-header-middle">
+                </div>
+                <div class="task-details-header-right">
+                    <button class="btn btn-sm btn-link task-header-btn" id="headerNotifyBtn" title="Notifications">
+                        <i class="fas fa-bell"></i>
+                    </button>
+                    <button class="btn btn-sm btn-link task-header-btn" id="headerDeleteBtn" title="Delete Event" style="display: none;">
+                        <i class="fas fa-trash text-danger"></i>
+                    </button>
+                    <button class="btn btn-sm btn-link task-header-btn">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                <button type="button" class="btn-close" id="closeEventModal" aria-label="Close"></button>
+                </div>
+            </div>
+
+            <!-- Event Title -->
+            <div class="task-details-title-section">
+                <div class="task-title-container">
+                    <i class="fas fa-calendar task-title-icon" id="eventTitleIcon" style="color: #3d1019;"></i>
+                    <h2 class="task-title" contenteditable="true" data-placeholder="Enter event title..." id="eventTitleInput"></h2>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="task-details-body">
+                <!-- Left Panel -->
+                <div class="task-details-left">
+                    <!-- Date & Time Section -->
+                    <div class="task-section" id="dates-section" style="padding: 0rem 0.5rem;">
+                        <div class="task-section-header">
+                            <h6 class="task-section-title">
+                                <i class="fa-solid fa-calendar-day"></i> Date & Time
+                            </h6>
+                        </div>
+                        <div class="task-section-content">
+                            <!-- All Day Event Checkbox -->
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="eventAllDayCheck">
+                                    <label class="form-check-label fw-semibold" for="eventAllDayCheck" style="font-size: 0.875rem;">
+                                        All Day Event
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold status-priority-label" style="font-size: 0.875rem;">
+                                        <i class="fa-solid fa-calendar-day me-2" style="color: #3d1019;"></i>
+                                        Start
+                                    </label>
+                                    <input type="datetime-local" class="form-control dates-field" style="font-size: 0.875rem;" id="eventStartInput" required />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold status-priority-label" style="font-size: 0.875rem;">
+                                        <i class="fa-solid fa-calendar-day me-2" style="color: #3d1019; transform: scaleX(-1);"></i>
+                                        End
+                                    </label>
+                                    <input type="datetime-local" class="form-control dates-field" style="font-size: 0.875rem;" id="eventEndInput" required />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Attendees -->
+                    <div class="task-meta-section" style="padding: 0.5rem 1rem;">
+                        <div class="task-members">
+                            <span class="task-meta-label"><i class="fa-solid fa-user"></i> Attendees</span>
+                            <div class="task-assignees-container" id="eventAttendeesList">
+                                <!-- Attendees will be dynamically rendered here -->
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary add-member-btn" id="addAttendeeBtn">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Location Section -->
+                    <div class="task-section collapsible-section" id="location-section" style="margin-bottom: 0;">
+                        <div class="task-section-header collapsible-header" style="cursor: pointer;">
+                            <h6 class="task-section-title">
+                                <i class="fas fa-map-marker-alt"></i> Location
+                            </h6>
+                            <i class="fas fa-chevron-down collapse-icon"></i>
+                        </div>
+                        <div class="task-section-content" style="display: none;">
+                            <div class="location-container">
+                                <!-- Location Search with Autocomplete -->
+                                <div class="location-search">
+                                    <div class="search-input-group">
+                                        <input type="text" class="form-control location-search-input" 
+                                               placeholder="Start typing a location..." 
+                                               id="eventLocationSearchInput"
+                                               autocomplete="off">
+                                        <div class="search-loading-indicator" id="eventSearchLoadingIndicator" style="display: none;">
+                                            <i class="fas fa-spinner fa-spin"></i>
+                                        </div>
+                                    </div>
+                                    <!-- Autocomplete Dropdown -->
+                                    <div class="autocomplete-dropdown" id="eventAutocompleteDropdown" style="display: none;">
+                                        <ul class="autocomplete-list" id="eventAutocompleteList">
+                                            <!-- Suggestions will be populated here -->
+                                        </ul>
+                                    </div>
+                                </div>
+                                
+                                <!-- Selected Location Display -->
+                                <div class="location-display" id="eventLocationDisplay" style="display: none;">
+                                    <div class="location-info">
+                                        <h6 class="location-name" id="eventLocationName"></h6>
+                                        <p class="location-address" id="eventLocationAddress"></p>
+                                    </div>
+                                    <div class="location-actions">
+                                        <button class="btn btn-sm btn-link p-0" title="Get directions" id="eventGetDirectionsBtn">
+                                            <i class="fas fa-route"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-link text-danger p-0" title="Remove location" id="eventRemoveLocationBtn">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Google Maps Container -->
+                                <div class="map-container" id="eventMapContainer">
+                                    <div class="map-placeholder">
+                                        <i class="fas fa-map-marked-alt" style="font-size: 3rem; color: #d1d5db;"></i>
+                                        <p class="text-muted mt-2">No location selected</p>
+                                        <small class="text-muted">Search for a location to display it on the map</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Description Section -->
+                    <div class="task-section collapsible-section">
+                        <div class="task-section-header collapsible-header" style="cursor: pointer;">
+                            <h6 class="task-section-title">
+                                <i class="fas fa-align-left" style="transform: scaleY(-1);"></i> Description
+                            </h6>
+                            <i class="fas fa-chevron-down collapse-icon"></i>
+                        </div>
+                        <div class="task-section-content" style="display: none;">
+                            <textarea class="form-control task-description-textarea" rows="4" placeholder="Add a description for this event..." style="font-size: 0.875rem;" id="eventDescriptionInput"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Event Type & Color Section -->
+                    <div class="task-section collapsible-section" id="color-section">
+                        <div class="task-section-header collapsible-header" style="cursor: pointer;">
+                            <h6 class="task-section-title">
+                                <i class="fas fa-palette"></i> Event Type & Color
+                            </h6>
+                            <i class="fas fa-chevron-down collapse-icon"></i>
+                        </div>
+                        <div class="task-section-content" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold status-priority-label" style="font-size: 0.875rem;">
+                                        <i class="fas fa-tag me-2" style="color: #3d1019;"></i>
+                                        Event Type
+                                    </label>
+                                    <select class="form-select" style="font-size: 0.875rem;" id="eventTypeField">
+                                <option value="Meeting">Meeting</option>
+                                <option value="Deadline">Deadline</option>
+                                <option value="CourtDate">Court Date</option>
+                                <option value="Consultation">Consultation</option>
+                                <option value="Conference">Conference</option>
+                                <option value="Filing">Filing</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold status-priority-label" style="font-size: 0.875rem;">
+                                        <i class="fas fa-palette me-2" style="color: #3d1019;"></i>
+                                        Color
+                                    </label>
+                                    <div class="event-color-picker" id="eventColorPicker">
+                                        <div class="color-option" data-color="blue" style="background: #2563eb;" title="Blue"></div>
+                                        <div class="color-option" data-color="purple" style="background: #8b5cf6;" title="Purple"></div>
+                                        <div class="color-option" data-color="red" style="background: #ef4444;" title="Red"></div>
+                                        <div class="color-option" data-color="green" style="background: #10b981;" title="Green"></div>
+                                        <div class="color-option" data-color="orange" style="background: #f59e0b;" title="Orange"></div>
+                                        <div class="color-option" data-color="gray" style="background: #6b7280;" title="Gray"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Event Details Section -->
+                    <div class="task-section collapsible-section">
+                        <div class="task-section-header collapsible-header" style="cursor: pointer;">
+                            <h6 class="task-section-title">
+                                <i class="fas fa-info-circle"></i> Event Details
+                            </h6>
+                            <i class="fas fa-chevron-down collapse-icon"></i>
+                        </div>
+                        <div class="task-section-content" style="display: none;">
+                            <div class="event-metadata">
+                                <div class="metadata-item">
+                                    <span class="metadata-label">Created:</span>
+                                    <span class="metadata-value" id="eventCreatedDate">--</span>
+                    </div>
+                                <div class="metadata-item">
+                                    <span class="metadata-label">Created by:</span>
+                                    <span class="metadata-value" id="eventCreatedBy">--</span>
+                    </div>
+                                <div class="metadata-item">
+                                    <span class="metadata-label">Last modified:</span>
+                                    <span class="metadata-value" id="eventModifiedDate">--</span>
+                        </div>
+                                <div class="metadata-item">
+                                    <span class="metadata-label">Modified by:</span>
+                                    <span class="metadata-value" id="eventModifiedBy">--</span>
+                        </div>
+                    </div>
+                    </div>
+            </div>
+
+                </div>
+            </div>
+
+            <!-- Fixed Footer -->
+            <div class="event-modal-footer">
+                <button class="btn btn-link more-options-btn" id="moreOptionsBtn" type="button">
+                    More options
+                </button>
+                <button class="btn btn-primary save-btn" id="saveEventBtn" type="button">
+                    Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Matter Selector Popup -->
+<div class="event-matter-popup" id="eventMatterPopup" style="display: none;">
+    <div class="event-matter-popup-inner">
+        <div class="event-matter-popup-title">Select a Matter</div>
+        <div class="event-matter-popup-list" id="eventMatterPopupList">
+            <!-- "Select a Matter" Option -->
+            <button type="button" class="event-matter-item" data-matter-id="" title="Select a Matter">
+                <i class="fas fa-folder-open"></i>
+                <span class="event-matter-item-text">Select a Matter</span>
+            </button>
+            <!-- Matters will be populated dynamically -->
+        </div>
+    </div>
+</div>
+
+
+<style>
+    /* Reuse task modal styles with calendar-specific adjustments */
+    
+    /* Modal background for calendar events */
+    #calendarEventModal .task-details-content {
+        background-color: #f2f2f2;
+        display: flex;
+        flex-direction: column;
+        max-height: 85vh;
+    }
+
+    #calendarEventModal .task-details-body {
+        flex: 1;
+        overflow-y: hidden;
+        padding: 0;
+        max-height: 52vh;
+    }
+
+    /* Event Matter Selector Header */
+    .event-modal-matter-header {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: white;
+        border-radius: 0px 0px 12px 12px;
+        z-index: 1001;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        pointer-events: auto;
+    }
+
+    .event-matter-selector-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .event-matter-selector-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 1rem;
+        background: white;
+        border: 1px solid #ffffff;
+        border-radius: 0px 0px 12px 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        width: 13rem;
+        min-width: 13rem;
+        max-width: 13rem;
+        font-size: 0.875rem;
+        color: #374151;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .event-matter-selector-btn:hover {
+        background-color: #f9fafb;
+        border-color: #ffffff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    }
+
+    .event-matter-selector-text {
+        flex: 1;
+        text-align: left;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-weight: 500;
+    }
+
+    .event-matter-selector-arrow {
+        font-size: 0.75rem;
+        color: #6b7280;
+        flex-shrink: 0;
+    }
+
+    /* Event Matter Popup - positioned relative to modal dialog */
+    .event-matter-popup {
+        position: absolute;
+        top: 3.5rem; /* Position below the matter selector button */
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1102;
+        display: none;
+    }
+
+    .event-matter-popup-inner {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        width: 360px;
+        max-height: 360px;
+        overflow: hidden;
+        margin-top: 0.8rem;
+    }
+
+    .event-matter-popup-title {
+        font-weight: 600;
+        font-size: 0.95rem;
+        padding: 0.75rem 1rem;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .event-matter-popup-list {
+        max-height: 300px;
+        overflow-y: auto;
+        padding: 0.5rem;
+    }
+
+    .event-matter-item {
+        width: 100%;
+        text-align: left;
+        padding: 0.6rem 0.75rem;
+        border: none;
+        background: transparent;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        color: #111827;
+        cursor: pointer;
+    }
+
+    .event-matter-item:hover {
+        background: #f3f4f6;
+    }
+
+    .event-matter-item i {
+        color: #6b7280;
+    }
+
+    .event-matter-item-text {
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Input field styling for event modal only (excluding matter dropdown) */
+    #calendarEventModal .task-details-content input[type="text"],
+    #calendarEventModal .task-details-content input[type="datetime-local"],
+    #calendarEventModal .task-details-content input[type="date"],
+    #calendarEventModal .task-details-content textarea.form-control,
+    #calendarEventModal .task-details-content select.form-select,
+    #calendarEventModal .task-details-content select.form-control {
+        background-color: #ffffff;
+        border: 1px solid transparent;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    #calendarEventModal .task-details-content input[type="text"]:focus,
+    #calendarEventModal .task-details-content input[type="datetime-local"]:focus,
+    #calendarEventModal .task-details-content input[type="date"]:focus,
+    #calendarEventModal .task-details-content textarea.form-control:focus,
+    #calendarEventModal .task-details-content select.form-select:focus,
+    #calendarEventModal .task-details-content select.form-control:focus {
+        background-color: #e5eaec;
+        border-color: #3d1019;
+        box-shadow: 0 0 0 0.2rem rgba(61, 16, 25, 0.1);
+    }
+
+    /* Fixed Footer */
+    .event-modal-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        background: #f2f2f2;
+        border-top: 1px solid #e5e7eb;
+        border-radius: 0 0 12px 12px;
+        position: sticky;
+        bottom: 0;
+        z-index: 10;
+    }
+
+    .more-options-btn {
+        color: #4169E1;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9375rem;
+        padding: 0;
+    }
+
+    .more-options-btn:hover {
+        color: #3557c1;
+        text-decoration: none;
+    }
+
+    .save-btn {
+        background-color: #4169E1;
+        border-color: #4169E1;
+        border-radius: 20px;
+        padding: 0.5rem 2rem;
+        font-weight: 500;
+        font-size: 0.9375rem;
+    }
+
+    .save-btn:hover {
+        background-color: #3557c1;
+        border-color: #3557c1;
+    }
+
+    /* Collapsible sections */
+    .collapsible-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.2s ease;
+        border-radius: 0.5rem;
+        padding: 1rem 0.5rem;
+        margin-bottom: 0;
+    }
+
+    .collapsible-header:hover {
+        background-color: rgba(61, 16, 25, 0.05);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .collapse-icon {
+        font-size: 0.75rem;
+        color: #6b7280;
+        transition: all 0.2s ease;
+    }
+
+    .collapsible-header:hover .collapse-icon {
+        color: #3d1019;
+        transform: scale(1.1);
+    }
+
+    .collapsible-section.expanded .collapse-icon {
+        transform: rotate(180deg);
+    }
+
+    /* Expand content on hover (only when hover is not disabled) */
+    .collapsible-section:hover:not(.hover-disabled) .task-section-content {
+        display: block !important;
+    }
+
+    .collapsible-section:hover:not(.hover-disabled) .collapse-icon {
+        transform: rotate(180deg) !important;
+    }
+
+    /* Keep expanded state styling when section is active/expanded */
+    .collapsible-section.expanded .collapsible-header {
+        background-color: rgba(61, 16, 25, 0.05);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .collapsible-section.expanded .collapse-icon {
+        color: #3d1019;
+        transform: rotate(180deg) scale(1.1);
+    }
+
+    .collapsible-section.expanded .task-section-content {
+        display: block !important;
+    }
+    
+    /* Header matter dropdown styling */
+    .header-matter-dropdown {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 200px;
+    }
+
+    .header-matter-select {
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #374151;
+        background-color: #ffffff;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .header-matter-select:hover {
+        border-color: #9ca3af;
+        background-color: #f9fafb;
+    }
+
+    .header-matter-select:focus {
+        outline: none;
+        border-color: #3d1019;
+        box-shadow: 0 0 0 3px rgba(61, 16, 25, 0.1);
+    }
+    
+    .event-color-picker {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .color-option {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        cursor: pointer;
+        border: 3px solid transparent;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+
+    .color-option:hover {
+        transform: scale(1.1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .color-option.selected {
+        border-color: #1f2937;
+        box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #1f2937;
+    }
+
+    .color-option.selected::after {
+        content: '\2713';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-weight: bold;
+        font-size: 1.2rem;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Attendee avatars in assignees container */
+    #eventAttendeesList .assignee-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #3d1019;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    #eventAttendeesList .assignee-avatar:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    #eventAttendeesList .assignee-avatar .remove-assignee {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        width: 16px;
+        height: 16px;
+        background: #ef4444;
+        border-radius: 50%;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 10px;
+        cursor: pointer;
+        border: 2px solid white;
+    }
+
+    #eventAttendeesList .assignee-avatar:hover .remove-assignee {
+        display: flex;
+    }
+
+    .event-metadata {
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+
+    .metadata-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #e5e7eb;
+        font-size: 0.875rem;
+    }
+
+    .metadata-item:last-child {
+        border-bottom: none;
+    }
+
+    .metadata-label {
+        font-weight: 600;
+        color: #6b7280;
+    }
+
+    .metadata-value {
+        color: #1f2937;
+    }
+
+    .event-actions {
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    /* Modal scoped to main content area */
+    #calendarEventModal.task-details-modal {
+        position: fixed;
+        top: 7vh;
+        left: 23vw;
+        right: 320px;
+        bottom: 0;
+        width: auto;
+        height: auto;
+        background: rgba(0, 0, 0, 0);
+        z-index: 1050;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    /* Ensure modal is positioned relatively for absolute popup positioning */
+    #calendarEventModal .modal-dialog {
+        position: relative;
+    }
+
+    /* Adjust when sidebar is hidden */
+    .sidebar-hidden #calendarEventModal.task-details-modal {
+        left: calc(6vw + 1rem);
+    }
+
+    /* Adjust when chat is hidden */
+    .chat-hidden #calendarEventModal.task-details-modal {
+        right: 1rem;
+    }
+
+    #calendarEventModal .modal-dialog {
+        width: 100%;
+        max-width: 500px;
+        min-height: 85vh;
+        margin: 0 auto;
+    }
+
+    /* Full width for left panel since right panel is removed */
+    #calendarEventModal .task-details-left {
+        width: 100%;
+        max-width: 100%;
+        max-height: 52vh;
+        padding: 0 1rem 0 0.5rem;
+    }
+
+    #calendarEventModal .task-details-body {
+        display: block;
+    }
+
+    /* Match Attendees label color to other section titles */
+    #calendarEventModal .task-meta-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    #calendarEventModal .task-meta-label i {
+        color: #6b7280;
+        font-size: 0.75rem;
+        margin-right: 0.5rem;
+    }
+
+    /* Override task-title-icon color for calendar events */
+    #calendarEventModal .task-title-icon {
+        color: #3d1019 !important;
+    }
+
+    /* Location Section Styles */
+    .location-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-right: 1rem;
+    }
+
+    .location-search {
+        position: relative;
+        margin: 0.5rem 0 0 0;
+    }
+
+    .search-input-group {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .location-search-input {
+        width: 100%;
+        padding-right: 2.5rem;
+        font-size: 0.875rem;
+    }
+
+    .search-loading-indicator {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6b7280;
+    }
+
+    .autocomplete-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        margin-top: 0.5rem;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .autocomplete-list {
+        list-style: none;
+        padding: 0.5rem 0;
+        margin: 0;
+    }
+
+    .autocomplete-item {
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        transition: background-color 0.2s ease;
+    }
+
+    .autocomplete-item:hover,
+    .autocomplete-item.active {
+        background-color: #f3f4f6;
+    }
+
+    .autocomplete-icon {
+        color: #6b7280;
+        font-size: 0.875rem;
+        flex-shrink: 0;
+    }
+
+    .autocomplete-text {
+        flex: 1;
+        overflow: hidden;
+    }
+
+    .autocomplete-primary-text {
+        font-weight: 500;
+        color: #111827;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .autocomplete-secondary-text {
+        font-size: 0.75rem;
+        color: #6b7280;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .location-display {
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        background: #f9fafb;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        margin-bottom: 0;
+    }
+
+    .location-info {
+        flex: 1;
+    }
+
+    .location-name {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 0.25rem;
+    }
+
+    .location-address {
+        font-size: 0.8125rem;
+        color: #6b7280;
+        margin-bottom: 0;
+    }
+
+    .location-actions {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .location-actions .btn {
+        padding: 0.25rem 0.5rem;
+        color: #6b7280;
+        transition: color 0.2s ease;
+    }
+
+    .location-actions .btn:hover {
+        color: #111827;
+    }
+
+    .location-actions .btn.text-danger:hover {
+        color: #dc2626 !important;
+    }
+
+    .map-container {
+        width: 100%;
+        height: 200px;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .map-placeholder {
+        text-align: center;
+        color: #9ca3af;
+    }
+
+    .map-placeholder i {
+        margin-bottom: 0.5rem;
+    }
+
+    .embedded-map {
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+</style>
