@@ -10,6 +10,7 @@ using Certio.Domain.Documents;
 using Certio.Domain.Tasks;
 using Certio.Domain.Organizations;
 using Certio.Domain.Teams;
+using Certio.Domain.Calendar;
 
 namespace Certio.Infrastructure.Interceptors
 {
@@ -464,7 +465,8 @@ namespace Certio.Infrastructure.Interceptors
                 || entity is MatterAssignment
                 || entity is MatterPermission
                 || entity is TaskAssignment
-                || entity is UserOrganization;
+                || entity is UserOrganization
+                || entity is CalendarEvent;
         }
 
         private string? GetOldValues(EntityEntry entry)
