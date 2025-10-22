@@ -39,14 +39,7 @@ namespace Certio.Application.Services
         {
             try
             {
-                // Validate user is in organization
-                var isInOrg = await _orgContextService.ValidateUserInOrganizationAsync(userId, orgId);
-                if (!isInOrg)
-                {
-                    throw new UnauthorizedOperationException(userId, "create event in", "Organization");
-                }
-
-                // If matter-scoped, validate matter access
+                // If matter-scoped, validate matter access (handles cross-org via OrganizationRelationship)
                 if (createDto.MatterId.HasValue)
                 {
                     var matterResult = await _matterService.GetMatterAsync(userId, createDto.MatterId.Value);
@@ -59,6 +52,16 @@ namespace Certio.Application.Services
                     if (matterResult.Data!.OrganizationId != orgId)
                     {
                         throw new OrganizationMismatchException(userId, orgId, "Matter", createDto.MatterId.Value);
+                    }
+                    // Matter access validated - skip org membership check for cross-org matters
+                }
+                else
+                {
+                    // Org-level event (no matter) - validate user is in organization
+                    var isInOrg = await _orgContextService.ValidateUserInOrganizationAsync(userId, orgId);
+                    if (!isInOrg)
+                    {
+                        throw new UnauthorizedOperationException(userId, "create event in", "Organization");
                     }
                 }
 
@@ -91,10 +94,25 @@ namespace Certio.Application.Services
                 // Add attendees if specified
                 if (createDto.AttendeeUserIds != null && createDto.AttendeeUserIds.Any())
                 {
+                    _logger.LogInformation("Processing {Count} attendees for event {EventId}", createDto.AttendeeUserIds.Count, calendarEvent.Id);
+                    
                     foreach (var attendeeUserId in createDto.AttendeeUserIds.Distinct())
                     {
-                        // Verify attendee is in organization
+                        _logger.LogInformation("Validating attendee {AttendeeUserId} for org {OrgId}, matter {MatterId}", 
+                            attendeeUserId, orgId, createDto.MatterId);
+                            
+                        // Verify attendee is in organization or has matter access
                         var attendeeInOrg = await _orgContextService.ValidateUserInOrganizationAsync(attendeeUserId, orgId);
+                        _logger.LogInformation("Direct org membership for user {AttendeeUserId}: {IsInOrg}", attendeeUserId, attendeeInOrg);
+                        
+                        if (!attendeeInOrg && createDto.MatterId.HasValue)
+                        {
+                            // Check if attendee has access through matter relationships
+                            var matterResult = await _matterService.GetMatterAsync(attendeeUserId, createDto.MatterId.Value);
+                            attendeeInOrg = matterResult.Success;
+                            _logger.LogInformation("Matter access for user {AttendeeUserId}: {HasAccess}", attendeeUserId, attendeeInOrg);
+                        }
+
                         if (attendeeInOrg)
                         {
                             var attendee = new CalendarEventAttendee
@@ -107,6 +125,11 @@ namespace Certio.Application.Services
                                 AddedAt = DateTime.UtcNow
                             };
                             _context.CalendarEventAttendees.Add(attendee);
+                            _logger.LogInformation("Added attendee {AttendeeUserId} to event {EventId}", attendeeUserId, calendarEvent.Id);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Attendee {AttendeeUserId} validation failed for event {EventId}", attendeeUserId, calendarEvent.Id);
                         }
                     }
                     await _context.SaveChangesAsync();
@@ -205,6 +228,62 @@ namespace Certio.Application.Services
                 if (calendarEvent.EndDateTime <= calendarEvent.StartDateTime)
                 {
                     throw new ValidationException("EndDateTime", "End date/time must be after start date/time");
+                }
+
+                // Update attendees if specified
+                if (updateDto.AttendeeUserIds != null)
+                {
+                    _logger.LogInformation("Updating attendees for event {EventId}, count: {Count}", eventId, updateDto.AttendeeUserIds.Count);
+                    
+                    // Remove existing attendees (except organizer)
+                    var existingAttendees = calendarEvent.Attendees.Where(a => a.AttendeeType != "Organizer").ToList();
+                    foreach (var attendee in existingAttendees)
+                    {
+                        _context.CalendarEventAttendees.Remove(attendee);
+                        _logger.LogInformation("Removed existing attendee {AttendeeUserId} from event {EventId}", attendee.UserId, eventId);
+                    }
+
+                    // Add new attendees
+                    foreach (var attendeeUserId in updateDto.AttendeeUserIds.Distinct())
+                    {
+                        // Skip if already organizer
+                        if (attendeeUserId == userId)
+                            continue;
+
+                        _logger.LogInformation("Validating attendee {AttendeeUserId} for event {EventId}, org {OrgId}, matter {MatterId}", 
+                            attendeeUserId, eventId, calendarEvent.OrgId, calendarEvent.MatterId);
+
+                        // Verify attendee is in organization or has matter access
+                        var attendeeInOrg = await _orgContextService.ValidateUserInOrganizationAsync(attendeeUserId, calendarEvent.OrgId);
+                        _logger.LogInformation("Direct org membership for user {AttendeeUserId}: {IsInOrg}", attendeeUserId, attendeeInOrg);
+                        
+                        if (!attendeeInOrg && calendarEvent.MatterId.HasValue)
+                        {
+                            // Check if attendee has access through matter relationships
+                            var matterResult = await _matterService.GetMatterAsync(attendeeUserId, calendarEvent.MatterId.Value);
+                            attendeeInOrg = matterResult.Success;
+                            _logger.LogInformation("Matter access for user {AttendeeUserId}: {HasAccess}", attendeeUserId, attendeeInOrg);
+                        }
+
+                        if (attendeeInOrg)
+                        {
+                            var attendee = new CalendarEventAttendee
+                            {
+                                CalendarEventId = calendarEvent.Id,
+                                UserId = attendeeUserId,
+                                AttendeeType = "Required",
+                                ResponseStatus = "Pending",
+                                IsNotifyRecipient = true,
+                                AddedAt = DateTime.UtcNow
+                            };
+                            _context.CalendarEventAttendees.Add(attendee);
+                            _logger.LogInformation("Added attendee {AttendeeUserId} to event {EventId}", attendeeUserId, eventId);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Attendee {AttendeeUserId} validation failed for event {EventId}", attendeeUserId, eventId);
+                        }
+                    }
                 }
 
                 calendarEvent.ModifiedById = userId;
@@ -640,22 +719,16 @@ namespace Certio.Application.Services
 
         private async Task<bool> CanAccessEventAsync(int userId, CalendarEvent calendarEvent)
         {
-            // Check if user is in organization
+            // Matter-scoped events require matter access (handles cross-org via OrganizationRelationship)
+            if (calendarEvent.MatterId.HasValue)
+            {
+                var matterResult = await _matterService.GetMatterAsync(userId, calendarEvent.MatterId.Value);
+                return matterResult.Success;
+            }
+
+            // Org-scoped events (no matter) require org membership
             var isInOrg = await _orgContextService.ValidateUserInOrganizationAsync(userId, calendarEvent.OrgId);
-            if (!isInOrg)
-            {
-                return false;
-            }
-
-            // Org-scoped events are visible to all org members
-            if (!calendarEvent.MatterId.HasValue)
-            {
-                return true;
-            }
-
-            // Matter-scoped events require matter access
-            var matterResult = await _matterService.GetMatterAsync(userId, calendarEvent.MatterId.Value);
-            return matterResult.Success;
+            return isInOrg;
         }
 
         private CalendarEventDto MapToDto(CalendarEvent calendarEvent)

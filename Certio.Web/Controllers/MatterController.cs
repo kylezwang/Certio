@@ -169,6 +169,16 @@ namespace Certio.Web.Controllers
 
             // Map DTO to domain entity
             var dto = result.Data!;
+            
+            // If the orgId in the route doesn't match the matter's actual organization,
+            // redirect to the correct URL with the matter's organization ID
+            if (orgId != dto.OrganizationId)
+            {
+                _logger.LogInformation(
+                    "Redirecting matter {MatterId} from route org {RouteOrgId} to correct org {MatterOrgId}",
+                    id.Value, orgId, dto.OrganizationId);
+                return RedirectToAction("Details", new { orgId = dto.OrganizationId, id = id.Value });
+            }
             var matter = new Matter
             {
                 Id = dto.Id,
@@ -268,7 +278,10 @@ namespace Certio.Web.Controllers
                     .ToList()
             };
 
-            ViewBag.OrganizationId = orgId;
+            // Always use the matter's actual organization ID for API calls
+            // This ensures calendar, tasks, and communications tabs work correctly for cross-org matters
+            ViewBag.OrganizationId = dto.OrganizationId;
+            ViewBag.RouteOrganizationId = orgId; // Keep route org for navigation/breadcrumbs if needed
             
             // Always set the organization name for proper display in the header
             // For cross-organization matter access, show the matter's originating organization name
@@ -707,6 +720,124 @@ namespace Certio.Web.Controllers
             }
 
             model.OrgMembers = allMembers;
+        }
+
+        // GET: /Client/{orgId}/Matter/{matterId}/Users - Get users for matter context (includes law firm members)
+        [Authorize(Policy = "OrgMember")]
+        [HttpGet("/Client/{orgId:int}/Matter/{matterId:int}/Users")]
+        public async Task<IActionResult> GetMatterUsers(int orgId, int matterId)
+        {
+            var (user, _) = GetUserContext();
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            // Verify user has access to this matter
+            var matterResult = await _matterService.GetMatterAsync(user.Id, matterId);
+            if (!matterResult.Success)
+            {
+                return BadRequest(new { success = false, message = "Matter not found or access denied" });
+            }
+
+            // Get all active organization members from the CURRENT organization context (direct membership)
+            var directMembersData = await _context.UserOrganizations
+                .Where(uo => uo.OrganizationId == orgId && uo.IsActive)
+                .Include(uo => uo.User)
+                .Select(uo => new
+                {
+                    Id = uo.User.Id,
+                    FirstName = uo.User.FirstName,
+                    LastName = uo.User.LastName,
+                    Email = uo.User.Email
+                })
+                .ToListAsync();
+            
+            // Get users from law firms that have relationships with this organization
+            var firmMembersData = await _context.UserOrganizations
+                .Where(uo => uo.IsActive && uo.UserType == Certio.Domain.Users.UserTypes.LawFirm)
+                .Include(uo => uo.User)
+                .Include(uo => uo.Organization)
+                    .ThenInclude(o => o.OrganizationRelationships)
+                .Where(uo => uo.Organization.OrganizationRelationships.Any(rel =>
+                    rel.TargetOrganizationId == orgId &&
+                    rel.IsActive &&
+                    !rel.IsDeleted &&
+                    rel.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient &&
+                    (!rel.ExpiresAt.HasValue || rel.ExpiresAt.Value > DateTime.UtcNow)))
+                .Select(uo => new
+                {
+                    Id = uo.User.Id,
+                    FirstName = uo.User.FirstName,
+                    LastName = uo.User.LastName,
+                    Email = uo.User.Email
+                })
+                .ToListAsync();
+            
+            // Convert to UserDto with proper initials generation
+            var directMembers = directMembersData.Select(u => new UserDto
+            {
+                Id = u.Id,
+                Name = $"{u.FirstName} {u.LastName}".Trim(),
+                Initials = GetInitials(u.FirstName, u.LastName),
+                Email = u.Email
+            }).ToList();
+            
+            var firmMembers = firmMembersData.Select(u => new UserDto
+            {
+                Id = u.Id,
+                Name = $"{u.FirstName} {u.LastName}".Trim(),
+                Initials = GetInitials(u.FirstName, u.LastName),
+                Email = u.Email
+            }).ToList();
+            
+            // Combine and deduplicate (in case a user has both direct and firm-based access)
+            var allUsers = directMembers
+                .Union(firmMembers, new UserDtoComparer())
+                .OrderBy(u => u.Name)
+                .Select(u => new
+                {
+                    id = u.Id,
+                    name = u.Name,
+                    initials = u.Initials,
+                    email = u.Email
+                })
+                .ToList();
+
+            return Json(new { success = true, users = allUsers });
+        }
+
+        // Helper method to generate user initials
+        private string GetInitials(string firstName, string lastName)
+        {
+            var first = !string.IsNullOrWhiteSpace(firstName) ? firstName[0].ToString().ToUpper() : "";
+            var last = !string.IsNullOrWhiteSpace(lastName) ? lastName[0].ToString().ToUpper() : "";
+            return first + last;
+        }
+
+        // Helper class for user data
+        private class UserDto
+        {
+            public int Id { get; set; }
+            public string Name { get; set; } = string.Empty;
+            public string Initials { get; set; } = string.Empty;
+            public string Email { get; set; } = string.Empty;
+        }
+
+        // Helper class for deduplicating users by user ID
+        private class UserDtoComparer : IEqualityComparer<UserDto>
+        {
+            public bool Equals(UserDto? x, UserDto? y)
+            {
+                if (x == null && y == null) return true;
+                if (x == null || y == null) return false;
+                return x.Id == y.Id;
+            }
+
+            public int GetHashCode(UserDto obj)
+            {
+                return obj.Id.GetHashCode();
+            }
         }
         
         // Helper class for deduplicating OrgMemberOption by user ID

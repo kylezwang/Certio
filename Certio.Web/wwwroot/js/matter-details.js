@@ -119,19 +119,8 @@
                 loadedTabs.add(tabName);
                 return;
             case 'calendar':
-                // Placeholder for future implementation
-                targetElement.innerHTML = `
-                    <div class="container-fluid px-4 py-4">
-                        <div class="text-center py-5">
-                            <i class="fas fa-calendar text-muted mb-3" style="font-size: 3rem;"></i>
-                            <h4 class="text-dark mb-2">Matter Calendar</h4>
-                            <p class="text-muted">This section will display calendar events related to this matter's due dates and milestones.</p>
-                            <p class="text-muted small">(To be implemented in a future phase)</p>
-                        </div>
-                    </div>
-                `;
-                loadedTabs.add(tabName);
-                return;
+                url = `/Client/${orgId}/Matter/${matterId}/Calendar`;
+                break;
             case 'communications':
                 // Use CommunicationsController for matter communications
                 url = `/Client/${orgId}/Matter/${matterId}/Communications`;
@@ -329,6 +318,32 @@
                 }
                 
                 console.log('=== Communications scripts initialization complete ===');
+                break;
+            
+            case 'calendar':
+                // Initialize calendar scripts if they exist
+                console.log('Initializing calendar scripts for Matter Details Calendar tab...');
+                
+                // Check what functions are available
+                console.log('Checking available functions:');
+                console.log('- window.initializeEventLocationSearch:', typeof window.initializeEventLocationSearch);
+                
+                // The calendar scripts are already loaded and initialized via inline scripts in the partial view
+                // Just verify they loaded correctly
+                if (typeof window.initializeEventLocationSearch === 'function') {
+                    console.log('✓ Calendar functions are available');
+                } else {
+                    console.warn('⚠ Calendar functions may not be fully loaded yet');
+                }
+                
+                // Dispatch event to notify calendar that tab is active
+                const calendarTabEvent = new CustomEvent('matterTabChanged', { 
+                    detail: { tabName: 'calendar' } 
+                });
+                document.dispatchEvent(calendarTabEvent);
+                console.log('✓ Dispatched matterTabChanged event for calendar');
+                
+                console.log('=== Calendar scripts initialization complete ===');
                 break;
             
             // Add other tab-specific initializations here as needed

@@ -960,7 +960,7 @@
                 </div>
                 <div class="nav-item">
                     <a href="/Client/@ViewBag.OrganizationId/Matter" 
-                       class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Matter" ? "active" : "")">
+                       class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Matter" || (ViewContext.RouteData.Values["controller"]?.ToString() == "Client" && ViewContext.RouteData.Values["action"]?.ToString() == "Matter") ? "active" : "")">
                         <i class="fas fa-briefcase"></i>
                         <span>Matters</span>
                     </a>
