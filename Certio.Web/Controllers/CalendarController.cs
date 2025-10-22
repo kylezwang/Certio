@@ -65,7 +65,7 @@ namespace Certio.Web.Controllers
         }
 
         // GET: /Client/{orgId}/Calendar/Events
-        [Authorize(Policy = "OrgMember")]
+        [Authorize]  // Basic auth only - custom authorization below
         [HttpGet("/Client/{orgId:int}/Calendar/Events")]
         public async Task<IActionResult> GetEvents(
             int orgId,
@@ -80,17 +80,44 @@ namespace Certio.Web.Controllers
                 return Unauthorized();
             }
 
-            var filter = new CalendarFilterDto
+            // If filtering by matter, use ListEventsForMatterAsync (handles cross-org relationships)
+            ServiceResult<List<CalendarEventDto>> result;
+            
+            if (matterId.HasValue)
             {
-                StartDate = start,
-                EndDate = end,
-                MatterId = matterId,
-                EventTypes = string.IsNullOrEmpty(eventTypes) 
-                    ? null 
-                    : eventTypes.Split(',').ToList()
-            };
-
-            var result = await _calendarService.ListEventsAsync(user.Id, orgId, filter);
+                var filter = new CalendarFilterDto
+                {
+                    StartDate = start,
+                    EndDate = end,
+                    EventTypes = string.IsNullOrEmpty(eventTypes) 
+                        ? null 
+                        : eventTypes.Split(',').ToList()
+                };
+                
+                result = await _calendarService.ListEventsForMatterAsync(user.Id, matterId.Value, filter);
+            }
+            else
+            {
+                // No matter context - use standard org-scoped list (requires org membership)
+                var (_, currentOrgId) = GetUserContext();
+                if (currentOrgId != orgId)
+                {
+                    _logger.LogWarning("User {UserId} attempted to access calendar for unauthorized org {OrgId}", 
+                        user.Id, orgId);
+                    return NotFound();
+                }
+                
+                var filter = new CalendarFilterDto
+                {
+                    StartDate = start,
+                    EndDate = end,
+                    EventTypes = string.IsNullOrEmpty(eventTypes) 
+                        ? null 
+                        : eventTypes.Split(',').ToList()
+                };
+                
+                result = await _calendarService.ListEventsAsync(user.Id, orgId, filter);
+            }
 
             if (!result.Success)
             {
@@ -101,7 +128,7 @@ namespace Certio.Web.Controllers
         }
 
         // GET: /Client/{orgId}/Calendar/Events/{eventId}
-        [Authorize(Policy = "OrgMember")]
+        [Authorize]  // Basic auth only - custom authorization below
         [HttpGet("/Client/{orgId:int}/Calendar/Events/{eventId:int}")]
         public async Task<IActionResult> GetEvent(int orgId, int eventId)
         {
@@ -111,6 +138,7 @@ namespace Certio.Web.Controllers
                 return Unauthorized();
             }
 
+            // Get the event first to check if it belongs to a matter
             var result = await _calendarService.GetEventAsync(user.Id, eventId);
 
             if (!result.Success)
@@ -118,11 +146,36 @@ namespace Certio.Web.Controllers
                 return NotFound(new { success = false, message = result.ErrorMessage });
             }
 
-            return Json(new { success = true, @event = result.Data });
+            var eventData = result.Data;
+            
+            // If event belongs to a matter, verify matter access (handles cross-org relationships)
+            if (eventData.MatterId.HasValue)
+            {
+                var matterResult = await _matterService.GetMatterAsync(user.Id, eventData.MatterId.Value);
+                if (!matterResult.Success)
+                {
+                    _logger.LogWarning("User {UserId} attempted to access event {EventId} for unauthorized matter {MatterId}", 
+                        user.Id, eventId, eventData.MatterId.Value);
+                    return NotFound(new { success = false, message = "Event not found or access denied" });
+                }
+            }
+            else
+            {
+                // No matter - verify direct org membership
+                var (_, currentOrgId) = GetUserContext();
+                if (currentOrgId != orgId)
+                {
+                    _logger.LogWarning("User {UserId} attempted to access event for unauthorized org {OrgId}", 
+                        user.Id, orgId);
+                    return NotFound();
+                }
+            }
+
+            return Json(new { success = true, @event = eventData });
         }
 
         // POST: /Client/{orgId}/Calendar/Events
-        [Authorize(Policy = "OrgMember")]
+        [Authorize]  // Basic auth only - custom authorization below
         [HttpPost("/Client/{orgId:int}/Calendar/Events")]
         public async Task<IActionResult> CreateEvent(int orgId, [FromBody] CreateCalendarEventDto dto)
         {
@@ -135,6 +188,29 @@ namespace Certio.Web.Controllers
             if (!ModelState.IsValid)
             {
                 return BadRequest(new { success = false, message = "Invalid data", errors = ModelState });
+            }
+
+            // If event belongs to a matter, verify matter access (handles cross-org relationships)
+            if (dto.MatterId.HasValue)
+            {
+                var matterResult = await _matterService.GetMatterAsync(user.Id, dto.MatterId.Value);
+                if (!matterResult.Success)
+                {
+                    _logger.LogWarning("User {UserId} attempted to create event for unauthorized matter {MatterId}", 
+                        user.Id, dto.MatterId.Value);
+                    return NotFound(new { success = false, message = "Matter not found or access denied" });
+                }
+            }
+            else
+            {
+                // No matter - verify direct org membership
+                var (_, currentOrgId) = GetUserContext();
+                if (currentOrgId != orgId)
+                {
+                    _logger.LogWarning("User {UserId} attempted to create event for unauthorized org {OrgId}", 
+                        user.Id, orgId);
+                    return NotFound();
+                }
             }
 
             var result = await _calendarService.CreateEventAsync(
@@ -154,7 +230,7 @@ namespace Certio.Web.Controllers
         }
 
         // PUT: /Client/{orgId}/Calendar/Events/{eventId}
-        [Authorize(Policy = "OrgMember")]
+        [Authorize]  // Basic auth only - custom authorization below
         [HttpPut("/Client/{orgId:int}/Calendar/Events/{eventId:int}")]
         public async Task<IActionResult> UpdateEvent(int orgId, int eventId, [FromBody] UpdateCalendarEventDto dto)
         {
@@ -167,6 +243,37 @@ namespace Certio.Web.Controllers
             if (!ModelState.IsValid)
             {
                 return BadRequest(new { success = false, message = "Invalid data", errors = ModelState });
+            }
+
+            // Get existing event to check matter access
+            var existingEventResult = await _calendarService.GetEventAsync(user.Id, eventId);
+            if (!existingEventResult.Success)
+            {
+                return NotFound(new { success = false, message = "Event not found" });
+            }
+
+            // If event belongs to a matter, verify matter access (handles cross-org relationships)
+            // Note: MatterId is not changeable after creation
+            if (existingEventResult.Data.MatterId.HasValue)
+            {
+                var matterResult = await _matterService.GetMatterAsync(user.Id, existingEventResult.Data.MatterId.Value);
+                if (!matterResult.Success)
+                {
+                    _logger.LogWarning("User {UserId} attempted to update event {EventId} for unauthorized matter {MatterId}", 
+                        user.Id, eventId, existingEventResult.Data.MatterId.Value);
+                    return NotFound(new { success = false, message = "Matter not found or access denied" });
+                }
+            }
+            else
+            {
+                // No matter - verify direct org membership
+                var (_, currentOrgId) = GetUserContext();
+                if (currentOrgId != orgId)
+                {
+                    _logger.LogWarning("User {UserId} attempted to update event for unauthorized org {OrgId}", 
+                        user.Id, orgId);
+                    return NotFound();
+                }
             }
 
             var result = await _calendarService.UpdateEventAsync(
@@ -186,7 +293,7 @@ namespace Certio.Web.Controllers
         }
 
         // DELETE: /Client/{orgId}/Calendar/Events/{eventId}
-        [Authorize(Policy = "OrgMember")]
+        [Authorize]  // Basic auth only - custom authorization below
         [HttpDelete("/Client/{orgId:int}/Calendar/Events/{eventId:int}")]
         public async Task<IActionResult> DeleteEvent(int orgId, int eventId)
         {
@@ -194,6 +301,36 @@ namespace Certio.Web.Controllers
             if (user == null)
             {
                 return Unauthorized();
+            }
+
+            // Get existing event to check matter access
+            var existingEventResult = await _calendarService.GetEventAsync(user.Id, eventId);
+            if (!existingEventResult.Success)
+            {
+                return NotFound(new { success = false, message = "Event not found" });
+            }
+
+            // If event belongs to a matter, verify matter access (handles cross-org relationships)
+            if (existingEventResult.Data.MatterId.HasValue)
+            {
+                var matterResult = await _matterService.GetMatterAsync(user.Id, existingEventResult.Data.MatterId.Value);
+                if (!matterResult.Success)
+                {
+                    _logger.LogWarning("User {UserId} attempted to delete event {EventId} for unauthorized matter {MatterId}", 
+                        user.Id, eventId, existingEventResult.Data.MatterId.Value);
+                    return NotFound(new { success = false, message = "Matter not found or access denied" });
+                }
+            }
+            else
+            {
+                // No matter - verify direct org membership
+                var (_, currentOrgId) = GetUserContext();
+                if (currentOrgId != orgId)
+                {
+                    _logger.LogWarning("User {UserId} attempted to delete event for unauthorized org {OrgId}", 
+                        user.Id, orgId);
+                    return NotFound();
+                }
             }
 
             var result = await _calendarService.DeleteEventAsync(
@@ -319,7 +456,8 @@ namespace Certio.Web.Controllers
             var matters = result.Data!.Select(m => new
             {
                 id = m.Id,
-                title = m.Title
+                title = m.Title,
+                organizationId = m.OrganizationId
             }).ToList();
 
             return Json(new { success = true, matters });
@@ -365,6 +503,40 @@ namespace Certio.Web.Controllers
             var first = !string.IsNullOrWhiteSpace(firstName) ? firstName[0].ToString().ToUpper() : "";
             var last = !string.IsNullOrWhiteSpace(lastName) ? lastName[0].ToString().ToUpper() : "";
             return first + last;
+        }
+
+        // GET: /Client/{orgId}/Matter/{matterId}/Calendar - AJAX partial for Matter Details
+        [Authorize(Policy = "OrgMember")]
+        [HttpGet("/Client/{orgId:int}/Matter/{matterId:int}/Calendar")]
+        public async Task<IActionResult> MatterCalendar(int orgId, int matterId)
+        {
+            var (user, organizationId) = GetUserContext();
+            if (user == null || organizationId == 0)
+            {
+                return Unauthorized();
+            }
+
+            // Verify matter access
+            var matterResult = await _matterService.GetMatterAsync(user.Id, matterId);
+            if (!matterResult.Success)
+            {
+                _logger.LogWarning("User {UserId} attempted to access calendar for unauthorized matter {MatterId}", 
+                    user.Id, matterId);
+                return NotFound();
+            }
+
+            // Set ViewBag for the partial view
+            // Note: orgId should already be the matter's actual organization ID thanks to MatterController.Details redirect
+            ViewBag.OrganizationId = orgId;
+            ViewBag.MatterId = matterId;
+            ViewBag.GoogleMapsApiKey = _googleMapsConfig.ApiKey;
+            ViewBag.GoogleMapsEnabled = _googleMapsConfig.Enabled;
+            ViewBag.CurrentUserId = user.Id;
+            ViewBag.CurrentUserName = $"{user.FirstName} {user.LastName}";
+            ViewBag.CurrentUserInitials = $"{user.FirstName[0]}{user.LastName[0]}".ToUpper();
+            ViewBag.CurrentUserEmail = user.Email ?? "";
+
+            return PartialView("~/Views/Matter/_MatterCalendar.cshtml");
         }
 
         // Helper methods

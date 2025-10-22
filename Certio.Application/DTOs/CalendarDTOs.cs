@@ -24,6 +24,7 @@ namespace Certio.Application.DTOs
         public bool? IsAllDayEvent { get; set; }
         public string? EventType { get; set; }
         public string? Color { get; set; }
+        public List<int>? AttendeeUserIds { get; set; }
         // MatterId is not changeable after creation
     }
 
