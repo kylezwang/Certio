@@ -4,6 +4,7 @@ using Certio.Application.Interfaces;
 using Certio.Application.DTOs;
 using Certio.Domain.Users;
 using Certio.Infrastructure.Data;
+using Certio.Web.Attributes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Certio.Web.Configuration;
@@ -130,6 +131,7 @@ namespace Certio.Web.Controllers
         // GET: /Client/{orgId}/Calendar/Events/{eventId}
         [Authorize]  // Basic auth only - custom authorization below
         [HttpGet("/Client/{orgId:int}/Calendar/Events/{eventId:int}")]
+        [ViewAudit("CalendarEvent", "eventId")]
         public async Task<IActionResult> GetEvent(int orgId, int eventId)
         {
             var (user, _) = GetUserContext();

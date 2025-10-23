@@ -767,13 +767,89 @@
         </div>
         
         <div class="d-flex justify-content-center align-items-center w-100">
-            <div class="search-container" style="max-width: 600px; width: 100%; margin: 0 auto; position: relative; flex-shrink: 0;">
+            <div class="search-container" style="max-width: 525px; width: 100%; margin: 0 0 0 auto; position: relative; flex-shrink: 0;">
                 <i class="fas fa-search" style="position: absolute; left: 50%; transform: translate(-200%, -50%); top: 50%; color: #6b7280;"></i>
                 <input type="text" class="form-control" placeholder="Search" 
                        style="height: 2.5rem; line-height: 1.25; border-radius: 24px; padding: 0.75rem 1rem 0.75rem 3rem; background-color: #f9fafb; font-size: 1rem; text-align: center;" />
             </div>
+            
+            <!-- Timer Card -->
+            <div id="timerCard" style="
+                background: white;
+                border-radius: 12px;
+                padding: 0.325rem 0.875rem;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+                display: flex;
+                align-items: center;
+                gap: 0.625rem;
+                margin-left: 1rem;
+                transition: all 0.3s ease;
+            ">
+                <div id="timerDisplay" style="
+                    font-family: 'Courier New', monospace;
+                    font-size: 1.125rem;
+                    font-weight: 600;
+                    color: #1f2937;
+                    letter-spacing: 0.03em;
+                ">00 : 00 : 00</div>
+                <div style="display: flex; gap: 0.375rem;">
+                    <button id="timerStartBtn" class="timer-btn timer-start-btn" style="
+                        background: #c7b7a3;
+                        color: white;
+                        border: none;
+                        border-radius: 6px;
+                        padding: 0.3rem 0.625rem;
+                        font-size: 0.8rem;
+                        font-weight: 600;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.25rem;
+                        transition: all 0.2s ease;
+                        box-shadow: 0 1px 3px rgba(199, 183, 163, 0.3);
+                    ">
+                        <i class="fas fa-play" style="font-size: 0.65rem;"></i>
+                        Start
+                    </button>
+                    <button id="timerStopBtn" class="timer-btn" style="
+                        background: linear-gradient(135deg, #ef4444, #dc2626);
+                        color: white;
+                        border: none;
+                        border-radius: 6px;
+                        padding: 0.3rem 0.625rem;
+                        font-size: 0.8rem;
+                        font-weight: 600;
+                        cursor: pointer;
+                        display: none;
+                        align-items: center;
+                        gap: 0.25rem;
+                        transition: all 0.2s ease;
+                    ">
+                        <i class="fas fa-stop" style="font-size: 0.65rem;"></i>
+                        Stop
+                    </button>
+                    <button id="timerResetBtn" class="timer-btn" style="
+                        background: #f3f4f6;
+                        color: #6b7280;
+                        border: none;
+                        border-radius: 6px;
+                        padding: 0.3rem 0.5rem;
+                        font-size: 0.8rem;
+                        font-weight: 600;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.25rem;
+                        transition: all 0.2s ease;
+                    ">
+                        <i class="fas fa-redo" style="font-size: 0.65rem;"></i>
+                        Reset
+                    </button>
+                </div>
+            </div>
+            
             <!-- Notifications Button -->
-            <button class="ai-toggle" id="notificationsBtn" type="button" title="Show Notifications" style="margin-left: 6rem;">
+            <button class="ai-toggle" id="notificationsBtn" type="button" title="Show Notifications" style="margin-left: 1rem;">
                 <i class="fa-solid fa-bell"></i>
             </button>
             
@@ -817,7 +893,7 @@
     @{
         var controller = ViewContext.RouteData.Values["controller"]?.ToString();
         var action = ViewContext.RouteData.Values["action"]?.ToString();
-        var isGlobalDashboard = controller == "Global" || controller == "Calendar";
+        var isGlobalDashboard = controller == "Global" || controller == "Calendar" || controller == "History";
     }
     <div class="d-none d-xl-block @(isGlobalDashboard ? "global-dashboard-sidebar" : "client-sidebar")">
         
@@ -826,43 +902,19 @@
         {
             <!-- Global Dashboard Sidebar Content -->
             <div class="global-dashboard-content">
-                <!-- Upcoming Deadlines Card -->
-                <div class="card mb-3 border-0">
-                    <div class="card-body p-3">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="card-title fw-bold mb-0">Upcoming Deadlines</h5>
-                            <span class="badge bg-primary">Today</span>
-                        </div>
-                        
-                        <div class="deadlines-list">
-                            <div class="deadline-item border-start border-danger border-3 mb-3 ps-3">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h6 class="mb-1 fw-semibold">Smith v. Jones - Motion Filing</h6>
-                                        <p class="text-muted small mb-0">2:00 PM</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="deadline-item mb-3 ps-3">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h6 class="mb-1 fw-semibold">Client Review Call</h6>
-                                        <p class="text-muted small mb-0">4:30 PM</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="deadline-item mb-3 ps-3">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h6 class="mb-1 fw-semibold">Document Review</h6>
-                                        <p class="text-muted small mb-0">EOD</p>
-                                    </div>
-                                </div>
+                <!-- Upcoming Deadlines Card (for Calendar page only) -->
+                @if (controller == "Calendar")
+                {
+                    <div class="card mb-3 border-0">
+                        <div class="card-body p-3">
+                            <h5 class="card-title fw-bold mb-3">Upcoming Deadlines</h5>
+                            <div id="upcomingDeadlinesList">
+                                <p class="text-muted small mb-2">Loading deadlines...</p>
                             </div>
                         </div>
                     </div>
-                </div>
-
+                }
+                
                 <!-- Calendar Card -->
                 <div class="card mb-3 border-0">
                     <div class="card-body p-3">
@@ -1066,6 +1118,14 @@
                                data-bs-dismiss="offcanvas">
                                 <i class="fa-solid fa-bars-progress fs-5"></i>
                                 <span class="fw-medium">Tasks</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/Client/@ViewBag.OrganizationId/Calendar"
+                               class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["controller"]?.ToString() == "Calendar" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")"
+                               data-bs-dismiss="offcanvas">
+                                <i class="fas fa-calendar fs-5"></i>
+                                <span class="fw-medium">Calendar</span>
                             </a>
                         </li>
                         <li>
@@ -1313,6 +1373,84 @@
 <script>
     // Initialize conversations on all pages
     document.addEventListener('DOMContentLoaded', function() {
+        
+        // Initialize Timer
+        let timerInterval = null;
+        let timerSeconds = 0;
+        let isRunning = false;
+        
+        const timerDisplay = document.getElementById('timerDisplay');
+        const timerStartBtn = document.getElementById('timerStartBtn');
+        const timerStopBtn = document.getElementById('timerStopBtn');
+        const timerResetBtn = document.getElementById('timerResetBtn');
+        const timerCard = document.getElementById('timerCard');
+        
+        // Add hover effects to timer buttons
+        const timerButtons = document.querySelectorAll('.timer-btn');
+        timerButtons.forEach(btn => {
+            const isStartBtn = btn.classList.contains('timer-start-btn');
+            
+            btn.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.05)';
+                if (isStartBtn) {
+                    this.style.background = '#6d2932';
+                } else {
+                    this.style.filter = 'brightness(1.1)';
+                }
+            });
+            btn.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1)';
+                if (isStartBtn) {
+                    this.style.background = '#c7b7a3';
+                } else {
+                    this.style.filter = 'brightness(1)';
+                }
+            });
+        });
+        
+        function updateTimerDisplay() {
+            const hours = Math.floor(timerSeconds / 3600);
+            const minutes = Math.floor((timerSeconds % 3600) / 60);
+            const seconds = timerSeconds % 60;
+            
+            timerDisplay.textContent = 
+                String(hours).padStart(2, '0') + ' : ' + 
+                String(minutes).padStart(2, '0') + ' : ' + 
+                String(seconds).padStart(2, '0');
+        }
+        
+        function startTimer() {
+            if (!isRunning) {
+                isRunning = true;
+                timerStartBtn.style.display = 'none';
+                timerStopBtn.style.display = 'flex';
+                
+                timerInterval = setInterval(() => {
+                    timerSeconds++;
+                    updateTimerDisplay();
+                }, 1000);
+            }
+        }
+        
+        function stopTimer() {
+            if (isRunning) {
+                isRunning = false;
+                clearInterval(timerInterval);
+                timerStartBtn.style.display = 'flex';
+                timerStopBtn.style.display = 'none';
+            }
+        }
+        
+        function resetTimer() {
+            stopTimer();
+            timerSeconds = 0;
+            updateTimerDisplay();
+            timerCard.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+        }
+        
+        if (timerStartBtn) timerStartBtn.addEventListener('click', startTimer);
+        if (timerStopBtn) timerStopBtn.addEventListener('click', stopTimer);
+        if (timerResetBtn) timerResetBtn.addEventListener('click', resetTimer);
         
         // Initialize simple sidebar toggle
         const toggleBtn = document.getElementById('toggleSidebar');

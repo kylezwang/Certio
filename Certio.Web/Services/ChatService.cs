@@ -679,7 +679,9 @@ public class ChatService : IChatService
             Content = content,
             MessageType = messageType,
             IsFromAI = true,
+            IsAIGenerated = true, // For audit interceptor
             AIAgentType = agentType,
+            SourceConversationId = conversationId, // Track provenance
             CreatedAt = DateTime.UtcNow,
             Metadata = metadata != null ? System.Text.Json.JsonSerializer.Serialize(metadata) : null
         };

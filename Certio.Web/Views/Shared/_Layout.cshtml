@@ -412,7 +412,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="global-nav-link" href="#" title="History">
+                <a class="global-nav-link" href="#" id="historyLink" title="History">
                     <i class="fas fa-clock"></i>
                     <span>History</span>
                 </a>
@@ -478,12 +478,16 @@
             const clientsList = document.getElementById('clientsList');
             const myFirmLink = document.getElementById('myFirmLink');
             const calendarLink = document.getElementById('calendarLink');
+            const historyLink = document.getElementById('historyLink');
 
             // Initialize My Firm link
             initializeMyFirmLink();
             
             // Initialize Calendar link with same logic
             initializeCalendarLink();
+            
+            // Initialize History link with same logic
+            initializeHistoryLink();
 
             // Function to initialize My Firm link - defer to not block page load
             async function initializeMyFirmLink() {
@@ -592,6 +596,61 @@
                     myFirmLink.classList.remove('active');
                 } else {
                     calendarLink.classList.remove('active');
+                }
+            }
+
+            // Function to initialize History link
+            async function initializeHistoryLink() {
+                // Defer to idle time to not block page load
+                if ('requestIdleCallback' in window) {
+                    requestIdleCallback(doFetch);
+                } else {
+                    setTimeout(doFetch, 100);
+                }
+                
+                async function doFetch() {
+                    try {
+                        const response = await fetch('/Client/List', { credentials: 'include' });
+                        const result = await response.json();
+                        
+                        if (result.success && result.organizations) {
+                            // Find the user's firm organization (LawFirm type)
+                            const firmOrg = result.organizations.find(org => 
+                                org.organizationType === 'LawFirm'
+                            );
+                            
+                            if (firmOrg) {
+                                historyLink.href = `/Client/${firmOrg.organizationId}/History`;
+                                
+                                // Check if current URL is the history page and add active class
+                                updateHistoryActiveState(firmOrg.organizationId);
+                            } else {
+                                // If no firm organization found, default to #
+                                historyLink.href = '#';
+                            }
+                        } else {
+                            // Fallback on error
+                            historyLink.href = '#';
+                        }
+                    } catch (error) {
+                        console.error('Error initializing History link:', error);
+                        // Fallback on error
+                        historyLink.href = '#';
+                    }
+                }
+            }
+
+            // Function to update History button active state based on current URL
+            function updateHistoryActiveState(firmOrgId) {
+                const currentPath = window.location.pathname;
+                const historyPathPattern = new RegExp(`^/Client/${firmOrgId}/History`);
+                
+                if (historyPathPattern.test(currentPath)) {
+                    historyLink.classList.add('active');
+                    // Ensure My Firm is not marked active when History is active
+                    myFirmLink.classList.remove('active');
+                } else {
+                    historyLink.classList.remove('active');
                 }
             }
 

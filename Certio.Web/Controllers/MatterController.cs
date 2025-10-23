@@ -8,6 +8,7 @@ using Certio.Application.Interfaces;
 using Certio.Application.DTOs;
 using Certio.Web.Security;
 using Certio.Web.Services;
+using Certio.Web.Attributes;
 using Microsoft.EntityFrameworkCore;
 
 namespace Certio.Web.Controllers
@@ -143,6 +144,7 @@ namespace Certio.Web.Controllers
 
         // GET: /Client/{orgId}/Matter/Details/{id}
         [HttpGet("/Client/{orgId:int}/Matter/Details/{id:int}")]
+        [ViewAudit("Matter", "id")]
         // TEMPORARILY DISABLED FOR DEBUGGING: [RequireMatterAccess("id")]
         public async Task<IActionResult> Details(int orgId, int? id)
         {

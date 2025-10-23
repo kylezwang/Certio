@@ -804,15 +804,16 @@
 .inbox-container {
     width: 100%;
     height: 85vh;
-    background: #C7B7A366;
     display: flex;
     flex-direction: column;
     padding: 1rem 0.6rem 5rem 1rem;
     overflow-y: auto;
     border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
     margin-top: 1rem; /* Add top margin to compensate for removed page padding */
     margin-bottom: 1rem;
+    border: 1px solid #eeeeee !important;
+    background: #f6f6f6;
 }
 
 /* Inbox Header */
@@ -866,7 +867,7 @@
     border-radius: 8px;
     padding: 0.75rem 0rem 0rem 0rem;
     margin-bottom: 0.35rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
 .add-card-container {

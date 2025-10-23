@@ -1,0 +1,201 @@
+<!-- History Filters Card for Sidebar -->
+<div class="card border-0">
+    <div class="card-body p-3">
+        <h5 class="card-title fw-bold mb-3">Filter by...</h5>
+        
+        <!-- Notal AI Section -->
+        <div class="history-section mb-3">
+            <h6 class="history-section-title fw-semibold mb-2">Notal AI</h6>
+            <div class="history-checkboxes">
+                <div class="form-check mb-2">
+                    <input class="form-check-input notal-ai" type="checkbox" value="0" id="historyNotalAI" checked>
+                    <label class="form-check-label notal-ai-label" for="historyNotalAI">
+                        Notal AI
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Users Section -->
+        <div class="history-section">
+            <h6 class="history-section-title fw-semibold mb-2">Users</h6>
+            <div class="history-checkboxes" id="historyUsersList">
+                <!-- User checkboxes will be populated by JavaScript -->
+                <div class="text-muted small">Loading users...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .history-section {
+        padding: 0.25rem 0;
+    }
+
+    .history-section-title {
+        color: #1f2937;
+        font-size: 0.9rem;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 0.25rem;
+    }
+
+    .history-checkboxes {
+        padding-left: 0.25rem;
+    }
+
+    .history-checkboxes .form-check {
+        padding-left: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .history-checkboxes .form-check-input {
+        width: 1.1rem;
+        height: 1.1rem;
+        margin-top: 0.125rem;
+        cursor: pointer;
+    }
+
+    .history-checkboxes .form-check-label {
+        cursor: pointer;
+        font-size: 0.85rem;
+        color: #374151;
+        margin-left: 0.25rem;
+    }
+
+    .history-checkboxes .form-check-input:checked {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+    }
+
+    .history-checkboxes .form-check-input:focus {
+        border-color: #60a5fa;
+        box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+    }
+
+    /* Empty state styling */
+    .history-checkboxes .text-muted {
+        padding: 0.25rem 0;
+        font-size: 0.8rem;
+    }
+
+    /* Notal AI styling */
+    .history-checkboxes .notal-ai-label {
+        color: #3d1019;
+        font-weight: 500;
+    }
+
+    .history-checkboxes .form-check-input.notal-ai:checked {
+        background-color: #3d1019;
+        border-color: #3d1019;
+    }
+</style>
+
+<script>
+    // Initialize history filters when DOM is ready
+    (function() {
+        if (typeof window.historyFiltersInitialized !== 'undefined') {
+            return; // Already initialized
+        }
+        window.historyFiltersInitialized = true;
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            // Fetch and populate users for filtering
+            await loadHistoryUsers();
+        });
+
+        async function loadHistoryUsers() {
+            const usersList = document.getElementById('historyUsersList');
+            if (!usersList) return;
+            
+            usersList.innerHTML = '';
+            
+            try {
+                const orgId = @ViewBag.OrganizationId;
+                const response = await fetch(`/Client/${orgId}/History/Users`, { credentials: 'include' });
+                const result = await response.json();
+                
+                if (!result.success) {
+                    usersList.innerHTML = '<div class="text-muted small">Unable to load users.</div>';
+                    return;
+                }
+                
+                const users = result.users || [];
+                
+                // Filter out Notal AI since it has its own section now
+                const regularUsers = users.filter(user => user.id !== 0 && user.name !== 'Notal AI');
+                
+                if (regularUsers.length === 0) {
+                    usersList.innerHTML = '<div class="text-muted small">No users available.</div>';
+                    return;
+                }
+                
+                // Create checkbox for each regular user (excluding Notal AI)
+                regularUsers.forEach((user, index) => {
+                    const checkboxDiv = document.createElement('div');
+                    checkboxDiv.className = 'form-check mb-2';
+                    checkboxDiv.innerHTML = `
+                        <input class="form-check-input history-user-checkbox" 
+                               type="checkbox" 
+                               value="${user.id}" 
+                               id="historyUser${index}" 
+                               checked>
+                        <label class="form-check-label" for="historyUser${index}">
+                            ${user.name}
+                        </label>
+                    `;
+                    usersList.appendChild(checkboxDiv);
+                });
+                
+                // Add event listeners for filtering
+                setupHistoryFiltering();
+            } catch (error) {
+                console.error('Error loading history users:', error);
+                usersList.innerHTML = '<div class="text-muted small">Error loading users.</div>';
+            }
+        }
+
+        function setupHistoryFiltering() {
+            // Get Notal AI checkbox
+            const notalAICheckbox = document.getElementById('historyNotalAI');
+            if (notalAICheckbox) {
+                notalAICheckbox.addEventListener('change', function() {
+                    filterHistory();
+                });
+            }
+            
+            // Get all user checkboxes
+            const userCheckboxes = document.querySelectorAll('.history-user-checkbox');
+            
+            // Add change event listeners
+            userCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    filterHistory();
+                });
+            });
+        }
+
+        function filterHistory() {
+            // Get all selected users
+            const selectedUsers = [];
+            
+            // Check if Notal AI is selected
+            const notalAICheckbox = document.getElementById('historyNotalAI');
+            if (notalAICheckbox && notalAICheckbox.checked) {
+                selectedUsers.push(0); // 0 is the ID for Notal AI
+            }
+            
+            // Get all selected regular users
+            document.querySelectorAll('.history-user-checkbox:checked').forEach(checkbox => {
+                selectedUsers.push(parseInt(checkbox.value));
+            });
+            
+            console.log('Selected users for history:', selectedUsers);
+            
+            // Dispatch custom event for history filtering
+            window.dispatchEvent(new CustomEvent('historyFiltersChanged', { 
+                detail: { selectedUsers } 
+            }));
+        }
+    })();
+</script>
+

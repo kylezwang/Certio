@@ -10,6 +10,7 @@ using Certio.Application.Interfaces;
 using Certio.Application.DTOs;
 using Certio.Web.Security;
 using Certio.Web.Services;
+using Certio.Web.Attributes;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
