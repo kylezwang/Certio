@@ -1685,6 +1685,9 @@ namespace Certio.Infrastructure.Migrations
                     b.Property<DateTime?>("EditedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("IsAIGenerated")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsChannelMessage")
                         .HasColumnType("bit");
 
@@ -1741,6 +1744,12 @@ namespace Certio.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<int?>("SourceConversationId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SourceMessageId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("datetime2");

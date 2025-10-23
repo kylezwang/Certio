@@ -54,6 +54,11 @@ public class ChatMessage
     
     public string? Metadata { get; set; } // JSON string for additional data
     
+    // AI provenance fields for audit logging
+    public int? SourceConversationId { get; set; }
+    public int? SourceMessageId { get; set; }
+    public bool IsAIGenerated { get; set; } = false; // For audit interceptor
+    
     // Audit fields
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
     public int? CreatedById { get; set; }
