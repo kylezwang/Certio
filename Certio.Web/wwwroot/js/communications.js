@@ -31,7 +31,7 @@ async function initializeCommunicationsChat(channelId, userId, userName, organiz
 
         // Start connection
         await communicationsConnection.start();
-        console.log("Communications SignalR Connected");
+        console.log("Communications SignalR Connected successfully");
 
         // Join the current channel
         if (currentChannelId) {
@@ -582,12 +582,41 @@ function updateOnlineUsers() {
 // Update user status
 function updateUserStatus(userId, status) {
     const memberElements = document.querySelectorAll(`[data-user-id="${userId}"]`);
+    
     memberElements.forEach(element => {
         const statusIndicator = element.querySelector('.status-indicator');
         if (statusIndicator) {
             statusIndicator.className = `status-indicator ${status}`;
         }
+        
+        // Also update the activity text
+        const activityText = element.querySelector('.member-activity');
+        if (activityText) {
+            activityText.textContent = status === 'online' ? 'Online' : 'Offline';
+        }
     });
+    
+    // Force update the online count header
+    updateOnlineCount();
+}
+
+// Update online count in header
+function updateOnlineCount() {
+    const allMembers = document.querySelectorAll('.team-member');
+    let onlineCount = 0;
+    
+    allMembers.forEach(member => {
+        const statusIndicator = member.querySelector('.status-indicator');
+        if (statusIndicator && statusIndicator.classList.contains('online')) {
+            onlineCount++;
+        }
+    });
+    
+    // Update the header count
+    const teamTitle = document.querySelector('.team-title');
+    if (teamTitle) {
+        teamTitle.textContent = `Direct Messages — ${onlineCount} Online`;
+    }
 }
 
 // Update edited message

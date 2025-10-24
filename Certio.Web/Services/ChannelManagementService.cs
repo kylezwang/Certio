@@ -127,7 +127,7 @@ public class ChannelManagementService : Certio.Web.Services.IChannelManagementSe
                 Role = uo.Role ?? "Member",
                 Status = "offline", // Will be updated by SignalR
                 Avatar = $"{uo.User.FirstName.Substring(0, 1)}{uo.User.LastName.Substring(0, 1)}",
-                Activity = "Available",
+                Activity = "Offline",
                 RoleIcon = "", // Remove role icons
                 RoleColor = "" // Remove role colors
             })
@@ -156,7 +156,7 @@ public class ChannelManagementService : Certio.Web.Services.IChannelManagementSe
                 Role = uo.Role ?? "Member",
                 Status = "offline", // Will be updated by SignalR
                 Avatar = $"{uo.User.FirstName.Substring(0, 1)}{uo.User.LastName.Substring(0, 1)}",
-                Activity = "Available",
+                Activity = "Offline",
                 RoleIcon = "", // Remove role icons
                 RoleColor = "" // Remove role colors
             })

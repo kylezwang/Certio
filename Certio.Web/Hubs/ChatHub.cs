@@ -562,11 +562,17 @@ public class ChatHub : Hub
     {
         await base.OnConnectedAsync();
         
+        // Join organization group for presence updates
+        var organizationId = GetCurrentOrganizationId();
+        if (organizationId.HasValue)
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"org_{organizationId}");
+        }
+        
         // Update user online status
         await UpdateUserOnlineStatus(true);
         
         // Notify organization about user coming online
-        var organizationId = GetCurrentOrganizationId();
         if (organizationId.HasValue)
         {
             await Clients.Group($"org_{organizationId}").SendAsync("UserOnline", new
@@ -593,6 +599,9 @@ public class ChatHub : Hub
                 UserName = GetCurrentUserName(),
                 Timestamp = DateTime.UtcNow
             });
+            
+            // Remove from organization group
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"org_{organizationId}");
         }
         
         await base.OnDisconnectedAsync(exception);

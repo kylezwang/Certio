@@ -3,25 +3,90 @@
     <div class="card-body p-3">
         <h5 class="card-title fw-bold mb-3">Filter by...</h5>
         
+        <!-- Entity ID Section - Moved to top -->
+        <div class="history-section collapsible-section">
+            <div class="history-section-title fw-semibold mb-2 collapsible-header" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                <span>Entity ID</span>
+                <i class="fas fa-chevron-down collapse-icon"></i>
+            </div>
+            <div class="history-section-content" style="display: none;">
+                <div class="history-search-field px-2">
+                    <input type="text" class="form-control form-control-sm" id="historyEntityIdSearch" placeholder="Search by Entity ID...">
+                </div>
+            </div>
+        </div>
+
         <!-- Notal AI Section -->
-        <div class="history-section mb-3">
-            <h6 class="history-section-title fw-semibold mb-2">Notal AI</h6>
-            <div class="history-checkboxes">
-                <div class="form-check mb-2">
-                    <input class="form-check-input notal-ai" type="checkbox" value="0" id="historyNotalAI" checked>
-                    <label class="form-check-label notal-ai-label" for="historyNotalAI">
-                        Notal AI
-                    </label>
+        <div class="history-section collapsible-section">
+            <div class="history-section-title fw-semibold mb-2 collapsible-header" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                <span>Notal AI</span>
+                <i class="fas fa-chevron-down collapse-icon"></i>
+            </div>
+            <div class="history-section-content" style="display: none;">
+                <div class="history-checkboxes">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input notal-ai" type="checkbox" value="0" id="historyNotalAI" checked>
+                        <label class="form-check-label notal-ai-label" for="historyNotalAI">
+                            Notal AI
+                        </label>
+                    </div>
                 </div>
             </div>
         </div>
         
         <!-- Users Section -->
-        <div class="history-section">
-            <h6 class="history-section-title fw-semibold mb-2">Users</h6>
-            <div class="history-checkboxes" id="historyUsersList">
-                <!-- User checkboxes will be populated by JavaScript -->
-                <div class="text-muted small">Loading users...</div>
+        <div class="history-section collapsible-section">
+            <div class="history-section-title fw-semibold mb-2 collapsible-header" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                <span>Users</span>
+                <i class="fas fa-chevron-down collapse-icon"></i>
+            </div>
+            <div class="history-section-content" style="display: none;">
+                <div class="history-checkboxes" id="historyUsersList">
+                    <!-- User checkboxes will be populated by JavaScript -->
+                    <div class="text-muted small">Loading users...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Section -->
+        <div class="history-section collapsible-section">
+            <div class="history-section-title fw-semibold mb-2 collapsible-header" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                <span>Action</span>
+                <i class="fas fa-chevron-down collapse-icon"></i>
+            </div>
+            <div class="history-section-content" style="display: none;">
+                <div class="history-checkboxes" id="historyActionsList">
+                    <!-- Action checkboxes will be populated by JavaScript -->
+                    <div class="text-muted small">Loading actions...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Entity Type Section -->
+        <div class="history-section collapsible-section">
+            <div class="history-section-title fw-semibold mb-2 collapsible-header" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                <span>Entity Type</span>
+                <i class="fas fa-chevron-down collapse-icon"></i>
+            </div>
+            <div class="history-section-content" style="display: none;">
+                <div class="history-checkboxes" id="historyEntityTypesList">
+                    <!-- Entity Type checkboxes will be populated by JavaScript -->
+                    <div class="text-muted small">Loading entity types...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Matter Section -->
+        <div class="history-section collapsible-section">
+            <div class="history-section-title fw-semibold mb-2 collapsible-header" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                <span>Matter</span>
+                <i class="fas fa-chevron-down collapse-icon"></i>
+            </div>
+            <div class="history-section-content" style="display: none;">
+                <div class="history-checkboxes" id="historyMattersList">
+                    <!-- Matter checkboxes will be populated by JavaScript -->
+                    <div class="text-muted small">Loading matters...</div>
+                </div>
             </div>
         </div>
     </div>
@@ -36,7 +101,55 @@
         color: #1f2937;
         font-size: 0.9rem;
         border-bottom: 1px solid #e5e7eb;
-        padding-bottom: 0.25rem;
+        padding: 0.5rem 0.25rem;
+        transition: all 0.2s ease;
+    }
+
+    .collapsible-header {
+        border-radius: 6px;
+    }
+
+    .collapsible-header:hover {
+        background-color: rgba(61, 16, 25, 0.05);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .collapse-icon {
+        font-size: 0.75rem;
+        color: #6b7280;
+        transition: all 0.2s ease;
+    }
+
+    .collapsible-header:hover .collapse-icon {
+        color: #3d1019;
+        transform: scale(1.1);
+    }
+
+    .collapsible-section.expanded .collapse-icon {
+        transform: rotate(180deg);
+    }
+
+    /* Hover behavior is handled in JavaScript with delay */
+
+    /* Keep expanded state styling when section is active/expanded */
+    .collapsible-section.expanded .collapsible-header {
+        background-color: rgba(61, 16, 25, 0.05);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .collapsible-section.expanded .collapse-icon {
+        color: #3d1019;
+        transform: rotate(180deg) scale(1.1);
+    }
+
+    .collapsible-section.expanded .history-section-content {
+        display: block !important;
+    }
+
+    .history-section-content {
+        padding-top: 0.5rem;
     }
 
     .history-checkboxes {
@@ -88,6 +201,16 @@
         background-color: #3d1019;
         border-color: #3d1019;
     }
+
+    /* Entity ID search field styling */
+    .history-search-field {
+        padding-bottom: 0.5rem;
+    }
+
+    .history-search-field .form-control {
+        font-size: 0.85rem;
+        border-radius: 4px;
+    }
 </style>
 
 <script>
@@ -99,9 +222,86 @@
         window.historyFiltersInitialized = true;
 
         document.addEventListener('DOMContentLoaded', async function () {
-            // Fetch and populate users for filtering
+            // Initialize collapsible sections
+            initializeCollapsibleSections();
+            
+            // Fetch and populate filter data
             await loadHistoryUsers();
+            await loadHistoryActions();
+            await loadHistoryEntityTypes();
+            await loadHistoryMatters();
+            
+            // Setup Entity ID search field
+            setupEntityIdSearch();
+            
+            // Setup event listeners for all filters (only once after all data is loaded)
+            setupHistoryFiltering();
+            
+            // Initialize filters with all items checked (default state)
+            setTimeout(() => {
+                filterHistory();
+            }, 500);
         });
+
+        function initializeCollapsibleSections() {
+            const collapsibleHeaders = document.querySelectorAll('.collapsible-header');
+            collapsibleHeaders.forEach(header => {
+                const section = header.closest('.collapsible-section');
+                const content = section.querySelector('.history-section-content');
+                
+                // Function to expand section permanently
+                function expandSection() {
+                    section.classList.add('expanded');
+                    section.classList.remove('hover-disabled');
+                    content.style.display = 'block';
+                }
+                
+                // Function to collapse section
+                function collapseSection() {
+                    section.classList.remove('expanded');
+                    section.classList.add('hover-disabled');
+                    content.style.display = 'none';
+                }
+                
+                // Click handler for actual expansion/collapse
+                header.onclick = function() {
+                    if (section.classList.contains('expanded')) {
+                        collapseSection();
+                    } else {
+                        expandSection();
+                    }
+                };
+                
+                // Click handler for content - expand section when clicking inside
+                content.onclick = function(e) {
+                    // Only expand if this is a real user click (not programmatic)
+                    if (e.isTrusted && !section.classList.contains('expanded')) {
+                        expandSection();
+                    }
+                };
+                
+                // Hover handlers for preview behavior with delay
+                let hoverTimeout;
+                
+                // Handle hover on the entire section (header and content)
+                section.onmouseenter = function() {
+                    if (!section.classList.contains('hover-disabled') && !section.classList.contains('expanded')) {
+                        // Set timeout for 1 second delay
+                        hoverTimeout = setTimeout(function() {
+                            content.style.display = 'block';
+                        }, 150);
+                    }
+                };
+                
+                section.onmouseleave = function() {
+                    // Clear the timeout if mouse leaves before delay completes
+                    clearTimeout(hoverTimeout);
+                    if (!section.classList.contains('expanded')) {
+                        content.style.display = 'none';
+                    }
+                };
+            });
+        }
 
         async function loadHistoryUsers() {
             const usersList = document.getElementById('historyUsersList');
@@ -145,12 +345,156 @@
                     `;
                     usersList.appendChild(checkboxDiv);
                 });
-                
-                // Add event listeners for filtering
-                setupHistoryFiltering();
             } catch (error) {
                 console.error('Error loading history users:', error);
                 usersList.innerHTML = '<div class="text-muted small">Error loading users.</div>';
+            }
+        }
+
+        async function loadHistoryActions() {
+            const actionsList = document.getElementById('historyActionsList');
+            if (!actionsList) return;
+            
+            actionsList.innerHTML = '';
+            
+            try {
+                const orgId = @ViewBag.OrganizationId;
+                const response = await fetch(`/Client/${orgId}/History/Actions`, { credentials: 'include' });
+                const result = await response.json();
+                
+                if (!result.success) {
+                    actionsList.innerHTML = '<div class="text-muted small">Unable to load actions.</div>';
+                    return;
+                }
+                
+                const actions = result.actions || [];
+                
+                if (actions.length === 0) {
+                    actionsList.innerHTML = '<div class="text-muted small">No actions available.</div>';
+                    return;
+                }
+                
+                actions.forEach((action, index) => {
+                    const checkboxDiv = document.createElement('div');
+                    checkboxDiv.className = 'form-check mb-2';
+                    checkboxDiv.innerHTML = `
+                        <input class="form-check-input history-action-checkbox" 
+                               type="checkbox" 
+                               value="${action}" 
+                               id="historyAction${index}" 
+                               checked>
+                        <label class="form-check-label" for="historyAction${index}">
+                            ${action}
+                        </label>
+                    `;
+                    actionsList.appendChild(checkboxDiv);
+                });
+            } catch (error) {
+                console.error('Error loading history actions:', error);
+                actionsList.innerHTML = '<div class="text-muted small">Error loading actions.</div>';
+            }
+        }
+
+        async function loadHistoryEntityTypes() {
+            const entityTypesList = document.getElementById('historyEntityTypesList');
+            if (!entityTypesList) return;
+            
+            entityTypesList.innerHTML = '';
+            
+            try {
+                const orgId = @ViewBag.OrganizationId;
+                const response = await fetch(`/Client/${orgId}/History/EntityTypes`, { credentials: 'include' });
+                const result = await response.json();
+                
+                if (!result.success) {
+                    entityTypesList.innerHTML = '<div class="text-muted small">Unable to load entity types.</div>';
+                    return;
+                }
+                
+                const entityTypes = result.entityTypes || [];
+                
+                if (entityTypes.length === 0) {
+                    entityTypesList.innerHTML = '<div class="text-muted small">No entity types available.</div>';
+                    return;
+                }
+                
+                entityTypes.forEach((entityType, index) => {
+                    const checkboxDiv = document.createElement('div');
+                    checkboxDiv.className = 'form-check mb-2';
+                    checkboxDiv.innerHTML = `
+                        <input class="form-check-input history-entity-type-checkbox" 
+                               type="checkbox" 
+                               value="${entityType}" 
+                               id="historyEntityType${index}" 
+                               checked>
+                        <label class="form-check-label" for="historyEntityType${index}">
+                            ${entityType}
+                        </label>
+                    `;
+                    entityTypesList.appendChild(checkboxDiv);
+                });
+            } catch (error) {
+                console.error('Error loading history entity types:', error);
+                entityTypesList.innerHTML = '<div class="text-muted small">Error loading entity types.</div>';
+            }
+        }
+
+        async function loadHistoryMatters() {
+            const mattersList = document.getElementById('historyMattersList');
+            if (!mattersList) return;
+            
+            mattersList.innerHTML = '';
+            
+            try {
+                const orgId = @ViewBag.OrganizationId;
+                const response = await fetch(`/Client/${orgId}/History/Matters`, { credentials: 'include' });
+                const result = await response.json();
+                
+                if (!result.success) {
+                    mattersList.innerHTML = '<div class="text-muted small">Unable to load matters.</div>';
+                    return;
+                }
+                
+                const matters = result.matters || [];
+                
+                if (matters.length === 0) {
+                    mattersList.innerHTML = '<div class="text-muted small">No matters available.</div>';
+                    return;
+                }
+                
+                // Create checkbox for each matter
+                matters.forEach((matter, index) => {
+                    const checkboxDiv = document.createElement('div');
+                    checkboxDiv.className = 'form-check mb-2';
+                    checkboxDiv.innerHTML = `
+                        <input class="form-check-input history-matter-checkbox" 
+                               type="checkbox" 
+                               value="${matter.id}" 
+                               id="historyMatter${index}" 
+                               checked>
+                        <label class="form-check-label" for="historyMatter${index}">
+                            ${matter.name}
+                        </label>
+                    `;
+                    mattersList.appendChild(checkboxDiv);
+                });
+            } catch (error) {
+                console.error('Error loading history matters:', error);
+                mattersList.innerHTML = '<div class="text-muted small">Error loading matters.</div>';
+            }
+        }
+
+        function setupEntityIdSearch() {
+            const entityIdSearch = document.getElementById('historyEntityIdSearch');
+            if (entityIdSearch) {
+                // Debounce the search input
+                let searchTimeout;
+                entityIdSearch.addEventListener('input', function() {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(function() {
+                        filterHistory();
+                    }, 300);
+                });
             }
         }
 
@@ -165,9 +509,31 @@
             
             // Get all user checkboxes
             const userCheckboxes = document.querySelectorAll('.history-user-checkbox');
-            
-            // Add change event listeners
             userCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    filterHistory();
+                });
+            });
+            
+            // Get all action checkboxes
+            const actionCheckboxes = document.querySelectorAll('.history-action-checkbox');
+            actionCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    filterHistory();
+                });
+            });
+            
+            // Get all entity type checkboxes
+            const entityTypeCheckboxes = document.querySelectorAll('.history-entity-type-checkbox');
+            entityTypeCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    filterHistory();
+                });
+            });
+            
+            // Get all matter checkboxes
+            const matterCheckboxes = document.querySelectorAll('.history-matter-checkbox');
+            matterCheckboxes.forEach(checkbox => {
                 checkbox.addEventListener('change', function() {
                     filterHistory();
                 });
@@ -189,11 +555,45 @@
                 selectedUsers.push(parseInt(checkbox.value));
             });
             
-            console.log('Selected users for history:', selectedUsers);
+            // Get all selected actions
+            const selectedActions = [];
+            document.querySelectorAll('.history-action-checkbox:checked').forEach(checkbox => {
+                selectedActions.push(checkbox.value);
+            });
+            
+            // Get all selected entity types
+            const selectedEntityTypes = [];
+            document.querySelectorAll('.history-entity-type-checkbox:checked').forEach(checkbox => {
+                selectedEntityTypes.push(checkbox.value);
+            });
+            
+            // Get all selected matters
+            const selectedMatters = [];
+            document.querySelectorAll('.history-matter-checkbox:checked').forEach(checkbox => {
+                selectedMatters.push(parseInt(checkbox.value));
+            });
+            
+            // Get entity ID search value
+            const entityIdSearch = document.getElementById('historyEntityIdSearch');
+            const entityId = entityIdSearch ? entityIdSearch.value.trim() : '';
+            
+            console.log('History filters:', {
+                selectedUsers,
+                selectedActions,
+                selectedEntityTypes,
+                selectedMatters,
+                entityId
+            });
             
             // Dispatch custom event for history filtering
             window.dispatchEvent(new CustomEvent('historyFiltersChanged', { 
-                detail: { selectedUsers } 
+                detail: { 
+                    selectedUsers,
+                    selectedActions,
+                    selectedEntityTypes,
+                    selectedMatters,
+                    entityId
+                } 
             }));
         }
     })();

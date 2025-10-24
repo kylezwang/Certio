@@ -1,12 +1,39 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Certio.Application.Interfaces;
 
 namespace Certio.Web.Controllers
 {
     [Authorize(Policy = "OrgMember")]
     public class SettingsController : Controller
     {
-        public IActionResult Index()
+        private readonly IOrganizationService _organizationService;
+
+        public SettingsController(IOrganizationService organizationService)
+        {
+            _organizationService = organizationService;
+        }
+
+        [HttpGet("/Client/{orgId:int}/Settings")]
+        public async Task<IActionResult> Index(int orgId, CancellationToken ct)
+        {
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Get organization info to determine the type
+            var orgResult = await _organizationService.GetOrganizationBasicInfoAsync(orgId, customUser.Id);
+            
+            ViewBag.OrganizationId = orgId;
+            ViewBag.OrganizationName = orgResult.Success ? orgResult.Data!.Name : "Organization";
+            ViewBag.OrganizationType = orgResult.Success ? orgResult.Data!.Type : Certio.Domain.Organizations.OrganizationType.Client;
+
+            return View();
+        }
+
+        public IActionResult AccountSettings()
         {
             return View();
         }
