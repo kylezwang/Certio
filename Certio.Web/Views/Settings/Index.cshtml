@@ -1,16 +1,17 @@
 @{
-    ViewData["Title"] = "Settings";
+    ViewData["Title"] = "Firm Settings";
     ViewData["BodyClass"] = "settings-page";
     Layout = "_ClientLayout";
+    var isLawFirm = ViewBag.OrganizationType != null && ViewBag.OrganizationType.ToString() == "LawFirm";
 }
 
 <div class="settings-container">
     <!-- Header -->
     <div class="settings-header">
         <div>
-            <h1 class="settings-title">Settings</h1>
+            <h1 class="settings-title">Firm Settings</h1>
             <p class="settings-subtitle">
-                Manage your account, organization, and application preferences
+                Manage your organization and application preferences
             </p>
         </div>
     </div>
@@ -19,21 +20,21 @@
         <!-- Navigation Sidebar -->
         <div class="settings-sidebar">
             <nav class="settings-nav">
-                <a href="#account" class="settings-nav-item active" data-tab="account">
-                    <i class="fas fa-user"></i>
-                    <span>Account</span>
+                <a href="#organization" class="settings-nav-item active" data-tab="organization">
+                    @if (isLawFirm)
+                    {
+                        <i class="fa-solid fa-building-columns"></i>
+                        <span>My Firm</span>
+                    }
+                    else
+                    {
+                        <i class="fas fa-building"></i>
+                        <span>Organization</span>
+                    }
                 </a>
                 <a href="#security" class="settings-nav-item" data-tab="security">
                     <i class="fas fa-shield-halved"></i>
                     <span>Security</span>
-                </a>
-                <a href="#organization" class="settings-nav-item" data-tab="organization">
-                    <i class="fas fa-building"></i>
-                    <span>Organization</span>
-                </a>
-                <a href="#notifications" class="settings-nav-item" data-tab="notifications">
-                    <i class="fas fa-bell"></i>
-                    <span>Notifications</span>
                 </a>
                 <a href="#matters" class="settings-nav-item" data-tab="matters">
                     <i class="fas fa-folder"></i>
@@ -65,93 +66,39 @@
         <!-- Content Area -->
         <div class="settings-content">
             <div class="settings-content-inner">
-                <!-- Account Settings -->
-                <div id="account-content" class="settings-tab-content active">
+                <!-- Organization Settings -->
+                <div id="organization-content" class="settings-tab-content active">
                     <div class="settings-section">
                         <div class="settings-section-header">
-                            <h3>Profile Information</h3>
-                            <p>Update your personal information</p>
+                            <h3>Organization Profile</h3>
+                            <p>Manage your organization information</p>
                         </div>
                         <div class="settings-section-content">
-                            <div class="profile-avatar-section">
-                                <div class="profile-avatar">
-                                    <div class="avatar-placeholder">
-                                        <span>JD</span>
-                                    </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="orgName" class="form-label">Organization Name</label>
+                                    <input type="text" class="form-control" id="orgName" value="Acme Legal Group">
                                 </div>
-                                <div class="avatar-actions">
-                                    <button class="btn btn-outline-secondary btn-sm">Change Avatar</button>
-                                    <p class="avatar-hint">JPG, PNG up to 10MB</p>
+                                <div class="col-md-6 mb-3">
+                                    <label for="subdomain" class="form-label">Subdomain</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="subdomain" value="acme-legal">
+                                        <span class="input-group-text">.legaltech.com</span>
+                                    </div>
                                 </div>
                             </div>
                             <hr class="settings-divider">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="fullName" class="form-label">Full Name</label>
-                                    <input type="text" class="form-control" id="fullName" value="John Doe">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="email" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="email" value="john.doe@company.com">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="phone" class="form-label">Phone</label>
-                                    <input type="tel" class="form-control" id="phone" value="+1 (555) 123-4567">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="timezone" class="form-label">Timezone</label>
-                                    <select class="form-select" id="timezone">
-                                        <option value="est" selected>Eastern Time (EST)</option>
-                                        <option value="cst">Central Time (CST)</option>
-                                        <option value="mst">Mountain Time (MST)</option>
-                                        <option value="pst">Pacific Time (PST)</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="language" class="form-label">Language</label>
-                                    <select class="form-select" id="language">
-                                        <option value="en" selected>English</option>
-                                        <option value="es">Spanish</option>
-                                        <option value="fr">French</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="theme" class="form-label">Theme</label>
-                                    <select class="form-select" id="theme">
-                                        <option value="light" selected>Light</option>
-                                        <option value="dark">Dark</option>
-                                        <option value="system">System</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="settings-section">
-                        <div class="settings-section-header">
-                            <h3>Security</h3>
-                            <p>Manage your password and account security</p>
-                        </div>
-                        <div class="settings-section-content">
                             <div class="settings-row">
                                 <div class="settings-row-content">
-                                    <label class="settings-row-label">Change Password</label>
-                                    <p class="settings-row-description">Update your account password</p>
+                                    <label class="settings-row-label">Organization Logo</label>
+                                    <p class="settings-row-description">Upload your company logo</p>
                                 </div>
-                                <button class="btn btn-outline-secondary btn-sm">
-                                    <i class="fas fa-key me-2"></i>
-                                    Change
-                                </button>
-                            </div>
-                            <div class="settings-row">
-                                <div class="settings-row-content">
-                                    <label class="settings-row-label">Delete Account</label>
-                                    <p class="settings-row-description">This action cannot be undone. All your data will be permanently deleted.</p>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="org-logo-placeholder">
+                                        <i class="fas fa-building"></i>
+                                    </div>
+                                    <button class="btn btn-outline-secondary btn-sm">Upload Logo</button>
                                 </div>
-                                <button class="btn btn-outline-danger btn-sm">
-                                    <i class="fas fa-trash me-2"></i>
-                                    Delete
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -159,6 +106,43 @@
 
                 <!-- Security Settings -->
                 <div id="security-content" class="settings-tab-content">
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Team Management</h3>
+                            <p>Control who can invite and access your organization</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Who can invite team members</label>
+                                </div>
+                                <select class="form-select" style="width: 200px;">
+                                    <option value="legal-only" selected>Legal team only</option>
+                                    <option value="client-legal">Client & legal teams</option>
+                                    <option value="everyone">Everyone</option>
+                                </select>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">External sharing defaults</label>
+                                </div>
+                                <select class="form-select" style="width: 200px;">
+                                    <option value="client-only" selected>Client only</option>
+                                    <option value="participants">All participants</option>
+                                    <option value="restricted">Restricted</option>
+                                </select>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Counterparty label</label>
+                                    <p class="settings-row-description">How to refer to external parties</p>
+                                </div>
+                                <input type="text" class="form-control" value="Other Party" style="width: 200px;">
+                            </div>
+                        </div>
+                    </div>
+
+
                     <div class="settings-section">
                         <div class="settings-section-header">
                             <h3>Two-Factor Authentication</h3>
@@ -293,215 +277,6 @@
                                 </div>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="reauthRequired" checked>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Organization Settings -->
-                <div id="organization-content" class="settings-tab-content">
-                    <div class="settings-section">
-                        <div class="settings-section-header">
-                            <h3>Organization Profile</h3>
-                            <p>Manage your organization information</p>
-                        </div>
-                        <div class="settings-section-content">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="orgName" class="form-label">Organization Name</label>
-                                    <input type="text" class="form-control" id="orgName" value="Acme Legal Group">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="subdomain" class="form-label">Subdomain</label>
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" id="subdomain" value="acme-legal">
-                                        <span class="input-group-text">.legaltech.com</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <hr class="settings-divider">
-                            <div class="settings-row">
-                                <div class="settings-row-content">
-                                    <label class="settings-row-label">Organization Logo</label>
-                                    <p class="settings-row-description">Upload your company logo</p>
-                                </div>
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="org-logo-placeholder">
-                                        <i class="fas fa-building"></i>
-                                    </div>
-                                    <button class="btn btn-outline-secondary btn-sm">Upload Logo</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="settings-section">
-                        <div class="settings-section-header">
-                            <h3>Team Management</h3>
-                            <p>Control who can invite and access your organization</p>
-                        </div>
-                        <div class="settings-section-content">
-                            <div class="settings-row">
-                                <div class="settings-row-content">
-                                    <label class="settings-row-label">Who can invite team members</label>
-                                </div>
-                                <select class="form-select" style="width: 200px;">
-                                    <option value="legal-only" selected>Legal team only</option>
-                                    <option value="client-legal">Client & legal teams</option>
-                                    <option value="everyone">Everyone</option>
-                                </select>
-                            </div>
-                            <div class="settings-row">
-                                <div class="settings-row-content">
-                                    <label class="settings-row-label">External sharing defaults</label>
-                                </div>
-                                <select class="form-select" style="width: 200px;">
-                                    <option value="client-only" selected>Client only</option>
-                                    <option value="participants">All participants</option>
-                                    <option value="restricted">Restricted</option>
-                                </select>
-                            </div>
-                            <div class="settings-row">
-                                <div class="settings-row-content">
-                                    <label class="settings-row-label">Counterparty label</label>
-                                    <p class="settings-row-description">How to refer to external parties</p>
-                                </div>
-                                <input type="text" class="form-control" value="Other Party" style="width: 200px;">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Notifications Settings -->
-                <div id="notifications-content" class="settings-tab-content">
-                    <div class="settings-section">
-                        <div class="settings-section-header">
-                            <h3>Notification Channels</h3>
-                            <p>Choose how you want to receive notifications</p>
-                        </div>
-                        <div class="settings-section-content">
-                            <div class="settings-row">
-                                <div class="settings-row-content">
-                                    <label class="settings-row-label">Email notifications</label>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
-                                </div>
-                            </div>
-                            <div class="settings-row">
-                                <div class="settings-row-content">
-                                    <label class="settings-row-label">Push notifications</label>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="pushNotifications" checked>
-                                </div>
-                            </div>
-                            <div class="settings-row">
-                                <div class="settings-row-content">
-                                    <label class="settings-row-label">SMS notifications</label>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="smsNotifications">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="settings-section">
-                        <div class="settings-section-header">
-                            <h3>Event Notifications</h3>
-                            <p>Get notified about important events</p>
-                        </div>
-                        <div class="settings-section-content">
-                            <div class="settings-row">
-                                <div class="settings-row-content">
-                                    <label class="settings-row-label">@@Mentions</label>
-                                    <p class="settings-row-description">When someone mentions you</p>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="mentions" checked>
-                                </div>
-                            </div>
-                            <div class="settings-row">
-                                <div class="settings-row-content">
-                                    <label class="settings-row-label">Document shared</label>
-                                    <p class="settings-row-description">When documents are shared with you</p>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="documentShared" checked>
-                                </div>
-                            </div>
-                            <div class="settings-row">
-                                <div class="settings-row-content">
-                                    <label class="settings-row-label">E-sign events</label>
-                                    <p class="settings-row-description">Signature requests and completions</p>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="esignEvents" checked>
-                                </div>
-                            </div>
-                            <div class="settings-row">
-                                <div class="settings-row-content">
-                                    <label class="settings-row-label">Task due/overdue</label>
-                                    <p class="settings-row-description">Deadline reminders</p>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="taskDue" checked>
-                                </div>
-                            </div>
-                            <div class="settings-row">
-                                <div class="settings-row-content">
-                                    <label class="settings-row-label">Status changes</label>
-                                    <p class="settings-row-description">Matter and case updates</p>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="statusChanges">
-                                </div>
-                            </div>
-                            <div class="settings-row">
-                                <div class="settings-row-content">
-                                    <label class="settings-row-label">Filing updates</label>
-                                    <p class="settings-row-description">Court filing notifications</p>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="filingUpdates" checked>
-                                </div>
-                            </div>
-                            <div class="settings-row">
-                                <div class="settings-row-content">
-                                    <label class="settings-row-label">AI summaries</label>
-                                    <p class="settings-row-description">Weekly AI-generated summaries</p>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="aiSummaries">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="settings-section">
-                        <div class="settings-section-header">
-                            <h3>Quiet Hours</h3>
-                            <p>Set times when notifications should be paused</p>
-                        </div>
-                        <div class="settings-section-content">
-                            <div class="settings-row">
-                                <div class="settings-row-content">
-                                    <label class="settings-row-label">Enable quiet hours</label>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="quietHours">
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <label for="quietStart" class="form-label">Start time</label>
-                                    <input type="time" class="form-control" id="quietStart" value="18:00">
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="quietEnd" class="form-label">End time</label>
-                                    <input type="time" class="form-control" id="quietEnd" value="08:00">
                                 </div>
                             </div>
                         </div>

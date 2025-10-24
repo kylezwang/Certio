@@ -532,6 +532,16 @@ namespace Certio.Web.Controllers
             return View("~/Views/Settings/Index.cshtml");
         }
 
+        // GET /Client/{orgId}/AccountSettings
+        [Authorize(Policy = "OrgMember")]
+        [HttpGet("/Client/{orgId:int}/AccountSettings")]
+        public async Task<IActionResult> AccountSettings(int orgId)
+        {
+            ViewBag.OrganizationId = orgId;
+            var org = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync();
+            ViewBag.OrganizationName = org?.Name ?? "Client";
+            return View("~/Views/Settings/AccountSettings.cshtml");
+        }
 
         // GET /Client/{orgId}/AddPeople
         [Authorize(Policy = "OrgMember")]

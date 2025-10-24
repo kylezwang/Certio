@@ -4,6 +4,7 @@
 
 @section Styles {
     <!-- Client layout styles are included in site.css -->
+    <link rel="stylesheet" href="~/css/communications-sidebar.css" />
 }
 
 <!-- Critical CSS for instant page render - prevents white flash -->
@@ -236,7 +237,7 @@
     /* Card styles for global dashboard */
     .global-dashboard-sidebar .card {
         border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.25);
         transition: all 0.3s ease;
     }
 
@@ -359,13 +360,14 @@
         position: fixed;
         top: 7vh; /* Start below header */
         left: 20vw; /* Start after global navbar (6vw) + client sidebar (14vw) */
-        right: 320px; /* Leave space for chat panel */
+        right: 320px; /* Default: Leave space for chat panel */
         bottom: 0;
         overflow: hidden; /* Remove scrolling from wrapper */
         z-index: 1;
         border-radius: 20px 20px 0px 0px; /* Rounded corners on top-left and top-right */
         background-color: rgba(11, 54, 94, 0.085); /* Light blue background */
         transition: left 0.3s ease, right 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
     }
 
     /* Adjust main content wrapper for global dashboard */
@@ -607,7 +609,7 @@
         background-color: rgba(11, 54, 94, 0.1);
         cursor: col-resize;
         position: fixed;
-        top: 9vh; /* Position below the header */
+        top: 7vh; /* Position below the header - SAME AS CHAT/COMMS PANELS */
         right: 320px; /* Position next to chat panel (320px default) */
         height: calc(100vh - 7vh); /* Adjust height to account for header */
         z-index: 41;
@@ -679,11 +681,111 @@
         transition: all 0.2s ease;
         margin-left: 0.75rem;
         margin-bottom: 0.15rem;
+        position: relative;
     }
 
     .user-profile-avatar:hover {
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Profile dropdown menu */
+    .profile-dropdown {
+        position: absolute;
+        top: calc(100% + 0.5rem);
+        right: 0;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+        padding: 0;
+        min-width: 240px;
+        z-index: 1000;
+        display: none;
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .profile-dropdown.show {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .profile-dropdown-header {
+        padding: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .profile-dropdown-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #a32b43, #3d1019);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+
+    .profile-dropdown-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .profile-dropdown-name {
+        font-weight: 600;
+        color: #111827;
+        font-size: 0.95rem;
+        margin-bottom: 0.125rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .profile-dropdown-email {
+        font-size: 0.8rem;
+        color: #6b7280;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .profile-dropdown-menu {
+        padding: 0.5rem 0;
+    }
+
+    .profile-dropdown-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        color: #374151;
+        text-decoration: none;
+        transition: background-color 0.2s ease;
+        cursor: pointer;
+        gap: 0.75rem;
+    }
+
+    .profile-dropdown-item:hover {
+        background-color: rgba(11, 54, 94, 0.1);
+    }
+
+    .profile-dropdown-item i {
+        width: 20px;
+        text-align: center;
+        color: #6b7280;
+    }
+
+    .profile-dropdown-divider {
+        height: 1px;
+        background-color: #e5e7eb;
+        margin: 0.25rem 0;
     }
 
     /* Organization name text field styling */
@@ -737,14 +839,17 @@
         pointer-events: none;
     }
 
-    .chat-hidden .client-main-content-wrapper {
-        right: 1rem !important; /* Same leftover padding as sidebar toggle */
-    }
+    /* Removed .chat-hidden .client-main-content-wrapper rule - now controlled by JS */
 
     .chat-hidden .resize-handle {
         opacity: 0;
         pointer-events: none;
         transition: opacity 0.3s ease;
+    }
+    
+    /* When BOTH sidebars are hidden, content should expand */
+    body.no-sidebars .client-main-content-wrapper {
+        right: 1rem;
     }
 
     /* Calendar page - zero padding override */
@@ -770,7 +875,7 @@
             <div class="search-container" style="max-width: 525px; width: 100%; margin: 0 0 0 auto; position: relative; flex-shrink: 0;">
                 <i class="fas fa-search" style="position: absolute; left: 50%; transform: translate(-200%, -50%); top: 50%; color: #6b7280;"></i>
                 <input type="text" class="form-control" placeholder="Search" 
-                       style="height: 2.5rem; line-height: 1.25; border-radius: 24px; padding: 0.75rem 1rem 0.75rem 3rem; background-color: #f9fafb; font-size: 1rem; text-align: center;" />
+                       style="height: 2.5rem; line-height: 1.25; border-radius: 24px; padding: 0.75rem 1rem 0.75rem 3rem; background-color: #f9fafb; font-size: 1rem; text-align: center; border: transparent; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);"/>
             </div>
             
             <!-- Timer Card -->
@@ -778,7 +883,7 @@
                 background: white;
                 border-radius: 12px;
                 padding: 0.325rem 0.875rem;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
                 display: flex;
                 align-items: center;
                 gap: 0.625rem;
@@ -883,8 +988,43 @@
                     userInitials = "U";
                 }
             }
-            <div class="user-profile-avatar" title="@(currentUser?.FirstName ?? "User") @(currentUser?.LastName ?? "")">
+            <div class="user-profile-avatar" id="userProfileAvatar" title="@(currentUser?.FirstName ?? "User") @(currentUser?.LastName ?? "")">
                 @userInitials
+                <!-- Profile Dropdown Menu -->
+                <div class="profile-dropdown" id="profileDropdown">
+                    <!-- Profile Header -->
+                    <div class="profile-dropdown-header">
+                        <div class="profile-dropdown-avatar">@userInitials</div>
+                        <div class="profile-dropdown-info">
+                            <div class="profile-dropdown-name">@(currentUser?.FirstName ?? "User") @(currentUser?.LastName ?? "")</div>
+                            <div class="profile-dropdown-email">@(currentUser?.Email ?? "")</div>
+                        </div>
+                    </div>
+                    <!-- Menu Items -->
+                    <div class="profile-dropdown-menu">
+                        <a href="/Client/@ViewBag.OrganizationId/AccountSettings#account" class="profile-dropdown-item">
+                            <i class="fas fa-user"></i>
+                            <span>Account</span>
+                        </a>
+                        <a href="/Client/@ViewBag.OrganizationId/AccountSettings#security" class="profile-dropdown-item">
+                            <i class="fas fa-shield-halved"></i>
+                            <span>Security</span>
+                        </a>
+                        <a href="/Client/@ViewBag.OrganizationId/AccountSettings#notifications" class="profile-dropdown-item">
+                            <i class="fas fa-bell"></i>
+                            <span>Notifications</span>
+                        </a>
+                        <a href="/Client/@ViewBag.OrganizationId/AccountSettings#preferences" class="profile-dropdown-item">
+                            <i class="fas fa-cog"></i>
+                            <span>Preferences</span>
+                        </a>
+                        <div class="profile-dropdown-divider"></div>
+                        <a href="/Client/@ViewBag.OrganizationId/AccountSettings#billing" class="profile-dropdown-item">
+                            <i class="fas fa-credit-card"></i>
+                            <span>Billing & Plan</span>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1049,7 +1189,7 @@
                     <a href="/Client/@ViewBag.OrganizationId/Settings" 
                        class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Settings" ? "active" : "")">
                         <i class="fas fa-cog"></i>
-                        <span>Settings</span>
+                        <span>Firm Settings</span>
                     </a>
                 </div>
             </nav>
@@ -1157,7 +1297,7 @@
                                class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["action"]?.ToString() == "Settings" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")"
                                data-bs-dismiss="offcanvas">
                                 <i class="fas fa-cog fs-5"></i>
-                                <span class="fw-medium">Settings</span>
+                                <span class="fw-medium">Firm Settings</span>
                             </a>
                         </li>
                     </ul>
@@ -1182,6 +1322,104 @@
             @RenderBody()
         </main>
     </div>
+
+    <!-- Communications Sidebar (Team Chat Style) -->
+    <div class="comms-sidebar-panel" id="commsSidebarPanel">
+        <!-- Channels List View -->
+        <div class="comms-channels-view" id="commsChannelsView">
+            <div class="comms-channels-header">
+                <h3 class="comms-channels-title">Communications</h3>
+                <button class="comms-close-btn" id="commsCloseBtn" title="Close Communications">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <!-- Search Bar -->
+            <div class="comms-search-container">
+                <i class="fas fa-search comms-search-icon"></i>
+                <input type="text" class="comms-search-input" id="commsSearchInput" placeholder="Search channels and messages...">
+            </div>
+            
+            <div class="comms-channels-list" id="commsChannelsList">
+                <!-- Channel categories will be loaded here -->
+                <div class="comms-loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span>Loading channels...</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chat View -->
+        <div class="comms-chat-view" id="commsChatView" style="display: none;">
+            <!-- Chat Header -->
+            <div class="comms-chat-header">
+                <div class="comms-header-left">
+                    <button class="comms-back-btn" id="commsBackBtn" title="Back to channels">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <div class="comms-channel-info" id="commsChannelInfo">
+                        <span class="comms-channel-title" id="commsChannelTitle">general</span>
+                    </div>
+                </div>
+                <div class="comms-header-actions">
+                    <button class="comms-action-btn" title="Voice Call">
+                        <i class="fas fa-phone"></i>
+                    </button>
+                    <button class="comms-action-btn" title="Video Call">
+                        <i class="fas fa-video"></i>
+                    </button>
+                    <button class="comms-action-btn" title="Search">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="comms-action-btn" title="Settings">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Active Members -->
+            <div class="comms-active-members" id="commsActiveMembers">
+                <div class="members-label">Active Members</div>
+                <div class="members-avatars" id="commsMembersAvatars">
+                    <!-- Member avatars will be loaded here -->
+                </div>
+            </div>
+            
+            <!-- Messages Container -->
+            <div class="comms-messages-container" id="commsMessagesContainer">
+                <div class="comms-messages-list" id="commsMessagesList">
+                    <!-- Messages will be loaded here -->
+                </div>
+            </div>
+            
+            <!-- Message Input -->
+            <div class="comms-message-input-container">
+                <div class="comms-message-input-wrapper">
+                    <button class="comms-input-btn" title="Attach File">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                    <textarea class="comms-message-input" 
+                              id="commsMessageInput"
+                              placeholder="Type a message..." 
+                              rows="1"></textarea>
+                    <div class="comms-input-controls">
+                        <button class="comms-input-btn" title="Emoji">
+                            <i class="fas fa-smile"></i>
+                        </button>
+                        <button class="comms-send-btn" id="commsSendButton" title="Send">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Communications Toggle Button (Floating) -->
+    <button class="comms-toggle-btn" id="commsToggleBtn" title="Toggle Communications">
+        <i class="fas fa-comments"></i>
+        <span class="comms-badge" id="commsBadge" style="display: none;">3</span>
+    </button>
 
     @* Only show AI chat panel and resize handle if not explicitly hidden (e.g., on Communications page) *@
     @if (ViewData["HideChatPanel"] as bool? != true)
@@ -1364,6 +1602,17 @@
     </div>
 </div>
 
+<!-- User and Organization Context Data -->
+<div id="appContext" 
+     data-organization-id="@ViewBag.OrganizationId" 
+     data-current-user-id="@(currentUser?.Id ?? 0)"
+     data-current-user-name="@(currentUser?.FirstName ?? "User") @(currentUser?.LastName ?? "")"
+     style="display: none;">
+</div>
+
+<!-- Communications Sidebar Script -->
+<script src="~/js/communications-sidebar.js" defer></script>
+
 @* Only load AI chat scripts if chat panel is not hidden *@
 @if (ViewData["HideChatPanel"] as bool? != true)
 {
@@ -1371,10 +1620,37 @@
 <script src="~/js/chat.js" defer></script>
 
 <script>
-    // Initialize conversations on all pages
-    document.addEventListener('DOMContentLoaded', function() {
-        
-        // Initialize Timer
+        // Initialize conversations on all pages
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // Profile dropdown functionality
+            const userProfileAvatar = document.getElementById('userProfileAvatar');
+            const profileDropdown = document.getElementById('profileDropdown');
+            
+            if (userProfileAvatar && profileDropdown) {
+                // Toggle dropdown when clicking avatar
+                userProfileAvatar.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    profileDropdown.classList.toggle('show');
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!userProfileAvatar.contains(e.target)) {
+                        profileDropdown.classList.remove('show');
+                    }
+                });
+                
+                // Close dropdown when clicking a menu item
+                const dropdownItems = profileDropdown.querySelectorAll('.profile-dropdown-item');
+                dropdownItems.forEach(item => {
+                    item.addEventListener('click', function() {
+                        profileDropdown.classList.remove('show');
+                    });
+                });
+            }
+            
+            // Initialize Timer
         let timerInterval = null;
         let timerSeconds = 0;
         let isRunning = false;
@@ -1471,39 +1747,181 @@
             }
         }
         
-        // AI Chat Toggle
+        // AI Chat and Communications Sidebar Toggle
         const aiToggle = document.getElementById('aiToggle');
-        const aiToggleIcon = document.getElementById('aiToggleIcon');
+        const communicationsBtn = document.getElementById('communicationsBtn');
+        const chatPanel = document.getElementById('chatPanel');
+        const commsSidebarPanel = document.getElementById('commsSidebarPanel');
         
-        // Check for saved AI chat preference or default to visible
-        const isChatHidden = localStorage.getItem('chatHidden') === 'true';
-        if (isChatHidden) {
-            document.body.classList.add('chat-hidden');
-            if (aiToggleIcon) {
-                aiToggleIcon.classList.remove('fa-robot');
-                aiToggleIcon.classList.add('fa-eye-slash');
+        // Function to show AI chat panel
+        function showAIChatPanel() {
+            // Show AI chat panel
+            document.body.classList.remove('chat-hidden');
+            document.body.classList.remove('no-sidebars');
+            
+            // Hide communications panel
+            if (commsSidebarPanel) {
+                commsSidebarPanel.style.display = 'none';
             }
+            
+            // Restore resize handle and sizing for AI chat
+            const savedWidth = localStorage.getItem('chatPanelWidth') || '320';
+            const chatPanel = document.getElementById('chatPanel');
+            const resizeHandle = document.getElementById('resizeHandle');
+            const mainContentWrapper = document.querySelector('.client-main-content-wrapper');
+            const pageHeader = document.querySelector('.page-header');
+            
+            if (chatPanel) {
+                chatPanel.style.width = savedWidth + 'px';
+            }
+            
+            if (resizeHandle) {
+                resizeHandle.style.right = savedWidth + 'px';
+                resizeHandle.style.display = 'block';
+                resizeHandle.style.zIndex = '999'; // Ensure it's on top of everything
+            }
+            
+            if (mainContentWrapper) {
+                mainContentWrapper.style.right = savedWidth + 'px';
+            }
+            
+            // Update button states
+            if (aiToggle) {
+                aiToggle.classList.add('active');
+            }
+            if (communicationsBtn) {
+                communicationsBtn.classList.remove('active');
+            }
+            
+            // Update resize handle target
+            window.currentSidebarTarget = 'ai';
+            
+            localStorage.setItem('activeSidebar', 'ai');
         }
         
-        // Toggle AI chat panel
+        // Function to show communications sidebar
+        function showCommsSidebar() {
+            // Hide AI chat panel
+            document.body.classList.add('chat-hidden');
+            document.body.classList.remove('no-sidebars');
+            
+            // Show communications panel
+            if (commsSidebarPanel) {
+                commsSidebarPanel.style.display = 'flex';
+                
+                // Apply saved width to communications panel
+                const savedWidth = localStorage.getItem('chatPanelWidth') || '320';
+                commsSidebarPanel.style.width = savedWidth + 'px';
+                
+                // Position resize handle for communications panel
+                const resizeHandle = document.getElementById('resizeHandle');
+                if (resizeHandle) {
+                    resizeHandle.style.right = savedWidth + 'px';
+                    resizeHandle.style.display = 'block';
+                    resizeHandle.style.zIndex = '999'; // Ensure it's on top of everything
+                }
+                
+                // Adjust main content wrapper to make space for sidebar
+                const mainContentWrapper = document.querySelector('.client-main-content-wrapper');
+                if (mainContentWrapper) {
+                    mainContentWrapper.style.right = savedWidth + 'px';
+                }
+                
+                // Load channels if not already loaded
+                if (typeof window.commsSidebar !== 'undefined') {
+                    window.commsSidebar.open();
+                }
+            }
+            
+            // Update button states
+            if (communicationsBtn) {
+                communicationsBtn.classList.add('active');
+            }
+            if (aiToggle) {
+                aiToggle.classList.remove('active');
+            }
+            
+            // Update resize handle target
+            window.currentSidebarTarget = 'comms';
+            
+            localStorage.setItem('activeSidebar', 'comms');
+        }
+        
+        // Function to hide both sidebars
+        function hideBothSidebars() {
+            document.body.classList.add('chat-hidden');
+            document.body.classList.add('no-sidebars');
+            
+            if (commsSidebarPanel) {
+                commsSidebarPanel.style.display = 'none';
+            }
+            
+            // Hide resize handle
+            const resizeHandle = document.getElementById('resizeHandle');
+            if (resizeHandle) {
+                resizeHandle.style.display = 'none';
+            }
+            
+            // Reset main content wrapper to expand
+            const mainContentWrapper = document.querySelector('.client-main-content-wrapper');
+            if (mainContentWrapper) {
+                mainContentWrapper.style.right = '1rem';
+            }
+            
+            if (aiToggle) {
+                aiToggle.classList.remove('active');
+            }
+            if (communicationsBtn) {
+                communicationsBtn.classList.remove('active');
+            }
+            
+            window.currentSidebarTarget = 'none';
+            localStorage.setItem('activeSidebar', 'none');
+        }
+        
+        // Initialize communications sidebar on page load
+        if (typeof initializeCommsSidebar === 'function') {
+            initializeCommsSidebar();
+        }
+        
+        // Check for saved sidebar preference
+        const activeSidebar = localStorage.getItem('activeSidebar') || 'ai';
+        if (activeSidebar === 'ai') {
+            showAIChatPanel();
+        } else if (activeSidebar === 'comms') {
+            showCommsSidebar();
+        } else {
+            hideBothSidebars();
+        }
+        
+        // AI Toggle button - toggle between AI chat and hidden
         if (aiToggle) {
             aiToggle.addEventListener('click', function() {
-                document.body.classList.toggle('chat-hidden');
-                const isHidden = document.body.classList.contains('chat-hidden');
-                localStorage.setItem('chatHidden', isHidden);
-                
-                // Update icon
-                if (aiToggleIcon) {
-                    if (isHidden) {
-                        aiToggleIcon.classList.remove('fa-robot');
-                        aiToggleIcon.classList.add('fa-eye-slash');
-                    } else {
-                        aiToggleIcon.classList.remove('fa-eye-slash');
-                        aiToggleIcon.classList.add('fa-robot');
-                    }
+                const currentActive = localStorage.getItem('activeSidebar');
+                if (currentActive === 'ai') {
+                    hideBothSidebars();
+                } else {
+                    showAIChatPanel();
                 }
             });
         }
+        
+        // Communications button - toggle between communications and hidden
+        if (communicationsBtn) {
+            communicationsBtn.addEventListener('click', function() {
+                const currentActive = localStorage.getItem('activeSidebar');
+                if (currentActive === 'comms') {
+                    hideBothSidebars();
+                } else {
+                    showCommsSidebar();
+                }
+            });
+        }
+        
+        // Make functions available globally
+        window.showAIChatPanel = showAIChatPanel;
+        window.showCommsSidebar = showCommsSidebar;
+        window.hideBothSidebars = hideBothSidebars;
         
         // Notifications Toggle
         const notificationsBtn = document.getElementById('notificationsBtn');
@@ -1563,21 +1981,16 @@
             });
         }
 
-        // Communications button handling
-        const communicationsBtn = document.getElementById('communicationsBtn');
-        if (communicationsBtn) {
-            // Check if we're on the communications page and set active state
-            const currentAction = '@ViewContext.RouteData.Values["action"]?.ToString()';
-            if (currentAction === 'Communications') {
-                communicationsBtn.classList.add('active');
+        // Communications page check - if on communications page, hide the floating toggle button
+        const currentAction = '@ViewContext.RouteData.Values["action"]?.ToString()';
+        if (currentAction === 'Communications') {
+            const commsToggleBtn = document.getElementById('commsToggleBtn');
+            if (commsToggleBtn) {
+                commsToggleBtn.style.display = 'none';
             }
-            
-            // Handle communications button click
-            communicationsBtn.addEventListener('click', function() {
-                // Navigate to communications page
-                const orgId = '@ViewBag.OrganizationId';
-                window.location.href = `/Client/${orgId}/Communications`;
-            });
+            if (commsSidebarPanel) {
+                commsSidebarPanel.style.display = 'none';
+            }
         }
 
         // Calendar day selection for global dashboard sidebar

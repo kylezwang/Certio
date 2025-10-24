@@ -1478,7 +1478,9 @@ namespace Certio.Web.Controllers
                 }
             }
 
-            var onlineUserIds = await _channelManagementService.GetOnlineUserIdsAsync(organizationId);
+            // Use UserPresenceService for real-time presence detection
+            var userPresenceService = HttpContext.RequestServices.GetService<IUserPresenceService>();
+            var onlineUserIds = userPresenceService?.GetOnlineUsersInOrganization(organizationId) ?? new List<int>();
 
             // Map current org users (can DM)
             var teamMembers = orgUsers.Select(uo =>
@@ -1516,7 +1518,7 @@ namespace Certio.Web.Controllers
                     Role = role,
                     Status = isOnline ? "online" : "offline",
                     Avatar = initials,
-                    Activity = isOnline ? "Available" : $"Last seen {GetRelativeTime(uo.User?.LastLoginDate ?? DateTime.UtcNow.AddHours(-1))}",
+                    Activity = isOnline ? "Online" : "Offline",
                     RoleIcon = roleIcon,
                     RoleColor = roleColor,
                     CanDirectMessage = true, // Same org, can DM
@@ -1548,7 +1550,7 @@ namespace Certio.Web.Controllers
                     Role = $"{role} ({relatedOrgName})",
                     Status = isOnline ? "online" : "offline",
                     Avatar = initials,
-                    Activity = isOnline ? "Available" : $"Last seen {GetRelativeTime(uo.User?.LastLoginDate ?? DateTime.UtcNow.AddHours(-1))}",
+                    Activity = isOnline ? "Online" : "Offline",
                     RoleIcon = roleIcon,
                     RoleColor = roleColor,
                     CanDirectMessage = true, // NOW ALLOWED via relationship
@@ -1559,6 +1561,13 @@ namespace Certio.Web.Controllers
             }
             
             Console.WriteLine($"[DEBUG] Final teamMembers count: {teamMembers.Count}");
+
+            // Sort team members: current user first, then online users, then offline
+            teamMembers = teamMembers
+                .OrderByDescending(m => m.UserId == customUser.Id) // Current user first
+                .ThenByDescending(m => m.Status == "online") // Then online users
+                .ThenBy(m => m.Name) // Then alphabetically
+                .ToList();
 
             // Set active channel to the first available channel
             var firstCategory = channelCategories.FirstOrDefault();

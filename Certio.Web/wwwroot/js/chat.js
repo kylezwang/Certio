@@ -1659,11 +1659,12 @@ function refreshConversations() {
 function initializeResizeHandle() {
     const resizeHandle = document.getElementById('resizeHandle');
     const chatPanel = document.getElementById('chatPanel');
+    const commsSidebarPanel = document.getElementById('commsSidebarPanel');
     const mainContent = document.querySelector('.main-content');
     const mainContentWrapper = document.querySelector('.client-main-content-wrapper');
     const topHeader = document.querySelector('.top-header');
     
-    if (!resizeHandle || !chatPanel || !mainContent || !mainContentWrapper) return;
+    if (!resizeHandle || !mainContentWrapper) return;
     
     let isResizing = false;
     let startX = 0;
@@ -1672,7 +1673,14 @@ function initializeResizeHandle() {
     resizeHandle.addEventListener('mousedown', function(e) {
         isResizing = true;
         startX = e.clientX;
-        startWidth = parseInt(window.getComputedStyle(chatPanel).width, 10);
+        
+        // Determine which panel is active
+        const isCommsActive = window.currentSidebarTarget === 'comms';
+        const activePanel = isCommsActive ? commsSidebarPanel : chatPanel;
+        
+        if (activePanel) {
+            startWidth = parseInt(window.getComputedStyle(activePanel).width, 10);
+        }
         
         document.body.style.cursor = 'col-resize';
         document.body.style.userSelect = 'none';
@@ -1688,13 +1696,20 @@ function initializeResizeHandle() {
         const maxWidth = 600;
         
         if (newWidth >= minWidth && newWidth <= maxWidth) {
-            chatPanel.style.width = newWidth + 'px';
-            resizeHandle.style.right = newWidth + 'px';
-            mainContentWrapper.style.right = newWidth + 'px';
+            // Determine which panel is active
+            const isCommsActive = window.currentSidebarTarget === 'comms';
+            const activePanel = isCommsActive ? commsSidebarPanel : chatPanel;
             
-            // Also adjust the top header width
-            if (topHeader) {
-                topHeader.style.marginRight = newWidth + 'px';
+            if (activePanel) {
+                activePanel.style.width = newWidth + 'px';
+            }
+            
+            // Update resize handle position
+            resizeHandle.style.right = newWidth + 'px';
+            
+            // Update main content wrapper to make space for sidebar
+            if (mainContentWrapper) {
+                mainContentWrapper.style.right = newWidth + 'px';
             }
             
             // Save to localStorage

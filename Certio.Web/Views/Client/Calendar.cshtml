@@ -815,15 +815,23 @@
                     }
                 });
                 
-                // Hover handlers for preview behavior
-                header.addEventListener('mouseenter', function() {
+                // Hover handlers for preview behavior with delay
+                let hoverTimeout;
+                
+                // Handle hover on the entire section (header and content)
+                section.addEventListener('mouseenter', function() {
                     // Only show content if section is not already expanded AND hover is not disabled
                     if (!section.classList.contains('expanded') && !section.classList.contains('hover-disabled')) {
-                        content.style.display = 'block';
+                        // Set timeout for 1 second delay
+                        hoverTimeout = setTimeout(function() {
+                            content.style.display = 'block';
+                        }, 150);
                     }
                 });
                 
-                header.addEventListener('mouseleave', function() {
+                section.addEventListener('mouseleave', function() {
+                    // Clear the timeout if mouse leaves before delay completes
+                    clearTimeout(hoverTimeout);
                     // Only hide content if section is not actually expanded
                     if (!section.classList.contains('expanded')) {
                         content.style.display = 'none';

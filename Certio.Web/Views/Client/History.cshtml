@@ -598,6 +598,64 @@
         }
 
         // Fetch and render history
+        // Filter activities based on current filter state
+        function filterActivities(activities) {
+            if (!window.historyFilters) {
+                console.log('No filters applied - returning all activities');
+                return activities;
+            }
+            
+            const filters = window.historyFilters;
+            console.log('Filtering activities. Total before filter:', activities.length, 'Filters:', filters);
+            
+            const filteredActivities = activities.filter(activity => {
+                // Filter by user - only filter if there are selected users
+                if (filters.selectedUsers && filters.selectedUsers.length > 0) {
+                    const activityUserId = activity.userId !== null && activity.userId !== undefined ? activity.userId : 0;
+                    if (!filters.selectedUsers.includes(activityUserId)) {
+                        return false;
+                    }
+                }
+                
+                // Filter by action - only filter if there are selected actions
+                if (filters.selectedActions && filters.selectedActions.length > 0) {
+                    if (!activity.actionType || !filters.selectedActions.includes(activity.actionType)) {
+                        return false;
+                    }
+                }
+                
+                // Filter by entity type - only filter if there are selected entity types
+                // Don't filter out items without entityType
+                if (filters.selectedEntityTypes && filters.selectedEntityTypes.length > 0) {
+                    if (activity.entityType && !filters.selectedEntityTypes.includes(activity.entityType)) {
+                        return false;
+                    }
+                }
+                
+                // Filter by matter - only filter if there are selected matters
+                // Don't filter out items without matterId
+                if (filters.selectedMatters && filters.selectedMatters.length > 0) {
+                    if (activity.matterId && !filters.selectedMatters.includes(activity.matterId)) {
+                        return false;
+                    }
+                }
+                
+                // Filter by entity ID - only if search text is provided
+                if (filters.entityId && filters.entityId.trim() !== '') {
+                    const searchId = filters.entityId.trim().toLowerCase();
+                    const activityEntityId = (activity.entityId || '').toString().toLowerCase();
+                    if (!activityEntityId.includes(searchId)) {
+                        return false;
+                    }
+                }
+                
+                return true;
+            });
+            
+            console.log('Filtering complete. Total after filter:', filteredActivities.length);
+            return filteredActivities;
+        }
+
         async function fetchAndRenderHistory() {
             const loadingState = document.getElementById('historyLoadingState');
             
@@ -615,7 +673,9 @@
                 
                 if (result.success) {
                     allActivities = result.activities;
-                    renderHistory(allActivities);
+                    // Apply filters before rendering
+                    const filteredActivities = filterActivities(allActivities);
+                    renderHistory(filteredActivities);
                 } else {
                     showEmptyState();
                 }
@@ -916,10 +976,22 @@
             
             // Listen for filter changes from sidebar
             window.addEventListener('historyFiltersChanged', async function(event) {
-                const selectedUsers = event.detail.selectedUsers;
-                console.log('History filters changed:', selectedUsers);
-                // TODO: Implement filtering based on selected users
-                await fetchAndRenderHistory();
+                // Store filter state
+                window.historyFilters = {
+                    selectedUsers: event.detail.selectedUsers || [],
+                    selectedActions: event.detail.selectedActions || [],
+                    selectedEntityTypes: event.detail.selectedEntityTypes || [],
+                    selectedMatters: event.detail.selectedMatters || [],
+                    entityId: event.detail.entityId || ''
+                };
+                
+                console.log('History filters changed:', window.historyFilters);
+                
+                // Apply filters to currently displayed activities
+                if (allActivities && allActivities.length > 0) {
+                    const filteredActivities = filterActivities(allActivities);
+                    renderHistory(filteredActivities);
+                }
             });
         }
 

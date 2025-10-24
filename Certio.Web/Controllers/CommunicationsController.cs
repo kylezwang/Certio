@@ -18,6 +18,7 @@ namespace Certio.Web.Controllers
         private readonly Certio.Web.Services.IChannelManagementService _channelManagementService;
         private readonly IMatterService _matterService;
         private readonly IChatService _chatService;
+        private readonly IUserPresenceService _userPresenceService;
         private readonly ILogger<CommunicationsController> _logger;
 
         public CommunicationsController(
@@ -25,12 +26,14 @@ namespace Certio.Web.Controllers
             Certio.Web.Services.IChannelManagementService channelManagementService,
             IMatterService matterService,
             IChatService chatService,
+            IUserPresenceService userPresenceService,
             ILogger<CommunicationsController> logger)
         {
             _db = db;
             _channelManagementService = channelManagementService;
             _matterService = matterService;
             _chatService = chatService;
+            _userPresenceService = userPresenceService;
             _logger = logger;
         }
 
@@ -58,6 +61,24 @@ namespace Certio.Web.Controllers
             
             // Load team members from organization using service
             var orgTeamMembers = await _channelManagementService.GetOrganizationTeamMembersAsync(orgId);
+            
+            // Use UserPresenceService for real-time presence detection
+            var onlineUserIds = _userPresenceService.GetOnlineUsersInOrganization(orgId);
+            
+            // Update online status for team members and set Activity text
+            foreach (var member in orgTeamMembers)
+            {
+                var isOnline = onlineUserIds.Contains(member.UserId);
+                member.Status = isOnline ? "online" : "offline";
+                member.Activity = isOnline ? "Online" : "Offline";
+            }
+            
+            // Sort team members: current user first, then online users, then offline, then alphabetically
+            orgTeamMembers = orgTeamMembers
+                .OrderByDescending(m => m.UserId == customUser.Id) // Current user first
+                .ThenByDescending(m => m.Status == "online") // Then online users
+                .ThenBy(m => m.Name) // Then alphabetically
+                .ToList();
 
             List<ChannelCategory> channelCategories;
 
@@ -141,6 +162,24 @@ namespace Certio.Web.Controllers
 
             // Load team members
             var orgTeamMembers = await _channelManagementService.GetOrganizationTeamMembersAsync(orgId);
+            
+            // Use UserPresenceService for real-time presence detection
+            var onlineUserIds = _userPresenceService.GetOnlineUsersInOrganization(orgId);
+            
+            // Update online status for team members and set Activity text
+            foreach (var member in orgTeamMembers)
+            {
+                var isOnline = onlineUserIds.Contains(member.UserId);
+                member.Status = isOnline ? "online" : "offline";
+                member.Activity = isOnline ? "Online" : "Offline";
+            }
+            
+            // Sort team members: current user first, then online users, then offline, then alphabetically
+            orgTeamMembers = orgTeamMembers
+                .OrderByDescending(m => m.UserId == customUser.Id) // Current user first
+                .ThenByDescending(m => m.Status == "online") // Then online users
+                .ThenBy(m => m.Name) // Then alphabetically
+                .ToList();
 
             // Find the matter channel across all categories and subcategories - this should be the active channel
             string activeChannel = "matter-general";
@@ -205,6 +244,174 @@ namespace Certio.Web.Controllers
             };
 
             return View("~/Views/Matter/_MatterCommunications.cshtml", viewModel);
+        }
+
+        // GET /Client/{orgId}/Communications/GetChannelsJson
+        [Authorize(Policy = "OrgMember")]
+        [HttpGet("/Client/{orgId:int}/Communications/GetChannelsJson")]
+        public async Task<IActionResult> GetChannelsJson(int orgId)
+        {
+            var customUser = HttpContext.Items["CustomUser"] as User;
+            if (customUser == null)
+            {
+                return Json(new { success = false, message = "User not authenticated" });
+            }
+
+            var org = await _db.Organizations.FirstOrDefaultAsync(o => o.Id == orgId);
+            var isLawFirm = org?.Type == OrganizationType.LawFirm;
+            
+            List<ChannelCategory> channelCategories;
+            if (isLawFirm)
+            {
+                channelCategories = await BuildLawFirmChannelCategoriesAsync(orgId, customUser.Id);
+            }
+            else
+            {
+                channelCategories = await BuildClientChannelCategoriesAsync(orgId, customUser.Id);
+            }
+
+            // Get team members with online status
+            var orgTeamMembers = await _channelManagementService.GetOrganizationTeamMembersAsync(orgId);
+            var onlineUserIds = _userPresenceService.GetOnlineUsersInOrganization(orgId);
+            
+            // Update online status for team members and set Activity text
+            foreach (var member in orgTeamMembers)
+            {
+                var isOnline = onlineUserIds.Contains(member.UserId);
+                member.Status = isOnline ? "online" : "offline";
+                member.Activity = isOnline ? "Online" : "Offline";
+            }
+            
+            // Sort team members: current user first, then online users, then offline, then alphabetically
+            orgTeamMembers = orgTeamMembers
+                .OrderByDescending(m => m.UserId == customUser.Id) // Current user first
+                .ThenByDescending(m => m.Status == "online") // Then online users
+                .ThenBy(m => m.Name) // Then alphabetically
+                .ToList();
+
+            return Json(new { 
+                success = true, 
+                channelCategories = channelCategories,
+                teamMembers = orgTeamMembers,
+                organizationId = orgId,
+                organizationName = org?.Name ?? "Organization"
+            });
+        }
+
+        [Authorize(Policy = "OrgMember")]
+        [HttpGet("/Client/{orgId:int}/Communications/GetChannelMembers")]
+        public async Task<IActionResult> GetChannelMembers(int orgId, int channelId)
+        {
+            var customUser = HttpContext.Items["CustomUser"] as User;
+            if (customUser == null)
+            {
+                return Json(new { success = false, message = "User not authenticated" });
+            }
+
+            try
+            {
+                // Get conversation/channel
+                var conversation = await _db.Conversations
+                    .Include(c => c.Participants)
+                        .ThenInclude(cp => cp.User)
+                    .Include(c => c.Matter)
+                        .ThenInclude(m => m.Assignments)
+                            .ThenInclude(a => a.User)
+                    .Include(c => c.Matter)
+                        .ThenInclude(m => m.Permissions)
+                            .ThenInclude(p => p.User)
+                    .FirstOrDefaultAsync(c => c.Id == channelId && c.OrganizationId == orgId);
+
+                if (conversation == null)
+                {
+                    return Json(new { success = false, message = "Channel not found" });
+                }
+
+                // Get online users
+                var onlineUserIds = _userPresenceService.GetOnlineUsersInOrganization(orgId);
+                var members = new List<object>();
+
+                // For matter channels, show users assigned to the matter
+                if (conversation.MatterId.HasValue && conversation.Matter != null)
+                {
+                    var matter = conversation.Matter;
+                    var userIds = new HashSet<int>();
+
+                    // Add users from matter assignments (not removed)
+                    var assignedUsers = matter.Assignments
+                        .Where(a => a.RemovedAt == null && a.User != null && a.User.IsActive)
+                        .Select(a => a.User)
+                        .ToList();
+                    
+                    foreach (var user in assignedUsers)
+                    {
+                        if (userIds.Add(user.Id))
+                        {
+                            var initials = $"{user.FirstName?.FirstOrDefault() ?? '?'}{user.LastName?.FirstOrDefault() ?? '?'}";
+                            var isOnline = onlineUserIds.Contains(user.Id);
+
+                            members.Add(new
+                            {
+                                userId = user.Id,
+                                name = $"{user.FirstName} {user.LastName}".Trim(),
+                                avatar = initials,
+                                status = isOnline ? "online" : "offline"
+                            });
+                        }
+                    }
+
+                    // Add users with specific permissions (if AccessLevel is "Specific")
+                    if (matter.AccessLevel == "Specific")
+                    {
+                        var permissionedUsers = matter.Permissions
+                            .Where(p => p.RevokedAt == null && p.User != null && p.User.IsActive)
+                            .Select(p => p.User)
+                            .ToList();
+                        
+                        foreach (var user in permissionedUsers)
+                        {
+                            if (userIds.Add(user.Id))
+                            {
+                                var initials = $"{user.FirstName?.FirstOrDefault() ?? '?'}{user.LastName?.FirstOrDefault() ?? '?'}";
+                                var isOnline = onlineUserIds.Contains(user.Id);
+
+                                members.Add(new
+                                {
+                                    userId = user.Id,
+                                    name = $"{user.FirstName} {user.LastName}".Trim(),
+                                    avatar = initials,
+                                    status = isOnline ? "online" : "offline"
+                                });
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // For non-matter channels, show conversation participants
+                    foreach (var participant in conversation.Participants.Where(p => p.User != null && p.User.IsActive))
+                    {
+                        var user = participant.User;
+                        var initials = $"{user.FirstName?.FirstOrDefault() ?? '?'}{user.LastName?.FirstOrDefault() ?? '?'}";
+                        var isOnline = onlineUserIds.Contains(user.Id);
+
+                        members.Add(new
+                        {
+                            userId = user.Id,
+                            name = $"{user.FirstName} {user.LastName}".Trim(),
+                            avatar = initials,
+                            status = isOnline ? "online" : "offline"
+                        });
+                    }
+                }
+
+                return Json(new { success = true, members = members });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting channel members for channel {ChannelId}", channelId);
+                return Json(new { success = false, message = "Failed to get channel members" });
+            }
         }
 
         #region Private Helper Methods
@@ -633,6 +840,145 @@ namespace Certio.Web.Controllers
         }
 
         #endregion
+        
+        #region API Endpoints for Communications Sidebar
+        
+        // GET /api/communications/channels/{channelId}/messages
+        [Authorize]
+        [HttpGet("/api/communications/channels/{channelId}/messages")]
+        public async Task<IActionResult> GetChannelMessages(string channelId)
+        {
+            try
+            {
+                var customUser = HttpContext.Items["CustomUser"] as User;
+                if (customUser == null)
+                {
+                    return Unauthorized();
+                }
+
+                // Parse channel ID to extract organization and channel info
+                // Format: "org_{orgId}_channel_{channelName}" or "matter_{matterId}_channel_{channelName}"
+                var messages = new List<object>();
+                
+                if (channelId.StartsWith("org_"))
+                {
+                    // Organization channel
+                    var parts = channelId.Split('_');
+                    if (parts.Length >= 4)
+                    {
+                        var channelName = string.Join("_", parts.Skip(3));
+                        messages = await LoadDemoMessagesForChannel(customUser.Id, null, channelName);
+                    }
+                }
+                else if (channelId.StartsWith("matter_"))
+                {
+                    // Matter channel
+                    var parts = channelId.Split('_');
+                    if (parts.Length >= 4 && int.TryParse(parts[1], out int matterId))
+                    {
+                        var channelName = string.Join("_", parts.Skip(3));
+                        messages = await LoadDemoMessagesForChannel(customUser.Id, matterId, channelName);
+                    }
+                }
+                
+                return Json(messages);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading messages for channel {ChannelId}", channelId);
+                return Json(new List<object>());
+            }
+        }
+        
+        // POST /api/communications/channels/{channelId}/messages
+        [Authorize]
+        [HttpPost("/api/communications/channels/{channelId}/messages")]
+        public async Task<IActionResult> SendMessage(string channelId, [FromBody] SendMessageRequest request)
+        {
+            try
+            {
+                var customUser = HttpContext.Items["CustomUser"] as User;
+                if (customUser == null)
+                {
+                    return Unauthorized();
+                }
+
+                // In production, save to database via ChatService
+                // For now, just return success with the message
+                var message = new
+                {
+                    userId = customUser.Id.ToString(),
+                    userName = $"{customUser.FirstName} {customUser.LastName}".Trim(),
+                    userAvatar = $"{customUser.FirstName?.FirstOrDefault()}{customUser.LastName?.FirstOrDefault()}",
+                    content = request.Content,
+                    createdAt = DateTime.UtcNow
+                };
+                
+                return Json(message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending message to channel {ChannelId}", channelId);
+                return StatusCode(500, new { error = "Failed to send message" });
+            }
+        }
+        
+        private async Task<List<object>> LoadDemoMessagesForChannel(int userId, int? matterId, string channelName)
+        {
+            var messages = new List<object>();
+            
+            // Add some demo messages based on channel type
+            if (matterId.HasValue)
+            {
+                // Matter-specific messages
+                messages.Add(new
+                {
+                    userId = userId.ToString(),
+                    userName = "Kyle Wang",
+                    userAvatar = "KW",
+                    content = $"Starting discussion for this matter in #{channelName}",
+                    createdAt = DateTime.UtcNow.AddHours(-2)
+                });
+                messages.Add(new
+                {
+                    userId = (userId + 1).ToString(),
+                    userName = "Sarah Chen",
+                    userAvatar = "SC",
+                    content = "Thanks for setting this up! I've reviewed the initial documents.",
+                    createdAt = DateTime.UtcNow.AddHours(-1)
+                });
+            }
+            else
+            {
+                // Organization channel messages
+                messages.Add(new
+                {
+                    userId = "system",
+                    userName = "System",
+                    userAvatar = "SY",
+                    content = $"Welcome to #{channelName}!",
+                    createdAt = DateTime.UtcNow.AddDays(-1)
+                });
+                messages.Add(new
+                {
+                    userId = userId.ToString(),
+                    userName = "Current User",
+                    userAvatar = "CU",
+                    content = "Looking forward to collaborating here!",
+                    createdAt = DateTime.UtcNow.AddHours(-3)
+                });
+            }
+            
+            return await Task.FromResult(messages);
+        }
+        
+        #endregion
+    }
+    
+    public class SendMessageRequest
+    {
+        public string Content { get; set; } = string.Empty;
+        public string? ChannelId { get; set; }
     }
 }
 

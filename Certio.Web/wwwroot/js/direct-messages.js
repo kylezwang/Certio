@@ -55,6 +55,21 @@ function setupDirectMessageHandlers() {
         }
     });
 
+    // Handle user online/offline status
+    directConnection.on("UserOnline", function (data) {
+        console.log('User came online:', data.UserId);
+        if (typeof updateUserStatus === 'function') {
+            updateUserStatus(data.UserId, 'online');
+        }
+    });
+
+    directConnection.on("UserOffline", function (data) {
+        console.log('User went offline:', data.UserId);
+        if (typeof updateUserStatus === 'function') {
+            updateUserStatus(data.UserId, 'offline');
+        }
+    });
+
     // User typing indicator
     directConnection.on("UserTyping", function (data) {
         if (data.UserId !== currentDirectUserId && data.ThreadId === currentDirectThreadId) {

@@ -199,6 +199,7 @@ namespace Certio.Web.Controllers
                     actionType = FormatActionType(log.Action),
                     action = log.Description ?? log.Action,
                     description = log.Description ?? FormatDescription(log),
+                    matterId = log.MatterId,
                     matterTitle = log.MatterId.HasValue && matterTitles.ContainsKey(log.MatterId.Value) 
                         ? matterTitles[log.MatterId.Value] 
                         : null,
@@ -323,6 +324,101 @@ namespace Certio.Web.Controllers
             });
 
             return Json(new { success = true, users });
+        }
+
+        // GET: /Client/{orgId}/History/Matters - Get matters for filter
+        [Authorize(Policy = "OrgMember")]
+        [HttpGet("/Client/{orgId:int}/History/Matters")]
+        public async Task<IActionResult> GetMatters(int orgId)
+        {
+            var (user, _) = GetUserContext();
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            try
+            {
+                var result = await _matterService.ListMattersAsync(user.Id, orgId);
+
+                if (!result.Success)
+                {
+                    return BadRequest(new { success = false, message = result.ErrorMessage });
+                }
+
+                var matters = result.Data!.Select(m => new
+                {
+                    id = m.Id,
+                    name = m.Title
+                }).ToList();
+
+                return Json(new { success = true, matters });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading matters for org {OrgId}", orgId);
+                return BadRequest(new { success = false, message = "Error loading matters" });
+            }
+        }
+
+        // GET: /Client/{orgId}/History/Actions - Get available actions for filter
+        [Authorize(Policy = "OrgMember")]
+        [HttpGet("/Client/{orgId:int}/History/Actions")]
+        public async Task<IActionResult> GetActions(int orgId)
+        {
+            var (user, _) = GetUserContext();
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            try
+            {
+                // Get distinct actions from audit logs for this organization
+                var actions = await _context.AuditLogs
+                    .Where(al => al.OrganizationId == orgId)
+                    .Select(al => al.Action)
+                    .Distinct()
+                    .OrderBy(a => a)
+                    .ToListAsync();
+
+                return Json(new { success = true, actions });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading actions for org {OrgId}", orgId);
+                return BadRequest(new { success = false, message = "Error loading actions" });
+            }
+        }
+
+        // GET: /Client/{orgId}/History/EntityTypes - Get available entity types for filter
+        [Authorize(Policy = "OrgMember")]
+        [HttpGet("/Client/{orgId:int}/History/EntityTypes")]
+        public async Task<IActionResult> GetEntityTypes(int orgId)
+        {
+            var (user, _) = GetUserContext();
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            try
+            {
+                // Get distinct entity types from audit logs for this organization
+                var entityTypes = await _context.AuditLogs
+                    .Where(al => al.OrganizationId == orgId && al.EntityType != null)
+                    .Select(al => al.EntityType!)
+                    .Distinct()
+                    .OrderBy(et => et)
+                    .ToListAsync();
+
+                return Json(new { success = true, entityTypes });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading entity types for org {OrgId}", orgId);
+                return BadRequest(new { success = false, message = "Error loading entity types" });
+            }
         }
 
         // Helper method to generate user initials

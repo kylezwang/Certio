@@ -510,14 +510,7 @@
         transform: rotate(180deg);
     }
 
-    /* Expand content on hover (only when hover is not disabled) */
-    .collapsible-section:hover:not(.hover-disabled) .task-section-content {
-        display: block !important;
-    }
-
-    .collapsible-section:hover:not(.hover-disabled) .collapse-icon {
-        transform: rotate(180deg) !important;
-    }
+    /* Hover behavior is handled in JavaScript with delay */
 
     /* Keep expanded state styling when section is active/expanded */
     .collapsible-section.expanded .collapsible-header {

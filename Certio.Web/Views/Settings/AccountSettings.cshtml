@@ -1,0 +1,596 @@
+@{
+    ViewData["Title"] = "Account Settings";
+    ViewData["BodyClass"] = "settings-page";
+    Layout = "_ClientLayout";
+}
+
+<div class="settings-container">
+    <!-- Header -->
+    <div class="settings-header">
+        <div>
+            <h1 class="settings-title">Account Settings</h1>
+            <p class="settings-subtitle">
+                Manage your account, notifications, and preferences
+            </p>
+        </div>
+    </div>
+
+    <div class="settings-layout">
+        <!-- Navigation Sidebar -->
+        <div class="settings-sidebar">
+            <nav class="settings-nav">
+                <a href="#account" class="settings-nav-item active" data-tab="account">
+                    <i class="fas fa-user"></i>
+                    <span>Account</span>
+                </a>
+                <a href="#security" class="settings-nav-item" data-tab="security">
+                    <i class="fas fa-shield-halved"></i>
+                    <span>Security</span>
+                </a>
+                <a href="#notifications" class="settings-nav-item" data-tab="notifications">
+                    <i class="fas fa-bell"></i>
+                    <span>Notifications</span>
+                </a>
+                <a href="#preferences" class="settings-nav-item" data-tab="preferences">
+                    <i class="fas fa-cog"></i>
+                    <span>Preferences</span>
+                </a>
+                <a href="#billing" class="settings-nav-item" data-tab="billing">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Billing & Plan</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Content Area -->
+        <div class="settings-content">
+            <div class="settings-content-inner">
+                <!-- Account Settings -->
+                <div id="account-content" class="settings-tab-content active">
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Profile Information</h3>
+                            <p>Update your personal information</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="profile-avatar-section">
+                                <div class="profile-avatar">
+                                    <div class="avatar-placeholder">
+                                        <span>JD</span>
+                                    </div>
+                                </div>
+                                <div class="avatar-actions">
+                                    <button class="btn btn-outline-secondary btn-sm">Change Avatar</button>
+                                    <p class="avatar-hint">JPG, PNG up to 10MB</p>
+                                </div>
+                            </div>
+                            <hr class="settings-divider">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="fullName" class="form-label">Full Name</label>
+                                    <input type="text" class="form-control" id="fullName" value="John Doe">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" value="john.doe@company.com">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="phone" class="form-label">Phone</label>
+                                    <input type="tel" class="form-control" id="phone" value="+1 (555) 123-4567">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="timezone" class="form-label">Timezone</label>
+                                    <select class="form-select" id="timezone">
+                                        <option value="est" selected>Eastern Time (EST)</option>
+                                        <option value="cst">Central Time (CST)</option>
+                                        <option value="mst">Mountain Time (MST)</option>
+                                        <option value="pst">Pacific Time (PST)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="language" class="form-label">Language</label>
+                                    <select class="form-select" id="language">
+                                        <option value="en" selected>English</option>
+                                        <option value="es">Spanish</option>
+                                        <option value="fr">French</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="theme" class="form-label">Theme</label>
+                                    <select class="form-select" id="theme">
+                                        <option value="light" selected>Light</option>
+                                        <option value="dark">Dark</option>
+                                        <option value="system">System</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Settings -->
+                <div id="security-content" class="settings-tab-content">
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Two-Factor Authentication</h3>
+                            <p>Add an extra layer of security to your account</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Two-Factor Authentication</label>
+                                    <p class="settings-row-description">Secure your account with 2FA</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="twoFactorEnabled">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Authentication Methods</h3>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Authenticator App</label>
+                                    <p class="settings-row-description">Use TOTP apps like Google Authenticator</p>
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm">Setup</button>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">SMS Fallback</label>
+                                    <p class="settings-row-description">Receive codes via text message</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="smsEnabled">
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">WebAuthn/Passkeys</label>
+                                    <p class="settings-row-description">Use biometric or hardware keys</p>
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm">Add</button>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Backup Codes</label>
+                                    <p class="settings-row-description">Download emergency access codes</p>
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-download me-2"></i>
+                                    Download
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Sessions & Devices</h3>
+                            <p>Manage your active login sessions</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="session-list">
+                                <div class="session-item">
+                                    <div class="session-info">
+                                        <div class="session-icon">
+                                            <i class="fas fa-laptop"></i>
+                                        </div>
+                                        <div class="session-details">
+                                            <h6 class="session-device">MacBook Pro</h6>
+                                            <p class="session-location">New York, US</p>
+                                        </div>
+                                        <span class="badge bg-primary">Current</span>
+                                    </div>
+                                </div>
+                                <div class="session-item">
+                                    <div class="session-info">
+                                        <div class="session-icon">
+                                            <i class="fas fa-mobile-alt"></i>
+                                        </div>
+                                        <div class="session-details">
+                                            <h6 class="session-device">iPhone 15</h6>
+                                            <p class="session-location">New York, US</p>
+                                        </div>
+                                        <button class="btn btn-outline-secondary btn-sm">Revoke</button>
+                                    </div>
+                                </div>
+                                <div class="session-item">
+                                    <div class="session-info">
+                                        <div class="session-icon">
+                                            <i class="fas fa-desktop"></i>
+                                        </div>
+                                        <div class="session-details">
+                                            <h6 class="session-device">Chrome Browser</h6>
+                                            <p class="session-location">Chicago, IL</p>
+                                        </div>
+                                        <button class="btn btn-outline-secondary btn-sm">Revoke</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Sign Out All Devices</label>
+                                    <p class="settings-row-description">End all active sessions except current</p>
+                                </div>
+                                <button class="btn btn-outline-danger btn-sm">Sign Out All</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Security Preferences</h3>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Login Alerts</label>
+                                    <p class="settings-row-description">Get notified of new device logins</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="loginAlerts" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Require Re-authentication</label>
+                                    <p class="settings-row-description">For sensitive actions like changing password</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="reauthRequired" checked>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notifications Settings -->
+                <div id="notifications-content" class="settings-tab-content">
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Notification Channels</h3>
+                            <p>Choose how you want to receive notifications</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Email notifications</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Push notifications</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="pushNotifications" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">SMS notifications</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="smsNotifications">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Event Notifications</h3>
+                            <p>Get notified about important events</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">@@Mentions</label>
+                                    <p class="settings-row-description">When someone mentions you</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="mentions" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Document shared</label>
+                                    <p class="settings-row-description">When documents are shared with you</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="documentShared" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">E-sign events</label>
+                                    <p class="settings-row-description">Signature requests and completions</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="esignEvents" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Task due/overdue</label>
+                                    <p class="settings-row-description">Deadline reminders</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="taskDue" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Status changes</label>
+                                    <p class="settings-row-description">Matter and case updates</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="statusChanges">
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Filing updates</label>
+                                    <p class="settings-row-description">Court filing notifications</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="filingUpdates" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">AI summaries</label>
+                                    <p class="settings-row-description">Weekly AI-generated summaries</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="aiSummaries">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Quiet Hours</h3>
+                            <p>Set times when notifications should be paused</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Enable quiet hours</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="quietHours">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="quietStart" class="form-label">Start time</label>
+                                    <input type="time" class="form-control" id="quietStart" value="18:00">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="quietEnd" class="form-label">End time</label>
+                                    <input type="time" class="form-control" id="quietEnd" value="08:00">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Preferences Settings (duplicate of Notifications) -->
+                <div id="preferences-content" class="settings-tab-content">
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Application Preferences</h3>
+                            <p>Customize your application experience</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Email notifications</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="prefEmailNotifications" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Push notifications</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="prefPushNotifications" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">SMS notifications</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="prefSmsNotifications">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Display Preferences</h3>
+                            <p>Customize how information is displayed</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">@@Mentions</label>
+                                    <p class="settings-row-description">When someone mentions you</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="prefMentions" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Document shared</label>
+                                    <p class="settings-row-description">When documents are shared with you</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="prefDocumentShared" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">E-sign events</label>
+                                    <p class="settings-row-description">Signature requests and completions</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="prefEsignEvents" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Task due/overdue</label>
+                                    <p class="settings-row-description">Deadline reminders</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="prefTaskDue" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Status changes</label>
+                                    <p class="settings-row-description">Matter and case updates</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="prefStatusChanges">
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Filing updates</label>
+                                    <p class="settings-row-description">Court filing notifications</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="prefFilingUpdates" checked>
+                            </div>
+                        </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">AI summaries</label>
+                                    <p class="settings-row-description">Weekly AI-generated summaries</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="prefAiSummaries">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Quiet Hours</h3>
+                            <p>Set times when notifications should be paused</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Enable quiet hours</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="prefQuietHours">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="prefQuietStart" class="form-label">Start time</label>
+                                    <input type="time" class="form-control" id="prefQuietStart" value="18:00">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="prefQuietEnd" class="form-label">End time</label>
+                                    <input type="time" class="form-control" id="prefQuietEnd" value="08:00">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Billing & Plan Section -->
+                <div id="billing-content" class="settings-tab-content">
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Billing & Plan</h3>
+                            <p>Manage your subscription and billing settings</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Full Billing & Plan Settings</label>
+                                    <p class="settings-row-description">View and manage your subscription, payment methods, usage, and invoices</p>
+                                </div>
+                                <a href="/Client/@ViewBag.OrganizationId/Settings#billing" class="btn btn-primary btn-sm">
+                                    Firm Settings
+                                    <i class="fas fa-arrow-right ms-2"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                        </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab switching functionality
+            const navItems = document.querySelectorAll('.settings-nav-item');
+            const tabContents = document.querySelectorAll('.settings-tab-content');
+
+            function switchToTab(tabId) {
+                    // Remove active class from all nav items and tab contents
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                // Find and activate the corresponding nav item and content
+                const navItem = document.querySelector(`.settings-nav-item[data-tab="${tabId}"]`);
+                    const targetContent = document.getElementById(tabId + '-content');
+                
+                if (navItem) navItem.classList.add('active');
+                if (targetContent) targetContent.classList.add('active');
+            }
+
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const tabId = this.getAttribute('data-tab');
+                    switchToTab(tabId);
+                    // Update URL hash
+                    window.location.hash = tabId;
+                });
+            });
+
+            // Handle initial hash or hash changes
+            function handleHashChange() {
+                const hash = window.location.hash.substring(1); // Remove the '#'
+                if (hash && document.getElementById(hash + '-content')) {
+                    switchToTab(hash);
+                }
+            }
+
+            // Check hash on load
+            handleHashChange();
+
+            // Listen for hash changes
+            window.addEventListener('hashchange', handleHashChange);
+        });
+    </script>
+}
+
