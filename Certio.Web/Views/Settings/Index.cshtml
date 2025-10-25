@@ -871,25 +871,42 @@
             const navItems = document.querySelectorAll('.settings-nav-item');
             const tabContents = document.querySelectorAll('.settings-tab-content');
 
+            function switchToTab(tabId) {
+                // Remove active class from all nav items and tab contents
+                navItems.forEach(nav => nav.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                // Find and activate the corresponding nav item and content
+                const navItem = document.querySelector(`.settings-nav-item[data-tab="${tabId}"]`);
+                const targetContent = document.getElementById(tabId + '-content');
+                
+                if (navItem) navItem.classList.add('active');
+                if (targetContent) targetContent.classList.add('active');
+            }
+
             navItems.forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.preventDefault();
-                    
-                    // Remove active class from all nav items and tab contents
-                    navItems.forEach(nav => nav.classList.remove('active'));
-                    tabContents.forEach(content => content.classList.remove('active'));
-                    
-                    // Add active class to clicked nav item
-                    this.classList.add('active');
-                    
-                    // Show corresponding tab content
                     const tabId = this.getAttribute('data-tab');
-                    const targetContent = document.getElementById(tabId + '-content');
-                    if (targetContent) {
-                        targetContent.classList.add('active');
-                    }
+                    switchToTab(tabId);
+                    // Update URL hash
+                    window.location.hash = tabId;
                 });
             });
+
+            // Handle initial hash or hash changes
+            function handleHashChange() {
+                const hash = window.location.hash.substring(1); // Remove the '#'
+                if (hash && document.getElementById(hash + '-content')) {
+                    switchToTab(hash);
+                }
+            }
+
+            // Check hash on load
+            handleHashChange();
+
+            // Listen for hash changes
+            window.addEventListener('hashchange', handleHashChange);
         });
     </script>
 }

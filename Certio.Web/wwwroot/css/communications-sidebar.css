@@ -77,6 +77,7 @@
     margin: 0 0.5rem;
     box-sizing: border-box;
     border-radius: 20px 20px 0px 0px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
 .comms-channels-title {
@@ -109,6 +110,7 @@
     background: #ffffff;
     margin: 0 0.5rem;
     border-bottom: 1px solid rgba(11, 54, 94, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
 .comms-search-icon {
@@ -150,6 +152,7 @@
     background: #ffffff;
     margin: 0 0.5rem;
     box-sizing: border-box;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
 .comms-loading {
@@ -408,6 +411,7 @@
     margin: 0 0.5rem;
     box-sizing: border-box;
     border-radius: 20px 20px 0 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
 .comms-header-left {
@@ -472,6 +476,7 @@
     background: #f9fafb;
     margin: 0 0.5rem;
     box-sizing: border-box;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
 .members-label {
@@ -540,6 +545,7 @@
     background: #ffffff;
     margin: 0 0.5rem;
     box-sizing: border-box;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
 .comms-messages-list {
@@ -691,6 +697,7 @@
     flex-shrink: 0;
     margin: 0 0.5rem;
     box-sizing: border-box;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
 .comms-message-input-wrapper {

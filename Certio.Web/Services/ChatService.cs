@@ -575,7 +575,7 @@ public class ChatService : IChatService
                 conversationId.ToString(), messages, userMessage);
             
             // Create AI message with enhanced metadata
-            var aiMessage = CreateAIMessage(conversationId, aiResponse, "AI_Response", "IntelligentAI", new
+            var aiMessage = CreateAIMessage(conversationId, aiResponse, "AI_Response", "Notal AI", new
             {
                 user_type_detected = userType,
                 response_type = "intelligent_conversational",

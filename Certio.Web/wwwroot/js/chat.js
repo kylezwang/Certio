@@ -7,6 +7,11 @@ let lastMessageCount = 0;
 let aiInsights = null;
 let insightsVisible = false;
 
+// Sticky message state
+let stickyMessageIndex = -1; // Index of the message currently shown in sticky overlay (from end)
+let messageElements = []; // Array to store references to message DOM elements
+let userMessageElements = []; // Array to store only user message elements
+
 // Initialize SignalR connection
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, initializing chat...');
@@ -46,11 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Event listeners
     document.getElementById('sendButton')?.addEventListener('click', sendMessage);
-    document.getElementById('messageInput')?.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            sendMessage();
-        }
-    });
+    // Note: Enter key handling is now in _ClientLayout.cshtml to support Shift+Enter for new lines
     document.getElementById('clarityButton')?.addEventListener('click', requestClarity);
     document.getElementById('requestClarity')?.addEventListener('click', processClarityRequest);
     document.getElementById('toggleInsights')?.addEventListener('click', toggleAIInsights);
@@ -157,7 +158,12 @@ async function loadConversationMessages(conversationId) {
         
         const chatMessages = document.getElementById('chatMessages');
         if (chatMessages) {
-            chatMessages.innerHTML = '';
+            // Clear only messages, preserve the headers (welcome-message and notal-conversation-header)
+            const messagesToRemove = chatMessages.querySelectorAll('.ai-message-bubble:not(.welcome-message .ai-message-bubble):not(.notal-conversation-header .ai-message-bubble), .user-message-bubble');
+            messagesToRemove.forEach(msg => msg.remove());
+            
+            messageElements = []; // Reset message elements array
+            userMessageElements = []; // Reset user message elements array
             
             messages.forEach(message => {
                 addMessageToChat(message);
@@ -165,6 +171,9 @@ async function loadConversationMessages(conversationId) {
             
             // Process AI insights
             processAIInsights(messages);
+            
+            // Initialize sticky message feature after messages are loaded
+            initializeStickyMessage();
         } else {
             console.error('Chat messages container not found');
         }
@@ -172,6 +181,34 @@ async function loadConversationMessages(conversationId) {
     } catch (error) {
         console.error('Error loading messages:', error);
     }
+}
+
+// Generate a smart title from a message using keywords
+function generateTitleFromMessage(message) {
+    // Remove common stop words and extract meaningful keywords
+    const stopWords = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'should', 'could', 'may', 'might', 'can', 'about', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'up', 'down', 'out', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 'just', 'please', 'help', 'me', 'my', 'i', 'you', 'your', 'what', 'need'];
+    
+    // Clean the message and get words
+    const words = message.toLowerCase()
+        .replace(/[^\w\s]/g, ' ') // Remove punctuation
+        .split(/\s+/)
+        .filter(word => word.length > 2 && !stopWords.includes(word));
+    
+    // Take first 3-4 meaningful words
+    const keywords = words.slice(0, 4);
+    
+    if (keywords.length === 0) {
+        // Fallback to first part of message if no keywords found
+        return message.length > 30 ? message.substring(0, 30) + '...' : message;
+    }
+    
+    // Capitalize first letter of each keyword
+    const title = keywords
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    
+    // Limit title length
+    return title.length > 40 ? title.substring(0, 40) + '...' : title;
 }
 
 // Create a new conversation from a message
@@ -183,8 +220,8 @@ async function createNewConversationFromMessage(message) {
     }
     
     try {
-        // Create conversation with a title based on the first message
-        const title = message.length > 30 ? message.substring(0, 30) + '...' : message;
+        // Generate smart title from message keywords
+        const title = generateTitleFromMessage(message);
         const response = await fetch(`/Client/${orgId}/Chat/CreateConversation`, {
             method: 'POST',
             headers: {
@@ -199,12 +236,25 @@ async function createNewConversationFromMessage(message) {
                 // Update the current conversation ID
                 currentConversationId = data.conversationId;
                 
-                // Update the default tab with the real conversation ID
-                const defaultTab = document.querySelector('.conversation-tab[data-conversation-id="default"]');
-                if (defaultTab) {
-                    defaultTab.dataset.conversationId = data.conversationId;
-                    defaultTab.querySelector('.tab-title').textContent = title;
+                // Hide welcome message and show conversation header
+                const welcomeMessage = document.getElementById('welcomeMessage');
+                if (welcomeMessage) {
+                    welcomeMessage.style.display = 'none';
                 }
+                
+                const conversationHeader = document.getElementById('notalConversationHeader');
+                if (conversationHeader) {
+                    conversationHeader.style.display = 'block';
+                }
+                
+                // Exit landing mode
+                const chatContent = document.getElementById('chatContent');
+                if (chatContent) {
+                    chatContent.classList.remove('landing-mode');
+                }
+                
+                // Create a new tab for this conversation
+                await addConversationTab(data.conversationId, title);
                 
                 // Now send the message to the new conversation
                 await sendMessageToConversation(message, data.conversationId);
@@ -223,6 +273,60 @@ async function createNewConversationFromMessage(message) {
     }
 }
 
+// Add a conversation tab to the tab list
+async function addConversationTab(conversationId, title) {
+    const tabList = document.querySelector('.tab-list');
+    if (!tabList) return;
+    
+    // Create the tab element
+    const tabHtml = `
+        <div class="conversation-tab" data-conversation-id="${conversationId}">
+            <div class="tab-content">
+                <div class="tab-title">${title}</div>
+            </div>
+            <button class="tab-delete" data-conversation-id="${conversationId}" title="Delete conversation">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+    
+    // Find the add button
+    const addButton = tabList.querySelector('.add-conversation-btn');
+    if (addButton) {
+        // Insert before the add button
+        addButton.insertAdjacentHTML('beforebegin', tabHtml);
+    } else {
+        // If no add button, just append
+        tabList.insertAdjacentHTML('beforeend', tabHtml);
+    }
+    
+    // Get the newly created tab
+    const newTab = tabList.querySelector(`.conversation-tab[data-conversation-id="${conversationId}"]`);
+    if (newTab) {
+        // Set it as active
+        document.querySelectorAll('.conversation-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        newTab.classList.add('active');
+        
+        // Add click handler
+        newTab.addEventListener('click', function() {
+            if (!this.classList.contains('active')) {
+                loadConversation(conversationId);
+            }
+        });
+        
+        // Add delete handler
+        const deleteBtn = newTab.querySelector('.tab-delete');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                deleteConversation(conversationId);
+            });
+        }
+    }
+}
+
 // Send message to a specific conversation
 async function sendMessageToConversation(message, conversationId) {
     return await sendMessageInternal(message, conversationId);
@@ -237,6 +341,22 @@ async function sendMessage() {
     
     // Clear input immediately to avoid duplicate text lingering
     messageInput.value = '';
+    
+    // Reset textarea height
+    messageInput.style.height = 'auto';
+    
+    // Reset character counter
+    const charCounter = document.getElementById('charCounter');
+    if (charCounter) {
+        charCounter.textContent = '0 / 2000';
+        charCounter.classList.remove('warning', 'limit');
+    }
+    
+    // Disable send button
+    const sendButton = document.getElementById('sendButton');
+    if (sendButton) {
+        sendButton.disabled = true;
+    }
     
     // If we don't have a conversation ID, create a new one first
     if (!currentConversationId) {
@@ -278,6 +398,9 @@ async function generateAIResponse(userMessage) {
             
             // Update current messages
             currentMessages.push(result.message);
+            
+            // Reinitialize sticky message after new message is added
+            initializeStickyMessage();
             
             // Load AI insights after a short delay to allow background processing
             setTimeout(() => {
@@ -372,13 +495,10 @@ function addUserMessageToChat(message) {
     
     const messageDiv = document.createElement('div');
     messageDiv.className = 'user-message-bubble';
+    messageDiv.dataset.messageId = messageElements.length;
     messageDiv.innerHTML = `
-        <div class="message-avatar">
-            <div class="user-avatar">U</div>
-        </div>
         <div class="message-content">
             <div class="message-header">
-                <span class="sender-name">You</span>
                 <span class="timestamp">${new Date().toLocaleTimeString()}</span>
             </div>
             <div class="message-text">${message}</div>
@@ -386,6 +506,8 @@ function addUserMessageToChat(message) {
     `;
     
     chatMessages.appendChild(messageDiv);
+    messageElements.push(messageDiv); // Track all message elements
+    userMessageElements.push(messageDiv); // Track only user messages for sticky overlay
     chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'instant' });
 }
 
@@ -487,17 +609,18 @@ function addMessageToChat(message) {
     }
     
     const messageDiv = document.createElement('div');
+    messageDiv.dataset.messageId = message.id || messageElements.length;
+    
+    // Get current user name from context
+    const appContext = document.getElementById('appContext');
+    const currentUserName = appContext?.getAttribute('data-current-user-name') || 'User';
     
     if (message.isFromAI) {
         messageDiv.className = 'ai-message-bubble';
         messageDiv.innerHTML = `
-            <div class="message-avatar">
-                <div class="avatar-icon">C</div>
-            </div>
             <div class="message-content">
                 <div class="message-header">
-                    <span class="sender-name">Certio</span>
-                    <span class="ai-badge">AI Agent</span>
+                    <img src="/images/Notal_Banner_Logo.png" alt="Notal AI" class="ai-message-logo" />
                     <span class="timestamp">${new Date(message.createdAt).toLocaleTimeString()}</span>
                 </div>
                 <div class="message-text">
@@ -508,23 +631,208 @@ function addMessageToChat(message) {
         `;
     } else {
         messageDiv.className = 'user-message-bubble';
-        const userInitial = message.userType.charAt(0).toUpperCase();
         messageDiv.innerHTML = `
-            <div class="message-avatar">
-                <div class="user-avatar">${userInitial}</div>
-            </div>
             <div class="message-content">
                 <div class="message-header">
-                    <span class="sender-name">${message.userType}</span>
+                    <span class="sender-name">${currentUserName} <span class="you-label">(You)</span></span>
                     <span class="timestamp">${new Date(message.createdAt).toLocaleTimeString()}</span>
                 </div>
                 <div class="message-text">${message.content}</div>
             </div>
         `;
+        // Track only user messages for sticky overlay
+        userMessageElements.push(messageDiv);
     }
     
     chatMessages.appendChild(messageDiv);
+    messageElements.push(messageDiv); // Track all message elements
     chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'instant' });
+}
+
+// Initialize sticky message feature
+function initializeStickyMessage() {
+    const chatMessages = document.getElementById('chatMessages');
+    const stickyOverlay = document.getElementById('stickyLastMessage');
+    
+    console.log('initializeStickyMessage called', {
+        chatMessages: !!chatMessages,
+        stickyOverlay: !!stickyOverlay,
+        totalMessages: messageElements.length,
+        userMessages: userMessageElements.length
+    });
+    
+    if (!chatMessages || !stickyOverlay) {
+        console.warn('Missing required elements for sticky message');
+        return;
+    }
+    
+    if (userMessageElements.length === 0) {
+        console.log('No user messages yet, skipping sticky message initialization');
+        // Hide the overlay if no user messages
+        stickyOverlay.style.display = 'none';
+        return;
+    }
+    
+    // Don't show sticky on initial load (user is at bottom)
+    // It will appear when they start scrolling up
+    stickyMessageIndex = -1;
+    stickyOverlay.style.display = 'none';
+    
+    // Remove any existing scroll listener
+    chatMessages.removeEventListener('scroll', handleStickyMessageScroll);
+    
+    // Add scroll listener for dynamic updates
+    chatMessages.addEventListener('scroll', handleStickyMessageScroll);
+    
+    console.log('✅ Sticky message initialized with', userMessageElements.length, 'user messages');
+}
+
+// Update the sticky message overlay content
+function updateStickyMessage() {
+    const stickyOverlay = document.getElementById('stickyLastMessage');
+    const stickyContent = stickyOverlay?.querySelector('.sticky-message-content');
+    const chatMessages = document.getElementById('chatMessages');
+    
+    console.log('updateStickyMessage called', {
+        hasOverlay: !!stickyOverlay,
+        hasContent: !!stickyContent,
+        userMessageCount: userMessageElements.length,
+        stickyIndex: stickyMessageIndex
+    });
+    
+    if (!stickyOverlay || !stickyContent || userMessageElements.length === 0) {
+        console.warn('Cannot update sticky message - missing elements or no user messages');
+        return;
+    }
+    
+    // Calculate actual index (from the end of user messages only)
+    const actualIndex = userMessageElements.length - 1 - stickyMessageIndex;
+    
+    console.log('Calculated actualIndex:', actualIndex, 'from userMessageElements.length:', userMessageElements.length, 'and stickyMessageIndex:', stickyMessageIndex);
+    
+    // If we've reached beyond the first user message, hide the sticky overlay
+    if (actualIndex < 0 || stickyMessageIndex >= userMessageElements.length) {
+        console.log('Hiding sticky overlay - out of bounds');
+        stickyOverlay.style.display = 'none';
+        stickyOverlay.classList.remove('visible');
+        chatMessages.classList.remove('has-sticky-message');
+        return;
+    }
+    
+    const messageElement = userMessageElements[actualIndex];
+    console.log('User message element:', messageElement);
+    
+    // Clone the message content for the sticky overlay
+    const clonedMessage = messageElement.cloneNode(true);
+    stickyContent.innerHTML = '';
+    stickyContent.appendChild(clonedMessage);
+    
+    // Show the sticky overlay
+    console.log('Showing sticky overlay...');
+    stickyOverlay.style.display = 'block';
+    // Use setTimeout to ensure display change is applied before adding visible class
+    setTimeout(() => {
+        stickyOverlay.classList.add('visible');
+        console.log('✅ Sticky overlay now visible with class');
+    }, 10);
+    chatMessages.classList.add('has-sticky-message');
+    
+    console.log('✅ Sticky message updated to show user message at index', actualIndex);
+}
+
+// Handle scroll events to update sticky message
+function handleStickyMessageScroll() {
+    const chatMessages = document.getElementById('chatMessages');
+    const stickyOverlay = document.getElementById('stickyLastMessage');
+    
+    if (!chatMessages || userMessageElements.length === 0) {
+        return;
+    }
+    
+    // Find the last user message that is currently scrolled out of view (above viewport)
+    let newStickyIndex = -1;
+    let messageToShow = null;
+    
+    for (let i = userMessageElements.length - 1; i >= 0; i--) {
+        const userMessage = userMessageElements[i];
+        
+        if (isMessageAboveViewport(userMessage, chatMessages)) {
+            // This message is above the viewport (scrolled past)
+            newStickyIndex = userMessageElements.length - 1 - i;
+            messageToShow = userMessage;
+            break;
+        }
+    }
+    
+    // If no message is above viewport, hide sticky
+    if (newStickyIndex === -1) {
+        if (stickyOverlay) {
+            stickyOverlay.style.display = 'none';
+            stickyOverlay.classList.remove('visible');
+            chatMessages.classList.remove('has-sticky-message');
+        }
+        stickyMessageIndex = -1;
+        return;
+    }
+    
+    // IMPORTANT: Hide sticky if the actual message is visible in the sticky area
+    // This prevents showing duplicate content when scrolling
+    if (messageToShow && isMessageInStickyArea(messageToShow, chatMessages)) {
+        if (stickyOverlay) {
+            stickyOverlay.style.display = 'none';
+            stickyOverlay.classList.remove('visible');
+            chatMessages.classList.remove('has-sticky-message');
+        }
+        return;
+    }
+    
+    // Update sticky message if index changed
+    if (newStickyIndex !== stickyMessageIndex) {
+        stickyMessageIndex = newStickyIndex;
+        console.log('Scroll detected, updating sticky to index:', stickyMessageIndex);
+        updateStickyMessage();
+    }
+}
+
+// Check if an element is visible in the viewport of its container
+function isElementInViewport(element, container) {
+    if (!element || !container) return false;
+    
+    const elementRect = element.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    
+    // Check if the top of the element is visible within the container
+    // We add a buffer of 150px to account for the sticky overlay height
+    return (
+        elementRect.top >= containerRect.top + 150 &&
+        elementRect.top <= containerRect.bottom
+    );
+}
+
+// Check if an element is above (scrolled past) the viewport
+function isMessageAboveViewport(element, container) {
+    if (!element || !container) return false;
+    
+    const elementRect = element.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    
+    // Message is above viewport if its bottom is above the container's top
+    // Add a small buffer (80px) so it switches slightly before completely out of view
+    return elementRect.bottom < containerRect.top + 80;
+}
+
+// Check if a message is visible in the sticky overlay area (top portion of viewport)
+function isMessageInStickyArea(element, container) {
+    if (!element || !container) return false;
+    
+    const elementRect = element.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    
+    // Sticky area is roughly the top 100px of the container
+    const stickyAreaBottom = containerRect.top + 100;
+    
+    // Message is in sticky area if any part of it overlaps with this zone
+    return elementRect.top < stickyAreaBottom && elementRect.bottom > containerRect.top;
 }
 
 // Format AI message based on message type
@@ -703,41 +1011,24 @@ function formatIntelligentResponse(content) {
     
     // Check if this is a service unavailable message
     if (content.includes("AI Services Temporarily Unavailable")) {
-        return `
-            <div class="intelligent-ai service-unavailable">
-                <div class="intelligent-response">
-                    <div class="ai-thinking">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <span>Service Status</span>
-                    </div>
-                    <div class="response-content">
-                        ${htmlContent}
-                    </div>
-                </div>
-            </div>
-        `;
+        return htmlContent;
     }
     
-    return `
-        <div class="intelligent-ai">
-            <div class="intelligent-response">
-                <div class="ai-thinking">
-                    <i class="fas fa-brain"></i>
-                    <span>Intelligent AI Response</span>
-                </div>
-                <div class="response-content">
-                    ${htmlContent}
-                </div>
-            </div>
-        </div>
-    `;
+    return htmlContent;
 }
 
 // Convert markdown to HTML
 function convertMarkdownToHtml(text) {
     if (!text) return text;
     
-    return text
+    // First, remove code block wrappers if the entire content is wrapped in one
+    let cleanedText = text.trim();
+    const codeBlockMatch = cleanedText.match(/^```(?:html|text|markdown)?\s*\n?([\s\S]*?)\n?```$/);
+    if (codeBlockMatch) {
+        cleanedText = codeBlockMatch[1].trim();
+    }
+    
+    return cleanedText
         // First, aggressively handle all forms of newlines
         .replace(/\\n/g, '\n')  // Convert \n to actual newlines
         .replace(/\\r\\n/g, '\n')  // Convert \r\n to newlines
@@ -803,13 +1094,8 @@ function addClarityToChat(clarity) {
     const clarityDiv = document.createElement('div');
     clarityDiv.className = 'ai-message-bubble clarity-message';
     clarityDiv.innerHTML = `
-        <div class="message-avatar">
-            <div class="avatar-icon">C</div>
-        </div>
         <div class="message-content">
             <div class="message-header">
-                <span class="sender-name">Certio</span>
-                <span class="ai-badge">Clarity Agent</span>
                 <span class="timestamp">${new Date().toLocaleTimeString()}</span>
             </div>
             <div class="message-text">
@@ -1429,7 +1715,7 @@ function showIntelligentAIThinkingIndicator(userMessage) {
     thinkingDiv.innerHTML = `
         <div class="message-header">
             <span class="user-type">AI</span>
-            <span class="ai-agent">IntelligentAI</span>
+            <span class="ai-agent">Notal AI</span>
             <span class="timestamp">${new Date().toLocaleTimeString()}</span>
         </div>
         <div class="message-content">
@@ -1439,13 +1725,23 @@ function showIntelligentAIThinkingIndicator(userMessage) {
                         <span class="sr-only">Loading...</span>
                     </div>
                 </div>
-                <span class="thinking-text">${thinkingMessage}</span>
+                <span class="thinking-text" id="thinkingText">${thinkingMessage}</span>
             </div>
         </div>
     `;
     
     chatMessages.appendChild(thinkingDiv);
     chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'instant' });
+    
+    // Apply wave animation to thinking text
+    const thinkingTextElement = thinkingDiv.querySelector('#thinkingText');
+    if (thinkingTextElement) {
+        const text = thinkingTextElement.textContent;
+        thinkingTextElement.innerHTML = text.split('').map((char, index) => {
+            const delay = index * 0.05; // 50ms delay between each character
+            return `<span style="animation-delay: ${delay}s;">${char === ' ' ? '&nbsp;' : char}</span>`;
+        }).join('');
+    }
 }
 
 // Enhanced message display for intelligent AI responses
@@ -1460,7 +1756,7 @@ function addIntelligentMessageToChat(message) {
     let content = message.content;
     
     // Enhance AI messages with better formatting
-    if (message.isFromAI && message.aiAgentType === 'IntelligentAI') {
+    if (message.isFromAI && message.aiAgentType === 'Notal AI') {
         // Add intelligent AI styling
         messageDiv.classList.add('intelligent-response');
         
@@ -1533,6 +1829,17 @@ function testNewlineFix() {
 }
 
 
+// Function to center action buttons within chat panel
+function centerActionButtons(chatPanelWidth) {
+    const actionButtonsContainer = document.getElementById('actionButtonsContainer');
+    if (actionButtonsContainer) {
+        // Calculate center position: chat panel width / 2 - container width / 2
+        const containerWidth = actionButtonsContainer.offsetWidth;
+        const centerPosition = chatPanelWidth - (chatPanelWidth / 2) - (containerWidth / 2);
+        actionButtonsContainer.style.right = centerPosition + 'px';
+    }
+}
+
 // Chat Layout Functions
 function initializeChatLayout() {
     // Initialize resize functionality
@@ -1560,6 +1867,15 @@ function initializeChatLayout() {
     if (mainContentWrapper) {
         mainContentWrapper.style.right = chatPanelWidth + 'px';
     }
+    
+    // Adjust floating timer overlay position
+    const floatingTimerOverlay = document.getElementById('floatingTimerOverlay');
+    if (floatingTimerOverlay) {
+        floatingTimerOverlay.style.right = (chatPanelWidth + 24) + 'px'; // Add 24px for spacing
+    }
+    
+    // Center action buttons within chat panel
+    centerActionButtons(chatPanelWidth);
     
     // Also set the initial header width
     const topHeader = document.querySelector('.top-header');
@@ -1712,6 +2028,15 @@ function initializeResizeHandle() {
                 mainContentWrapper.style.right = newWidth + 'px';
             }
             
+            // Update floating timer overlay position
+            const floatingTimerOverlay = document.getElementById('floatingTimerOverlay');
+            if (floatingTimerOverlay) {
+                floatingTimerOverlay.style.right = (newWidth + 24) + 'px'; // Add 24px for spacing
+            }
+            
+            // Center action buttons within chat panel
+            centerActionButtons(newWidth);
+            
             // Save to localStorage
             localStorage.setItem('chatPanelWidth', newWidth);
         }
@@ -1751,17 +2076,25 @@ function loadConversation(conversationId) {
         console.error('Could not find conversation tab with ID:', conversationId);
     }
     
-    // Show chat interface
+    // Update chat header
     const chatHeader = document.getElementById('chatHeader');
-    const chatInput = document.querySelector('.chat-input');
-    
     if (chatHeader) chatHeader.textContent = 'AI Assistant';
-    if (chatInput) chatInput.style.display = 'block';
     
-    // Hide welcome message
+    // Hide welcome message and show conversation header
     const welcomeMessage = document.getElementById('welcomeMessage');
     if (welcomeMessage) {
         welcomeMessage.style.display = 'none';
+    }
+    
+    const conversationHeader = document.getElementById('notalConversationHeader');
+    if (conversationHeader) {
+        conversationHeader.style.display = 'block';
+    }
+    
+    // Exit landing mode
+    const chatContent = document.getElementById('chatContent');
+    if (chatContent) {
+        chatContent.classList.remove('landing-mode');
     }
     
     // Load messages for this conversation
@@ -1842,10 +2175,33 @@ function deleteConversation(conversationId) {
                 if (currentConversationId === conversationId) {
                     currentConversationId = null;
                     clearSelectedConversation(); // Clear the saved selection
-                    document.getElementById('chatMessages').innerHTML = '';
+                    
+                    // Clear messages and hide conversation header
+                    const chatMessagesContainer = document.getElementById('chatMessages');
+                    if (chatMessagesContainer) {
+                        // Remove all messages except the headers
+                        const messages = chatMessagesContainer.querySelectorAll('.ai-message-bubble:not(.welcome-message .ai-message-bubble), .user-message-bubble');
+                        messages.forEach(msg => msg.remove());
+                    }
+                    
                     document.getElementById('chatHeader').textContent = 'AI Assistant';
-                    document.querySelector('.chat-input').style.display = 'none';
-                    document.getElementById('welcomeMessage').style.display = 'block';
+                    
+                    // Show welcome message and hide conversation header
+                    const welcomeMessage = document.getElementById('welcomeMessage');
+                    if (welcomeMessage) {
+                        welcomeMessage.style.display = 'block';
+                    }
+                    
+                    const conversationHeader = document.getElementById('notalConversationHeader');
+                    if (conversationHeader) {
+                        conversationHeader.style.display = 'none';
+                    }
+                    
+                    // Return to landing mode
+                    const chatContent = document.getElementById('chatContent');
+                    if (chatContent) {
+                        chatContent.classList.add('landing-mode');
+                    }
                 }
             } else {
                 alert('Failed to delete conversation: ' + (data.error || 'Unknown error'));

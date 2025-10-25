@@ -294,36 +294,55 @@ namespace Certio.Web.Controllers
                 return Unauthorized();
             }
 
-            // Use TeamService to get organization users
-            var result = await _teamService.GetTeamMembersAsync(orgId, user.Id);
-
-            if (!result.Success)
+            try
             {
-                return BadRequest(new { success = false, message = result.ErrorMessage });
-            }
+                // Get related organization IDs (for law firms viewing client matters, etc.)
+                var relatedOrgIds = await _context.OrganizationRelationships
+                    .Where(or => (or.SourceOrganizationId == orgId || or.TargetOrganizationId == orgId) && or.IsActive)
+                    .Select(or => or.SourceOrganizationId == orgId ? or.TargetOrganizationId : or.SourceOrganizationId)
+                    .Distinct()
+                    .ToListAsync();
 
-            // Map TeamMemberDto to format expected by history UI
-            var users = result.Data!
-                .Where(tm => tm.IsActive)
-                .Select(tm => new
+                // Include current org
+                var allOrgIds = new List<int> { orgId };
+                allOrgIds.AddRange(relatedOrgIds);
+
+                // Get all users from current org and related orgs
+                var userOrgs = await _context.UserOrganizations
+                    .Include(uo => uo.User)
+                    .Where(uo => allOrgIds.Contains(uo.OrganizationId) && uo.IsActive)
+                    .Select(uo => uo.User)
+                    .Distinct()
+                    .ToListAsync();
+
+                // Map to expected format
+                var users = userOrgs
+                    .Select(u => new
+                    {
+                        id = u.Id,
+                        name = $"{u.FirstName} {u.LastName}".Trim(),
+                        initials = GetInitials(u.FirstName, u.LastName),
+                        email = u.Email ?? ""
+                    })
+                    .OrderBy(u => u.name)
+                    .ToList();
+
+                // Add Notal AI as a user option
+                users.Insert(0, new
                 {
-                    id = tm.UserId,
-                    name = $"{tm.FirstName} {tm.LastName}".Trim(),
-                    initials = GetInitials(tm.FirstName, tm.LastName),
-                    email = tm.Email
-                })
-                .ToList();
+                    id = 0, // Special ID for AI
+                    name = "Notal AI",
+                    initials = "AI",
+                    email = ""
+                });
 
-            // Add Notal AI as a user option
-            users.Add(new
+                return Json(new { success = true, users });
+            }
+            catch (Exception ex)
             {
-                id = 0, // Special ID for AI
-                name = "Notal AI",
-                initials = "AI",
-                email = ""
-            });
-
-            return Json(new { success = true, users });
+                _logger.LogError(ex, "Error loading users for org {OrgId}", orgId);
+                return BadRequest(new { success = false, message = "Error loading users" });
+            }
         }
 
         // GET: /Client/{orgId}/History/Matters - Get matters for filter
@@ -339,18 +358,35 @@ namespace Certio.Web.Controllers
 
             try
             {
+                // Get matters from current org
                 var result = await _matterService.ListMattersAsync(user.Id, orgId);
+                var allMatters = result.Success ? result.Data! : new List<Application.DTOs.MatterDto>();
 
-                if (!result.Success)
+                // Get related organization IDs and their matters too (for law firms viewing client matters)
+                var relatedOrgIds = await _context.OrganizationRelationships
+                    .Where(or => (or.SourceOrganizationId == orgId || or.TargetOrganizationId == orgId) && or.IsActive)
+                    .Select(or => or.SourceOrganizationId == orgId ? or.TargetOrganizationId : or.SourceOrganizationId)
+                    .Distinct()
+                    .ToListAsync();
+
+                // Get matters from related orgs
+                foreach (var relatedOrgId in relatedOrgIds)
                 {
-                    return BadRequest(new { success = false, message = result.ErrorMessage });
+                    var relatedResult = await _matterService.ListMattersAsync(user.Id, relatedOrgId);
+                    if (relatedResult.Success)
+                    {
+                        allMatters.AddRange(relatedResult.Data!);
+                    }
                 }
 
-                var matters = result.Data!.Select(m => new
-                {
-                    id = m.Id,
-                    name = m.Title
-                }).ToList();
+                var matters = allMatters
+                    .Select(m => new
+                    {
+                        id = m.Id,
+                        name = m.Title
+                    })
+                    .OrderBy(m => m.name)
+                    .ToList();
 
                 return Json(new { success = true, matters });
             }
@@ -374,9 +410,20 @@ namespace Certio.Web.Controllers
 
             try
             {
-                // Get distinct actions from audit logs for this organization
+                // Get related organization IDs (for law firms viewing client matters, etc.)
+                var relatedOrgIds = await _context.OrganizationRelationships
+                    .Where(or => (or.SourceOrganizationId == orgId || or.TargetOrganizationId == orgId) && or.IsActive)
+                    .Select(or => or.SourceOrganizationId == orgId ? or.TargetOrganizationId : or.SourceOrganizationId)
+                    .Distinct()
+                    .ToListAsync();
+
+                // Include current org
+                var allOrgIds = new List<int> { orgId };
+                allOrgIds.AddRange(relatedOrgIds);
+
+                // Get distinct actions from audit logs for this organization and related orgs
                 var actions = await _context.AuditLogs
-                    .Where(al => al.OrganizationId == orgId)
+                    .Where(al => al.OrganizationId.HasValue && allOrgIds.Contains(al.OrganizationId.Value))
                     .Select(al => al.Action)
                     .Distinct()
                     .OrderBy(a => a)
@@ -404,9 +451,20 @@ namespace Certio.Web.Controllers
 
             try
             {
-                // Get distinct entity types from audit logs for this organization
+                // Get related organization IDs (for law firms viewing client matters, etc.)
+                var relatedOrgIds = await _context.OrganizationRelationships
+                    .Where(or => (or.SourceOrganizationId == orgId || or.TargetOrganizationId == orgId) && or.IsActive)
+                    .Select(or => or.SourceOrganizationId == orgId ? or.TargetOrganizationId : or.SourceOrganizationId)
+                    .Distinct()
+                    .ToListAsync();
+
+                // Include current org
+                var allOrgIds = new List<int> { orgId };
+                allOrgIds.AddRange(relatedOrgIds);
+
+                // Get distinct entity types from audit logs for this organization and related orgs
                 var entityTypes = await _context.AuditLogs
-                    .Where(al => al.OrganizationId == orgId && al.EntityType != null)
+                    .Where(al => al.OrganizationId.HasValue && allOrgIds.Contains(al.OrganizationId.Value) && al.EntityType != null)
                     .Select(al => al.EntityType!)
                     .Distinct()
                     .OrderBy(et => et)

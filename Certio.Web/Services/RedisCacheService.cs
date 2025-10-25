@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Certio.Web.Services;
 
@@ -9,6 +10,13 @@ public class RedisCacheService : ICacheService
     private readonly IDistributedCache _distributedCache;
     private readonly IMemoryCache _memoryCache;
     private readonly ILogger<RedisCacheService> _logger;
+    
+    // JSON serializer options to handle circular references
+    private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
+    {
+        ReferenceHandler = ReferenceHandler.IgnoreCycles,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
     
     // Cache expiration times (Discord/Slack style)
     private static readonly TimeSpan DefaultExpiration = TimeSpan.FromMinutes(30);
@@ -52,7 +60,7 @@ public class RedisCacheService : ICacheService
                 return null;
             }
 
-            var value = JsonSerializer.Deserialize<T>(cachedData);
+            var value = JsonSerializer.Deserialize<T>(cachedData, JsonOptions);
             
             // Populate memory cache for next time (cache warming)
             if (value != null)
@@ -79,7 +87,7 @@ public class RedisCacheService : ICacheService
             _memoryCache.Set(key, value, TimeSpan.FromMinutes(Math.Min(5, exp.TotalMinutes)));
             
             // Set in distributed cache (L2 - Redis)
-            var serializedData = JsonSerializer.Serialize(value);
+            var serializedData = JsonSerializer.Serialize(value, JsonOptions);
             
             var options = new DistributedCacheEntryOptions
             {
