@@ -237,10 +237,9 @@
             // Setup event listeners for all filters (only once after all data is loaded)
             setupHistoryFiltering();
             
-            // Initialize filters with all items checked (default state)
-            setTimeout(() => {
-                filterHistory();
-            }, 500);
+            // DO NOT call filterHistory() on initial load - this would filter out items
+            // that don't match the loaded filter options (like audit logs from related orgs)
+            // Filters are only applied when user actively changes them
         });
 
         function initializeCollapsibleSections() {

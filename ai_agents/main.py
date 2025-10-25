@@ -33,14 +33,34 @@ logger = logging.getLogger(__name__)
 
 # Try to import RAG system, fallback if dependencies not available
 try:
-    from certio_rag_system import enhance_agent_prompt, get_relevant_context, search_project_knowledge
-    logger.info("Using full RAG system with numpy/scikit-learn")
+    from certio_rag_system_enhanced import (
+        enhance_agent_prompt, 
+        get_relevant_context, 
+        search_project_knowledge,
+        enhanced_notal_rag,
+        get_knowledge_stats
+    )
+    logger.info("✅ Using Enhanced RAG System with onboarding knowledge and intent detection")
+    RAG_SYSTEM = "enhanced"
 except ImportError as e:
-    logger.warning(f"Full RAG system not available ({e}), using fallback version")
-    from certio_rag_system_fallback import enhance_agent_prompt, get_relevant_context, search_project_knowledge
+    logger.warning(f"Enhanced RAG system not available ({e}), trying standard RAG")
+    try:
+        from certio_rag_system import enhance_agent_prompt, get_relevant_context, search_project_knowledge, notal_rag
+        enhanced_notal_rag = notal_rag  # Alias for compatibility
+        logger.info("Using standard RAG system with numpy/scikit-learn")
+        RAG_SYSTEM = "standard"
+        def get_knowledge_stats():
+            return notal_rag.get_knowledge_stats() if hasattr(notal_rag, 'get_knowledge_stats') else {}
+    except ImportError as e2:
+        logger.warning(f"Standard RAG system not available ({e2}), using fallback version")
+        from certio_rag_system_fallback import enhance_agent_prompt, get_relevant_context, search_project_knowledge, notal_rag
+        enhanced_notal_rag = notal_rag  # Alias for compatibility
+        RAG_SYSTEM = "fallback"
+        def get_knowledge_stats():
+            return notal_rag.get_knowledge_stats() if hasattr(notal_rag, 'get_knowledge_stats') else {}
 
 # Initialize FastAPI app
-app = FastAPI(title="Certio AI Agents", version="1.0.0")
+app = FastAPI(title="Notal AI Agents", version="1.0.0")
 
 # Configure Azure OpenAI with fallback to regular OpenAI
 def create_openai_client():
@@ -309,7 +329,7 @@ class ChatSummarizer(BaseAgent):
         rag_context = get_relevant_context("ChatSummarizer", conversation_text, conversation_context)
         
         base_prompt = f"""
-        As an expert legal conversation analyst for the Certio platform, provide a comprehensive analysis of this legal services conversation:
+        As an expert legal conversation analyst for the Notal platform, provide a comprehensive analysis of this legal services conversation:
         
         Conversation Context:
         - Total messages: {len(messages)}
@@ -466,7 +486,7 @@ class ClientGoalExtractor(BaseAgent):
         rag_context = get_relevant_context("ClientGoalExtractor", conversation_text, business_context_text)
         
         base_prompt = f"""
-        As a legal business analyst for the Certio platform, extract comprehensive client goals and requirements from this legal services conversation:
+        As a legal business analyst for the Notal platform, extract comprehensive client goals and requirements from this legal services conversation:
         
         Business Context Analysis:
         - Client message count: {len(client_messages)}
@@ -640,7 +660,7 @@ class ReplySuggester(BaseAgent):
         rag_context = get_relevant_context("ReplySuggester", conversation_text, reply_context)
         
         base_prompt = f"""
-        As an expert {user_type} representative for the Certio platform, suggest a highly professional and contextually appropriate reply:
+        As an expert {user_type} representative for the Notal platform, suggest a highly professional and contextually appropriate reply:
         
         Conversation Context:
         - Total messages: {len(messages)}
@@ -829,7 +849,7 @@ class ClarityAgent(BaseAgent):
         rag_context = get_relevant_context("ClarityAgent", text, clarity_context)
         
         base_prompt = f"""
-        As a legal communication expert for the Certio platform, explain this legal text in clear, accessible terms for a {user_type}:
+        As a legal communication expert for the Notal platform, explain this legal text in clear, accessible terms for a {user_type}:
         
         Original Legal Text: {text}
         
@@ -1095,7 +1115,7 @@ agent_orchestrator = AgentOrchestrator()
 # API Endpoints
 @app.get("/")
 async def root():
-    return {"message": "Certio AI Agents Service", "status": "running"}
+    return {"message": "Notal AI Agents Service", "status": "running"}
 
 @app.get("/health")
 async def health_check():
@@ -1426,7 +1446,7 @@ async def record_cost_event(request: dict):
 
 @app.get("/knowledge/search")
 async def search_knowledge_endpoint(query: str, category: Optional[str] = None):
-    """Search the Certio knowledge base"""
+    """Search the Notal knowledge base"""
     try:
         results = search_project_knowledge(query, category)
         return {
@@ -1445,13 +1465,9 @@ async def search_knowledge_endpoint(query: str, category: Optional[str] = None):
 async def get_knowledge_stats():
     """Get knowledge base statistics"""
     try:
-        # Try to get stats from full RAG system, fallback if needed
-        try:
-            from certio_rag_system import certio_rag
-            stats = certio_rag.get_knowledge_stats()
-        except ImportError:
-            from certio_rag_system_fallback import certio_rag
-            stats = certio_rag.get_knowledge_stats()
+        # Get stats from the active RAG system
+        stats = get_knowledge_stats()
+        stats["rag_system_type"] = RAG_SYSTEM
         
         return {
             "status": "success",
@@ -1474,13 +1490,8 @@ async def add_custom_knowledge(request: dict):
         if not content:
             raise HTTPException(status_code=400, detail="Content is required")
         
-        # Try to add to full RAG system, fallback if needed
-        try:
-            from certio_rag_system import certio_rag
-            certio_rag.add_custom_knowledge(content, source, category, metadata)
-        except ImportError:
-            from certio_rag_system_fallback import certio_rag
-            certio_rag.add_custom_knowledge(content, source, category, metadata)
+        # Add to the active RAG system
+        enhanced_notal_rag.add_custom_knowledge(content, source, category, metadata)
         
         return {
             "status": "success",
@@ -1750,15 +1761,19 @@ async def conversational_response(request: dict):
         
         if is_simple_message:
             # Simple response for greetings and short messages - enhanced with RAG
-            base_simple_prompt = f"""You are Certio AI, a friendly legal assistant. The user said: "{user_message}"
+            base_simple_prompt = f"""You are Notal AI, a friendly legal assistant. The user said: "{user_message}"
 
 Respond with a brief, warm greeting and offer to help with legal questions. Keep it conversational and under 50 words. Use HTML formatting with proper <p> tags and <br> for line breaks.
 
 Be friendly, professional, and concise. Format your response as proper HTML."""
             
-            # Even simple messages get RAG enhancement for Certio context
+            # Even simple messages get RAG enhancement for Notal context
             simple_context = {"user_type": user_type, "message_type": "greeting"}
-            system_prompt = enhance_agent_prompt("ConversationalAI", base_simple_prompt, user_message, simple_context)
+            if RAG_SYSTEM == "enhanced":
+                system_prompt = enhance_agent_prompt("ConversationalAI", base_simple_prompt, user_message, 
+                                                    user_type=user_type, conversation_context=simple_context)
+            else:
+                system_prompt = enhance_agent_prompt("ConversationalAI", base_simple_prompt, user_message, simple_context)
             
             # Use GPT-4o-mini for simple responses
             selected_model = get_model_name(ModelType.GPT_4O_MINI) if os.getenv("AZURE_OPENAI_ENDPOINT") else "gpt-4o-mini"
@@ -1766,7 +1781,7 @@ Be friendly, professional, and concise. Format your response as proper HTML."""
             temperature = 0.3
         else:
             # Comprehensive response with integrated analysis for complex queries
-            base_system_prompt = f"""You are Certio AI, an advanced legal assistant. Provide a comprehensive response that includes both conversation and analysis.
+            base_system_prompt = f"""You are Notal AI, an advanced legal assistant. Provide a comprehensive response that includes both conversation and analysis.
 
 CONVERSATION CONTEXT:
 - User Type: {user_type}
@@ -1789,9 +1804,14 @@ CURRENT REQUEST: {user_message}"""  # Close the base prompt here
                 "conversation_stage": conversation_analysis.get('conversation_stage', 'Initial')
             }
             
-            # Use RAG enhancement to inject Certio-specific knowledge
+            # Use RAG enhancement to inject Notal-specific knowledge
             logger.info(f"🔍 Enhancing conversational prompt with RAG for user_type: {user_type}")
-            enhanced_prompt = enhance_agent_prompt("ConversationalAI", base_system_prompt, user_message, conversation_context)
+            # Enhanced RAG system supports user_type parameter for better context
+            if RAG_SYSTEM == "enhanced":
+                enhanced_prompt = enhance_agent_prompt("ConversationalAI", base_system_prompt, user_message, 
+                                                      user_type=user_type, conversation_context=conversation_context)
+            else:
+                enhanced_prompt = enhance_agent_prompt("ConversationalAI", base_system_prompt, user_message, conversation_context)
             logger.info(f"✅ RAG enhancement completed for conversational response")
             
             # Add the response requirements to the enhanced prompt

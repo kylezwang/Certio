@@ -522,15 +522,8 @@ namespace Certio.Web.Controllers
         }
 
         // GET /Client/{orgId}/Settings
-        [Authorize(Policy = "OrgMember")]
-        [HttpGet("/Client/{orgId:int}/Settings")]
-        public async Task<IActionResult> Settings(int orgId)
-        {
-            ViewBag.OrganizationId = orgId;
-            var org = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync();
-            ViewBag.OrganizationName = org?.Name ?? "Client";
-            return View("~/Views/Settings/Index.cshtml");
-        }
+        // NOTE: Route removed to avoid conflict with SettingsController.Index
+        // All firm settings functionality is now in SettingsController
 
         // GET /Client/{orgId}/AccountSettings
         [Authorize(Policy = "OrgMember")]

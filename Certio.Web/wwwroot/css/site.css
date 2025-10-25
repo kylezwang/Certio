@@ -408,10 +408,12 @@ body {
   scroll-behavior: smooth;
   margin: 0 0.5rem;
   box-sizing: border-box;
+  position: relative;
+  z-index: 1;
 }
 
 .chat-input {
-  padding: 1rem 0.5rem 1rem 0.5rem;
+  padding: 0rem 0.5rem 1rem 0.5rem;
   border-top: 1px solid #e5e7eb;
   background-color: #ffffff;
   position: relative;
@@ -419,16 +421,41 @@ body {
   box-sizing: border-box;
 }
 
+/* Landing mode: input at top */
+.chat-content.landing-mode .chat-messages {
+  order: 2;
+}
+
+.chat-content.landing-mode .chat-input {
+  order: 1;
+  padding: 0.5rem;
+  border-top: none;
+  border-bottom: none;
+}
+
 /* Modern Message Bubbles */
 .welcome-message {
   margin-bottom: 2rem;
+}
+
+/* Welcome Message and Conversation Header Styling */
+.welcome-message .ai-message-bubble,
+.notal-conversation-header .ai-message-bubble {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.welcome-message .message-text,
+.notal-conversation-header .message-text {
+  background-color: transparent;
+  padding: 0 0.75rem 1.25rem 0.75rem;
 }
 
 .ai-message-bubble {
   display: flex;
   align-items: flex-start;
   margin-bottom: 1.5rem;
-  max-width: 95%;
+  margin-top: 1rem;
 }
 
 .ai-message-bubble .message-content {
@@ -439,15 +466,14 @@ body {
 .user-message-bubble {
   display: flex;
   align-items: flex-start;
-  margin-bottom: 1.5rem;
-  max-width: 95%;
+  margin-bottom: 2rem;
+  margin-top: 1rem;
+  width: 100%;
   margin-left: auto;
-  flex-direction: row-reverse;
 }
 
 .user-message-bubble .message-content {
-  border-radius: 18px;
-  border-top-right-radius: 4px;
+  width: 100%;
 }
 
 .message-avatar {
@@ -496,14 +522,27 @@ body {
 .message-header {
   display: flex;
   align-items: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
   gap: 0.5rem;
+}
+
+.ai-message-logo {
+  height: 1.25rem;
+  width: auto;
+  object-fit: contain;
+  margin-right: 0.25rem;
 }
 
 .sender-name {
   font-weight: 600;
   color: #1f2937;
   font-size: 0.9rem;
+}
+
+.you-label {
+  font-weight: 500;
+  color: #888888;
+  font-size: 0.9em;
 }
 
 .ai-badge {
@@ -522,8 +561,8 @@ body {
 }
 
 .message-text {
-  background-color: #f9fafb;
-  padding: 0.875rem 1rem;
+  background-color: transparent;
+  padding: 0.75rem;
   border-radius: 18px;
   border-top-left-radius: 4px;
   line-height: 1.5;
@@ -532,13 +571,14 @@ body {
 }
 
 .user-message-bubble .message-text {
-  background: linear-gradient(135deg, #3d1019, #3d1019);
-  color: white;
-  padding: 0.875rem 1rem;
-  border-radius: 18px;
-  border-top-right-radius: 4px;
+  background: white !important;
+  color: #374151 !important;
+  padding: 0.75rem !important;
+  border-radius: 16px !important;
   line-height: 1.5;
   font-size: 0.85rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25) !important;
+  border: none !important;
 }
 
 /* Sources Section */
@@ -587,7 +627,7 @@ body {
 }
 
 .input-container:focus-within {
-  box-shadow: 0 0 0 2px rgba(11, 54, 94, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
 .message-input {
@@ -627,6 +667,63 @@ body {
 
 .send-button:active {
   transform: scale(0.95);
+}
+
+/* AI Chat Input Actions Row */
+.input-actions-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding-top: 0.5rem;
+  gap: 0.5rem;
+}
+
+.input-action-buttons {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+  flex: 0 1 auto;
+}
+
+.input-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.input-action-btn:hover {
+  background: rgba(61, 16, 25, 0.1);
+  color: #3d1019;
+}
+
+.input-action-btn.active {
+  background: rgba(61, 16, 25, 0.15);
+  color: #3d1019;
+}
+
+.char-counter {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.char-counter.warning {
+  color: #f59e0b;
+}
+
+.char-counter.limit {
+  color: #ef4444;
 }
 
 /* AI Result Styling */
@@ -921,12 +1018,12 @@ body {
   
   .ai-message-bubble,
   .user-message-bubble {
-    max-width: 95%;
+    width: 100%;
   }
   
   .message-text {
     font-size: 0.9rem;
-    padding: 0.75rem 1rem;
+    padding: 0.75rem;
   }
   
   .ai-insights-grid {
@@ -951,7 +1048,7 @@ body {
 @media (max-width: 1024px) and (min-width: 769px) {
   .ai-message-bubble,
   .user-message-bubble {
-    max-width: 95%;
+    width: 100%;
   }
   
   .chat-messages {
@@ -962,12 +1059,12 @@ body {
 /* Large screen optimizations */
 @media (min-width: 1200px) {
   .chat-messages {
-    padding: 2rem 0.1rem 2rem 1rem; /* top right bottom left - match AI header left padding */
+    padding: 1rem 0.5rem; /* Consistent with mobile */
   }
   
   .ai-message-bubble,
   .user-message-bubble {
-    max-width: 95%;
+    width: 100%;
   }
 }
 
@@ -1013,6 +1110,12 @@ body {
   color: #6b7280;
   font-style: italic;
   font-size: 0.9rem;
+  animation: pulsateText 2s ease-in-out infinite;
+}
+
+.thinking-text span {
+  display: inline-block;
+  animation: pulsateText 2s ease-in-out infinite;
 }
 
 @keyframes thinkingDots {
@@ -1309,6 +1412,21 @@ body {
   font-style: italic;
   color: #6c757d;
   font-size: 0.9rem;
+  animation: pulsateText 2s ease-in-out infinite;
+}
+
+@keyframes pulsateText {
+  0%, 100% {
+    color: #3d1019;
+  }
+  50% {
+    color: #4b5563;
+  }
+}
+
+.thinking-text span {
+  display: inline-block;
+  animation: pulsateText 2s ease-in-out infinite;
 }
 
 .ai-thinking {
@@ -1316,9 +1434,9 @@ body {
   align-items: center;
   gap: 0.75rem;
   padding: 1rem;
-  background: #f8f9fa;
+  background: transparent;
   border-radius: 8px;
-  border: 1px solid #eef1f3;
+  border: 1px solid transparent;
 }
 
 .thinking-spinner {
@@ -1405,7 +1523,7 @@ body {
 
 /* Enhanced Message Text Formatting */
 .message-text p {
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
   line-height: 1.6;
 }
 
@@ -1415,12 +1533,12 @@ body {
 
 .message-text ul,
 .message-text ol {
-  margin: 0.5rem 0 0.75rem 1rem;
+  margin: 0.35rem 0 0.5rem 1rem;
   padding-left: 0.5rem;
 }
 
 .message-text li {
-  margin: 0.25rem 0;
+  margin: 0.15rem 0;
   line-height: 1.5;
 }
 
@@ -1442,49 +1560,50 @@ body {
 
 /* Ensure proper spacing for AI responses */
 .ai-message-bubble .message-text {
-  background-color: #eaeaea;
-  padding: 0.875rem 1rem;
+  background-color: transparent;
+  padding: 0 0.75rem 1.25rem 0.75rem;
   border-radius: 18px;
   border-top-left-radius: 4px;
   line-height: 1.6;
   color: #374151;
   font-size: 0.85rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: none;
+  border: none;
 }
 
 /* Better list formatting in AI responses */
 .message-text ul {
   list-style-type: disc;
-  margin: 0.75rem 0;
+  margin: 0.5rem 0;
   padding-left: 0.5rem;
 }
 
 .message-text ol {
   list-style-type: decimal;
-  margin: 0.75rem 0;
+  margin: 0.5rem 0;
   padding-left: 1.5rem;
 }
 
 .message-text li {
-  margin: 0.5rem 0;
+  margin: 0.25rem 0;
   line-height: 1.5;
 }
 
 /* Numbered lists in AI responses */
 .message-text ol li {
-  margin: 0.5rem 0;
+  margin: 0.25rem 0;
   padding-left: 0.25rem;
 }
 
 /* Bullet points in AI responses */
 .message-text ul li {
-  margin: 0.5rem 0;
+  margin: 0.25rem 0;
   padding-left: 0.5rem;
 }
 
 /* Better paragraph spacing */
 .message-text p + p {
-  margin-top: 0.75rem;
+  margin-top: 0.5rem;
 }
 
 /* Code blocks in AI responses */
@@ -2168,7 +2287,7 @@ body {
 }
 
 .resize-handle {
-  width: 5px; /* Wider for easier visibility and grabbing */
+  width: 2px; /* Very thin */
   background-color: rgba(11, 54, 94, 0.1);
   cursor: col-resize;
   position: fixed;
@@ -2181,7 +2300,7 @@ body {
 
 .resize-handle:hover {
   background-color: rgba(61, 16, 25, 0.3);
-  width: 8px; /* Even wider on hover */
+  width: 3px; /* Slightly wider on hover */
 }
 
 .resize-handle::before {
@@ -2197,7 +2316,7 @@ body {
 
 
 .chat-panel-header {
-  background-color: #ffffff; /* Match the chat messages background */
+  background-color: transparent; /* Transparent background */
   padding: 0.75rem 0.5rem;
   flex-shrink: 0;
   border-bottom: 1px solid rgba(11, 54, 94, 0.1);
@@ -2205,9 +2324,8 @@ body {
 
 /* Chat tabs container positioned at the very top, spanning full width */
 .chat-tabs-container {
-
-  padding: 0rem 0.5rem; /* Remove bottom padding to connect with header */
-  border-bottom: none; /* Remove border to connect with chat header */
+  padding: 0.2rem 1rem 0rem 1rem; /* Reduced padding - extra right for scrollbar */
+  border-bottom: none;
   width: 100%;
   flex-shrink: 0;
   box-sizing: border-box;
@@ -2221,11 +2339,12 @@ body {
   gap: 0.5rem;
   overflow: hidden;
   width: 100%;
+  margin: 0;
 }
 
 .tab-list {
   display: flex;
-  gap: 0.35rem;
+  gap: 0.5rem;
   flex: 1;
   overflow-x: auto;
   overflow-y: hidden;
@@ -2238,7 +2357,7 @@ body {
   cursor: grab;
   position: relative;
   z-index: 1;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .tab-list::-webkit-scrollbar {
@@ -2261,55 +2380,58 @@ body {
 .conversation-tab {
   display: flex;
   align-items: center;
-  /* gap: 0.5rem; */
-  padding: 0.5rem 0rem 0.5rem 0.75rem;
-  background-color: #ffffff;
-  border-radius: 10px 10px 0px 0px;
+  gap: 0.25rem; /* Reduced gap for more title space */
+  padding: 0.5rem 0.35rem 0.5rem 0.75rem; /* Minimal right padding */
+  background-color: rgba(61, 16, 25, 0.05);
+  border: none;
+  border-radius: 16px; /* Pill shape */
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
-  min-width: 120px;
-  max-width: 200px;
+  min-width: 100px;
+  max-width: 180px;
   position: relative;
   overflow: hidden;
+  color: #3d1019;
+  font-size: 0.875rem;
 }
 
 .conversation-tab .tab-title {
   flex: 1;
-  overflow: visible;
+  overflow: hidden;
   white-space: nowrap;
+  text-overflow: ellipsis;
   transition: all 0.2s ease;
   min-width: 0;
   position: relative;
-  background: linear-gradient(to right, currentColor 0%, currentColor 70%, transparent 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
 
 .conversation-tab .tab-close {
   opacity: 0;
   transition: all 0.2s ease;
-  position: absolute;
-  right: 4px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 24px;
-  height: 24px;
+  width: 16px;
+  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 3px;
-  background: #3d1019;
+  border-radius: 50%; /* Circular close button */
+  background: rgba(61, 16, 25, 0.2);
   border: none;
   cursor: pointer;
-  color: white;
-  font-size: 12px;
+  color: #3d1019;
+  font-size: 10px;
+  flex-shrink: 0;
+  margin-left: 4rem;
+  position: absolute;
 }
 
-.conversation-tab:hover {
+.conversation-tab:hover:not(.active) {
+  background-color: rgba(61, 16, 25, 0.1);
+  color: #3d1019;
+}
+
+.conversation-tab.active:hover {
   background-color: #3d1019;
-  border-color: #3d1019;
   color: white;
 }
 
@@ -2317,32 +2439,28 @@ body {
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
-  background: none;
-  -webkit-background-clip: unset;
-  background-clip: unset;
-  -webkit-text-fill-color: unset;
-  color: white;
+  color: inherit;
 }
 
 .conversation-tab.active:hover .tab-close {
   opacity: 1;
-  background: #3d1019;
+  background: rgba(255, 255, 255, 0.2);
   color: white;
 }
 
 .conversation-tab.active {
   background-color: #3d1019;
-  border-color: #3d1019;
   color: white;
+  font-weight: 500;
 }
 
 .conversation-tab.active .tab-close {
   color: white;
-  background: #3d1019;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .conversation-tab.active:hover .tab-close {
-  background-color: #3d1019;
+  background-color: rgba(255, 255, 255, 0.2);
   color: white;
 }
 
@@ -2354,31 +2472,10 @@ body {
   font-weight: 500;
 }
 
-.tab-close {
-  background: #3d1019;
-  border: none;
-  color: white;
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 3px;
-  transition: all 0.2s ease;
-  opacity: 0;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .conversation-tab:not(.active):hover .tab-close {
   opacity: 1;
-  background: #3d1019;
-  color: white;
-}
-
-.conversation-tab.active .tab-close {
-  color: white;
-  background: #3d1019;
+  background: rgba(61, 16, 25, 0.2);
+  color: #3d1019;
 }
 
 .conversation-tab:not(.active) .tab-close:hover {
@@ -2387,7 +2484,7 @@ body {
 }
 
 .conversation-tab.active .tab-close:hover {
-  background-color: #3d1019;
+  background-color: rgba(255, 255, 255, 0.2);
   color: white;
 }
 
@@ -2395,8 +2492,8 @@ body {
   background-color: #3d1019;
   border-color: #3d1019;
   color: white;
-  border-radius: 10px 10px 0px 0px;
-  padding: 0.5rem;
+  border-radius: 20px; /* Pill shape to match tabs */
+  padding: 0.5rem 0.75rem;
   width: 36px;
   height: 36px;
   display: flex;
@@ -2418,6 +2515,7 @@ body {
   overflow: hidden;
   padding: 0; /* Remove padding since tabs are now inside */
   margin-top: 0; /* Ensure no top margin */
+  position: relative; /* For sticky message overlay positioning */
 }
 
 /* Mobile responsiveness for chat layout */
@@ -4813,7 +4911,7 @@ body.dark-mode .global-dashboard-sidebar .nav-link.active {
 
 /* Dark mode for chat panel */
 body.dark-mode .chat-panel {
-  background-color: #181818 !important;
+  background-color: transparent !important;
   border-left-color: #333 !important;
 }
 
@@ -4832,35 +4930,33 @@ body.dark-mode .chat-input {
 }
 
 body.dark-mode .message-text {
-  background-color: #232323 !important;
+  background-color: transparent !important;
   color: #ffffff !important;
 }
 
 body.dark-mode .ai-message-bubble .message-text {
-  background-color: #232323 !important;
+  background-color: transparent !important;
   color: #ffffff !important;
 }
 
 body.dark-mode .user-message-bubble .message-text {
-  background-color: #3d1019 !important;
+  background-color: #232323 !important;
   color: #ffffff !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 /* Dark mode for conversation tabs */
 body.dark-mode .conversation-tab {
-  background-color: #232323 !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
   color: #ffffff !important;
-  border-color: #333 !important;
 }
 
 body.dark-mode .conversation-tab:hover {
-  background-color: #3d1019 !important;
-  border-color: #3d1019 !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 body.dark-mode .conversation-tab.active {
   background-color: #3d1019 !important;
-  border-color: #3d1019 !important;
   color: #ffffff !important;
 }
 
@@ -5622,6 +5718,7 @@ body.dark-mode .global-dashboard-main .quick-access-icon .fa-briefcase {
 
 /* Icon Background Helper Classes */
 .icon-bg-primary {
+  background-color: #3d1019;
 }
 
 /* Stat Cards - Reuse and enhance existing styles */
@@ -5859,4 +5956,71 @@ body.dark-mode .global-dashboard-main .quick-access-icon .fa-briefcase {
 #matters-grid .matter-card-wrapper.carousel-wrapper .matter-card:hover {
   transform: none;
   background-color: transparent;
+}
+
+/* Sticky Last Message Overlay for AI Chat */
+.sticky-last-message {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 150;
+  background: linear-gradient(to bottom, #f1ece8 0%, transparent 99%, transparent 100%);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  padding: 0.25rem 1rem 0.25rem 0.5rem; /* Reduced bottom padding - extra right for scrollbar */
+}
+
+.sticky-last-message.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.sticky-message-content {
+  max-height: none; /* Allow dynamic height to match actual message */
+  overflow: visible;
+  pointer-events: auto;
+  width: auto;
+  margin-left: 0.5rem;
+}
+
+/* Style the sticky message to exactly match regular user messages */
+.sticky-last-message .user-message-bubble {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 0;
+  width: 100%;
+  margin-left: auto;
+}
+
+.sticky-last-message .user-message-bubble .message-content {
+  width: 100%;
+}
+
+.sticky-last-message .message-text {
+  background: white !important;
+  color: #374151 !important;
+  padding: 0.75rem !important;
+  border-radius: 16px !important;
+  line-height: 1.5;
+  font-size: 0.85rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25) !important;
+  border: none !important;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.sticky-last-message .message-header {
+  display: none; /* Hide timestamp in sticky overlay */
+}
+
+.sticky-last-message .message-content {
+  width: 100%;
+}
+
+/* Add padding to chat messages to account for sticky overlay when visible */
+.chat-messages.has-sticky-message {
+  padding-top: 5rem; /* Adjusted for full-height messages */
 }

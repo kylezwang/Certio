@@ -58,11 +58,44 @@ namespace Certio.Application.Services
 
         public async Task<bool> ValidateUserInOrganizationAsync(int userId, int organizationId)
         {
-            return await _context.UserOrganizations
+            // Check direct membership first
+            var hasDirectAccess = await _context.UserOrganizations
                 .AnyAsync(uo => 
                     uo.UserId == userId && 
                     uo.OrganizationId == organizationId && 
                     uo.IsActive);
+            
+            if (hasDirectAccess)
+            {
+                return true;
+            }
+            
+            // Check if user has access through organization relationships (law firm accessing client org)
+            // Get user's primary organization
+            var userPrimaryOrg = await _context.UserOrganizations
+                .Where(uo => uo.UserId == userId && uo.IsActive && uo.IsPrimary)
+                .Select(uo => new { uo.OrganizationId, uo.UserType })
+                .FirstOrDefaultAsync();
+            
+            if (userPrimaryOrg == null)
+            {
+                return false;
+            }
+            
+            // Check if there's an active relationship between user's org and target org
+            var hasRelationshipAccess = await _context.OrganizationRelationships
+                .AnyAsync(r => 
+                    r.IsActive &&
+                    !r.IsDeleted &&
+                    ((r.SourceOrganizationId == userPrimaryOrg.OrganizationId && r.TargetOrganizationId == organizationId) ||
+                     (r.TargetOrganizationId == userPrimaryOrg.OrganizationId && r.SourceOrganizationId == organizationId)));
+            
+            if (hasRelationshipAccess)
+            {
+                return true;
+            }
+            
+            return false;
         }
 
         public async Task<List<int>> GetUserOrganizationIdsAsync(int userId)
