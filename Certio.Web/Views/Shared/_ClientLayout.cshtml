@@ -5,6 +5,7 @@
 @section Styles {
     <!-- Client layout styles are included in site.css -->
     <link rel="stylesheet" href="~/css/communications-sidebar.css" />
+    <link rel="stylesheet" href="~/css/notifications-sidebar.css" />
 }
 
 <!-- Critical CSS for instant page render - prevents white flash -->
@@ -44,7 +45,6 @@
     .ai-message-bubble {
         display: flex;
         align-items: flex-start;
-        margin-bottom: 0.75rem;
         width: 100%;
     }
     
@@ -60,7 +60,6 @@
     .user-message-bubble {
         display: flex;
         align-items: flex-start;
-        margin-bottom: 0.75rem;
         width: 100%;
     }
     
@@ -81,7 +80,6 @@
     
     .message-text {
         background-color: transparent !important;
-        padding: 0.75rem;
         border-radius: 18px;
         border-top-left-radius: 4px;
         line-height: 1.5;
@@ -327,31 +325,6 @@
         font-weight: 500;
     }
 
-    .client-sidebar .logout-section {
-        margin-top: auto;
-        padding-top: 1rem;
-        border-top: 1px solid rgba(11, 54, 94, 0.1);
-    }
-
-    .client-sidebar .logout-button {
-        width: 100%;
-        background: none;
-        border: none;
-        color: #6b7280;
-        padding: 0.75rem 1rem;
-        text-decoration: none;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        border-radius: 0.5rem;
-        transition: all 0.2s ease;
-    }
-
-    .client-sidebar .logout-button:hover {
-        background-color: rgba(11, 54, 94, 0.1);
-        color: #3d1019;
-    }
-
     /* Page header styles */
     .page-header {
         position: fixed;
@@ -374,7 +347,7 @@
         right: 320px; /* Default: Leave space for chat panel */
         bottom: 0;
         overflow: hidden; /* Remove scrolling from wrapper */
-        z-index: 1;
+        z-index: 200; /* Higher than sticky message (150) so box-shadow appears above gradient */
         border-radius: 20px 20px 0px 0px; /* Rounded corners on top-left and top-right */
         background-color: rgba(11, 54, 94, 0.085); /* Light blue background */
         transition: left 0.3s ease, right 0.3s ease;
@@ -814,30 +787,48 @@
 
     /* Resize handle styles */
     .resize-handle {
-        width: 1px;
-        background-color: rgba(11, 54, 94, 0.1);
+        width: 8px;
+        background: transparent;
         cursor: col-resize;
         position: fixed;
         top: 7vh; /* Position below the header - SAME AS CHAT/COMMS PANELS */
-        right: 320px; /* Position next to chat panel (320px default) */
-        height: calc(100vh - 7vh); /* Adjust height to account for header */
+        right: calc(320px - 12px); /* Left edge aligns with main content right edge */
+        height: calc(100vh - 7.75vh); /* Adjust height to account for header */
         z-index: 41;
+        border-radius: 4px;
         transition: background-color 0.2s ease;
-        min-width: 1px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .resize-handle:hover {
-        background-color: #3d1019;
+        background: linear-gradient(to bottom, transparent 0%, transparent 1%, rgba(61, 16, 25, 0.05) 35%, rgba(61, 16, 25, 0.05) 75%);
+    }
+
+    .resize-handle:active {
+        background: linear-gradient(to bottom, transparent 0%, transparent 1%, rgba(61, 16, 25, 0.05) 35%, rgba(61, 16, 25, 0.05) 75%);
     }
 
     .resize-handle::before {
         content: '';
         position: absolute;
-        top: 0;
-        left: -2px;
-        right: -2px;
-        bottom: 0;
-        background-color: transparent;
+        width: 3px;
+        height: 24px;
+        background: #9ca3af;
+        border-radius: 2px;
+        opacity: 1;
+        pointer-events: none;
+    }
+
+    .resize-handle:hover::before {
+        opacity: 1;
+        background: #6b7280;
+    }
+
+    .resize-handle:active::before {
+        background: #374151;
     }
 
     /* Mobile chat panel */
@@ -870,6 +861,30 @@
         display: flex;
         align-items: center;
         justify-content: center;
+    }
+
+    /* Active state for sidebar toggle buttons */
+    .ai-toggle.active,
+    #communicationsBtn.active,
+    #notificationsBtn.active {
+        background-color: #3d1019;
+        color: white;
+    }
+
+    /* Active hover state - maintain the active styling */
+    .ai-toggle.active:hover,
+    #communicationsBtn.active:hover,
+    #notificationsBtn.active:hover {
+        background-color: #3d1019;
+        color: white;
+    }
+
+    /* Hover states for inactive buttons */
+    .ai-toggle:hover,
+    #communicationsBtn:hover,
+    #notificationsBtn:hover {
+        background: rgba(0, 0, 0, 0.05);
+        color: #3d1019;
     }
 
     /* User profile avatar styling */
@@ -990,6 +1005,19 @@
         text-align: center;
         color: #6b7280;
     }
+    
+    .profile-dropdown-item button,
+    button.profile-dropdown-item {
+        font-family: inherit;
+        font-size: inherit;
+        font-weight: normal;
+        color: #374151;
+    }
+    
+    .profile-dropdown-item button:hover,
+    button.profile-dropdown-item:hover {
+        color: #374151;
+    }
 
     .profile-dropdown-divider {
         height: 1px;
@@ -1021,20 +1049,9 @@
         background-color: rgba(11, 54, 94, 0.1);
     }
 
-    .dark-mode-toggle:hover, .ai-toggle:hover {
+    .dark-mode-toggle:hover {
         background-color: #f3f4f6;
         color: #3d1019;
-    }
-
-    /* Active state for communications button */
-    .ai-toggle.active {
-        background-color: #3d1019;
-        color: white;
-    }
-
-    .ai-toggle.active:hover {
-        background-color: #3d1019;
-        color: white;
     }
 
     /* Chat panel hidden state with animation */
@@ -1081,10 +1098,10 @@
         </div>
         
         <div class="d-flex justify-content-center align-items-center w-100">
-            <div class="search-container" style="max-width: 525px; width: 100%; position: absolute; left: 50%; transform: translateX(-50%); flex-shrink: 0; pointer-events: none;">
-                <i class="fas fa-search" style="position: absolute; left: 50%; transform: translate(-200%, -50%); top: 50%; color: #6b7280; pointer-events: none;"></i>
+            <div class="search-container" id="headerSearchContainer" style="max-width: 525px; width: 100%; position: fixed; flex-shrink: 0; pointer-events: none;">
+                <i class="fas fa-search" style="position: absolute; left: 50%; transform: translate(-300%, -50%); top: 50%; color: #6b7280; pointer-events: none;"></i>
                 <input type="text" class="form-control" placeholder="Search" 
-                       style="height: 2.5rem; line-height: 1.25; border-radius: 24px; padding: 0.75rem 1rem 0.75rem 3rem; background-color: #f9fafb; font-size: 1rem; text-align: center; border: transparent; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25); pointer-events: auto;"/>
+                       style="height: 2.5rem; line-height: 1.25; border-radius: 24px; padding: 0.75rem 2.5rem 0.75rem 3rem; background-color: #f9fafb; font-size: 1rem; text-align: center; border: transparent; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25); pointer-events: auto;"/>
             </div>
             
             <!-- Action Buttons Container -->
@@ -1165,6 +1182,13 @@
                             <i class="fas fa-credit-card"></i>
                             <span>Billing & Plan</span>
                         </a>
+                        <div class="profile-dropdown-divider"></div>
+                        <form asp-controller="Home" asp-action="Logout" method="post" class="m-0 w-100">
+                            <button type="submit" class="profile-dropdown-item w-100 border-0 bg-transparent text-start p-0">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Logout</span>
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -1284,7 +1308,7 @@
         else
         {
             <!-- Client Sidebar Navigation -->
-            <nav class="nav flex-column">
+            <nav class="nav flex-column sidebar-navigation">
                 <div class="nav-item">
                     <a href="/Client/@ViewBag.OrganizationId/Dashboard" 
                        class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")">
@@ -1335,16 +1359,6 @@
                     </a>
                 </div>
             </nav>
-
-            <!-- Logout Button -->
-            <div class="logout-section">
-                <form asp-controller="Home" asp-action="Logout" method="post" class="d-inline">
-                    <button type="submit" class="logout-button">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span>Logout</span>
-                    </button>
-                </form>
-            </div>
         }
         
     </div>
@@ -1444,16 +1458,6 @@
                         </li>
                     </ul>
                 </nav>
-                
-                <!-- Logout Button -->
-                <div class="mt-auto pt-3 border-top">
-                    <form asp-controller="Home" asp-action="Logout" method="post" class="d-inline">
-                        <button type="submit" class="logout-button nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth w-100 text-muted-foreground hover-text-foreground hover-bg-secondary">
-                            <i class="fas fa-sign-out-alt fs-5"></i>
-                            <span class="fw-medium">Logout</span>
-                        </button>
-                    </form>
-                </div>
             </div>
         </div>
     </div>
@@ -1468,50 +1472,43 @@
     <!-- Floating Timer Overlay -->
     <div id="floatingTimerOverlay" style="
         position: fixed;
-        bottom: 1.5rem;
-        right: 1.5rem;
         z-index: 9999;
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        transition: all 0.3s ease;
+        transition: none;
+        cursor: move;
+        flex-wrap: nowrap;
+        white-space: nowrap;
     ">
-        <!-- Hide/Show Toggle Button -->
-        <button id="timerToggleBtn" style="
-            background: white;
-            border: none;
-            border-radius: 8px;
-            padding: 0.5rem 0.625rem;
-            cursor: pointer;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-            color: #6b7280;
-        " title="Hide Timer">
-            <i class="fas fa-angles-right" style="font-size: 0.875rem;"></i>
-        </button>
-        
         <!-- Timer Card -->
         <div id="timerCard" style="
             background: white;
             border-radius: 12px;
-            padding: 0.5rem 1rem;
+            padding: 0.5rem 0.25rem 0.5rem 0.75rem;
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
             display: flex;
             align-items: center;
             gap: 0.75rem;
             transition: all 0.3s ease;
+            cursor: move;
+            flex-wrap: nowrap;
+            white-space: nowrap;
         ">
             <div id="timerDisplay" style="
                 font-family: 'Courier New', monospace;
                 font-size: 1.125rem;
                 font-weight: 600;
                 color: #1f2937;
-                letter-spacing: 0.03em;
-            ">00 : 00 : 00</div>
-            <div style="display: flex; gap: 0.375rem;">
+                flex-shrink: 0;
+                white-space: nowrap;
+                display: flex;
+                align-items: center;
+                gap: 0.25rem;
+            ">
+                <span class="timer-hours">00</span><span class="timer-sep">:</span><span class="timer-minutes">00</span><span class="timer-sep">:</span><span class="timer-seconds">00</span>
+            </div>
+            <div style="display: flex; gap: 0.375rem; flex-wrap: nowrap; flex-shrink: 0;">
                 <button id="timerStartBtn" class="timer-btn timer-start-btn" style="
                     background: #c7b7a3;
                     color: white;
@@ -1520,7 +1517,7 @@
                     padding: 0.3rem 0.625rem;
                     font-size: 0.8rem;
                     font-weight: 600;
-                    cursor: pointer;
+                    cursor: pointer !important;
                     display: flex;
                     align-items: center;
                     gap: 0.25rem;
@@ -1538,7 +1535,7 @@
                     padding: 0.3rem 0.625rem;
                     font-size: 0.8rem;
                     font-weight: 600;
-                    cursor: pointer;
+                    cursor: pointer !important;
                     display: none;
                     align-items: center;
                     gap: 0.25rem;
@@ -1555,7 +1552,7 @@
                     padding: 0.3rem 0.5rem;
                     font-size: 0.8rem;
                     font-weight: 600;
-                    cursor: pointer;
+                    cursor: pointer !important;
                     display: flex;
                     align-items: center;
                     gap: 0.25rem;
@@ -1564,6 +1561,132 @@
                     <i class="fas fa-redo" style="font-size: 0.65rem;"></i>
                     Reset
                 </button>
+            </div>
+        </div>
+        
+        <!-- Hide/Show Toggle Button -->
+        <button id="timerToggleBtn" style="
+            background: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 0.5rem;
+            cursor: pointer !important;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            color: #6b7280;
+        " title="Hide Timer">
+            <i class="fas fa-angles-left" style="font-size: 0.875rem;"></i>
+        </button>
+    </div>
+    
+    <!-- Inline script to apply saved timer position immediately to prevent flash -->
+    <script>
+        (function() {
+            const overlay = document.getElementById('floatingTimerOverlay');
+            if (overlay) {
+                const savedPosition = localStorage.getItem('timerPosition');
+                if (savedPosition) {
+                    // Restore saved manual position from previous drag
+                    const position = JSON.parse(savedPosition);
+                    overlay.style.left = position.left;
+                    overlay.style.top = position.top;
+                } else {
+                    // Default position: centered within combined navbar width (6vw + 14vw = 20vw)
+                    overlay.style.left = '10vw'; // Center of combined navbar area
+                    overlay.style.bottom = '1.5rem';
+                    overlay.style.transform = 'translateX(-50%)'; // Center the timer itself
+                }
+            }
+        })();
+    </script>
+
+    <!-- Notifications Sidebar -->
+    <div class="notifications-sidebar-panel" id="notificationsSidebarPanel">
+        <div class="notifications-sidebar-header">
+            <h3 class="notifications-sidebar-title">Notifications</h3>
+            <button class="notifications-close-btn" id="notificationsCloseBtn" title="Close Notifications">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="notifications-content" id="notificationsContent">
+            <!-- Cards Container -->
+            <div class="notifications-cards-container">
+                <!-- Upcoming Deadlines Card -->
+                <div class="notif-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="notif-card-title mb-0">Upcoming Deadlines</h5>
+                        <span class="notif-badge">Today</span>
+                    </div>
+                    
+                    <div class="deadlines-list" id="deadlinesList">
+                        <div class="deadline-item border-danger mb-3">
+                            <h6>Smith v. Jones - Motion Filing</h6>
+                            <p class="text-muted small mb-0">2:00 PM</p>
+                        </div>
+                        <div class="deadline-item mb-3">
+                            <h6>Client Review Call</h6>
+                            <p class="text-muted small mb-0">4:30 PM</p>
+                        </div>
+                        <div class="deadline-item mb-3">
+                            <h6>Document Review</h6>
+                            <p class="text-muted small mb-0">EOD</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calendar Card -->
+                <div class="notif-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="notif-card-title mb-0" id="calendarMonth">October 2025</h5>
+                    </div>
+                    
+                    <div class="calendar-grid">
+                        <div class="calendar-header">
+                            <div class="calendar-day-header">S</div>
+                            <div class="calendar-day-header">M</div>
+                            <div class="calendar-day-header">T</div>
+                            <div class="calendar-day-header">W</div>
+                            <div class="calendar-day-header">T</div>
+                            <div class="calendar-day-header">F</div>
+                            <div class="calendar-day-header">S</div>
+                        </div>
+                        
+                        <div class="calendar-body" id="calendarBody">
+                            <!-- Calendar days will be generated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity Card -->
+                <div class="notif-card">
+                    <h5 class="notif-card-title">Recent Activity</h5>
+                    <p class="notif-subtitle">Recent Files</p>
+                    
+                    <div class="recent-files-list" id="recentFilesList">
+                        <div class="recent-file-item">
+                            <div class="file-icon">
+                                <i class="fas fa-file-pdf text-danger"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Project_Spec_v3.pdf</h6>
+                                <p class="text-muted small mb-0">2h ago</p>
+                            </div>
+                        </div>
+                        <div class="recent-file-item">
+                            <div class="file-icon">
+                                <i class="fas fa-file-alt text-primary"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Design_System.fig</h6>
+                                <p class="text-muted small mb-0">4h ago</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1588,7 +1711,7 @@
             <div class="comms-channels-list" id="commsChannelsList">
                 <!-- Channel categories will be loaded here -->
                 <div class="comms-loading">
-                    <i class="fas fa-spinner fa-spin"></i>
+                    <div class="spinner"></div>
                     <span>Loading channels...</span>
                 </div>
             </div>
@@ -1666,12 +1789,12 @@
         <span class="comms-badge" id="commsBadge" style="display: none;">3</span>
     </button>
 
-    @* Only show AI chat panel and resize handle if not explicitly hidden (e.g., on Communications page) *@
-    @if (ViewData["HideChatPanel"] as bool? != true)
-    {
-    <!-- Resize handle -->
+    <!-- Resize handle - Always available for AI Chat, Communications, and Notifications sidebars -->
     <div class="resize-handle" id="resizeHandle"></div>
 
+    @* Only show AI chat panel if not explicitly hidden (e.g., on Communications page) *@
+    @if (ViewData["HideChatPanel"] as bool? != true)
+    {
     <!-- Chat panel (right side) -->
     <div class="chat-panel" id="chatPanel">
         <!-- Chat tabs positioned at the very top, spanning full width -->
@@ -1680,7 +1803,7 @@
                 <div class="tab-list">
                     <!-- Conversations will be loaded here -->
                 </div>
-                <button class="btn btn-primary btn-sm new-conversation-btn" data-bs-toggle="modal" data-bs-target="#newConversationModal">
+                <button class="btn btn-primary btn-sm new-conversation-btn" id="newConversationBtn">
                     <i class="fas fa-plus"></i>
                 </button>
             </div>
@@ -1805,7 +1928,7 @@
             </div>
         </div>
     </div>
-    } @* End if HideChatPanel *@
+    } @* End if HideChatPanel for AI Chat Panel *@
 
 <!-- <footer class="border-top footer text-muted main-content client-main-content">
     <div class="container-fluid">
@@ -1917,6 +2040,12 @@
 <!-- Communications Sidebar Script -->
 <script src="~/js/communications-sidebar.js" defer></script>
 
+<!-- Notifications Sidebar Script -->
+<script src="~/js/notifications-sidebar.js" defer></script>
+
+<!-- AJAX Page Navigation Script -->
+<script src="~/js/page-navigation.js" defer></script>
+
 @* Only load AI chat scripts if chat panel is not hidden *@
 @if (ViewData["HideChatPanel"] as bool? != true)
 {
@@ -1954,24 +2083,39 @@
                 });
             }
             
-            // Sticky Last Message on Scroll
+            // Sticky Last Message on Scroll - with hysteresis to prevent jitter
             const chatMessages = document.getElementById('chatMessages');
             if (chatMessages) {
                 let lastScrollTop = 0;
                 let scrollTimeout = null;
+                let isCurrentlyScrollingUp = false;
+                let scrollThrottle = null;
                 
                 chatMessages.addEventListener('scroll', function() {
+                    // Throttle scroll events to prevent rapid firing
+                    if (scrollThrottle) return;
+                    scrollThrottle = setTimeout(() => { scrollThrottle = null; }, 50);
+                    
                     const currentScrollTop = chatMessages.scrollTop;
                     const scrollHeight = chatMessages.scrollHeight;
                     const clientHeight = chatMessages.clientHeight;
+                    const distanceFromBottom = scrollHeight - currentScrollTop - clientHeight;
                     
                     // Check if scrolling up and not at the bottom
-                    const isScrollingUp = currentScrollTop < lastScrollTop;
-                    const isAtBottom = (scrollHeight - currentScrollTop - clientHeight) < 10;
+                    const scrollDelta = currentScrollTop - lastScrollTop;
                     
-                    if (isScrollingUp && !isAtBottom) {
+                    // Add hysteresis: different thresholds for switching on vs off
+                    // When turning ON scrolling-up: must scroll up at least 10px AND be at least 50px from bottom
+                    // When turning OFF scrolling-up: must scroll down at least 15px OR be within 30px of bottom
+                    const shouldTurnOn = scrollDelta < -10 && distanceFromBottom > 50;
+                    const shouldTurnOff = scrollDelta > 15 || distanceFromBottom < 30;
+                    
+                    // Only update class if there's a significant direction change
+                    if (shouldTurnOn && !isCurrentlyScrollingUp) {
+                        isCurrentlyScrollingUp = true;
                         chatMessages.classList.add('scrolling-up');
-                    } else {
+                    } else if (shouldTurnOff && isCurrentlyScrollingUp) {
+                        isCurrentlyScrollingUp = false;
                         chatMessages.classList.remove('scrolling-up');
                     }
                     
@@ -1984,7 +2128,8 @@
                     
                     // Remove class after scrolling stops
                     scrollTimeout = setTimeout(() => {
-                        if (isAtBottom) {
+                        if (distanceFromBottom < 30) {
+                            isCurrentlyScrollingUp = false;
                             chatMessages.classList.remove('scrolling-up');
                         }
                     }, 150);
@@ -2122,12 +2267,58 @@
         let timerInterval = null;
         let timerSeconds = 0;
         let isRunning = false;
+        let timerStartTime = null; // Track when timer started
         
         const timerDisplay = document.getElementById('timerDisplay');
         const timerStartBtn = document.getElementById('timerStartBtn');
         const timerStopBtn = document.getElementById('timerStopBtn');
         const timerResetBtn = document.getElementById('timerResetBtn');
         const timerCard = document.getElementById('timerCard');
+        
+        // Restore timer state from localStorage
+        function restoreTimerState() {
+            const savedTimerState = localStorage.getItem('timerState');
+            if (savedTimerState) {
+                try {
+                    const state = JSON.parse(savedTimerState);
+                    timerSeconds = state.seconds || 0;
+                    
+                    if (state.isRunning && state.startTime) {
+                        // Calculate elapsed time since page was left
+                        const now = Date.now();
+                        const elapsedSinceStart = Math.floor((now - state.startTime) / 1000);
+                        timerSeconds = state.secondsAtStart + elapsedSinceStart;
+                        
+                        // Restart the timer
+                        isRunning = true;
+                        timerStartBtn.style.display = 'none';
+                        timerStopBtn.style.display = 'flex';
+                        timerStartTime = state.startTime;
+                        
+                        timerInterval = setInterval(() => {
+                            timerSeconds++;
+                            updateTimerDisplay();
+                            saveTimerState();
+                        }, 1000);
+                    }
+                    
+                    updateTimerDisplay();
+                } catch (e) {
+                    console.error('Error restoring timer state:', e);
+                }
+            }
+        }
+        
+        // Save timer state to localStorage
+        function saveTimerState() {
+            const state = {
+                seconds: timerSeconds,
+                isRunning: isRunning,
+                startTime: timerStartTime,
+                secondsAtStart: isRunning ? (timerSeconds - Math.floor((Date.now() - timerStartTime) / 1000)) : timerSeconds
+            };
+            localStorage.setItem('timerState', JSON.stringify(state));
+        }
         
         // Add hover effects to timer buttons
         const timerButtons = document.querySelectorAll('.timer-btn');
@@ -2157,21 +2348,28 @@
             const minutes = Math.floor((timerSeconds % 3600) / 60);
             const seconds = timerSeconds % 60;
             
-            timerDisplay.textContent = 
-                String(hours).padStart(2, '0') + ' : ' + 
-                String(minutes).padStart(2, '0') + ' : ' + 
-                String(seconds).padStart(2, '0');
+            const hoursSpan = timerDisplay.querySelector('.timer-hours');
+            const minutesSpan = timerDisplay.querySelector('.timer-minutes');
+            const secondsSpan = timerDisplay.querySelector('.timer-seconds');
+            
+            if (hoursSpan) hoursSpan.textContent = String(hours).padStart(2, '0');
+            if (minutesSpan) minutesSpan.textContent = String(minutes).padStart(2, '0');
+            if (secondsSpan) secondsSpan.textContent = String(seconds).padStart(2, '0');
         }
         
         function startTimer() {
             if (!isRunning) {
                 isRunning = true;
+                timerStartTime = Date.now();
                 timerStartBtn.style.display = 'none';
                 timerStopBtn.style.display = 'flex';
+                
+                saveTimerState();
                 
                 timerInterval = setInterval(() => {
                     timerSeconds++;
                     updateTimerDisplay();
+                    saveTimerState();
                 }, 1000);
             }
         }
@@ -2179,18 +2377,25 @@
         function stopTimer() {
             if (isRunning) {
                 isRunning = false;
+                timerStartTime = null;
                 clearInterval(timerInterval);
                 timerStartBtn.style.display = 'flex';
                 timerStopBtn.style.display = 'none';
+                saveTimerState();
             }
         }
         
         function resetTimer() {
             stopTimer();
             timerSeconds = 0;
+            timerStartTime = null;
             updateTimerDisplay();
             timerCard.style.boxShadow = '0 2px 12px rgba(0, 0, 0, 0.35)';
+            saveTimerState();
         }
+        
+        // Restore timer state on page load
+        restoreTimerState();
         
         if (timerStartBtn) timerStartBtn.addEventListener('click', startTimer);
         if (timerStopBtn) timerStopBtn.addEventListener('click', stopTimer);
@@ -2208,7 +2413,7 @@
             if (timerCard) timerCard.style.display = 'none';
             if (timerToggleBtn) {
                 timerToggleBtn.title = 'Show Timer';
-                timerToggleBtn.innerHTML = '<i class="fas fa-angles-left" style="font-size: 0.875rem;"></i>';
+                timerToggleBtn.style.marginTop = '0.5rem';
             }
         }
         
@@ -2230,16 +2435,159 @@
                 if (isTimerVisible) {
                     timerCard.style.display = 'flex';
                     this.title = 'Hide Timer';
-                    this.innerHTML = '<i class="fas fa-angles-right" style="font-size: 0.875rem;"></i>';
                 } else {
                     timerCard.style.display = 'none';
                     this.title = 'Show Timer';
-                    this.innerHTML = '<i class="fas fa-angles-left" style="font-size: 0.875rem;"></i>';
                 }
+                
+                // Update button icon after toggle
+                updateToggleButtonArrow();
                 
                 // Save state to localStorage
                 localStorage.setItem('timerVisible', isTimerVisible);
             });
+        }
+        
+        // Simple toggle button update - no dynamic positioning
+        function updateToggleButtonArrow() {
+            if (!timerToggleBtn) return;
+            
+            if (isTimerVisible) {
+                // Timer is showing - button should show << (hide/collapse)
+                timerToggleBtn.innerHTML = '<i class="fas fa-angles-left" style="font-size: 0.875rem;"></i>';
+                timerToggleBtn.style.marginTop = '';
+            } else {
+                // Timer is hidden - button should show >> (show/expand)
+                timerToggleBtn.innerHTML = '<i class="fas fa-angles-right" style="font-size: 0.875rem;"></i>';
+                timerToggleBtn.style.marginTop = '0.5rem';
+            }
+        }
+        
+        // Make timer draggable
+        if (floatingTimerOverlay) {
+            let isDragging = false;
+            let currentX;
+            let currentY;
+            let initialX;
+            let initialY;
+            let xOffset = 0;
+            let yOffset = 0;
+            
+            // Restore saved position from localStorage or convert initial bottom/left to top/left
+            const savedPosition = localStorage.getItem('timerPosition');
+            if (savedPosition) {
+                const position = JSON.parse(savedPosition);
+                xOffset = position.xOffset;
+                yOffset = position.yOffset;
+                
+                // Clear ALL positioning properties first to avoid conflicts
+                floatingTimerOverlay.style.bottom = '';
+                floatingTimerOverlay.style.right = '';
+                floatingTimerOverlay.style.transform = '';
+                
+                // Apply saved position
+                floatingTimerOverlay.style.left = position.left;
+                floatingTimerOverlay.style.top = position.top;
+            } else {
+                // Convert initial bottom/center positioning to top/left
+                const rect = floatingTimerOverlay.getBoundingClientRect();
+                xOffset = rect.left;
+                yOffset = rect.top;
+                
+                floatingTimerOverlay.style.bottom = '';
+                floatingTimerOverlay.style.right = '';
+                floatingTimerOverlay.style.transform = ''; // Clear transform
+                floatingTimerOverlay.style.left = xOffset + 'px';
+                floatingTimerOverlay.style.top = yOffset + 'px';
+            }
+            
+            // Mouse/Touch event handlers
+            floatingTimerOverlay.addEventListener('mousedown', dragStart);
+            floatingTimerOverlay.addEventListener('touchstart', dragStart);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('touchmove', drag);
+            document.addEventListener('mouseup', dragEnd);
+            document.addEventListener('touchend', dragEnd);
+            
+            function dragStart(e) {
+                // Don't drag when clicking on buttons
+                if (e.target.tagName === 'BUTTON' || e.target.tagName === 'I') {
+                    return;
+                }
+                
+                if (e.type === 'touchstart') {
+                    initialX = e.touches[0].clientX - xOffset;
+                    initialY = e.touches[0].clientY - yOffset;
+                } else {
+                    initialX = e.clientX - xOffset;
+                    initialY = e.clientY - yOffset;
+                }
+                
+                isDragging = true;
+                floatingTimerOverlay.style.transition = 'none';
+                
+                // Clear right/bottom positioning when starting drag to prevent conflicts
+                floatingTimerOverlay.style.right = '';
+                floatingTimerOverlay.style.bottom = '';
+            }
+            
+            function drag(e) {
+                if (isDragging) {
+                    e.preventDefault();
+                    
+                    if (e.type === 'touchmove') {
+                        currentX = e.touches[0].clientX - initialX;
+                        currentY = e.touches[0].clientY - initialY;
+                    } else {
+                        currentX = e.clientX - initialX;
+                        currentY = e.clientY - initialY;
+                    }
+                    
+                    xOffset = currentX;
+                    yOffset = currentY;
+                    
+                    // Get viewport dimensions
+                    const viewportWidth = window.innerWidth;
+                    const viewportHeight = window.innerHeight;
+                    const timerWidth = floatingTimerOverlay.offsetWidth;
+                    const timerHeight = floatingTimerOverlay.offsetHeight;
+                    
+                    // Constrain to viewport bounds
+                    let newLeft = currentX;
+                    let newTop = currentY;
+                    
+                    // Keep within viewport
+                    if (newLeft < 0) newLeft = 0;
+                    if (newTop < 0) newTop = 0;
+                    if (newLeft + timerWidth > viewportWidth) newLeft = viewportWidth - timerWidth;
+                    if (newTop + timerHeight > viewportHeight) newTop = viewportHeight - timerHeight;
+                    
+                    // Update position
+                    floatingTimerOverlay.style.left = newLeft + 'px';
+                    floatingTimerOverlay.style.top = newTop + 'px';
+                    floatingTimerOverlay.style.bottom = 'auto';
+                    floatingTimerOverlay.style.right = 'auto';
+                    
+                    // Update offsets to match constrained position
+                    xOffset = newLeft;
+                    yOffset = newTop;
+                }
+            }
+            
+            function dragEnd(e) {
+                if (isDragging) {
+                    isDragging = false;
+                    
+                    // Save position to localStorage
+                    const position = {
+                        left: floatingTimerOverlay.style.left,
+                        top: floatingTimerOverlay.style.top,
+                        xOffset: xOffset,
+                        yOffset: yOffset
+                    };
+                    localStorage.setItem('timerPosition', JSON.stringify(position));
+                }
+            }
         }
         
         // Initialize simple sidebar toggle
@@ -2252,6 +2600,9 @@
                 const isHidden = document.body.classList.contains('sidebar-hidden');
                 localStorage.setItem('sidebarHidden', isHidden);
                 localStorage.setItem('sidebarHiddenManual', 'true');
+                
+                // Center search bar after sidebar toggle
+                setTimeout(centerSearchBar, 350);
             });
             
             // Restore saved state only if it was manually toggled
@@ -2273,9 +2624,13 @@
             document.body.classList.remove('chat-hidden');
             document.body.classList.remove('no-sidebars');
             
-            // Hide communications panel
+            // Hide communications and notifications panels
             if (commsSidebarPanel) {
                 commsSidebarPanel.style.display = 'none';
+            }
+            const notificationsPanel = document.getElementById('notificationsSidebarPanel');
+            if (notificationsPanel) {
+                notificationsPanel.style.display = 'none';
             }
             
             // Restore resize handle and sizing for AI chat
@@ -2287,21 +2642,33 @@
             
             if (chatPanel) {
                 chatPanel.style.width = savedWidth + 'px';
+                chatPanel.style.display = 'flex'; // Explicitly show the chat panel
             }
             
             if (resizeHandle) {
-                resizeHandle.style.right = savedWidth + 'px';
-                resizeHandle.style.display = 'block';
-                resizeHandle.style.zIndex = '999'; // Ensure it's on top of everything
+                resizeHandle.style.right = (parseInt(savedWidth) - 12) + 'px';
+                resizeHandle.style.display = 'flex';
+                resizeHandle.style.zIndex = '9999'; // Ensure it's on top of everything
             }
             
             if (mainContentWrapper) {
                 mainContentWrapper.style.right = savedWidth + 'px';
             }
             
-            // Adjust floating timer overlay position
+            // Update floating timer overlay position - only restore if manually positioned
+            const floatingTimerOverlay = document.getElementById('floatingTimerOverlay');
             if (floatingTimerOverlay) {
-                floatingTimerOverlay.style.right = (parseInt(savedWidth) + 24) + 'px'; // Add 24px for spacing
+                const savedTimerPosition = localStorage.getItem('timerPosition');
+                if (savedTimerPosition) {
+                    // Restore saved manual position
+                    const position = JSON.parse(savedTimerPosition);
+                    floatingTimerOverlay.style.left = position.left;
+                    floatingTimerOverlay.style.top = position.top;
+                    floatingTimerOverlay.style.right = ''; // Clear right
+                    floatingTimerOverlay.style.bottom = ''; // Clear bottom
+                    floatingTimerOverlay.style.transform = ''; // Clear transform
+                }
+                // If no saved position, leave timer at default position (center of left sidebar area)
             }
             
             // Center action buttons within chat panel
@@ -2316,6 +2683,10 @@
             if (communicationsBtn) {
                 communicationsBtn.classList.remove('active');
             }
+            const notificationsBtn = document.getElementById('notificationsBtn');
+            if (notificationsBtn) {
+                notificationsBtn.classList.remove('active');
+            }
             
             // Update Notal logo
             updateNotalLogo();
@@ -2324,50 +2695,72 @@
             window.currentSidebarTarget = 'ai';
             
             localStorage.setItem('activeSidebar', 'ai');
+            
+            // Don't reposition action buttons when just showing/hiding - only when resizing
         }
         
         // Function to show communications sidebar
         function showCommsSidebar() {
-            // Hide AI chat panel
+            const notificationsPanel = document.getElementById('notificationsSidebarPanel');
+            const chatPanel = document.getElementById('chatPanel');
+            const resizeHandle = document.getElementById('resizeHandle');
+            const mainContentWrapper = document.querySelector('.client-main-content-wrapper');
+            
+            if (!commsSidebarPanel) return;
+            
+            // Hide chat and notifications panels explicitly
             document.body.classList.add('chat-hidden');
-            document.body.classList.remove('no-sidebars');
+            if (chatPanel) {
+                chatPanel.style.display = 'none';
+            }
+            if (notificationsPanel) {
+                notificationsPanel.style.display = 'none';
+            }
             
             // Show communications panel
-            if (commsSidebarPanel) {
-                commsSidebarPanel.style.display = 'flex';
-                
-                // Apply saved width to communications panel
-                const savedWidth = localStorage.getItem('chatPanelWidth') || '320';
-                commsSidebarPanel.style.width = savedWidth + 'px';
-                
-                // Position resize handle for communications panel
-                const resizeHandle = document.getElementById('resizeHandle');
-                if (resizeHandle) {
-                    resizeHandle.style.right = savedWidth + 'px';
-                    resizeHandle.style.display = 'block';
-                    resizeHandle.style.zIndex = '999'; // Ensure it's on top of everything
+            commsSidebarPanel.style.display = 'flex';
+            
+            // Apply saved width or default (shares width with notifications)
+            const savedWidth = localStorage.getItem('notificationsPanelWidth') || '320';
+            commsSidebarPanel.style.width = savedWidth + 'px';
+            
+            // Position resize handle
+            if (resizeHandle) {
+                resizeHandle.style.right = (parseInt(savedWidth) - 12) + 'px';
+                resizeHandle.style.display = 'flex';
+            }
+            
+            // Adjust main content wrapper
+            if (mainContentWrapper) {
+                mainContentWrapper.style.right = savedWidth + 'px';
+            }
+            
+            // Update floating timer overlay position - only restore if manually positioned
+            const floatingTimerOverlay = document.getElementById('floatingTimerOverlay');
+            if (floatingTimerOverlay) {
+                const savedTimerPosition = localStorage.getItem('timerPosition');
+                if (savedTimerPosition) {
+                    // Restore saved manual position
+                    const position = JSON.parse(savedTimerPosition);
+                    floatingTimerOverlay.style.left = position.left;
+                    floatingTimerOverlay.style.top = position.top;
+                    floatingTimerOverlay.style.right = ''; // Clear right
+                    floatingTimerOverlay.style.bottom = ''; // Clear bottom
+                    floatingTimerOverlay.style.transform = ''; // Clear transform
                 }
-                
-                // Adjust main content wrapper to make space for sidebar
-                const mainContentWrapper = document.querySelector('.client-main-content-wrapper');
-                if (mainContentWrapper) {
-                    mainContentWrapper.style.right = savedWidth + 'px';
-                }
-                
-                // Adjust floating timer overlay position
-                if (floatingTimerOverlay) {
-                    floatingTimerOverlay.style.right = (parseInt(savedWidth) + 24) + 'px'; // Add 24px for spacing
-                }
-                
-                // Center action buttons within chat panel
-                if (typeof centerActionButtons === 'function') {
-                    centerActionButtons(parseInt(savedWidth));
-                }
-                
-                // Load channels if not already loaded
-                if (typeof window.commsSidebar !== 'undefined') {
-                    window.commsSidebar.open();
-                }
+                // If no saved position, leave timer at default position (center of left sidebar area)
+            }
+            
+            // Mark current sidebar target
+            window.currentSidebarTarget = 'comms';
+            
+            // Remove chat-hidden class
+            document.body.classList.remove('chat-hidden');
+            document.body.classList.remove('no-sidebars');
+            
+            // Load channels if not already loaded
+            if (typeof window.commsSidebar !== 'undefined') {
+                window.commsSidebar.open();
             }
             
             // Update button states
@@ -2377,6 +2770,10 @@
             if (aiToggle) {
                 aiToggle.classList.remove('active');
             }
+            const notificationsBtn = document.getElementById('notificationsBtn');
+            if (notificationsBtn) {
+                notificationsBtn.classList.remove('active');
+            }
             
             // Update Notal logo
             updateNotalLogo();
@@ -2385,6 +2782,8 @@
             window.currentSidebarTarget = 'comms';
             
             localStorage.setItem('activeSidebar', 'comms');
+            
+            // Don't reposition action buttons when just showing/hiding - only when resizing
         }
         
         // Function to hide both sidebars
@@ -2394,6 +2793,11 @@
             
             if (commsSidebarPanel) {
                 commsSidebarPanel.style.display = 'none';
+            }
+            
+            const notificationsPanel = document.getElementById('notificationsSidebarPanel');
+            if (notificationsPanel) {
+                notificationsPanel.style.display = 'none';
             }
             
             // Hide resize handle
@@ -2408,9 +2812,20 @@
                 mainContentWrapper.style.right = '1rem';
             }
             
-            // Reset floating timer overlay position
+            // Reset floating timer overlay position (only if not manually positioned)
+            const floatingTimerOverlay = document.getElementById('floatingTimerOverlay');
             if (floatingTimerOverlay) {
-                floatingTimerOverlay.style.right = '1.5rem';
+                const savedTimerPosition = localStorage.getItem('timerPosition');
+                if (savedTimerPosition) {
+                    // Restore saved manual position
+                    const position = JSON.parse(savedTimerPosition);
+                    floatingTimerOverlay.style.left = position.left;
+                    floatingTimerOverlay.style.top = position.top;
+                    floatingTimerOverlay.style.right = ''; // Clear right
+                    floatingTimerOverlay.style.bottom = ''; // Clear bottom
+                    floatingTimerOverlay.style.transform = ''; // Clear transform
+                }
+                // If no saved position, leave timer at default position
             }
             
             if (aiToggle) {
@@ -2419,12 +2834,18 @@
             if (communicationsBtn) {
                 communicationsBtn.classList.remove('active');
             }
+            const notificationsBtn = document.getElementById('notificationsBtn');
+            if (notificationsBtn) {
+                notificationsBtn.classList.remove('active');
+            }
             
             // Update Notal logo
             updateNotalLogo();
             
             window.currentSidebarTarget = 'none';
             localStorage.setItem('activeSidebar', 'none');
+            
+            // Don't reposition action buttons when just hiding - they stay at previous position
         }
         
         // Initialize communications sidebar on page load
@@ -2432,15 +2853,39 @@
             initializeCommsSidebar();
         }
         
-        // Check for saved sidebar preference
-        const activeSidebar = localStorage.getItem('activeSidebar') || 'ai';
+        // Restore AI Chat panel width early if it's the active sidebar
+        const activeSidebar = localStorage.getItem('activeSidebar') || 'notifications';
+        if (activeSidebar === 'ai') {
+            const chatPanel = document.getElementById('chatPanel');
+            const savedWidth = localStorage.getItem('chatPanelWidth') || '320';
+            if (chatPanel) {
+                chatPanel.style.width = savedWidth + 'px';
+            }
+        }
+        
+        // Check for saved sidebar preference - default to notifications
         if (activeSidebar === 'ai') {
             showAIChatPanel();
         } else if (activeSidebar === 'comms') {
             showCommsSidebar();
+        } else if (activeSidebar === 'notifications') {
+            if (typeof showNotificationsSidebar === 'function') {
+                showNotificationsSidebar();
+            }
         } else {
             hideBothSidebars();
         }
+        
+        // Center search bar on initial load and window resize
+        // Use requestAnimationFrame for better timing synchronization with browser layout
+        requestAnimationFrame(() => {
+            centerSearchBar();
+            // Additional delayed calls to ensure it works after all transitions
+            setTimeout(centerSearchBar, 100);
+            setTimeout(centerSearchBar, 250);
+            setTimeout(centerSearchBar, 400);
+        });
+        window.addEventListener('resize', centerSearchBar);
         
         // AI Toggle button - toggle between AI chat and hidden
         if (aiToggle) {
@@ -2466,47 +2911,17 @@
             });
         }
         
-        // Make functions available globally
-        window.showAIChatPanel = showAIChatPanel;
-        window.showCommsSidebar = showCommsSidebar;
-        window.hideBothSidebars = hideBothSidebars;
-        
-        // Notifications Toggle
+        // Notifications button - toggle between notifications and hidden
         const notificationsBtn = document.getElementById('notificationsBtn');
         if (notificationsBtn) {
-            // Check for saved notifications preference or default to visible
-            const isNotificationsHidden = localStorage.getItem('notificationsHidden') === 'true';
-            if (isNotificationsHidden) {
-                const icon = notificationsBtn.querySelector('i');
-                icon.classList.remove('fa-bell');
-                icon.classList.add('fa-bell-slash');
-                notificationsBtn.title = 'Hide Notifications';
-            }
-            
             notificationsBtn.addEventListener('click', function() {
-                const icon = this.querySelector('i');
-                const isHidden = icon.classList.contains('fa-bell-slash');
-                
-                if (isHidden) {
-                    // Show notifications
-                    icon.classList.remove('fa-bell-slash');
-                    icon.classList.add('fa-bell');
-                    this.title = 'Show Notifications';
-                    localStorage.setItem('notificationsHidden', 'false');
+                const currentActive = localStorage.getItem('activeSidebar');
+                if (currentActive === 'notifications') {
+                    hideBothSidebars();
                 } else {
-                    // Hide notifications
-                    icon.classList.remove('fa-bell');
-                    icon.classList.add('fa-bell-slash');
-                    this.title = 'Hide Notifications';
-                    localStorage.setItem('notificationsHidden', 'true');
+                    showNotificationsSidebar();
                 }
             });
-        }
-        
-        // Check for saved dark mode preference and apply it on page load
-        const isDarkMode = localStorage.getItem('darkMode') === 'true';
-        if (isDarkMode) {
-            document.body.classList.add('dark-mode');
         }
         
         // Function to update Notal logo based on button active state
@@ -2517,6 +2932,60 @@
                 const isActive = aiToggleBtn.classList.contains('active');
                 notalLogo.src = isActive ? '@Url.Content("~/images/Notal_Logo_Inverted.png")' : '@Url.Content("~/images/Notal_Logo.png")';
             }
+        }
+        
+        // Function to center search bar and action buttons within their respective areas
+        function centerSearchBar() {
+            const searchContainer = document.getElementById('headerSearchContainer');
+            const actionButtonsContainer = document.getElementById('actionButtonsContainer');
+            const profileAvatar = document.querySelector('.user-profile-avatar');
+            const mainContentWrapper = document.querySelector('.client-main-content-wrapper');
+            const pageHeader = document.querySelector('.page-header');
+            
+            if (!mainContentWrapper || !pageHeader) return;
+            
+            const mainContentRect = mainContentWrapper.getBoundingClientRect();
+            const pageHeaderRect = pageHeader.getBoundingClientRect();
+            
+            // Center search bar within main content area
+            if (searchContainer) {
+                const mainContentCenter = mainContentRect.left + (mainContentRect.width / 2);
+                searchContainer.style.left = mainContentCenter + 'px';
+                searchContainer.style.transform = 'translateX(-50%)';
+            }
+            
+            // Center action buttons in the space between main content right edge and profile avatar
+            if (actionButtonsContainer) {
+                const rightSpaceLeft = mainContentRect.right;
+                let rightSpaceRight = pageHeaderRect.right;
+                
+                
+                
+                // Calculate the exact center of the available space
+                const availableWidth = rightSpaceRight - rightSpaceLeft;
+                const buttonWidth = actionButtonsContainer.offsetWidth;
+                
+                // Calculate true center point
+                const centerPoint = rightSpaceLeft + (availableWidth / 2);
+                const leftPosition = centerPoint - (buttonWidth / 2);
+                
+                actionButtonsContainer.style.left = leftPosition + 'px';
+                actionButtonsContainer.style.right = 'auto';
+                actionButtonsContainer.style.transform = 'none';
+            }
+        }
+        
+        // Make functions available globally
+        window.showAIChatPanel = showAIChatPanel;
+        window.showCommsSidebar = showCommsSidebar;
+        window.hideBothSidebars = hideBothSidebars;
+        window.updateNotalLogo = updateNotalLogo;
+        window.centerSearchBar = centerSearchBar;
+        
+        // Check for saved dark mode preference and apply it on page load
+        const isDarkMode = localStorage.getItem('darkMode') === 'true';
+        if (isDarkMode) {
+            document.body.classList.add('dark-mode');
         }
 
         // Communications page check - if on communications page, hide the floating toggle button

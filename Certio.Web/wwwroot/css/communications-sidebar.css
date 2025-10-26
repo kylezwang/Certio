@@ -5,14 +5,15 @@
     position: fixed;
     right: 0;
     top: 7vh; /* Position below the header - SAME AS CHAT PANEL */
-    width: 320px;
+    width: 320px; /* Default width, will be overridden by JavaScript */
     min-width: 300px;
     max-width: 600px;
     height: calc(100vh - 7vh); /* Adjust height to account for header - SAME AS CHAT PANEL */
-    z-index: 40; /* Below resize handle (41) so handle is clickable */
+    z-index: 40; /* Below resize handle so handle is clickable */
     display: flex;
     flex-direction: column;
     border-radius: 20px 20px 0px 0px;
+    pointer-events: auto; /* Ensure sidebar doesn't block resize handle */
 }
 
 /* No need for active class - visibility controlled by parent .chat-hidden class */
@@ -74,7 +75,7 @@
     align-items: center;
     background: #ffffff;
     flex-shrink: 0;
-    margin: 0 0.5rem;
+    margin: 0 1rem;
     box-sizing: border-box;
     border-radius: 20px 20px 0px 0px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
@@ -108,7 +109,7 @@
     position: relative;
     padding: 0.75rem 1rem;
     background: #ffffff;
-    margin: 0 0.5rem;
+    margin: 0 1rem;
     border-bottom: 1px solid rgba(11, 54, 94, 0.1);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
@@ -148,11 +149,14 @@
 .comms-channels-list {
     flex: 1;
     overflow-y: auto;
-    padding: 0.5rem 0.5rem 0.5rem 1rem;
+    padding: 0.5rem;
     background: #ffffff;
-    margin: 0 0.5rem;
+    margin: 0 1rem;
     box-sizing: border-box;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+    /* Firefox scrollbar styling */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
 }
 
 .comms-loading {
@@ -163,6 +167,15 @@
     padding: 2rem;
     gap: 1rem;
     color: #6b7280;
+}
+
+.comms-loading .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(61, 16, 25, 0.1);
+    border-top-color: #3d1019;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
 }
 
 .comms-loading i {
@@ -230,7 +243,7 @@
 }
 
 .comms-channel-item:hover {
-    background: #f3f4f6;
+    background: rgba(156, 163, 175, 0.2);
 }
 
 .comms-channel-item.active {
@@ -325,7 +338,7 @@
 }
 
 .comms-dm-item:hover {
-    background: #f3f4f6;
+    background: rgba(156, 163, 175, 0.2);
 }
 
 .comms-dm-avatar {
@@ -546,6 +559,9 @@
     margin: 0 0.5rem;
     box-sizing: border-box;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+    /* Firefox scrollbar styling */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
 }
 
 .comms-messages-list {
@@ -628,7 +644,6 @@
     flex-direction: row-reverse;
     margin-left: auto;
     max-width: 95%;
-    background: rgba(61, 16, 25, 0.05);
 }
 
 .comms-message-item.current-user-message .comms-message-avatar {
@@ -647,6 +662,10 @@
 .comms-message-item.current-user-message .comms-message-author {
     font-weight: 700;
     color: #3d1019;
+}
+
+.comms-message-item.current-user-message .comms-message-content {
+    background: rgba(61, 16, 25, 0.05);
 }
 
 /* Grouped Messages */
@@ -767,26 +786,26 @@
     cursor: not-allowed;
 }
 
-/* Scrollbar Styling */
+/* Scrollbar Styling - matching AI chat sidebar */
 .comms-channels-list::-webkit-scrollbar,
 .comms-messages-container::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
 }
 
 .comms-channels-list::-webkit-scrollbar-track,
 .comms-messages-container::-webkit-scrollbar-track {
-    background: #f3f4f6;
+    background: transparent;
 }
 
 .comms-channels-list::-webkit-scrollbar-thumb,
 .comms-messages-container::-webkit-scrollbar-thumb {
-    background: #d1d5db;
-    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
 }
 
 .comms-channels-list::-webkit-scrollbar-thumb:hover,
 .comms-messages-container::-webkit-scrollbar-thumb:hover {
-    background: #9ca3af;
+    background: rgba(0, 0, 0, 0.35);
 }
 
 /* Responsive Design */

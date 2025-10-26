@@ -59,7 +59,77 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('loadAIInsights')?.addEventListener('click', loadAIInsights);
     document.getElementById('menuButton')?.addEventListener('click', toggleSidebar);
     
-    // Handle conversation creation form
+    // Handle NEW conversation button (Plus button) - returns to landing state
+    document.getElementById('newConversationBtn')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('Returning to landing state...');
+        
+        // Clear current conversation ID (new conversation will be created on first message)
+        currentConversationId = null;
+        
+        // Deactivate all tabs
+        document.querySelectorAll('.conversation-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        // Enter landing mode
+        const chatContent = document.getElementById('chatContent');
+        if (chatContent) {
+            chatContent.classList.add('landing-mode');
+            // Remove sticky message class to remove unnecessary padding
+            chatContent.classList.remove('has-sticky-message');
+        }
+        
+        // Show welcome message
+        const chatMessages = document.getElementById('chatMessages');
+        if (chatMessages) {
+            // Remove sticky message class from chat messages too
+            chatMessages.classList.remove('has-sticky-message');
+            chatMessages.innerHTML = `
+                <div class="welcome-message" id="welcomeMessage">
+                    <div class="ai-message-bubble">
+                        <div class="message-content">
+                            <div class="message-header">
+                                <img src="/images/Notal_Banner_Logo.png" alt="Notal AI" class="ai-message-logo" />
+                                <span class="timestamp">Just now</span>
+                            </div>
+                            <div class="message-text">
+                                Hi! I'm Notal, your AI legal assistant. Please leave me a note or select a chat above to get started!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Hide conversation header
+        const conversationHeader = document.getElementById('notalConversationHeader');
+        if (conversationHeader) {
+            conversationHeader.style.display = 'none';
+        }
+        
+        // Hide sticky last message overlay
+        const stickyLastMessage = document.getElementById('stickyLastMessage');
+        if (stickyLastMessage) {
+            stickyLastMessage.style.display = 'none';
+        }
+        
+        // Reset sticky message state
+        stickyMessageIndex = -1;
+        messageElements = [];
+        userMessageElements = [];
+        
+        // Clear message input
+        const messageInput = document.getElementById('messageInput');
+        if (messageInput) {
+            messageInput.value = '';
+            messageInput.focus();
+        }
+        
+        console.log('Landing state ready - conversation will be created on first message');
+    });
+    
+    // Handle conversation creation form (from modal - kept for backward compatibility)
     document.getElementById('createConversationForm')?.addEventListener('submit', function(e) {
         e.preventDefault();
         console.log('Form submitted, creating conversation...');
@@ -81,7 +151,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (response.ok) {
                 // Close modal
                 const modal = bootstrap.Modal.getInstance(document.getElementById('newConversationModal'));
-                modal.hide();
+                if (modal) {
+                    modal.hide();
+                }
                 
                 // Clear form
                 this.reset();
@@ -123,6 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
             contextMenu.remove();
         }
     });
+    
 });
 
 // Initialize chat for specific conversation
@@ -284,7 +357,7 @@ async function addConversationTab(conversationId, title) {
             <div class="tab-content">
                 <div class="tab-title">${title}</div>
             </div>
-            <button class="tab-delete" data-conversation-id="${conversationId}" title="Delete conversation">
+            <button class="tab-close" data-conversation-id="${conversationId}" title="Delete conversation">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -317,11 +390,12 @@ async function addConversationTab(conversationId, title) {
         });
         
         // Add delete handler
-        const deleteBtn = newTab.querySelector('.tab-delete');
+        const deleteBtn = newTab.querySelector('.tab-close');
         if (deleteBtn) {
             deleteBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
-                deleteConversation(conversationId);
+                e.preventDefault();
+                deleteConversation(conversationId.toString());
             });
         }
     }
@@ -715,7 +789,6 @@ function updateStickyMessage() {
         console.log('Hiding sticky overlay - out of bounds');
         stickyOverlay.style.display = 'none';
         stickyOverlay.classList.remove('visible');
-        chatMessages.classList.remove('has-sticky-message');
         return;
     }
     
@@ -735,7 +808,6 @@ function updateStickyMessage() {
         stickyOverlay.classList.add('visible');
         console.log('✅ Sticky overlay now visible with class');
     }, 10);
-    chatMessages.classList.add('has-sticky-message');
     
     console.log('✅ Sticky message updated to show user message at index', actualIndex);
 }
@@ -769,7 +841,6 @@ function handleStickyMessageScroll() {
         if (stickyOverlay) {
             stickyOverlay.style.display = 'none';
             stickyOverlay.classList.remove('visible');
-            chatMessages.classList.remove('has-sticky-message');
         }
         stickyMessageIndex = -1;
         return;
@@ -781,7 +852,6 @@ function handleStickyMessageScroll() {
         if (stickyOverlay) {
             stickyOverlay.style.display = 'none';
             stickyOverlay.classList.remove('visible');
-            chatMessages.classList.remove('has-sticky-message');
         }
         return;
     }
@@ -1023,12 +1093,37 @@ function convertMarkdownToHtml(text) {
     
     // First, remove code block wrappers if the entire content is wrapped in one
     let cleanedText = text.trim();
-    const codeBlockMatch = cleanedText.match(/^```(?:html|text|markdown)?\s*\n?([\s\S]*?)\n?```$/);
+    
+    // Try to match and remove wrapping code blocks (```html, ```text, ```markdown, or just ```)
+    const codeBlockMatch = cleanedText.match(/^```(?:html|text|markdown|xml)?\s*\n?([\s\S]*?)\n?```$/);
     if (codeBlockMatch) {
         cleanedText = codeBlockMatch[1].trim();
     }
     
-    return cleanedText
+    // Store code blocks temporarily to prevent processing their contents
+    const codeBlocks = [];
+    let codeBlockIndex = 0;
+    
+    // Replace code blocks with placeholders
+    cleanedText = cleanedText.replace(/```(\w+)?\n?([\s\S]*?)```/g, (match, lang, code) => {
+        const placeholder = `__CODE_BLOCK_${codeBlockIndex}__`;
+        codeBlocks.push({ lang: lang || 'text', code: code.trim() });
+        codeBlockIndex++;
+        return placeholder;
+    });
+    
+    // Replace inline code with placeholders
+    const inlineCodes = [];
+    let inlineCodeIndex = 0;
+    cleanedText = cleanedText.replace(/`([^`]+)`/g, (match, code) => {
+        const placeholder = `__INLINE_CODE_${inlineCodeIndex}__`;
+        inlineCodes.push(code);
+        inlineCodeIndex++;
+        return placeholder;
+    });
+    
+    // Process the rest of the markdown
+    let processed = cleanedText
         // First, aggressively handle all forms of newlines
         .replace(/\\n/g, '\n')  // Convert \n to actual newlines
         .replace(/\\r\\n/g, '\n')  // Convert \r\n to newlines
@@ -1037,27 +1132,104 @@ function convertMarkdownToHtml(text) {
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         // Convert *italic* to <em>italic</em>
         .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        // Convert actual newlines to <br> tags
-        .replace(/\n/g, '<br>')
-        // Convert bullet points to HTML list (handle both • and -)
-        .replace(/^[•\-] (.*)$/gm, '<li>$1</li>')
-        // Convert numbered lists
-        .replace(/^\d+\. (.*)$/gm, '<li>$1</li>')
-        // Wrap consecutive list items in ul tags
-        .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
-        // Clean up multiple consecutive ul tags
-        .replace(/<\/ul><ul>/g, '')
         // Convert escaped quotes
-        .replace(/\\"/g, '"')
+        .replace(/\\"/g, '"');
+    
+    // Process lists separately to avoid br tags interfering
+    // Split by double newlines to identify blocks
+    const lines = processed.split('\n');
+    const processedLines = [];
+    let inList = false;
+    let listItems = [];
+    let listType = null; // 'ul' or 'ol'
+    
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        const bulletMatch = line.match(/^[•\-]\s+(.*)$/);
+        const numberMatch = line.match(/^\d+\.\s+(.*)$/);
+        
+        if (bulletMatch) {
+            if (!inList || listType !== 'ul') {
+                // Starting a new unordered list
+                if (inList) {
+                    // Close previous list
+                    processedLines.push(`<${listType}>${listItems.join('')}</${listType}>`);
+                    listItems = [];
+                }
+                inList = true;
+                listType = 'ul';
+            }
+            listItems.push(`<li>${bulletMatch[1]}</li>`);
+        } else if (numberMatch) {
+            if (!inList || listType !== 'ol') {
+                // Starting a new ordered list
+                if (inList) {
+                    // Close previous list
+                    processedLines.push(`<${listType}>${listItems.join('')}</${listType}>`);
+                    listItems = [];
+                }
+                inList = true;
+                listType = 'ol';
+            }
+            listItems.push(`<li>${numberMatch[1]}</li>`);
+        } else {
+            // Not a list item
+            if (inList) {
+                // Close the list
+                processedLines.push(`<${listType}>${listItems.join('')}</${listType}>`);
+                listItems = [];
+                inList = false;
+                listType = null;
+            }
+            // Add the line as-is (will be converted to br later if not empty)
+            if (line) {
+                processedLines.push(line);
+            } else if (processedLines.length > 0) {
+                // Empty line becomes a break
+                processedLines.push('<br>');
+            }
+        }
+    }
+    
+    // Close any remaining list
+    if (inList && listItems.length > 0) {
+        processedLines.push(`<${listType}>${listItems.join('')}</${listType}>`);
+    }
+    
+    // Join lines and clean up
+    processed = processedLines.join('\n')
         // Clean up multiple consecutive br tags
         .replace(/(<br\s*\/?>){3,}/g, '<br><br>')
-        // Convert double line breaks to paragraphs for better structure
+        // Convert double line breaks to paragraph breaks
         .replace(/(<br\s*\/?>){2,}/g, '</p><p>')
-        // Wrap in paragraph tags if not already wrapped
-        .replace(/^(.+)$/, '<p>$1</p>')
+        // Wrap in paragraph tags
+        .replace(/^(.+)$/s, '<p>$1</p>')
         // Clean up empty paragraphs
         .replace(/<p><br\s*\/?><\/p>/g, '')
-        .replace(/<p><\/p>/g, '');
+        .replace(/<p><\/p>/g, '')
+        // Remove br tags immediately before/after lists
+        .replace(/<br\s*\/?>\s*<(ul|ol)>/g, '<$1>')
+        .replace(/<\/(ul|ol)>\s*<br\s*\/?>/g, '</$1>');
+    
+    // Restore inline code
+    inlineCodes.forEach((code, index) => {
+        processed = processed.replace(`__INLINE_CODE_${index}__`, `<code>${escapeHtml(code)}</code>`);
+    });
+    
+    // Restore code blocks
+    codeBlocks.forEach((block, index) => {
+        const codeHtml = `<pre><code class="language-${escapeHtml(block.lang)}">${escapeHtml(block.code)}</code></pre>`;
+        processed = processed.replace(`__CODE_BLOCK_${index}__`, codeHtml);
+    });
+    
+    return processed;
+}
+
+// Helper function to escape HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // Generate sources section for AI responses
@@ -1842,8 +2014,15 @@ function centerActionButtons(chatPanelWidth) {
 
 // Chat Layout Functions
 function initializeChatLayout() {
-    // Initialize resize functionality
+    // Initialize resize functionality (this restores resize handle position based on active sidebar)
     initializeResizeHandle();
+    
+    // Only apply AI chat-specific sizing if AI chat is the active sidebar
+    const activeSidebar = localStorage.getItem('activeSidebar');
+    if (activeSidebar !== 'ai') {
+        // Don't apply AI chat sizing if another sidebar is active
+        return;
+    }
     
     // Set initial chat panel width from localStorage or default
     const savedWidth = localStorage.getItem('chatPanelWidth');
@@ -1860,7 +2039,7 @@ function initializeChatLayout() {
     }
     
     if (resizeHandle) {
-        resizeHandle.style.right = chatPanelWidth + 'px';
+        resizeHandle.style.right = (chatPanelWidth - 12) + 'px';
     }
     
     // Adjust main content wrapper to account for chat panel
@@ -1939,10 +2118,22 @@ async function loadAIConversationsForPanel() {
                 tab.title = conversation.title;
                 tab.innerHTML = `
                     <span class="tab-title">${conversation.title}</span>
-                    <button class="tab-close" onclick="event.stopPropagation(); deleteConversation('${conversation.id}')">
+                    <button class="tab-close" title="Delete conversation">
                         <i class="fas fa-times"></i>
                     </button>
                 `;
+                
+                // Add delete handler
+                const deleteBtn = tab.querySelector('.tab-close');
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        console.log('Delete button clicked for conversation:', conversation.id);
+                        deleteConversation(conversation.id.toString());
+                    });
+                }
+                
                 tabList.appendChild(tab);
             });
             
@@ -1976,11 +2167,28 @@ function initializeResizeHandle() {
     const resizeHandle = document.getElementById('resizeHandle');
     const chatPanel = document.getElementById('chatPanel');
     const commsSidebarPanel = document.getElementById('commsSidebarPanel');
+    const notificationsPanel = document.getElementById('notificationsSidebarPanel');
     const mainContent = document.querySelector('.main-content');
     const mainContentWrapper = document.querySelector('.client-main-content-wrapper');
     const topHeader = document.querySelector('.top-header');
     
     if (!resizeHandle || !mainContentWrapper) return;
+    
+    // Restore resize handle position on page load based on active sidebar
+    const activeSidebar = localStorage.getItem('activeSidebar');
+    if (activeSidebar === 'ai') {
+        const savedWidth = localStorage.getItem('chatPanelWidth') || '320';
+        resizeHandle.style.right = (parseInt(savedWidth) - 12) + 'px';
+        resizeHandle.style.display = 'flex';
+    } else if (activeSidebar === 'notifications') {
+        const savedWidth = localStorage.getItem('notificationsPanelWidth') || '320';
+        resizeHandle.style.right = (parseInt(savedWidth) - 12) + 'px';
+        resizeHandle.style.display = 'flex';
+    } else if (activeSidebar === 'comms') {
+        const savedWidth = localStorage.getItem('notificationsPanelWidth') || '320';
+        resizeHandle.style.right = (parseInt(savedWidth) - 12) + 'px';
+        resizeHandle.style.display = 'flex';
+    }
     
     let isResizing = false;
     let startX = 0;
@@ -1990,12 +2198,29 @@ function initializeResizeHandle() {
         isResizing = true;
         startX = e.clientX;
         
+        // Disable transitions during resize for smooth performance
+        if (mainContentWrapper) {
+            mainContentWrapper.style.transition = 'none';
+        }
+        
         // Determine which panel is active
-        const isCommsActive = window.currentSidebarTarget === 'comms';
-        const activePanel = isCommsActive ? commsSidebarPanel : chatPanel;
+        const sidebarTarget = window.currentSidebarTarget;
+        let activePanel;
+        if (sidebarTarget === 'comms') {
+            activePanel = commsSidebarPanel;
+        } else if (sidebarTarget === 'notifications') {
+            activePanel = notificationsPanel;
+        } else {
+            activePanel = chatPanel;
+        }
         
         if (activePanel) {
             startWidth = parseInt(window.getComputedStyle(activePanel).width, 10);
+            activePanel.style.transition = 'none';
+        }
+        
+        if (resizeHandle) {
+            resizeHandle.style.transition = 'none';
         }
         
         document.body.style.cursor = 'col-resize';
@@ -2013,15 +2238,26 @@ function initializeResizeHandle() {
         
         if (newWidth >= minWidth && newWidth <= maxWidth) {
             // Determine which panel is active
-            const isCommsActive = window.currentSidebarTarget === 'comms';
-            const activePanel = isCommsActive ? commsSidebarPanel : chatPanel;
+            const sidebarTarget = window.currentSidebarTarget;
+            let activePanel;
+            let storageKey = 'chatPanelWidth';
+            
+            if (sidebarTarget === 'comms') {
+                activePanel = commsSidebarPanel;
+                storageKey = 'notificationsPanelWidth'; // Share width with notifications
+            } else if (sidebarTarget === 'notifications') {
+                activePanel = notificationsPanel;
+                storageKey = 'notificationsPanelWidth';
+            } else {
+                activePanel = chatPanel;
+            }
             
             if (activePanel) {
                 activePanel.style.width = newWidth + 'px';
             }
             
-            // Update resize handle position
-            resizeHandle.style.right = newWidth + 'px';
+            // Update resize handle position (left edge aligns with main content right edge)
+            resizeHandle.style.right = (newWidth - 12) + 'px';
             
             // Update main content wrapper to make space for sidebar
             if (mainContentWrapper) {
@@ -2034,11 +2270,18 @@ function initializeResizeHandle() {
                 floatingTimerOverlay.style.right = (newWidth + 24) + 'px'; // Add 24px for spacing
             }
             
-            // Center action buttons within chat panel
-            centerActionButtons(newWidth);
+            // Center action buttons within chat panel (only for AI chat, not for comms or notifications)
+            if (sidebarTarget !== 'notifications' && sidebarTarget !== 'comms') {
+                centerActionButtons(newWidth);
+            }
             
-            // Save to localStorage
-            localStorage.setItem('chatPanelWidth', newWidth);
+            // Center search bar during resize
+            if (typeof window.centerSearchBar === 'function') {
+                window.centerSearchBar();
+            }
+            
+            // Save to localStorage with appropriate key
+            localStorage.setItem(storageKey, newWidth);
         }
     });
     
@@ -2047,6 +2290,35 @@ function initializeResizeHandle() {
             isResizing = false;
             document.body.style.cursor = '';
             document.body.style.userSelect = '';
+            
+            // Re-enable transitions after resize is complete
+            if (mainContentWrapper) {
+                mainContentWrapper.style.transition = 'left 0.3s ease, right 0.3s ease';
+            }
+            
+            if (resizeHandle) {
+                resizeHandle.style.transition = 'background-color 0.2s ease';
+            }
+            
+            // Re-enable transition for the active panel
+            const sidebarTarget = window.currentSidebarTarget;
+            let activePanel;
+            if (sidebarTarget === 'comms') {
+                activePanel = commsSidebarPanel;
+            } else if (sidebarTarget === 'notifications') {
+                activePanel = notificationsPanel;
+            } else {
+                activePanel = chatPanel;
+            }
+            
+            if (activePanel) {
+                activePanel.style.transition = '';
+            }
+            
+            // Center search bar after resize completes
+            if (typeof window.centerSearchBar === 'function') {
+                window.centerSearchBar();
+            }
         }
     });
     
@@ -2095,6 +2367,14 @@ function loadConversation(conversationId) {
     const chatContent = document.getElementById('chatContent');
     if (chatContent) {
         chatContent.classList.remove('landing-mode');
+        // Remove sticky message class - it will be re-added if needed after messages load
+        chatContent.classList.remove('has-sticky-message');
+    }
+    
+    // Clear sticky message class from chat messages too
+    const chatMessages = document.getElementById('chatMessages');
+    if (chatMessages) {
+        chatMessages.classList.remove('has-sticky-message');
     }
     
     // Load messages for this conversation
@@ -2146,24 +2426,36 @@ function showConversationContextMenu(event, conversationItem) {
 
 // Update delete conversation to work with tabs
 function deleteConversation(conversationId) {
-    if (confirm('Are you sure you want to delete this conversation? This action cannot be undone.')) {
-        const orgId = getCurrentOrganizationId();
-        if (!orgId) {
-            console.error('Organization ID not found');
-            return;
-        }
-        
-        fetch(`/Client/${orgId}/Chat/DeleteConversation`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                conversationId: parseInt(conversationId)
-            })
+    console.log('deleteConversation called with ID:', conversationId, 'type:', typeof conversationId);
+    
+    if (!confirm('Are you sure you want to delete this conversation? This action cannot be undone.')) {
+        return;
+    }
+    
+    const orgId = getCurrentOrganizationId();
+    if (!orgId) {
+        console.error('Organization ID not found');
+        return;
+    }
+    
+    const convId = parseInt(conversationId);
+    console.log('Deleting conversation:', convId, 'for org:', orgId);
+    
+    fetch(`/Client/${orgId}/Chat/DeleteConversation`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            conversationId: convId
         })
-        .then(response => response.json())
+    })
+        .then(response => {
+            console.log('Delete response status:', response.status);
+            return response.json();
+        })
         .then(data => {
+            console.log('Delete response data:', data);
             if (data.success) {
                 // Remove the conversation from the UI
                 const conversationElement = document.querySelector(`[data-conversation-id="${conversationId}"]`);
@@ -2211,7 +2503,6 @@ function deleteConversation(conversationId) {
             console.error('Error deleting conversation:', error);
             alert('Failed to delete conversation');
         });
-    }
     
     // Remove context menu
     const contextMenu = document.getElementById('conversationContextMenu');
