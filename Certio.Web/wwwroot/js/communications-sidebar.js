@@ -22,6 +22,34 @@ let commsSidebarState = {
 function initializeCommsSidebar() {
     console.log('Initializing Communications Sidebar...');
     
+    // Restore saved width immediately to prevent overflow on reload
+    const commsSidebarPanel = document.getElementById('commsSidebarPanel');
+    const savedWidth = localStorage.getItem('notificationsPanelWidth') || '320';
+    if (commsSidebarPanel) {
+        commsSidebarPanel.style.width = savedWidth + 'px';
+    }
+    
+    // If communications sidebar is active, apply sizing immediately
+    const activeSidebar = localStorage.getItem('activeSidebar');
+    if (activeSidebar === 'comms') {
+        const resizeHandle = document.getElementById('resizeHandle');
+        const mainContentWrapper = document.querySelector('.client-main-content-wrapper');
+        
+        if (resizeHandle) {
+            resizeHandle.style.right = (parseInt(savedWidth) - 12) + 'px';
+            resizeHandle.style.display = 'flex';
+        }
+        if (mainContentWrapper) {
+            mainContentWrapper.style.right = savedWidth + 'px';
+        }
+        
+        // Update floating timer overlay position
+        const floatingTimerOverlay = document.getElementById('floatingTimerOverlay');
+        if (floatingTimerOverlay && !localStorage.getItem('timerPosition')) {
+            floatingTimerOverlay.style.right = (parseInt(savedWidth) + 24) + 'px';
+        }
+    }
+    
     // Get organization and user info from page context
     commsSidebarState.organizationId = getCurrentOrgId();
     commsSidebarState.currentUserId = getCurrentUserId();
@@ -122,8 +150,8 @@ function openCommsSidebar() {
         loadCommsChannels();
     }
     
-    // Set the width from localStorage or default
-    const savedWidth = localStorage.getItem('chatPanelWidth') || '320';
+    // Set the width from localStorage or default (shares width with notifications)
+    const savedWidth = localStorage.getItem('notificationsPanelWidth') || '320';
     const panel = document.getElementById('commsSidebarPanel');
     if (panel) {
         panel.style.width = savedWidth + 'px';
@@ -532,7 +560,7 @@ async function loadDMMessages(threadId) {
     if (!messagesList) return;
     
     // Show loading state
-    messagesList.innerHTML = '<div class="comms-loading"><i class="fas fa-spinner fa-spin"></i><span>Loading messages...</span></div>';
+    messagesList.innerHTML = '<div class="comms-loading"><div class="spinner"></div><span>Loading messages...</span></div>';
     
     try {
         // Use exact same endpoint as Communications page
@@ -613,7 +641,7 @@ async function loadCommsMessages(channelId) {
     if (!messagesList) return;
     
     // Show loading state
-    messagesList.innerHTML = '<div class="comms-loading"><i class="fas fa-spinner fa-spin"></i><span>Loading messages...</span></div>';
+    messagesList.innerHTML = '<div class="comms-loading"><div class="spinner"></div><span>Loading messages...</span></div>';
     
     if (!commsSidebarState.organizationId) {
         console.error('Organization ID not set');

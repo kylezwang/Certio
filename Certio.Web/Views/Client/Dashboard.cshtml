@@ -6,158 +6,14 @@
 
 <div class="global-dashboard-main">
     <div class="row h-100">
-        <!-- Left Column -->
-        <div class="col-md-4 left-column">
-            <!-- Upcoming Deadlines Card -->
-            <div class="card mb-3 border-0 gd-card">
-                <div class="card-body p-3">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="card-title fw-bold mb-0">Upcoming Deadlines</h5>
-                        <span class="badge bg-primary">Today</span>
-                    </div>
-                    
-                    <div class="deadlines-list">
-                        @foreach (var deadline in Model.UpcomingDeadlines.Take(3))
-                        {
-                            <div class="deadline-item @(deadline.Priority == "High" ? "border-start border-danger border-3" : "") mb-3 ps-3">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h6 class="mb-1 fw-semibold">@deadline.Title</h6>
-                                        <p class="text-muted small mb-0">@deadline.Time</p>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                        
-                        @if (!Model.UpcomingDeadlines.Any())
-                        {
-                            <div class="deadline-item border-start border-danger border-3 mb-3 ps-3">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h6 class="mb-1 fw-semibold">Smith v. Jones - Motion Filing</h6>
-                                        <p class="text-muted small mb-0">2:00 PM</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="deadline-item mb-3 ps-3">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h6 class="mb-1 fw-semibold">Client Review Call</h6>
-                                        <p class="text-muted small mb-0">4:30 PM</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="deadline-item mb-3 ps-3">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h6 class="mb-1 fw-semibold">Document Review</h6>
-                                        <p class="text-muted small mb-0">EOD</p>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                </div>
-            </div>
-
-            <!-- Calendar Card -->
-            <div class="card mb-3 border-0 gd-card">
-                <div class="card-body p-3">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="card-title fw-bold mb-0">@Model.CurrentDate.ToString("MMMM yyyy")</h5>
-                    </div>
-                    
-                    <div class="calendar-grid">
-                        <div class="calendar-header">
-                            <div class="calendar-day-header">S</div>
-                            <div class="calendar-day-header">M</div>
-                            <div class="calendar-day-header">T</div>
-                            <div class="calendar-day-header">W</div>
-                            <div class="calendar-day-header">T</div>
-                            <div class="calendar-day-header">F</div>
-                            <div class="calendar-day-header">S</div>
-                        </div>
-                        
-                        <div class="calendar-body">
-                            @{
-                                var firstDay = new DateTime(Model.CurrentDate.Year, Model.CurrentDate.Month, 1);
-                                var startDay = firstDay.AddDays(-(int)firstDay.DayOfWeek);
-                                var today = DateTime.Today;
-                            }
-                            
-                            @for (int week = 0; week < 6; week++)
-                            {
-                                <div class="calendar-week">
-                                    @for (int day = 0; day < 7; day++)
-                                    {
-                                        var currentDate = startDay.AddDays(week * 7 + day);
-                                        var isCurrentMonth = currentDate.Month == Model.CurrentDate.Month;
-                                        var isToday = currentDate.Date == today;
-                                        
-                                        <div class="calendar-day @(isCurrentMonth ? "current-month" : "other-month") @(isToday ? "today" : "")">
-                                            @currentDate.Day
-                                        </div>
-                                    }
-                                </div>
-                            }
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Activity Card -->
-            <div class="card border-0 gd-card">
-                <div class="card-body p-3">
-                    <h5 class="card-title fw-bold mb-2">Recent Activity</h5>
-                    <p class="text-muted small mb-2">Recent Files</p>
-                    
-                    <div class="recent-files-list">
-                        @if (Model.RecentFiles.Any())
-                        {
-                            @foreach (var file in Model.RecentFiles.Take(2))
-                            {
-                                <div class="recent-file-item d-flex align-items-center mb-2">
-                                    <div class="file-icon me-3">
-                                        <i class="fas fa-file-pdf text-danger"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-1 fw-semibold">@file.Name</h6>
-                                        <p class="text-muted small mb-0">@file.TimeAgo</p>
-                                    </div>
-                                </div>
-                            }
-                        }
-                        else
-                        {
-                            <div class="recent-file-item d-flex align-items-center mb-2">
-                                <div class="file-icon me-3">
-                                    <i class="fas fa-file-pdf text-danger"></i>
-                                </div>
-                                <div>
-                                    <h6 class="mb-1 fw-semibold">Project_Spec_v3.pdf</h6>
-                                    <p class="text-muted small mb-0">2h ago</p>
-                                </div>
-                            </div>
-                            <div class="recent-file-item d-flex align-items-center mb-2">
-                                <div class="file-icon me-3">
-                                    <i class="fas fa-file-alt text-primary"></i>
-                                </div>
-                                <div>
-                                    <h6 class="mb-1 fw-semibold">Design_System.fig</h6>
-                                    <p class="text-muted small mb-0">4h ago</p>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Column -->
-        <div class="col-md-8 right-column">
+        <!-- Full Width Content -->
+        <div class="col-12 main-column">
     <!-- AI Chat Section -->
     <div class="card mb-4 mt-3 border-0 ai-chat-card gd-card">
         <div class="card-body p-4">
+            <div class="text-center mb-3">
+                <img src="~/images/Notal_Banner_Logo_Large_Text.png" alt="Notal AI" style="height: 45px; object-fit: contain;" />
+            </div>
             <h2 class="text-center mb-4 fs-2 fw-semibold text-dark">What can I help with?</h2>
             
             <div class="search-container-large">
@@ -388,6 +244,8 @@
 <style>
     .global-dashboard-main {
         padding: 0 0.75rem;
+        max-width: 1400px; /* Constrain max width */
+        margin: 0 auto; /* Center the dashboard content */
     }
 
     /* Force 4x2 grid layout for quick access */
@@ -525,15 +383,9 @@
         border-bottom: none;
     }
 
-    /* Left column styling */
-    .left-column, .right-column {
+    /* Main column styling */
+    .main-column {
         padding: 0 0.75rem;
-    }
-
-    .left-column {
-        background-color: #F2F2F2;
-        border-radius-top-left: 12px;
-        padding: 1rem 0.75rem;
     }
 
     /* Override main content padding for Client Dashboard only */
@@ -541,151 +393,6 @@
         padding: 0 !important;
     }
 
-    /* Make left column thinner */
-    .left-column {
-        flex: 0 0 28% !important;
-        max-width: 28% !important;
-    }
-
-    .right-column {
-        flex: 0 0 72% !important;
-        max-width: 72% !important;
-    }
-
-    /* Calendar Styles */
-    .calendar-grid {
-        font-size: clamp(0.75rem, 1.5vw, 0.875rem);
-        width: 100%;
-    }
-
-    .calendar-header {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 0.25rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .calendar-day-header {
-        text-align: center;
-        font-weight: 500;
-        color: #9ca3af;
-        padding: 0.25rem 0;
-        font-size: clamp(0.7rem, 1.2vw, 0.8rem);
-        line-height: 1;
-    }
-
-    .calendar-body {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-    }
-
-    .calendar-week {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 0.25rem;
-    }
-
-    .calendar-day {
-        text-align: center;
-        cursor: pointer;
-        border-radius: 6px;
-        transition: all 0.2s ease;
-        font-weight: 500;
-        aspect-ratio: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: clamp(0.75rem, 1.4vw, 0.875rem);
-        line-height: 1;
-        padding: 0.25rem;
-        min-height: 0;
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    .calendar-day.current-month {
-        color: #374151;
-    }
-
-    .calendar-day.other-month {
-        color: #d1d5db;
-    }
-
-    .calendar-day.today {
-        background-color: #3d1019;
-        color: white;
-        font-weight: 600;
-        border-radius: 50%;
-        aspect-ratio: 1;
-        max-width: 2rem;
-        max-height: 2rem;
-        margin: auto;
-    }
-
-    .calendar-day.selected {
-        background-color: #3b82f6;
-        color: white;
-        font-weight: 600;
-        border-radius: 50%;
-        aspect-ratio: 1;
-        max-width: 2rem;
-        max-height: 2rem;
-        margin: auto;
-    }
-
-    .calendar-day:hover:not(.today):not(.selected) {
-        background-color: #eef1f3;
-        border-radius: 6px;
-    }
-
-    /* Responsive adjustments for different screen sizes */
-    @@media (max-width: 1200px) {
-        .calendar-day {
-            font-size: clamp(0.7rem, 1.2vw, 0.8rem);
-        }
-        
-        .calendar-day.today,
-        .calendar-day.selected {
-            max-width: 1.75rem;
-            max-height: 1.75rem;
-        }
-    }
-
-    @@media (max-width: 992px) {
-        .calendar-day {
-            font-size: clamp(0.65rem, 1vw, 0.75rem);
-        }
-        
-        .calendar-day.today,
-        .calendar-day.selected {
-            max-width: 1.5rem;
-            max-height: 1.5rem;
-        }
-    }
-
-    /* Deadline styles */
-    .deadline-item {
-        position: relative;
-    }
-
-    .deadline-item.border-start {
-        border-left: 3px solid #dc3545 !important;
-    }
-
-    /* Recent files styles */
-    .file-icon {
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.1rem;
-    }
-
-    .recent-file-item {
-        padding: 0.5rem 0;
-    }
 </style>
 
 @section Scripts {
@@ -707,29 +414,4 @@
             });
         </script>
     }
-    <script>
-        // Calendar day selection: only mark selected when user clicks a day
-        document.addEventListener('DOMContentLoaded', function () {
-            const calendarDays = document.querySelectorAll('.calendar-day');
-            if (!calendarDays || calendarDays.length === 0) return;
-
-            function clearSelected() {
-                document.querySelectorAll('.calendar-day.selected').forEach(function (el) {
-                    el.classList.remove('selected');
-                });
-                // When a selection is made, remove the automatic "today" highlight
-                document.querySelectorAll('.calendar-day.today').forEach(function (el) {
-                    el.classList.remove('today');
-                });
-            }
-
-            calendarDays.forEach(function (dayEl) {
-                dayEl.addEventListener('click', function () {
-                    // Do not override highlight for today unless explicitly clicked (allowed by adding selected)
-                    clearSelected();
-                    this.classList.add('selected');
-                });
-            });
-        });
-    </script>
 }

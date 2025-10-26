@@ -72,9 +72,7 @@
         targetElement.innerHTML = `
             <div class="container-fluid px-4 py-4">
                 <div class="text-center py-5">
-                    <div class="spinner-border text-primary mb-3" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
+                    <div class="spinner mb-3"></div>
                     <h4 class="text-dark mb-2">Loading ${tabName}...</h4>
                     <p class="text-muted">Please wait while we load the content.</p>
                 </div>

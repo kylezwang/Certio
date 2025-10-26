@@ -400,6 +400,17 @@ body {
   }
 }
 
+/* Red Loading Spinner - Brand Color */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(61, 16, 25, 0.1);
+  border-top-color: #3d1019;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+
 .chat-messages {
   flex: 1;
   padding: 1rem 0.5rem 1rem 1rem;
@@ -410,6 +421,27 @@ body {
   box-sizing: border-box;
   position: relative;
   z-index: 1;
+  /* Firefox scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+/* Custom Scrollbar Styling for AI Chat */
+.chat-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.35);
 }
 
 .chat-input {
@@ -467,7 +499,6 @@ body {
   display: flex;
   align-items: flex-start;
   margin-bottom: 2rem;
-  margin-top: 1rem;
   width: 100%;
   margin-left: auto;
 }
@@ -562,7 +593,6 @@ body {
 
 .message-text {
   background-color: transparent;
-  padding: 0.75rem;
   border-radius: 18px;
   border-top-left-radius: 4px;
   line-height: 1.5;
@@ -1023,7 +1053,6 @@ body {
   
   .message-text {
     font-size: 0.9rem;
-    padding: 0.75rem;
   }
   
   .ai-insights-grid {
@@ -1533,12 +1562,13 @@ body {
 
 .message-text ul,
 .message-text ol {
-  margin: 0.35rem 0 0.5rem 1rem;
-  padding-left: 0.5rem;
+  margin: 0.75rem 0;
+  padding-left: 1.25rem;
 }
 
 .message-text li {
-  margin: 0.15rem 0;
+  margin: 0.5rem 0;
+  padding-left: 0;
   line-height: 1.5;
 }
 
@@ -1571,34 +1601,13 @@ body {
   border: none;
 }
 
-/* Better list formatting in AI responses */
+/* List formatting in AI responses */
 .message-text ul {
   list-style-type: disc;
-  margin: 0.5rem 0;
-  padding-left: 0.5rem;
 }
 
 .message-text ol {
   list-style-type: decimal;
-  margin: 0.5rem 0;
-  padding-left: 1.5rem;
-}
-
-.message-text li {
-  margin: 0.25rem 0;
-  line-height: 1.5;
-}
-
-/* Numbered lists in AI responses */
-.message-text ol li {
-  margin: 0.25rem 0;
-  padding-left: 0.25rem;
-}
-
-/* Bullet points in AI responses */
-.message-text ul li {
-  margin: 0.25rem 0;
-  padding-left: 0.5rem;
 }
 
 /* Better paragraph spacing */
@@ -1614,6 +1623,27 @@ body {
   font-family: 'Courier New', monospace;
   font-size: 0.875rem;
   color: #e11d48;
+}
+
+/* Multi-line code blocks */
+.message-text pre {
+  background-color: #1e1e1e;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 0.75rem 0;
+  overflow-x: auto;
+}
+
+.message-text pre code {
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+  color: #d4d4d4;
+  font-size: 0.875rem;
+  display: block;
+  white-space: pre;
+  line-height: 1.5;
 }
 
 /* Blockquotes in AI responses */
@@ -2287,30 +2317,48 @@ body {
 }
 
 .resize-handle {
-  width: 2px; /* Very thin */
-  background-color: rgba(11, 54, 94, 0.1);
+  width: 8px;
+  background: transparent;
   cursor: col-resize;
   position: fixed;
   top: 7vh; /* Start below header */
-  right: 320px; /* Position next to chat panel (320px default) */
-  height: calc(100vh - 7vh);
-  z-index: 999; /* Above everything */
-  transition: all 0.2s ease;
+  right: calc(320px - 12px); /* Left edge aligns with main content right edge */
+  height: calc(100vh - 7.75vh);
+  z-index: 9999; /* Above everything including sidebars */
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .resize-handle:hover {
-  background-color: rgba(61, 16, 25, 0.3);
-  width: 3px; /* Slightly wider on hover */
+  background: linear-gradient(to bottom, transparent 0%, transparent 1%, rgba(61, 16, 25, 0.05) 1%, rgba(61, 16, 25, 0.05) 100%);
+}
+
+.resize-handle:active {
+  background: rgba(61, 16, 25, 0.1);
 }
 
 .resize-handle::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: -2px;
-  right: -2px;
-  bottom: 0;
-  background-color: transparent;
+  width: 3px;
+  height: 24px;
+  background: #9ca3af;
+  border-radius: 2px;
+  opacity: 1;
+  pointer-events: none;
+}
+
+.resize-handle:hover::before {
+  opacity: 1;
+  background: #6b7280;
+}
+
+.resize-handle:active::before {
+  background: #374151;
 }
 
 
@@ -2324,7 +2372,7 @@ body {
 
 /* Chat tabs container positioned at the very top, spanning full width */
 .chat-tabs-container {
-  padding: 0.2rem 1rem 0rem 1rem; /* Reduced padding - extra right for scrollbar */
+  padding: 0.25rem 1rem 0rem 1rem; /* Reduced padding - extra right for scrollbar */
   border-bottom: none;
   width: 100%;
   flex-shrink: 0;
@@ -3586,12 +3634,12 @@ body.communications-page .communications-layout {
 }
 
 .channel-item:hover {
-  background: rgba(156, 163, 175, 0.1);
+  background: rgba(156, 163, 175, 0.2);
   color: #1f2937;
 }
 
 .channel-item.active {
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(59, 130, 246, 0.3);
   color: #1f2937;
 }
 
@@ -4080,7 +4128,6 @@ body.communications-page .communications-layout {
   flex-direction: row-reverse;
   margin-left: auto;
   max-width: 95%;
-  background: rgba(61, 16, 25, 0.05);
 }
 
 .communications-container .message-item.current-user-message .message-avatar {
@@ -4095,11 +4142,16 @@ body.communications-page .communications-layout {
 
 .communications-container .message-item.current-user-message .message-text {
   text-align: left;
+  padding: 0;
 }
 
 .communications-container .message-item.current-user-message .message-author {
   font-weight: 700;
   color: #3d1019;
+}
+
+.communications-container .message-item.current-user-message .message-content {
+  background: rgba(61, 16, 25, 0.05);
 }
 
 /* Grouped messages (consecutive messages from same user) */
@@ -4156,6 +4208,7 @@ body.communications-page .communications-layout {
   max-width: 28rem;
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
 }
 
 .communications-container .message-header {
@@ -4183,6 +4236,7 @@ body.communications-page .communications-layout {
   line-height: 1.5;
   margin: 0;
   white-space: pre-wrap;
+  padding: 0;
 }
 
 /* Services Page - Message Reactions */
@@ -5716,11 +5770,6 @@ body.dark-mode .global-dashboard-main .quick-access-icon .fa-briefcase {
   }
 }
 
-/* Icon Background Helper Classes */
-.icon-bg-primary {
-  background-color: #3d1019;
-}
-
 /* Stat Cards - Reuse and enhance existing styles */
 .stats-card {
   transition: all 0.3s ease;
@@ -5962,7 +6011,7 @@ body.dark-mode .global-dashboard-main .quick-access-icon .fa-briefcase {
 .sticky-last-message {
   position: absolute;
   top: 0;
-  left: 0;
+  left: 0.25rem;
   right: 0;
   z-index: 150;
   background: linear-gradient(to bottom, #f1ece8 0%, transparent 99%, transparent 100%);
@@ -5983,7 +6032,7 @@ body.dark-mode .global-dashboard-main .quick-access-icon .fa-briefcase {
   overflow: visible;
   pointer-events: auto;
   width: auto;
-  margin-left: 0.5rem;
+  margin-left: 0.25rem;
 }
 
 /* Style the sticky message to exactly match regular user messages */
@@ -6021,6 +6070,44 @@ body.dark-mode .global-dashboard-main .quick-access-icon .fa-briefcase {
 }
 
 /* Add padding to chat messages to account for sticky overlay when visible */
-.chat-messages.has-sticky-message {
-  padding-top: 5rem; /* Adjusted for full-height messages */
+/* Removed dynamic padding to prevent scroll jiggling - sticky overlay now uses absolute positioning */
+
+/* Communications Search Bar - Match Page Header Styling */
+.comms-search-container {
+  position: relative;
+  padding: 0.75rem 1.5rem;
+}
+
+.comms-search-icon {
+  position: absolute;
+  left: 2.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.comms-search-input {
+  width: 100%;
+  height: 2.5rem;
+  line-height: 1.25;
+  border-radius: 24px;
+  padding: 0.75rem 1.5rem 0.75rem 2.75rem;
+  background-color: #f9fafb;
+  font-size: 1rem;
+  border: transparent;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.comms-search-input:focus {
+  background-color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.comms-search-input::placeholder {
+  color: #9ca3af;
 }
