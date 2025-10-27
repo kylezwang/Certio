@@ -269,6 +269,10 @@ catch (Exception ex)
     builder.Services.AddDistributedMemoryCache();
 }
 
+// Register performance monitoring services
+builder.Services.AddSingleton<Certio.Web.Services.CacheMetricsService>();
+builder.Services.AddHostedService<Certio.Web.Services.MetricsReportingService>();
+
 // Register cache service
 builder.Services.AddSingleton<Certio.Web.Services.ICacheService, Certio.Web.Services.RedisCacheService>();
 
@@ -372,6 +376,9 @@ else
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+// Performance monitoring middleware - should be early in the pipeline
+app.UseMiddleware<Certio.Web.Middleware.PerformanceMonitoringMiddleware>();
 
 app.UseSession();
 app.UseRouting();

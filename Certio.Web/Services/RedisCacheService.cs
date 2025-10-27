@@ -2,6 +2,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Diagnostics;
 
 namespace Certio.Web.Services;
 
@@ -10,6 +11,7 @@ public class RedisCacheService : ICacheService
     private readonly IDistributedCache _distributedCache;
     private readonly IMemoryCache _memoryCache;
     private readonly ILogger<RedisCacheService> _logger;
+    private readonly CacheMetricsService _metricsService;
     
     // JSON serializer options to handle circular references
     private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
@@ -35,20 +37,26 @@ public class RedisCacheService : ICacheService
     public RedisCacheService(
         IDistributedCache distributedCache, 
         IMemoryCache memoryCache,
-        ILogger<RedisCacheService> logger)
+        ILogger<RedisCacheService> logger,
+        CacheMetricsService metricsService)
     {
         _distributedCache = distributedCache;
         _memoryCache = memoryCache;
         _logger = logger;
+        _metricsService = metricsService;
     }
 
     public async Task<T?> GetAsync<T>(string key) where T : class
     {
+        var sw = Stopwatch.StartNew();
         try
         {
             // Try memory cache first (L1 cache - fastest)
             if (_memoryCache.TryGetValue(key, out T? cachedValue))
             {
+                sw.Stop();
+                _metricsService.RecordHit("L1_Memory", key, sw.ElapsedMilliseconds);
+                _logger.LogDebug("⚡ L1 cache HIT for {Key} in {ElapsedMs}ms", key, sw.ElapsedMilliseconds);
                 return cachedValue;
             }
             
@@ -57,10 +65,18 @@ public class RedisCacheService : ICacheService
             
             if (string.IsNullOrEmpty(cachedData))
             {
+                sw.Stop();
+                _metricsService.RecordMiss("L2_Redis", key, sw.ElapsedMilliseconds);
+                _logger.LogDebug("❌ Cache MISS for {Key} (checked in {ElapsedMs}ms)", key, sw.ElapsedMilliseconds);
                 return null;
             }
 
             var value = JsonSerializer.Deserialize<T>(cachedData, JsonOptions);
+            sw.Stop();
+            
+            // Record L2 hit
+            _metricsService.RecordHit("L2_Redis", key, sw.ElapsedMilliseconds);
+            _logger.LogDebug("✓ L2 cache HIT for {Key} in {ElapsedMs}ms", key, sw.ElapsedMilliseconds);
             
             // Populate memory cache for next time (cache warming)
             if (value != null)
@@ -72,6 +88,7 @@ public class RedisCacheService : ICacheService
         }
         catch (Exception ex)
         {
+            sw.Stop();
             _logger.LogError(ex, "Error getting cached data for key: {Key}", key);
             return null;
         }

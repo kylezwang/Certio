@@ -441,7 +441,7 @@ async function sendMessage() {
     await sendMessageInternal(message, currentConversationId);
 }
 
-// Generate AI response
+// Generate AI response with streaming
 async function generateAIResponse(userMessage) {
     try {
         const orgId = getCurrentOrganizationId();
@@ -450,7 +450,47 @@ async function generateAIResponse(userMessage) {
             return;
         }
         
-        const response = await fetch(`/Client/${orgId}/Chat/GenerateAIResponse`, {
+        // Keep "AI is thinking..." visible until first chunk arrives
+        // Don't create streaming placeholder yet
+        
+        let aiMessageDiv = null;
+        let messageTextDiv = null;
+        let isFirstChunk = true;
+        
+        let fullContent = '';
+        let plainTextCache = '';
+        let messageId = null;
+        
+        // Track if user has manually scrolled up
+        let userHasScrolledUp = false;
+        let lastScrollHeight = 0;
+        
+        const chatMessages = document.getElementById('chatMessages');
+        
+        // Detect manual scroll by user
+        const handleScroll = () => {
+            if (!chatMessages) return;
+            
+            const isAtBottom = chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight < 50;
+            
+            // If user scrolls back to bottom, re-enable auto-scroll
+            if (isAtBottom) {
+                userHasScrolledUp = false;
+            } 
+            // If scroll position changed and we're not at bottom, user scrolled up
+            else if (chatMessages.scrollHeight === lastScrollHeight) {
+                userHasScrolledUp = true;
+            }
+            
+            lastScrollHeight = chatMessages.scrollHeight;
+        };
+        
+        // Add scroll listener
+        if (chatMessages) {
+            chatMessages.addEventListener('scroll', handleScroll);
+        }
+        
+        const response = await fetch(`/Client/${orgId}/Chat/GenerateAIResponseStream`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -461,35 +501,200 @@ async function generateAIResponse(userMessage) {
             })
         });
         
-        const result = await response.json();
-        
-        if (result.success) {
-            // Hide thinking indicator
-            hideAIThinkingIndicator();
-            
-            // Add AI response to chat
-            addMessageToChat(result.message);
-            
-            // Update current messages
-            currentMessages.push(result.message);
-            
-            // Reinitialize sticky message after new message is added
-            initializeStickyMessage();
-            
-            // Load AI insights after a short delay to allow background processing
-            setTimeout(() => {
-                if (insightsVisible) {
-                    loadAIInsights();
-                }
-            }, 2000);
-        } else {
-            console.error('Error generating AI response:', result.error);
-            hideAIThinkingIndicator();
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
+        // Handle Server-Sent Events stream
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        
+        while (true) {
+            const { done, value } = await reader.read();
+            
+            if (done) {
+                break;
+            }
+            
+            // Decode the chunk and add to buffer
+            buffer += decoder.decode(value, { stream: true });
+            
+            // Process complete SSE messages (separated by \n\n)
+            const messages = buffer.split('\n\n');
+            buffer = messages.pop() || ''; // Keep incomplete message in buffer
+            
+            for (const message of messages) {
+                if (message.startsWith('data: ')) {
+                    const jsonData = message.substring(6);
+                    
+                    try {
+                        const eventData = JSON.parse(jsonData);
+                        console.log('📨 Chunk received:', eventData.content?.substring(0, 20), 'at', new Date().getMilliseconds());
+                        console.log('🔍 eventData:', eventData);
+                        console.log('🔍 eventData.content truthy?', !!eventData.content);
+                        console.log('🔍 messageTextDiv exists?', !!messageTextDiv);
+                        
+                        // Add delay between chunks for smooth visual streaming (30ms per chunk)
+                        await new Promise(resolve => setTimeout(resolve, 30));
+                        
+                        if (eventData.error) {
+                            console.log('❌ Error in event data');
+                            // Error occurred
+                            messageTextDiv.innerHTML = eventData.content || 'An error occurred while generating the response.';
+                            // Remove streaming class
+                            aiMessageDiv.classList.remove('streaming');
+                            return;
+                        }
+                        
+                        if (eventData.done) {
+                            console.log('✅ Stream done signal received');
+                            // Stream complete - remove streaming class and cursor
+                            aiMessageDiv.classList.remove('streaming');
+                            messageTextDiv.innerHTML = fullContent || 'No response generated.';
+                            
+                            // Create a proper message object for tracking
+                            const aiMessage = {
+                                id: messageId || Date.now(),
+                                conversationId: parseInt(currentConversationId),
+                                content: fullContent,
+                                createdAt: new Date().toISOString(),
+                                isFromAI: true,
+                                messageType: 'AI_Response',
+                                userType: 'AI'
+                            };
+                            
+                            currentMessages.push(aiMessage);
+                            
+                            // Reinitialize sticky message after streaming is complete
+                            initializeStickyMessage();
+                            
+                            // Load AI insights after a short delay
+                            setTimeout(() => {
+                                if (insightsVisible) {
+                                    loadAIInsights();
+                                }
+                            }, 2000);
+                            
+                            // Remove scroll listener
+                            if (chatMessages) {
+                                chatMessages.removeEventListener('scroll', handleScroll);
+                            }
+                            
+                            return;
+                        }
+                        
+                        if (eventData.content) {
+                            console.log('🎯 ENTERING DOM UPDATE BLOCK');
+                            
+                            // On first chunk: hide thinking indicator and create streaming placeholder
+                            if (isFirstChunk) {
+                                hideAIThinkingIndicator();
+                                aiMessageDiv = createStreamingAIMessagePlaceholder();
+                                messageTextDiv = aiMessageDiv.querySelector('.message-text');
+                                
+                                // Initialize empty message text (no cursor/dots needed)
+                                messageTextDiv.textContent = '';
+                                
+                                isFirstChunk = false;
+                            }
+                            
+                            try {
+                                // Append chunk to full content
+                                fullContent += eventData.content;
+                                console.log('📝 fullContent length:', fullContent.length);
+                                
+                                // During streaming: keep HTML structure, only remove incomplete tags
+                                let displayText = fullContent
+                                    .replace(/<[^>]*$/g, '')  // Remove incomplete tag at the end (e.g., "<p" or "<stro")
+                                    .trim();
+                                
+                                console.log('🔤 displayText:', displayText.substring(0, 50));
+                                console.log('🎯 About to update DOM...');
+                                
+                                // Update using innerHTML to preserve HTML formatting during streaming
+                                const tempDiv = document.createElement('div');
+                                tempDiv.innerHTML = displayText;
+                                
+                                // Clear messageTextDiv and rebuild with formatted content
+                                messageTextDiv.innerHTML = '';
+                                while (tempDiv.firstChild) {
+                                    messageTextDiv.appendChild(tempDiv.firstChild);
+                                }
+                                
+                                console.log('✅ Text node updated!');
+                                
+                                // Auto-scroll only if user hasn't manually scrolled up
+                                if (chatMessages && !userHasScrolledUp) {
+                                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                                    lastScrollHeight = chatMessages.scrollHeight;
+                                }
+                                console.log('✅ DOM update complete');
+                            } catch (domError) {
+                                console.error('💥 ERROR in DOM update:', domError);
+                            }
+                        } else {
+                            console.log('⚠️ No content in eventData');
+                        }
+                    } catch (e) {
+                        console.error('💥 ERROR parsing SSE:', e);
+                    }
+                }
+            }
+        }
+        
     } catch (error) {
-        console.error('Error generating AI response:', error);
+        console.error('Error generating streaming AI response:', error);
         hideAIThinkingIndicator();
+        
+        // Remove scroll listener on error
+        const chatMessagesDiv = document.getElementById('chatMessages');
+        if (chatMessagesDiv && typeof handleScroll !== 'undefined') {
+            chatMessagesDiv.removeEventListener('scroll', handleScroll);
+        }
+        
+        // Show error message in chat
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'ai-message-bubble error-message';
+        errorDiv.innerHTML = `
+            <div class="message-content">
+                <div class="message-header">
+                    <img src="/images/Notal_Banner_Logo.png" alt="Notal AI" class="ai-message-logo" />
+                    <span class="timestamp">${new Date().toLocaleTimeString()}</span>
+                </div>
+                <div class="message-text">
+                    I apologize, but I'm having trouble generating a response right now. Please try again in a moment.
+                </div>
+            </div>
+        `;
+        if (chatMessagesDiv) {
+            chatMessagesDiv.appendChild(errorDiv);
+            chatMessagesDiv.scrollTo({ top: chatMessagesDiv.scrollHeight, behavior: 'smooth' });
+        }
     }
+}
+
+// Create a placeholder for streaming AI message
+function createStreamingAIMessagePlaceholder() {
+    const chatMessages = document.getElementById('chatMessages');
+    if (!chatMessages) return null;
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message ai-message ai-message-bubble streaming';
+    messageDiv.innerHTML = `
+        <div class="message-content">
+            <div class="message-header">
+                <img src="/images/Notal_Banner_Logo.png" alt="Notal AI" class="ai-message-logo" />
+                <span class="timestamp">${new Date().toLocaleTimeString()}</span>
+            </div>
+            <div class="message-text"></div>
+        </div>
+    `;
+    
+    chatMessages.appendChild(messageDiv);
+    messageElements.push(messageDiv);
+    
+    return messageDiv;
 }
 
 // Internal function to handle message sending logic
@@ -1076,7 +1281,15 @@ function formatClarityMessage(data) {
 
 // Format intelligent AI response
 function formatIntelligentResponse(content) {
-    // Convert markdown to HTML if needed
+    // Check if content is already HTML (contains HTML tags)
+    const hasHtmlTags = /<[^>]+>/.test(content);
+    
+    // If already HTML, return as-is (streaming responses are already formatted)
+    if (hasHtmlTags) {
+        return content;
+    }
+    
+    // Otherwise, convert markdown to HTML
     const htmlContent = convertMarkdownToHtml(content);
     
     // Check if this is a service unavailable message
@@ -1886,8 +2099,7 @@ function showIntelligentAIThinkingIndicator(userMessage) {
     thinkingDiv.className = 'message ai-message';
     thinkingDiv.innerHTML = `
         <div class="message-header">
-            <span class="user-type">AI</span>
-            <span class="ai-agent">Notal AI</span>
+            <img src="/images/Notal_Banner_Logo.png" alt="Notal AI" class="ai-message-logo" />
             <span class="timestamp">${new Date().toLocaleTimeString()}</span>
         </div>
         <div class="message-content">

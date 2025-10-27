@@ -196,6 +196,92 @@ body {
   padding-left: 2.5rem;
 }
 
+/* Large Search Container - matches AI Chat input styling */
+.search-container-large {
+  display: flex;
+  align-items: center;
+  background-color: #f9fafb;
+  border: 2px solid #e5e7eb;
+  border-radius: 24px;
+  padding: 0 0.5rem;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.search-container-large:focus-within {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+}
+
+.search-container-large > i.fa-plus {
+  color: #6b7280;
+  padding: 0.5rem;
+  margin-left: 0.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-container-large > i.fa-plus:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #9d5252;
+}
+
+.search-container-large input {
+  flex: 1;
+  border: none !important;
+  background: transparent !important;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  color: #374151;
+  outline: none;
+  box-shadow: none !important;
+}
+
+.search-container-large input::placeholder {
+  color: #9ca3af;
+}
+
+.search-container-large .search-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-right: 0.25rem;
+}
+
+.search-container-large .search-actions .btn {
+  padding: 0;
+  border: none;
+  background: transparent;
+  transition: all 0.2s ease;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none !important;
+}
+
+.search-container-large .search-actions .btn:hover,
+.search-container-large .search-actions .btn:focus {
+  background-color: rgba(0, 0, 0, 0.05);
+  text-decoration: none !important;
+}
+
+.search-container-large .search-actions .btn i {
+  font-size: 1.1rem;
+  color: #6b7280;
+}
+
+.search-container-large .search-actions .btn:hover i {
+  color: #9d5252;
+}
+
 .filter-buttons {
   display: flex;
   flex-wrap: wrap;
@@ -1591,7 +1677,7 @@ body {
 /* Ensure proper spacing for AI responses */
 .ai-message-bubble .message-text {
   background-color: transparent;
-  padding: 0 0.75rem 1.25rem 0.75rem;
+  padding: 0 0 1.25rem 0.75rem;
   border-radius: 18px;
   border-top-left-radius: 4px;
   line-height: 1.6;
@@ -5641,17 +5727,36 @@ body.dark-mode .global-dashboard-main .gd-card {
 }
 
 /* Large search in AI chat (dashboard hero) */
-body.dark-mode .search-container-large input.form-control.form-control-lg {
+body.dark-mode .search-container-large {
   background-color: #232323 !important;
-  color: #ffffff !important;
   border-color: #333 !important;
 }
+
+body.dark-mode .search-container-large input.form-control.form-control-lg {
+  background-color: transparent !important;
+  color: #ffffff !important;
+}
+
 body.dark-mode .search-container-large input::placeholder {
   color: #888 !important;
 }
+
 body.dark-mode .search-container-large i,
 body.dark-mode .search-actions .btn {
   color: #aaa !important;
+}
+
+body.dark-mode .search-container-large > i.fa-plus:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #9d5252 !important;
+}
+
+body.dark-mode .search-container-large .search-actions .btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .search-container-large .search-actions .btn:hover i {
+  color: #9d5252 !important;
 }
 
 /* Any remaining explicit text-dark helpers should be white in dark mode */

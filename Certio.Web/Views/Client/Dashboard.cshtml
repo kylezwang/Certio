@@ -21,10 +21,10 @@
                 <input type="text" class="form-control form-control-lg" placeholder="Ask anything" />
                 <div class="search-actions">
                     <button class="btn btn-link text-muted">
-                        <i class="fas fa-comment"></i>
+                        <i class="fas fa-microphone"></i>
                     </button>
                     <button class="btn btn-link text-muted">
-                        <i class="fas fa-search"></i>
+                        <i class="fas fa-paper-plane"></i>
                     </button>
                 </div>
             </div>
@@ -137,35 +137,16 @@
         </div>
     </div>
 
-    <!-- Bottom Row: Firm Summary, Daily Briefing, Next Suggestions -->
+    <!-- Bottom Row: Upcoming Deadlines, Daily Briefing, Next Suggestions -->
     <div class="row gx-4">
-        <!-- Firm Summary -->
+        <!-- Upcoming Deadlines -->
         <div class="col-md-4 mb-4">
             <div class="card border-0 h-100 gd-card">
                 <div class="card-body p-4">
-                    <h5 class="card-title fw-bold mb-3"><i class="fa-solid fa-chart-pie me-2 text-muted" style="font-size: 0.75em;"></i>Firm Summary</h5>
+                    <h5 class="card-title fw-bold mb-3"><i class="fa-solid fa-calendar-day me-2 text-muted" style="font-size: 0.75em;"></i>Upcoming Deadlines</h5>
                     
-                    <div class="firm-stat mb-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="fw-semibold">@Model.NewMattersThisWeek new matters this week</span>
-                        </div>
-                        <div class="text-muted small">
-                            <i class="fas fa-arrow-up text-success me-1"></i>
-                            @Model.NewMattersPercentageChange.ToString("F0")% vs last week
-                        </div>
-                    </div>
-                    
-                    <div class="firm-stat mb-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="fw-semibold">Billing backlog</span>
-                            <span class="fw-bold">@Model.BillingBacklogPercentage%</span>
-                        </div>
-                        <div class="text-muted small">vs last week</div>
-                    </div>
-                    
-                    <div class="firm-stat">
-                        <div class="text-danger fw-semibold">@Model.TrustComplianceWarnings trust compliance warnings</div>
-                        <div class="text-muted small">@Model.TrustComplianceStatus</div>
+                    <div id="dashboardUpcomingDeadlinesList">
+                        <p class="text-muted small mb-2">Loading deadlines...</p>
                     </div>
                 </div>
             </div>
@@ -176,7 +157,7 @@
             <div class="card border-0 h-100 daily-briefing-card gd-card">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center mb-3">
-                        <i class="fa-solid fa-calendar-day text-muted me-2" style="font-size: 0.9em;"></i>
+                        <i class="fa-solid fa-chart-pie text-muted me-2" style="font-size: 0.9em;"></i>
                         <h5 class="card-title fw-bold mb-0">Daily Briefing</h5>
                     </div>
                     
@@ -205,7 +186,7 @@
         <div class="col-md-4 mb-4">
             <div class="card border-0 h-100 gd-card">
                 <div class="card-body p-4">
-                    <h5 class="card-title fw-bold mb-3"><i class="fa-solid fa-lightbulb me-2 text-muted" style="font-size: 0.75em;"></i>Next Suggestions</h5>
+                    <h5 class="card-title fw-bold mb-3"><i class="fa-solid fa-lightbulb me-2 text-muted" style="font-size: 0.75em;"></i>Notal Suggestions</h5>
                     
                     @if (Model.NextSuggestions.Any())
                     {
@@ -287,7 +268,6 @@
 
     .search-container-large i.fa-plus {
         position: absolute;
-        left: 1rem;
         top: 50%;
         transform: translateY(-50%);
         color: #6b7280;
@@ -414,4 +394,77 @@
             });
         </script>
     }
+    
+    <script>
+        // Load upcoming deadlines for dashboard
+        document.addEventListener('DOMContentLoaded', async function () {
+            await loadDashboardUpcomingDeadlines();
+        });
+
+        async function loadDashboardUpcomingDeadlines() {
+            const deadlinesList = document.getElementById('dashboardUpcomingDeadlinesList');
+            if (!deadlinesList) return;
+            
+            try {
+                const orgId = @ViewBag.OrganizationId;
+                if (!orgId) {
+                    deadlinesList.innerHTML = '<p class="text-muted small">Unable to load deadlines.</p>';
+                    return;
+                }
+                
+                // Fetch upcoming calendar events (deadlines)
+                const endDate = new Date();
+                endDate.setDate(endDate.getDate() + 30); // Next 30 days
+                
+                const response = await fetch(`/Client/${orgId}/Calendar/Events?start=${new Date().toISOString()}&end=${endDate.toISOString()}`, {
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch deadlines');
+                }
+                
+                const result = await response.json();
+                
+                if (!result.success || !result.events || result.events.length === 0) {
+                    deadlinesList.innerHTML = '<p class="text-muted small">No upcoming deadlines.</p>';
+                    return;
+                }
+                
+                // Filter and sort events as deadlines
+                const deadlines = result.events
+                    .filter(e => new Date(e.startDateTime) > new Date())
+                    .sort((a, b) => new Date(a.startDateTime) - new Date(b.startDateTime))
+                    .slice(0, 5); // Show top 5
+                
+                if (deadlines.length === 0) {
+                    deadlinesList.innerHTML = '<p class="text-muted small">No upcoming deadlines.</p>';
+                    return;
+                }
+                
+                // Render deadlines
+                deadlinesList.innerHTML = deadlines.map(deadline => {
+                    const date = new Date(deadline.startDateTime);
+                    const isToday = date.toDateString() === new Date().toDateString();
+                    const daysDiff = Math.ceil((date - new Date()) / (1000 * 60 * 60 * 24));
+                    const urgencyClass = daysDiff <= 1 ? 'border-danger' : daysDiff <= 3 ? 'border-warning' : 'border-primary';
+                    
+                    return `
+                        <div class="deadline-item ${urgencyClass} border-start border-3 ps-2 mb-2">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div style="flex: 1; min-width: 0;">
+                                    <div class="fw-semibold text-truncate" style="font-size: 0.85rem;">${deadline.title}</div>
+                                    <div class="text-muted small">${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}${isToday ? ' (Today)' : ''}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                console.error('Error loading deadlines:', error);
+                deadlinesList.innerHTML = '<p class="text-muted small">Error loading deadlines.</p>';
+            }
+        }
+    </script>
 }

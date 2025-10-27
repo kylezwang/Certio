@@ -29,6 +29,7 @@ namespace Certio.Application.Interfaces
         Task<ClarityExplanation> RequestClarityAsync(int conversationId, string text, string userType);
         Task<ReplySuggestion> GetReplySuggestionsAsync(int conversationId, List<ChatMessage> messages, string userType);
         Task<ChatMessage> GenerateAIResponseAsync(int conversationId, string userMessage);
+        IAsyncEnumerable<string> GenerateAIResponseStreamAsync(int conversationId, string userMessage);
         Task<Dictionary<string, object>> GetAIInsightsAsync(int conversationId);
         Task<ChatSummary?> GetConversationSummaryAsync(int conversationId);
         Task<ClientGoal?> GetClientGoalsAsync(int conversationId);

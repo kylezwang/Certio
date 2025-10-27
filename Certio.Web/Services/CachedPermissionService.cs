@@ -3,6 +3,7 @@ using Certio.Application.Services;
 using Certio.Domain.Users;
 using Certio.Domain.Organizations;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace Certio.Web.Services
 {
@@ -52,17 +53,24 @@ namespace Certio.Web.Services
 
         public async Task<bool> HasPermissionAsync(int userId, int organizationId, Permission permission)
         {
+            var sw = Stopwatch.StartNew();
             var cacheKey = $"{PERMISSION_PREFIX}{userId}:{organizationId}:{permission}";
             
             var cached = await _cacheService.GetAsync<BooleanCacheWrapper>(cacheKey);
             if (cached != null)
             {
-                _logger.LogDebug("Permission cache hit for user {UserId}, org {OrgId}, permission {Permission}", 
-                    userId, organizationId, permission);
+                sw.Stop();
+                _logger.LogDebug("🔒 Permission check CACHED for user {UserId} in {ElapsedMs}ms (Result: {Result})", 
+                    userId, sw.ElapsedMilliseconds, cached.Value);
                 return cached.Value;
             }
 
             var result = await _permissionService.HasPermissionAsync(userId, organizationId, permission);
+            sw.Stop();
+            
+            _logger.LogInformation("🔒 Permission check COMPUTED for user {UserId}, permission {Permission} in {ElapsedMs}ms (Result: {Result})", 
+                userId, permission, sw.ElapsedMilliseconds, result);
+            
             await _cacheService.SetAsync(cacheKey, new BooleanCacheWrapper(result), PermissionCacheExpiration);
             
             return result;

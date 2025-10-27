@@ -603,6 +603,44 @@ public class ChatService : IChatService
         }
     }
 
+    public async IAsyncEnumerable<string> GenerateAIResponseStreamAsync(int conversationId, string userMessage)
+    {
+        // Get conversation history
+        var messages = await GetConversationMessagesAsync(conversationId);
+        
+        // Determine user type from conversation context
+        var userType = DetermineUserType(messages, userMessage);
+        
+        // Generate streaming intelligent conversational response
+        var fullResponse = new System.Text.StringBuilder();
+        
+        await foreach (var chunk in _aiAgentService.GenerateConversationalResponseStreamAsync(
+            conversationId.ToString(), messages, userMessage))
+        {
+            fullResponse.Append(chunk);
+            yield return chunk;
+        }
+
+        // After streaming is complete, save the full message to database
+        try
+        {
+            var aiMessage = CreateAIMessage(conversationId, fullResponse.ToString(), "AI_Response", "Notal AI", new
+            {
+                user_type_detected = userType,
+                response_type = "intelligent_conversational_stream",
+                processing_time = DateTime.UtcNow,
+                message_length = userMessage.Length,
+                conversation_length = messages.Count
+            });
+
+            await SaveAIMessageAsync(aiMessage, conversationId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error saving streaming AI response for conversation {ConversationId}", conversationId);
+        }
+    }
+
     private string DetermineUserType(List<ChatMessage> messages, string userMessage)
     {
         // If this is a new conversation, infer from message content
