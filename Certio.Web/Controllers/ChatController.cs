@@ -208,6 +208,37 @@ public class ChatController : Controller
         }
     }
 
+    [HttpPost("GenerateAIResponseStream")]
+    public async Task GenerateAIResponseStream(int orgId, [FromBody] AIResponseRequest request)
+    {
+        Response.Headers["Content-Type"] = "text/event-stream";
+        Response.Headers["Cache-Control"] = "no-cache";
+        Response.Headers["Connection"] = "keep-alive";
+        Response.Headers["X-Accel-Buffering"] = "no";
+
+        try
+        {
+            await foreach (var chunk in _chatService.GenerateAIResponseStreamAsync(request.ConversationId, request.UserMessage))
+            {
+                var data = $"data: {System.Text.Json.JsonSerializer.Serialize(new { content = chunk, done = false })}\n\n";
+                await Response.WriteAsync(data);
+                await Response.Body.FlushAsync();
+            }
+            
+            // Send completion signal
+            var doneData = $"data: {System.Text.Json.JsonSerializer.Serialize(new { content = "", done = true })}\n\n";
+            await Response.WriteAsync(doneData);
+            await Response.Body.FlushAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error streaming AI response for conversation {ConversationId}", request.ConversationId);
+            var errorData = $"data: {System.Text.Json.JsonSerializer.Serialize(new { content = "An error occurred while generating the response.", done = true, error = true })}\n\n";
+            await Response.WriteAsync(errorData);
+            await Response.Body.FlushAsync();
+        }
+    }
+
     [HttpGet("GetAIInsights/{conversationId}")]
     public async Task<IActionResult> GetAIInsights(int orgId, int conversationId)
     {

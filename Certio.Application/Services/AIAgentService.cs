@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Certio.Domain.Services;
@@ -130,6 +131,103 @@ public class AIAgentService : IAIAgentService
             Console.WriteLine($"Error calling AI conversational service: {ex.Message}");
             return GenerateFallbackResponse(userMessage);
         }
+    }
+
+    public async IAsyncEnumerable<string> GenerateConversationalResponseStreamAsync(string conversationId, List<ChatMessage> messages, string userMessage)
+    {
+        HttpResponseMessage? response = null;
+        Stream? stream = null;
+        StreamReader? reader = null;
+        bool connectionFailed = false;
+
+        // Setup request
+        var request = CreateAIRequest(conversationId, messages, userMessage);
+        var json = JsonSerializer.Serialize(request);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        var httpRequest = new HttpRequestMessage(HttpMethod.Post, "/agents/conversational-response-stream")
+        {
+            Content = content
+        };
+
+        // Try to establish connection
+        try
+        {
+            response = await _httpClient.SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead);
+            response.EnsureSuccessStatusCode();
+            stream = await response.Content.ReadAsStreamAsync();
+            reader = new StreamReader(stream);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error calling AI streaming service: {ex.Message}");
+            connectionFailed = true;
+            // Clean up on error
+            reader?.Dispose();
+            stream?.Dispose();
+            response?.Dispose();
+        }
+
+        // If connection failed, yield error and exit
+        if (connectionFailed)
+        {
+            yield return GenerateFallbackResponse(userMessage);
+            yield break;
+        }
+
+        // Process the stream (reader is guaranteed to be non-null here)
+        try
+        {
+            string? line;
+            while ((line = await reader!.ReadLineAsync()) != null)
+            {
+                if (line.StartsWith("data: "))
+                {
+                    var jsonData = line.Substring(6);
+                    
+                    StreamChunk? eventData = null;
+                    try
+                    {
+                        eventData = JsonSerializer.Deserialize<StreamChunk>(jsonData);
+                    }
+                    catch (JsonException)
+                    {
+                        continue;
+                    }
+                    
+                    if (eventData?.Done == true)
+                    {
+                        if (eventData.Error == true && !string.IsNullOrEmpty(eventData.Content))
+                        {
+                            yield return eventData.Content;
+                        }
+                        yield break;
+                    }
+                    
+                    if (!string.IsNullOrEmpty(eventData?.Content))
+                    {
+                        yield return eventData.Content;
+                    }
+                }
+            }
+        }
+        finally
+        {
+            reader?.Dispose();
+            stream?.Dispose();
+            response?.Dispose();
+        }
+    }
+
+    private class StreamChunk
+    {
+        [JsonPropertyName("content")]
+        public string? Content { get; set; }
+        
+        [JsonPropertyName("done")]
+        public bool Done { get; set; }
+        
+        [JsonPropertyName("error")]
+        public bool Error { get; set; }
     }
 
     public async Task<Dictionary<string, object>> ProcessConversationIntelligentlyAsync(string conversationId, List<ChatMessage> messages, string userType = "Client")

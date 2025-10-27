@@ -89,6 +89,10 @@
         border: none;
     }
 
+    .ai-message-bubble.streaming .message-text {
+        min-height: 24px;
+    }
+
     /* Client-specific sidebar styles */
     .client-sidebar {
         position: fixed;
@@ -1183,12 +1187,11 @@
                             <span>Billing & Plan</span>
                         </a>
                         <div class="profile-dropdown-divider"></div>
-                        <form asp-controller="Home" asp-action="Logout" method="post" class="m-0 w-100">
-                            <button type="submit" class="profile-dropdown-item w-100 border-0 bg-transparent text-start p-0">
-                                <i class="fas fa-sign-out-alt"></i>
-                                <span>Logout</span>
-                            </button>
-                        </form>
+                        <form asp-controller="Home" asp-action="Logout" method="post" id="logoutForm" class="m-0" style="display: none;"></form>
+                        <a href="#" onclick="event.preventDefault(); document.getElementById('logoutForm').submit();" class="profile-dropdown-item">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
+                        </a>
                     </div>
                 </div>
             </div>

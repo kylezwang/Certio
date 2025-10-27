@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
@@ -148,8 +148,8 @@ intelligent_router = IntelligentRouter()
 # Pydantic models for request/response
 class ChatMessage(BaseModel):
     id: int
-    conversation_id: str
-    user_id: str
+    conversation_id: Union[str, int]  # Accept both string and int
+    user_id: Optional[Union[str, int]] = None  # AI messages have null user_id
     user_type: str
     content: str
     message_type: str
@@ -1752,6 +1752,7 @@ async def conversational_response(request: dict):
         messages = request.get("messages", [])
         user_message = request.get("user_message", "")
         user_type = request.get("user_type", "Client")
+        stream = request.get("stream", False)  # Support streaming
         
         # Quick analysis for conversation context (no API call)
         conversation_analysis = _quick_conversation_analysis(messages, user_message, user_type)
@@ -1873,36 +1874,195 @@ Respond as an intelligent legal assistant:"""
         # Wait for rate limiter before making request
         await rate_limiter.wait_if_needed()
         
-        response = client.chat.completions.create(
-            model=selected_model,
-            messages=[
-                {"role": "system", "content": system_prompt}
-            ],
-            max_tokens=max_tokens,
-            temperature=temperature
-        )
-        
-        # Track usage for cost optimization
-        usage_tracker.record_model_selection(optimal_model_type, task_complexity, estimated_cost)
-        
-        # Extract response content
-        response_content = response.choices[0].message.content.strip()
-        
-        # For simple messages, return the response directly
-        if is_simple_message:
-            return response_content
-        
-        # For complex messages, extract the response part and return it
-        # The analysis part will be processed by background agents if needed
-        if "<response>" in response_content and "</response>" in response_content:
-            response_part = response_content.split("<response>")[1].split("</response>")[0].strip()
-            return response_part
-        else:
-            return response_content
+        # If streaming is not requested, return complete response
+        if not stream:
+            response = client.chat.completions.create(
+                model=selected_model,
+                messages=[
+                    {"role": "system", "content": system_prompt}
+                ],
+                max_tokens=max_tokens,
+                temperature=temperature
+            )
+            
+            # Track usage for cost optimization
+            usage_tracker.record_model_selection(optimal_model_type, task_complexity, estimated_cost)
+            
+            # Extract response content
+            response_content = response.choices[0].message.content.strip()
+            
+            # For simple messages, return the response directly
+            if is_simple_message:
+                return response_content
+            
+            # For complex messages, extract the response part and return it
+            # The analysis part will be processed by background agents if needed
+            if "<response>" in response_content and "</response>" in response_content:
+                response_part = response_content.split("<response>")[1].split("</response>")[0].strip()
+                return response_part
+            else:
+                return response_content
         
     except Exception as e:
         logger.error(f"Error in conversational_response: {str(e)}")
         return "I apologize, but I'm experiencing technical difficulties right now. Please try again in a moment, or contact our support team if the issue persists. I'm here to help with your legal questions and concerns."
+
+@app.post("/agents/conversational-response-stream")
+async def conversational_response_stream(request: dict):
+    """Generate streaming conversational AI response with RAG and dynamic model selection"""
+    from starlette.responses import StreamingResponse
+    
+    async def generate_stream():
+        try:
+            conversation_id = request.get("conversation_id", "")
+            messages = request.get("messages", [])
+            user_message = request.get("user_message", "")
+            user_type = request.get("user_type", "Client")
+            
+            # Quick analysis for conversation context (no API call)
+            conversation_analysis = _quick_conversation_analysis(messages, user_message, user_type)
+            
+            # Check if this is a simple greeting or short message
+            is_simple_message = _is_simple_message(user_message, conversation_analysis)
+            
+            if is_simple_message:
+                # Simple response for greetings and short messages - enhanced with RAG
+                base_simple_prompt = f"""You are Notal AI, a friendly legal assistant. The user said: "{user_message}"
+
+Respond with a brief, warm greeting and offer to help with legal questions. Keep it conversational and under 50 words.
+
+IMPORTANT: Return ONLY the HTML content with <p> tags and <br> for line breaks. Do NOT wrap your response in ```html code blocks or any other markdown formatting. Return the raw HTML directly."""
+                
+                # Even simple messages get RAG enhancement for Notal context
+                simple_context = {"user_type": user_type, "message_type": "greeting"}
+                if RAG_SYSTEM == "enhanced":
+                    system_prompt = enhance_agent_prompt("ConversationalAI", base_simple_prompt, user_message, 
+                                                        user_type=user_type, conversation_context=simple_context)
+                else:
+                    system_prompt = enhance_agent_prompt("ConversationalAI", base_simple_prompt, user_message, simple_context)
+                
+                # Use GPT-4o-mini for simple responses
+                selected_model = get_model_name(ModelType.GPT_4O_MINI)
+                max_tokens = 200
+                temperature = 0.3
+            else:
+                # Comprehensive response with integrated analysis for complex queries
+                base_system_prompt = f"""You are Notal AI, an advanced legal assistant. Provide a comprehensive, helpful response.
+
+CONVERSATION CONTEXT:
+- User Type: {user_type}
+- Message Count: {len(messages)}
+- Legal Topics: {', '.join(conversation_analysis.get('legal_topics', []))}
+- Urgency: {conversation_analysis.get('urgency_level', 'Medium')}
+- Conversation Stage: {conversation_analysis.get('conversation_stage', 'Initial')}
+
+RECENT CONVERSATION:
+{_build_conversation_context(messages, 6)}
+
+CURRENT REQUEST: {user_message}"""
+
+                # Enhance prompt with RAG context for Certio-specific knowledge
+                conversation_context = {
+                    "user_type": user_type,
+                    "message_count": len(messages),
+                    "legal_topics": conversation_analysis.get('legal_topics', []),
+                    "urgency": conversation_analysis.get('urgency_level', 'Medium'),
+                    "conversation_stage": conversation_analysis.get('conversation_stage', 'Initial')
+                }
+                
+                # Use RAG enhancement to inject Notal-specific knowledge
+                logger.info(f"🔍 Enhancing streaming prompt with RAG for user_type: {user_type}")
+                if RAG_SYSTEM == "enhanced":
+                    enhanced_prompt = enhance_agent_prompt("ConversationalAI", base_system_prompt, user_message, 
+                                                          user_type=user_type, conversation_context=conversation_context)
+                else:
+                    enhanced_prompt = enhance_agent_prompt("ConversationalAI", base_system_prompt, user_message, conversation_context)
+                logger.info(f"✅ RAG enhancement completed for streaming response")
+                
+                # Add the response requirements to the enhanced prompt
+                system_prompt = enhanced_prompt + """
+
+RESPONSE REQUIREMENTS:
+1. Provide a helpful, conversational response to the user's request
+2. Include relevant legal insights and suggestions
+3. Be specific and actionable
+4. Use proper HTML formatting with <p> tags for paragraphs, <ul><li> for lists, and <strong> for emphasis
+5. Do NOT use <br> tags - use separate <p> tags for new paragraphs instead
+
+CRITICAL: Return ONLY the HTML content. Do NOT wrap your response in ```html code blocks or any markdown formatting. Return the raw HTML directly - just the <p> tags and their content.
+
+Respond as an intelligent legal assistant:"""
+                
+                # Use GPT-4o for complex responses  
+                selected_model = get_model_name(ModelType.GPT_4O)
+                max_tokens = 1500
+                temperature = 0.7
+            
+            # Analyze task complexity for cost optimization
+            context_length = len(messages) if messages else 0
+            task_complexity = task_analyzer.analyze_task(user_message, context_length, user_type)
+            
+            # Override model selection for simple messages
+            if is_simple_message:
+                optimal_model_type = ModelType.GPT_4O_MINI
+                estimated_cost = 0.0003
+            else:
+                optimal_model_type, estimated_cost = model_selector.select_optimal_model(task_complexity)
+                if optimal_model_type:
+                    selected_model = get_model_name(optimal_model_type)
+            
+            # Log cost optimization decision
+            logger.info(f"Streaming response - Selected model: {selected_model} (estimated cost: ${estimated_cost:.4f}) for complexity: {task_complexity.complexity_score:.2f}")
+            
+            # Wait for rate limiter before making request
+            await rate_limiter.wait_if_needed()
+            
+            # Create streaming response from Azure OpenAI
+            stream_response = client.chat.completions.create(
+                model=selected_model,
+                messages=[
+                    {"role": "system", "content": system_prompt}
+                ],
+                max_tokens=max_tokens,
+                temperature=temperature,
+                stream=True  # Enable streaming
+            )
+            
+            # Track usage for cost optimization
+            usage_tracker.record_model_selection(optimal_model_type, task_complexity, estimated_cost)
+            
+            # Stream chunks to client
+            full_content = ""
+            for chunk in stream_response:
+                if chunk.choices and len(chunk.choices) > 0:
+                    delta = chunk.choices[0].delta
+                    if hasattr(delta, 'content') and delta.content:
+                        content = delta.content
+                        full_content += content
+                        # Send chunk as Server-Sent Event
+                        yield f"data: {json.dumps({'content': content, 'done': False})}\n\n"
+            
+            # For complex messages, extract only the response part
+            if not is_simple_message and "<response>" in full_content and "</response>" in full_content:
+                # We've already streamed it, just signal completion
+                yield f"data: {json.dumps({'content': '', 'done': True})}\n\n"
+            else:
+                # Signal completion
+                yield f"data: {json.dumps({'content': '', 'done': True})}\n\n"
+                
+        except Exception as e:
+            logger.error(f"Error in streaming response: {str(e)}")
+            error_message = "I apologize, but I'm experiencing technical difficulties right now. Please try again in a moment."
+            yield f"data: {json.dumps({'content': error_message, 'done': True, 'error': True})}\n\n"
+    
+    return StreamingResponse(
+        generate_stream(), 
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",  # Disable nginx buffering
+        }
+    )
 
 def _quick_conversation_analysis(messages: List[dict], user_message: str, user_type: str) -> dict:
     """Quick conversation analysis without API calls - similar to Cursor's approach"""
