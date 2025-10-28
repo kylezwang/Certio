@@ -45,6 +45,7 @@ namespace Certio.Web.Controllers
             ViewBag.OrganizationId = orgId;
             var org = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync();
             ViewBag.OrganizationName = org?.Name ?? "Client";
+            ViewBag.OrganizationType = org?.Type ?? Certio.Domain.Organizations.OrganizationType.Client;
             
             // Set user info for JavaScript
             var customUser = HttpContext.Items["CustomUser"] as User;

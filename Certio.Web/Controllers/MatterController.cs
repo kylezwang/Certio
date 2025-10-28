@@ -294,6 +294,7 @@ namespace Certio.Web.Controllers
             if (displayOrg != null)
             {
                 ViewBag.OrganizationName = displayOrg.Name;
+                ViewBag.OrganizationType = displayOrg.Type;
             }
             
             return View(viewModel);

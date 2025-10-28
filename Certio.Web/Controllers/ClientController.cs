@@ -101,6 +101,7 @@ namespace Certio.Web.Controllers
             
             ViewBag.OrganizationId = orgId;
             ViewBag.OrganizationName = orgResult.Success ? orgResult.Data!.Name : "Client";
+            ViewBag.OrganizationType = orgResult.Success ? orgResult.Data!.Type : Certio.Domain.Organizations.OrganizationType.Client;
 
             // Create sample dashboard data
             var viewModel = new DashboardViewModel
@@ -189,6 +190,7 @@ namespace Certio.Web.Controllers
                     TempData["Error"] = result.ErrorMessage;
                     ViewBag.OrganizationId = orgId;
                     ViewBag.OrganizationName = currentOrg?.Name ?? "Client";
+                    ViewBag.OrganizationType = currentOrg?.Type ?? Certio.Domain.Organizations.OrganizationType.Client;
                     return View("~/Views/Matter/Index.cshtml", new MattersViewModel());
                 }
                 
@@ -254,6 +256,7 @@ namespace Certio.Web.Controllers
             ViewBag.OrganizationId = orgId;
             ViewBag.IsLawFirmView = currentOrg?.Type == Certio.Domain.Organizations.OrganizationType.LawFirm;
             ViewBag.OrganizationName = currentOrg?.Name ?? "Client";
+            ViewBag.OrganizationType = currentOrg?.Type ?? Certio.Domain.Organizations.OrganizationType.Client;
             
             // Reuse the existing view
             return View("~/Views/Matter/Index.cshtml", viewModel);
@@ -277,6 +280,7 @@ namespace Certio.Web.Controllers
             ViewBag.OrganizationId = orgId;
             var org = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync();
             ViewBag.OrganizationName = org?.Name ?? "Client";
+            ViewBag.OrganizationType = org?.Type ?? Certio.Domain.Organizations.OrganizationType.Client;
             
             var useSample = _configuration.GetValue<bool>("Features:UseSampleData");
             DocumentsViewModel model;
@@ -386,6 +390,7 @@ namespace Certio.Web.Controllers
             // Use organization service to get organization info
             var orgResult = await _organizationService.GetOrganizationBasicInfoAsync(orgId, customUser.Id);
             ViewBag.OrganizationName = orgResult.Success ? orgResult.Data!.Name : "Client";
+            ViewBag.OrganizationType = orgResult.Success ? orgResult.Data!.Type : Certio.Domain.Organizations.OrganizationType.Client;
 
             // Use team service to get team members
             var teamMembersResult = await _teamService.GetTeamMembersAsync(orgId, customUser.Id);
@@ -533,6 +538,7 @@ namespace Certio.Web.Controllers
             ViewBag.OrganizationId = orgId;
             var org = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync();
             ViewBag.OrganizationName = org?.Name ?? "Client";
+            ViewBag.OrganizationType = org?.Type ?? Certio.Domain.Organizations.OrganizationType.Client;
             return View("~/Views/Settings/AccountSettings.cshtml");
         }
 
@@ -561,6 +567,7 @@ namespace Certio.Web.Controllers
             
             ViewBag.OrganizationId = orgId;
             ViewBag.OrganizationName = org.Name;
+            ViewBag.OrganizationType = org.Type;
             
             return View("~/Views/Home/AddPeople.cshtml", model);
         }
@@ -587,6 +594,7 @@ namespace Certio.Web.Controllers
 
                 ViewBag.OrganizationId = orgId;
             ViewBag.OrganizationName = org.Name;
+            ViewBag.OrganizationType = org.Type;
 
             // Re-populate context info
             model = await PrepareAddPeopleViewModel(orgId, customUser, model);
@@ -702,6 +710,7 @@ namespace Certio.Web.Controllers
             ViewBag.OrganizationId = orgId;
             var org = await _db.Organizations.FirstOrDefaultAsync(o => o.Id == orgId, ct);
             ViewBag.OrganizationName = org?.Name ?? "Client";
+            ViewBag.OrganizationType = org?.Type ?? Certio.Domain.Organizations.OrganizationType.Client;
 
             // Client context -> Internal Team -> Assign existing law firm members
             if (model.IsClientOrganization && model.SelectionType == "InternalTeam")

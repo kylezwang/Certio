@@ -354,7 +354,6 @@
         z-index: 200; /* Higher than sticky message (150) so box-shadow appears above gradient */
         border-radius: 20px 20px 0px 0px; /* Rounded corners on top-left and top-right */
         background-color: rgba(11, 54, 94, 0.085); /* Light blue background */
-        transition: left 0.3s ease, right 0.3s ease;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
     }
 
@@ -366,12 +365,10 @@
     /* Adjust positioning when sidebar is hidden - keep rounded corners */
     .sidebar-hidden .client-main-content-wrapper {
         left: calc(6vw + 1rem); /* Move back to just after global navbar + 0.5rem space */
-        transition: left 0.3s ease;
     }
 
     .sidebar-hidden .client-main-content-wrapper.global-dashboard-layout {
         left: calc(6vw + 1rem); /* Same as client sidebar, expand to use full width */
-        transition: left 0.3s ease;
     }
 
     .sidebar-hidden .page-header {
@@ -1086,6 +1083,12 @@
     body.calendar-page .main-content.client-main-content {
         padding: 0;
     }
+
+    /* Billing page - zero padding override */
+    body.billing-page .main-content.client-main-content {
+        padding: 0;
+        background-color: #f9fafb;
+    }
 </style>
 
 <div class="min-h-screen" style="overflow-y:hidden;">
@@ -1102,7 +1105,7 @@
         </div>
         
         <div class="d-flex justify-content-center align-items-center w-100">
-            <div class="search-container" id="headerSearchContainer" style="max-width: 525px; width: 100%; position: fixed; flex-shrink: 0; pointer-events: none;">
+            <div class="search-container" id="headerSearchContainer" style="max-width: 525px; width: 100%; position: fixed; flex-shrink: 0; pointer-events: none; transition: left 0.3s ease, transform 0.3s ease;">
                 <i class="fas fa-search" style="position: absolute; left: 50%; transform: translate(-300%, -50%); top: 50%; color: #6b7280; pointer-events: none;"></i>
                 <input type="text" class="form-control" placeholder="Search" 
                        style="height: 2.5rem; line-height: 1.25; border-radius: 24px; padding: 0.75rem 2.5rem 0.75rem 3rem; background-color: #f9fafb; font-size: 1rem; text-align: center; border: transparent; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25); pointer-events: auto;"/>
@@ -1118,7 +1121,7 @@
                 align-items: center;
                 gap: 0.25rem;
                 position: fixed;
-                transition: right 0.2s ease;
+                transition: left 0.3s ease, right 0.3s ease;
             ">
                 <!-- Notifications Button -->
                 <button class="ai-toggle" id="notificationsBtn" type="button" title="Show Notifications">
@@ -1202,7 +1205,7 @@
     @{
         var controller = ViewContext.RouteData.Values["controller"]?.ToString();
         var action = ViewContext.RouteData.Values["action"]?.ToString();
-        var isGlobalDashboard = controller == "Global" || controller == "Calendar" || controller == "History";
+        var isGlobalDashboard = controller == "Global" || controller == "Calendar" || controller == "History" || controller == "Billing";
     }
     <div class="d-none d-xl-block @(isGlobalDashboard ? "global-dashboard-sidebar" : "client-sidebar")">
         
@@ -1224,51 +1227,124 @@
                     </div>
                 }
                 
-                <!-- Calendar Card -->
-                <div class="card mb-3 border-0">
-                    <div class="card-body p-3">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="card-title fw-bold mb-0">@DateTime.Now.ToString("MMMM yyyy")</h5>
-                        </div>
-                        
-                        <div class="calendar-grid">
-                            <div class="calendar-header">
-                                <div class="calendar-day-header">S</div>
-                                <div class="calendar-day-header">M</div>
-                                <div class="calendar-day-header">T</div>
-                                <div class="calendar-day-header">W</div>
-                                <div class="calendar-day-header">T</div>
-                                <div class="calendar-day-header">F</div>
-                                <div class="calendar-day-header">S</div>
+                <!-- Calendar Card / Session Manager -->
+                @if (controller == "Billing")
+                {
+                    <!-- Session Manager Card for Billing Page -->
+                    <div class="card mb-3 border-0" id="sessionManagerCard">
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="card-title fw-bold mb-0">
+                                    <i class="fas fa-stopwatch me-2"></i>Session Manager
+                                </h5>
                             </div>
                             
-                            <div class="calendar-body">
-                                @{
-                                    var currentDate = DateTime.Now;
-                                    var firstDay = new DateTime(currentDate.Year, currentDate.Month, 1);
-                                    var startDay = firstDay.AddDays(-(int)firstDay.DayOfWeek);
-                                    var today = DateTime.Today;
-                                }
-                                
-                                @for (int week = 0; week < 6; week++)
-                                {
-                                    <div class="calendar-week">
-                                        @for (int day = 0; day < 7; day++)
-                                        {
-                                            var date = startDay.AddDays(week * 7 + day);
-                                            var isCurrentMonth = date.Month == currentDate.Month;
-                                            var isToday = date.Date == today;
-                                            
-                                            <div class="calendar-day @(isCurrentMonth ? "current-month" : "other-month") @(isToday ? "today" : "")" data-date="@date.ToString("yyyy-MM-dd")">
-                                                @date.Day
-                                            </div>
-                                        }
+                            <!-- Timer Display in Card -->
+                            <div id="sidebarTimerDisplay" class="mb-3" style="display: none;">
+                                <div class="d-flex align-items-center justify-content-between p-3 rounded" style="background-color: #f8f9fa;">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="timer-display" style="font-family: 'Courier New', monospace; font-size: 1.5rem; font-weight: 600; color: #3d1019;">
+                                            <span id="sidebarHours">00</span>:<span id="sidebarMinutes">00</span>:<span id="sidebarSeconds">00</span>
+                                        </div>
                                     </div>
-                                }
+                                    <div class="d-flex gap-2">
+                                        <button id="sidebarTimerStart" class="btn btn-sm" style="background-color: #3d1019; color: white; padding: 0.375rem 0.75rem;">
+                                            <i class="fas fa-play"></i>
+                                        </button>
+                                        <button id="sidebarTimerStop" class="btn btn-sm" style="background-color: #dc3545; color: white; padding: 0.375rem 0.75rem; display: none;">
+                                            <i class="fas fa-pause"></i>
+                                        </button>
+                                        <button id="sidebarTimerReset" class="btn btn-sm btn-outline-secondary" style="padding: 0.375rem 0.75rem;">
+                                            <i class="fas fa-redo"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Matter Selection for Timer -->
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-muted">ASSIGN TO MATTER</label>
+                                <select id="timerMatterSelect" class="form-select form-select-sm">
+                                    <option value="">General Time</option>
+                                    <option value="1">Smith Corp - Contract Review</option>
+                                    <option value="2">Johnson LLC - Litigation</option>
+                                    <option value="3">Acme Inc - Corporate Filing</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Quick Stats -->
+                            <div class="session-stats">
+                                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                    <span class="small text-muted">Today's Sessions</span>
+                                    <span class="small fw-semibold">3</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                    <span class="small text-muted">Total Hours</span>
+                                    <span class="small fw-semibold">7.5</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="small text-muted">Billable Value</span>
+                                    <span class="small fw-semibold text-success">$2,625</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Quick Actions -->
+                            <div class="mt-3 d-grid">
+                                <button class="btn btn-sm" style="background-color: #3d1019; color: white;">
+                                    <i class="fas fa-save me-2"></i>Save Session
+                                </button>
                             </div>
                         </div>
                     </div>
-                </div>
+                }
+                else
+                {
+                    <!-- Calendar Card for other pages -->
+                    <div class="card mb-3 border-0">
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="card-title fw-bold mb-0">@DateTime.Now.ToString("MMMM yyyy")</h5>
+                            </div>
+                            
+                            <div class="calendar-grid">
+                                <div class="calendar-header">
+                                    <div class="calendar-day-header">S</div>
+                                    <div class="calendar-day-header">M</div>
+                                    <div class="calendar-day-header">T</div>
+                                    <div class="calendar-day-header">W</div>
+                                    <div class="calendar-day-header">T</div>
+                                    <div class="calendar-day-header">F</div>
+                                    <div class="calendar-day-header">S</div>
+                                </div>
+                                
+                                <div class="calendar-body">
+                                    @{
+                                        var currentDate = DateTime.Now;
+                                        var firstDay = new DateTime(currentDate.Year, currentDate.Month, 1);
+                                        var startDay = firstDay.AddDays(-(int)firstDay.DayOfWeek);
+                                        var today = DateTime.Today;
+                                    }
+                                    
+                                    @for (int week = 0; week < 6; week++)
+                                    {
+                                        <div class="calendar-week">
+                                            @for (int day = 0; day < 7; day++)
+                                            {
+                                                var date = startDay.AddDays(week * 7 + day);
+                                                var isCurrentMonth = date.Month == currentDate.Month;
+                                                var isToday = date.Date == today;
+                                                
+                                                <div class="calendar-day @(isCurrentMonth ? "current-month" : "other-month") @(isToday ? "today" : "")" data-date="@date.ToString("yyyy-MM-dd")">
+                                                    @date.Day
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
 
                 <!-- Recent Activity Card / Custom Sidebar Card -->
                 @if (IsSectionDefined("GlobalSidebarFinalCard"))
@@ -1358,7 +1434,7 @@
                     <a href="/Client/@ViewBag.OrganizationId/Settings" 
                        class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" ? "active" : "")">
                         <i class="fas fa-cog"></i>
-                        <span>Firm Settings</span>
+                        <span>@(ViewBag.OrganizationType == Certio.Domain.Organizations.OrganizationType.LawFirm ? "Firm Settings" : "Client Settings")</span>
                     </a>
                 </div>
             </nav>
@@ -1428,6 +1504,14 @@
                             </a>
                         </li>
                         <li>
+                            <a href="/Client/@ViewBag.OrganizationId/Billing"
+                               class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["controller"]?.ToString() == "Billing" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")"
+                               data-bs-dismiss="offcanvas">
+                                <i class="fas fa-clock fs-5"></i>
+                                <span class="fw-medium">Billing</span>
+                            </a>
+                        </li>
+                        <li>
                             <a asp-controller="Client" asp-action="Communications" asp-route-orgId="@ViewBag.OrganizationId"
                                class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["action"]?.ToString() == "Communications" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")"
                                data-bs-dismiss="offcanvas">
@@ -1456,7 +1540,7 @@
                                class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")"
                                data-bs-dismiss="offcanvas">
                                 <i class="fas fa-cog fs-5"></i>
-                                <span class="fw-medium">Firm Settings</span>
+                                <span class="fw-medium">@(ViewBag.OrganizationType == Certio.Domain.Organizations.OrganizationType.LawFirm ? "Firm Settings" : "Client Settings")</span>
                             </a>
                         </li>
                     </ul>
@@ -2404,6 +2488,98 @@
         if (timerStopBtn) timerStopBtn.addEventListener('click', stopTimer);
         if (timerResetBtn) timerResetBtn.addEventListener('click', resetTimer);
         
+        // Session Manager Integration for Billing Page
+        const isBillingPage = window.location.pathname.includes('/Billing');
+        const sessionManagerCard = document.getElementById('sessionManagerCard');
+        const sidebarTimerDisplay = document.getElementById('sidebarTimerDisplay');
+        const sidebarTimerStart = document.getElementById('sidebarTimerStart');
+        const sidebarTimerStop = document.getElementById('sidebarTimerStop');
+        const sidebarTimerReset = document.getElementById('sidebarTimerReset');
+        
+        if (isBillingPage && sessionManagerCard && sidebarTimerDisplay) {
+            // Hide the floating timer on Billing page
+            const floatingTimerEl = document.getElementById('floatingTimerOverlay');
+            if (floatingTimerEl) {
+                floatingTimerEl.style.display = 'none';
+            }
+            
+            // Show the sidebar timer display
+            sidebarTimerDisplay.style.display = 'block';
+            
+            // Function to sync timer display to sidebar
+            function syncSidebarTimer() {
+                const hours = Math.floor(timerSeconds / 3600);
+                const minutes = Math.floor((timerSeconds % 3600) / 60);
+                const seconds = timerSeconds % 60;
+                
+                const sidebarHours = document.getElementById('sidebarHours');
+                const sidebarMinutes = document.getElementById('sidebarMinutes');
+                const sidebarSeconds = document.getElementById('sidebarSeconds');
+                
+                if (sidebarHours) sidebarHours.textContent = String(hours).padStart(2, '0');
+                if (sidebarMinutes) sidebarMinutes.textContent = String(minutes).padStart(2, '0');
+                if (sidebarSeconds) sidebarSeconds.textContent = String(seconds).padStart(2, '0');
+            }
+            
+            // Update sidebar display initially
+            syncSidebarTimer();
+            
+            // Override updateTimerDisplay to also update sidebar
+            const originalUpdateTimerDisplay = updateTimerDisplay;
+            updateTimerDisplay = function() {
+                originalUpdateTimerDisplay();
+                syncSidebarTimer();
+            };
+            
+            // Override startTimer to also update sidebar buttons
+            const originalStartTimer = startTimer;
+            startTimer = function() {
+                originalStartTimer();
+                if (sidebarTimerStart) sidebarTimerStart.style.display = 'none';
+                if (sidebarTimerStop) sidebarTimerStop.style.display = 'inline-block';
+            };
+            
+            // Override stopTimer to also update sidebar buttons
+            const originalStopTimer = stopTimer;
+            stopTimer = function() {
+                originalStopTimer();
+                if (sidebarTimerStart) sidebarTimerStart.style.display = 'inline-block';
+                if (sidebarTimerStop) sidebarTimerStop.style.display = 'none';
+            };
+            
+            // Override resetTimer to also reset sidebar
+            const originalResetTimer = resetTimer;
+            resetTimer = function() {
+                originalStopTimer();
+                timerSeconds = 0;
+                timerStartTime = null;
+                updateTimerDisplay();
+                syncSidebarTimer();
+                saveTimerState();
+                if (timerCard) timerCard.style.boxShadow = '0 2px 12px rgba(0, 0, 0, 0.35)';
+            };
+            
+            // Connect sidebar buttons to timer functions
+            if (sidebarTimerStart) {
+                sidebarTimerStart.addEventListener('click', startTimer);
+            }
+            if (sidebarTimerStop) {
+                sidebarTimerStop.addEventListener('click', stopTimer);
+            }
+            if (sidebarTimerReset) {
+                sidebarTimerReset.addEventListener('click', resetTimer);
+            }
+            
+            // Update sidebar button states based on current timer state
+            if (isRunning) {
+                if (sidebarTimerStart) sidebarTimerStart.style.display = 'none';
+                if (sidebarTimerStop) sidebarTimerStop.style.display = 'inline-block';
+            } else {
+                if (sidebarTimerStart) sidebarTimerStart.style.display = 'inline-block';
+                if (sidebarTimerStop) sidebarTimerStop.style.display = 'none';
+            }
+        }
+        
         // Timer toggle functionality (hide/show)
         const timerToggleBtn = document.getElementById('timerToggleBtn');
         const floatingTimerOverlay = document.getElementById('floatingTimerOverlay');
@@ -2699,7 +2875,10 @@
             
             localStorage.setItem('activeSidebar', 'ai');
             
-            // Don't reposition action buttons when just showing/hiding - only when resizing
+            // Recalculate and save action buttons position after transition completes
+            setTimeout(() => {
+                centerSearchBar();
+            }, 350);
         }
         
         // Function to show communications sidebar
@@ -2786,7 +2965,10 @@
             
             localStorage.setItem('activeSidebar', 'comms');
             
-            // Don't reposition action buttons when just showing/hiding - only when resizing
+            // Recalculate and save action buttons position after transition completes
+            setTimeout(() => {
+                centerSearchBar();
+            }, 350);
         }
         
         // Function to hide both sidebars
@@ -2848,7 +3030,10 @@
             window.currentSidebarTarget = 'none';
             localStorage.setItem('activeSidebar', 'none');
             
-            // Don't reposition action buttons when just hiding - they stay at previous position
+            // Recenter search bar after transition completes (action buttons will stay at saved position)
+            setTimeout(() => {
+                centerSearchBar();
+            }, 350);
         }
         
         // Initialize communications sidebar on page load
@@ -2881,12 +3066,14 @@
         
         // Center search bar on initial load and window resize
         // Use requestAnimationFrame for better timing synchronization with browser layout
+        // Set initial position without transition to avoid choppy animation on page load
         requestAnimationFrame(() => {
-            centerSearchBar();
-            // Additional delayed calls to ensure it works after all transitions
-            setTimeout(centerSearchBar, 100);
-            setTimeout(centerSearchBar, 250);
-            setTimeout(centerSearchBar, 400);
+            // Initial positioning without transition
+            centerSearchBar(false, true);
+            // After a delay, do one more check with transitions enabled (in case layout shifted)
+            setTimeout(() => {
+                centerSearchBar(false, false);
+            }, 100);
         });
         window.addEventListener('resize', centerSearchBar);
         
@@ -2938,7 +3125,7 @@
         }
         
         // Function to center search bar and action buttons within their respective areas
-        function centerSearchBar() {
+        function centerSearchBar(skipActionButtons = false, skipTransition = false) {
             const searchContainer = document.getElementById('headerSearchContainer');
             const actionButtonsContainer = document.getElementById('actionButtonsContainer');
             const profileAvatar = document.querySelector('.user-profile-avatar');
@@ -2950,6 +3137,16 @@
             const mainContentRect = mainContentWrapper.getBoundingClientRect();
             const pageHeaderRect = pageHeader.getBoundingClientRect();
             
+            // Temporarily disable transitions if skipTransition is true (for initial positioning)
+            if (skipTransition) {
+                if (searchContainer) {
+                    searchContainer.style.transition = 'none';
+                }
+                if (actionButtonsContainer) {
+                    actionButtonsContainer.style.transition = 'none';
+                }
+            }
+            
             // Center search bar within main content area
             if (searchContainer) {
                 const mainContentCenter = mainContentRect.left + (mainContentRect.width / 2);
@@ -2957,8 +3154,23 @@
                 searchContainer.style.transform = 'translateX(-50%)';
             }
             
-            // Center action buttons in the space between main content right edge and profile avatar
-            if (actionButtonsContainer) {
+            // Only recalculate action buttons position if not skipped
+            if (!skipActionButtons && actionButtonsContainer) {
+                const activeSidebar = localStorage.getItem('activeSidebar');
+                
+                // If sidebars are hidden, restore saved position instead of recalculating
+                // This prevents the buttons from moving when navigating between pages
+                if (activeSidebar === 'none') {
+                    const savedPosition = localStorage.getItem('actionButtonsPosition');
+                    if (savedPosition) {
+                        actionButtonsContainer.style.left = savedPosition + 'px';
+                        actionButtonsContainer.style.right = 'auto';
+                        actionButtonsContainer.style.transform = 'none';
+                        return; // Don't recalculate - use saved position
+                    }
+                }
+                
+                // Center action buttons in the space between main content right edge and profile avatar
                 const rightSpaceLeft = mainContentRect.right;
                 let rightSpaceRight = pageHeaderRect.right;
                 
@@ -2975,6 +3187,23 @@
                 actionButtonsContainer.style.left = leftPosition + 'px';
                 actionButtonsContainer.style.right = 'auto';
                 actionButtonsContainer.style.transform = 'none';
+                
+                // Always save the calculated position (whether sidebar is visible or not)
+                // This ensures we have a position to restore when sidebars are hidden
+                localStorage.setItem('actionButtonsPosition', leftPosition);
+            }
+            
+            // Re-enable transitions after positioning (if they were disabled)
+            if (skipTransition) {
+                // Force a reflow to ensure the position is applied before re-enabling transitions
+                if (searchContainer) {
+                    searchContainer.offsetHeight; // Trigger reflow
+                    searchContainer.style.transition = 'left 0.3s ease, transform 0.3s ease';
+                }
+                if (actionButtonsContainer) {
+                    actionButtonsContainer.offsetHeight; // Trigger reflow
+                    actionButtonsContainer.style.transition = 'left 0.3s ease, right 0.3s ease';
+                }
             }
         }
         

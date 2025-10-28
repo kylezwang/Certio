@@ -52,6 +52,7 @@ namespace Certio.Web.Controllers
                 .Where(o => o.Id == orgId)
                 .FirstOrDefaultAsync();
             ViewBag.OrganizationName = org?.Name ?? "Client";
+            ViewBag.OrganizationType = org?.Type ?? Certio.Domain.Organizations.OrganizationType.Client;
 
             return View("~/Views/Client/History.cshtml");
         }

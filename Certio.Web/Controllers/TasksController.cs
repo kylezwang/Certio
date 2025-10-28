@@ -78,6 +78,7 @@ namespace Certio.Web.Controllers
                 .Where(o => o.Id == organizationId)
                 .FirstOrDefaultAsync();
             ViewBag.OrganizationName = org?.Name ?? "Client";
+            ViewBag.OrganizationType = org?.Type ?? Certio.Domain.Organizations.OrganizationType.Client;
 
             // Check if this is a LawFirm organization - if so, aggregate tasks/matters from all accessible clients
             var currentOrg = await _context.Organizations
@@ -234,6 +235,7 @@ namespace Certio.Web.Controllers
                 .Where(o => o.Id == orgId)
                 .FirstOrDefaultAsync();
             ViewBag.OrganizationName = org?.Name ?? "Client";
+            ViewBag.OrganizationType = org?.Type ?? Certio.Domain.Organizations.OrganizationType.Client;
 
             // Check if this is a LawFirm organization - if so, aggregate tasks from all accessible clients
             var currentOrg = await _context.Organizations

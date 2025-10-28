@@ -406,7 +406,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="global-nav-link" href="#" title="Billing">
+                <a class="global-nav-link" href="#" id="billingLink" title="Billing">
                     <i class="fa-regular fa-credit-card"></i>
                     <span>Billing</span>
                 </a>
@@ -472,6 +472,7 @@
             const clientsList = document.getElementById('clientsList');
             const myFirmLink = document.getElementById('myFirmLink');
             const calendarLink = document.getElementById('calendarLink');
+            const billingLink = document.getElementById('billingLink');
             const historyLink = document.getElementById('historyLink');
 
             // Initialize My Firm link
@@ -479,6 +480,9 @@
             
             // Initialize Calendar link with same logic
             initializeCalendarLink();
+            
+            // Initialize Billing link with same logic
+            initializeBillingLink();
             
             // Initialize History link with same logic
             initializeHistoryLink();
@@ -590,6 +594,61 @@
                     myFirmLink.classList.remove('active');
                 } else {
                     calendarLink.classList.remove('active');
+                }
+            }
+
+            // Function to initialize Billing link
+            function initializeBillingLink() {
+                // Defer to idle time to not block page load
+                if ('requestIdleCallback' in window) {
+                    requestIdleCallback(doFetch);
+                } else {
+                    setTimeout(doFetch, 100);
+                }
+                
+                async function doFetch() {
+                    try {
+                        const response = await fetch('/Client/List', { credentials: 'include' });
+                        const result = await response.json();
+                        
+                        if (result.success && result.organizations) {
+                            // Find the user's firm organization (LawFirm type)
+                            const firmOrg = result.organizations.find(org => 
+                                org.organizationType === 'LawFirm'
+                            );
+                            
+                            if (firmOrg) {
+                                billingLink.href = `/Client/${firmOrg.organizationId}/Billing`;
+                                
+                                // Check if current URL is the billing page and add active class
+                                updateBillingActiveState(firmOrg.organizationId);
+                            } else {
+                                // If no firm organization found, default to #
+                                billingLink.href = '#';
+                            }
+                        } else {
+                            // Fallback on error
+                            billingLink.href = '#';
+                        }
+                    } catch (error) {
+                        console.error('Error initializing Billing link:', error);
+                        // Fallback on error
+                        billingLink.href = '#';
+                    }
+                }
+            }
+
+            // Function to update Billing button active state based on current URL
+            function updateBillingActiveState(firmOrgId) {
+                const currentPath = window.location.pathname;
+                const billingPathPattern = new RegExp(`^/Client/${firmOrgId}/Billing`);
+                
+                if (billingPathPattern.test(currentPath)) {
+                    billingLink.classList.add('active');
+                    // Ensure My Firm is not marked active when Billing is active
+                    myFirmLink.classList.remove('active');
+                } else {
+                    billingLink.classList.remove('active');
                 }
             }
 

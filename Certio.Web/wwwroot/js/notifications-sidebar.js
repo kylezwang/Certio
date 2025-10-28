@@ -74,8 +74,8 @@
         // Show notifications panel
         notificationsPanel.style.display = 'flex';
         
-        // Apply saved width or default (use same key as other sidebars for consistency)
-        const savedWidth = localStorage.getItem('chatPanelWidth') || '320';
+        // Apply saved width or default (notifications shares width key with communications)
+        const savedWidth = localStorage.getItem('notificationsPanelWidth') || '320';
         notificationsPanel.style.width = savedWidth + 'px';
         
         // Position resize handle
@@ -139,7 +139,12 @@
             }
         }, 10);
         
-        // Don't reposition action buttons when just showing/hiding - only when resizing
+        // Recalculate and save action buttons position after transition completes
+        setTimeout(() => {
+            if (typeof window.centerSearchBar === 'function') {
+                window.centerSearchBar();
+            }
+        }, 350);
     }
 
     function hideNotificationsSidebar() {
@@ -203,6 +208,13 @@
         
         // Save to localStorage
         localStorage.setItem('activeSidebar', 'none');
+        
+        // Recenter search bar after transition completes (action buttons will stay at saved position)
+        setTimeout(() => {
+            if (typeof window.centerSearchBar === 'function') {
+                window.centerSearchBar();
+            }
+        }, 350);
     }
 
     function renderCalendar() {
