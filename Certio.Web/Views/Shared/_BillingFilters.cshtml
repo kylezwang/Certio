@@ -1,0 +1,406 @@
+<!-- Billing Filters Card for Sidebar -->
+<div class="card border-0">
+    <div class="card-body p-3">
+        <h5 class="card-title fw-bold mb-3">Filter by...</h5>
+        
+        <!-- Date Range Section -->
+        <div class="billing-section collapsible-section">
+            <div class="billing-section-title fw-semibold mb-2 collapsible-header" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                <span>Date Range</span>
+                <i class="fas fa-chevron-down collapse-icon"></i>
+            </div>
+            <div class="billing-section-content" style="display: none;">
+                <div class="px-2">
+                    <select class="form-select form-select-sm mb-2" id="billingDateRange">
+                        <option value="this-month" selected>This Month</option>
+                        <option value="last-month">Last Month</option>
+                        <option value="this-quarter">This Quarter</option>
+                        <option value="this-year">This Year</option>
+                        <option value="custom">Custom Range</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Matter Section -->
+        <div class="billing-section collapsible-section">
+            <div class="billing-section-title fw-semibold mb-2 collapsible-header" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                <span>Matter</span>
+                <i class="fas fa-chevron-down collapse-icon"></i>
+            </div>
+            <div class="billing-section-content" style="display: none;">
+                <div class="billing-checkboxes" id="billingMattersList">
+                    <!-- Matter checkboxes will be populated by JavaScript -->
+                    <div class="text-muted small">Loading matters...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attorney Section -->
+        <div class="billing-section collapsible-section">
+            <div class="billing-section-title fw-semibold mb-2 collapsible-header" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                <span>Attorney</span>
+                <i class="fas fa-chevron-down collapse-icon"></i>
+            </div>
+            <div class="billing-section-content" style="display: none;">
+                <div class="billing-checkboxes" id="billingAttorneysList">
+                    <!-- Attorney checkboxes will be populated by JavaScript -->
+                    <div class="text-muted small">Loading attorneys...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Section -->
+        <div class="billing-section collapsible-section">
+            <div class="billing-section-title fw-semibold mb-2 collapsible-header" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                <span>Status</span>
+                <i class="fas fa-chevron-down collapse-icon"></i>
+            </div>
+            <div class="billing-section-content" style="display: none;">
+                <div class="billing-checkboxes">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input billing-status-checkbox" type="checkbox" value="billable" id="billingStatusBillable" checked>
+                        <label class="form-check-label" for="billingStatusBillable">
+                            Billable
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input billing-status-checkbox" type="checkbox" value="non-billable" id="billingStatusNonBillable" checked>
+                        <label class="form-check-label" for="billingStatusNonBillable">
+                            Non-Billable
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input billing-status-checkbox" type="checkbox" value="invoiced" id="billingStatusInvoiced" checked>
+                        <label class="form-check-label" for="billingStatusInvoiced">
+                            Invoiced
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .billing-section {
+        padding: 0.25rem 0;
+    }
+
+    .billing-section-title {
+        color: #1f2937;
+        font-size: 0.9rem;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 0.5rem 0.25rem;
+        transition: all 0.2s ease;
+    }
+
+    .collapsible-header {
+        border-radius: 6px;
+    }
+
+    .collapsible-header:hover {
+        background-color: rgba(61, 16, 25, 0.05);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .collapse-icon {
+        font-size: 0.75rem;
+        color: #6b7280;
+        transition: all 0.2s ease;
+    }
+
+    .collapsible-header:hover .collapse-icon {
+        color: #3d1019;
+        transform: scale(1.1);
+    }
+
+    .collapsible-section.expanded .collapse-icon {
+        transform: rotate(180deg);
+    }
+
+    .collapsible-section.expanded .collapsible-header {
+        background-color: rgba(61, 16, 25, 0.05);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .collapsible-section.expanded .collapse-icon {
+        color: #3d1019;
+        transform: rotate(180deg) scale(1.1);
+    }
+
+    .collapsible-section.expanded .billing-section-content {
+        display: block !important;
+    }
+
+    .billing-section-content {
+        padding-top: 0.5rem;
+    }
+
+    .billing-checkboxes {
+        padding-left: 0.25rem;
+    }
+
+    .billing-checkboxes .form-check {
+        padding-left: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .billing-checkboxes .form-check-input {
+        width: 1.1rem;
+        height: 1.1rem;
+        margin-top: 0.125rem;
+        cursor: pointer;
+    }
+
+    .billing-checkboxes .form-check-label {
+        cursor: pointer;
+        font-size: 0.85rem;
+        color: #374151;
+        margin-left: 0.25rem;
+    }
+
+    .billing-checkboxes .form-check-input:checked {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+    }
+
+    .billing-checkboxes .form-check-input:focus {
+        border-color: #60a5fa;
+        box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+    }
+
+    .billing-checkboxes .text-muted {
+        padding: 0.25rem 0;
+        font-size: 0.8rem;
+    }
+</style>
+
+<script>
+    // Initialize billing filters when DOM is ready
+    (function() {
+        if (typeof window.billingFiltersInitialized !== 'undefined') {
+            return; // Already initialized
+        }
+        window.billingFiltersInitialized = true;
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            // Initialize collapsible sections
+            initializeCollapsibleSections();
+            
+            // Fetch and populate filter data
+            await loadBillingMatters();
+            await loadBillingAttorneys();
+            
+            // Setup event listeners for all filters
+            setupBillingFiltering();
+        });
+
+        function initializeCollapsibleSections() {
+            const collapsibleHeaders = document.querySelectorAll('.collapsible-header');
+            collapsibleHeaders.forEach(header => {
+                const section = header.closest('.collapsible-section');
+                const content = section.querySelector('.billing-section-content');
+                
+                function expandSection() {
+                    section.classList.add('expanded');
+                    section.classList.remove('hover-disabled');
+                    content.style.display = 'block';
+                }
+                
+                function collapseSection() {
+                    section.classList.remove('expanded');
+                    section.classList.add('hover-disabled');
+                    content.style.display = 'none';
+                }
+                
+                header.onclick = function() {
+                    if (section.classList.contains('expanded')) {
+                        collapseSection();
+                    } else {
+                        expandSection();
+                    }
+                };
+                
+                content.onclick = function(e) {
+                    if (e.isTrusted && !section.classList.contains('expanded')) {
+                        expandSection();
+                    }
+                };
+                
+                let hoverTimeout;
+                
+                section.onmouseenter = function() {
+                    if (!section.classList.contains('hover-disabled') && !section.classList.contains('expanded')) {
+                        hoverTimeout = setTimeout(function() {
+                            content.style.display = 'block';
+                        }, 150);
+                    }
+                };
+                
+                section.onmouseleave = function() {
+                    clearTimeout(hoverTimeout);
+                    if (!section.classList.contains('expanded')) {
+                        content.style.display = 'none';
+                    }
+                };
+            });
+        }
+
+        async function loadBillingMatters() {
+            const mattersList = document.getElementById('billingMattersList');
+            if (!mattersList) return;
+            
+            mattersList.innerHTML = '';
+            
+            try {
+                // TODO: Implement actual API endpoint for billing matters
+                // For now, using placeholder data
+                const matters = [
+                    { id: 1, name: 'Johnson v. State Corp' },
+                    { id: 2, name: 'Smith Estate Planning' },
+                    { id: 3, name: 'Anderson Contract Dispute' }
+                ];
+                
+                if (matters.length === 0) {
+                    mattersList.innerHTML = '<div class="text-muted small">No matters available.</div>';
+                    return;
+                }
+                
+                matters.forEach((matter, index) => {
+                    const checkboxDiv = document.createElement('div');
+                    checkboxDiv.className = 'form-check mb-2';
+                    checkboxDiv.innerHTML = `
+                        <input class="form-check-input billing-matter-checkbox" 
+                               type="checkbox" 
+                               value="${matter.id}" 
+                               id="billingMatter${index}" 
+                               checked>
+                        <label class="form-check-label" for="billingMatter${index}">
+                            ${matter.name}
+                        </label>
+                    `;
+                    mattersList.appendChild(checkboxDiv);
+                });
+            } catch (error) {
+                console.error('Error loading billing matters:', error);
+                mattersList.innerHTML = '<div class="text-muted small">Error loading matters.</div>';
+            }
+        }
+
+        async function loadBillingAttorneys() {
+            const attorneysList = document.getElementById('billingAttorneysList');
+            if (!attorneysList) return;
+            
+            attorneysList.innerHTML = '';
+            
+            try {
+                // TODO: Implement actual API endpoint for attorneys
+                // For now, using placeholder data
+                const attorneys = [
+                    { id: 1, name: 'John Doe' },
+                    { id: 2, name: 'Jane Smith' }
+                ];
+                
+                if (attorneys.length === 0) {
+                    attorneysList.innerHTML = '<div class="text-muted small">No attorneys available.</div>';
+                    return;
+                }
+                
+                attorneys.forEach((attorney, index) => {
+                    const checkboxDiv = document.createElement('div');
+                    checkboxDiv.className = 'form-check mb-2';
+                    checkboxDiv.innerHTML = `
+                        <input class="form-check-input billing-attorney-checkbox" 
+                               type="checkbox" 
+                               value="${attorney.id}" 
+                               id="billingAttorney${index}" 
+                               checked>
+                        <label class="form-check-label" for="billingAttorney${index}">
+                            ${attorney.name}
+                        </label>
+                    `;
+                    attorneysList.appendChild(checkboxDiv);
+                });
+            } catch (error) {
+                console.error('Error loading billing attorneys:', error);
+                attorneysList.innerHTML = '<div class="text-muted small">Error loading attorneys.</div>';
+            }
+        }
+
+        function setupBillingFiltering() {
+            // Date range
+            const dateRangeSelect = document.getElementById('billingDateRange');
+            if (dateRangeSelect) {
+                dateRangeSelect.addEventListener('change', function() {
+                    filterBilling();
+                });
+            }
+            
+            // Matter checkboxes
+            document.querySelectorAll('.billing-matter-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    filterBilling();
+                });
+            });
+            
+            // Attorney checkboxes
+            document.querySelectorAll('.billing-attorney-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    filterBilling();
+                });
+            });
+            
+            // Status checkboxes
+            document.querySelectorAll('.billing-status-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    filterBilling();
+                });
+            });
+        }
+
+        function filterBilling() {
+            // Get selected date range
+            const dateRangeSelect = document.getElementById('billingDateRange');
+            const dateRange = dateRangeSelect ? dateRangeSelect.value : 'this-month';
+            
+            // Get selected matters
+            const selectedMatters = [];
+            document.querySelectorAll('.billing-matter-checkbox:checked').forEach(checkbox => {
+                selectedMatters.push(parseInt(checkbox.value));
+            });
+            
+            // Get selected attorneys
+            const selectedAttorneys = [];
+            document.querySelectorAll('.billing-attorney-checkbox:checked').forEach(checkbox => {
+                selectedAttorneys.push(parseInt(checkbox.value));
+            });
+            
+            // Get selected statuses
+            const selectedStatuses = [];
+            document.querySelectorAll('.billing-status-checkbox:checked').forEach(checkbox => {
+                selectedStatuses.push(checkbox.value);
+            });
+            
+            console.log('Billing filters:', {
+                dateRange,
+                selectedMatters,
+                selectedAttorneys,
+                selectedStatuses
+            });
+            
+            // Dispatch custom event for billing filtering
+            window.dispatchEvent(new CustomEvent('billingFiltersChanged', { 
+                detail: { 
+                    dateRange,
+                    selectedMatters,
+                    selectedAttorneys,
+                    selectedStatuses
+                } 
+            }));
+        }
+    })();
+</script>
+

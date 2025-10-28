@@ -2503,11 +2503,7 @@ function initializeResizeHandle() {
             document.body.style.cursor = '';
             document.body.style.userSelect = '';
             
-            // Re-enable transitions after resize is complete
-            if (mainContentWrapper) {
-                mainContentWrapper.style.transition = 'left 0.3s ease, right 0.3s ease';
-            }
-            
+            // Re-enable transitions after resize is complete (not for mainContentWrapper to prevent animations on page navigation)
             if (resizeHandle) {
                 resizeHandle.style.transition = 'background-color 0.2s ease';
             }

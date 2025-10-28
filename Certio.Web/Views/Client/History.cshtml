@@ -578,6 +578,11 @@
             await fetchAndRenderHistory();
             initializeEventHandlers();
             adjustHeaderForScrollbar();
+            
+            // Hide right sidebar on page load
+            if (typeof window.hideBothSidebars === 'function') {
+                window.hideBothSidebars();
+            }
         });
 
         // Load users for filtering
