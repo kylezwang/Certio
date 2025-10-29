@@ -1239,63 +1239,322 @@
                                 </h5>
                             </div>
                             
-                            <!-- Timer Display in Card -->
-                            <div id="sidebarTimerDisplay" class="mb-3" style="display: none;">
-                                <div class="d-flex align-items-center justify-content-between p-3 rounded" style="background-color: #f8f9fa;">
+                            <!-- Timer Display -->
+                            <div class="session-timer-display text-center mb-3" style="padding: 0rem 0.5rem;">
+                                <div id="sessionTimerDisplay" style="font-family: 'SF Mono', 'Consolas', 'Monaco', monospace; font-size: 2.25rem; font-weight: 700; color: #1a202c; letter-spacing: 0.05em;">
+                                    00:00:00
+                                </div>
+                            </div>
+                            
+                            <!-- Working On Section -->
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold text-muted text-center d-block" style="margin-bottom: 0.2rem;">WORKING ON</label>
+                                <!-- Matter Preview Card (borderless) -->
+                                <div class="card border-0" style="background-color: #f8f9fa; padding: 0.75rem; border-radius: 8px;">
                                     <div class="d-flex align-items-center gap-2">
-                                        <div class="timer-display" style="font-family: 'Courier New', monospace; font-size: 1.5rem; font-weight: 600; color: #3d1019;">
-                                            <span id="sidebarHours">00</span>:<span id="sidebarMinutes">00</span>:<span id="sidebarSeconds">00</span>
+                                        <div class="matter-icon-badge-small" style="
+                                            width: 32px;
+                                            height: 32px;
+                                            border-radius: 6px;
+                                            background: linear-gradient(135deg, #3d1019, #3d1019);
+                                            color: white;
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            font-size: 0.75rem;
+                                            font-weight: 700;
+                                            flex-shrink: 0;
+                                        ">
+                                            SC
+                                        </div>
+                                        <div style="min-width: 0; flex: 1; margin-top: 0;">
+                                            <h6 class="mb-0 fw-bold text-dark" style="font-size: 0.875rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                Smith Corp - Contract Review
+                                            </h6>
                                         </div>
                                     </div>
-                                    <div class="d-flex gap-2">
-                                        <button id="sidebarTimerStart" class="btn btn-sm" style="background-color: #3d1019; color: white; padding: 0.375rem 0.75rem;">
-                                            <i class="fas fa-play"></i>
-                                        </button>
-                                        <button id="sidebarTimerStop" class="btn btn-sm" style="background-color: #dc3545; color: white; padding: 0.375rem 0.75rem; display: none;">
-                                            <i class="fas fa-pause"></i>
-                                        </button>
-                                        <button id="sidebarTimerReset" class="btn btn-sm btn-outline-secondary" style="padding: 0.375rem 0.75rem;">
-                                            <i class="fas fa-redo"></i>
-                                        </button>
+                                </div>
+                            </div>
+
+                            <!-- Timer Control Buttons -->
+                            <div class="d-flex mb-4 justify-content-center">
+                                <button id="sessionStartBtn" class="timer-control-btn timer-start-btn" style="
+                                    background: #c7b7a3;
+                                    color: white;
+                                    border: none;
+                                    border-radius: 6px;
+                                    padding: 0.5rem 1rem;
+                                    font-size: 0.875rem;
+                                    font-weight: 600;
+                                    cursor: pointer !important;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    gap: 0.375rem;
+                                    transition: all 0.2s ease;
+                                    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+                                    min-width: 90px;
+                                    margin-right: 0.75rem;
+                                ">
+                                    <i class="fas fa-play" style="font-size: 0.75rem;"></i>
+                                    Start
+                                </button>
+                                <button id="sessionStopBtn" class="timer-control-btn" style="
+                                    background: linear-gradient(135deg, #ef4444, #dc2626);
+                                    color: white;
+                                    border: none;
+                                    border-radius: 6px;
+                                    padding: 0.5rem 1rem;
+                                    font-size: 0.875rem;
+                                    font-weight: 600;
+                                    cursor: pointer !important;
+                                    display: none;
+                                    align-items: center;
+                                    justify-content: center;
+                                    gap: 0.375rem;
+                                    transition: all 0.2s ease;
+                                    min-width: 90px;
+                                    margin-right: 0.75rem;
+                                ">
+                                    <i class="fas fa-stop" style="font-size: 0.75rem;"></i>
+                                    Stop
+                                </button>
+                                <button id="sessionResetBtn" class="timer-control-btn" style="
+                                    background: #f3f4f6;
+                                    color: #6b7280;
+                                    border: none;
+                                    border-radius: 6px;
+                                    padding: 0.5rem 1rem;
+                                    font-size: 0.875rem;
+                                    font-weight: 600;
+                                    cursor: pointer !important;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    gap: 0.375rem;
+                                    transition: all 0.2s ease;
+                                    min-width: 90px;
+                                    margin-left: 0.75rem;
+                                ">
+                                    <i class="fas fa-redo" style="font-size: 0.75rem;"></i>
+                                    Reset
+                                </button>
+                            </div>
+                            
+                            <!-- Recent Sessions Section (Collapsible) -->
+                            <div class="session-section collapsible-section">
+                                <div class="session-section-title fw-semibold mb-2 collapsible-header" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: #1f2937; font-size: 0.9rem; border-bottom: 1px solid #e5e7eb; padding: 0.5rem 0.25rem; transition: all 0.2s ease; border-radius: 6px;">
+                                    <span>Recent Sessions</span>
+                                    <i class="fas fa-chevron-down collapse-icon" style="font-size: 0.75rem; color: #6b7280; transition: all 0.2s ease;"></i>
+                                </div>
+                                <div class="session-section-content" style="display: none; padding-top: 0.5rem;">
+                                    <!-- Column Headers Row -->
+                                    <div class="session-card-item session-column-header-card" onclick="event.stopPropagation();">
+                                        <!-- Length Column -->
+                                        <div class="session-length-column">
+                                            <button class="column-header-btn">Length</button>
+                                        </div>
+                                        
+                                        <!-- Start & End Time Column -->
+                                        <div class="session-time-column">
+                                            <button class="column-header-btn">Start & End Time</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Session Cards Container -->
+                                    <div class="session-cards-container" id="sessionCardsContainer">
+                                        <!-- Sample Session 1 -->
+                                        <div class="session-card-item">
+                                            <!-- Length -->
+                                            <div class="session-length-column">
+                                                2h 30m
+                                            </div>
+                                            
+                                            <!-- Start & End Time -->
+                                            <div class="session-time-column">
+                                                9:00 AM - 11:30 AM
+                                            </div>
+                                        </div>
+
+                                        <!-- Sample Session 2 -->
+                                        <div class="session-card-item">
+                                            <div class="session-length-column">
+                                                1h 15m
+                                            </div>
+                                            <div class="session-time-column">
+                                                2:00 PM - 3:15 PM
+                                            </div>
+                                        </div>
+
+                                        <!-- Sample Session 3 -->
+                                        <div class="session-card-item">
+                                            <div class="session-length-column">
+                                                45m
+                                            </div>
+                                            <div class="session-time-column">
+                                                4:00 PM - 4:45 PM
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            
-                            <!-- Matter Selection for Timer -->
-                            <div class="mb-3">
-                                <label class="form-label small fw-semibold text-muted">ASSIGN TO MATTER</label>
-                                <select id="timerMatterSelect" class="form-select form-select-sm">
-                                    <option value="">General Time</option>
-                                    <option value="1">Smith Corp - Contract Review</option>
-                                    <option value="2">Johnson LLC - Litigation</option>
-                                    <option value="3">Acme Inc - Corporate Filing</option>
-                                </select>
-                            </div>
-                            
-                            <!-- Quick Stats -->
-                            <div class="session-stats">
-                                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
-                                    <span class="small text-muted">Today's Sessions</span>
-                                    <span class="small fw-semibold">3</span>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
-                                    <span class="small text-muted">Total Hours</span>
-                                    <span class="small fw-semibold">7.5</span>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="small text-muted">Billable Value</span>
-                                    <span class="small fw-semibold text-success">$2,625</span>
-                                </div>
-                            </div>
-                            
-                            <!-- Quick Actions -->
-                            <div class="mt-3 d-grid">
-                                <button class="btn btn-sm" style="background-color: #3d1019; color: white;">
-                                    <i class="fas fa-save me-2"></i>Save Session
-                                </button>
                             </div>
                         </div>
                     </div>
+                    
+                    <style>
+                        /* Session Manager Timer Button Hover Effects */
+                        #sessionStartBtn:hover {
+                            background: #6d2932 !important;
+                            transform: translateY(-1px);
+                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+                        }
+                        
+                        #sessionStopBtn:hover {
+                            transform: translateY(-1px);
+                            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4) !important;
+                        }
+                        
+                        #sessionResetBtn:hover {
+                            background-color: #e5e7eb;
+                            color: #3d1019;
+                            transform: translateY(-1px);
+                        }
+                        
+                        /* Collapsible Header Hover Effect */
+                        .session-section .collapsible-header:hover {
+                            background-color: rgba(61, 16, 25, 0.05);
+                            transform: translateY(-1px);
+                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                        }
+                        
+                        .session-section .collapsible-header:hover .collapse-icon {
+                            color: #3d1019;
+                            transform: scale(1.1);
+                        }
+                        
+                        .session-section.expanded .collapsible-header {
+                            background-color: rgba(61, 16, 25, 0.05);
+                            transform: translateY(-1px);
+                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                        }
+                        
+                        .session-section.expanded .collapsible-header .collapse-icon {
+                            color: #3d1019;
+                        }
+                        
+                        /* Matter Preview Card Hover */
+                        .matter-icon-badge-small {
+                            transition: all 0.2s ease;
+                        }
+                        
+                        #sessionManagerCard .card:has(.matter-icon-badge-small):hover {
+                            background-color: #f1f3f5 !important;
+                            cursor: pointer;
+                        }
+
+                        /* Recent Sessions List Styling - Match History/Billing Pages */
+                        .session-card-item {
+                            display: grid;
+                            grid-template-columns: 60px 1fr;
+                            gap: 0.75rem;
+                            align-items: center;
+                            padding: 0.625rem 0.75rem;
+                            background: white;
+                            border: 1px solid #eeeeee;
+                            border-radius: 0.5rem;
+                            margin-bottom: 0.375rem;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                        }
+
+                        .session-card-item:hover {
+                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                            transform: translateY(-2px);
+                            background-color: #fafafa;
+                            border-color: #cbd5e1;
+                        }
+                        
+                        .session-card-item.session-column-header-card {
+                            cursor: default;
+                            background: white !important;
+                            border-color: #e2e8f0 !important;
+                            padding: 0.5rem 0.75rem 0.2rem 0.75rem;
+                            margin-bottom: 0.3rem;
+                        }
+                        
+                        .session-card-item.session-column-header-card:hover {
+                            transform: none;
+                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                        }
+
+                        /* Column Header Buttons */
+                        .session-card-item .column-header-btn {
+                            padding: 0.25rem 0.375rem;
+                            border: none;
+                            background: white;
+                            color: #2d3748;
+                            font-size: 0.7rem;
+                            font-weight: 600;
+                            border-radius: 0.5rem;
+                            cursor: pointer;
+                            text-align: left;
+                            width: 100%;
+                            transition: background-color 0.2s ease, color 0.2s ease;
+                        }
+                        
+                        .session-card-item .column-header-btn:hover {
+                            background-color: #f3f4f6;
+                            color: #1e293b;
+                        }
+
+                        /* Column Styling */
+                        .session-length-column {
+                            font-size: 0.8rem;
+                            color: #64748b;
+                            font-weight: 500;
+                        }
+
+                        .session-matter-column {
+                            font-size: 0.8rem;
+                            color: #475569;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
+                        }
+
+                        .session-time-column {
+                            font-size: 0.75rem;
+                            color: #64748b;
+                            font-weight: 500;
+                            text-align: left;
+                        }
+
+                        /* Session Cards Container */
+                        .session-cards-container {
+                            max-height: 280px;
+                            overflow-y: auto;
+                        }
+
+                        /* Custom scrollbar for session list */
+                        .session-cards-container::-webkit-scrollbar {
+                            width: 6px;
+                        }
+
+                        .session-cards-container::-webkit-scrollbar-track {
+                            background: #f1f5f9;
+                            border-radius: 3px;
+                        }
+
+                        .session-cards-container::-webkit-scrollbar-thumb {
+                            background: #cbd5e1;
+                            border-radius: 3px;
+                        }
+
+                        .session-cards-container::-webkit-scrollbar-thumb:hover {
+                            background: #94a3b8;
+                        }
+                    </style>
                 }
                 else
                 {
@@ -2491,93 +2750,139 @@
         // Session Manager Integration for Billing Page
         const isBillingPage = window.location.pathname.includes('/Billing');
         const sessionManagerCard = document.getElementById('sessionManagerCard');
-        const sidebarTimerDisplay = document.getElementById('sidebarTimerDisplay');
-        const sidebarTimerStart = document.getElementById('sidebarTimerStart');
-        const sidebarTimerStop = document.getElementById('sidebarTimerStop');
-        const sidebarTimerReset = document.getElementById('sidebarTimerReset');
+        const sessionTimerDisplay = document.getElementById('sessionTimerDisplay');
+        const sessionStartBtn = document.getElementById('sessionStartBtn');
+        const sessionStopBtn = document.getElementById('sessionStopBtn');
+        const sessionResetBtn = document.getElementById('sessionResetBtn');
         
-        if (isBillingPage && sessionManagerCard && sidebarTimerDisplay) {
+        if (isBillingPage && sessionManagerCard && sessionTimerDisplay) {
             // Hide the floating timer on Billing page
             const floatingTimerEl = document.getElementById('floatingTimerOverlay');
             if (floatingTimerEl) {
                 floatingTimerEl.style.display = 'none';
             }
             
-            // Show the sidebar timer display
-            sidebarTimerDisplay.style.display = 'block';
-            
-            // Function to sync timer display to sidebar
-            function syncSidebarTimer() {
+            // Function to sync timer display to session manager
+            function syncSessionTimer() {
                 const hours = Math.floor(timerSeconds / 3600);
                 const minutes = Math.floor((timerSeconds % 3600) / 60);
                 const seconds = timerSeconds % 60;
                 
-                const sidebarHours = document.getElementById('sidebarHours');
-                const sidebarMinutes = document.getElementById('sidebarMinutes');
-                const sidebarSeconds = document.getElementById('sidebarSeconds');
-                
-                if (sidebarHours) sidebarHours.textContent = String(hours).padStart(2, '0');
-                if (sidebarMinutes) sidebarMinutes.textContent = String(minutes).padStart(2, '0');
-                if (sidebarSeconds) sidebarSeconds.textContent = String(seconds).padStart(2, '0');
+                // Update the session timer display with formatted time
+                sessionTimerDisplay.textContent = 
+                    String(hours).padStart(2, '0') + ':' + 
+                    String(minutes).padStart(2, '0') + ':' + 
+                    String(seconds).padStart(2, '0');
             }
             
-            // Update sidebar display initially
-            syncSidebarTimer();
+            // Update session display initially
+            syncSessionTimer();
             
-            // Override updateTimerDisplay to also update sidebar
+            // Override updateTimerDisplay to also update session manager
             const originalUpdateTimerDisplay = updateTimerDisplay;
             updateTimerDisplay = function() {
                 originalUpdateTimerDisplay();
-                syncSidebarTimer();
+                syncSessionTimer();
             };
             
-            // Override startTimer to also update sidebar buttons
+            // Override startTimer to also update session buttons
             const originalStartTimer = startTimer;
             startTimer = function() {
                 originalStartTimer();
-                if (sidebarTimerStart) sidebarTimerStart.style.display = 'none';
-                if (sidebarTimerStop) sidebarTimerStop.style.display = 'inline-block';
+                if (sessionStartBtn) sessionStartBtn.style.display = 'none';
+                if (sessionStopBtn) sessionStopBtn.style.display = 'flex';
             };
             
-            // Override stopTimer to also update sidebar buttons
+            // Override stopTimer to also update session buttons
             const originalStopTimer = stopTimer;
             stopTimer = function() {
                 originalStopTimer();
-                if (sidebarTimerStart) sidebarTimerStart.style.display = 'inline-block';
-                if (sidebarTimerStop) sidebarTimerStop.style.display = 'none';
+                if (sessionStartBtn) sessionStartBtn.style.display = 'flex';
+                if (sessionStopBtn) sessionStopBtn.style.display = 'none';
             };
             
-            // Override resetTimer to also reset sidebar
+            // Override resetTimer to also reset session manager
             const originalResetTimer = resetTimer;
             resetTimer = function() {
                 originalStopTimer();
                 timerSeconds = 0;
                 timerStartTime = null;
                 updateTimerDisplay();
-                syncSidebarTimer();
+                syncSessionTimer();
                 saveTimerState();
                 if (timerCard) timerCard.style.boxShadow = '0 2px 12px rgba(0, 0, 0, 0.35)';
             };
             
-            // Connect sidebar buttons to timer functions
-            if (sidebarTimerStart) {
-                sidebarTimerStart.addEventListener('click', startTimer);
+            // Connect session buttons to timer functions
+            if (sessionStartBtn) {
+                sessionStartBtn.addEventListener('click', startTimer);
             }
-            if (sidebarTimerStop) {
-                sidebarTimerStop.addEventListener('click', stopTimer);
+            if (sessionStopBtn) {
+                sessionStopBtn.addEventListener('click', stopTimer);
             }
-            if (sidebarTimerReset) {
-                sidebarTimerReset.addEventListener('click', resetTimer);
+            if (sessionResetBtn) {
+                sessionResetBtn.addEventListener('click', resetTimer);
             }
             
-            // Update sidebar button states based on current timer state
+            // Update session button states based on current timer state
             if (isRunning) {
-                if (sidebarTimerStart) sidebarTimerStart.style.display = 'none';
-                if (sidebarTimerStop) sidebarTimerStop.style.display = 'inline-block';
+                if (sessionStartBtn) sessionStartBtn.style.display = 'none';
+                if (sessionStopBtn) sessionStopBtn.style.display = 'flex';
             } else {
-                if (sidebarTimerStart) sidebarTimerStart.style.display = 'inline-block';
-                if (sidebarTimerStop) sidebarTimerStop.style.display = 'none';
+                if (sessionStartBtn) sessionStartBtn.style.display = 'flex';
+                if (sessionStopBtn) sessionStopBtn.style.display = 'none';
             }
+            
+            // Initialize collapsible section for Recent Sessions
+            const collapsibleSections = sessionManagerCard.querySelectorAll('.collapsible-section');
+            collapsibleSections.forEach(section => {
+                const header = section.querySelector('.collapsible-header');
+                const content = section.querySelector('.session-section-content');
+                
+                if (!header || !content) return;
+                
+                function expandSection() {
+                    section.classList.add('expanded');
+                    section.classList.remove('hover-disabled');
+                    content.style.display = 'block';
+                    const icon = header.querySelector('.collapse-icon');
+                    if (icon) icon.style.transform = 'rotate(180deg)';
+                }
+                
+                function collapseSection() {
+                    section.classList.remove('expanded');
+                    section.classList.add('hover-disabled');
+                    content.style.display = 'none';
+                    const icon = header.querySelector('.collapse-icon');
+                    if (icon) icon.style.transform = 'rotate(0deg)';
+                }
+                
+                // Click to toggle
+                header.onclick = function() {
+                    if (section.classList.contains('expanded')) {
+                        collapseSection();
+                    } else {
+                        expandSection();
+                    }
+                };
+                
+                // Hover behavior
+                let hoverTimeout;
+                section.onmouseenter = function() {
+                    if (!section.classList.contains('hover-disabled') && !section.classList.contains('expanded')) {
+                        hoverTimeout = setTimeout(function() {
+                            content.style.display = 'block';
+                        }, 150);
+                    }
+                };
+                
+                section.onmouseleave = function() {
+                    clearTimeout(hoverTimeout);
+                    if (!section.classList.contains('expanded')) {
+                        content.style.display = 'none';
+                    }
+                };
+            });
         }
         
         // Timer toggle functionality (hide/show)
