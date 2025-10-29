@@ -40,80 +40,17 @@
             </div>
         </div>
     </div>
-    
-    <!-- Stats Cards -->
-    <div class="row mb-3" style="--bs-gutter-x: 1rem;">
-        <div class="col-md-3 mb-3">
-            <div class="card h-100 border-0">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center">
-                        <div class="p-3 rounded-3 me-3" style="background-color: #6b72801C !important;">
-                            <i class="fas fa-clock text-secondary fs-4"></i>
-                        </div>
-                        <div>
-                            <h3 class="fw-bold text-dark mb-0">142.5</h3>
-                            <p class="text-muted mb-1 small">Billable Hours</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3 mb-3">
-            <div class="card h-100 border-0">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center">
-                        <div class="p-3 bg-success bg-opacity-10 rounded-3 me-3">
-                            <i class="fas fa-dollar-sign text-success fs-4"></i>
-                        </div>
-                        <div>
-                            <h3 class="fw-bold text-dark mb-0">$71,250</h3>
-                            <p class="text-muted mb-1 small">Revenue</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3 mb-3">
-            <div class="card h-100 border-0">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center">
-                        <div class="p-3 bg-warning bg-opacity-10 rounded-3 me-3">
-                            <i class="fas fa-file-invoice text-warning fs-4"></i>
-                        </div>
-                        <div>
-                            <h3 class="fw-bold text-dark mb-0">8</h3>
-                            <p class="text-muted mb-1 small">Pending Invoices</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3 mb-3">
-            <div class="card h-100 border-0">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center">
-                        <div class="p-3 icon-bg-primary rounded-3 me-3">
-                            <i class="fas fa-chart-line text-primary fs-4"></i>
-                        </div>
-                        <div>
-                            <h3 class="fw-bold text-dark mb-0">$28,500</h3>
-                            <p class="text-muted mb-1 small">Outstanding</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Tab Navigation -->
-    <nav class="matter-tabs bg-white border-bottom">
+    <nav class="matter-tabs bg-white border-bottom border-top">
         <div class="row">
             <div class="d-flex gap-1">
-                <a href="#time-entries" class="matter-tab-link active" data-tab="time-entries">
-                    <i class="fas fa-clock"></i>
+                <a href="#overview" class="matter-tab-link active" data-tab="overview">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Overview</span>
+                </a>
+                <a href="#time-entries" class="matter-tab-link" data-tab="time-entries">
+                    <i class="fas fa-stopwatch"></i>
                     <span>Time Entries</span>
                 </a>
                 <a href="#expenses" class="matter-tab-link" data-tab="expenses">
@@ -127,10 +64,6 @@
                 <a href="#trusts" class="matter-tab-link" data-tab="trusts">
                     <i class="fas fa-briefcase"></i>
                     <span>Trusts</span>
-                </a>
-                <a href="#reports" class="matter-tab-link" data-tab="reports">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>Reports</span>
                 </a>
             </div>
         </div>
@@ -179,16 +112,9 @@
             </div>
         </div>
 
-        <!-- Reports Tab -->
-        <div id="tab-reports" class="tab-content-section" style="display: none;">
-            <div class="container-fluid px-4 py-4">
-                <div class="text-center py-5">
-                    <i class="fas fa-chart-bar text-muted mb-3" style="font-size: 3rem;"></i>
-                    <h4 class="text-dark mb-2">Reports</h4>
-                    <p class="text-muted">Generate billing and time tracking reports.</p>
-                    <p class="text-muted small">(To be implemented)</p>
-                </div>
-            </div>
+        <!-- Overview Tab -->
+        <div id="tab-overview" class="tab-content-section" style="display: none;">
+            <!-- Content will be loaded via AJAX when tab is first accessed -->
         </div>
     </div>
 </div>

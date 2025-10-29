@@ -1,24 +1,24 @@
-<!-- Time Entries View -->
-<div class="view-container" id="billingTimeEntriesView">
-            <div class="inbox-container">
-        <!-- Time Entries Header -->
-                <div class="inbox-header">
-                    <div class="inbox-title">
-                        <i class="fas fa-stopwatch"></i>
-                <span>Time Entries</span>
-                    </div>
-                    <div class="inbox-actions">
+<!-- Expenses View -->
+<div class="view-container" id="billingExpensesView">
+    <div class="inbox-container">
+        <!-- Expenses Header -->
+        <div class="inbox-header">
+            <div class="inbox-title">
+                <i class="fas fa-receipt"></i>
+                <span>Expenses</span>
+            </div>
+            <div class="inbox-actions">
                 <button class="action-btn" title="Filter">
-                            <i class="fas fa-filter"></i>
-                        </button>
+                    <i class="fas fa-filter"></i>
+                </button>
                 <button class="action-btn" title="Sort">
                     <i class="fas fa-sort"></i>
-                        </button>
+                </button>
                 <button class="action-btn" title="More options">
-                            <i class="fas fa-ellipsis-v"></i>
-                        </button>
-                    </div>
-                </div>
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+            </div>
+        </div>
 
                 <!-- Column Headers Row -->
         <div class="billing-card-item billing-column-header-card" style="background: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); padding: 0.6rem 1rem 0.2rem 1rem; margin-bottom: 0.4rem;" onclick="event.stopPropagation();">
@@ -42,19 +42,24 @@
                 <button class="column-header-btn" style="text-align: left;">Attorney</button>
             </div>
             
-            <!-- Hours Column -->
-            <div class="billing-hours-column">
-                <button class="column-header-btn" style="text-align: right;">Hours</button>
+            <!-- Description Column -->
+            <div class="billing-description-column">
+                <button class="column-header-btn" style="text-align: center;">Description</button>
             </div>
             
-            <!-- Rate Column -->
-            <div class="billing-rate-column">
-                <button class="column-header-btn" style="text-align: right;">Rate</button>
+            <!-- Category Column -->
+            <div class="billing-category-column">
+                <button class="column-header-btn" style="text-align: center;">Category</button>
             </div>
             
             <!-- Amount Column -->
             <div class="billing-amount-column">
-                <button class="column-header-btn" style="text-align: right;">Amount</button>
+                <button class="column-header-btn" style="text-align: center;">Amount</button>
+            </div>
+            
+            <!-- Billable Column -->
+            <div class="billing-billable-column">
+                <button class="column-header-btn" style="text-align: center;">Billable</button>
             </div>
             
             <!-- Status Column -->
@@ -68,9 +73,9 @@
             </div>
         </div>
 
-        <!-- Time Entries Cards -->
+        <!-- Expense Cards -->
         <div class="billing-cards-container" id="billingCardsContainer">
-            <!-- Sample Time Entry Rows -->
+            <!-- Sample Expense Rows -->
             
             <!-- Entry 1 - Needs Review -->
             <div class="billing-card-item">
@@ -81,44 +86,50 @@
                 
                 <!-- Client -->
                 <div class="billing-client-column">
-                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Smith Corp</span>
+                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Visible LLC</span>
                 </div>
                 
                 <!-- Matter -->
                 <div class="billing-matter-column">
-                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Contract Review</span>
+                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">VLC Litigation</span>
                 </div>
                 
                 <!-- Attorney -->
                 <div class="billing-attorney-column">
-                    <div class="billing-user-avatar">JD</div>
-                    <span class="billing-user-name">John Doe</span>
+                    <div class="billing-user-avatar">IW</div>
+                    <span class="billing-user-name">Isaac Wilson</span>
                 </div>
                 
-                <!-- Hours -->
-                <div class="billing-hours-column">
-                    3.5
+                <!-- Description -->
+                <div class="billing-description-column">
+                    <button class="billing-description-btn" title="Client meeting lunch expense" onclick="event.stopPropagation();">
+                        <i class="fa-solid fa-align-left" style="transform: scaleY(-1);"></i>
+                    </button>
                 </div>
                 
-                <!-- Rate -->
-                <div class="billing-rate-column">
-                    $350/hr
-                        </div>
+                <!-- Category -->
+                <div class="billing-category-column">
+                    Travel
+                </div>
                         
                 <!-- Amount -->
                 <div class="billing-amount-column">
                     $1,225
-                        </div>
+                </div>
+                
+                <!-- Billable -->
+                <div class="billing-billable-column">
+                    <span class="billable-badge billable-yes">Yes</span>
+                </div>
                         
                 <!-- Status -->
                 <div class="billing-status-column">
-                    <span class="billing-status-badge needs-review">Needs Review</span>
-                        </div>
+                    <span class="billing-status-badge billed">Billed</span>
+                </div>
                         
                 <!-- Actions -->
                 <div class="billing-actions-column">
                     <button class="billing-action-btn edit-btn" onclick="event.stopPropagation(); alert('Edit functionality');">Edit</button>
-                    <button class="billing-action-btn approve-btn" onclick="event.stopPropagation(); alert('Approve functionality');">Approve</button>
                 </div>
                         </div>
                         
@@ -128,26 +139,31 @@
                     Jan 15, 2025
                 </div>
                 <div class="billing-client-column">
-                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Johnson LLC</span>
+                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Deposition Team</span>
                 </div>
                 <div class="billing-matter-column">
-                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Litigation Support</span>
+                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">DT Contract</span>
                 </div>
                 <div class="billing-attorney-column">
-                    <div class="billing-user-avatar">JS</div>
-                    <span class="billing-user-name">Jane Smith</span>
+                    <div class="billing-user-avatar">SB</div>
+                    <span class="billing-user-name">Sarah Brown</span>
                 </div>
-                <div class="billing-hours-column">
-                    5
+                <div class="billing-description-column">
+                    <button class="billing-description-btn" title="Business dinner with opposing counsel" onclick="event.stopPropagation();">
+                        <i class="fa-solid fa-align-left" style="transform: scaleY(-1);"></i>
+                    </button>
                 </div>
-                <div class="billing-rate-column">
-                    $400/hr
+                <div class="billing-category-column">
+                    Meals
                 </div>
                 <div class="billing-amount-column">
-                    $2,000
+                    $285.50
+                </div>
+                <div class="billing-billable-column">
+                    <span class="billable-badge billable-yes">Yes</span>
                 </div>
                 <div class="billing-status-column">
-                    <span class="billing-status-badge approved">Approved</span>
+                    <span class="billing-status-badge unbilled">Unbilled</span>
                 </div>
                 <div class="billing-actions-column">
                     <button class="billing-action-btn edit-btn" onclick="event.stopPropagation(); alert('Edit functionality');">Edit</button>
@@ -160,30 +176,35 @@
                     Jan 14, 2025
                 </div>
                 <div class="billing-client-column">
-                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Acme Inc</span>
+                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Deposition Team</span>
                 </div>
                 <div class="billing-matter-column">
-                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Corporate Filing</span>
+                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">DT Contract</span>
                 </div>
                 <div class="billing-attorney-column">
-                    <div class="billing-user-avatar">JD</div>
-                    <span class="billing-user-name">John Doe</span>
+                    <div class="billing-user-avatar">KW</div>
+                    <span class="billing-user-name">Kyle Wang</span>
                 </div>
-                <div class="billing-hours-column">
-                    2
+                <div class="billing-description-column">
+                    <button class="billing-description-btn" title="Hotel stay for deposition" onclick="event.stopPropagation();">
+                        <i class="fa-solid fa-align-left" style="transform: scaleY(-1);"></i>
+                    </button>
                 </div>
-                <div class="billing-rate-column">
-                    $350/hr
+                <div class="billing-category-column">
+                    Lodging
                 </div>
                 <div class="billing-amount-column">
-                    $700
+                    $425
+                </div>
+                <div class="billing-billable-column">
+                    <span class="billable-badge billable-yes">Yes</span>
                 </div>
                 <div class="billing-status-column">
-                    <span class="billing-status-badge billed">Billed</span>
+                    <span class="billing-status-badge unbilled">Unbilled</span>
                 </div>
                 <div class="billing-actions-column">
                     <button class="billing-action-btn edit-btn" onclick="event.stopPropagation(); alert('Edit functionality');">Edit</button>
-                        </div>
+</div>
                     </div>
 
             <!-- Entry 4 - Approved -->
@@ -192,26 +213,31 @@
                     Jan 14, 2025
                 </div>
                 <div class="billing-client-column">
-                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Smith Corp</span>
+                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Weston Dynasty</span>
                 </div>
                 <div class="billing-matter-column">
-                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Contract Review</span>
+                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Trust Approval</span>
                 </div>
                 <div class="billing-attorney-column">
-                    <div class="billing-user-avatar">SL</div>
-                    <span class="billing-user-name">Sarah Lee</span>
+                    <div class="billing-user-avatar">LK</div>
+                    <span class="billing-user-name">Lawyer Kyle</span>
                 </div>
-                <div class="billing-hours-column">
-                    4.5
+                <div class="billing-description-column">
+                    <button class="billing-description-btn" title="Office supplies and document binders" onclick="event.stopPropagation();">
+                        <i class="fa-solid fa-align-left" style="transform: scaleY(-1);"></i>
+                    </button>
                 </div>
-                <div class="billing-rate-column">
-                    $325/hr
+                <div class="billing-category-column">
+                    Supplies
                 </div>
                 <div class="billing-amount-column">
-                    $1,462.5
+                    $89.99
+                </div>
+                <div class="billing-billable-column">
+                    <span class="billable-badge billable-no">No</span>
                 </div>
                 <div class="billing-status-column">
-                    <span class="billing-status-badge approved">Approved</span>
+                    <span class="billing-status-badge unbilled">Unbilled</span>
                 </div>
                 <div class="billing-actions-column">
                     <button class="billing-action-btn edit-btn" onclick="event.stopPropagation(); alert('Edit functionality');">Edit</button>
@@ -224,23 +250,28 @@
                     Jan 13, 2025
                 </div>
                 <div class="billing-client-column">
-                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Global Tech</span>
+                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Centennial Group</span>
                 </div>
                 <div class="billing-matter-column">
-                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">IP Consultation</span>
+                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">CG Contract</span>
                 </div>
                 <div class="billing-attorney-column">
-                    <div class="billing-user-avatar">JS</div>
-                    <span class="billing-user-name">Jane Smith</span>
+                    <div class="billing-user-avatar">JA</div>
+                    <span class="billing-user-name">James Anderson</span>
                 </div>
-                <div class="billing-hours-column">
-                    6
+                <div class="billing-description-column">
+                    <button class="billing-description-btn" title="Flight and ground transportation to court" onclick="event.stopPropagation();">
+                        <i class="fa-solid fa-align-left" style="transform: scaleY(-1);"></i>
+                    </button>
                 </div>
-                <div class="billing-rate-column">
-                    $400/hr
+                <div class="billing-category-column">
+                    Transportation
                 </div>
                 <div class="billing-amount-column">
-                    $2,400
+                    $1,850
+                </div>
+                <div class="billing-billable-column">
+                    <span class="billable-badge billable-yes">Yes</span>
                 </div>
                 <div class="billing-status-column">
                     <span class="billing-status-badge billed">Billed</span>
@@ -255,12 +286,12 @@
 
 <style>
     /* Billing Page Styles - Match History Page Exactly */
-    #billingTimeEntriesView.view-container {
+    #billingExpensesView.view-container {
         background-color: #ffffff;
         height: 100%;
     }
     
-    #billingTimeEntriesView .inbox-container {
+    #billingExpensesView .inbox-container {
         background-color: #ffffff;
         height: 100%;
         display: flex;
@@ -271,7 +302,7 @@
     }
     
     /* Inbox Header - Match Tasks Page */
-    #billingTimeEntriesView .inbox-header {
+    #billingExpensesView .inbox-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -281,30 +312,30 @@
         padding-right: 0.6rem;
     }
     
-    #billingTimeEntriesView .inbox-title {
+    #billingExpensesView .inbox-title {
         display: flex;
         align-items: center;
         gap: 0.5rem;
     }
     
-    #billingTimeEntriesView .inbox-title i {
+    #billingExpensesView .inbox-title i {
         font-size: 1.2rem;
         color: #232b39;
     }
     
-    #billingTimeEntriesView .inbox-title span {
+    #billingExpensesView .inbox-title span {
         font-size: 1.2rem;
         font-weight: 700;
         margin-right: 1rem;
         color: #232b39;
     }
     
-    #billingTimeEntriesView .inbox-actions {
+    #billingExpensesView .inbox-actions {
         display: flex;
         gap: 0.5rem;
     }
     
-    #billingTimeEntriesView .action-btn {
+    #billingExpensesView .action-btn {
         background: none;
         border: none;
         padding: 0.5rem;
@@ -315,12 +346,12 @@
         font-size: 1rem;
     }
     
-    #billingTimeEntriesView .action-btn:hover {
+    #billingExpensesView .action-btn:hover {
         background-color: rgba(0, 0, 0, 0.05);
     }
     
     /* Column Header Button Hover Effect */
-    #billingTimeEntriesView .column-header-btn {
+    #billingExpensesView .column-header-btn {
         padding: 0.375rem 0.5rem;
         border: none;
         background: white;
@@ -333,15 +364,15 @@
         transition: background-color 0.2s ease, color 0.2s ease;
     }
     
-    #billingTimeEntriesView .column-header-btn:hover {
+    #billingExpensesView .column-header-btn:hover {
         background-color: #f3f4f6;
         color: #1e293b;
     }
 
     /* Billing Card Columns Layout - Match History styling exactly */
-    #billingTimeEntriesView .billing-card-item {
+    #billingExpensesView .billing-card-item {
         display: grid;
-        grid-template-columns: 0.8fr 1.2fr 1.2fr 1.2fr 0.6fr 0.8fr 0.9fr 1fr 1.1fr;
+        grid-template-columns: 0.8fr 1.2fr 1.2fr 1.2fr 0.6fr 0.8fr 0.8fr 0.7fr 0.9fr 0.9fr;
         gap: 0.75rem;
         align-items: center;
         padding: 0.875rem 1rem;
@@ -354,20 +385,20 @@
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
 
-    #billingTimeEntriesView .billing-card-item:hover {
+    #billingExpensesView .billing-card-item:hover {
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         transform: translateY(-2px);
         background-color: #fafafa;
         border-color: #cbd5e1;
     }
     
-    #billingTimeEntriesView .billing-card-item.billing-column-header-card {
+    #billingExpensesView .billing-card-item.billing-column-header-card {
         cursor: default;
         background: white !important;
         border-color: #e2e8f0 !important;
     }
     
-    #billingTimeEntriesView .billing-card-item.billing-column-header-card:hover {
+    #billingExpensesView .billing-card-item.billing-column-header-card:hover {
         transform: none;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
@@ -414,18 +445,70 @@
         text-overflow: ellipsis;
     }
 
-    .billing-hours-column,
-    .billing-rate-column {
+    .billing-description-column {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .billing-description-btn {
+        background: none;
+        border: none;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        color: #6b7280;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .billing-description-btn:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+        color: #1f2937;
+    }
+
+    .billing-description-btn i {
+        font-size: 0.875rem;
+    }
+
+    .billing-category-column {
         font-size: 0.875rem;
         color: #64748b;
-        text-align: right;
+        text-align: center;
     }
 
     .billing-amount-column {
         font-size: 0.875rem;
         color: #1e293b;
         font-weight: 600;
-        text-align: right;
+        text-align: center;
+    }
+
+    .billing-billable-column {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .billable-badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .billable-badge.billable-yes {
+        background: #f1f8e9;
+        color: #558b2f;
+    }
+
+    .billable-badge.billable-no {
+        background: #ffebee;
+        color: #c62828;
     }
 
     .billing-status-column {
@@ -456,6 +539,11 @@
     .billing-status-badge.billed {
         background: #e3f2fd;
         color: #1565c0;
+    }
+
+    .billing-status-badge.unbilled {
+        background: #f3f4f6;
+        color: #6b7280;
     }
 
     .billing-actions-column {
