@@ -58,7 +58,7 @@
             targetContent.classList.add('active');
             
             // Load tab content via AJAX if not already loaded
-            if (!loadedTabs.has(tabName) && tabName === 'time-entries') {
+            if (!loadedTabs.has(tabName) && (tabName === 'time-entries' || tabName === 'expenses' || tabName === 'overview')) {
                 loadTabContent(tabName, targetContent);
             }
         }
@@ -109,6 +109,12 @@
             case 'time-entries':
                 url = `/Client/${orgId}/Billing/TimeEntries`;
                 break;
+            case 'expenses':
+                url = `/Client/${orgId}/Billing/Expenses`;
+                break;
+            case 'overview':
+                url = `/Client/${orgId}/Billing/Overview`;
+                break;
             default:
                 // Tab not implemented yet
                 loadedTabs.add(tabName);
@@ -154,6 +160,14 @@
                 // Initialize time entries specific functionality
                 // (e.g., edit buttons, delete buttons, filters)
                 break;
+            case 'expenses':
+                // Initialize expenses specific functionality
+                // (e.g., edit buttons, delete buttons, filters)
+                break;
+            case 'overview':
+                // Initialize overview specific functionality
+                // (e.g., charts, graphs)
+                break;
         }
     }
 
@@ -162,8 +176,8 @@
         if (hash) {
             switchTab(hash);
         } else {
-            // Load the default tab (time-entries)
-            switchTab('time-entries');
+            // Load the default tab (overview)
+            switchTab('overview');
         }
     }
 

@@ -1248,7 +1248,7 @@
                             
                             <!-- Working On Section -->
                             <div class="mb-3">
-                                <label class="form-label small fw-semibold text-muted text-center d-block" style="margin-bottom: 0.2rem;">WORKING ON</label>
+                                <label class="form-label small fw-semibold text-muted text-center d-block" style="margin-bottom: 0.2rem;">CURRENTLY WORKING ON</label>
                                 <!-- Matter Preview Card (borderless) -->
                                 <div class="card border-0" style="background-color: #f8f9fa; padding: 0.75rem; border-radius: 8px;">
                                     <div class="d-flex align-items-center gap-2">
@@ -1815,98 +1815,139 @@
         </main>
     </div>
 
-    <!-- Floating Timer Overlay -->
+    <!-- Floating Timer Overlay (Hidden on Billing Page) -->
+    @if (controller != "Billing")
+    {
     <div id="floatingTimerOverlay" style="
         position: fixed;
         z-index: 9999;
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         gap: 0.5rem;
         transition: none;
         cursor: move;
-        flex-wrap: nowrap;
-        white-space: nowrap;
     ">
         <!-- Timer Card -->
         <div id="timerCard" style="
             background: white;
             border-radius: 12px;
-            padding: 0.5rem 0.25rem 0.5rem 0.75rem;
+            padding: 0.5rem 0.75rem;
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
             display: flex;
-            align-items: center;
-            gap: 0.75rem;
+            flex-direction: column;
+            gap: 0.5rem;
             transition: all 0.3s ease;
             cursor: move;
-            flex-wrap: nowrap;
-            white-space: nowrap;
+            min-width: 260px;
+            max-width: 260px;
         ">
-            <div id="timerDisplay" style="
-                font-family: 'Courier New', monospace;
-                font-size: 1.125rem;
-                font-weight: 600;
-                color: #1f2937;
-                flex-shrink: 0;
-                white-space: nowrap;
-                display: flex;
-                align-items: center;
-                gap: 0.25rem;
-            ">
-                <span class="timer-hours">00</span><span class="timer-sep">:</span><span class="timer-minutes">00</span><span class="timer-sep">:</span><span class="timer-seconds">00</span>
+            <!-- Timer Display and Controls -->
+            <div style="display: flex; align-items: center; gap: 0.5rem; justify-content: space-between;">
+                <div id="timerDisplay" style="
+                    font-family: 'Courier New', monospace;
+                    font-size: 1.125rem;
+                    font-weight: 600;
+                    color: #1f2937;
+                    flex-shrink: 0;
+                    white-space: nowrap;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.25rem;
+                ">
+                    <span class="timer-hours">00</span><span class="timer-sep">:</span><span class="timer-minutes">00</span><span class="timer-sep">:</span><span class="timer-seconds">00</span>
+                </div>
+                <div style="display: flex; gap: 0.375rem; flex-wrap: nowrap; flex-shrink: 0;">
+                    <button id="timerStartBtn" class="timer-btn timer-start-btn" style="
+                        background: #c7b7a3;
+                        color: white;
+                        border: none;
+                        border-radius: 6px;
+                        padding: 0.3rem 0.625rem;
+                        font-size: 0.8rem;
+                        font-weight: 600;
+                        cursor: pointer !important;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.25rem;
+                        transition: all 0.2s ease;
+                        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+                    ">
+                        <i class="fas fa-play" style="font-size: 0.65rem;"></i>
+                        Start
+                    </button>
+                    <button id="timerStopBtn" class="timer-btn" style="
+                        background: linear-gradient(135deg, #ef4444, #dc2626);
+                        color: white;
+                        border: none;
+                        border-radius: 6px;
+                        padding: 0.3rem 0.625rem;
+                        font-size: 0.8rem;
+                        font-weight: 600;
+                        cursor: pointer !important;
+                        display: none;
+                        align-items: center;
+                        gap: 0.25rem;
+                        transition: all 0.2s ease;
+                    ">
+                        <i class="fas fa-stop" style="font-size: 0.65rem;"></i>
+                        Stop
+                    </button>
+                    <button id="timerResetBtn" class="timer-btn" style="
+                        background: #f3f4f6;
+                        color: #6b7280;
+                        border: none;
+                        border-radius: 6px;
+                        padding: 0.3rem 0.5rem;
+                        font-size: 0.8rem;
+                        font-weight: 600;
+                        cursor: pointer !important;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.25rem;
+                        transition: all 0.2s ease;
+                    ">
+                        <i class="fas fa-redo" style="font-size: 0.65rem;"></i>
+                        Reset
+                    </button>
+                </div>
             </div>
-            <div style="display: flex; gap: 0.375rem; flex-wrap: nowrap; flex-shrink: 0;">
-                <button id="timerStartBtn" class="timer-btn timer-start-btn" style="
-                    background: #c7b7a3;
-                    color: white;
-                    border: none;
-                    border-radius: 6px;
-                    padding: 0.3rem 0.625rem;
-                    font-size: 0.8rem;
-                    font-weight: 600;
-                    cursor: pointer !important;
-                    display: flex;
-                    align-items: center;
-                    gap: 0.25rem;
-                    transition: all 0.2s ease;
-                    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-                ">
-                    <i class="fas fa-play" style="font-size: 0.65rem;"></i>
-                    Start
-                </button>
-                <button id="timerStopBtn" class="timer-btn" style="
-                    background: linear-gradient(135deg, #ef4444, #dc2626);
-                    color: white;
-                    border: none;
-                    border-radius: 6px;
-                    padding: 0.3rem 0.625rem;
-                    font-size: 0.8rem;
-                    font-weight: 600;
-                    cursor: pointer !important;
-                    display: none;
-                    align-items: center;
-                    gap: 0.25rem;
-                    transition: all 0.2s ease;
-                ">
-                    <i class="fas fa-stop" style="font-size: 0.65rem;"></i>
-                    Stop
-                </button>
-                <button id="timerResetBtn" class="timer-btn" style="
-                    background: #f3f4f6;
-                    color: #6b7280;
-                    border: none;
-                    border-radius: 6px;
-                    padding: 0.3rem 0.5rem;
-                    font-size: 0.8rem;
-                    font-weight: 600;
-                    cursor: pointer !important;
-                    display: flex;
-                    align-items: center;
-                    gap: 0.25rem;
-                    transition: all 0.2s ease;
-                ">
-                    <i class="fas fa-redo" style="font-size: 0.65rem;"></i>
-                    Reset
-                </button>
+            
+            
+            <!-- Currently Working On Section -->
+            <div style="display: flex; flex-direction: column; gap: 0.1rem;">
+                <label class="form-label small fw-semibold text-muted text-center d-block" style="margin-bottom: 0.2rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;">CURRENTLY WORKING ON</label>
+                
+                <!-- Matter Preview Card (borderless) -->
+                <div class="card border-0" id="timerMatterCard" style="background-color: #f8f9fa; padding: 0.75rem; border-radius: 8px;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <div id="timerMatterIcon" style="
+                            width: 32px;
+                            height: 32px;
+                            border-radius: 6px;
+                            background: #6b7280;
+                            color: white;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 0.75rem;
+                            font-weight: 700;
+                            flex-shrink: 0;
+                        ">
+                            <i class="fa-solid fa-building-columns"></i>
+                        </div>
+                        <div style="min-width: 0; flex: 1; margin-top: 0;">
+                            <h6 id="timerMatterTitle" class="mb-0 fw-semibold" style="
+                                font-size: 0.875rem;
+                                white-space: nowrap;
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                                color: #6b7280;
+                            ">
+                                Select a Matter
+                            </h6>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -1927,6 +1968,7 @@
             <i class="fas fa-angles-left" style="font-size: 0.875rem;"></i>
         </button>
     </div>
+    }
     
     <!-- Inline script to apply saved timer position immediately to prevent flash -->
     <script>
@@ -2746,6 +2788,131 @@
         if (timerStartBtn) timerStartBtn.addEventListener('click', startTimer);
         if (timerStopBtn) timerStopBtn.addEventListener('click', stopTimer);
         if (timerResetBtn) timerResetBtn.addEventListener('click', resetTimer);
+        
+        // Update timer matter card based on current page
+        function updateTimerMatterCard() {
+            const timerMatterIcon = document.getElementById('timerMatterIcon');
+            const timerMatterTitle = document.getElementById('timerMatterTitle');
+            
+            if (!timerMatterIcon || !timerMatterTitle) return;
+            
+            // Check if we're on a Matter Details page
+            const pathname = window.location.pathname;
+            const matterDetailsMatch = pathname.match(/\/Matter\/Details\/(\d+)/);
+            
+            if (matterDetailsMatch) {
+                // We're on a matter details page - try to get the matter info
+                let matterTitle = null;
+                let matterAbbrev = null;
+                
+                // First, try to get the title from the h1 with class "matter-title"
+                const matterTitleElement = document.querySelector('.matter-title');
+                if (matterTitleElement) {
+                    matterTitle = matterTitleElement.textContent.trim();
+                }
+                
+                // Fallback: try to get from meta tag
+                if (!matterTitle) {
+                    const titleMeta = document.querySelector('meta[name="matter-id"]');
+                    if (titleMeta) {
+                        // Try to find the title in the page's ViewData
+                        const pageTitle = document.title;
+                        if (pageTitle) {
+                            matterTitle = pageTitle.replace(' - Notal', '').trim();
+                        }
+                    }
+                }
+                
+                // Fallback: try to get from matter-details-container data attribute
+                if (!matterTitle) {
+                    const detailsContainer = document.querySelector('.matter-details-container');
+                    if (detailsContainer && detailsContainer.hasAttribute('data-matter-title')) {
+                        matterTitle = detailsContainer.getAttribute('data-matter-title');
+                    }
+                }
+                
+                // Fallback: try to get from matter-icon-badge (which has the abbreviation) and task cards
+                if (!matterTitle) {
+                    const taskCard = document.querySelector('[data-matter-title]');
+                    if (taskCard) {
+                        matterTitle = taskCard.getAttribute('data-matter-title');
+                    }
+                }
+                
+                // If we found a matter title, update the card
+                if (matterTitle) {
+                    // Generate abbreviation from title (first letter of first two words)
+                    const words = matterTitle.split(/[\s-]+/).filter(w => w.length > 0);
+                    if (words.length >= 2) {
+                        matterAbbrev = (words[0][0] + words[1][0]).toUpperCase();
+                    } else if (words.length === 1) {
+                        matterAbbrev = words[0].substring(0, 2).toUpperCase();
+                    } else {
+                        matterAbbrev = 'M';
+                    }
+                    
+                    // Check if we can get abbreviation from existing matter-icon-badge
+                    const matterIconBadge = document.querySelector('.matter-icon-badge');
+                    if (matterIconBadge) {
+                        const badgeText = matterIconBadge.textContent.trim();
+                        if (badgeText && badgeText.length <= 3) {
+                            matterAbbrev = badgeText;
+                        }
+                    }
+                    
+                    // Update icon to show abbreviation
+                    timerMatterIcon.innerHTML = matterAbbrev || 'M';
+                    timerMatterIcon.style.background = 'linear-gradient(135deg, #3d1019, #3d1019)';
+                    timerMatterIcon.style.fontSize = '0.75rem';
+                    
+                    // Update title
+                    timerMatterTitle.textContent = matterTitle;
+                    timerMatterTitle.style.color = '#1a202c';
+                    timerMatterTitle.className = 'mb-0 fw-bold text-dark';
+                } else {
+                    // Reset to default state
+                    resetTimerMatterCard();
+                }
+            } else {
+                // Not on a matter details page - reset to default
+                resetTimerMatterCard();
+            }
+        }
+        
+        function resetTimerMatterCard() {
+            const timerMatterIcon = document.getElementById('timerMatterIcon');
+            const timerMatterTitle = document.getElementById('timerMatterTitle');
+            
+            if (timerMatterIcon) {
+                timerMatterIcon.innerHTML = '<i class="fa-solid fa-building-columns"></i>';
+                timerMatterIcon.style.background = '#6b7280';
+                timerMatterIcon.style.fontSize = '0.75rem';
+            }
+            
+            if (timerMatterTitle) {
+                timerMatterTitle.textContent = 'Select a Matter';
+                timerMatterTitle.style.color = '#6b7280';
+                timerMatterTitle.className = 'mb-0 fw-semibold';
+            }
+        }
+        
+        // Update on page load with a small delay to ensure DOM is ready
+        setTimeout(updateTimerMatterCard, 100);
+        
+        // Also try to update immediately
+        updateTimerMatterCard();
+        
+        // Update when navigating (for AJAX navigation)
+        if (window.updateTimerMatterCard === undefined) {
+            window.updateTimerMatterCard = updateTimerMatterCard;
+        }
+        
+        // Listen for DOMContentLoaded in case we're early
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(updateTimerMatterCard, 50);
+            });
+        }
         
         // Session Manager Integration for Billing Page
         const isBillingPage = window.location.pathname.includes('/Billing');
