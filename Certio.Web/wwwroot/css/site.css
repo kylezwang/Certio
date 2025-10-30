@@ -345,7 +345,7 @@ body {
   background: linear-gradient(135deg, #3d1019, #3d1019);
   color: white;
   border-color: #3d1019;
-  box-shadow: 0 4px 12px rgba(11, 54, 94, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .conversation-title {
@@ -3376,7 +3376,7 @@ body {
 .upload-btn:hover {
   background: linear-gradient(135deg, #3d1019, #3d1019);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(11, 54, 94, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .folder-item {
@@ -3779,11 +3779,18 @@ body.communications-page .communications-layout {
   background: #ef4444;
   color: white;
   font-size: 0.75rem;
-  padding: 0.125rem 0.375rem;
-  border-radius: 0.75rem;
+  padding: 2px;
+  border-radius: 50%;
   font-weight: 600;
   min-width: 1.25rem;
+  min-height: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
+  line-height: 1;
+  box-sizing: border-box;
+  aspect-ratio: 1;
 }
 
 /* Subcategory Styles */

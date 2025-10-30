@@ -102,6 +102,38 @@ namespace Certio.Web.Controllers
             return PartialView("~/Views/Billing/_BillingOverview.cshtml");
         }
 
+        // GET: /Client/{orgId}/Billing/Trusts
+        [Authorize(Policy = "OrgMember")]
+        [HttpGet("/Client/{orgId:int}/Billing/Trusts")]
+        public async Task<IActionResult> GetTrusts(int orgId)
+        {
+            var (user, _) = GetUserContext();
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            // TODO: Implement actual trusts retrieval
+            // For now, return partial view with placeholder data
+            return PartialView("~/Views/Billing/_BillingTrusts.cshtml");
+        }
+
+        // GET: /Client/{orgId}/Billing/Invoices
+        [Authorize(Policy = "OrgMember")]
+        [HttpGet("/Client/{orgId:int}/Billing/Invoices")]
+        public async Task<IActionResult> GetInvoices(int orgId)
+        {
+            var (user, _) = GetUserContext();
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            // TODO: Implement actual invoices retrieval
+            // For now, return partial view with placeholder data
+            return PartialView("~/Views/Billing/_BillingInvoices.cshtml");
+        }
+
         private (User? user, int? organizationId) GetUserContext()
         {
             var customUser = HttpContext.Items["CustomUser"] as User;

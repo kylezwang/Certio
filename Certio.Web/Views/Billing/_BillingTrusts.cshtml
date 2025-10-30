@@ -1,0 +1,512 @@
+<!-- Trusts View -->
+<div class="view-container" id="billingTrustsView">
+    <div class="inbox-container">
+        <!-- Trusts Header -->
+        <div class="inbox-header">
+            <div class="inbox-title">
+                <i class="fas fa-hand-holding-usd"></i>
+                <span>Trusts</span>
+            </div>
+            <div class="inbox-actions">
+                <button class="action-btn" title="Filter">
+                    <i class="fas fa-filter"></i>
+                </button>
+                <button class="action-btn" title="Sort">
+                    <i class="fas fa-sort"></i>
+                </button>
+                <button class="action-btn" title="More options">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Column Headers Row -->
+        <div class="billing-card-item billing-column-header-card" style="background: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); padding: 0.6rem 1rem 0.2rem 1rem; margin-bottom: 0.4rem;" onclick="event.stopPropagation();">
+            <!-- Client Column -->
+            <div class="billing-client-column">
+                <button class="column-header-btn" style="text-align: left;">Client</button>
+            </div>
+            
+            <!-- Matter Column -->
+            <div class="billing-matter-column">
+                <button class="column-header-btn" style="text-align: left;">Matter</button>
+            </div>
+            
+            <!-- Trust Usage Column -->
+            <div class="billing-trust-usage-column">
+                <button class="column-header-btn" style="text-align: left;">Trust Usage</button>
+            </div>
+            
+            <!-- Balance Column -->
+            <div class="billing-balance-column">
+                <button class="column-header-btn" style="text-align: right;">Balance</button>
+            </div>
+            
+            <!-- Last Deposit Column -->
+            <div class="billing-deposit-column">
+                <button class="column-header-btn" style="text-align: center;">Last Deposit</button>
+            </div>
+            
+            <!-- Last Withdrawal Column -->
+            <div class="billing-withdrawal-column">
+                <button class="column-header-btn" style="text-align: center;">Last Withdrawal</button>
+            </div>
+            
+            <!-- Status Column -->
+            <div class="billing-status-column">
+                <button class="column-header-btn" style="text-align: center;">Status</button>
+            </div>
+            
+            <!-- Actions Column -->
+            <div class="billing-actions-column">
+                <button class="column-header-btn" style="text-align: center;">Actions</button>
+            </div>
+        </div>
+
+        <!-- Trust Cards -->
+        <div class="billing-cards-container" id="billingCardsContainer">
+            <!-- Sample Trust Rows -->
+            
+            <!-- Entry 1 - Active -->
+            <div class="billing-card-item">
+                <!-- Client -->
+                <div class="billing-client-column">
+                    <span style="font-weight: 600; color: #1e293b;">Smith Corp</span>
+                </div>
+                
+                <!-- Matter -->
+                <div class="billing-matter-column">
+                    <span style="color: #1e293b;">Contract Review</span>
+                </div>
+                
+                <!-- Trust Usage -->
+                <div class="billing-trust-usage-column">
+                    <div class="trust-usage-wrapper">
+                        <span class="trust-usage-text">$20,000 / $25,000</span>
+                        <div class="trust-usage-bar-container">
+                            <div class="trust-progress">
+                                <div class="trust-progress-bar" style="width: 80%"></div>
+                            </div>
+                            <span class="trust-usage-percentage">80%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Balance -->
+                <div class="billing-balance-column">
+                    <span style="color: #1e293b; font-weight: 500;">$5,000</span>
+                </div>
+                
+                <!-- Last Deposit -->
+                <div class="billing-deposit-column">
+                    <span style="color: #64748b; font-size: 0.85rem;">Jan 10, 2025</span>
+                </div>
+                
+                <!-- Last Withdrawal -->
+                <div class="billing-withdrawal-column">
+                    <span style="color: #64748b; font-size: 0.85rem;">Jan 15, 2025</span>
+                </div>
+                
+                <!-- Status -->
+                <div class="billing-status-column">
+                    <span class="billing-status-badge active">Active</span>
+                </div>
+                
+                <!-- Actions -->
+                <div class="billing-actions-column">
+                    <button class="billing-action-btn deposit-btn" onclick="event.stopPropagation(); alert('Deposit functionality');">Deposit</button>
+                    <button class="billing-action-btn withdraw-btn" onclick="event.stopPropagation(); alert('Withdraw functionality');">Withdraw</button>
+                    <button class="billing-action-btn view-btn" onclick="event.stopPropagation(); alert('View details');" title="View details">
+                        <i class="fas fa-file-alt"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Entry 2 - Active -->
+            <div class="billing-card-item">
+                <div class="billing-client-column">
+                    <span style="font-weight: 600; color: #1e293b;">Johnson LLC</span>
+                </div>
+                <div class="billing-matter-column">
+                    <span style="color: #1e293b;">Litigation Support</span>
+                </div>
+                <div class="billing-trust-usage-column">
+                    <div class="trust-usage-wrapper">
+                        <span class="trust-usage-text">$15,000 / $50,000</span>
+                        <div class="trust-usage-bar-container">
+                            <div class="trust-progress">
+                                <div class="trust-progress-bar" style="width: 30%"></div>
+                            </div>
+                            <span class="trust-usage-percentage">30%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="billing-balance-column">
+                    <span style="color: #1e293b; font-weight: 500;">$35,000</span>
+                </div>
+                <div class="billing-deposit-column">
+                    <span style="color: #64748b; font-size: 0.85rem;">Dec 15, 2024</span>
+                </div>
+                <div class="billing-withdrawal-column">
+                    <span style="color: #64748b; font-size: 0.85rem;">Jan 14, 2025</span>
+                </div>
+                <div class="billing-status-column">
+                    <span class="billing-status-badge active">Active</span>
+                </div>
+                <div class="billing-actions-column">
+                    <button class="billing-action-btn deposit-btn" onclick="event.stopPropagation(); alert('Deposit functionality');">Deposit</button>
+                    <button class="billing-action-btn withdraw-btn" onclick="event.stopPropagation(); alert('Withdraw functionality');">Withdraw</button>
+                    <button class="billing-action-btn view-btn" onclick="event.stopPropagation(); alert('View details');" title="View details">
+                        <i class="fas fa-file-alt"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Entry 3 - Depleted -->
+            <div class="billing-card-item">
+                <div class="billing-client-column">
+                    <span style="font-weight: 600; color: #1e293b;">Acme Inc</span>
+                </div>
+                <div class="billing-matter-column">
+                    <span style="color: #1e293b;">Corporate Filing</span>
+                </div>
+                <div class="billing-trust-usage-column">
+                    <div class="trust-usage-wrapper">
+                        <span class="trust-usage-text">$30,000 / $30,000</span>
+                        <div class="trust-usage-bar-container">
+                            <div class="trust-progress">
+                                <div class="trust-progress-bar" style="width: 100%"></div>
+                            </div>
+                            <span class="trust-usage-percentage">100%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="billing-balance-column">
+                    <span style="color: #d97706; font-weight: 600;">$0</span>
+                </div>
+                <div class="billing-deposit-column">
+                    <span style="color: #64748b; font-size: 0.85rem;">Nov 20, 2024</span>
+                </div>
+                <div class="billing-withdrawal-column">
+                    <span style="color: #64748b; font-size: 0.85rem;">Jan 13, 2025</span>
+                </div>
+                <div class="billing-status-column">
+                    <span class="billing-status-badge depleted">Depleted</span>
+                </div>
+                <div class="billing-actions-column">
+                    <button class="billing-action-btn deposit-btn" onclick="event.stopPropagation(); alert('Deposit functionality');">Deposit</button>
+                    <button class="billing-action-btn withdraw-btn" onclick="event.stopPropagation(); alert('Withdraw functionality');">Withdraw</button>
+                    <button class="billing-action-btn view-btn" onclick="event.stopPropagation(); alert('View details');" title="View details">
+                        <i class="fas fa-file-alt"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Entry 4 - Overdrawn -->
+            <div class="billing-card-item">
+                <div class="billing-client-column">
+                    <span style="font-weight: 600; color: #1e293b;">Global Tech</span>
+                </div>
+                <div class="billing-matter-column">
+                    <span style="color: #1e293b;">IP Consultation</span>
+                </div>
+                <div class="billing-trust-usage-column">
+                    <div class="trust-usage-wrapper">
+                        <span class="trust-usage-text">$27,000 / $25,000</span>
+                        <div class="trust-usage-bar-container">
+                            <div class="trust-progress">
+                                <div class="trust-progress-bar" style="width: 100%"></div>
+                            </div>
+                            <span class="trust-usage-percentage">107%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="billing-balance-column">
+                    <span style="color: #dc2626; font-weight: 600;">$-2,000</span>
+                </div>
+                <div class="billing-deposit-column">
+                    <span style="color: #64748b; font-size: 0.85rem;">Dec 5, 2024</span>
+                </div>
+                <div class="billing-withdrawal-column">
+                    <span style="color: #64748b; font-size: 0.85rem;">Jan 12, 2025</span>
+                </div>
+                <div class="billing-status-column">
+                    <span class="billing-status-badge overdrawn">Overdrawn</span>
+                </div>
+                <div class="billing-actions-column">
+                    <button class="billing-action-btn deposit-btn" onclick="event.stopPropagation(); alert('Deposit functionality');">Deposit</button>
+                    <button class="billing-action-btn withdraw-btn" onclick="event.stopPropagation(); alert('Withdraw functionality');">Withdraw</button>
+                    <button class="billing-action-btn view-btn" onclick="event.stopPropagation(); alert('View details');" title="View details">
+                        <i class="fas fa-file-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Billing Trusts Page Styles - Match Time Entries styling exactly */
+    #billingTrustsView.view-container {
+        background-color: #ffffff;
+        height: 100%;
+    }
+    
+    #billingTrustsView .inbox-container {
+        background-color: #ffffff;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        box-shadow: transparent;
+        padding: 0rem 0rem 0.2rem 0rem;
+        margin-top: 0;
+    }
+    
+    /* Inbox Header - Match Tasks Page */
+    #billingTrustsView .inbox-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        padding-top: 0.75rem;
+        padding-left: 0.4rem;
+        padding-right: 0.6rem;
+    }
+    
+    #billingTrustsView .inbox-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    #billingTrustsView .inbox-title i {
+        font-size: 1.2rem;
+        color: #232b39;
+    }
+    
+    #billingTrustsView .inbox-title span {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-right: 1rem;
+        color: #232b39;
+    }
+    
+    #billingTrustsView .inbox-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    #billingTrustsView .action-btn {
+        background: none;
+        border: none;
+        padding: 0.5rem;
+        border-radius: 6px;
+        cursor: pointer;
+        color: #4a5568;
+        transition: background-color 0.2s;
+        font-size: 1rem;
+    }
+    
+    #billingTrustsView .action-btn:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Column Header Button Hover Effect */
+    #billingTrustsView .column-header-btn {
+        padding: 0.375rem 0.5rem;
+        border: none;
+        background: white;
+        color: #2d3748;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        width: 100%;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    
+    #billingTrustsView .column-header-btn:hover {
+        background-color: #f3f4f6;
+        color: #1e293b;
+    }
+
+    /* Billing Card Columns Layout - Adjusted for Trusts columns */
+    #billingTrustsView .billing-card-item {
+        display: grid;
+        grid-template-columns: 1.2fr 1.2fr 1.8fr 0.9fr 1fr 1fr 1fr 1.5fr;
+        gap: 0.75rem;
+        align-items: center;
+        padding: 0.875rem 1rem;
+        background: white;
+        border: 1px solid #eeeeee;
+        border-radius: 0.5rem;
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    #billingTrustsView .billing-card-item:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+        background-color: #fafafa;
+        border-color: #cbd5e1;
+    }
+    
+    #billingTrustsView .billing-card-item.billing-column-header-card {
+        cursor: default;
+        background: white !important;
+        border-color: #e2e8f0 !important;
+    }
+    
+    #billingTrustsView .billing-card-item.billing-column-header-card:hover {
+        transform: none;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .billing-client-column,
+    .billing-matter-column {
+        font-size: 0.875rem;
+    }
+
+    /* Trust Usage Column Styling */
+    .billing-trust-usage-column {
+        font-size: 0.875rem;
+    }
+
+    .trust-usage-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 0.375rem;
+    }
+
+    .trust-usage-text {
+        font-size: 0.875rem;
+        color: #1e293b;
+        font-weight: 400;
+    }
+
+    .trust-usage-bar-container {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    /* Progress bar styling - copied from Tasks/Index inbox view */
+    .trust-progress {
+        flex: 1;
+        width: 60px;
+        height: 4px;
+        background-color: #e5e7eb;
+        border-radius: 2px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .trust-progress-bar {
+        background-color: #3d1019;
+        height: 100%;
+        transition: width 0.3s;
+        border-radius: 2px;
+    }
+
+    .trust-usage-percentage {
+        font-size: 0.7rem;
+        color: #6b7280;
+        white-space: nowrap;
+        min-width: 2.5rem;
+        text-align: right;
+    }
+
+    .billing-balance-column {
+        font-size: 0.875rem;
+        text-align: right;
+    }
+
+    .billing-deposit-column,
+    .billing-withdrawal-column {
+        font-size: 0.85rem;
+        color: #64748b;
+        text-align: center;
+    }
+
+    .billing-status-column {
+        text-align: center;
+        display: flex;
+        justify-content: center;
+    }
+
+    .billing-status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .billing-status-badge.active {
+        background: #f1f8e9;
+        color: #558b2f;
+    }
+
+    .billing-status-badge.depleted {
+        background: #f3f4f6;
+        color: #6b7280;
+    }
+
+    .billing-status-badge.overdrawn {
+        background: #ffebee;
+        color: #c62828;
+    }
+
+    .billing-actions-column {
+        display: flex;
+        gap: 0.375rem;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .billing-action-btn {
+        padding: 0.375rem 0.75rem;
+        border-radius: 0.375rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        border: 1px solid #cbd5e1;
+        background: white;
+        color: #475569;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .billing-action-btn:hover {
+        background: #f8fafc;
+        border-color: #94a3b8;
+        transform: translateY(-1px);
+    }
+
+    .billing-action-btn.deposit-btn,
+    .billing-action-btn.withdraw-btn,
+    .billing-action-btn.view-btn {
+        background: white;
+        color: #475569;
+        border-color: #cbd5e1;
+    }
+
+    .billing-action-btn.deposit-btn:hover,
+    .billing-action-btn.withdraw-btn:hover,
+    .billing-action-btn.view-btn:hover {
+        background: #f8fafc;
+        border-color: #94a3b8;
+    }
+
+    .billing-action-btn.view-btn {
+        padding: 0.375rem 0.5rem;
+        min-width: auto;
+    }
+
+    .billing-action-btn.view-btn i {
+        font-size: 0.75rem;
+    }
+</style>

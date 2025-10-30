@@ -2,7 +2,7 @@
 <div class="view-container" id="billingOverviewView">
     <div class="inbox-container">
         <!-- Stats Cards -->
-        <div class="row mb-3 mt-3" style="--bs-gutter-x: 1rem;">
+        <div class="row mt-3" style="--bs-gutter-x: 1rem;">
             <div class="col-md-3 mb-3">
                 <div class="card h-100 border-0">
                     <div class="card-body p-4">
@@ -67,5 +67,455 @@
                 </div>
             </div>
         </div>
+
+        <!-- Recent Activity Section -->
+        <div class="row" style="--bs-gutter-x: 1rem;">
+            <!-- Table Column (2/3 width) -->
+            <div class="col-md-8" style="box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); border-radius: 12px; margin: 0 0.5rem;">
+                <!-- Recent Activity Header -->
+                <div class="inbox-header">
+                    <div class="inbox-title">
+                        <i class="fas fa-clock"></i>
+                        <span>Recent Activity</span>
+                    </div>
+                    <div class="inbox-actions">
+                        <button class="action-btn" title="Filter">
+                            <i class="fas fa-filter"></i>
+                        </button>
+                        <button class="action-btn" title="Sort">
+                            <i class="fas fa-sort"></i>
+                        </button>
+                        <button class="action-btn" title="More options">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Column Headers Row -->
+                <div class="billing-card-item billing-column-header-card" style="background: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); padding: 0.6rem 1rem 0.2rem 1rem; margin-bottom: 0.4rem;" onclick="event.stopPropagation();">
+                    <!-- Date Column -->
+                    <div class="billing-date-column">
+                        <button class="column-header-btn" style="text-align: left;">Date</button>
+                    </div>
+                    
+                    <!-- Type Column -->
+                    <div class="billing-type-column">
+                        <button class="column-header-btn" style="text-align: left;">Type</button>
+                    </div>
+                    
+                    <!-- Client Column -->
+                    <div class="billing-client-column">
+                        <button class="column-header-btn" style="text-align: left;">Client</button>
+                    </div>
+                    
+                    <!-- Matter Column -->
+                    <div class="billing-matter-column">
+                        <button class="column-header-btn" style="text-align: left;">Matter</button>
+                    </div>
+                    
+                    <!-- Attorney Column -->
+                    <div class="billing-attorney-column">
+                        <button class="column-header-btn" style="text-align: left;">Attorney</button>
+                    </div>
+                    
+                    <!-- Description Column -->
+                    <div class="billing-description-column-overview">
+                        <button class="column-header-btn" style="text-align: left;">Description</button>
+                    </div>
+                    
+                    <!-- Amount Column -->
+                    <div class="billing-amount-column">
+                        <button class="column-header-btn" style="text-align: right;">Amount</button>
+                    </div>
+                    
+                    <!-- Status Column -->
+                    <div class="billing-status-column">
+                        <button class="column-header-btn" style="text-align: center;">Status</button>
+                    </div>
+                </div>
+
+                <!-- Activity Cards -->
+                <div class="billing-cards-container" id="billingOverviewCardsContainer">
+                    <!-- Sample Activity Rows -->
+                    
+                    <!-- Entry 1 -->
+                    <div class="billing-card-item">
+                        <!-- Date -->
+                        <div class="billing-date-column">
+                            Jan 15, 2025
+                        </div>
+                        
+                        <!-- Type -->
+                        <div class="billing-type-column">
+                            <span style="color: #1e293b;">Time Entry</span>
+                        </div>
+                        
+                        <!-- Client -->
+                        <div class="billing-client-column">
+                            <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Smith Corp</span>
+                        </div>
+                        
+                        <!-- Matter -->
+                        <div class="billing-matter-column">
+                            <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Contract Review</span>
+                        </div>
+                        
+                        <!-- Attorney -->
+                        <div class="billing-attorney-column">
+                            <div class="billing-user-avatar">JD</div>
+                            <span class="billing-user-name">John Doe</span>
+                        </div>
+                        
+                        <!-- Description -->
+                        <div class="billing-description-column-overview">
+                            <button class="billing-description-btn-overview" title="Reviewed contract terms and conditions" onclick="event.stopPropagation();">
+                                <i class="fa-solid fa-align-left" style="transform: scaleY(-1);"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Amount -->
+                        <div class="billing-amount-column">
+                            $1,225
+                        </div>
+                        
+                        <!-- Status -->
+                        <div class="billing-status-column">
+                            <span class="billing-status-badge needs-review">Needs Review</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Entry 2 -->
+                    <div class="billing-card-item">
+                        <div class="billing-date-column">
+                            Jan 14, 2025
+                        </div>
+                        <div class="billing-type-column">
+                            <span style="color: #1e293b;">Expense</span>
+                        </div>
+                        <div class="billing-client-column">
+                            <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Johnson LLC</span>
+                        </div>
+                        <div class="billing-matter-column">
+                            <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Litigation Support</span>
+                        </div>
+                        <div class="billing-attorney-column">
+                            <div class="billing-user-avatar">JS</div>
+                            <span class="billing-user-name">Jane Smith</span>
+                        </div>
+                        <div class="billing-description-column-overview">
+                            <button class="billing-description-btn-overview" title="Court filing fees" onclick="event.stopPropagation();">
+                                <i class="fa-solid fa-align-left" style="transform: scaleY(-1);"></i>
+                            </button>
+                        </div>
+                        <div class="billing-amount-column">
+                            $450
+                        </div>
+                        <div class="billing-status-column">
+                            <span class="billing-status-badge approved">Approved</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Entry 3 -->
+                    <div class="billing-card-item">
+                        <div class="billing-date-column">
+                            Jan 13, 2025
+                        </div>
+                        <div class="billing-type-column">
+                            <span style="color: #1e293b;">Time Entry</span>
+                        </div>
+                        <div class="billing-client-column">
+                            <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Acme Inc</span>
+                        </div>
+                        <div class="billing-matter-column">
+                            <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Corporate Filing</span>
+                        </div>
+                        <div class="billing-attorney-column">
+                            <div class="billing-user-avatar">JD</div>
+                            <span class="billing-user-name">John Doe</span>
+                        </div>
+                        <div class="billing-description-column-overview">
+                            <button class="billing-description-btn-overview" title="Prepared corporate documents" onclick="event.stopPropagation();">
+                                <i class="fa-solid fa-align-left" style="transform: scaleY(-1);"></i>
+                            </button>
+                        </div>
+                        <div class="billing-amount-column">
+                            $700
+                        </div>
+                        <div class="billing-status-column">
+                            <span class="billing-status-badge billed">Billed</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column Card (1/3 width) -->
+            <div class="col-md-4" style="width: 32%;">
+                <div class="card h-100 border-0">
+                    <div class="card-body p-4">
+                        <h5 class="card-title fw-bold mb-4 text-center" style="color: #1e293b;">Collection Rate</h5>
+                        
+                        <div class="text-center mb-4">
+                            <div class="display-4 fw-bold mb-2" style="color: #3d1019; font-size: 3rem;">87.3%</div>
+                            <p class="text-muted mb-0" style="font-size: 0.875rem;">Of billed invoices paid</p>
+                        </div>
+                        
+                        <div class="d-flex flex-column gap-3 mt-4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted" style="font-size: 0.875rem;">Total Billed</span>
+                                <span class="fw-semibold" style="color: #1e293b; font-size: 0.875rem;">$285,400</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted" style="font-size: 0.875rem;">Total Collected</span>
+                                <span class="fw-semibold" style="color: #1e293b; font-size: 0.875rem;">$249,200</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted" style="font-size: 0.875rem;">Outstanding</span>
+                                <span class="fw-semibold" style="color: #dc2626; font-size: 0.875rem;">$36,200</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<style>
+    /* Billing Overview Page Styles */
+    #billingOverviewView.view-container {
+        background-color: #ffffff;
+        height: 100%;
+    }
+    
+    #billingOverviewView .inbox-container {
+        background-color: #ffffff;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        box-shadow: transparent;
+        padding: 0rem 0rem 0.2rem 0rem;
+        margin-top: 0;
+    }
+
+    /* Inbox Header - Match Tasks Page */
+    #billingOverviewView .inbox-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        padding-top: 0.75rem;
+        padding-left: 1rem;
+        padding-right: 0.6rem;
+    }
+    
+    #billingOverviewView .inbox-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    #billingOverviewView .inbox-title i {
+        font-size: 1.2rem;
+        color: #232b39;
+    }
+    
+    #billingOverviewView .inbox-title span {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-right: 1rem;
+        color: #232b39;
+    }
+    
+    #billingOverviewView .inbox-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    #billingOverviewView .action-btn {
+        background: none;
+        border: none;
+        padding: 0.5rem;
+        border-radius: 6px;
+        cursor: pointer;
+        color: #4a5568;
+        transition: background-color 0.2s;
+        font-size: 1rem;
+    }
+    
+    #billingOverviewView .action-btn:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    /* Column Header Button Hover Effect */
+    #billingOverviewView .column-header-btn {
+        padding: 0.375rem 0.5rem;
+        border: none;
+        background: white;
+        color: #2d3748;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        width: 100%;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    
+    #billingOverviewView .column-header-btn:hover {
+        background-color: #f3f4f6;
+        color: #1e293b;
+    }
+
+    /* Billing Card Columns Layout - Adjusted for Overview columns */
+    #billingOverviewView .billing-card-item {
+        display: grid;
+        grid-template-columns: 0.8fr 0.9fr 1fr 1fr 1.2fr 0.6fr 0.9fr 1fr;
+        gap: 0.75rem;
+        align-items: center;
+        padding: 0.875rem 1rem;
+        background: white;
+        border: 1px solid #eeeeee;
+        border-radius: 0.5rem;
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    #billingOverviewView .billing-card-item:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+        background-color: #fafafa;
+        border-color: #cbd5e1;
+    }
+    
+    #billingOverviewView .billing-card-item.billing-column-header-card {
+        cursor: default;
+        background: white !important;
+        border-color: #e2e8f0 !important;
+    }
+    
+    #billingOverviewView .billing-card-item.billing-column-header-card:hover {
+        transform: none;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .billing-date-column {
+        font-size: 0.85rem;
+        color: #64748b;
+        font-weight: 500;
+        text-align: left;
+    }
+
+    .billing-type-column {
+        font-size: 0.875rem;
+        color: #1e293b;
+        text-align: left;
+    }
+
+    .billing-client-column,
+    .billing-matter-column {
+        font-size: 0.875rem;
+        text-align: left;
+    }
+
+    .billing-attorney-column {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        justify-content: flex-start;
+    }
+
+    .billing-user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #3d1019;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 600;
+        flex-shrink: 0;
+        border: 2px solid #f8f9fa;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .billing-user-name {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #1e293b;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .billing-description-column-overview {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #billingOverviewView .billing-column-header-card .billing-description-column-overview {
+        justify-content: flex-start;
+    }
+
+    .billing-description-btn-overview {
+        background: none;
+        border: none;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        color: #6b7280;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .billing-description-btn-overview:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+        color: #1f2937;
+    }
+
+    .billing-description-btn-overview i {
+        font-size: 0.875rem;
+    }
+
+    .billing-amount-column {
+        font-size: 0.875rem;
+        color: #1e293b;
+        font-weight: 600;
+        text-align: right;
+    }
+
+    .billing-status-column {
+        text-align: center;
+        display: flex;
+        justify-content: center;
+    }
+
+    .billing-status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .billing-status-badge.needs-review {
+        background: #FEF3C7;
+        color: #92400E;
+    }
+
+    .billing-status-badge.approved {
+        background: #f1f8e9;
+        color: #558b2f;
+    }
+
+    .billing-status-badge.billed {
+        background: #e3f2fd;
+        color: #1565c0;
+    }
+</style>

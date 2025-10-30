@@ -58,7 +58,7 @@
             targetContent.classList.add('active');
             
             // Load tab content via AJAX if not already loaded
-            if (!loadedTabs.has(tabName) && (tabName === 'time-entries' || tabName === 'expenses' || tabName === 'overview')) {
+            if (!loadedTabs.has(tabName) && (tabName === 'time-entries' || tabName === 'expenses' || tabName === 'overview' || tabName === 'trusts' || tabName === 'invoices')) {
                 loadTabContent(tabName, targetContent);
             }
         }
@@ -115,6 +115,12 @@
             case 'overview':
                 url = `/Client/${orgId}/Billing/Overview`;
                 break;
+            case 'trusts':
+                url = `/Client/${orgId}/Billing/Trusts`;
+                break;
+            case 'invoices':
+                url = `/Client/${orgId}/Billing/Invoices`;
+                break;
             default:
                 // Tab not implemented yet
                 loadedTabs.add(tabName);
@@ -167,6 +173,14 @@
             case 'overview':
                 // Initialize overview specific functionality
                 // (e.g., charts, graphs)
+                break;
+            case 'trusts':
+                // Initialize trusts specific functionality
+                // (e.g., deposit/withdraw buttons, filters)
+                break;
+            case 'invoices':
+                // Initialize invoices specific functionality
+                // (e.g., view/payment/download buttons, filters)
                 break;
         }
     }

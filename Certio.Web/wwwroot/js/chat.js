@@ -2544,11 +2544,11 @@ function loadConversation(conversationId) {
     // Save the selected conversation to localStorage for persistence
     saveSelectedConversation(conversationId);
     
-    // Update conversation selection
+    // Update conversation selection - only target sidebar tabs, not dashboard items
     document.querySelectorAll('.conversation-tab').forEach(tab => {
         tab.classList.remove('active');
     });
-    const selectedTab = document.querySelector(`[data-conversation-id="${conversationId}"]`);
+    const selectedTab = document.querySelector(`.conversation-tab[data-conversation-id="${conversationId}"]`);
     if (selectedTab) {
         selectedTab.classList.add('active');
         console.log('Selected conversation tab:', selectedTab);
@@ -2903,8 +2903,8 @@ function restoreSelectedConversation() {
     console.log('Attempting to restore conversation:', savedConversationId);
     
     if (savedConversationId) {
-        // Check if the conversation tab exists
-        const conversationTab = document.querySelector(`[data-conversation-id="${savedConversationId}"]`);
+        // Check if the conversation tab exists - only look for sidebar tabs, not dashboard items
+        const conversationTab = document.querySelector(`.conversation-tab[data-conversation-id="${savedConversationId}"]`);
         if (conversationTab) {
             console.log('Restoring conversation:', savedConversationId);
             loadConversation(savedConversationId);
