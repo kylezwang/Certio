@@ -1,0 +1,453 @@
+<!-- Invoices View -->
+<div class="view-container" id="billingInvoicesView">
+    <div class="inbox-container">
+        <!-- Invoices Header -->
+        <div class="inbox-header">
+            <div class="inbox-title">
+                <i class="fas fa-file-invoice"></i>
+                <span>Invoices</span>
+            </div>
+            <div class="inbox-actions">
+                <button class="action-btn" title="Filter">
+                    <i class="fas fa-filter"></i>
+                </button>
+                <button class="action-btn" title="Sort">
+                    <i class="fas fa-sort"></i>
+                </button>
+                <button class="action-btn" title="More options">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Column Headers Row -->
+        <div class="billing-card-item billing-column-header-card" style="background: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); padding: 0.6rem 1rem 0.2rem 1rem; margin-bottom: 0.4rem;" onclick="event.stopPropagation();">
+            <!-- Invoice # Column -->
+            <div class="billing-invoice-number-column">
+                <button class="column-header-btn" style="text-align: left;">Invoice #</button>
+            </div>
+            
+            <!-- Client Column -->
+            <div class="billing-client-column">
+                <button class="column-header-btn" style="text-align: left;">Client</button>
+            </div>
+            
+            <!-- Date Column -->
+            <div class="billing-date-column">
+                <button class="column-header-btn" style="text-align: left;">Date</button>
+            </div>
+            
+            <!-- Due Date Column -->
+            <div class="billing-due-date-column">
+                <button class="column-header-btn" style="text-align: left;">Due Date</button>
+            </div>
+            
+            <!-- Hours Column -->
+            <div class="billing-hours-column">
+                <button class="column-header-btn" style="text-align: left;">Hours</button>
+            </div>
+            
+            <!-- Amount Column -->
+            <div class="billing-amount-column">
+                <button class="column-header-btn" style="text-align: left;">Amount</button>
+            </div>
+            
+            <!-- Status Column -->
+            <div class="billing-status-column">
+                <button class="column-header-btn" style="text-align: left;">Status</button>
+            </div>
+            
+            <!-- Actions Column -->
+            <div class="billing-actions-column">
+                <button class="column-header-btn" style="text-align: center;"></button>
+            </div>
+        </div>
+
+        <!-- Invoice Cards -->
+        <div class="billing-cards-container" id="billingCardsContainer">
+            <!-- Sample Invoice Rows -->
+            
+            <!-- Entry 1 - Pending -->
+            <div class="billing-card-item">
+                <!-- Invoice # -->
+                <div class="billing-invoice-number-column">
+                    <span style="font-weight: 500; color: #1e293b;">INV-2025-001</span>
+                </div>
+                
+                <!-- Client -->
+                <div class="billing-client-column">
+                    <span style="color: #1e293b;">Smith Corp</span>
+                </div>
+                
+                <!-- Date -->
+                <div class="billing-date-column">
+                    <span style="color: #64748b; font-size: 0.85rem;">Jan 10, 2025</span>
+                </div>
+                
+                <!-- Due Date -->
+                <div class="billing-due-date-column">
+                    <span style="color: #64748b; font-size: 0.85rem;">Feb 10, 2025</span>
+                </div>
+                
+                <!-- Hours -->
+                <div class="billing-hours-column">
+                    <span style="color: #1e293b;">35.5</span>
+                </div>
+                
+                <!-- Amount -->
+                <div class="billing-amount-column">
+                    <span style="color: #1e293b; font-weight: 500;">$12,500</span>
+                </div>
+                
+                <!-- Status -->
+                <div class="billing-status-column">
+                    <span class="billing-status-badge pending">Pending</span>
+                </div>
+                
+                <!-- Actions -->
+                <div class="billing-actions-column">
+                    <button class="billing-action-btn view-btn" onclick="event.stopPropagation(); alert('View invoice');">View</button>
+                    <button class="billing-action-btn payment-btn" onclick="event.stopPropagation(); alert('Payment functionality');">
+                        <i class="fas fa-credit-card" style="font-size: 0.7rem; margin-right: 0.25rem;"></i>Payment
+                    </button>
+                    <button class="billing-action-btn download-btn" onclick="event.stopPropagation(); alert('Download invoice');" title="Download">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Entry 2 - Paid -->
+            <div class="billing-card-item">
+                <div class="billing-invoice-number-column">
+                    <span style="font-weight: 500; color: #1e293b;">INV-2024-187</span>
+                </div>
+                <div class="billing-client-column">
+                    <span style="color: #1e293b;">Johnson LLC</span>
+                </div>
+                <div class="billing-date-column">
+                    <span style="color: #64748b; font-size: 0.85rem;">Dec 20, 2024</span>
+                </div>
+                <div class="billing-due-date-column">
+                    <span style="color: #64748b; font-size: 0.85rem;">Jan 20, 2025</span>
+                </div>
+                <div class="billing-hours-column">
+                    <span style="color: #1e293b;">21.5</span>
+                </div>
+                <div class="billing-amount-column">
+                    <span style="color: #1e293b; font-weight: 500;">$8,750</span>
+                </div>
+                <div class="billing-status-column">
+                    <span class="billing-status-badge paid">Paid</span>
+                </div>
+                <div class="billing-actions-column">
+                    <button class="billing-action-btn view-btn" onclick="event.stopPropagation(); alert('View invoice');">View</button>
+                    <button class="billing-action-btn download-btn" onclick="event.stopPropagation(); alert('Download invoice');" title="Download">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Entry 3 - Overdue -->
+            <div class="billing-card-item">
+                <div class="billing-invoice-number-column">
+                    <span style="font-weight: 500; color: #1e293b;">INV-2024-186</span>
+                </div>
+                <div class="billing-client-column">
+                    <span style="color: #1e293b;">Acme Inc</span>
+                </div>
+                <div class="billing-date-column">
+                    <span style="color: #64748b; font-size: 0.85rem;">Dec 15, 2024</span>
+                </div>
+                <div class="billing-due-date-column">
+                    <span style="color: #64748b; font-size: 0.85rem;">Jan 15, 2025</span>
+                </div>
+                <div class="billing-hours-column">
+                    <span style="color: #1e293b;">42</span>
+                </div>
+                <div class="billing-amount-column">
+                    <span style="color: #1e293b; font-weight: 500;">$15,200</span>
+                </div>
+                <div class="billing-status-column">
+                    <span class="billing-status-badge overdue">Overdue</span>
+                </div>
+                <div class="billing-actions-column">
+                    <button class="billing-action-btn view-btn" onclick="event.stopPropagation(); alert('View invoice');">View</button>
+                    <button class="billing-action-btn payment-btn" onclick="event.stopPropagation(); alert('Payment functionality');">
+                        <i class="fas fa-credit-card" style="font-size: 0.7rem; margin-right: 0.25rem;"></i>Payment
+                    </button>
+                    <button class="billing-action-btn download-btn" onclick="event.stopPropagation(); alert('Download invoice');" title="Download">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Entry 4 - Paid -->
+            <div class="billing-card-item">
+                <div class="billing-invoice-number-column">
+                    <span style="font-weight: 500; color: #1e293b;">INV-2024-185</span>
+                </div>
+                <div class="billing-client-column">
+                    <span style="color: #1e293b;">Global Tech</span>
+                </div>
+                <div class="billing-date-column">
+                    <span style="color: #64748b; font-size: 0.85rem;">Dec 10, 2024</span>
+                </div>
+                <div class="billing-due-date-column">
+                    <span style="color: #64748b; font-size: 0.85rem;">Jan 10, 2025</span>
+                </div>
+                <div class="billing-hours-column">
+                    <span style="color: #1e293b;">56</span>
+                </div>
+                <div class="billing-amount-column">
+                    <span style="color: #1e293b; font-weight: 500;">$22,400</span>
+                </div>
+                <div class="billing-status-column">
+                    <span class="billing-status-badge paid">Paid</span>
+                </div>
+                <div class="billing-actions-column">
+                    <button class="billing-action-btn view-btn" onclick="event.stopPropagation(); alert('View invoice');">View</button>
+                    <button class="billing-action-btn download-btn" onclick="event.stopPropagation(); alert('Download invoice');" title="Download">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Billing Invoices Page Styles - Match Time Entries styling exactly */
+    #billingInvoicesView.view-container {
+        background-color: #ffffff;
+        height: 100%;
+    }
+    
+    #billingInvoicesView .inbox-container {
+        background-color: #ffffff;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        box-shadow: transparent;
+        padding: 0rem 0rem 0.2rem 0rem;
+        margin-top: 0;
+    }
+    
+    /* Inbox Header - Match Tasks Page */
+    #billingInvoicesView .inbox-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        padding-top: 0.75rem;
+        padding-left: 0.4rem;
+        padding-right: 0.6rem;
+    }
+    
+    #billingInvoicesView .inbox-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    #billingInvoicesView .inbox-title i {
+        font-size: 1.2rem;
+        color: #232b39;
+    }
+    
+    #billingInvoicesView .inbox-title span {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-right: 1rem;
+        color: #232b39;
+    }
+    
+    #billingInvoicesView .inbox-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    #billingInvoicesView .action-btn {
+        background: none;
+        border: none;
+        padding: 0.5rem;
+        border-radius: 6px;
+        cursor: pointer;
+        color: #4a5568;
+        transition: background-color 0.2s;
+        font-size: 1rem;
+    }
+    
+    #billingInvoicesView .action-btn:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Column Header Button Hover Effect */
+    #billingInvoicesView .column-header-btn {
+        padding: 0.375rem 0.5rem;
+        border: none;
+        background: white;
+        color: #2d3748;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        width: 100%;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    
+    #billingInvoicesView .column-header-btn:hover {
+        background-color: #f3f4f6;
+        color: #1e293b;
+    }
+
+    /* Billing Card Columns Layout - Adjusted for Invoices columns */
+    #billingInvoicesView .billing-card-item {
+        display: grid;
+        grid-template-columns: 1.2fr 1.2fr 1fr 1fr 0.8fr 1fr 1fr 1.8fr;
+        gap: 0.75rem;
+        align-items: center;
+        padding: 0.875rem 1rem;
+        background: white;
+        border: 1px solid #eeeeee;
+        border-radius: 0.5rem;
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    #billingInvoicesView .billing-card-item:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+        background-color: #fafafa;
+        border-color: #cbd5e1;
+    }
+    
+    #billingInvoicesView .billing-card-item.billing-column-header-card {
+        cursor: default;
+        background: white !important;
+        border-color: #e2e8f0 !important;
+    }
+    
+    #billingInvoicesView .billing-card-item.billing-column-header-card:hover {
+        transform: none;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .billing-invoice-number-column {
+        font-size: 0.875rem;
+    }
+
+    .billing-client-column {
+        font-size: 0.875rem;
+    }
+
+    .billing-date-column,
+    .billing-due-date-column {
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+
+    .billing-hours-column {
+        font-size: 0.875rem;
+        color: #1e293b;
+    }
+
+    .billing-amount-column {
+        font-size: 0.875rem;
+        color: #1e293b;
+        font-weight: 500;
+    }
+
+    .billing-status-column {
+        text-align: left;
+        display: flex;
+        justify-content: flex-start;
+    }
+
+    .billing-status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .billing-status-badge.pending {
+        background: #f3f4f6;
+        color: #6b7280;
+    }
+
+    .billing-status-badge.paid {
+        background: #e3f2fd;
+        color: #1565c0;
+    }
+
+    .billing-status-badge.overdue {
+        background: #ffebee;
+        color: #c62828;
+    }
+
+    .billing-actions-column {
+        display: flex;
+        gap: 0.375rem;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .billing-action-btn {
+        padding: 0.375rem 0.75rem;
+        border-radius: 0.375rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        border: 1px solid #cbd5e1;
+        background: white;
+        color: #475569;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .billing-action-btn:hover {
+        background: #f8fafc;
+        border-color: #94a3b8;
+        transform: translateY(-1px);
+    }
+
+    .billing-action-btn.view-btn,
+    .billing-action-btn.payment-btn,
+    .billing-action-btn.download-btn {
+        background: white;
+        color: #475569;
+        border-color: #cbd5e1;
+    }
+
+    .billing-action-btn.view-btn:hover,
+    .billing-action-btn.payment-btn:hover,
+    .billing-action-btn.download-btn:hover {
+        background: #f8fafc;
+        border-color: #94a3b8;
+    }
+
+    .billing-action-btn.payment-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .billing-action-btn.payment-btn i {
+        font-size: 0.7rem;
+    }
+
+    .billing-action-btn.download-btn {
+        padding: 0.375rem 0.5rem;
+        min-width: auto;
+    }
+
+    .billing-action-btn.download-btn i {
+        font-size: 0.75rem;
+    }
+</style>

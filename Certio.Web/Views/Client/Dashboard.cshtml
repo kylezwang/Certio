@@ -9,14 +9,27 @@
         <!-- Full Width Content -->
         <div class="col-12 main-column">
     <!-- AI Chat Section -->
-    <div class="card mb-4 mt-3 border-0 ai-chat-card gd-card">
-        <div class="card-body p-4">
+    <div class="card mb-4 mt-3 border-0 ai-chat-card gd-card" id="aiChatCard">
+        <div class="card-body p-0 ai-chat-card-body">
+            <button class="btn btn-link text-muted p-0 ai-fullscreen-btn" id="aiFullscreenBtn" title="Toggle fullscreen">
+                <i class="fas fa-expand"></i>
+            </button>
+            <div class="row g-0 h-100">
+                <!-- Conversations Column -->
+                <div class="col-md-3 conversations-column" id="conversationsColumn">
+                    <div class="conversations-list" id="conversationsList">
+                        <div class="conversations-loading">Loading conversations...</div>
+                    </div>
+                </div>
+                <!-- Main Chat Content -->
+                <div class="col-12 ai-chat-main-content" id="aiChatMainContent">
+                    <div class="p-4">
             <div class="text-center mb-3">
                 <img src="~/images/Notal_Banner_Logo_Large_Text.png" alt="Notal AI" style="height: 45px; object-fit: contain;" />
             </div>
             <h2 class="text-center mb-4 fs-2 fw-semibold text-dark">What can I help with?</h2>
             
-            <div class="search-container-large">
+                        <div class="search-container-large" id="searchContainer">
                 <i class="fas fa-plus"></i>
                 <input type="text" class="form-control form-control-lg" placeholder="Ask anything" />
                 <div class="search-actions">
@@ -26,6 +39,9 @@
                     <button class="btn btn-link text-muted">
                         <i class="fas fa-paper-plane"></i>
                     </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -186,7 +202,7 @@
         <div class="col-md-4 mb-4">
             <div class="card border-0 h-100 gd-card">
                 <div class="card-body p-4">
-                    <h5 class="card-title fw-bold mb-3"><i class="fa-solid fa-lightbulb me-2 text-muted" style="font-size: 0.75em;"></i>Notal Suggestions</h5>
+                    <h5 class="card-title fw-bold mb-3"><img src="~/images/Notal_Banner_Logo_Large_Text.png" alt="Notal AI" style="height: 1.25rem; object-fit: contain; display: inline-block; margin-right: 0.25rem; margin-bottom: 0.2rem;" />Suggestions</h5>
                     
                     @if (Model.NextSuggestions.Any())
                     {
@@ -242,12 +258,265 @@
     }
 
     .ai-chat-card {
-        min-height: 120px;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    .ai-chat-card.activated {
+        min-height: calc(100vh - 300px);
+    }
+
+    .ai-chat-card-body {
+        padding: 1rem 0; /* Minimal padding for default state */
+        transition: all 0.3s ease-in-out;
+        position: relative; /* For absolute positioning of conversations column */
+    }
+
+    /* Expand height when activated to fill remaining space */
+    .ai-chat-card.activated .ai-chat-card-body {
+        height: calc(100vh - 300px); /* Fill remaining viewport height */
+        min-height: calc(100vh - 300px);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .ai-chat-card.activated .ai-chat-card-body .row {
+        flex: 1;
+        min-height: 0;
+        height: 100%;
+        display: flex;
+        align-items: stretch;
+    }
+
+    .ai-chat-card.fullscreen .ai-chat-card-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .ai-chat-card.fullscreen .ai-chat-card-body .row {
+        flex: 1;
+        min-height: 0;
+        height: 100%;
+        display: flex;
+        align-items: stretch;
+    }
+
+    .ai-fullscreen-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 1.25rem;
+        color: #6c757d !important;
+        background: none;
+        border: none;
+        cursor: pointer;
+        z-index: 10;
+        transition: color 0.2s ease;
+    }
+
+    .ai-fullscreen-btn:hover {
+        color: #495057 !important;
+    }
+
+    .ai-chat-card.fullscreen {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        z-index: 1000 !important;
+        border-radius: 12px !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .ai-chat-card.fullscreen .card-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .ai-chat-card.fullscreen .conversations-column {
+        max-height: 100%;
+    }
+
+
+    /* Conversations Column - Hidden by default */
+    .conversations-column {
+        background-color: transparent; /* Remove background - scrollbar will show through */
+        border-right: none;
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 0;
+        min-width: 0;
+        padding: 0;
+        margin: 0;
+        visibility: hidden;
+        opacity: 0;
+        transform: translateX(-100%);
+        transition: width 0.3s ease-in-out, transform 0.3s ease-in-out, opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        overflow: hidden;
+        z-index: 1;
+        flex: none !important;
+        max-width: none !important;
+    }
+
+    .ai-chat-card.activated .conversations-column,
+    .ai-chat-card.fullscreen .conversations-column {
+        border-right: 1px solid #ddd;
+    }
+
+    /* Show conversations column when activated */
+    .ai-chat-card.activated .conversations-column {
+        width: 25%;
+        visibility: visible;
+        opacity: 1;
+        transform: translateX(0);
+        overflow-y: auto;
+    }
+
+    .ai-chat-card.activated .conversations-column .conversations-list {
+        padding: 1rem;
+    }
+
+    /* Always show in fullscreen mode */
+    .ai-chat-card.fullscreen .conversations-column {
+        width: 25% !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        transform: translateX(0) !important;
+        overflow-y: auto !important;
+    }
+
+    .ai-chat-card.fullscreen .conversations-column .conversations-list {
+        padding: 1rem !important;
+    }
+
+    /* Adjust main content when activated - use margin instead of flex to prevent shift */
+    .ai-chat-main-content {
+        transition: margin-left 0.3s ease-in-out;
+        margin-left: 0;
+        position: relative;
+        z-index: 0;
+    }
+
+    /* Center content vertically and horizontally when activated */
+    .ai-chat-card.activated .ai-chat-main-content {
+        margin-left: 25%;
+        height: 100%;
+        min-height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        align-self: stretch;
+    }
+
+    .ai-chat-card.activated .ai-chat-main-content > div {
+        width: 100%;
+    }
+
+    .ai-chat-card.fullscreen .ai-chat-main-content {
+        margin-left: 25% !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex: 1 !important;
+    }
+
+    .ai-chat-card.fullscreen .ai-chat-main-content > div {
+        width: 100% !important;
+    }
+
+    .conversations-column::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .conversations-column::-webkit-scrollbar-track {
+        background: transparent; /* Remove track background */
+    }
+
+    .conversations-column::-webkit-scrollbar-thumb {
+        background: #ececec; /* Use the lighter gray color for the scrollbar */
+        border-radius: 3px;
+        border: 1px solid rgba(0, 0, 0, 0.05); /* Very subtle border for definition */
+    }
+
+    .conversations-column::-webkit-scrollbar-thumb:hover {
+        background: #d5d5d5; /* Slightly darker on hover for feedback */
+    }
+
+    /* Firefox scrollbar styling */
+    .conversations-column {
+        scrollbar-width: thin;
+        scrollbar-color: #ececec transparent;
+    }
+
+    .conversations-list {
+        padding: 1rem;
+    }
+
+    .conversations-loading {
+        text-align: center;
+        color: #6c757d;
+        font-size: 0.875rem;
+        padding: 1rem;
+    }
+
+    .conversation-item {
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        background-color: rgba(255, 255, 255, 0.7);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+    }
+
+    .conversation-item:hover {
+        background-color: rgba(255, 255, 255, 0.9);
+        border-color: rgba(61, 16, 25, 0.2);
+    }
+
+    .conversation-item.active {
+        background-color: #3d1019;
+        color: white;
+        border-color: #3d1019;
+    }
+
+    .conversation-item .conversation-title {
+        font-size: 0.875rem;
+        font-weight: 500;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        margin: 0;
+    }
+
+    .conversation-item.active .conversation-title {
+        color: white;
+    }
+
+    .ai-chat-main-content {
+        display: flex;
+        flex-direction: column;
     }
 
     .search-container-large {
         position: relative;
         max-width: 600px;
+        width: 100%;
         margin: 0 auto;
     }
 
@@ -335,7 +604,7 @@
 
     .gd-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2) !important;
+        box-shadow: 0 1px 12px rgba(0, 0, 0, 0.2) !important;
     }
 
     /* Firm Summary styles */
@@ -399,7 +668,188 @@
         // Load upcoming deadlines for dashboard
         document.addEventListener('DOMContentLoaded', async function () {
             await loadDashboardUpcomingDeadlines();
+            initializeAiFullscreen();
+            initializeAiChatActivation();
+            await loadDashboardConversations();
         });
+
+        function initializeAiChatActivation() {
+            const aiCard = document.getElementById('aiChatCard');
+            const searchContainer = document.getElementById('searchContainer');
+            
+            if (!aiCard || !searchContainer) return;
+
+            // Handle click on search container to activate
+            searchContainer.addEventListener('click', function(e) {
+                // Don't activate if clicking on action buttons
+                if (e.target.closest('.search-actions') || e.target.closest('.btn')) {
+                    return;
+                }
+                
+                // Focus the input if clicking on container
+                const input = searchContainer.querySelector('input');
+                if (input && e.target === searchContainer) {
+                    input.focus();
+                }
+                
+                // Activate if not already activated (unless fullscreen)
+                if (!aiCard.classList.contains('activated') && !aiCard.classList.contains('fullscreen')) {
+                    aiCard.classList.add('activated');
+                }
+            });
+
+            // Handle input focus to activate
+            const input = searchContainer.querySelector('input');
+            if (input) {
+                input.addEventListener('focus', function() {
+                    if (!aiCard.classList.contains('activated') && !aiCard.classList.contains('fullscreen')) {
+                        aiCard.classList.add('activated');
+                    }
+                });
+            }
+        }
+
+        async function loadDashboardConversations() {
+            const conversationsList = document.getElementById('conversationsList');
+            if (!conversationsList) return;
+
+            try {
+                const orgId = @ViewBag.OrganizationId;
+                if (!orgId) {
+                    conversationsList.innerHTML = '<div class="conversations-loading">No organization selected</div>';
+                    return;
+                }
+
+                const response = await fetch(`/Client/${orgId}/Chat/GetAIConversations`, {
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    conversationsList.innerHTML = '<div class="conversations-loading">No AI conversations yet</div>';
+                    return;
+                }
+
+                const conversations = await response.json();
+
+                if (!conversations || conversations.length === 0) {
+                    conversationsList.innerHTML = '<div class="conversations-loading">No AI conversations yet</div>';
+                    return;
+                }
+
+                // Render conversations vertically
+                conversationsList.innerHTML = conversations.map(conversation => {
+                    return `
+                        <div class="conversation-item" data-conversation-id="${conversation.id}">
+                            <div class="conversation-title">${conversation.title || 'Untitled Conversation'}</div>
+                        </div>
+                    `;
+                }).join('');
+
+                // Add click handlers - scoped to dashboard conversations only
+                conversationsList.querySelectorAll('.conversation-item').forEach(item => {
+                    item.addEventListener('click', function(e) {
+                        e.stopPropagation(); // Prevent event from bubbling to sidebar handlers
+                        
+                        // Scope selection to dashboard conversations list only
+                        const dashboardConversationsList = document.getElementById('conversationsList');
+                        if (!dashboardConversationsList) return;
+                        
+                        // Remove active class from all dashboard items only
+                        dashboardConversationsList.querySelectorAll('.conversation-item').forEach(i => {
+                            i.classList.remove('active');
+                        });
+                        
+                        // Add active class to clicked item
+                        this.classList.add('active');
+                        
+                        // Save to localStorage with dashboard-specific key
+                        const conversationId = this.dataset.conversationId;
+                        localStorage.setItem('dashboardSelectedConversation', conversationId);
+                        
+                        // Activate the card if not already activated
+                        const aiCard = document.getElementById('aiChatCard');
+                        if (aiCard && !aiCard.classList.contains('fullscreen')) {
+                            aiCard.classList.add('activated');
+                        }
+                        
+                        // You can add navigation logic here if needed
+                        // e.g., window.location.href = `/Client/${orgId}/Chat/Conversation/${conversationId}`;
+                    });
+                });
+
+                // Restore previously selected conversation - scoped to dashboard only
+                const savedConversationId = localStorage.getItem('dashboardSelectedConversation');
+                if (savedConversationId) {
+                    // Only look within the dashboard conversations list
+                    const savedItem = conversationsList.querySelector(`.conversation-item[data-conversation-id="${savedConversationId}"]`);
+                    if (savedItem) {
+                        // Remove active class from all dashboard items only
+                        conversationsList.querySelectorAll('.conversation-item').forEach(i => {
+                            i.classList.remove('active');
+                        });
+                        
+                        // Add active class to saved item
+                        savedItem.classList.add('active');
+                        
+                        // Activate the card
+                        const aiCard = document.getElementById('aiChatCard');
+                        if (aiCard && !aiCard.classList.contains('fullscreen')) {
+                            aiCard.classList.add('activated');
+                        }
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error loading conversations:', error);
+                conversationsList.innerHTML = '<div class="conversations-loading">Failed to load conversations</div>';
+            }
+        }
+
+        function initializeAiFullscreen() {
+            const aiCard = document.getElementById('aiChatCard');
+            const fullscreenBtn = document.getElementById('aiFullscreenBtn');
+            const mainContent = document.querySelector('.main-content.client-main-content');
+            
+            if (!aiCard || !fullscreenBtn) return;
+
+            function toggleFullscreen(isFullscreen) {
+                if (isFullscreen) {
+                    aiCard.classList.add('fullscreen', 'activated'); // Always activate conversations in fullscreen
+                    if (mainContent) {
+                        mainContent.style.position = 'relative';
+                        mainContent.style.overflow = 'hidden';
+                    }
+                    const icon = fullscreenBtn.querySelector('i');
+                    icon.classList.remove('fa-expand');
+                    icon.classList.add('fa-compress');
+                } else {
+                    aiCard.classList.remove('fullscreen');
+                    // Keep activated state if it was activated before fullscreen
+                    if (mainContent) {
+                        mainContent.style.position = '';
+                        mainContent.style.overflow = '';
+                    }
+                    const icon = fullscreenBtn.querySelector('i');
+                    icon.classList.remove('fa-compress');
+                    icon.classList.add('fa-expand');
+                }
+            }
+
+            fullscreenBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const isFullscreen = aiCard.classList.contains('fullscreen');
+                toggleFullscreen(!isFullscreen);
+            });
+
+            // Allow ESC key to exit fullscreen
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && aiCard.classList.contains('fullscreen')) {
+                    toggleFullscreen(false);
+                }
+            });
+        }
 
         async function loadDashboardUpcomingDeadlines() {
             const deadlinesList = document.getElementById('dashboardUpcomingDeadlinesList');

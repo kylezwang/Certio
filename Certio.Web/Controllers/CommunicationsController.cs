@@ -19,6 +19,7 @@ namespace Certio.Web.Controllers
         private readonly IMatterService _matterService;
         private readonly IChatService _chatService;
         private readonly IUserPresenceService _userPresenceService;
+        private readonly IDirectMessageService _directMessageService;
         private readonly ILogger<CommunicationsController> _logger;
 
         public CommunicationsController(
@@ -27,6 +28,7 @@ namespace Certio.Web.Controllers
             IMatterService matterService,
             IChatService chatService,
             IUserPresenceService userPresenceService,
+            IDirectMessageService directMessageService,
             ILogger<CommunicationsController> logger)
         {
             _db = db;
@@ -34,6 +36,7 @@ namespace Certio.Web.Controllers
             _matterService = matterService;
             _chatService = chatService;
             _userPresenceService = userPresenceService;
+            _directMessageService = directMessageService;
             _logger = logger;
         }
 
@@ -921,6 +924,110 @@ namespace Certio.Web.Controllers
             {
                 _logger.LogError(ex, "Error sending message to channel {ChannelId}", channelId);
                 return StatusCode(500, new { error = "Failed to send message" });
+            }
+        }
+        
+        // GET /api/communications/recent-messages
+        [Authorize(Policy = "OrgMember")]
+        [HttpGet("/api/communications/recent-messages")]
+        public async Task<IActionResult> GetRecentMessages([FromQuery] int orgId, [FromQuery] int take = 10)
+        {
+            try
+            {
+                var customUser = HttpContext.Items["CustomUser"] as User;
+                if (customUser == null)
+                {
+                    return Unauthorized(new { success = false, error = "User not authenticated" });
+                }
+
+                var recentMessages = new List<object>();
+
+                // Get recent channel messages
+                var channels = await _db.Conversations
+                    .Where(c => c.OrganizationId == orgId && c.IsChannel && !c.IsDeleted)
+                    .OrderByDescending(c => c.LastMessageAt)
+                    .Take(5)
+                    .ToListAsync();
+
+                foreach (var channel in channels)
+                {
+                    var messages = await _chatService.GetChannelMessagesAsync(channel.Id);
+                    // Get latest message that is NOT from current user
+                    var latestMessage = messages
+                        .Where(m => m.UserId != customUser.Id)
+                        .OrderByDescending(m => m.CreatedAt)
+                        .FirstOrDefault();
+                    
+                    if (latestMessage != null)
+                    {
+                        var senderName = latestMessage.User != null 
+                            ? $"{latestMessage.User.FirstName} {latestMessage.User.LastName}".Trim()
+                            : latestMessage.Sender ?? "Unknown";
+                        
+                        recentMessages.Add(new
+                        {
+                            id = latestMessage.Id,
+                            type = "channel",
+                            channelId = channel.Id,
+                            channelName = channel.Title,
+                            matterId = channel.MatterId,
+                            senderId = latestMessage.UserId,
+                            senderName = senderName,
+                            content = latestMessage.Content,
+                            createdAt = latestMessage.CreatedAt,
+                            time = latestMessage.CreatedAt.ToString("h:mm tt")
+                        });
+                    }
+                }
+
+                // Get recent direct messages
+                try
+                {
+                    var threads = await _directMessageService.ListThreadsAsync(orgId, customUser.Id, 5);
+                    
+                    foreach (var thread in threads)
+                    {
+                        // Fetch more messages to find one that's not from current user
+                        var threadMessages = await _directMessageService.GetMessagesAsync(orgId, customUser.Id, thread.Id, 10);
+                        // Get latest message that is NOT from current user
+                        var latestMessage = threadMessages.Items
+                            .Where(m => m.SenderId != customUser.Id)
+                            .FirstOrDefault();
+                        
+                        if (latestMessage != null)
+                        {
+                            recentMessages.Add(new
+                            {
+                                id = latestMessage.Id.ToString(),
+                                type = "dm",
+                                threadId = thread.Id,
+                                channelName = thread.OtherUser.Name,
+                                senderId = latestMessage.SenderId,
+                                senderName = latestMessage.SenderName,
+                                content = latestMessage.Body ?? "",
+                                createdAt = latestMessage.CreatedAt,
+                                time = latestMessage.CreatedAt.ToString("h:mm tt")
+                            });
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error loading DM threads for recent messages");
+                }
+
+                // Sort by createdAt descending and take the requested number
+                var sortedMessages = recentMessages
+                    .OrderByDescending(m => ((DateTime)((dynamic)m).createdAt))
+                    .Take(take)
+                    .ToList();
+
+                return Json(new { success = true, messages = sortedMessages });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading recent messages for org {OrgId}", orgId);
+                return StatusCode(500, new { success = false, error = "Failed to load recent messages" });
             }
         }
         

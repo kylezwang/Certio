@@ -1219,9 +1219,9 @@
                 {
                     <div class="card mb-3 border-0">
                         <div class="card-body p-3">
-                            <h5 class="card-title fw-bold mb-3">Upcoming Deadlines</h5>
+                            <h5 class="card-title fw-bold mb-3">Due soon</h5>
                             <div id="upcomingDeadlinesList">
-                                <p class="text-muted small mb-2">Loading deadlines...</p>
+                                <p class="text-muted small mb-2">Loading...</p>
                             </div>
                         </div>
                     </div>
@@ -1844,17 +1844,15 @@
             <!-- Timer Display and Controls -->
             <div style="display: flex; align-items: center; gap: 0.5rem; justify-content: space-between;">
                 <div id="timerDisplay" style="
-                    font-family: 'Courier New', monospace;
-                    font-size: 1.125rem;
+                    font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+                    font-size: 1.33rem;
                     font-weight: 600;
                     color: #1f2937;
                     flex-shrink: 0;
                     white-space: nowrap;
-                    display: flex;
-                    align-items: center;
-                    gap: 0.25rem;
+                    letter-spacing: 0.1em;
                 ">
-                    <span class="timer-hours">00</span><span class="timer-sep">:</span><span class="timer-minutes">00</span><span class="timer-sep">:</span><span class="timer-seconds">00</span>
+                    00:00:00
                 </div>
                 <div style="display: flex; gap: 0.375rem; flex-wrap: nowrap; flex-shrink: 0;">
                     <button id="timerStartBtn" class="timer-btn timer-start-btn" style="
@@ -1915,8 +1913,6 @@
             
             <!-- Currently Working On Section -->
             <div style="display: flex; flex-direction: column; gap: 0.1rem;">
-                <label class="form-label small fw-semibold text-muted text-center d-block" style="margin-bottom: 0.2rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;">CURRENTLY WORKING ON</label>
-                
                 <!-- Matter Preview Card (borderless) -->
                 <div class="card border-0" id="timerMatterCard" style="background-color: #f8f9fa; padding: 0.75rem; border-radius: 8px;">
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
@@ -2003,49 +1999,31 @@
         <div class="notifications-content" id="notificationsContent">
             <!-- Cards Container -->
             <div class="notifications-cards-container">
-                <!-- Upcoming Deadlines Card -->
-                <div class="notif-card">
+                <!-- Recent Messages Card -->
+                <div class="notif-card recent-messages-card">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="notif-card-title mb-0">Upcoming Deadlines</h5>
-                        <span class="notif-badge">Today</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <h5 class="notif-card-title mb-0">Recent Messages</h5>
+                            <span class="recent-messages-badge" id="recentMessagesBadge" style="display: none;">0</span>
+                        </div>
                     </div>
                     
-                    <div class="deadlines-list" id="deadlinesList">
-                        <div class="deadline-item border-danger mb-3">
-                            <h6>Smith v. Jones - Motion Filing</h6>
-                            <p class="text-muted small mb-0">2:00 PM</p>
-                        </div>
-                        <div class="deadline-item mb-3">
-                            <h6>Client Review Call</h6>
-                            <p class="text-muted small mb-0">4:30 PM</p>
-                        </div>
-                        <div class="deadline-item mb-3">
-                            <h6>Document Review</h6>
-                            <p class="text-muted small mb-0">EOD</p>
+                    <div class="recent-messages-list" id="recentMessagesList">
+                        <div class="recent-messages-loading" style="text-align: center; padding: 2rem; color: #9ca3af;">
+                            <div class="spinner-border spinner-border-sm" role="status"></div>
+                            <span class="ms-2">Loading messages...</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Calendar Card -->
+                <!-- Upcoming Deadlines Card -->
                 <div class="notif-card">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="notif-card-title mb-0" id="calendarMonth">October 2025</h5>
+                        <h5 class="notif-card-title mb-0">Due soon</h5>
                     </div>
                     
-                    <div class="calendar-grid">
-                        <div class="calendar-header">
-                            <div class="calendar-day-header">S</div>
-                            <div class="calendar-day-header">M</div>
-                            <div class="calendar-day-header">T</div>
-                            <div class="calendar-day-header">W</div>
-                            <div class="calendar-day-header">T</div>
-                            <div class="calendar-day-header">F</div>
-                            <div class="calendar-day-header">S</div>
-                        </div>
-                        
-                        <div class="calendar-body" id="calendarBody">
-                            <!-- Calendar days will be generated by JavaScript -->
-                        </div>
+                    <div class="deadlines-list" id="deadlinesList">
+                        <p class="text-muted small" style="padding: 0.5rem;">Loading deadlines...</p>
                     </div>
                 </div>
 
@@ -2109,12 +2087,14 @@
         <div class="comms-chat-view" id="commsChatView" style="display: none;">
             <!-- Chat Header -->
             <div class="comms-chat-header">
-                <div class="comms-header-left">
-                    <button class="comms-back-btn" id="commsBackBtn" title="Back to channels">
-                        <i class="fas fa-arrow-left"></i>
-                    </button>
-                    <div class="comms-channel-info" id="commsChannelInfo">
-                        <span class="comms-channel-title" id="commsChannelTitle">general</span>
+                <div class="comms-header-top">
+                    <div class="comms-header-left">
+                        <button class="comms-back-btn" id="commsBackBtn" title="Back to channels">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <div class="comms-channel-info" id="commsChannelInfo">
+                            <span class="comms-channel-title" id="commsChannelTitle">general</span>
+                        </div>
                     </div>
                 </div>
                 <div class="comms-header-actions">
@@ -2396,7 +2376,16 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-lightbulb"></i> AI Reply Suggestions</h5>
+                <h5 class="modal-title">
+                    @if (ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard")
+                    {
+                        <img src="/images/Notal_Banner_Logo_Large_Text.png" alt="Notal AI" style="height: 1.25rem; object-fit: contain; vertical-align: middle;" />
+                    }
+                    else
+                    {
+                        <text><i class="fas fa-lightbulb"></i> AI Reply Suggestions</text>
+                    }
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -2679,8 +2668,8 @@
                         
                         // Restart the timer
                         isRunning = true;
-                        timerStartBtn.style.display = 'none';
-                        timerStopBtn.style.display = 'flex';
+                        if (timerStartBtn) timerStartBtn.style.display = 'none';
+                        if (timerStopBtn) timerStopBtn.style.display = 'flex';
                         timerStartTime = state.startTime;
                         
                         timerInterval = setInterval(() => {
@@ -2736,21 +2725,21 @@
             const minutes = Math.floor((timerSeconds % 3600) / 60);
             const seconds = timerSeconds % 60;
             
-            const hoursSpan = timerDisplay.querySelector('.timer-hours');
-            const minutesSpan = timerDisplay.querySelector('.timer-minutes');
-            const secondsSpan = timerDisplay.querySelector('.timer-seconds');
-            
-            if (hoursSpan) hoursSpan.textContent = String(hours).padStart(2, '0');
-            if (minutesSpan) minutesSpan.textContent = String(minutes).padStart(2, '0');
-            if (secondsSpan) secondsSpan.textContent = String(seconds).padStart(2, '0');
+            if (timerDisplay) {
+                // Update floating timer to match billing page format
+                timerDisplay.textContent = 
+                    String(hours).padStart(2, '0') + ':' + 
+                    String(minutes).padStart(2, '0') + ':' + 
+                    String(seconds).padStart(2, '0');
+            }
         }
         
         function startTimer() {
             if (!isRunning) {
                 isRunning = true;
                 timerStartTime = Date.now();
-                timerStartBtn.style.display = 'none';
-                timerStopBtn.style.display = 'flex';
+                if (timerStartBtn) timerStartBtn.style.display = 'none';
+                if (timerStopBtn) timerStopBtn.style.display = 'flex';
                 
                 saveTimerState();
                 
@@ -2767,8 +2756,8 @@
                 isRunning = false;
                 timerStartTime = null;
                 clearInterval(timerInterval);
-                timerStartBtn.style.display = 'flex';
-                timerStopBtn.style.display = 'none';
+                if (timerStartBtn) timerStartBtn.style.display = 'flex';
+                if (timerStopBtn) timerStopBtn.style.display = 'none';
                 saveTimerState();
             }
         }
@@ -2778,12 +2767,160 @@
             timerSeconds = 0;
             timerStartTime = null;
             updateTimerDisplay();
-            timerCard.style.boxShadow = '0 2px 12px rgba(0, 0, 0, 0.35)';
+            if (timerCard) timerCard.style.boxShadow = '0 2px 12px rgba(0, 0, 0, 0.35)';
             saveTimerState();
+        }
+        
+        // Session Manager Integration for Billing Page - MUST BE BEFORE restoreTimerState()
+        const isBillingPage = window.location.pathname.includes('/Billing');
+        const sessionManagerCard = document.getElementById('sessionManagerCard');
+        const sessionTimerDisplay = document.getElementById('sessionTimerDisplay');
+        const sessionStartBtn = document.getElementById('sessionStartBtn');
+        const sessionStopBtn = document.getElementById('sessionStopBtn');
+        const sessionResetBtn = document.getElementById('sessionResetBtn');
+        
+        // Set up billing page timer sync BEFORE restoring timer state
+        if (isBillingPage && sessionManagerCard && sessionTimerDisplay) {
+            // Hide the floating timer on Billing page
+            const floatingTimerEl = document.getElementById('floatingTimerOverlay');
+            if (floatingTimerEl) {
+                floatingTimerEl.style.display = 'none';
+            }
+            
+            // Function to sync timer display to session manager
+            function syncSessionTimer() {
+                const hours = Math.floor(timerSeconds / 3600);
+                const minutes = Math.floor((timerSeconds % 3600) / 60);
+                const seconds = timerSeconds % 60;
+                
+                // Update the session timer display with formatted time
+                sessionTimerDisplay.textContent = 
+                    String(hours).padStart(2, '0') + ':' + 
+                    String(minutes).padStart(2, '0') + ':' + 
+                    String(seconds).padStart(2, '0');
+            }
+            
+            // Override updateTimerDisplay to also update session manager
+            const originalUpdateTimerDisplay = updateTimerDisplay;
+            updateTimerDisplay = function() {
+                originalUpdateTimerDisplay();
+                syncSessionTimer();
+            };
+            
+            // Override startTimer to also update session buttons
+            const originalStartTimer = startTimer;
+            startTimer = function() {
+                originalStartTimer();
+                if (sessionStartBtn) sessionStartBtn.style.display = 'none';
+                if (sessionStopBtn) sessionStopBtn.style.display = 'flex';
+            };
+            
+            // Override stopTimer to also update session buttons
+            const originalStopTimer = stopTimer;
+            stopTimer = function() {
+                originalStopTimer();
+                if (sessionStartBtn) sessionStartBtn.style.display = 'flex';
+                if (sessionStopBtn) sessionStopBtn.style.display = 'none';
+            };
+            
+            // Override resetTimer to also reset session manager
+            const originalResetTimer = resetTimer;
+            resetTimer = function() {
+                originalStopTimer();
+                timerSeconds = 0;
+                timerStartTime = null;
+                updateTimerDisplay();
+                syncSessionTimer();
+                saveTimerState();
+                if (timerCard) timerCard.style.boxShadow = '0 2px 12px rgba(0, 0, 0, 0.35)';
+            };
+            
+            // Connect session buttons to timer functions
+            if (sessionStartBtn) {
+                sessionStartBtn.addEventListener('click', startTimer);
+            }
+            if (sessionStopBtn) {
+                sessionStopBtn.addEventListener('click', stopTimer);
+            }
+            if (sessionResetBtn) {
+                sessionResetBtn.addEventListener('click', resetTimer);
+            }
+            
+            // Initialize collapsible section for Recent Sessions
+            const collapsibleSections = sessionManagerCard.querySelectorAll('.collapsible-section');
+            collapsibleSections.forEach(section => {
+                const header = section.querySelector('.collapsible-header');
+                const content = section.querySelector('.session-section-content');
+                
+                if (!header || !content) return;
+                
+                function expandSection() {
+                    section.classList.add('expanded');
+                    section.classList.remove('hover-disabled');
+                    content.style.display = 'block';
+                    const icon = header.querySelector('.collapse-icon');
+                    if (icon) icon.style.transform = 'rotate(180deg)';
+                }
+                
+                function collapseSection() {
+                    section.classList.remove('expanded');
+                    section.classList.add('hover-disabled');
+                    content.style.display = 'none';
+                    const icon = header.querySelector('.collapse-icon');
+                    if (icon) icon.style.transform = 'rotate(0deg)';
+                }
+                
+                // Click to toggle
+                header.onclick = function() {
+                    if (section.classList.contains('expanded')) {
+                        collapseSection();
+                    } else {
+                        expandSection();
+                    }
+                };
+                
+                // Hover behavior
+                let hoverTimeout;
+                section.onmouseenter = function() {
+                    if (!section.classList.contains('hover-disabled') && !section.classList.contains('expanded')) {
+                        hoverTimeout = setTimeout(function() {
+                            content.style.display = 'block';
+                        }, 150);
+                    }
+                };
+                
+                section.onmouseleave = function() {
+                    clearTimeout(hoverTimeout);
+                    if (!section.classList.contains('expanded')) {
+                        content.style.display = 'none';
+                    }
+                };
+            });
         }
         
         // Restore timer state on page load
         restoreTimerState();
+        
+        // Update billing page button states AFTER timer state is restored
+        if (isBillingPage && sessionStartBtn && sessionStopBtn) {
+            if (isRunning) {
+                sessionStartBtn.style.display = 'none';
+                sessionStopBtn.style.display = 'flex';
+            } else {
+                sessionStartBtn.style.display = 'flex';
+                sessionStopBtn.style.display = 'none';
+            }
+            // Sync timer display after restore
+            if (sessionTimerDisplay) {
+                const hours = Math.floor(timerSeconds / 3600);
+                const minutes = Math.floor((timerSeconds % 3600) / 60);
+                const seconds = timerSeconds % 60;
+                sessionTimerDisplay.textContent = 
+                    String(hours).padStart(2, '0') + ':' + 
+                    String(minutes).padStart(2, '0') + ':' + 
+                    String(seconds).padStart(2, '0');
+            }
+        }
         
         if (timerStartBtn) timerStartBtn.addEventListener('click', startTimer);
         if (timerStopBtn) timerStopBtn.addEventListener('click', stopTimer);
@@ -2911,144 +3048,6 @@
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(updateTimerMatterCard, 50);
-            });
-        }
-        
-        // Session Manager Integration for Billing Page
-        const isBillingPage = window.location.pathname.includes('/Billing');
-        const sessionManagerCard = document.getElementById('sessionManagerCard');
-        const sessionTimerDisplay = document.getElementById('sessionTimerDisplay');
-        const sessionStartBtn = document.getElementById('sessionStartBtn');
-        const sessionStopBtn = document.getElementById('sessionStopBtn');
-        const sessionResetBtn = document.getElementById('sessionResetBtn');
-        
-        if (isBillingPage && sessionManagerCard && sessionTimerDisplay) {
-            // Hide the floating timer on Billing page
-            const floatingTimerEl = document.getElementById('floatingTimerOverlay');
-            if (floatingTimerEl) {
-                floatingTimerEl.style.display = 'none';
-            }
-            
-            // Function to sync timer display to session manager
-            function syncSessionTimer() {
-                const hours = Math.floor(timerSeconds / 3600);
-                const minutes = Math.floor((timerSeconds % 3600) / 60);
-                const seconds = timerSeconds % 60;
-                
-                // Update the session timer display with formatted time
-                sessionTimerDisplay.textContent = 
-                    String(hours).padStart(2, '0') + ':' + 
-                    String(minutes).padStart(2, '0') + ':' + 
-                    String(seconds).padStart(2, '0');
-            }
-            
-            // Update session display initially
-            syncSessionTimer();
-            
-            // Override updateTimerDisplay to also update session manager
-            const originalUpdateTimerDisplay = updateTimerDisplay;
-            updateTimerDisplay = function() {
-                originalUpdateTimerDisplay();
-                syncSessionTimer();
-            };
-            
-            // Override startTimer to also update session buttons
-            const originalStartTimer = startTimer;
-            startTimer = function() {
-                originalStartTimer();
-                if (sessionStartBtn) sessionStartBtn.style.display = 'none';
-                if (sessionStopBtn) sessionStopBtn.style.display = 'flex';
-            };
-            
-            // Override stopTimer to also update session buttons
-            const originalStopTimer = stopTimer;
-            stopTimer = function() {
-                originalStopTimer();
-                if (sessionStartBtn) sessionStartBtn.style.display = 'flex';
-                if (sessionStopBtn) sessionStopBtn.style.display = 'none';
-            };
-            
-            // Override resetTimer to also reset session manager
-            const originalResetTimer = resetTimer;
-            resetTimer = function() {
-                originalStopTimer();
-                timerSeconds = 0;
-                timerStartTime = null;
-                updateTimerDisplay();
-                syncSessionTimer();
-                saveTimerState();
-                if (timerCard) timerCard.style.boxShadow = '0 2px 12px rgba(0, 0, 0, 0.35)';
-            };
-            
-            // Connect session buttons to timer functions
-            if (sessionStartBtn) {
-                sessionStartBtn.addEventListener('click', startTimer);
-            }
-            if (sessionStopBtn) {
-                sessionStopBtn.addEventListener('click', stopTimer);
-            }
-            if (sessionResetBtn) {
-                sessionResetBtn.addEventListener('click', resetTimer);
-            }
-            
-            // Update session button states based on current timer state
-            if (isRunning) {
-                if (sessionStartBtn) sessionStartBtn.style.display = 'none';
-                if (sessionStopBtn) sessionStopBtn.style.display = 'flex';
-            } else {
-                if (sessionStartBtn) sessionStartBtn.style.display = 'flex';
-                if (sessionStopBtn) sessionStopBtn.style.display = 'none';
-            }
-            
-            // Initialize collapsible section for Recent Sessions
-            const collapsibleSections = sessionManagerCard.querySelectorAll('.collapsible-section');
-            collapsibleSections.forEach(section => {
-                const header = section.querySelector('.collapsible-header');
-                const content = section.querySelector('.session-section-content');
-                
-                if (!header || !content) return;
-                
-                function expandSection() {
-                    section.classList.add('expanded');
-                    section.classList.remove('hover-disabled');
-                    content.style.display = 'block';
-                    const icon = header.querySelector('.collapse-icon');
-                    if (icon) icon.style.transform = 'rotate(180deg)';
-                }
-                
-                function collapseSection() {
-                    section.classList.remove('expanded');
-                    section.classList.add('hover-disabled');
-                    content.style.display = 'none';
-                    const icon = header.querySelector('.collapse-icon');
-                    if (icon) icon.style.transform = 'rotate(0deg)';
-                }
-                
-                // Click to toggle
-                header.onclick = function() {
-                    if (section.classList.contains('expanded')) {
-                        collapseSection();
-                    } else {
-                        expandSection();
-                    }
-                };
-                
-                // Hover behavior
-                let hoverTimeout;
-                section.onmouseenter = function() {
-                    if (!section.classList.contains('hover-disabled') && !section.classList.contains('expanded')) {
-                        hoverTimeout = setTimeout(function() {
-                            content.style.display = 'block';
-                        }, 150);
-                    }
-                };
-                
-                section.onmouseleave = function() {
-                    clearTimeout(hoverTimeout);
-                    if (!section.classList.contains('expanded')) {
-                        content.style.display = 'none';
-                    }
-                };
             });
         }
         
