@@ -215,7 +215,7 @@
         }
 
         .clients-section-header {
-            padding: 1rem 1rem 0.5rem 1rem;
+            padding: 0.5rem 0.9rem;
             border-bottom: 1px solid #e5e7eb;
         }
 
@@ -436,7 +436,18 @@
         <div class="clients-popup-content">
             <div class="clients-scrollable-area">
                 <div class="clients-section-header">
-                    <h4 class="clients-section-title">All Clients</h4>
+                    <a href="#" id="viewAllClientsLink" class="text-decoration-none" style="display: block;">
+                        <div class="card border-0" style="background-color: #f8f9fa; padding: 0.75rem; border-radius: 8px; cursor: pointer; transition: background-color 0.2s ease;" onmouseover="this.style.backgroundColor='#e9ecef'" onmouseout="this.style.backgroundColor='#f8f9fa'">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fas fa-users" style="color: #3d1019; font-size: 0.875rem;"></i>
+                                <div style="min-width: 0; flex: 1; margin-top: 0;">
+                                    <h6 class="mb-0 fw-bold text-dark" style="font-size: 0.875rem;">
+                                        View All Clients
+                                    </h6>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
                 </div>
                 <div class="clients-list" id="clientsList">
                     <!-- Client items will be populated by JavaScript -->
@@ -486,6 +497,9 @@
             
             // Initialize History link with same logic
             initializeHistoryLink();
+
+            // Initialize Clients link
+            initializeClientsLink();
 
             // Function to initialize My Firm link - defer to not block page load
             async function initializeMyFirmLink() {
@@ -707,6 +721,60 @@
                 }
             }
 
+            // Function to initialize Clients link
+            async function initializeClientsLink() {
+                // Defer to idle time to not block page load
+                if ('requestIdleCallback' in window) {
+                    requestIdleCallback(doFetch);
+                } else {
+                    setTimeout(doFetch, 100);
+                }
+                
+                async function doFetch() {
+                    try {
+                        const response = await fetch('/Client/List', { credentials: 'include' });
+                        const result = await response.json();
+                        
+                        if (result.success && result.organizations) {
+                            // Find the user's firm organization (LawFirm type)
+                            const firmOrg = result.organizations.find(org => 
+                                org.organizationType === 'LawFirm'
+                            );
+                            
+                            if (firmOrg) {
+                                // Update "View All Clients" link
+                                const viewAllClientsLink = document.getElementById('viewAllClientsLink');
+                                if (viewAllClientsLink) {
+                                    viewAllClientsLink.href = `/Client/${firmOrg.organizationId}/Clients`;
+                                }
+                                
+                                // Check if current URL is the clients page and add active class
+                                updateClientsActiveState(firmOrg.organizationId);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error initializing Clients link:', error);
+                    }
+                }
+            }
+
+            // Function to update Clients button active state based on current URL
+            function updateClientsActiveState(firmOrgId) {
+                const currentPath = window.location.pathname;
+                const clientsPathPattern = new RegExp(`^/Client/${firmOrgId}/Clients`);
+                
+                if (clientsPathPattern.test(currentPath)) {
+                    clientsButton.classList.add('active');
+                    // Ensure My Firm is not marked active when Clients is active
+                    myFirmLink.classList.remove('active');
+                } else {
+                    // Only remove active if not showing popup
+                    if (!clientsPopup.classList.contains('show')) {
+                        clientsButton.classList.remove('active');
+                    }
+                }
+            }
+
             // Populate clients list
             async function populateClientsList() {
                 clientsList.innerHTML = '';
@@ -742,6 +810,15 @@
                         });
                         clientsList.appendChild(clientItem);
                     });
+
+                    // Update "View All Clients" link and active state
+                    const firmOrg = result.organizations.find(org => org.organizationType === 'LawFirm');
+                    const viewAllClientsLink = document.getElementById('viewAllClientsLink');
+                    if (viewAllClientsLink && firmOrg) {
+                        viewAllClientsLink.href = `/Client/${firmOrg.organizationId}/Clients`;
+                        // Update active state if on Clients page
+                        updateClientsActiveState(firmOrg.organizationId);
+                    }
                 } catch (e) {
                     const err = document.createElement('div');
                     err.className = 'client-item';
@@ -760,7 +837,12 @@
             // Hide clients popup
             function hideClientsPopup() {
                 clientsPopup.classList.remove('show');
-                clientsButton.classList.remove('active');
+                // Only remove active if not on Clients page
+                const currentPath = window.location.pathname;
+                const clientsPathPattern = /^\/Client\/\d+\/Clients/;
+                if (!clientsPathPattern.test(currentPath)) {
+                    clientsButton.classList.remove('active');
+                }
             }
 
             // Event listeners
