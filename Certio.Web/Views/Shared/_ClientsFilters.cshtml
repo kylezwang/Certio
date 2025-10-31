@@ -1,0 +1,352 @@
+<!-- Clients Filters Card for Sidebar -->
+<div class="card border-0">
+    <div class="card-body p-3">
+        <h5 class="card-title fw-bold mb-3">Filter by...</h5>
+        
+        <!-- Organization Section -->
+        <div class="clients-section collapsible-section">
+            <div class="clients-section-title fw-semibold mb-2 collapsible-header" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                <span>Organization</span>
+                <i class="fas fa-chevron-down collapse-icon"></i>
+            </div>
+            <div class="clients-section-content" style="display: none;">
+                <div class="clients-checkboxes" id="clientsOrganizationsList">
+                    <!-- Organization checkboxes will be populated by JavaScript -->
+                    <div class="text-muted small">Loading organizations...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Role Section -->
+        <div class="clients-section collapsible-section">
+            <div class="clients-section-title fw-semibold mb-2 collapsible-header" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                <span>Role</span>
+                <i class="fas fa-chevron-down collapse-icon"></i>
+            </div>
+            <div class="clients-section-content" style="display: none;">
+                <div class="clients-checkboxes" id="clientsRolesList">
+                    <!-- Role checkboxes will be populated by JavaScript -->
+                    <div class="text-muted small">Loading roles...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .clients-section {
+        padding: 0.25rem 0;
+    }
+
+    .clients-section-title {
+        color: #1f2937;
+        font-size: 0.9rem;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 0.5rem 0.25rem;
+        transition: all 0.2s ease;
+    }
+
+    .collapsible-header {
+        border-radius: 6px;
+    }
+
+    .collapsible-header:hover {
+        background-color: rgba(61, 16, 25, 0.05);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .collapse-icon {
+        font-size: 0.75rem;
+        color: #6b7280;
+        transition: all 0.2s ease;
+    }
+
+    .collapsible-header:hover .collapse-icon {
+        color: #3d1019;
+        transform: scale(1.1);
+    }
+
+    .collapsible-section.expanded .collapse-icon {
+        transform: rotate(180deg);
+    }
+
+    .collapsible-section.expanded .collapsible-header {
+        background-color: rgba(61, 16, 25, 0.05);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .collapsible-section.expanded .collapse-icon {
+        color: #3d1019;
+        transform: rotate(180deg) scale(1.1);
+    }
+
+    .collapsible-section.expanded .clients-section-content {
+        display: block !important;
+    }
+
+    .clients-section-content {
+        padding-top: 0.5rem;
+    }
+
+    .clients-checkboxes {
+        padding-left: 0.25rem;
+    }
+
+    .clients-checkboxes .form-check {
+        padding-left: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .clients-checkboxes .form-check-input {
+        width: 1.1rem;
+        height: 1.1rem;
+        margin-top: 0.125rem;
+        cursor: pointer;
+    }
+
+    .clients-checkboxes .form-check-label {
+        cursor: pointer;
+        font-size: 0.85rem;
+        color: #374151;
+        margin-left: 0.25rem;
+    }
+
+    .clients-checkboxes .form-check-input:checked {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+    }
+
+    .clients-checkboxes .form-check-input:focus {
+        border-color: #60a5fa;
+        box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+    }
+
+    .clients-checkboxes .text-muted {
+        padding: 0.25rem 0;
+        font-size: 0.8rem;
+    }
+</style>
+
+<script>
+    // Initialize clients filters when DOM is ready
+    (function() {
+        if (typeof window.clientsFiltersInitialized !== 'undefined') {
+            return; // Already initialized
+        }
+        window.clientsFiltersInitialized = true;
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            // Initialize collapsible sections
+            initializeCollapsibleSections();
+            
+            // Fetch and populate filter data
+            await loadClientsOrganizations();
+            await loadClientsRoles();
+            
+            // Setup event listeners for all filters (after data is loaded)
+            setupClientsFiltering();
+        });
+
+        function initializeCollapsibleSections() {
+            const collapsibleHeaders = document.querySelectorAll('.clients-section .collapsible-header');
+            collapsibleHeaders.forEach(header => {
+                const section = header.closest('.collapsible-section');
+                const content = section.querySelector('.clients-section-content');
+                
+                // Function to expand section permanently
+                function expandSection() {
+                    section.classList.add('expanded');
+                    section.classList.remove('hover-disabled');
+                    content.style.display = 'block';
+                }
+                
+                // Function to collapse section
+                function collapseSection() {
+                    section.classList.remove('expanded');
+                    section.classList.add('hover-disabled');
+                    content.style.display = 'none';
+                }
+                
+                // Click handler for actual expansion/collapse
+                header.onclick = function() {
+                    if (section.classList.contains('expanded')) {
+                        collapseSection();
+                    } else {
+                        expandSection();
+                    }
+                };
+                
+                // Click handler for content - expand section when clicking inside
+                content.onclick = function(e) {
+                    // Only expand if this is a real user click (not programmatic)
+                    if (e.isTrusted && !section.classList.contains('expanded')) {
+                        expandSection();
+                    }
+                };
+                
+                // Hover handlers for preview behavior with delay
+                let hoverTimeout;
+                
+                // Handle hover on the entire section (header and content)
+                section.onmouseenter = function() {
+                    if (!section.classList.contains('hover-disabled') && !section.classList.contains('expanded')) {
+                        // Set timeout for 150ms delay
+                        hoverTimeout = setTimeout(function() {
+                            content.style.display = 'block';
+                        }, 150);
+                    }
+                };
+                
+                section.onmouseleave = function() {
+                    // Clear the timeout if mouse leaves before delay completes
+                    clearTimeout(hoverTimeout);
+                    if (!section.classList.contains('expanded')) {
+                        content.style.display = 'none';
+                    }
+                };
+            });
+        }
+
+        async function loadClientsOrganizations() {
+            const organizationsList = document.getElementById('clientsOrganizationsList');
+            if (!organizationsList) return;
+            
+            organizationsList.innerHTML = '';
+            
+            try {
+                const response = await fetch('/Client/List', { credentials: 'include' });
+                const result = await response.json();
+                
+                if (!result.success) {
+                    organizationsList.innerHTML = '<div class="text-muted small">Unable to load organizations.</div>';
+                    return;
+                }
+                
+                // Filter for client organizations (non-LawFirm)
+                const clientOrgs = (result.organizations || []).filter(o => o.organizationType !== 'LawFirm');
+                
+                if (clientOrgs.length === 0) {
+                    organizationsList.innerHTML = '<div class="text-muted small">No organizations available.</div>';
+                    return;
+                }
+                
+                // Create checkbox for each client organization
+                clientOrgs.forEach((org, index) => {
+                    const checkboxDiv = document.createElement('div');
+                    checkboxDiv.className = 'form-check mb-2';
+                    const checkbox = document.createElement('input');
+                    checkbox.className = 'form-check-input clients-organization-checkbox';
+                    checkbox.type = 'checkbox';
+                    checkbox.value = org.organizationId;
+                    checkbox.id = `clientsOrganization${index}`;
+                    checkbox.checked = true;
+                    checkbox.addEventListener('change', filterClients);
+                    
+                    const label = document.createElement('label');
+                    label.className = 'form-check-label';
+                    label.htmlFor = checkbox.id;
+                    label.textContent = org.organizationName;
+                    
+                    checkboxDiv.appendChild(checkbox);
+                    checkboxDiv.appendChild(label);
+                    organizationsList.appendChild(checkboxDiv);
+                });
+            } catch (error) {
+                console.error('Error loading clients organizations:', error);
+                organizationsList.innerHTML = '<div class="text-muted small">Error loading organizations.</div>';
+            }
+        }
+
+        async function loadClientsRoles() {
+            const rolesList = document.getElementById('clientsRolesList');
+            if (!rolesList) return;
+            
+            rolesList.innerHTML = '';
+            
+            try {
+                // Mock roles data
+                const roles = [
+                    { value: 'Owner', label: 'Owner' },
+                    { value: 'Partner', label: 'Partner' },
+                    { value: 'Associate', label: 'Associate' },
+                    { value: 'Manager', label: 'Manager' }
+                ];
+                
+                if (roles.length === 0) {
+                    rolesList.innerHTML = '<div class="text-muted small">No roles available.</div>';
+                    return;
+                }
+                
+                // Create checkbox for each role
+                roles.forEach((role, index) => {
+                    const checkboxDiv = document.createElement('div');
+                    checkboxDiv.className = 'form-check mb-2';
+                    const checkbox = document.createElement('input');
+                    checkbox.className = 'form-check-input clients-role-checkbox';
+                    checkbox.type = 'checkbox';
+                    checkbox.value = role.value;
+                    checkbox.id = `clientsRole${index}`;
+                    checkbox.checked = true;
+                    checkbox.addEventListener('change', filterClients);
+                    
+                    const label = document.createElement('label');
+                    label.className = 'form-check-label';
+                    label.htmlFor = checkbox.id;
+                    label.textContent = role.label;
+                    
+                    checkboxDiv.appendChild(checkbox);
+                    checkboxDiv.appendChild(label);
+                    rolesList.appendChild(checkboxDiv);
+                });
+            } catch (error) {
+                console.error('Error loading clients roles:', error);
+                rolesList.innerHTML = '<div class="text-muted small">Error loading roles.</div>';
+            }
+        }
+
+        function setupClientsFiltering() {
+            // Organization checkboxes
+            document.querySelectorAll('.clients-organization-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    filterClients();
+                });
+            });
+            
+            // Role checkboxes
+            document.querySelectorAll('.clients-role-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    filterClients();
+                });
+            });
+        }
+
+        function filterClients() {
+            // Get selected organizations
+            const selectedOrganizations = [];
+            document.querySelectorAll('.clients-organization-checkbox:checked').forEach(checkbox => {
+                selectedOrganizations.push(parseInt(checkbox.value));
+            });
+            
+            // Get selected roles
+            const selectedRoles = [];
+            document.querySelectorAll('.clients-role-checkbox:checked').forEach(checkbox => {
+                selectedRoles.push(checkbox.value);
+            });
+            
+            console.log('Clients filters:', {
+                selectedOrganizations,
+                selectedRoles
+            });
+            
+            // Dispatch custom event for clients filtering
+            window.dispatchEvent(new CustomEvent('clientsFiltersChanged', { 
+                detail: { 
+                    selectedOrganizations,
+                    selectedRoles
+                } 
+            }));
+        }
+    })();
+</script>

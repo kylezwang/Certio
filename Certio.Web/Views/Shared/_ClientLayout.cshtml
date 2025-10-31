@@ -1089,6 +1089,12 @@
         padding: 0;
         background-color: #f9fafb;
     }
+
+    /* Clients page - zero padding override */
+    body.clients-page .main-content.client-main-content {
+        padding: 1rem;
+        background-color: #f9fafb;
+    }
 </style>
 
 <div class="min-h-screen" style="overflow-y:hidden;">
@@ -1205,7 +1211,7 @@
     @{
         var controller = ViewContext.RouteData.Values["controller"]?.ToString();
         var action = ViewContext.RouteData.Values["action"]?.ToString();
-        var isGlobalDashboard = controller == "Global" || controller == "Calendar" || controller == "History" || controller == "Billing";
+        var isGlobalDashboard = controller == "Global" || controller == "Calendar" || controller == "History" || controller == "Billing" || (controller == "Client" && action == "Clients");
     }
     <div class="d-none d-xl-block @(isGlobalDashboard ? "global-dashboard-sidebar" : "client-sidebar")">
         
@@ -1558,51 +1564,110 @@
                 }
                 else
                 {
-                    <!-- Calendar Card for other pages -->
-                    <div class="card mb-3 border-0">
-                        <div class="card-body p-3">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h5 class="card-title fw-bold mb-0">@DateTime.Now.ToString("MMMM yyyy")</h5>
-                            </div>
-                            
-                            <div class="calendar-grid">
-                                <div class="calendar-header">
-                                    <div class="calendar-day-header">S</div>
-                                    <div class="calendar-day-header">M</div>
-                                    <div class="calendar-day-header">T</div>
-                                    <div class="calendar-day-header">W</div>
-                                    <div class="calendar-day-header">T</div>
-                                    <div class="calendar-day-header">F</div>
-                                    <div class="calendar-day-header">S</div>
+                    <!-- Client Insights Card for Clients page -->
+                    @if (controller == "Client" && action == "Clients")
+                    {
+                        <div class="card mb-3 border-0">
+                            <div class="card-body p-3">
+                                <h5 class="card-title fw-bold mb-3">Client Insights</h5>
+                                
+                                <!-- Total Clients -->
+                                <div class="mb-3">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="text-muted small">Total Clients</span>
+                                        <span class="fw-bold text-dark">12</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar" role="progressbar" style="width: 75%; background-color: #3d1019;"></div>
+                                    </div>
                                 </div>
                                 
-                                <div class="calendar-body">
-                                    @{
-                                        var currentDate = DateTime.Now;
-                                        var firstDay = new DateTime(currentDate.Year, currentDate.Month, 1);
-                                        var startDay = firstDay.AddDays(-(int)firstDay.DayOfWeek);
-                                        var today = DateTime.Today;
-                                    }
-                                    
-                                    @for (int week = 0; week < 6; week++)
-                                    {
-                                        <div class="calendar-week">
-                                            @for (int day = 0; day < 7; day++)
-                                            {
-                                                var date = startDay.AddDays(week * 7 + day);
-                                                var isCurrentMonth = date.Month == currentDate.Month;
-                                                var isToday = date.Date == today;
-                                                
-                                                <div class="calendar-day @(isCurrentMonth ? "current-month" : "other-month") @(isToday ? "today" : "")" data-date="@date.ToString("yyyy-MM-dd")">
-                                                    @date.Day
-                                                </div>
-                                            }
+                                <!-- Active Matters -->
+                                <div class="mb-3">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="text-muted small">Active Matters</span>
+                                        <span class="fw-bold text-dark">8</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar" role="progressbar" style="width: 55%; background-color: #3b82f6;"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Revenue This Month -->
+                                <div class="mb-3">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="text-muted small">Revenue This Month</span>
+                                        <span class="fw-bold text-dark">$45,200</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar" role="progressbar" style="width: 82%; background-color: #10b981;"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Top Client -->
+                                <div class="pt-2 border-top">
+                                    <p class="text-muted small mb-1">Top Client</p>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="team-member-avatar" style="width: 32px; height: 32px; background-color: #a32b43; font-size: 0.75rem;">
+                                            CT
                                         </div>
-                                    }
+                                        <div class="flex-grow-1">
+                                            <p class="mb-0 fw-semibold" style="font-size: 0.875rem;">Chloe Tang</p>
+                                            <p class="mb-0 text-muted" style="font-size: 0.75rem;">Chloe Tang's Organization</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    }
+                    else
+                    {
+                        <!-- Calendar Card for other pages -->
+                        <div class="card mb-3 border-0">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="card-title fw-bold mb-0">@DateTime.Now.ToString("MMMM yyyy")</h5>
+                                </div>
+                                
+                                <div class="calendar-grid">
+                                    <div class="calendar-header">
+                                        <div class="calendar-day-header">S</div>
+                                        <div class="calendar-day-header">M</div>
+                                        <div class="calendar-day-header">T</div>
+                                        <div class="calendar-day-header">W</div>
+                                        <div class="calendar-day-header">T</div>
+                                        <div class="calendar-day-header">F</div>
+                                        <div class="calendar-day-header">S</div>
+                                    </div>
+                                    
+                                    <div class="calendar-body">
+                                        @{
+                                            var currentDate = DateTime.Now;
+                                            var firstDay = new DateTime(currentDate.Year, currentDate.Month, 1);
+                                            var startDay = firstDay.AddDays(-(int)firstDay.DayOfWeek);
+                                            var today = DateTime.Today;
+                                        }
+                                        
+                                        @for (int week = 0; week < 6; week++)
+                                        {
+                                            <div class="calendar-week">
+                                                @for (int day = 0; day < 7; day++)
+                                                {
+                                                    var date = startDay.AddDays(week * 7 + day);
+                                                    var isCurrentMonth = date.Month == currentDate.Month;
+                                                    var isToday = date.Date == today;
+                                                    
+                                                    <div class="calendar-day @(isCurrentMonth ? "current-month" : "other-month") @(isToday ? "today" : "")" data-date="@date.ToString("yyyy-MM-dd")">
+                                                        @date.Day
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
                 }
 
                 <!-- Recent Activity Card / Custom Sidebar Card -->

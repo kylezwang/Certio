@@ -1,0 +1,212 @@
+@{
+    ViewData["Title"] = "Clients";
+    Layout = "_ClientLayout";
+    ViewData["BodyClass"] = "clients-page";
+}
+
+<div class="min-h-screen">
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h1 class="display-6 fw-bold mb-2">Clients</h1>
+            <p class="lead text-muted">
+                Manage clients under @(ViewBag.OrganizationName ?? "Organization")
+            </p>
+        </div>
+        <a class="btn btn-primary d-flex align-items-center gap-2" href="#" id="newClientBtn">
+            <i class="fas fa-user-plus"></i>
+            New client
+        </a>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" class="form-control" id="clientSearchInput" placeholder="Search by name or organization..." />
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="filter-buttons">
+                <button class="filter-button">
+                    <i class="fas fa-filter"></i>
+                    Filter
+                </button>
+                <button class="filter-button">
+                    <i class="fas fa-calendar"></i>
+                    Date Range
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client Organization Sections -->
+    <div id="clientsContainer">
+        @if (ViewBag.ClientRelationships != null && ((List<object>)ViewBag.ClientRelationships).Any())
+        {
+            @foreach (dynamic client in ViewBag.ClientRelationships)
+            {
+                var clientName = client.OwnerName ?? client.OrganizationName ?? "Unknown";
+                var orgName = client.OrganizationName ?? "Unknown Organization";
+                var initials = client.OwnerInitials ?? "??";
+                var orgId = client.OrganizationId ?? 0;
+                var role = client.OwnerRole ?? "Owner";
+                
+                <div class="mb-5 client-section">
+                    <div class="team-section-header">
+                        <i class="fa-solid fa-building-user"></i>
+                        <h2>@orgName</h2>
+                        <span class="team-badge">1</span>
+                    </div>
+                    
+                    <div class="row g-4">
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 client-card team-member-card" 
+                             data-name="@(clientName.ToString().ToLower())" 
+                             data-org="@(orgName.ToString().ToLower())">
+                            <a href="/Client/@orgId/Dashboard" class="text-decoration-none">
+                                <div class="card h-100 border-0 hover-shadow transition-smooth cursor-pointer">
+                                    <div class="card-body d-flex flex-column align-items-center text-center p-4">
+                                        <!-- Avatar -->
+                                        <div class="mb-3">
+                                            <div class="team-member-avatar" style="background-color: #a32b43;">
+                                                @initials
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Name and Role -->
+                                        <h5 class="card-title fw-medium mb-1">@clientName</h5>
+                                        <p class="text-muted small mb-3">@role</p>
+                                        
+                                        <!-- Organization Type -->
+                                        <div class="d-flex align-items-center gap-1 text-muted small">
+                                            <i class="fas fa-briefcase" style="font-size: 0.75rem;"></i>
+                                            <span>Client</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="fas fa-users text-muted mb-3" style="font-size: 3rem;"></i>
+                    <h4 class="text-dark mb-2">No clients yet</h4>
+                    <p class="text-muted">Add your first client to get started.</p>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section GlobalSidebarFinalCard {
+    <partial name="_ClientsFilters" />
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('clientSearchInput');
+            const clientCards = document.querySelectorAll('.client-card');
+
+            // Search functionality
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    
+                    clientCards.forEach(card => {
+                        const name = card.dataset.name || '';
+                        const org = card.dataset.org || '';
+                        
+                        if (name.includes(searchTerm) || org.includes(searchTerm)) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            }
+
+            // Add hover effects
+            clientCards.forEach(card => {
+                const cardElement = card.querySelector('.card');
+                if (cardElement) {
+                    cardElement.addEventListener('mouseenter', function() {
+                        this.classList.add('shadow-lg');
+                    });
+                    
+                    cardElement.addEventListener('mouseleave', function() {
+                        this.classList.remove('shadow-lg');
+                    });
+                }
+            });
+        });
+    </script>
+}
+
+<style>
+    .hover-shadow {
+        transition: box-shadow 0.2s ease-in-out;
+    }
+    
+    .hover-shadow:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+    
+    .cursor-pointer {
+        cursor: pointer;
+    }
+    
+    .transition-smooth {
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .client-card .card {
+        border-radius: 12px;
+    }
+    
+    .client-card .card-body {
+        border-radius: 12px;
+    }
+
+    .team-section-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .team-section-header i {
+        font-size: 1.5rem;
+        color: #3d1019;
+    }
+
+    .team-section-header h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0;
+    }
+
+    .team-badge {
+        background-color: #f3f4f6;
+        color: #6b7280;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    /* Custom width for client cards on xl screens - between col-xl-2 and col-xl-3 */
+    @@media (min-width: 1200px) {
+        .client-card.col-xl-2 {
+            flex: 0 0 20%;
+            max-width: 20%;
+        }
+    }
+</style>

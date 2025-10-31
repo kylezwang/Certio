@@ -526,6 +526,87 @@ namespace Certio.Web.Controllers
             return View("~/Views/Home/Teams.cshtml", model);
         }
 
+        // GET /Client/{orgId}/Clients
+        [Authorize(Policy = "OrgMember")]
+        [HttpGet("/Client/{orgId:int}/Clients")]
+        public async Task<IActionResult> Clients(int orgId)
+        {
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            ViewBag.OrganizationId = orgId;
+            
+            // Use organization service to get organization info
+            var orgResult = await _organizationService.GetOrganizationBasicInfoAsync(orgId, customUser.Id);
+            ViewBag.OrganizationName = orgResult.Success ? orgResult.Data!.Name : "Organization";
+            ViewBag.OrganizationType = orgResult.Success ? orgResult.Data!.Type : Certio.Domain.Organizations.OrganizationType.Client;
+            ViewBag.CurrentUserId = customUser.Id;
+            ViewBag.CurrentUserName = $"{customUser.FirstName} {customUser.LastName}".Trim();
+            ViewBag.CurrentUserInitials = GetInitials(customUser.FirstName, customUser.LastName);
+
+            // Get organization relationships (clients) for this organization
+            var organization = await _db.Organizations
+                .Include(o => o.OrganizationRelationships)
+                    .ThenInclude(or => or.TargetOrganization)
+                        .ThenInclude(to => to.Owner)
+                .Include(o => o.OrganizationRelationships)
+                    .ThenInclude(or => or.TargetOrganization)
+                        .ThenInclude(to => to.UserOrganizations)
+                            .ThenInclude(uo => uo.User)
+                .FirstOrDefaultAsync(o => o.Id == orgId);
+
+            var clientRelationships = new List<object>();
+            
+            if (organization != null)
+            {
+                var relationships = organization.OrganizationRelationships
+                    .Where(or => or.IsValid() && 
+                                or.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient)
+                    .ToList();
+
+                foreach (var rel in relationships)
+                {
+                    var targetOrg = rel.TargetOrganization;
+                    if (targetOrg != null)
+                    {
+                        var ownerName = $"{targetOrg.Owner?.FirstName} {targetOrg.Owner?.LastName}".Trim();
+                        var ownerInitials = GetInitials(targetOrg.Owner?.FirstName ?? "", targetOrg.Owner?.LastName ?? "");
+                        
+                        // Get owner's role in their organization
+                        var ownerRole = targetOrg.UserOrganizations
+                            .FirstOrDefault(uo => uo.UserId == targetOrg.OwnerId && uo.IsActive)?.Role ?? "Owner";
+                        
+                        clientRelationships.Add(new
+                        {
+                            OrganizationId = targetOrg.Id,
+                            OrganizationName = targetOrg.Name,
+                            OwnerFirstName = targetOrg.Owner?.FirstName ?? "",
+                            OwnerLastName = targetOrg.Owner?.LastName ?? "",
+                            OwnerName = string.IsNullOrWhiteSpace(ownerName) ? targetOrg.Name : ownerName,
+                            OwnerInitials = ownerInitials,
+                            OwnerEmail = targetOrg.Owner?.Email ?? "",
+                            OwnerRole = ownerRole,
+                            RelationshipId = rel.Id
+                        });
+                    }
+                }
+            }
+
+            ViewBag.ClientRelationships = clientRelationships;
+
+            return View("~/Views/Client/Clients.cshtml");
+        }
+
+        private static string GetInitials(string firstName, string lastName)
+        {
+            var a = string.IsNullOrWhiteSpace(firstName) ? ' ' : char.ToUpperInvariant(firstName.Trim()[0]);
+            var b = string.IsNullOrWhiteSpace(lastName) ? ' ' : char.ToUpperInvariant(lastName.Trim()[0]);
+            return $"{a}{b}".Trim();
+        }
+
         // GET /Client/{orgId}/Settings
         // NOTE: Route removed to avoid conflict with SettingsController.Index
         // All firm settings functionality is now in SettingsController
