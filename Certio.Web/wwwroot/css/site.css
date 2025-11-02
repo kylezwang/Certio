@@ -596,6 +596,21 @@ body {
 .message-avatar {
   margin-right: 0.75rem;
   flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: #3d1019;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+/* Current user's message avatar gets the linear gradient */
+.message-item.current-user-message .message-avatar {
+  background: linear-gradient(135deg, #a32b43, #3d1019) !important;
 }
 
 .user-message-bubble .message-avatar {
@@ -3996,6 +4011,23 @@ body.communications-page .communications-layout {
   font-size: 0.875rem;
 }
 
+/* External/Guest users get gray background */
+.team-member[data-is-external="true"] .member-avatar,
+.team-member .member-avatar.external-user-avatar,
+.team-member .member-avatar.external-contacts-avatar {
+  background: #9ca3af !important; /* Lighter gray background for external users */
+}
+
+/* Pulse animation for new items */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
 .member-info {
   flex: 1;
   min-width: 0;
@@ -6003,7 +6035,7 @@ body.dark-mode .global-dashboard-main .quick-access-icon .fa-briefcase {
   display: flex;
   transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
   width: 100%;
-  will-change: transform;
+  /* Removed will-change to prevent blurry text */
 }
 
 .carousel-slide {
@@ -6013,6 +6045,7 @@ body.dark-mode .global-dashboard-main .quick-access-icon .fa-briefcase {
   overflow: hidden;
   max-width: 100%;
   box-sizing: border-box;
+  /* Removed transforms to prevent blurry text - match Status Overview card styling */
 }
 
 .carousel-controls {

@@ -380,6 +380,12 @@
     </style>
 </head>
 <body class="@ViewData["BodyClass"]">
+    <!-- Application Context for JavaScript -->
+    <div id="appContext" 
+         data-current-user-id="@ViewBag.CurrentUserId" 
+         data-current-user-name="@ViewBag.CurrentUserName"
+         style="display: none;"></div>
+    
     <!-- Global Navbar -->
     <nav class="global-navbar">
         <a class="navbar-brand" href="/">
@@ -442,7 +448,7 @@
                                 <i class="fas fa-users" style="color: #3d1019; font-size: 0.875rem;"></i>
                                 <div style="min-width: 0; flex: 1; margin-top: 0;">
                                     <h6 class="mb-0 fw-bold text-dark" style="font-size: 0.875rem;">
-                                        View All Clients
+                                        View All Clients & Contacts
                                     </h6>
                                 </div>
                             </div>
@@ -500,6 +506,19 @@
 
             // Initialize Clients link
             initializeClientsLink();
+            
+            // Immediately check active state synchronously if meta tag is available
+            (function() {
+                const orgTypeMeta = document.querySelector('meta[name="organization-type"]');
+                if (orgTypeMeta) {
+                    const orgType = orgTypeMeta.getAttribute('content');
+                    if (orgType && orgType !== 'LawFirm') {
+                        // We're viewing client-scoped data - make Clients button active immediately
+                        clientsButton.classList.add('active');
+                        myFirmLink.classList.remove('active');
+                    }
+                }
+            })();
 
             // Function to initialize My Firm link - defer to not block page load
             async function initializeMyFirmLink() {
@@ -543,11 +562,50 @@
             }
 
             // Function to update My Firm button active state based on current URL
-            function updateMyFirmActiveState(firmOrgId) {
+            async function updateMyFirmActiveState(firmOrgId) {
                 // Check if current URL path matches the firm organization ID but is NOT the Calendar page
                 const currentPath = window.location.pathname;
                 const isFirmPath = new RegExp(`^/Client/${firmOrgId}/`).test(currentPath);
                 const isCalendarPath = new RegExp(`^/Client/${firmOrgId}/Calendar`).test(currentPath);
+                
+                // Quick check: use meta tag if available (synchronous, no delay)
+                const orgTypeMeta = document.querySelector('meta[name="organization-type"]');
+                if (orgTypeMeta) {
+                    const orgType = orgTypeMeta.getAttribute('content');
+                    if (orgType && orgType !== 'LawFirm') {
+                        // We're viewing client-scoped data - don't mark My Firm as active
+                        myFirmLink.classList.remove('active');
+                        return;
+                    }
+                }
+                
+                // Check if we're viewing client-scoped data (not firm-scoped)
+                try {
+                    const response = await fetch('/Client/List', { credentials: 'include' });
+                    const result = await response.json();
+                    
+                    if (result.success && result.organizations) {
+                        // Extract orgId from current URL path
+                        const urlMatch = currentPath.match(/^\/Client\/(\d+)/);
+                        if (urlMatch) {
+                            const currentOrgId = parseInt(urlMatch[1]);
+                            
+                            // Check if current orgId is a client organization (not the firm)
+                            const clientOrg = result.organizations.find(org => 
+                                org.organizationId === currentOrgId && 
+                                org.organizationType !== 'LawFirm'
+                            );
+                            
+                            if (clientOrg) {
+                                // We're viewing client-scoped data - don't mark My Firm as active
+                                myFirmLink.classList.remove('active');
+                                return;
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error checking client organization:', error);
+                }
 
                 if (isFirmPath && !isCalendarPath) {
                     myFirmLink.classList.add('active');
@@ -749,7 +807,7 @@
                                 }
                                 
                                 // Check if current URL is the clients page and add active class
-                                updateClientsActiveState(firmOrg.organizationId);
+                                await updateClientsActiveState(firmOrg.organizationId);
                             }
                         }
                     } catch (error) {
@@ -759,19 +817,61 @@
             }
 
             // Function to update Clients button active state based on current URL
-            function updateClientsActiveState(firmOrgId) {
+            async function updateClientsActiveState(firmOrgId) {
                 const currentPath = window.location.pathname;
                 const clientsPathPattern = new RegExp(`^/Client/${firmOrgId}/Clients`);
                 
+                // Check if we're on the Clients page
                 if (clientsPathPattern.test(currentPath)) {
                     clientsButton.classList.add('active');
-                    // Ensure My Firm is not marked active when Clients is active
                     myFirmLink.classList.remove('active');
-                } else {
-                    // Only remove active if not showing popup
-                    if (!clientsPopup.classList.contains('show')) {
-                        clientsButton.classList.remove('active');
+                    return;
+                }
+                
+                // Quick check: use meta tag if available (synchronous, no delay)
+                const orgTypeMeta = document.querySelector('meta[name="organization-type"]');
+                if (orgTypeMeta) {
+                    const orgType = orgTypeMeta.getAttribute('content');
+                    if (orgType && orgType !== 'LawFirm') {
+                        // We're viewing client-scoped data - make Clients button active immediately
+                        clientsButton.classList.add('active');
+                        myFirmLink.classList.remove('active');
+                        return;
                     }
+                }
+                
+                // Fallback: Check if we're viewing client-scoped organization data (not firm-scoped)
+                try {
+                    const response = await fetch('/Client/List', { credentials: 'include' });
+                    const result = await response.json();
+                    
+                    if (result.success && result.organizations) {
+                        // Extract orgId from current URL path
+                        const urlMatch = currentPath.match(/^\/Client\/(\d+)/);
+                        if (urlMatch) {
+                            const currentOrgId = parseInt(urlMatch[1]);
+                            
+                            // Check if current orgId is a client organization (not the firm)
+                            const clientOrg = result.organizations.find(org => 
+                                org.organizationId === currentOrgId && 
+                                org.organizationType !== 'LawFirm'
+                            );
+                            
+                            if (clientOrg) {
+                                // We're viewing client-scoped data - make Clients button active
+                                clientsButton.classList.add('active');
+                                myFirmLink.classList.remove('active');
+                                return;
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error checking client organization:', error);
+                }
+                
+                // Default: remove active state if not showing popup
+                if (!clientsPopup.classList.contains('show')) {
+                    clientsButton.classList.remove('active');
                 }
             }
 
@@ -797,7 +897,8 @@
                         return;
                     }
                     orgs.forEach(o => {
-                        const ownerName = `${o.ownerFirstName} ${o.ownerLastName}`.trim();
+                        // Use displayOwnerName if available, otherwise construct from ownerFirstName/ownerLastName
+                        const ownerName = o.displayOwnerName || `${o.ownerFirstName} ${o.ownerLastName}`.trim();
                         const clientItem = document.createElement('div');
                         clientItem.className = 'client-item';
                         clientItem.innerHTML = `
@@ -817,7 +918,7 @@
                     if (viewAllClientsLink && firmOrg) {
                         viewAllClientsLink.href = `/Client/${firmOrg.organizationId}/Clients`;
                         // Update active state if on Clients page
-                        updateClientsActiveState(firmOrg.organizationId);
+                        await updateClientsActiveState(firmOrg.organizationId);
                     }
                 } catch (e) {
                     const err = document.createElement('div');
@@ -835,11 +936,52 @@
             }
 
             // Hide clients popup
-            function hideClientsPopup() {
+            async function hideClientsPopup() {
                 clientsPopup.classList.remove('show');
-                // Only remove active if not on Clients page
+                // Only remove active if not on Clients page and not on client-scoped page
                 const currentPath = window.location.pathname;
                 const clientsPathPattern = /^\/Client\/\d+\/Clients/;
+                
+                // Quick check: use meta tag if available (synchronous, no delay)
+                const orgTypeMeta = document.querySelector('meta[name="organization-type"]');
+                if (orgTypeMeta) {
+                    const orgType = orgTypeMeta.getAttribute('content');
+                    if (orgType && orgType !== 'LawFirm') {
+                        // We're viewing client-scoped data - keep Clients button active
+                        clientsButton.classList.add('active');
+                        return;
+                    }
+                }
+                
+                // Check if we're on a client-scoped page (not firm-scoped)
+                try {
+                    const response = await fetch('/Client/List', { credentials: 'include' });
+                    const result = await response.json();
+                    
+                    if (result.success && result.organizations) {
+                        // Extract orgId from current URL path
+                        const urlMatch = currentPath.match(/^\/Client\/(\d+)/);
+                        if (urlMatch) {
+                            const currentOrgId = parseInt(urlMatch[1]);
+                            
+                            // Check if current orgId is a client organization (not the firm)
+                            const clientOrg = result.organizations.find(org => 
+                                org.organizationId === currentOrgId && 
+                                org.organizationType !== 'LawFirm'
+                            );
+                            
+                            if (clientOrg) {
+                                // We're viewing client-scoped data - keep Clients button active
+                                clientsButton.classList.add('active');
+                                return;
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error checking client organization:', error);
+                }
+                
+                // If not on Clients page and not on client-scoped page, remove active
                 if (!clientsPathPattern.test(currentPath)) {
                     clientsButton.classList.remove('active');
                 }

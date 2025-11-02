@@ -34,6 +34,9 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.4" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="1.4.0" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.4.0" />
+    <PackageReference Include="Google.Apis.Gmail.v1" Version="1.68.0" />
+    <PackageReference Include="Microsoft.Graph" Version="5.49.0" />
+    <PackageReference Include="Microsoft.Identity.Client" Version="4.61.3" />
   </ItemGroup>
 
   <ItemGroup>

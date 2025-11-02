@@ -6,6 +6,7 @@ using Certio.Application.Interfaces;
 using Certio.Web.ViewModels;
 using Microsoft.Extensions.Logging;
 using Certio.Domain.Organizations;
+using System;
 
 namespace Certio.Web.Services;
 
@@ -120,16 +121,21 @@ public class ChannelManagementService : Certio.Web.Services.IChannelManagementSe
                          uo.User.IsActive && 
                          !uo.User.IsDeleted)
             .Include(uo => uo.User)
+            .Include(uo => uo.Organization)
             .Select(uo => new CommunicationsTeamMember
-            {
-                UserId = uo.UserId,
-                Name = $"{uo.User.FirstName} {uo.User.LastName}",
-                Role = uo.Role ?? "Member",
-                Status = "offline", // Will be updated by SignalR
-                Avatar = $"{uo.User.FirstName.Substring(0, 1)}{uo.User.LastName.Substring(0, 1)}",
-                Activity = "Offline",
-                RoleIcon = "", // Remove role icons
-                RoleColor = "" // Remove role colors
+        {
+            UserId = uo.UserId,
+            Name = $"{uo.User.FirstName} {uo.User.LastName}",
+            Role = uo.Role ?? "Member",
+            Status = "offline", // Will be updated by SignalR
+            Avatar = $"{uo.User.FirstName.Substring(0, 1)}{uo.User.LastName.Substring(0, 1)}",
+            Activity = "Offline",
+            RoleIcon = "", // Remove role icons
+            RoleColor = "", // Remove role colors
+                OrganizationId = organizationId,
+                OrganizationName = uo.Organization != null ? uo.Organization.Name : null,
+                IsExternalContacts = uo.Organization != null && uo.Organization.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase),
+                Color = uo.User.Color ?? "#3d1019" // Use user's color, default to maroon
             })
             .ToListAsync();
 
@@ -141,9 +147,15 @@ public class ChannelManagementService : Certio.Web.Services.IChannelManagementSe
             .Include(or => or.SourceOrganization)
                 .ThenInclude(so => so.UserOrganizations)
                     .ThenInclude(uo => uo.User)
+            .Include(or => or.SourceOrganization)
+                .ThenInclude(so => so.UserOrganizations)
+                    .ThenInclude(uo => uo.Organization)
             .Include(or => or.TargetOrganization)
                 .ThenInclude(to => to.UserOrganizations)
                     .ThenInclude(uo => uo.User)
+            .Include(or => or.TargetOrganization)
+                .ThenInclude(to => to.UserOrganizations)
+                    .ThenInclude(uo => uo.Organization)
             .SelectMany(or => or.SourceOrganization.UserOrganizations.Concat(or.TargetOrganization.UserOrganizations))
             .Where(uo => uo.IsActive && 
                          uo.User != null && 
@@ -158,7 +170,11 @@ public class ChannelManagementService : Certio.Web.Services.IChannelManagementSe
                 Avatar = $"{uo.User.FirstName.Substring(0, 1)}{uo.User.LastName.Substring(0, 1)}",
                 Activity = "Offline",
                 RoleIcon = "", // Remove role icons
-                RoleColor = "" // Remove role colors
+                RoleColor = "", // Remove role colors
+                OrganizationId = uo.OrganizationId,
+                OrganizationName = uo.Organization != null ? uo.Organization.Name : null,
+                IsExternalContacts = uo.Organization != null && uo.Organization.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase),
+                Color = uo.User.Color ?? "#3d1019" // Use user's color, default to maroon
             })
             .ToListAsync();
 

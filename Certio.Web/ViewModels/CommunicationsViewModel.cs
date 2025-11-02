@@ -52,6 +52,7 @@ namespace Certio.Web.ViewModels
         public string Avatar { get; set; } = string.Empty;
         public string Time { get; set; } = string.Empty;
         public string Content { get; set; } = string.Empty;
+        public string MessageType { get; set; } = "Text"; // Text, Email, File, System
         public List<Reaction> Reactions { get; set; } = new List<Reaction>();
         public DateTime? CreatedAt { get; set; }
     }
@@ -75,6 +76,8 @@ namespace Certio.Web.ViewModels
         public string RoleIcon { get; set; } = string.Empty;
         public bool CanDirectMessage { get; set; } = true;
         public string? OrganizationName { get; set; }
+        public bool IsExternalContacts { get; set; } = false;
+        public string Color { get; set; } = "#3d1019"; // Default to maroon, will be overridden by User.Color
     }
 }
 

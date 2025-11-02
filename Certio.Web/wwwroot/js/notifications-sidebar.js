@@ -362,6 +362,15 @@
             const isChannel = message.type === 'channel';
             const isMatterChannel = isChannel && message.matterId != null;
             
+            // Get sender color and check if external contacts
+            const isExternalContacts = message.isExternalContacts || false;
+            const senderColor = message.senderColor || (isExternalContacts ? '#9ca3af' : '#3d1019');
+            
+            // Build avatar style with color
+            const avatarStyle = `background: ${senderColor} !important;`;
+            const avatarClass = isExternalContacts ? 'recent-message-avatar external-contacts-avatar' : 'recent-message-avatar';
+            const avatarDataAttr = isExternalContacts ? ' data-is-external="true"' : '';
+            
             // Determine icon based on message type and channel type
             let channelIconHtml = '';
             if (isChannel) {
@@ -382,7 +391,7 @@
                      ${message.channelName ? `data-channel-name="${escapeHtml(channelName)}"` : ''}
                      ${message.threadId ? `data-thread-id="${message.threadId}"` : ''}
                      ${message.senderId ? `data-sender-id="${message.senderId}"` : ''}>
-                    <div class="recent-message-avatar">${avatar}</div>
+                    <div class="${avatarClass}"${avatarDataAttr} style="${avatarStyle}">${avatar}</div>
                     <div class="recent-message-content">
                         <div class="recent-message-header">
                             <span class="recent-message-channel">

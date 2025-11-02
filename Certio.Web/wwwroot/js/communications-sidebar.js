@@ -66,6 +66,11 @@ function initializeCommsSidebar() {
             commsSidebarState.currentUserId = getCurrentUserId();
             commsSidebarState.currentUserName = getCurrentUserName();
             console.log('Retried - User ID:', commsSidebarState.currentUserId, 'User Name:', commsSidebarState.currentUserName);
+            
+            // If user ID or name was found after retry AND team members are already loaded, re-render them
+            if ((commsSidebarState.currentUserId || commsSidebarState.currentUserName) && commsSidebarState.teamMembers && commsSidebarState.teamMembers.length > 0) {
+                renderCommsTeamMembers(commsSidebarState.teamMembers);
+            }
         }, 1000);
     }
     
@@ -222,6 +227,7 @@ async function loadCommsChannels() {
         }
         
         console.log('Loaded channel data:', data);
+        console.log('Team members with colors:', data.teamMembers?.map(m => ({ name: m.name, color: m.color || m.Color, isExternal: m.isExternalContacts })));
         
         // Store channel categories and team members
         commsSidebarState.channelCategories = data.channelCategories;
@@ -424,12 +430,49 @@ function renderCommsTeamMembers(teamMembers) {
     const channelsList = document.getElementById('commsChannelsList');
     if (!channelsList || !teamMembers || teamMembers.length === 0) return;
     
-    // Sort team members: current user first, then online users, then offline
-    const currentUserId = commsSidebarState.currentUserId;
+    // Sort team members with priority:
+    // 1. Current user first
+    // 2. Current organization users (not from relationships)
+    // 3. Relationship users (clients) who are NOT external contacts
+    // 4. External contacts
+    // Within each group: online users first, then alphabetically
+    
+    // CRITICAL: Re-fetch currentUserId if it's null (might not have been ready during init)
+    let currentUserId = commsSidebarState.currentUserId;
+    if (!currentUserId) {
+        currentUserId = getCurrentUserId();
+        commsSidebarState.currentUserId = currentUserId;
+    }
+    
+    const currentOrgId = commsSidebarState.organizationId;
+    
+    const currentUserName = commsSidebarState.currentUserName || getCurrentUserName();
     const sortedMembers = [...teamMembers].sort((a, b) => {
-        // Current user always first
-        if (a.userId == currentUserId) return -1;
-        if (b.userId == currentUserId) return 1;
+        // Current user always first (match by ID or name)
+        const aIsCurrentUser = a.userId == currentUserId || (currentUserName && a.name.trim() === currentUserName.trim());
+        const bIsCurrentUser = b.userId == currentUserId || (currentUserName && b.name.trim() === currentUserName.trim());
+        if (aIsCurrentUser) return -1;
+        if (bIsCurrentUser) return 1;
+        
+        // Check if external contacts
+        const aIsExternal = a.isExternalContacts || a.organizationName?.endsWith("'s External Contacts");
+        const bIsExternal = b.isExternalContacts || b.organizationName?.endsWith("'s External Contacts");
+        
+        // Determine if from current org or relationship
+        const aIsCurrentOrg = a.organizationId == currentOrgId && !aIsExternal;
+        const bIsCurrentOrg = b.organizationId == currentOrgId && !bIsExternal;
+        const aIsRelationship = a.organizationId != currentOrgId && !aIsExternal;
+        const bIsRelationship = b.organizationId != currentOrgId && !bIsExternal;
+        
+        // Priority order: current org > relationship users > external contacts
+        if (aIsCurrentOrg && !bIsCurrentOrg) return -1;
+        if (!aIsCurrentOrg && bIsCurrentOrg) return 1;
+        
+        if (aIsRelationship && (!bIsRelationship || bIsExternal)) return -1;
+        if (!aIsRelationship && bIsRelationship && !aIsExternal) return 1;
+        
+        if (!aIsExternal && bIsExternal) return -1;
+        if (aIsExternal && !bIsExternal) return 1;
         
         // Then by online status
         if (a.status === 'online' && b.status !== 'online') return -1;
@@ -456,14 +499,38 @@ function renderCommsTeamMembers(teamMembers) {
         // If status is online, show "Online", otherwise show "Offline"
         const activity = status === 'online' ? 'Online' : 'Offline';
         
-        // Check if this is the current user
-        const isCurrentUser = member.userId == currentUserId;
+        // Check if this is the current user - use name matching as fallback since getCurrentUserId is unreliable
+        const currentUserName = commsSidebarState.currentUserName || getCurrentUserName();
+        const isCurrentUser = member.userId == currentUserId || (currentUserName && member.name.trim() === currentUserName.trim());
         const displayName = isCurrentUser ? `${member.name} (You)` : member.name;
-        const avatarClass = isCurrentUser ? 'comms-dm-avatar current-user-avatar' : 'comms-dm-avatar';
+        
+        
+        // Check if this is an external contacts user
+        const isExternalContacts = member.isExternalContacts || member.organizationName?.endsWith("'s External Contacts");
+        
+        // Get avatar color from member, default to maroon if not set
+        const avatarColor = member.color || member.Color || (isExternalContacts ? '#9ca3af' : '#3d1019');
+        
+        // Build avatar class with external contacts support
+        let avatarClass = 'comms-dm-avatar';
+        if (isCurrentUser) {
+            avatarClass += ' current-user-avatar';
+        } else if (isExternalContacts) {
+            avatarClass += ' external-contacts-avatar';
+        }
+        
+        // Add data attribute for CSS targeting
+        const dataAttrs = isExternalContacts ? ' data-is-external="true"' : '';
+        
+        // Don't apply inline style for current user (let CSS gradient handle it)
+        let avatarStyle = '';
+        if (!isCurrentUser) {
+            avatarStyle = ` style="background: ${avatarColor} !important;"`;
+        }
         
         dmHtml += `
-            <div class="comms-dm-item" data-user-id="${member.userId}" data-user-name="${member.name}">
-                <div class="${avatarClass}">
+            <div class="comms-dm-item" data-user-id="${member.userId}" data-user-name="${member.name}"${dataAttrs}>
+                <div class="${avatarClass}"${avatarStyle}>
                     ${avatar}
                     <div class="comms-status-indicator ${status}"></div>
                 </div>
@@ -834,12 +901,27 @@ function renderMessageItem(message, isGrouped, isCurrentUser) {
     // DM messages use 'body', channel messages use 'Content' or 'content'
     const content = escapeHtml(message.body || message.Content || message.content || '');
     
+    // Get sender color and check if external contacts
+    const isExternalContacts = message.isExternalContacts || message.organizationName?.endsWith("'s External Contacts") || false;
+    const senderColor = message.senderColor || (isExternalContacts ? '#9ca3af' : '#3d1019');
+    
+    // Build avatar style with color - don't apply inline style for current user (let CSS gradient handle it)
+    let avatarStyle = '';
+    let avatarClass = isExternalContacts ? 'comms-message-avatar external-contacts-avatar' : 'comms-message-avatar';
+    const avatarDataAttr = isExternalContacts ? ' data-is-external="true"' : '';
+    
+    if (!isCurrentUser) {
+        // Only apply inline color for non-current-user messages
+        avatarStyle = `background: ${senderColor} !important;`;
+    }
+    // For current user, CSS will apply the gradient via .comms-message-item.current-user-message .comms-message-avatar
+    
     const currentUserClass = isCurrentUser ? 'current-user-message' : '';
     const groupedClass = isGrouped ? 'grouped-message' : '';
     
     return `
         <div class="comms-message-item ${currentUserClass} ${groupedClass}" data-message-id="${message.Id || message.id}">
-            <div class="comms-message-avatar">${avatar}</div>
+            <div class="${avatarClass}"${avatarDataAttr}${avatarStyle ? ` style="${avatarStyle}"` : ''}>${avatar}</div>
             <div class="comms-message-content">
                 <div class="comms-message-header">
                     <span class="comms-message-author">${escapeHtml(senderName)}</span>
@@ -1371,7 +1453,7 @@ function getCurrentOrgId() {
 function getCurrentUserId() {
     // Get from appContext first
     const appContext = document.getElementById('appContext');
-    if (appContext && appContext.dataset.currentUserId) {
+    if (appContext) {
         const userId = appContext.dataset.currentUserId;
         // Don't return "0" which is the default when user is null
         if (userId && userId !== "0" && userId !== "null" && userId !== "") {
@@ -1467,7 +1549,7 @@ async function renderActiveMembers(dmUserId, dmUserName) {
             const currentUserStatus = currentUserMember ? currentUserMember.status : 'online';
             
             html += `
-                <div class="member-avatar-small" title="${commsSidebarState.currentUserName || 'You'}">
+                <div class="member-avatar-small current-user-avatar" title="${commsSidebarState.currentUserName || 'You'}">
                     ${currentUserInitials}
                     <div class="status-indicator ${currentUserStatus}"></div>
                 </div>
@@ -1478,9 +1560,13 @@ async function renderActiveMembers(dmUserId, dmUserName) {
                 const otherUserInitials = getInitials(dmUserName);
                 const otherUserMember = commsSidebarState.teamMembers.find(m => m.userId == dmUserId);
                 const otherUserStatus = otherUserMember ? otherUserMember.status : 'offline';
+                const isExternalContacts = otherUserMember?.isExternalContacts || otherUserMember?.organizationName?.endsWith("'s External Contacts");
+                const avatarColor = otherUserMember?.color || otherUserMember?.Color || (isExternalContacts ? '#9ca3af' : '#3d1019');
+                const avatarClass = isExternalContacts ? 'member-avatar-small external-contacts-avatar' : 'member-avatar-small';
+                const dataAttr = isExternalContacts ? ' data-is-external="true"' : '';
                 
                 html += `
-                    <div class="member-avatar-small" title="${dmUserName}">
+                    <div class="${avatarClass}" title="${dmUserName}"${dataAttr} style="background: ${avatarColor} !important;">
                         ${otherUserInitials}
                         <div class="status-indicator ${otherUserStatus}"></div>
                     </div>
@@ -1493,7 +1579,7 @@ async function renderActiveMembers(dmUserId, dmUserName) {
             const currentUserStatus = currentUserMember ? currentUserMember.status : 'online';
             
             html += `
-                <div class="member-avatar-small" title="${commsSidebarState.currentUserName || 'You'} (Self)">
+                <div class="member-avatar-small current-user-avatar" title="${commsSidebarState.currentUserName || 'You'} (Self)">
                     ${currentUserInitials}
                     <div class="status-indicator ${currentUserStatus}"></div>
                 </div>
@@ -1512,8 +1598,23 @@ async function renderActiveMembers(dmUserId, dmUserName) {
                     members.forEach(member => {
                         const avatar = member.avatar || getInitials(member.name);
                         const status = member.status || 'offline';
+                        const isCurrentUser = member.userId == commsSidebarState.currentUserId;
+                        const isExternalContacts = member.isExternalContacts || member.organizationName?.endsWith("'s External Contacts");
+                        const avatarColor = member.color || member.Color || (isExternalContacts ? '#9ca3af' : '#3d1019');
+                        let avatarClass = 'member-avatar-small';
+                        if (isCurrentUser) {
+                            avatarClass += ' current-user-avatar';
+                        } else if (isExternalContacts) {
+                            avatarClass += ' external-contacts-avatar';
+                        }
+                        const dataAttr = isExternalContacts ? ' data-is-external="true"' : '';
+                        // Don't apply inline style for current user (let CSS gradient handle it)
+                        let avatarStyle = '';
+                        if (!isCurrentUser) {
+                            avatarStyle = ` style="background: ${avatarColor} !important;"`;
+                        }
                         html += `
-                            <div class="member-avatar-small" title="${member.name}">
+                            <div class="${avatarClass}" title="${member.name}"${dataAttr}${avatarStyle}>
                                 ${avatar}
                                 <div class="status-indicator ${status}"></div>
                             </div>
@@ -1538,8 +1639,23 @@ async function renderActiveMembers(dmUserId, dmUserName) {
             membersToShow.forEach(member => {
                 const avatar = member.avatar || getInitials(member.name);
                 const status = member.status || 'offline';
+                const isCurrentUser = member.userId == commsSidebarState.currentUserId;
+                const isExternalContacts = member.isExternalContacts || member.organizationName?.endsWith("'s External Contacts");
+                const avatarColor = member.color || member.Color || (isExternalContacts ? '#9ca3af' : '#3d1019');
+                let avatarClass = 'member-avatar-small';
+                if (isCurrentUser) {
+                    avatarClass += ' current-user-avatar';
+                } else if (isExternalContacts) {
+                    avatarClass += ' external-contacts-avatar';
+                }
+                const dataAttr = isExternalContacts ? ' data-is-external="true"' : '';
+                // Don't apply inline style for current user (let CSS gradient handle it)
+                let avatarStyle = '';
+                if (!isCurrentUser) {
+                    avatarStyle = ` style="background: ${avatarColor} !important;"`;
+                }
                 html += `
-                    <div class="member-avatar-small" title="${member.name}">
+                    <div class="${avatarClass}" title="${member.name}"${dataAttr}${avatarStyle}>
                         ${avatar}
                         <div class="status-indicator ${status}"></div>
                     </div>

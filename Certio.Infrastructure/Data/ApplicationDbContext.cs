@@ -73,6 +73,10 @@ namespace Certio.Infrastructure.Data
         public DbSet<DirectParticipant> DirectParticipants => Set<DirectParticipant>();
         public DbSet<DirectMessage> DirectMessages => Set<DirectMessage>();
         
+        // Email Integration Entities
+        public DbSet<EmailAccount> EmailAccounts => Set<EmailAccount>();
+        public DbSet<EmailMessage> EmailMessages => Set<EmailMessage>();
+        
         // AI Agent Entities
         public DbSet<AIAgent> AIAgents => Set<AIAgent>();
         public DbSet<AIAgentExecution> AIAgentExecutions => Set<AIAgentExecution>();
@@ -129,6 +133,7 @@ namespace Certio.Infrastructure.Data
             ConfigureDocumentRelationships(builder);
             ConfigureChatRelationships(builder);
             ConfigureDirectMessageRelationships(builder);
+            ConfigureEmailIntegrationRelationships(builder);
             ConfigureAIAgentRelationships(builder);
             ConfigureWorkflowRelationships(builder);
             ConfigureNotificationRelationships(builder);
@@ -850,6 +855,52 @@ namespace Certio.Infrastructure.Data
 
             builder.Entity<DirectMessage>()
                 .HasIndex(dm => new { dm.ThreadId, dm.CreatedAt });
+        }
+
+        private void ConfigureEmailIntegrationRelationships(ModelBuilder builder)
+        {
+            // EmailAccount -> User relationship
+            builder.Entity<EmailAccount>()
+                .HasOne(ea => ea.User)
+                .WithMany()
+                .HasForeignKey(ea => ea.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // EmailAccount -> EmailMessages relationship
+            builder.Entity<EmailAccount>()
+                .HasMany(ea => ea.EmailMessages)
+                .WithOne(em => em.EmailAccount)
+                .HasForeignKey(em => em.EmailAccountId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // EmailMessage -> DirectMessage relationship (optional)
+            builder.Entity<EmailMessage>()
+                .HasOne(em => em.DirectMessage)
+                .WithMany()
+                .HasForeignKey(em => em.DirectMessageId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Indexes for performance
+            // Note: Unique constraint on (UserId, IsActive) when IsActive = 1 is enforced at application level
+            // as EF Core doesn't support filtered unique indexes well across all SQL providers
+            builder.Entity<EmailAccount>()
+                .HasIndex(ea => ea.UserId);
+
+            builder.Entity<EmailAccount>()
+                .HasIndex(ea => ea.EmailAddress);
+
+            builder.Entity<EmailMessage>()
+                .HasIndex(em => new { em.EmailAccountId, em.ReceivedAt });
+
+            builder.Entity<EmailMessage>()
+                .HasIndex(em => em.ExternalEmailId)
+                .IsUnique();
+
+            builder.Entity<EmailMessage>()
+                .HasIndex(em => em.ThreadId);
+
+            builder.Entity<EmailMessage>()
+                .HasIndex(em => em.DirectMessageId);
         }
 
         private void ConfigureAIAgentRelationships(ModelBuilder builder)

@@ -48,45 +48,89 @@
             @foreach (dynamic client in ViewBag.ClientRelationships)
             {
                 var clientName = client.OwnerName ?? client.OrganizationName ?? "Unknown";
-                var orgName = client.OrganizationName ?? "Unknown Organization";
+                var orgName = client.DisplayOrganizationName ?? client.OrganizationName ?? "Unknown Organization"; // Use DisplayOrganizationName for title
                 var initials = client.OwnerInitials ?? "??";
                 var orgId = client.OrganizationId ?? 0;
                 var role = client.OwnerRole ?? "Owner";
+                var isExternalGuests = client.IsExternalGuests ?? false;
+                var orgUsers = client.Users ?? new List<dynamic>(); // Get all users in the organization
                 
                 <div class="mb-5 client-section">
                     <div class="team-section-header">
-                        <i class="fa-solid fa-building-user"></i>
+                        <i class="fa-solid fa-building-user @(isExternalGuests ? "external-guests-icon" : "")"></i>
                         <h2>@orgName</h2>
-                        <span class="team-badge">1</span>
+                        <span class="team-badge">@(orgUsers.Count > 0 ? orgUsers.Count : 1)</span>
                     </div>
                     
                     <div class="row g-4">
-                        <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 client-card team-member-card" 
-                             data-name="@(clientName.ToString().ToLower())" 
-                             data-org="@(orgName.ToString().ToLower())">
-                            <a href="/Client/@orgId/Dashboard" class="text-decoration-none">
-                                <div class="card h-100 border-0 hover-shadow transition-smooth cursor-pointer">
-                                    <div class="card-body d-flex flex-column align-items-center text-center p-4">
-                                        <!-- Avatar -->
-                                        <div class="mb-3">
-                                            <div class="team-member-avatar" style="background-color: #a32b43;">
-                                                @initials
+                        @* Show all users in the organization *@
+                        @if (orgUsers.Count > 0)
+                        {
+                            @foreach (dynamic user in orgUsers)
+                            {
+                                var userName = user.UserName ?? "Unknown";
+                                var userInitials = user.UserInitials ?? "??";
+                                var userRole = user.UserRole ?? "Guest";
+                                var userId = user.UserId ?? 0;
+                                
+                                <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 client-card team-member-card" 
+                                     data-name="@(userName.ToString().ToLower())" 
+                                     data-org="@(orgName.ToString().ToLower())">
+                                    <a href="/Client/@orgId/Dashboard" class="text-decoration-none">
+                                        <div class="card h-100 border-0 hover-shadow transition-smooth cursor-pointer">
+                                            <div class="card-body d-flex flex-column align-items-center text-center p-4">
+                                                <!-- Avatar -->
+                                                <div class="mb-3">
+                                                    <div class="team-member-avatar @(isExternalGuests ? "external-guests-avatar" : "")" style="@(isExternalGuests ? "" : "background-color: #a32b43;")">
+                                                        @userInitials
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Name and Role -->
+                                                <h5 class="card-title fw-medium mb-1">@userName</h5>
+                                                <p class="text-muted small mb-3">@userRole</p>
+                                                
+                                                <!-- Organization Type -->
+                                                <div class="d-flex align-items-center gap-1 text-muted small">
+                                                    <i class="fas fa-briefcase" style="font-size: 0.75rem;"></i>
+                                                    <span>Client</span>
+                                                </div>
                                             </div>
                                         </div>
-                                        
-                                        <!-- Name and Role -->
-                                        <h5 class="card-title fw-medium mb-1">@clientName</h5>
-                                        <p class="text-muted small mb-3">@role</p>
-                                        
-                                        <!-- Organization Type -->
-                                        <div class="d-flex align-items-center gap-1 text-muted small">
-                                            <i class="fas fa-briefcase" style="font-size: 0.75rem;"></i>
-                                            <span>Client</span>
+                                    </a>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            @* Fallback to showing owner if no users list *@
+                            <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 client-card team-member-card" 
+                                 data-name="@(clientName.ToString().ToLower())" 
+                                 data-org="@(orgName.ToString().ToLower())">
+                                <a href="/Client/@orgId/Dashboard" class="text-decoration-none">
+                                    <div class="card h-100 border-0 hover-shadow transition-smooth cursor-pointer">
+                                        <div class="card-body d-flex flex-column align-items-center text-center p-4">
+                                            <!-- Avatar -->
+                                            <div class="mb-3">
+                                                <div class="team-member-avatar @(isExternalGuests ? "external-guests-avatar" : "")" style="@(isExternalGuests ? "" : "background-color: #a32b43;")">
+                                                    @initials
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Name and Role -->
+                                            <h5 class="card-title fw-medium mb-1">@clientName</h5>
+                                            <p class="text-muted small mb-3">@role</p>
+                                            
+                                            <!-- Organization Type -->
+                                            <div class="d-flex align-items-center gap-1 text-muted small">
+                                                <i class="fas fa-briefcase" style="font-size: 0.75rem;"></i>
+                                                <span>Client</span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </a>
-                        </div>
+                                </a>
+                            </div>
+                        }
                     </div>
                 </div>
             }
@@ -184,6 +228,14 @@
     .team-section-header i {
         font-size: 1.5rem;
         color: #3d1019;
+    }
+
+    .team-section-header i.external-guests-icon {
+        color: #9ca3af; /* Gray color for External Guests */
+    }
+
+    .team-member-avatar.external-guests-avatar {
+        background-color: #9ca3af !important; /* Gray background for External Guests */
     }
 
     .team-section-header h2 {

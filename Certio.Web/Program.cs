@@ -272,6 +272,7 @@ catch (Exception ex)
 // Register performance monitoring services
 builder.Services.AddSingleton<Certio.Web.Services.CacheMetricsService>();
 builder.Services.AddHostedService<Certio.Web.Services.MetricsReportingService>();
+builder.Services.AddHostedService<Certio.Web.Services.EmailSyncService>();
 
 // Register cache service
 builder.Services.AddSingleton<Certio.Web.Services.ICacheService, Certio.Web.Services.RedisCacheService>();
@@ -336,6 +337,11 @@ builder.Services.AddSingleton<Certio.Web.Services.AIBackgroundService>();
 
 // Direct Message Services
 builder.Services.AddScoped<Certio.Application.Interfaces.IDirectMessageService, Certio.Web.Services.DirectMessageService>();
+
+// Email Integration Services
+builder.Services.AddScoped<Certio.Application.Interfaces.IEmailService, Certio.Web.Services.EmailService>();
+builder.Services.AddScoped<Certio.Application.Interfaces.IEmailToDmService, Certio.Web.Services.EmailToDmService>();
+builder.Services.AddScoped<Certio.Application.Interfaces.IEmailSendingService, Certio.Web.Services.EmailSendingService>();
 
 // Channel Management Services
 builder.Services.AddScoped<Certio.Web.Services.IChannelManagementService, Certio.Web.Services.ChannelManagementService>();

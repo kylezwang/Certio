@@ -366,10 +366,24 @@ function appendDirectMessage(message, previousMessage = null) {
     // Get user initials for avatar
     const initials = message.senderName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
+    // Get sender color and check if external contacts
+    const isExternalContacts = message.isExternalContacts || false;
+    const senderColor = message.senderColor || (isExternalContacts ? '#9ca3af' : '#3d1019');
+    
+    // Build avatar style with color - don't apply inline style for current user (let CSS gradient handle it)
+    let avatarStyle = '';
+    let avatarClass = isExternalContacts ? 'message-avatar external-contacts-avatar' : 'message-avatar';
+    
+    if (!isOwnMessage) {
+        // Only apply inline color for non-current-user messages
+        avatarStyle = `background: ${senderColor} !important;`;
+    }
+    // For current user, CSS will apply the gradient via .message-item.current-user-message .message-avatar
+
     const timestamp = formatTimestamp(message.createdAt);
     
     messageElement.innerHTML = `
-        <div class="message-avatar">
+        <div class="${avatarClass}"${avatarStyle ? ` style="${avatarStyle}"` : ''}>
             <span>${initials}</span>
         </div>
         <div class="message-content">

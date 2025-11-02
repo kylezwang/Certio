@@ -4,6 +4,8 @@ using Certio.Application.Interfaces;
 using Certio.Application.DTOs;
 using Certio.Web.Services;
 using System.Security.Claims;
+using Certio.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Certio.Web.Hubs;
 
@@ -91,6 +93,11 @@ public class DirectHub : Hub
             var dto = new NewMessageDto(body, messageType);
             var message = await _directMessageService.SendAsync(orgId.Value, userId.Value, threadGuid, dto, Context.ConnectionAborted);
 
+            // MessageDto from service should already include sender color and external contact status
+            // If not set, use defaults
+            var senderColor = message.SenderColor ?? "#3d1019";
+            var isExternalContacts = message.IsExternalContacts ?? false;
+
             // Broadcast to all participants in the thread
             await Clients.Group($"dm:{threadId}").SendAsync("ReceiveDirectMessage", new
             {
@@ -102,7 +109,9 @@ public class DirectHub : Hub
                 message.MessageType,
                 message.CreatedAt,
                 message.EditedAt,
-                message.IsDeleted
+                message.IsDeleted,
+                senderColor = senderColor,
+                isExternalContacts = isExternalContacts
             });
 
             _logger.LogInformation("User {UserId} sent message {MessageId} in thread {ThreadId}", 

@@ -44,7 +44,9 @@ public record MessageDto(
     string MessageType,
     DateTime CreatedAt,
     DateTime? EditedAt,
-    bool IsDeleted
+    bool IsDeleted,
+    string? SenderColor = null,
+    bool? IsExternalContacts = null
 );
 
 // Paging
