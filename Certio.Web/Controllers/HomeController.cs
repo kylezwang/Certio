@@ -9,6 +9,7 @@ using Certio.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Certio.Domain.Users;
 using Certio.Domain.Organizations;
+using Certio.Domain.Services;
 
 namespace Certio.Web.Controllers
 {
@@ -1522,7 +1523,9 @@ namespace Certio.Web.Controllers
                     RoleIcon = roleIcon,
                     RoleColor = roleColor,
                     CanDirectMessage = true, // Same org, can DM
-                    OrganizationName = uo.Organization?.Name
+                    OrganizationName = uo.Organization?.Name,
+                    IsExternalContacts = uo.Organization?.Name?.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase) ?? false,
+                    Color = uo.User?.Color ?? "#3d1019" // Use user's color, default to maroon
                 };
                 Console.WriteLine($"[DEBUG] Current org member: UserId={member.UserId}, Name={member.Name}, CanDM=true");
                 return member;
@@ -1554,7 +1557,9 @@ namespace Certio.Web.Controllers
                     RoleIcon = roleIcon,
                     RoleColor = roleColor,
                     CanDirectMessage = true, // NOW ALLOWED via relationship
-                    OrganizationName = relatedOrgName
+                    OrganizationName = relatedOrgName,
+                    IsExternalContacts = relatedOrgName?.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase) ?? false,
+                    Color = uo.User?.Color ?? "#3d1019" // Use user's color, default to maroon
                 };
                 Console.WriteLine($"[DEBUG] Related org member: UserId={member.UserId}, Name={member.Name}, Org={relatedOrgName}, CanDM=true");
                 teamMembers.Add(member);
@@ -1562,9 +1567,82 @@ namespace Certio.Web.Controllers
             
             Console.WriteLine($"[DEBUG] Final teamMembers count: {teamMembers.Count}");
 
-            // Sort team members: current user first, then online users, then offline
+            // Filter to only show users with active DirectMessage threads (except current user)
+            var currentUserId = customUser.Id;
+            var activeThreadUserIds = await _context.DirectThreads
+                .Where(dt => dt.OrganizationId == organizationId && 
+                            !dt.IsDeleted &&
+                            ((dt.UserAId == currentUserId && dt.UserBId != currentUserId) ||
+                             (dt.UserBId == currentUserId && dt.UserAId != currentUserId)))
+                .Select(dt => dt.UserAId == currentUserId ? dt.UserBId : dt.UserAId)
+                .Distinct()
+                .ToListAsync();
+            
+            // Get users from active threads who aren't in teamMembers yet (e.g., from External Contacts org)
+            var missingUserIds = activeThreadUserIds.Where(id => id != currentUserId && !teamMembers.Any(m => m.UserId == id)).ToList();
+            if (missingUserIds.Any())
+            {
+                var missingUsers = await _context.Users
+                    .Include(u => u.UserOrganizations)
+                        .ThenInclude(uo => uo.Organization)
+                    .Where(u => missingUserIds.Contains(u.Id))
+                    .ToListAsync();
+                
+                foreach (var user in missingUsers)
+                {
+                    // Find which organization this user belongs to (prefer External Contacts if they're in multiple)
+                    var userOrg = user.UserOrganizations
+                        .FirstOrDefault(uo => uo.IsActive && uo.Organization?.Name?.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase) == true)
+                        ?? user.UserOrganizations.FirstOrDefault(uo => uo.IsActive);
+                    
+                    if (userOrg != null)
+                    {
+                        var isOnline = onlineUserIds.Contains(user.Id);
+                        var initials = string.IsNullOrEmpty(user.FirstName) && string.IsNullOrEmpty(user.LastName)
+                            ? user.Email?.Substring(0, 2).ToUpper() ?? "??"
+                            : $"{user.FirstName?.FirstOrDefault() ?? '?'}{user.LastName?.FirstOrDefault() ?? '?'}";
+                        
+                        var isExternalContacts = userOrg.Organization?.Name?.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase) ?? false;
+                        
+                        var member = new CommunicationsTeamMember
+                        {
+                            UserId = user.Id,
+                            OrganizationId = userOrg.OrganizationId,
+                            Name = $"{user.FirstName ?? ""} {user.LastName ?? ""}".Trim(),
+                            Role = userOrg.Role ?? "Guest",
+                            Status = isOnline ? "online" : "offline",
+                            Avatar = initials,
+                            Activity = isOnline ? "Online" : "Offline",
+                            RoleIcon = "fas fa-user",
+                            RoleColor = "text-muted",
+                            CanDirectMessage = true,
+                            OrganizationName = userOrg.Organization?.Name,
+                            IsExternalContacts = isExternalContacts,
+                            Color = user.Color ?? "#3d1019" // Use user's color, default to maroon
+                        };
+                        teamMembers.Add(member);
+                    }
+                }
+            }
+            
+            // Always include current user, then filter others to only those with active threads
+            teamMembers = teamMembers
+                .Where(m => m.UserId == currentUserId || activeThreadUserIds.Contains(m.UserId))
+                .ToList();
+
+            Console.WriteLine($"[DEBUG] Filtered teamMembers count (with active threads): {teamMembers.Count}");
+
+            // Sort team members with priority:
+            // 1. Current user first
+            // 2. Current organization users (not from relationships)
+            // 3. Relationship users (clients) who are NOT external contacts
+            // 4. External contacts
+            // Within each group: online users first, then alphabetically
             teamMembers = teamMembers
                 .OrderByDescending(m => m.UserId == customUser.Id) // Current user first
+                .ThenByDescending(m => m.OrganizationId == organizationId && !m.IsExternalContacts) // Current org users (not external)
+                .ThenByDescending(m => m.OrganizationId != organizationId && !m.IsExternalContacts) // Relationship users (not external)
+                .ThenBy(m => m.IsExternalContacts) // External contacts last
                 .ThenByDescending(m => m.Status == "online") // Then online users
                 .ThenBy(m => m.Name) // Then alphabetically
                 .ToList();

@@ -372,7 +372,14 @@
 
 /* Current user gets the gradient */
 .comms-dm-avatar.current-user-avatar {
-    background: linear-gradient(135deg, #a32b43, #3d1019);
+    background: linear-gradient(135deg, #a32b43, #3d1019) !important;
+}
+
+/* External contacts avatars get gray background */
+.comms-dm-avatar[data-is-external="true"],
+.comms-dm-avatar.external-contacts-avatar,
+.comms-dm-avatar.external-user-avatar {
+    background: #9ca3af !important;
 }
 
 .comms-status-indicator {
@@ -543,6 +550,11 @@
     transition: transform 0.2s ease;
 }
 
+/* Current user gets the gradient */
+.member-avatar-small.current-user-avatar {
+    background: linear-gradient(135deg, #a32b43, #3d1019) !important;
+}
+
 .member-avatar-small:hover {
     transform: scale(1.1);
 }
@@ -568,6 +580,13 @@
 
 .member-avatar-small .status-indicator.offline {
     background: #6b7280;
+}
+
+/* External contacts small avatars get gray background */
+.member-avatar-small[data-is-external="true"],
+.member-avatar-small.external-contacts-avatar,
+.member-avatar-small.external-user-avatar {
+    background: #9ca3af !important;
 }
 
 /* Messages Container */
@@ -931,5 +950,49 @@
 
 .comms-subcategory-channels.collapsed {
     display: none;
+}
+
+/* OAuth Connect Buttons - Matching Timer Start Button Styling */
+.oauth-connect-btn {
+    background: #c7b7a3;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem 2.8rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    min-height: 40px;
+}
+
+.oauth-connect-btn:hover {
+    background: #6d2932 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+.oauth-connect-btn i {
+    font-size: 1.1rem;
+}
+
+/* Windows icon specific styling for better visibility */
+.oauth-connect-btn .fa-windows {
+    font-size: 1.2rem;
+}
+
+/* Inbox icon container - Matching Timer Start Button Styling */
+#inboxItem .member-avatar {
+    transition: all 0.2s ease;
+}
+
+#inboxItem:hover .member-avatar {
+    background: #6d2932 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
 }
 

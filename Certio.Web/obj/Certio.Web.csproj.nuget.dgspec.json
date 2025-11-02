@@ -307,6 +307,10 @@
               "target": "Package",
               "version": "[3.1.1, )"
             },
+            "Google.Apis.Gmail.v1": {
+              "target": "Package",
+              "version": "[1.68.0, )"
+            },
             "Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore": {
               "target": "Package",
               "version": "[8.0.14, )"
@@ -354,6 +358,14 @@
             "Microsoft.Extensions.Configuration.EnvironmentVariables": {
               "target": "Package",
               "version": "[9.0.9, )"
+            },
+            "Microsoft.Graph": {
+              "target": "Package",
+              "version": "[5.49.0, )"
+            },
+            "Microsoft.Identity.Client": {
+              "target": "Package",
+              "version": "[4.61.3, )"
             },
             "Microsoft.SemanticKernel": {
               "target": "Package",

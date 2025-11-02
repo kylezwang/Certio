@@ -251,8 +251,9 @@
                              data-can-dm="@member.CanDirectMessage.ToString().ToLower()"
                              data-org-id="@member.OrganizationId"
                              data-org-name="@member.OrganizationName"
+                             data-is-external="@member.IsExternalContacts.ToString().ToLower()"
                              style="cursor: @(member.CanDirectMessage ? "pointer" : "not-allowed"); @(member.CanDirectMessage ? "" : "opacity: 0.6;")">
-                            <div class="member-avatar">
+                            <div class="member-avatar @(member.IsExternalContacts ? "external-contacts-avatar" : "")" style="background: @member.Color !important;">
                                 <span>@member.Avatar</span>
                                 <div class="status-indicator @member.Status"></div>
                             </div>
@@ -304,7 +305,8 @@
                     }
                     @foreach (var message in Model.Messages)
                     {
-                        var member = Model.TeamMembers.FirstOrDefault(m => m.Name == message.User);
+                        // Find member by Name or UserId
+                        var member = Model.TeamMembers.FirstOrDefault(m => m.Name == message.User || (message.UserId.HasValue && m.UserId == message.UserId.Value));
                         var isCurrentUser = message.UserId.HasValue && currentUserId != null && message.UserId.Value.ToString() == currentUserId.ToString();
                         
                         // Check if message should be grouped with previous
@@ -321,8 +323,22 @@
                         if (isCurrentUser) { messageClasses += " current-user-message"; }
                         if (isGrouped) { messageClasses += " grouped-message"; }
                         
+                        // Get avatar color from member or default
+                        var avatarColor = "#3d1019"; // Default maroon
+                        var isExternalContacts = false;
+                        if (member != null)
+                        {
+                            avatarColor = member.Color ?? "#3d1019";
+                            isExternalContacts = member.IsExternalContacts;
+                            // Override to gray if external contacts
+                            if (isExternalContacts)
+                            {
+                                avatarColor = "#9ca3af";
+                            }
+                        }
+                        
                         <div class="@messageClasses" data-message-id="@message.Id">
-                            <div class="message-avatar">
+                            <div class="message-avatar @(isExternalContacts ? "external-contacts-avatar" : "")" style="background: @avatarColor !important;">
                                 <span>@message.Avatar</span>
                             </div>
                             <div class="message-content">

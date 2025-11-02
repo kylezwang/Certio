@@ -18,6 +18,24 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\Certio.Web.nb0o80g506.bundle.scp.css'))</OriginalItemSpec>
     </StaticWebAsset>
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\communications.css'))">
+      <SourceType>Package</SourceType>
+      <SourceId>Certio.Web</SourceId>
+      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
+      <BasePath>_content/Certio.Web</BasePath>
+      <RelativePath>css/communications.css</RelativePath>
+      <AssetKind>All</AssetKind>
+      <AssetMode>All</AssetMode>
+      <AssetRole>Primary</AssetRole>
+      <RelatedAsset></RelatedAsset>
+      <AssetTraitName></AssetTraitName>
+      <AssetTraitValue></AssetTraitValue>
+      <Fingerprint>lsvfgh9p3i</Fingerprint>
+      <Integrity>S+2OIvQ3akiV461IIOVkbC2V3fgSo62V9/ucAhWrFdY=</Integrity>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\communications.css'))</OriginalItemSpec>
+    </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\communications-sidebar.css'))">
       <SourceType>Package</SourceType>
       <SourceId>Certio.Web</SourceId>
@@ -30,8 +48,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>8cd232lgz3</Fingerprint>
-      <Integrity>CCvTlMkS/x0uUwIDCnCwGe2iH9bLFjw+c5uwkDtdRDk=</Integrity>
+      <Fingerprint>9sbwzdkr41</Fingerprint>
+      <Integrity>qVr4ABYvi0tQNjSo3LDbI0E8Nu02wn1YsjBturAG24k=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\communications-sidebar.css'))</OriginalItemSpec>
@@ -66,8 +84,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>na2x6ze38q</Fingerprint>
-      <Integrity>31sDqMoLDN8USHarswm+EgKtZn+gJ+LkfE/lkRq/SBA=</Integrity>
+      <Fingerprint>li3u4jqonw</Fingerprint>
+      <Integrity>Tb2qTBZQNq0sahWS5rB1XQBa52v27OdG4lwf2QVVKU4=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\notifications-sidebar.css'))</OriginalItemSpec>
@@ -84,8 +102,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>7swq1tnhd2</Fingerprint>
-      <Integrity>ifJMyHaHKlyYFvfCCLdyIIA94VGn9KX5l1aXXjOL0sM=</Integrity>
+      <Fingerprint>eiygrxaz0w</Fingerprint>
+      <Integrity>Sm7nl/VPINDVdPetZ4fBoG7ZHqxzCyiOPSCxe/79OIc=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\site.css'))</OriginalItemSpec>
@@ -102,8 +120,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>afa2q31nmy</Fingerprint>
-      <Integrity>ukjPDxFOdXn5KIfTLqOjDz97DWrvfMWkyorej0tLQkw=</Integrity>
+      <Fingerprint>vxe8jq88k2</Fingerprint>
+      <Integrity>oxiI65Sx26wLHJZGU/Bgk8HpGMESJLhno51b7xLcmuU=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\tasks.css'))</OriginalItemSpec>
@@ -300,8 +318,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>exsxb1mz5l</Fingerprint>
-      <Integrity>TkBcHiUlgPiwtJF2BrW5tvwgzmSL+Wq/N9rNnr+jIVA=</Integrity>
+      <Fingerprint>29d4qgnp1a</Fingerprint>
+      <Integrity>6pmAmawNcPyl+5saYMNjVqbjSSL2CWMGzTo2k2MzqF8=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\communications-sidebar.js'))</OriginalItemSpec>
@@ -318,11 +336,29 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>0rgrrxs5rx</Fingerprint>
-      <Integrity>dFNdJX2bTUGcujmYKQ7QLz4dsrg+U9NiyzrdoAQJr0k=</Integrity>
+      <Fingerprint>8k5gkonjjy</Fingerprint>
+      <Integrity>2FugSQop0xeqgDGxfmoSeiazZUNvyazSUVfv76HKK0U=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\direct-messages.js'))</OriginalItemSpec>
+    </StaticWebAsset>
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\email-integration.js'))">
+      <SourceType>Package</SourceType>
+      <SourceId>Certio.Web</SourceId>
+      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
+      <BasePath>_content/Certio.Web</BasePath>
+      <RelativePath>js/email-integration.js</RelativePath>
+      <AssetKind>All</AssetKind>
+      <AssetMode>All</AssetMode>
+      <AssetRole>Primary</AssetRole>
+      <RelatedAsset></RelatedAsset>
+      <AssetTraitName></AssetTraitName>
+      <AssetTraitValue></AssetTraitValue>
+      <Fingerprint>3tq4sgzgwt</Fingerprint>
+      <Integrity>t2yCU+4+NAsSLt3Liobn/q0yoY1HYEb5poySwQLgkb4=</Integrity>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\email-integration.js'))</OriginalItemSpec>
     </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\matter-details.js'))">
       <SourceType>Package</SourceType>
@@ -390,8 +426,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>800jelovlm</Fingerprint>
-      <Integrity>yAhkqkCaKSE2+uCiXPGcZALdLC1dbQOgStOVVaNf1ME=</Integrity>
+      <Fingerprint>5pv0dqskga</Fingerprint>
+      <Integrity>eTVdMY+gdQ4vRZ2kxTfVMW/XSw7euCleCq5Fmxfy6Xg=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\notifications-sidebar.js'))</OriginalItemSpec>

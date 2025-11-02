@@ -77,9 +77,17 @@ namespace Certio.Web.Controllers
                 member.Activity = isOnline ? "Online" : "Offline";
             }
             
-            // Sort team members: current user first, then online users, then offline, then alphabetically
+            // Sort team members with priority:
+            // 1. Current user first
+            // 2. Current organization users (not from relationships)
+            // 3. Relationship users (clients) who are NOT external contacts
+            // 4. External contacts
+            // Within each group: online users first, then alphabetically
             orgTeamMembers = orgTeamMembers
                 .OrderByDescending(m => m.UserId == customUser.Id) // Current user first
+                .ThenByDescending(m => m.OrganizationId == orgId && !m.IsExternalContacts) // Current org users (not external)
+                .ThenByDescending(m => m.OrganizationId != orgId && !m.IsExternalContacts) // Relationship users (not external)
+                .ThenBy(m => m.IsExternalContacts) // External contacts last
                 .ThenByDescending(m => m.Status == "online") // Then online users
                 .ThenBy(m => m.Name) // Then alphabetically
                 .ToList();
@@ -178,9 +186,17 @@ namespace Certio.Web.Controllers
                 member.Activity = isOnline ? "Online" : "Offline";
             }
             
-            // Sort team members: current user first, then online users, then offline, then alphabetically
+            // Sort team members with priority:
+            // 1. Current user first
+            // 2. Current organization users (not from relationships)
+            // 3. Relationship users (clients) who are NOT external contacts
+            // 4. External contacts
+            // Within each group: online users first, then alphabetically
             orgTeamMembers = orgTeamMembers
                 .OrderByDescending(m => m.UserId == customUser.Id) // Current user first
+                .ThenByDescending(m => m.OrganizationId == orgId && !m.IsExternalContacts) // Current org users (not external)
+                .ThenByDescending(m => m.OrganizationId != orgId && !m.IsExternalContacts) // Relationship users (not external)
+                .ThenBy(m => m.IsExternalContacts) // External contacts last
                 .ThenByDescending(m => m.Status == "online") // Then online users
                 .ThenBy(m => m.Name) // Then alphabetically
                 .ToList();
@@ -286,9 +302,17 @@ namespace Certio.Web.Controllers
                 member.Activity = isOnline ? "Online" : "Offline";
             }
             
-            // Sort team members: current user first, then online users, then offline, then alphabetically
+            // Sort team members with priority:
+            // 1. Current user first
+            // 2. Current organization users (not from relationships)
+            // 3. Relationship users (clients) who are NOT external contacts
+            // 4. External contacts
+            // Within each group: online users first, then alphabetically
             orgTeamMembers = orgTeamMembers
                 .OrderByDescending(m => m.UserId == customUser.Id) // Current user first
+                .ThenByDescending(m => m.OrganizationId == orgId && !m.IsExternalContacts) // Current org users (not external)
+                .ThenByDescending(m => m.OrganizationId != orgId && !m.IsExternalContacts) // Relationship users (not external)
+                .ThenBy(m => m.IsExternalContacts) // External contacts last
                 .ThenByDescending(m => m.Status == "online") // Then online users
                 .ThenBy(m => m.Name) // Then alphabetically
                 .ToList();
@@ -353,13 +377,23 @@ namespace Certio.Web.Controllers
                         {
                             var initials = $"{user.FirstName?.FirstOrDefault() ?? '?'}{user.LastName?.FirstOrDefault() ?? '?'}";
                             var isOnline = onlineUserIds.Contains(user.Id);
+                            
+                            // Get user's organization membership for this org
+                            var userOrg = await _db.UserOrganizations
+                                .Include(uo => uo.Organization)
+                                .FirstOrDefaultAsync(uo => uo.UserId == user.Id && uo.OrganizationId == orgId);
+                            var isExternalContacts = userOrg?.Organization?.Name?.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase) ?? false;
 
                             members.Add(new
                             {
                                 userId = user.Id,
                                 name = $"{user.FirstName} {user.LastName}".Trim(),
                                 avatar = initials,
-                                status = isOnline ? "online" : "offline"
+                                status = isOnline ? "online" : "offline",
+                                color = user.Color ?? "#3d1019",
+                                Color = user.Color ?? "#3d1019",
+                                isExternalContacts = isExternalContacts,
+                                organizationName = userOrg?.Organization?.Name
                             });
                         }
                     }
@@ -378,13 +412,23 @@ namespace Certio.Web.Controllers
                             {
                                 var initials = $"{user.FirstName?.FirstOrDefault() ?? '?'}{user.LastName?.FirstOrDefault() ?? '?'}";
                                 var isOnline = onlineUserIds.Contains(user.Id);
+                                
+                                // Get user's organization membership for this org
+                                var userOrg = await _db.UserOrganizations
+                                    .Include(uo => uo.Organization)
+                                    .FirstOrDefaultAsync(uo => uo.UserId == user.Id && uo.OrganizationId == orgId);
+                                var isExternalContacts = userOrg?.Organization?.Name?.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase) ?? false;
 
                                 members.Add(new
                                 {
                                     userId = user.Id,
                                     name = $"{user.FirstName} {user.LastName}".Trim(),
                                     avatar = initials,
-                                    status = isOnline ? "online" : "offline"
+                                    status = isOnline ? "online" : "offline",
+                                    color = user.Color ?? "#3d1019",
+                                    Color = user.Color ?? "#3d1019",
+                                    isExternalContacts = isExternalContacts,
+                                    organizationName = userOrg?.Organization?.Name
                                 });
                             }
                         }
@@ -398,13 +442,23 @@ namespace Certio.Web.Controllers
                         var user = participant.User;
                         var initials = $"{user.FirstName?.FirstOrDefault() ?? '?'}{user.LastName?.FirstOrDefault() ?? '?'}";
                         var isOnline = onlineUserIds.Contains(user.Id);
+                        
+                        // Get user's organization membership for this org
+                        var userOrg = await _db.UserOrganizations
+                            .Include(uo => uo.Organization)
+                            .FirstOrDefaultAsync(uo => uo.UserId == user.Id && uo.OrganizationId == orgId);
+                        var isExternalContacts = userOrg?.Organization?.Name?.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase) ?? false;
 
                         members.Add(new
                         {
                             userId = user.Id,
                             name = $"{user.FirstName} {user.LastName}".Trim(),
                             avatar = initials,
-                            status = isOnline ? "online" : "offline"
+                            status = isOnline ? "online" : "offline",
+                            color = user.Color ?? "#3d1019",
+                            Color = user.Color ?? "#3d1019",
+                            isExternalContacts = isExternalContacts,
+                            organizationName = userOrg?.Organization?.Name
                         });
                     }
                 }
@@ -964,6 +1018,19 @@ namespace Certio.Web.Controllers
                             ? $"{latestMessage.User.FirstName} {latestMessage.User.LastName}".Trim()
                             : latestMessage.Sender ?? "Unknown";
                         
+                        // Get sender color and check if external contacts
+                        var senderColor = latestMessage.User?.Color ?? "#3d1019";
+                        var isExternalContacts = false;
+                        
+                        if (latestMessage.UserId.HasValue)
+                        {
+                            var senderUserOrg = await _db.UserOrganizations
+                                .Include(uo => uo.Organization)
+                                .FirstOrDefaultAsync(uo => uo.UserId == latestMessage.UserId.Value && uo.OrganizationId == orgId);
+                            
+                            isExternalContacts = senderUserOrg?.Organization?.Name?.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase) ?? false;
+                        }
+                        
                         recentMessages.Add(new
                         {
                             id = latestMessage.Id,
@@ -973,6 +1040,8 @@ namespace Certio.Web.Controllers
                             matterId = channel.MatterId,
                             senderId = latestMessage.UserId,
                             senderName = senderName,
+                            senderColor = senderColor,
+                            isExternalContacts = isExternalContacts,
                             content = latestMessage.Content,
                             createdAt = latestMessage.CreatedAt,
                             time = latestMessage.CreatedAt.ToString("h:mm tt")
@@ -996,6 +1065,20 @@ namespace Certio.Web.Controllers
                         
                         if (latestMessage != null)
                         {
+                            // Get sender color and check if external contacts
+                            var senderUser = await _db.Users.FindAsync(new object[] { latestMessage.SenderId });
+                            var senderColor = senderUser?.Color ?? "#3d1019";
+                            var isExternalContacts = false;
+                            
+                            if (senderUser != null)
+                            {
+                                var senderUserOrg = await _db.UserOrganizations
+                                    .Include(uo => uo.Organization)
+                                    .FirstOrDefaultAsync(uo => uo.UserId == latestMessage.SenderId && uo.OrganizationId == orgId);
+                                
+                                isExternalContacts = senderUserOrg?.Organization?.Name?.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase) ?? false;
+                            }
+                            
                             recentMessages.Add(new
                             {
                                 id = latestMessage.Id.ToString(),
@@ -1004,6 +1087,8 @@ namespace Certio.Web.Controllers
                                 channelName = thread.OtherUser.Name,
                                 senderId = latestMessage.SenderId,
                                 senderName = latestMessage.SenderName,
+                                senderColor = senderColor,
+                                isExternalContacts = isExternalContacts,
                                 content = latestMessage.Body ?? "",
                                 createdAt = latestMessage.CreatedAt,
                                 time = latestMessage.CreatedAt.ToString("h:mm tt")

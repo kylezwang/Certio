@@ -2182,6 +2182,131 @@ namespace Certio.Infrastructure.Migrations
                     b.ToTable("DirectThreads");
                 });
 
+            modelBuilder.Entity("Certio.Domain.Services.EmailAccount", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AccessToken")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EmailAddress")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastSyncAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("RefreshToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("TokenExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("WebhookSubscriptionId")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmailAddress");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("EmailAccounts");
+                });
+
+            modelBuilder.Entity("Certio.Domain.Services.EmailMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("BccEmails")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Body")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BodyText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CcEmails")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DirectMessageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("EmailAccountId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ExternalEmailId")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("FromEmail")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("FromName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("ReceivedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Subject")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("ThreadId")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("ToEmails")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DirectMessageId");
+
+                    b.HasIndex("ExternalEmailId")
+                        .IsUnique();
+
+                    b.HasIndex("ThreadId");
+
+                    b.HasIndex("EmailAccountId", "ReceivedAt");
+
+                    b.ToTable("EmailMessages");
+                });
+
             modelBuilder.Entity("Certio.Domain.Services.ReplySuggestion", b =>
                 {
                     b.Property<int>("Id")
@@ -3920,6 +4045,35 @@ namespace Certio.Infrastructure.Migrations
                     b.Navigation("UserB");
                 });
 
+            modelBuilder.Entity("Certio.Domain.Services.EmailAccount", b =>
+                {
+                    b.HasOne("Certio.Domain.Users.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Certio.Domain.Services.EmailMessage", b =>
+                {
+                    b.HasOne("Certio.Domain.Services.DirectMessage", "DirectMessage")
+                        .WithMany()
+                        .HasForeignKey("DirectMessageId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Certio.Domain.Services.EmailAccount", "EmailAccount")
+                        .WithMany("EmailMessages")
+                        .HasForeignKey("EmailAccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DirectMessage");
+
+                    b.Navigation("EmailAccount");
+                });
+
             modelBuilder.Entity("Certio.Domain.Services.ReplySuggestion", b =>
                 {
                     b.HasOne("Certio.Domain.Services.Conversation", "Conversation")
@@ -4318,6 +4472,11 @@ namespace Certio.Infrastructure.Migrations
                     b.Navigation("Messages");
 
                     b.Navigation("Participants");
+                });
+
+            modelBuilder.Entity("Certio.Domain.Services.EmailAccount", b =>
+                {
+                    b.Navigation("EmailMessages");
                 });
 
             modelBuilder.Entity("Certio.Domain.Tasks.SubTaskItem", b =>

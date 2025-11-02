@@ -77,7 +77,12 @@ namespace Certio.Web.Controllers
                 ownerLastName = org.OwnerLastName,
                 isPersonal = org.IsPersonal,
                 isPrimary = org.IsPrimary,
-                organizationType = org.Type.ToString()
+                organizationType = org.Type.ToString(),
+                // Check if this is an External Contacts organization and set display name
+                displayOwnerName = org.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase) 
+                    ? "External Contacts" 
+                    : $"{org.OwnerFirstName} {org.OwnerLastName}".Trim(),
+                isExternalContacts = org.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase)
             }).ToList();
 
             return Json(new { success = true, organizations = allOrgs });
@@ -102,6 +107,8 @@ namespace Certio.Web.Controllers
             ViewBag.OrganizationId = orgId;
             ViewBag.OrganizationName = orgResult.Success ? orgResult.Data!.Name : "Client";
             ViewBag.OrganizationType = orgResult.Success ? orgResult.Data!.Type : Certio.Domain.Organizations.OrganizationType.Client;
+            ViewBag.CurrentUserId = customUser.Id;
+            ViewBag.CurrentUserName = $"{customUser.FirstName} {customUser.LastName}".Trim();
 
             // Create sample dashboard data
             var viewModel = new DashboardViewModel
@@ -579,17 +586,38 @@ namespace Certio.Web.Controllers
                         var ownerRole = targetOrg.UserOrganizations
                             .FirstOrDefault(uo => uo.UserId == targetOrg.OwnerId && uo.IsActive)?.Role ?? "Owner";
                         
+                        // Check if this is an External Contacts organization
+                        var isExternalGuestsOrg = targetOrg.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase);
+                        var displayOrgName = isExternalGuestsOrg ? targetOrg.Name : targetOrg.Name; // Show full name on Clients page
+                        
+                        // Get all users in the organization (for External Contacts, this will show all external users)
+                        var orgUsers = targetOrg.UserOrganizations
+                            .Where(uo => uo.IsActive && uo.User != null)
+                            .Select(uo => new
+                            {
+                                UserId = uo.UserId,
+                                UserName = $"{uo.User?.FirstName} {uo.User?.LastName}".Trim(),
+                                UserInitials = GetInitials(uo.User?.FirstName ?? "", uo.User?.LastName ?? ""),
+                                UserRole = uo.Role ?? "Guest",
+                                UserEmail = uo.User?.Email ?? ""
+                            })
+                            .Where(u => !string.IsNullOrWhiteSpace(u.UserName))
+                            .ToList();
+                        
                         clientRelationships.Add(new
                         {
                             OrganizationId = targetOrg.Id,
-                            OrganizationName = targetOrg.Name,
+                            OrganizationName = targetOrg.Name, // Keep actual name for internal use
+                            DisplayOrganizationName = displayOrgName, // Display name for UI
                             OwnerFirstName = targetOrg.Owner?.FirstName ?? "",
                             OwnerLastName = targetOrg.Owner?.LastName ?? "",
                             OwnerName = string.IsNullOrWhiteSpace(ownerName) ? targetOrg.Name : ownerName,
                             OwnerInitials = ownerInitials,
                             OwnerEmail = targetOrg.Owner?.Email ?? "",
                             OwnerRole = ownerRole,
-                            RelationshipId = rel.Id
+                            RelationshipId = rel.Id,
+                            IsExternalGuests = isExternalGuestsOrg, // Flag for styling
+                            Users = orgUsers // All users in the organization
                         });
                     }
                 }

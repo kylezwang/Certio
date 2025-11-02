@@ -348,3 +348,103 @@ docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433
 ## 100. Check CalendarEvent Audit Logs with Old/New Values (Data Changes)
 docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT al.Id, al.Action, ce.Title AS EventTitle, al.UserName, al.OldValues, al.NewValues, al.Description, al.Timestamp FROM CertioLocal.dbo.AuditLogs al LEFT JOIN CertioLocal.dbo.CalendarEvents ce ON al.EntityId = ce.Id WHERE al.EntityType = 'CalendarEvent' AND (al.OldValues IS NOT NULL OR al.NewValues IS NOT NULL) ORDER BY al.Timestamp DESC"
 
+# ===========================================
+# DIRECT MESSAGE (DM) ENTITIES
+# ===========================================
+
+## 101. Find User by ID (e.g., User ID 11)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, FirstName, LastName, Email, IsActive, IsDeleted, CreatedAt FROM CertioLocal.dbo.Users WHERE Id = 11"
+
+## 102. Check All DirectMessage Threads for User ID 11 (as UserA or UserB)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT dt.Id, dt.OrganizationId, dt.UserAId, dt.UserBId, dt.CreatedAt, dt.LastMessageAt, dt.IsDeleted, dt.DeletedAt, ua.FirstName + ' ' + ua.LastName AS UserA, ub.FirstName + ' ' + ub.LastName AS UserB FROM CertioLocal.dbo.DirectThreads dt LEFT JOIN CertioLocal.dbo.Users ua ON dt.UserAId = ua.Id LEFT JOIN CertioLocal.dbo.Users ub ON dt.UserBId = ub.Id WHERE dt.UserAId = 11 OR dt.UserBId = 11 ORDER BY dt.LastMessageAt DESC, dt.CreatedAt DESC"
+
+## 103. Check Active (Non-Deleted) DirectMessage Threads for User ID 11
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT dt.Id, dt.OrganizationId, dt.UserAId, dt.UserBId, dt.CreatedAt, dt.LastMessageAt, dt.IsDeleted, ua.FirstName + ' ' + ua.LastName AS UserA, ub.FirstName + ' ' + ub.LastName AS UserB FROM CertioLocal.dbo.DirectThreads dt LEFT JOIN CertioLocal.dbo.Users ua ON dt.UserAId = ua.Id LEFT JOIN CertioLocal.dbo.Users ub ON dt.UserBId = ub.Id WHERE (dt.UserAId = 11 OR dt.UserBId = 11) AND dt.IsDeleted = 0 ORDER BY dt.LastMessageAt DESC, dt.CreatedAt DESC"
+
+## 104. Check All DirectMessage Threads (All Users)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT dt.Id, dt.OrganizationId, dt.UserAId, dt.UserBId, dt.CreatedAt, dt.LastMessageAt, dt.IsDeleted, ua.FirstName + ' ' + ua.LastName AS UserA, ub.FirstName + ' ' + ub.LastName AS UserB FROM CertioLocal.dbo.DirectThreads dt LEFT JOIN CertioLocal.dbo.Users ua ON dt.UserAId = ua.Id LEFT JOIN CertioLocal.dbo.Users ub ON dt.UserBId = ub.Id ORDER BY dt.LastMessageAt DESC, dt.CreatedAt DESC"
+
+## 105. Check Active DirectMessage Threads (All Users)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT dt.Id, dt.OrganizationId, dt.UserAId, dt.UserBId, dt.CreatedAt, dt.LastMessageAt, ua.FirstName + ' ' + ua.LastName AS UserA, ub.FirstName + ' ' + ub.LastName AS UserB FROM CertioLocal.dbo.DirectThreads dt LEFT JOIN CertioLocal.dbo.Users ua ON dt.UserAId = ua.Id LEFT JOIN CertioLocal.dbo.Users ub ON dt.UserBId = ub.Id WHERE dt.IsDeleted = 0 ORDER BY dt.LastMessageAt DESC, dt.CreatedAt DESC"
+
+## 106. Find Users Who Appear in Direct Messages (Based on Active Threads)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT DISTINCT u.Id, u.FirstName + ' ' + u.LastName AS UserName, u.Email, COUNT(DISTINCT dt.Id) AS ThreadCount FROM CertioLocal.dbo.Users u INNER JOIN CertioLocal.dbo.DirectThreads dt ON (dt.UserAId = u.Id OR dt.UserBId = u.Id) WHERE dt.IsDeleted = 0 GROUP BY u.Id, u.FirstName, u.LastName, u.Email ORDER BY ThreadCount DESC"
+
+## 107. Check DirectMessage Messages in a Specific Thread
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT dm.Id, dm.ThreadId, dm.SenderId, dm.Body, dm.MessageType, dm.CreatedAt, u.FirstName + ' ' + u.LastName AS SenderName FROM CertioLocal.dbo.DirectMessages dm LEFT JOIN CertioLocal.dbo.Users u ON dm.SenderId = u.Id WHERE dm.ThreadId = 'REPLACE_WITH_THREAD_ID' ORDER BY dm.CreatedAt DESC"
+
+## 108. Find Active Threads Between Specific Users (e.g., User 1 and User 11)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT dt.Id, dt.OrganizationId, dt.UserAId, dt.UserBId, dt.CreatedAt, dt.LastMessageAt, dt.IsDeleted, ua.FirstName + ' ' + ua.LastName AS UserA, ub.FirstName + ' ' + ub.LastName AS UserB FROM CertioLocal.dbo.DirectThreads dt LEFT JOIN CertioLocal.dbo.Users ua ON dt.UserAId = ua.Id LEFT JOIN CertioLocal.dbo.Users ub ON dt.UserBId = ub.Id WHERE ((dt.UserAId = 1 AND dt.UserBId = 11) OR (dt.UserAId = 11 AND dt.UserBId = 1)) AND dt.IsDeleted = 0 ORDER BY dt.LastMessageAt DESC"
+
+## 109. Check User Organization Membership for User ID 11
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT uo.Id, uo.UserId, uo.OrganizationId, uo.UserType, uo.Role, uo.IsActive, o.Name AS OrganizationName, u.FirstName + ' ' + u.LastName AS UserName FROM CertioLocal.dbo.UserOrganizations uo INNER JOIN CertioLocal.dbo.Users u ON uo.UserId = u.Id INNER JOIN CertioLocal.dbo.Organizations o ON uo.OrganizationId = o.Id WHERE uo.UserId = 11 ORDER BY uo.JoinedAt DESC"
+
+## 110. Find All Active DirectMessage Threads for Current User (Replace CURRENT_USER_ID)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT dt.Id, dt.OrganizationId, dt.UserAId, dt.UserBId, dt.CreatedAt, dt.LastMessageAt, ua.FirstName + ' ' + ua.LastName AS UserA, ub.FirstName + ' ' + ub.LastName AS UserB, CASE WHEN dt.UserAId = CURRENT_USER_ID THEN dt.UserBId ELSE dt.UserAId END AS OtherUserId FROM CertioLocal.dbo.DirectThreads dt LEFT JOIN CertioLocal.dbo.Users ua ON dt.UserAId = ua.Id LEFT JOIN CertioLocal.dbo.Users ub ON dt.UserBId = ub.Id WHERE (dt.UserAId = CURRENT_USER_ID OR dt.UserBId = CURRENT_USER_ID) AND dt.IsDeleted = 0 ORDER BY dt.LastMessageAt DESC"
+
+## 111. Find Threads Created Around a Specific Time (to find the next one after the deleted thread)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT TOP 5 dt.Id, dt.OrganizationId, dt.UserAId, dt.UserBId, dt.CreatedAt, dt.LastMessageAt, dt.IsDeleted, ua.FirstName + ' ' + ua.LastName AS UserA, ub.FirstName + ' ' + ub.LastName AS UserB FROM CertioLocal.dbo.DirectThreads dt LEFT JOIN CertioLocal.dbo.Users ua ON dt.UserAId = ua.Id LEFT JOIN CertioLocal.dbo.Users ub ON dt.UserBId = ub.Id WHERE dt.CreatedAt >= '2025-11-02 06:52:45' ORDER BY dt.CreatedAt ASC"
+
+## 112. Delete Specific DirectMessage Thread by ID (Soft Delete)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "UPDATE CertioLocal.dbo.DirectThreads SET IsDeleted = 1, DeletedAt = GETUTCDATE() WHERE Id = 'D14967B6-8929-42A3-959E-DCCB7F243F4C'"
+
+## 113. Delete Multiple DirectMessage Threads by IDs (Soft Delete)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "UPDATE CertioLocal.dbo.DirectThreads SET IsDeleted = 1, DeletedAt = GETUTCDATE() WHERE Id IN ('D14967B6-8929-42A3-959E-DCCB7F243F4C', 'REPLACE_WITH_SECOND_THREAD_ID')"
+
+## 114. Hard Delete DirectMessage Thread (and its messages) - CAREFUL!
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "DELETE FROM CertioLocal.dbo.DirectMessages WHERE ThreadId = 'D14967B6-8929-42A3-959E-DCCB7F243F4C'; DELETE FROM CertioLocal.dbo.DirectThreads WHERE Id = 'D14967B6-8929-42A3-959E-DCCB7F243F4C'"
+
+## 115. Hard Delete Multiple DirectMessage Threads - CAREFUL!
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "DELETE FROM CertioLocal.dbo.DirectMessages WHERE ThreadId IN ('D14967B6-8929-42A3-959E-DCCB7F243F4C', 'REPLACE_WITH_SECOND_THREAD_ID'); DELETE FROM CertioLocal.dbo.DirectThreads WHERE Id IN ('D14967B6-8929-42A3-959E-DCCB7F243F4C', 'REPLACE_WITH_SECOND_THREAD_ID')"
+
+## 116. Find Most Recent DirectMessage Threads Created (to find the second one)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT TOP 10 dt.Id, dt.OrganizationId, dt.UserAId, dt.UserBId, dt.CreatedAt, dt.LastMessageAt, dt.IsDeleted, ua.FirstName + ' ' + ua.LastName AS UserA, ub.FirstName + ' ' + ub.LastName AS UserB FROM CertioLocal.dbo.DirectThreads dt LEFT JOIN CertioLocal.dbo.Users ua ON dt.UserAId = ua.Id LEFT JOIN CertioLocal.dbo.Users ub ON dt.UserBId = ub.Id WHERE dt.UserAId = 1 OR dt.UserBId = 1 ORDER BY dt.CreatedAt DESC"
+
+## 117. Find User IDs for "DoorDash Order" and "Big 5 Sporting Goods"
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, FirstName, LastName, Email FROM CertioLocal.dbo.Users WHERE FirstName + ' ' + LastName LIKE '%DoorDash%' OR FirstName + ' ' + LastName LIKE '%Big 5%' OR Email LIKE '%doordash%' OR Email LIKE '%big5%'"
+
+## 118. Check ALL Active Threads for User 1 (Kyle Wang) - Any Organization
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT dt.Id, dt.OrganizationId, dt.UserAId, dt.UserBId, dt.CreatedAt, dt.LastMessageAt, dt.IsDeleted, ua.FirstName + ' ' + ua.LastName AS UserA, ub.FirstName + ' ' + ub.LastName AS UserB FROM CertioLocal.dbo.DirectThreads dt LEFT JOIN CertioLocal.dbo.Users ua ON dt.UserAId = ua.Id LEFT JOIN CertioLocal.dbo.Users ub ON dt.UserBId = ub.Id WHERE (dt.UserAId = 1 OR dt.UserBId = 1) AND dt.IsDeleted = 0 ORDER BY dt.LastMessageAt DESC"
+
+## 119. Check Active Threads in Organization 1 for User 1
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT dt.Id, dt.OrganizationId, dt.UserAId, dt.UserBId, dt.CreatedAt, dt.LastMessageAt, dt.IsDeleted, ua.FirstName + ' ' + ua.LastName AS UserA, ub.FirstName + ' ' + ub.LastName AS UserB FROM CertioLocal.dbo.DirectThreads dt LEFT JOIN CertioLocal.dbo.Users ua ON dt.UserAId = ua.Id LEFT JOIN CertioLocal.dbo.Users ub ON dt.UserBId = ub.Id WHERE dt.OrganizationId = 1 AND (dt.UserAId = 1 OR dt.UserBId = 1) AND dt.IsDeleted = 0 ORDER BY dt.LastMessageAt DESC"
+
+## 120. Check ALL Threads (including deleted) for User 11 and User 12
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT dt.Id, dt.OrganizationId, dt.UserAId, dt.UserBId, dt.CreatedAt, dt.LastMessageAt, dt.IsDeleted, dt.DeletedAt, ua.FirstName + ' ' + ua.LastName AS UserA, ub.FirstName + ' ' + ub.LastName AS UserB FROM CertioLocal.dbo.DirectThreads dt LEFT JOIN CertioLocal.dbo.Users ua ON dt.UserAId = ua.Id LEFT JOIN CertioLocal.dbo.Users ub ON dt.UserBId = ub.Id WHERE (dt.UserAId = 11 OR dt.UserBId = 11 OR dt.UserAId = 12 OR dt.UserBId = 12) ORDER BY dt.CreatedAt DESC"
+
+## 121. Hard Delete ALL Threads for User 11 (DoorDash Order)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "DELETE FROM CertioLocal.dbo.DirectMessages WHERE ThreadId IN (SELECT Id FROM CertioLocal.dbo.DirectThreads WHERE UserAId = 11 OR UserBId = 11); DELETE FROM CertioLocal.dbo.DirectThreads WHERE UserAId = 11 OR UserBId = 11"
+
+## 122. Hard Delete ALL Threads for User 12 (Big 5 Sporting Goods)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "DELETE FROM CertioLocal.dbo.DirectMessages WHERE ThreadId IN (SELECT Id FROM CertioLocal.dbo.DirectThreads WHERE UserAId = 12 OR UserBId = 12); DELETE FROM CertioLocal.dbo.DirectThreads WHERE UserAId = 12 OR UserBId = 12"
+
+## 123. Hard Delete ALL Threads for Both Users 11 and 12
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "DELETE FROM CertioLocal.dbo.DirectMessages WHERE ThreadId IN (SELECT Id FROM CertioLocal.dbo.DirectThreads WHERE UserAId IN (11, 12) OR UserBId IN (11, 12)); DELETE FROM CertioLocal.dbo.DirectThreads WHERE UserAId IN (11, 12) OR UserBId IN (11, 12)"
+
+## 124. Delete UserOrganization Entries for External Guests (IDs 16 and 17)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "DELETE FROM CertioLocal.dbo.UserOrganizations WHERE Id IN (16, 17)"
+
+## 125. Check if "External Guests" Organization Exists
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, Name, OwnerId, Type, IsActive, CreatedAt FROM CertioLocal.dbo.Organizations WHERE Name = 'External Guests'"
+
+## 126. Create "External Guests" Organization (if needed)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "INSERT INTO CertioLocal.dbo.Organizations (Name, Description, OwnerId, Type, IsPersonal, IsActive, CreatedAt) SELECT 'External Guests', 'Dedicated organization for external users created via Notalize feature.', 1, 0, 0, 1, GETUTCDATE() WHERE NOT EXISTS (SELECT 1 FROM CertioLocal.dbo.Organizations WHERE Name = 'External Guests')"
+
+## 127. Find Old "External Guests" Organization
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "SELECT Id, Name, OwnerId, Type, IsActive, CreatedAt FROM CertioLocal.dbo.Organizations WHERE Name = 'External Guests'"
+
+## 128. Delete All UserOrganizations for Old "External Guests" Organization
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "DELETE FROM CertioLocal.dbo.UserOrganizations WHERE OrganizationId IN (SELECT Id FROM CertioLocal.dbo.Organizations WHERE Name = 'External Guests')"
+
+## 129. Delete All OrganizationRelationships for Old "External Guests" Organization
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "DELETE FROM CertioLocal.dbo.OrganizationRelationships WHERE SourceOrganizationId IN (SELECT Id FROM CertioLocal.dbo.Organizations WHERE Name = 'External Guests') OR TargetOrganizationId IN (SELECT Id FROM CertioLocal.dbo.Organizations WHERE Name = 'External Guests')"
+
+## 130. Delete Old "External Guests" Organization (After deleting relationships and user organizations)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "DELETE FROM CertioLocal.dbo.Organizations WHERE Name = 'External Guests'"
+
+## 131. Complete Cleanup: Delete Old "External Guests" Organization and All Related Data (One Command)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "DECLARE @OrgId INT; SELECT @OrgId = Id FROM CertioLocal.dbo.Organizations WHERE Name = 'External Guests'; IF @OrgId IS NOT NULL BEGIN DELETE FROM CertioLocal.dbo.UserOrganizations WHERE OrganizationId = @OrgId; DELETE FROM CertioLocal.dbo.OrganizationRelationships WHERE SourceOrganizationId = @OrgId OR TargetOrganizationId = @OrgId; DELETE FROM CertioLocal.dbo.Organizations WHERE Id = @OrgId; SELECT 'Deleted External Guests organization (ID: ' + CAST(@OrgId AS VARCHAR) + ') and all related data' AS Result; END ELSE SELECT 'External Guests organization not found' AS Result;"
+
+## 132. Update User Color to Gray (#9ca3af) for External Contacts Users (IDs 13 and 14)
+docker exec -it certio-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P $env:SQL_PASSWORD -C -N -W -s',' -Q "UPDATE CertioLocal.dbo.Users SET Color = '#9ca3af' WHERE Id IN (13, 14); SELECT Id, FirstName, LastName, Email, Color FROM CertioLocal.dbo.Users WHERE Id IN (13, 14);"
+

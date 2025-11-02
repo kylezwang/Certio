@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using System;
 using Certio.Application.DTOs;
 using Certio.Application.Interfaces;
 using Certio.Domain.Services;
@@ -283,6 +284,25 @@ public class DirectMessageService : IDirectMessageService
 
         var sender = thread.UserAId == currentUserId ? thread.UserA : thread.UserB;
 
+        // Get sender color and check if external contacts
+        var senderColor = sender.Color ?? "#3d1019";
+        var isExternalContacts = false;
+        
+        var senderUserOrg = await _context.UserOrganizations
+            .Include(uo => uo.Organization)
+            .FirstOrDefaultAsync(uo => uo.UserId == sender.Id && uo.OrganizationId == orgId, ct);
+        
+        if (senderUserOrg != null)
+        {
+            isExternalContacts = senderUserOrg.Organization?.Name?.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase) ?? false;
+            
+            // If external contacts, use gray color
+            if (isExternalContacts)
+            {
+                senderColor = "#9ca3af";
+            }
+        }
+
         _logger.LogInformation("User {UserId} sent message {MessageId} in thread {ThreadId}",
             currentUserId, message.Id, threadId);
 
@@ -295,7 +315,9 @@ public class DirectMessageService : IDirectMessageService
             message.MessageType,
             message.CreatedAt,
             message.EditedAt,
-            message.IsDeleted
+            message.IsDeleted,
+            senderColor,
+            isExternalContacts
         );
     }
 
@@ -343,7 +365,36 @@ public class DirectMessageService : IDirectMessageService
 
         var nextCursor = hasMore ? messages.Last().Id.ToString() : null;
 
-        var messageDtos = messages.Select(m => new MessageDto(
+        // Enrich messages with sender color and external contact status
+        // Batch load all sender users and their organization relationships to avoid N+1 queries
+        var senderIds = messages.Select(m => m.SenderId).Distinct().ToList();
+        var senderUsers = await _context.Users
+            .Where(u => senderIds.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id, ct);
+        
+        var senderUserOrgs = await _context.UserOrganizations
+            .Include(uo => uo.Organization)
+            .Where(uo => senderIds.Contains(uo.UserId) && uo.OrganizationId == orgId)
+            .ToDictionaryAsync(uo => uo.UserId, ct);
+
+        var messageDtos = messages.Select(m =>
+        {
+            var senderUser = senderUsers.GetValueOrDefault(m.SenderId);
+            var senderColor = senderUser?.Color ?? "#3d1019";
+            var isExternalContacts = false;
+            
+            if (senderUser != null && senderUserOrgs.TryGetValue(m.SenderId, out var senderUserOrg))
+            {
+                isExternalContacts = senderUserOrg?.Organization?.Name?.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase) ?? false;
+                
+                // If external contacts, use gray color
+                if (isExternalContacts)
+                {
+                    senderColor = "#9ca3af";
+                }
+            }
+
+            return new MessageDto(
             m.Id,
             m.ThreadId,
             m.SenderId,
@@ -352,8 +403,11 @@ public class DirectMessageService : IDirectMessageService
             m.MessageType,
             m.CreatedAt,
             m.EditedAt,
-            m.IsDeleted
-        )).ToList();
+                m.IsDeleted,
+                senderColor,
+                isExternalContacts
+            );
+        }).ToList();
 
         return new PagedResult<MessageDto>(
             messageDtos,
@@ -419,9 +473,9 @@ public class DirectMessageService : IDirectMessageService
             }
         }
 
-        // Check database
+        // Check database - verify user is a participant (regardless of orgId since threads can span orgs via relationships)
         var thread = await _context.DirectThreads
-            .Where(dt => dt.Id == threadId && dt.OrganizationId == orgId && !dt.IsDeleted)
+            .Where(dt => dt.Id == threadId && !dt.IsDeleted)
             .FirstOrDefaultAsync(ct);
 
         if (thread == null)
@@ -429,10 +483,42 @@ public class DirectMessageService : IDirectMessageService
             return false;
         }
 
+        // Verify user is one of the participants
+        var isParticipant = thread.UserAId == userId || thread.UserBId == userId;
+        
+        if (!isParticipant)
+        {
+            return false;
+        }
+
+        // Also verify the orgId matches OR user has access to that organization
+        // This allows threads created via relationships to work
+        var userHasAccessToOrg = await _context.UserOrganizations
+            .AnyAsync(uo => uo.UserId == userId && uo.OrganizationId == thread.OrganizationId && uo.IsActive, ct);
+        
+        if (!userHasAccessToOrg)
+        {
+            // Check if user has access via organization relationship
+            var userOrgs = await _context.UserOrganizations
+                .Where(uo => uo.UserId == userId && uo.IsActive)
+                .Select(uo => uo.OrganizationId)
+                .ToListAsync(ct);
+            
+            var hasRelationship = await _context.OrganizationRelationships
+                .AnyAsync(or => or.IsActive &&
+                               ((userOrgs.Contains(or.SourceOrganizationId) && or.TargetOrganizationId == thread.OrganizationId) ||
+                                (userOrgs.Contains(or.TargetOrganizationId) && or.SourceOrganizationId == thread.OrganizationId)), ct);
+            
+            if (!hasRelationship)
+            {
+                return false;
+            }
+        }
+
         // Cache for future requests
         await CacheThreadMembersAsync(threadId, thread.UserAId, thread.UserBId);
 
-        return thread.UserAId == userId || thread.UserBId == userId;
+        return true;
     }
 
     public async Task<(int UserAId, int UserBId)> GetThreadParticipantsAsync(Guid threadId, CancellationToken ct = default)

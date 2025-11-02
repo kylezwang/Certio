@@ -139,6 +139,42 @@ namespace Certio.Web.Controllers
             };
 
             ViewBag.OrganizationId = orgId;
+            
+            // Add Status and PracticeArea options for dropdowns
+            ViewBag.Statuses = new List<string>
+            {
+                "Planning",
+                "In Progress",
+                "Review",
+                "On Hold",
+                "Completed"
+            };
+            
+            ViewBag.PracticeAreas = new List<string>
+            {
+                "Business Formation / Compliance",
+                "Commercial Litigation",
+                "Construction",
+                "Corporate Litigation",
+                "Criminal",
+                "Elder",
+                "Employment / Labor",
+                "Family",
+                "Healthcare",
+                "Intellectual Property",
+                "Medical Malpractice",
+                "Personal Injury",
+                "Privacy / Information Security",
+                "Product Liability",
+                "Real Estate",
+                "Securities / Mergers & Acquisitions",
+                "Sports / Entertainment / Gaming",
+                "Tax",
+                "Trusts",
+                "Wills & Estates",
+                "Other"
+            };
+            
             return View(viewModel);
         }
 
@@ -203,16 +239,26 @@ namespace Certio.Web.Controllers
                 Notes = dto.Notes,
                 CreatedAt = dto.CreatedAt,
                 LastModifiedDate = dto.LastModifiedDate,
-                Assignments = dto.Assignments.Select(a => new MatterAssignment
-                {
-                    Id = a.Id,
-                    MatterId = a.MatterId,
-                    UserId = a.UserId,
-                    AssignmentType = a.AssignmentType,
-                    Role = a.Role,
-                    IsNotifyRecipient = a.IsNotifyRecipient,
-                    AssignedAt = a.AssignedAt
-                }).ToList()
+                Assignments = dto.Assignments
+                    .Where(a => a.User != null) // Only include assignments with user data
+                    .Select(a => new MatterAssignment
+                    {
+                        Id = a.Id,
+                        MatterId = a.MatterId,
+                        UserId = a.UserId,
+                        AssignmentType = a.AssignmentType,
+                        Role = a.Role,
+                        IsNotifyRecipient = a.IsNotifyRecipient,
+                        AssignedAt = a.AssignedAt,
+                        User = a.User != null ? new User
+                        {
+                            Id = a.User.Id,
+                            FirstName = a.User.FirstName,
+                            LastName = a.User.LastName,
+                            Email = a.User.Email,
+                            PhoneNumber = a.User.PhoneNumber
+                        } : null
+                    }).ToList()
             };
 
             // Get all tasks for this matter
@@ -284,6 +330,41 @@ namespace Certio.Web.Controllers
             // This ensures calendar, tasks, and communications tabs work correctly for cross-org matters
             ViewBag.OrganizationId = dto.OrganizationId;
             ViewBag.RouteOrganizationId = orgId; // Keep route org for navigation/breadcrumbs if needed
+            
+            // Add Status and PracticeArea options for dropdowns
+            ViewBag.Statuses = new List<string>
+            {
+                "Planning",
+                "In Progress",
+                "Review",
+                "On Hold",
+                "Completed"
+            };
+            
+            ViewBag.PracticeAreas = new List<string>
+            {
+                "Business Formation / Compliance",
+                "Commercial Litigation",
+                "Construction",
+                "Corporate Litigation",
+                "Criminal",
+                "Elder",
+                "Employment / Labor",
+                "Family",
+                "Healthcare",
+                "Intellectual Property",
+                "Medical Malpractice",
+                "Personal Injury",
+                "Privacy / Information Security",
+                "Product Liability",
+                "Real Estate",
+                "Securities / Mergers & Acquisitions",
+                "Sports / Entertainment / Gaming",
+                "Tax",
+                "Trusts",
+                "Wills & Estates",
+                "Other"
+            };
             
             // Always set the organization name for proper display in the header
             // For cross-organization matter access, show the matter's originating organization name
@@ -1198,6 +1279,134 @@ namespace Certio.Web.Controllers
                         result.ErrorCode, result.ErrorMessage);
                     return StatusCode(500, "An error occurred while processing your request");
             }
+        }
+
+        // POST: /Client/{orgId}/Matter/{matterId}/Assignment - Assign user to matter
+        [Authorize(Policy = "OrgMember")]
+        [HttpPost("/Client/{orgId:int}/Matter/{matterId:int}/Assignment")]
+        public async Task<IActionResult> AssignUserToMatter(int orgId, int matterId, [FromBody] AssignUserToMatterDto assignDto)
+        {
+            var (user, _) = GetUserContext();
+            if (user == null)
+            {
+                return Unauthorized(new { success = false, message = "User not authenticated" });
+            }
+
+            // Verify matter belongs to organization
+            var matterResult = await _matterService.GetMatterAsync(user.Id, matterId);
+            if (!matterResult.Success || matterResult.Data!.OrganizationId != orgId)
+            {
+                return BadRequest(new { success = false, message = "Matter not found or access denied" });
+            }
+
+            // Remove existing assignment of this type if exists (different user)
+            // Note: MatterAssignmentDto from service already excludes removed assignments
+            var existingTypeAssignment = matterResult.Data.Assignments
+                .FirstOrDefault(a => a.AssignmentType == assignDto.AssignmentType);
+            
+            if (existingTypeAssignment != null)
+            {
+                if (existingTypeAssignment.UserId == assignDto.UserId)
+                {
+                    // Same user already assigned - return success (no change needed)
+                    return Json(new { success = true, message = "User already assigned" });
+                }
+                
+                // Remove the existing assignment for this type (different user)
+                await _matterService.RemoveUserFromMatterAsync(
+                    user.Id,
+                    matterId,
+                    existingTypeAssignment.UserId,
+                    GetIpAddress(),
+                    GetUserAgent());
+            }
+
+            // Add new assignment
+            var result = await _matterService.AssignUserToMatterAsync(
+                user.Id,
+                matterId,
+                assignDto,
+                GetIpAddress(),
+                GetUserAgent());
+
+            if (!result.Success)
+            {
+                return BadRequest(new { success = false, message = result.ErrorMessage });
+            }
+
+            return Json(new { success = true, assignment = result.Data });
+        }
+
+        // DELETE: /Client/{orgId}/Matter/{matterId}/Assignment/{assignmentId} - Remove assignment by ID
+        [Authorize(Policy = "OrgMember")]
+        [HttpDelete("/Client/{orgId:int}/Matter/{matterId:int}/Assignment/{assignmentId:int}")]
+        public async Task<IActionResult> RemoveAssignment(int orgId, int matterId, int assignmentId)
+        {
+            var (user, _) = GetUserContext();
+            if (user == null)
+            {
+                return Unauthorized(new { success = false, message = "User not authenticated" });
+            }
+
+            // Get matter to find the assignment
+            var matterResult = await _matterService.GetMatterAsync(user.Id, matterId);
+            if (!matterResult.Success || matterResult.Data!.OrganizationId != orgId)
+            {
+                return BadRequest(new { success = false, message = "Matter not found or access denied" });
+            }
+
+            var assignment = matterResult.Data.Assignments.FirstOrDefault(a => a.Id == assignmentId);
+            if (assignment == null)
+            {
+                return NotFound(new { success = false, message = "Assignment not found" });
+            }
+
+            var result = await _matterService.RemoveUserFromMatterAsync(
+                user.Id,
+                matterId,
+                assignment.UserId,
+                GetIpAddress(),
+                GetUserAgent());
+
+            if (!result.Success)
+            {
+                return BadRequest(new { success = false, message = result.ErrorMessage });
+            }
+
+            return Json(new { success = true });
+        }
+
+        // PUT: /Client/{orgId}/Matter/{matterId} - Update matter fields
+        [Authorize(Policy = "OrgMember")]
+        [HttpPut("/Client/{orgId:int}/Matter/{matterId:int}")]
+        public async Task<IActionResult> UpdateMatter(int orgId, int matterId, [FromBody] UpdateMatterDto updateDto)
+        {
+            var (user, _) = GetUserContext();
+            if (user == null)
+            {
+                return Unauthorized(new { success = false, message = "User not authenticated" });
+            }
+
+            // Verify matter belongs to organization
+            var matterResult = await _matterService.GetMatterAsync(user.Id, matterId);
+            if (!matterResult.Success || matterResult.Data!.OrganizationId != orgId)
+            {
+                return BadRequest(new { success = false, message = "Matter not found or access denied" });
+            }
+
+            var result = await _matterService.UpdateMatterAsync(
+                user.Id,
+                matterId,
+                updateDto,
+                GetIpAddress(),
+                GetUserAgent());
+
+            if (!result.Success)
+            {
+                return BadRequest(new { success = false, message = result.ErrorMessage });
+            }
+
+            return Json(new { success = true, matter = result.Data });
         }
     }
 }

@@ -1286,9 +1286,6 @@
     min-width: 200px;
 }
 
-.task-section {
-}
-
 .task-section-header {
     display: flex;
     justify-content: space-between;
@@ -1650,6 +1647,7 @@
     overflow-y: auto;
     padding: 0.5rem;
 }
+
 
 .matter-item {
     width: 100%;
