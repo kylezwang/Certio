@@ -9,6 +9,7 @@ using Certio.Domain.Services;
 using Certio.Domain.Exceptions;
 using Certio.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -187,11 +188,50 @@ public class DirectMessagesController : ControllerBase
                 return BadRequest(new { success = false, error = "Sender email is required" });
             }
             
+            var normalizedSenderEmail = NormalizeEmail(request.SenderEmail);
+            if (string.IsNullOrEmpty(normalizedSenderEmail))
+            {
+                return BadRequest(new { success = false, error = "Sender email is invalid" });
+            }
+
+            var trimmedSenderEmail = request.SenderEmail.Trim();
+            
             // Parse email body to plain text
-            var emailBodyText = StripHtmlToPlainText(request.EmailBody ?? request.EmailBodyText ?? "");
+            // Always strip HTML from both EmailBody and EmailBodyText to ensure clean text
+            var emailBodyText = "";
+            
+            // If EmailBodyText is provided and looks like plain text (doesn't contain HTML tags), use it
+            if (!string.IsNullOrEmpty(request.EmailBodyText) && 
+                !request.EmailBodyText.Contains('<') && 
+                !request.EmailBodyText.Contains('>'))
+            {
+                emailBodyText = request.EmailBodyText;
+            }
+            // Otherwise, extract plain text from HTML body
+            else if (!string.IsNullOrEmpty(request.EmailBody))
+            {
+                emailBodyText = StripHtmlToPlainText(request.EmailBody);
+            }
+            // Fallback: try to strip HTML from EmailBodyText if it exists
+            else if (!string.IsNullOrEmpty(request.EmailBodyText))
+            {
+                emailBodyText = StripHtmlToPlainText(request.EmailBodyText);
+            }
+            
+            // If we still don't have text, return empty string
+            if (string.IsNullOrWhiteSpace(emailBodyText))
+            {
+                emailBodyText = "[No email content]";
+            }
+            
+            // Prepend subject to the message body as the first line
+            var subject = request.Subject ?? "";
+            var messageBody = string.IsNullOrWhiteSpace(subject) 
+                ? emailBodyText 
+                : $"{subject}\n\n{emailBodyText}";
             
             // Find or create user by email
-            var senderUser = await FindOrCreateUserByEmailAsync(request.SenderEmail, request.SenderName, orgId);
+            var senderUser = await FindOrCreateUserByEmailAsync(trimmedSenderEmail, request.SenderName, orgId);
             var isExternalUser = senderUser.IsExternal;
             
             // Reload user from database to ensure organization membership is loaded
@@ -226,7 +266,7 @@ public class DirectMessagesController : ControllerBase
                 ["EmailSubject"] = request.Subject ?? "",
                 ["EmailId"] = request.ExternalEmailId ?? "",
                 ["EmailThreadId"] = request.EmailThreadId ?? "",
-                ["FromEmail"] = request.SenderEmail,
+                ["FromEmail"] = trimmedSenderEmail,
                 ["FromName"] = request.SenderName ?? "",
                 ["ReceivedAt"] = request.ReceivedAt?.ToString("O") ?? DateTime.UtcNow.ToString("O"),
                 ["Notalized"] = true
@@ -240,7 +280,7 @@ public class DirectMessagesController : ControllerBase
                 Id = Guid.NewGuid(),
                 ThreadId = thread.Id,
                 SenderId = senderUser.Id, // Send as the email sender, not current user
-                Body = emailBodyText,
+                Body = messageBody,
                 MessageType = "Email",
                 Metadata = JsonSerializer.Serialize(emailMetadata),
                 CreatedAt = DateTime.UtcNow
@@ -266,10 +306,10 @@ public class DirectMessagesController : ControllerBase
                     id = thread.Id,
                     otherUserId = senderUser.Id,
                     otherUserName = senderUser.Name ?? request.SenderEmail,
-                    otherUserEmail = request.SenderEmail,
+                    otherUserEmail = trimmedSenderEmail,
                     isExternalUser = isExternalUser,
                     isNewThread = isNewThread, // Indicates if thread was just created
-                    otherUserColor = userEntity.Color ?? "#9ca3af" // Return user's color for avatar styling
+                    otherUserColor = userEntity.Color ?? "#aaaaaa" // Return user's color for avatar styling
                 }
             });
         }
@@ -370,71 +410,142 @@ public class DirectMessagesController : ControllerBase
 
     private async Task<(int Id, string? Name, bool IsExternal)> FindOrCreateUserByEmailAsync(string email, string? name, int currentOrgId)
     {
+        var normalizedEmail = NormalizeEmail(email);
+        if (string.IsNullOrEmpty(normalizedEmail))
+        {
+            throw new ArgumentException("Email is required", nameof(email));
+        }
+
+        var fallbackEmail = string.IsNullOrWhiteSpace(email) ? normalizedEmail : email.Trim();
+
         var externalGuestsOrgId = await GetOrCreateExternalGuestsOrganizationIdAsync(currentOrgId);
 
         // First, try to find existing user in the current organization (skip external guests org)
         var existingUserInCurrentOrg = await _context.Users
             .Include(u => u.UserOrganizations)
-            .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower() && 
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail &&
                 u.UserOrganizations.Any(uo => uo.OrganizationId == currentOrgId && 
                                               uo.OrganizationId != externalGuestsOrgId && 
                                               uo.IsActive));
         
         if (existingUserInCurrentOrg != null)
         {
-            return (existingUserInCurrentOrg.Id, $"{existingUserInCurrentOrg.FirstName} {existingUserInCurrentOrg.LastName}".Trim(), false);
+            var displayName = BuildDisplayName(existingUserInCurrentOrg, name, fallbackEmail);
+            var hasExternalMembership = existingUserInCurrentOrg.UserOrganizations
+                .Any(uo => uo.OrganizationId == externalGuestsOrgId && uo.IsActive && uo.UserType == UserTypes.External);
+
+            return (existingUserInCurrentOrg.Id, displayName, hasExternalMembership);
         }
         
         // Try to find user anywhere in the system
         var userAnywhere = await _context.Users
             .Include(u => u.UserOrganizations)
-            .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
         
         if (userAnywhere != null)
         {
-            // User exists - ensure they are part of the External Guests organization
-            // Also check if user's Color should be set to gray if not already set
+            var hasUserChanges = false;
+
+            if (!string.Equals(userAnywhere.Email, normalizedEmail, StringComparison.Ordinal))
+            {
+                userAnywhere.Email = normalizedEmail;
+                hasUserChanges = true;
+            }
+
             if (string.IsNullOrEmpty(userAnywhere.Color) || userAnywhere.Color == "#007bff" || userAnywhere.Color == "#3d1019")
             {
-                userAnywhere.Color = "#9ca3af"; // Set to gray for external contacts
-                _context.Users.Update(userAnywhere);
-                await _context.SaveChangesAsync();
+                userAnywhere.Color = "#aaaaaa"; // Set to gray for external contacts
+                hasUserChanges = true;
+            }
+
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                var (potentialFirst, potentialLast) = ExtractNameParts(name, fallbackEmail);
+
+                if (string.IsNullOrWhiteSpace(userAnywhere.FirstName) ||
+                    userAnywhere.FirstName.Equals(userAnywhere.Email, StringComparison.OrdinalIgnoreCase))
+                {
+                    userAnywhere.FirstName = potentialFirst;
+                    hasUserChanges = true;
+                }
+
+                if (string.IsNullOrWhiteSpace(userAnywhere.LastName))
+                {
+                    userAnywhere.LastName = potentialLast;
+                    hasUserChanges = true;
+                }
             }
             
-            var userOrgInExternalGuests = await _context.UserOrganizations
-                .FirstOrDefaultAsync(uo => uo.UserId == userAnywhere.Id && uo.OrganizationId == externalGuestsOrgId);
+            var userOrgInExternalGuests = userAnywhere.UserOrganizations
+                .FirstOrDefault(uo => uo.OrganizationId == externalGuestsOrgId);
+
+            var membershipUpdated = false;
+            var externalMembershipActive = false;
             
             if (userOrgInExternalGuests == null)
             {
                 userOrgInExternalGuests = new UserOrganization
                 {
                     UserId = userAnywhere.Id,
-                    OrganizationId = externalGuestsOrgId, // Add to External Guests org, not current org
+                    OrganizationId = externalGuestsOrgId,
                     UserType = UserTypes.External,
                     Role = OrganizationRoles.Guest,
                     IsActive = true,
                     JoinedAt = DateTime.UtcNow
                 };
                 _context.UserOrganizations.Add(userOrgInExternalGuests);
+                userAnywhere.UserOrganizations.Add(userOrgInExternalGuests);
+                membershipUpdated = true;
+                externalMembershipActive = true;
+                _logger.LogInformation("Added existing user {UserId} ({Email}) to 'External Guests' organization {OrgId}",
+                    userAnywhere.Id, normalizedEmail, externalGuestsOrgId);
+            }
+            else
+            {
+                externalMembershipActive = userOrgInExternalGuests.IsActive &&
+                    userOrgInExternalGuests.UserType == UserTypes.External &&
+                    userOrgInExternalGuests.Role == OrganizationRoles.Guest;
+
+                if (!externalMembershipActive)
+                {
+                    userOrgInExternalGuests.IsActive = true;
+                    if (userOrgInExternalGuests.JoinedAt == default)
+                    {
+                        userOrgInExternalGuests.JoinedAt = DateTime.UtcNow;
+                    }
+                    userOrgInExternalGuests.UserType = UserTypes.External;
+                    userOrgInExternalGuests.Role = OrganizationRoles.Guest;
+                    _context.UserOrganizations.Update(userOrgInExternalGuests);
+                    membershipUpdated = true;
+                    externalMembershipActive = true;
+                    _logger.LogInformation("Reactivated external membership for user {UserId} in organization {OrgId}",
+                        userAnywhere.Id, externalGuestsOrgId);
+                }
+            }
+
+            if (hasUserChanges)
+            {
+                _context.Users.Update(userAnywhere);
+            }
+
+            if (hasUserChanges || membershipUpdated)
+            {
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("Added existing user {UserId} ({Email}) to 'External Guests' organization {OrgId}", 
-                    userAnywhere.Id, email, externalGuestsOrgId);
             }
             
-            return (userAnywhere.Id, $"{userAnywhere.FirstName} {userAnywhere.LastName}".Trim(), true);
+            var displayName = BuildDisplayName(userAnywhere, name, fallbackEmail);
+            return (userAnywhere.Id, displayName, externalMembershipActive);
         }
         
         // Create new external user
-        var nameParts = (name ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        var firstName = nameParts.Length > 0 ? nameParts[0] : email.Split('@')[0];
-        var lastName = nameParts.Length > 1 ? string.Join(" ", nameParts.Skip(1)) : "";
+        var (firstName, lastName) = ExtractNameParts(name, fallbackEmail);
         
         var newUser = new User
         {
-            Email = email.ToLower(),
+            Email = normalizedEmail,
             FirstName = firstName,
             LastName = lastName,
-            Color = "#9ca3af", // Gray background for external contacts
+            Color = "#aaaaaa", // Gray background for external contacts
             CreatedAt = DateTime.UtcNow,
             IsActive = true
         };
@@ -448,7 +559,7 @@ public class DirectMessagesController : ControllerBase
         var newUserOrg = new UserOrganization
         {
             UserId = newUser.Id,
-            OrganizationId = externalGuestsOrgId, // Add to External Guests org, not current org
+            OrganizationId = externalGuestsOrgId,
             UserType = UserTypes.External,
             Role = OrganizationRoles.Guest,
             IsActive = true,
@@ -459,9 +570,60 @@ public class DirectMessagesController : ControllerBase
         await _context.SaveChangesAsync();
         
         _logger.LogInformation("Created external user {UserId} ({Email}) and added to 'External Guests' organization {OrgId}", 
-            newUser.Id, email, externalGuestsOrgId);
+            newUser.Id, normalizedEmail, externalGuestsOrgId);
         
-        return (newUser.Id, name ?? email, true);
+        var displayNameForNewUser = BuildDisplayName(newUser, name, fallbackEmail);
+        return (newUser.Id, displayNameForNewUser, true);
+    }
+
+    private static string NormalizeEmail(string email)
+    {
+        return string.IsNullOrWhiteSpace(email)
+            ? string.Empty
+            : email.Trim().ToLowerInvariant();
+    }
+
+    private static (string FirstName, string LastName) ExtractNameParts(string? fullName, string fallbackEmail)
+    {
+        if (!string.IsNullOrWhiteSpace(fullName))
+        {
+            var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 1)
+            {
+                return (parts[0], string.Empty);
+            }
+
+            if (parts.Length > 1)
+            {
+                var lastName = string.Join(" ", parts, 1, parts.Length - 1);
+                return (parts[0], lastName);
+            }
+        }
+
+        var localPart = fallbackEmail;
+        var atIndex = fallbackEmail.IndexOf('@');
+        if (atIndex > 0)
+        {
+            localPart = fallbackEmail.Substring(0, atIndex);
+        }
+
+        return (localPart, string.Empty);
+    }
+
+    private static string BuildDisplayName(User user, string? providedName, string fallbackEmail)
+    {
+        var fromUser = $"{user.FirstName} {user.LastName}".Trim();
+        if (!string.IsNullOrWhiteSpace(fromUser))
+        {
+            return fromUser;
+        }
+
+        if (!string.IsNullOrWhiteSpace(providedName))
+        {
+            return providedName.Trim();
+        }
+
+        return fallbackEmail;
     }
     
     private string StripHtmlToPlainText(string html)
@@ -469,26 +631,72 @@ public class DirectMessagesController : ControllerBase
         if (string.IsNullOrEmpty(html))
             return "";
 
-        // Remove script and style elements
-        html = Regex.Replace(html, @"<(script|style)[^>]*>.*?</\1>", "", 
+        // Remove script and style elements completely
+        html = Regex.Replace(html, @"<(script|style|noscript|iframe|embed|object)[^>]*>.*?</\1>", "", 
             RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
-        // Replace HTML entities
+        // Replace HTML line breaks and block elements with newlines
+        // Handle <br> tags first (including self-closing variants)
+        html = Regex.Replace(html, @"<br\s*/?>", "\n", RegexOptions.IgnoreCase);
+        
+        // Replace closing tags for block elements with newlines
+        html = Regex.Replace(html, @"</(p|div|h[1-6]|li|tr|td|th|blockquote|pre|table|tbody|thead|tfoot|section|article|header|footer|nav|aside)[^>]*>", "\n", 
+            RegexOptions.IgnoreCase);
+        
+        // Replace opening tags for block elements (but preserve spacing)
+        html = Regex.Replace(html, @"<(p|div|h[1-6]|li|tr|td|th|blockquote|pre|table|tbody|thead|tfoot|section|article|header|footer|nav|aside)[^>]*>", "\n", 
+            RegexOptions.IgnoreCase);
+        
+        // Replace list items with proper formatting
+        html = Regex.Replace(html, @"</(ul|ol)[^>]*>", "\n", RegexOptions.IgnoreCase);
+        html = Regex.Replace(html, @"<(ul|ol)[^>]*>", "\n", RegexOptions.IgnoreCase);
+        
+        // Extract alt text from images before removing them
+        html = Regex.Replace(html, @"<img[^>]*alt\s*=\s*[""']([^""']*)[""'][^>]*>", "$1", RegexOptions.IgnoreCase);
+        html = Regex.Replace(html, @"<img[^>]*alt\s*=\s*([^\s>]+)[^>]*>", "$1", RegexOptions.IgnoreCase);
+        // Remove any remaining img tags
+        html = Regex.Replace(html, @"<img[^>]*>", "", RegexOptions.IgnoreCase);
+        
+        // Replace anchor tags - extract text content (simplified to handle nested tags)
+        // This will extract text between <a> and </a> tags, handling simple cases
+        html = Regex.Replace(html, @"<a[^>]*>([^<]*)</a>", "$1", RegexOptions.IgnoreCase);
+        // Remove any remaining anchor tags (for cases with nested tags)
+        html = Regex.Replace(html, @"<a[^>]*>", "", RegexOptions.IgnoreCase);
+        html = Regex.Replace(html, @"</a>", "", RegexOptions.IgnoreCase);
+
+        // Replace HTML entities before removing tags
         html = html.Replace("&nbsp;", " ")
                   .Replace("&amp;", "&")
                   .Replace("&lt;", "<")
                   .Replace("&gt;", ">")
                   .Replace("&quot;", "\"")
-                  .Replace("&#39;", "'");
+                  .Replace("&#39;", "'")
+                  .Replace("&apos;", "'");
 
-        // Remove HTML tags
+        // Remove remaining HTML tags (including any we missed)
         html = Regex.Replace(html, "<[^>]+>", "");
 
-        // Decode HTML entities
+        // Decode any remaining HTML entities
         html = System.Net.WebUtility.HtmlDecode(html);
 
-        // Normalize whitespace
-        html = Regex.Replace(html, @"\s+", " ");
+        // Normalize whitespace while preserving newlines
+        // Replace multiple spaces/tabs with single space (but preserve newlines)
+        html = Regex.Replace(html, @"[ \t]+", " ");
+        
+        // Replace multiple consecutive newlines with max 2 newlines (for paragraph breaks)
+        html = Regex.Replace(html, @"\n{3,}", "\n\n");
+        
+        // Clean up spaces at start/end of lines (but preserve intentional spacing)
+        html = Regex.Replace(html, @"[ \t]+\n", "\n");
+        html = Regex.Replace(html, @"\n[ \t]+", "\n");
+        
+        // Remove leading/trailing whitespace from each line but preserve empty lines
+        var lines = html.Split('\n');
+        for (int i = 0; i < lines.Length; i++)
+        {
+            lines[i] = lines[i].TrimEnd();
+        }
+        html = string.Join("\n", lines);
         
         return html.Trim();
     }

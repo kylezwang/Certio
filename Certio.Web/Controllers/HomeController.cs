@@ -565,20 +565,44 @@ namespace Certio.Web.Controllers
                     return RedirectToAction("Register", new { step = 4 });
                 }
 
-                // Create custom User record first
-                var customUser = new Certio.Domain.Users.User
+                // Check if custom User already exists with this email
+                var existingCustomUser = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Email == storedEmail);
+                
+                Certio.Domain.Users.User customUser;
+                if (existingCustomUser != null)
                 {
-                    FirstName = firstName,
-                    LastName = lastName,
-                    Email = storedEmail,
-                    PhoneNumber = phoneNumber,
-                    IsActive = true,
-                    CreatedAt = DateTime.UtcNow,
-                    Color = GetRandomColor()
-                };
+                    // Update existing custom User with registration details
+                    existingCustomUser.FirstName = firstName;
+                    existingCustomUser.LastName = lastName;
+                    existingCustomUser.PhoneNumber = phoneNumber;
+                    existingCustomUser.IsActive = true;
+                    // Don't update CreatedAt - preserve original creation date
+                    if (string.IsNullOrEmpty(existingCustomUser.Color))
+                    {
+                        existingCustomUser.Color = GetRandomColor();
+                    }
+                    _context.Users.Update(existingCustomUser);
+                    await _context.SaveChangesAsync();
+                    customUser = existingCustomUser;
+                }
+                else
+                {
+                    // Create new custom User record
+                    customUser = new Certio.Domain.Users.User
+                    {
+                        FirstName = firstName,
+                        LastName = lastName,
+                        Email = storedEmail,
+                        PhoneNumber = phoneNumber,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow,
+                        Color = GetRandomColor()
+                    };
 
-                _context.Users.Add(customUser);
-                await _context.SaveChangesAsync();
+                    _context.Users.Add(customUser);
+                    await _context.SaveChangesAsync();
+                }
 
                 // Determine organization and role based on selection
                 int organizationId;
@@ -654,20 +678,35 @@ namespace Certio.Web.Controllers
                     _context.Users.Update(customUser);
                 }
 
-                // Add user to organization
-                var userOrg = new Certio.Domain.Users.UserOrganization
-                {
-                    UserId = customUser.Id,
-                    OrganizationId = organizationId,
-                    UserType = userType,
-                    Role = organizationRole,
-                    IsPrimary = true, // First organization is primary
-                    IsActive = true,
-                    JoinedAt = DateTime.UtcNow
-                };
-                _context.UserOrganizations.Add(userOrg);
+                // Add user to organization (check for existing membership first)
+                var existingMembership = await _context.UserOrganizations
+                    .FirstOrDefaultAsync(uo => uo.UserId == customUser.Id && uo.OrganizationId == organizationId);
                 
-                await _context.SaveChangesAsync();
+                if (existingMembership == null)
+                {
+                    var userOrg = new Certio.Domain.Users.UserOrganization
+                    {
+                        UserId = customUser.Id,
+                        OrganizationId = organizationId,
+                        UserType = userType,
+                        Role = organizationRole,
+                        IsPrimary = !await _context.UserOrganizations.AnyAsync(uo => uo.UserId == customUser.Id && uo.IsPrimary), // Only set as primary if no other primary exists
+                        IsActive = true,
+                        JoinedAt = DateTime.UtcNow
+                    };
+                    _context.UserOrganizations.Add(userOrg);
+                    await _context.SaveChangesAsync();
+                }
+                else if (!existingMembership.IsActive)
+                {
+                    // Reactivate existing membership if it was inactive
+                    existingMembership.IsActive = true;
+                    existingMembership.UserType = userType;
+                    existingMembership.Role = organizationRole;
+                    existingMembership.JoinedAt = DateTime.UtcNow;
+                    _context.UserOrganizations.Update(existingMembership);
+                    await _context.SaveChangesAsync();
+                }
 
                 // If joined via code, consume code and add to team if specified
                 if (validJoin != null)
@@ -678,7 +717,53 @@ namespace Certio.Web.Controllers
                         await joinSvc.ConsumeAsync(validJoin.Code);
                     }
 
-                    if (!string.IsNullOrWhiteSpace(validJoin.TeamName))
+                    // Check if this is a "New Client" join code with external user transfer
+                    if (!string.IsNullOrWhiteSpace(validJoin.TeamName) && 
+                        validJoin.TeamName.StartsWith("NEW_CLIENT_EXTERNAL_IDS:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Extract external user ID from metadata (format: "NEW_CLIENT_EXTERNAL_IDS:userId")
+                        var externalUserIdStr = validJoin.TeamName.Substring("NEW_CLIENT_EXTERNAL_IDS:".Length);
+                        if (int.TryParse(externalUserIdStr, out var externalUserId))
+                        {
+                            // Check if an external user with this email already exists in the system
+                            var normalizedEmail = storedEmail?.ToLowerInvariant().Trim();
+                            var existingExternalUser = await _context.Users
+                                .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail && u.Id == externalUserId);
+
+                            if (existingExternalUser != null)
+                            {
+                                // Find external organization memberships for this user
+                                var externalMemberships = await _context.UserOrganizations
+                                    .Include(uo => uo.Organization)
+                                    .Where(uo => uo.UserId == existingExternalUser.Id &&
+                                                 uo.IsActive &&
+                                                 uo.UserType == Certio.Domain.Users.UserTypes.External &&
+                                                 uo.Organization != null &&
+                                                 uo.Organization.Name.ToLower().EndsWith("'s external contacts"))
+                                    .ToListAsync();
+
+                                // Deactivate external memberships (soft remove)
+                                foreach (var extMembership in externalMemberships)
+                                {
+                                    extMembership.IsActive = false;
+                                    extMembership.LeftAt = DateTime.UtcNow;
+                                }
+
+                                // Update user color to client color (#A6D0DD - light blue) for the existing user
+                                existingExternalUser.Color = "#69848C";
+                                _context.Users.Update(existingExternalUser);
+
+                                // Also set the new user's color since they're the same person
+                                customUser.Color = "#69848C";
+                                _context.Users.Update(customUser);
+
+                                await _context.SaveChangesAsync();
+                            }
+                        }
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(validJoin.TeamName) && 
+                        !validJoin.TeamName.StartsWith("NEW_CLIENT_EXTERNAL_IDS:", StringComparison.OrdinalIgnoreCase))
                     {
                         var team = await _context.Teams.FirstOrDefaultAsync(t => t.OrganizationId == organizationId && t.Name == validJoin.TeamName);
                         if (team == null)
@@ -723,6 +808,20 @@ namespace Certio.Web.Controllers
                 }
 
                 TempData["Success"] = "Account created successfully! Welcome to Certio.";
+                
+                // Determine redirect URL based on organization type
+                if (organizationId > 0)
+                {
+                    var org = await _context.Organizations.FirstOrDefaultAsync(o => o.Id == organizationId);
+                    if (org != null && org.Type == Certio.Domain.Organizations.OrganizationType.Client && 
+                        userType == Certio.Domain.Users.UserTypes.Client)
+                    {
+                        // Redirect to client dashboard for client organizations
+                        return RedirectToAction("Dashboard", "Client", new { orgId = organizationId });
+                    }
+                }
+                
+                // Default to Matter dashboard for law firm organizations or new organizations
                 return RedirectToAction("Index", "Matter");
             }
             catch (Exception ex)
@@ -1065,7 +1164,7 @@ namespace Certio.Web.Controllers
                 });
 
                 // 2. Get all client organizations and their channels
-                var clientOrgChannelsDict = await _channelManagementService.GetClientOrganizationChannelsForLawFirmAsync(organizationId);
+                var clientOrgChannelsDict = await _channelManagementService.GetClientOrganizationChannelsForLawFirmAsync(organizationId, customUser.Id);
                 
                 if (clientOrgChannelsDict.Any())
                 {
@@ -1510,6 +1609,7 @@ namespace Certio.Web.Controllers
                 };
 
                 var actualUserId = uo.User?.Id ?? uo.UserId;
+                var isExternalContacts = uo.Organization?.Name?.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase) ?? false;
                 
                 var member = new CommunicationsTeamMember
                 {
@@ -1517,14 +1617,14 @@ namespace Certio.Web.Controllers
                     OrganizationId = uo.OrganizationId,
                     Name = $"{uo.User?.FirstName ?? ""} {uo.User?.LastName ?? ""}".Trim(),
                     Role = role,
-                    Status = isOnline ? "online" : "offline",
+                    Status = isExternalContacts ? "external" : (isOnline ? "online" : "offline"),
                     Avatar = initials,
-                    Activity = isOnline ? "Online" : "Offline",
+                    Activity = isExternalContacts ? "External" : (isOnline ? "Online" : "Offline"),
                     RoleIcon = roleIcon,
                     RoleColor = roleColor,
                     CanDirectMessage = true, // Same org, can DM
                     OrganizationName = uo.Organization?.Name,
-                    IsExternalContacts = uo.Organization?.Name?.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase) ?? false,
+                    IsExternalContacts = isExternalContacts,
                     Color = uo.User?.Color ?? "#3d1019" // Use user's color, default to maroon
                 };
                 Console.WriteLine($"[DEBUG] Current org member: UserId={member.UserId}, Name={member.Name}, CanDM=true");
@@ -1544,6 +1644,7 @@ namespace Certio.Web.Controllers
                 var roleColor = "text-info"; // Client user color
 
                 var actualUserId = uo.User?.Id ?? uo.UserId;
+                var isExternalContacts = relatedOrgName?.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase) ?? false;
                 
                 var member = new CommunicationsTeamMember
                 {
@@ -1551,14 +1652,14 @@ namespace Certio.Web.Controllers
                     OrganizationId = relatedOrgId,
                     Name = $"{uo.User?.FirstName ?? ""} {uo.User?.LastName ?? ""}".Trim(),
                     Role = $"{role} ({relatedOrgName})",
-                    Status = isOnline ? "online" : "offline",
+                    Status = isExternalContacts ? "external" : (isOnline ? "online" : "offline"),
                     Avatar = initials,
-                    Activity = isOnline ? "Online" : "Offline",
+                    Activity = isExternalContacts ? "External" : (isOnline ? "Online" : "Offline"),
                     RoleIcon = roleIcon,
                     RoleColor = roleColor,
                     CanDirectMessage = true, // NOW ALLOWED via relationship
                     OrganizationName = relatedOrgName,
-                    IsExternalContacts = relatedOrgName?.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase) ?? false,
+                    IsExternalContacts = isExternalContacts,
                     Color = uo.User?.Color ?? "#3d1019" // Use user's color, default to maroon
                 };
                 Console.WriteLine($"[DEBUG] Related org member: UserId={member.UserId}, Name={member.Name}, Org={relatedOrgName}, CanDM=true");
@@ -1610,9 +1711,9 @@ namespace Certio.Web.Controllers
                             OrganizationId = userOrg.OrganizationId,
                             Name = $"{user.FirstName ?? ""} {user.LastName ?? ""}".Trim(),
                             Role = userOrg.Role ?? "Guest",
-                            Status = isOnline ? "online" : "offline",
+                            Status = isExternalContacts ? "external" : (isOnline ? "online" : "offline"),
                             Avatar = initials,
-                            Activity = isOnline ? "Online" : "Offline",
+                            Activity = isExternalContacts ? "External" : (isOnline ? "Online" : "Offline"),
                             RoleIcon = "fas fa-user",
                             RoleColor = "text-muted",
                             CanDirectMessage = true,
@@ -1830,6 +1931,43 @@ namespace Certio.Web.Controllers
                 };
                 _context.UserOrganizations.Add(userOrg);
 
+                // Check if this is a "New Client" join code with external user transfer
+                if (!string.IsNullOrWhiteSpace(validJoin.TeamName) && 
+                    validJoin.TeamName.StartsWith("NEW_CLIENT_EXTERNAL_IDS:", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Extract external user ID from metadata (format: "NEW_CLIENT_EXTERNAL_IDS:userId")
+                    var externalUserIdStr = validJoin.TeamName.Substring("NEW_CLIENT_EXTERNAL_IDS:".Length);
+                    if (int.TryParse(externalUserIdStr, out var externalUserId))
+                    {
+                        // If the joining user is the external user, transfer their membership
+                        if (externalUserId == customUser.Id)
+                        {
+                            // Find external organization memberships for this user
+                            var externalMemberships = await _context.UserOrganizations
+                                .Include(uo => uo.Organization)
+                                .Where(uo => uo.UserId == customUser.Id &&
+                                             uo.IsActive &&
+                                             uo.UserType == Certio.Domain.Users.UserTypes.External &&
+                                             uo.Organization != null &&
+                                             uo.Organization.Name.ToLower().EndsWith("'s external contacts"))
+                                .ToListAsync();
+
+                            // Deactivate external memberships (soft remove)
+                            foreach (var extMembership in externalMemberships)
+                            {
+                                extMembership.IsActive = false;
+                                extMembership.LeftAt = DateTime.UtcNow;
+                            }
+
+                            // Update user color to client color (#A6D0DD - light blue)
+                            customUser.Color = "#A6D0DD";
+                            _context.Users.Update(customUser);
+
+                            await _context.SaveChangesAsync();
+                        }
+                    }
+                }
+
                 // If this is a Law Firm invitation, upsert the LawFirmClient relationship from the user's firm to the client and assign the user
                 if (string.Equals(validJoin.InvitedUserType, Certio.Domain.Users.UserTypes.LawFirm, StringComparison.OrdinalIgnoreCase))
                 {
@@ -1892,10 +2030,26 @@ namespace Certio.Web.Controllers
                 await _joinCodeService.ConsumeAsync(validJoin.Code);
                 await _context.SaveChangesAsync();
 
+                // Determine redirect URL based on organization type
+                var org = await _context.Organizations.FirstOrDefaultAsync(o => o.Id == validJoin.OrganizationId);
+                string redirectUrl;
+                
+                if (org != null && org.Type == Certio.Domain.Organizations.OrganizationType.Client && 
+                    validJoin.InvitedUserType == Certio.Domain.Users.UserTypes.Client)
+                {
+                    // Redirect to client dashboard for client organizations
+                    redirectUrl = Url.Action("Dashboard", "Client", new { orgId = validJoin.OrganizationId });
+                }
+                else
+                {
+                    // Default to Matter dashboard for law firm organizations
+                    redirectUrl = Url.Action("Index", "Matter");
+                }
+
                 return Json(new { 
                     success = true, 
                     message = "Successfully joined the organization!",
-                    redirectUrl = Url.Action("Index", "Matter")
+                    redirectUrl = redirectUrl
                 });
             }
             catch (Exception ex)

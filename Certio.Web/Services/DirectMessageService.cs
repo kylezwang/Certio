@@ -288,23 +288,24 @@ public class DirectMessageService : IDirectMessageService
         var senderColor = sender.Color ?? "#3d1019";
         var isExternalContacts = false;
         
-        var senderUserOrg = await _context.UserOrganizations
+        // Check if sender is in ANY External Contacts organization (not just current orgId)
+        var senderExternalOrg = await _context.UserOrganizations
             .Include(uo => uo.Organization)
-            .FirstOrDefaultAsync(uo => uo.UserId == sender.Id && uo.OrganizationId == orgId, ct);
+            .Where(uo => uo.UserId == sender.Id && uo.IsActive &&
+                         uo.Organization != null &&
+                         uo.Organization.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase))
+            .FirstOrDefaultAsync(ct);
         
-        if (senderUserOrg != null)
+        if (senderExternalOrg != null)
         {
-            isExternalContacts = senderUserOrg.Organization?.Name?.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase) ?? false;
-            
-            // If external contacts, use gray color
-            if (isExternalContacts)
-            {
-                senderColor = "#9ca3af";
-            }
+            isExternalContacts = true;
+            senderColor = "#aaaaaa";
         }
 
         _logger.LogInformation("User {UserId} sent message {MessageId} in thread {ThreadId}",
             currentUserId, message.Id, threadId);
+
+        var emailSubject = ExtractMetadataString(message.Metadata, "EmailSubject");
 
         return new MessageDto(
             message.Id,
@@ -317,7 +318,8 @@ public class DirectMessageService : IDirectMessageService
             message.EditedAt,
             message.IsDeleted,
             senderColor,
-            isExternalContacts
+            isExternalContacts,
+            emailSubject
         );
     }
 
@@ -372,27 +374,32 @@ public class DirectMessageService : IDirectMessageService
             .Where(u => senderIds.Contains(u.Id))
             .ToDictionaryAsync(u => u.Id, ct);
         
+        // Load ALL organizations for senders (not just current orgId) to check for External Contacts
         var senderUserOrgs = await _context.UserOrganizations
             .Include(uo => uo.Organization)
-            .Where(uo => senderIds.Contains(uo.UserId) && uo.OrganizationId == orgId)
-            .ToDictionaryAsync(uo => uo.UserId, ct);
+            .Where(uo => senderIds.Contains(uo.UserId) && uo.IsActive)
+            .ToListAsync(ct);
+
+        // Check if senders are in ANY External Contacts organization
+        var externalContactUserIds = senderUserOrgs
+            .Where(uo => uo.Organization != null && 
+                         uo.Organization.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase))
+            .Select(uo => uo.UserId)
+            .ToHashSet();
 
         var messageDtos = messages.Select(m =>
         {
             var senderUser = senderUsers.GetValueOrDefault(m.SenderId);
             var senderColor = senderUser?.Color ?? "#3d1019";
-            var isExternalContacts = false;
+            var isExternalContacts = externalContactUserIds.Contains(m.SenderId);
             
-            if (senderUser != null && senderUserOrgs.TryGetValue(m.SenderId, out var senderUserOrg))
+            // If external contacts, use gray color
+            if (isExternalContacts)
             {
-                isExternalContacts = senderUserOrg?.Organization?.Name?.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase) ?? false;
-                
-                // If external contacts, use gray color
-                if (isExternalContacts)
-                {
-                    senderColor = "#9ca3af";
-                }
+                senderColor = "#aaaaaa";
             }
+
+            var emailSubject = ExtractMetadataString(m.Metadata, "EmailSubject");
 
             return new MessageDto(
             m.Id,
@@ -405,7 +412,8 @@ public class DirectMessageService : IDirectMessageService
             m.EditedAt,
                 m.IsDeleted,
                 senderColor,
-                isExternalContacts
+                isExternalContacts,
+                emailSubject
             );
         }).ToList();
 
@@ -647,6 +655,41 @@ public class DirectMessageService : IDirectMessageService
     {
         var cacheKey = $"{UNREAD_PREFIX}{userId}:{threadId}";
         await _cacheService.SetAsync(cacheKey, "0", TimeSpan.FromMinutes(15));
+    }
+
+    private string? ExtractMetadataString(string? metadataJson, string key)
+    {
+        if (string.IsNullOrWhiteSpace(metadataJson))
+        {
+            return null;
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(metadataJson);
+            if (document.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                return null;
+            }
+
+            if (document.RootElement.TryGetProperty(key, out var element) && element.ValueKind != JsonValueKind.Null)
+            {
+                return element.ValueKind switch
+                {
+                    JsonValueKind.String => element.GetString(),
+                    JsonValueKind.Number => element.GetRawText(),
+                    JsonValueKind.True => bool.TrueString,
+                    JsonValueKind.False => bool.FalseString,
+                    _ => element.ToString()
+                };
+            }
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogWarning(ex, "Failed to extract key {Key} from message metadata.", key);
+        }
+
+        return null;
     }
 }
 

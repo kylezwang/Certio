@@ -44,14 +44,31 @@ Make sure these are set in your environment:
 - `GMAIL_CLIENT_ID` - Your OAuth 2.0 Client ID from Google Cloud Console
 - `GMAIL_CLIENT_SECRET` - Your OAuth 2.0 Client Secret
 
-### 4. Common Mistakes
+### 4. Add Test Users (Required for Testing Mode)
+
+If your OAuth app is in **Testing** mode (which it likely is for localhost development), you must add test users who can authorize the app:
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Select your project
+3. Navigate to **APIs & Services** → **OAuth consent screen**
+4. Scroll down to **Test users** section
+5. Click **+ ADD USERS**
+6. Add the email addresses of any Google accounts you want to test with
+   - Example: `your-test-email@gmail.com`
+   - You can add multiple test users
+7. Click **ADD**
+8. Click **SAVE**
+
+**Important:** Only users listed as test users will be able to authorize your app when it's in Testing mode. If you try to authorize with an email that's not in the test users list, Google will show an error.
+
+### 5. Common Mistakes
 
 ❌ **Wrong:** `https://localhost:5092/api/email-oauth/gmail/callback` (https)
 ❌ **Wrong:** `http://localhost/api/email-oauth/gmail/callback` (no port)
 ❌ **Wrong:** `http://localhost:5092/api/email-oauth/gmail/callback/` (trailing slash)
 ✅ **Correct:** `http://localhost:5092/api/email-oauth/gmail/callback`
 
-### 5. Check the Logs
+### 6. Check the Logs
 
 After clicking "Connect Gmail", check your application logs. You should see:
 ```
@@ -59,6 +76,16 @@ Generating Gmail OAuth URL with redirect URI: http://localhost:5092/api/email-oa
 ```
 
 Make sure this **exact** URI is in Google Cloud Console.
+
+### 7. Troubleshooting
+
+**If you see "Error 403: access_denied" or "This app isn't verified":**
+- Make sure you've added your email as a test user in the OAuth consent screen (Step 4 above)
+- Verify your app is in "Testing" mode (not "In production" unless you've published it)
+
+**If you see "Error 400: redirect_uri_mismatch":**
+- Double-check the redirect URI matches exactly (including http://, port, and path)
+- Make sure you saved the changes in Google Cloud Console
 
 ## For Outlook (Same Process)
 

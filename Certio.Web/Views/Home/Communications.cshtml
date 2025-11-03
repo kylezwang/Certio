@@ -1,5 +1,7 @@
 @model Certio.Web.ViewModels.CommunicationsViewModel
 @using Certio.Web.ViewModels
+@using System.Text.Encodings.Web
+@using System.Text.RegularExpressions
 @{
     ViewData["Title"] = "Communications - Notal AI Legal Assistant";
     ViewData["BodyClass"] = "communications-page";
@@ -189,7 +191,10 @@
                              style="cursor: @(member.CanDirectMessage ? "pointer" : "not-allowed"); @(member.CanDirectMessage ? "" : "opacity: 0.6;")">
                             <div class="member-avatar @(member.IsExternalContacts ? "external-contacts-avatar" : "")" style="background: @member.Color !important;">
                                 <span>@member.Avatar</span>
+                                @if (!member.IsExternalContacts)
+                                {
                                 <div class="status-indicator @member.Status"></div>
+                                }
                             </div>
                             <div class="member-info">
                                 <div class="member-name-row">
@@ -335,7 +340,7 @@
                             // Override to gray if external contacts
                             if (isExternalContacts)
                             {
-                                avatarColor = "#9ca3af";
+                                avatarColor = "#aaaaaa";
                             }
                         }
                         else if (message.UserId.HasValue)
@@ -348,7 +353,7 @@
                                 isExternalContacts = memberByUserId.IsExternalContacts;
                                 if (isExternalContacts)
                                 {
-                                    avatarColor = "#9ca3af";
+                                    avatarColor = "#aaaaaa";
                                 }
                             }
                         }
@@ -373,7 +378,18 @@
                                     }
                                     <span class="message-time">@message.Time</span>
                                 </div>
-                                <p class="message-text">@message.Content</p>
+                                @{
+                                    var encodedContent = HtmlEncoder.Default.Encode(message.Content ?? string.Empty);
+                                    // Normalize line endings
+                                    var normalizedContent = encodedContent
+                                        .Replace("\r\n", "\n")
+                                        .Replace("\r", "\n");
+                                    // Convert sequences of 2+ newlines to double <br> (paragraph breaks)
+                                    // Then convert remaining single newlines to single <br>
+                                    var contentWithBreaks = Regex.Replace(normalizedContent, @"\n{2,}", "<br><br>")
+                                        .Replace("\n", "<br />");
+                                }
+                                <p class="message-text">@Html.Raw(contentWithBreaks)</p>
                                 @if (message.Reactions.Any())
                                 {
                                     <div class="message-reactions">
@@ -802,6 +818,12 @@
                     <span>Inbox</span>
                     <span id="inboxModalUnreadBadge" class="badge bg-primary" style="font-size: 0.75rem; display: none;">0</span>
                 </div>
+                <div class="inbox-header-search">
+                    <div class="search-container">
+                        <i class="fas fa-search"></i>
+                        <input type="text" class="form-control" id="inboxSearchInput" placeholder="Search emails..." />
+                    </div>
+                </div>
                 <div class="inbox-actions">
                     <button class="action-btn" id="refreshInboxBtn" title="Refresh">
                         <i class="fas fa-sync-alt"></i>
@@ -835,7 +857,7 @@
                 </div>
 
                 <!-- Email List Container -->
-                <div id="inboxEmailList" style="display: flex; flex-direction: column; gap: 0; max-height: 60vh;">
+                <div id="inboxEmailList" style="display: flex; flex-direction: column; gap: 0; max-height: 60vh; overflow-y: auto;">
                     <!-- Emails will be loaded here -->
                 </div>
                 

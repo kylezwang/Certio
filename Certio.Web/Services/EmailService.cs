@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Certio.Application.Interfaces;
 using Certio.Domain.Services;
 using Certio.Infrastructure.Data;
@@ -10,6 +11,7 @@ using Google.Apis.Gmail.v1;
 using Google.Apis.Gmail.v1.Data;
 using Google.Apis.Services;
 using Microsoft.AspNetCore.DataProtection;
+using System.Globalization;
 
 namespace Certio.Web.Services;
 
@@ -20,19 +22,22 @@ public class EmailService : IEmailService
     private readonly IDataProtectionProvider _dataProtectionProvider;
     private readonly IEmailToDmService _emailToDmService;
     private readonly ILogger<EmailService> _logger;
+    private readonly IServiceScopeFactory _scopeFactory;
 
     public EmailService(
         ApplicationDbContext context,
         IConfiguration configuration,
         IDataProtectionProvider dataProtectionProvider,
         IEmailToDmService emailToDmService,
-        ILogger<EmailService> logger)
+        ILogger<EmailService> logger,
+        IServiceScopeFactory scopeFactory)
     {
         _context = context;
         _configuration = configuration;
         _dataProtectionProvider = dataProtectionProvider;
         _emailToDmService = emailToDmService;
         _logger = logger;
+        _scopeFactory = scopeFactory;
     }
 
     public string GetGmailAuthUrl(string redirectUri)
@@ -120,18 +125,37 @@ public class EmailService : IEmailService
             ? protector.Protect(tokenResponse.RefreshToken) 
             : null;
 
-        // Deactivate any existing email accounts for this user
-        var existingAccounts = await _context.EmailAccounts
+        // Check if there's an existing account for this email address (active or inactive)
+        var existingAccount = await _context.EmailAccounts
+            .FirstOrDefaultAsync(ea => ea.UserId == userId && 
+                                      ea.Provider == "Gmail" && 
+                                      ea.EmailAddress == userEmail, ct);
+
+        EmailAccount emailAccount;
+        if (existingAccount != null)
+        {
+            // Reuse existing account to preserve historical emails
+            _logger.LogInformation("Reusing existing Gmail account {AccountId} for {Email}", existingAccount.Id, userEmail);
+            existingAccount.AccessToken = encryptedAccessToken;
+            existingAccount.RefreshToken = encryptedRefreshToken;
+            existingAccount.TokenExpiresAt = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresInSeconds ?? 3600);
+            existingAccount.IsActive = true;
+            emailAccount = existingAccount;
+        }
+        else
+        {
+            // Deactivate any other email accounts for this user
+            var otherAccounts = await _context.EmailAccounts
             .Where(ea => ea.UserId == userId && ea.IsActive)
             .ToListAsync(ct);
         
-        foreach (var account in existingAccounts)
+            foreach (var account in otherAccounts)
         {
             account.IsActive = false;
         }
 
         // Create new email account
-        var emailAccount = new EmailAccount
+            emailAccount = new EmailAccount
         {
             UserId = userId,
             Provider = "Gmail",
@@ -144,17 +168,24 @@ public class EmailService : IEmailService
         };
 
         _context.EmailAccounts.Add(emailAccount);
+        }
+        
         await _context.SaveChangesAsync(ct);
 
         _logger.LogInformation("Connected Gmail account {Email} for user {UserId}", userEmail, userId);
 
-        // Trigger immediate sync in background
+        // Trigger immediate sync in background using a new scope
         _ = Task.Run(async () =>
         {
             try
             {
-                await Task.Delay(2000, ct); // Small delay to ensure account is saved
-                await SyncEmailsAsync(emailAccount.Id, ct);
+                await Task.Delay(2000); // Small delay to ensure account is saved
+                
+                // Create a new scope for the background task to get a fresh DbContext
+                using var scope = _scopeFactory.CreateScope();
+                var backgroundService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                await backgroundService.SyncEmailsAsync(emailAccount.Id, CancellationToken.None);
+                
                 _logger.LogInformation("Initial sync completed for Gmail account {Email}", userEmail);
             }
             catch (Exception ex)
@@ -202,18 +233,37 @@ public class EmailService : IEmailService
             ? protector.Protect(tokenResponse.RefreshToken) 
             : null;
 
-        // Deactivate any existing email accounts for this user
-        var existingAccounts = await _context.EmailAccounts
+        // Check if there's an existing account for this email address (active or inactive)
+        var existingAccount = await _context.EmailAccounts
+            .FirstOrDefaultAsync(ea => ea.UserId == userId && 
+                                      ea.Provider == "Outlook" && 
+                                      ea.EmailAddress == userEmail, ct);
+
+        EmailAccount emailAccount;
+        if (existingAccount != null)
+        {
+            // Reuse existing account to preserve historical emails
+            _logger.LogInformation("Reusing existing Outlook account {AccountId} for {Email}", existingAccount.Id, userEmail);
+            existingAccount.AccessToken = encryptedAccessToken;
+            existingAccount.RefreshToken = encryptedRefreshToken;
+            existingAccount.TokenExpiresAt = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn ?? 3600);
+            existingAccount.IsActive = true;
+            emailAccount = existingAccount;
+        }
+        else
+        {
+            // Deactivate any other email accounts for this user
+            var otherAccounts = await _context.EmailAccounts
             .Where(ea => ea.UserId == userId && ea.IsActive)
             .ToListAsync(ct);
         
-        foreach (var account in existingAccounts)
+            foreach (var account in otherAccounts)
         {
             account.IsActive = false;
         }
 
         // Create new email account
-        var emailAccount = new EmailAccount
+            emailAccount = new EmailAccount
         {
             UserId = userId,
             Provider = "Outlook",
@@ -226,17 +276,24 @@ public class EmailService : IEmailService
         };
 
         _context.EmailAccounts.Add(emailAccount);
+        }
+        
         await _context.SaveChangesAsync(ct);
 
         _logger.LogInformation("Connected Outlook account {Email} for user {UserId}", userEmail, userId);
 
-        // Trigger immediate sync in background
+        // Trigger immediate sync in background using a new scope
         _ = Task.Run(async () =>
         {
             try
             {
-                await Task.Delay(2000, ct); // Small delay to ensure account is saved
-                await SyncEmailsAsync(emailAccount.Id, ct);
+                await Task.Delay(2000); // Small delay to ensure account is saved
+                
+                // Create a new scope for the background task to get a fresh DbContext
+                using var scope = _scopeFactory.CreateScope();
+                var backgroundService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                await backgroundService.SyncEmailsAsync(emailAccount.Id, CancellationToken.None);
+                
                 _logger.LogInformation("Initial sync completed for Outlook account {Email}", userEmail);
             }
             catch (Exception ex)
@@ -601,57 +658,125 @@ public class EmailService : IEmailService
             ApplicationName = "Certio"
         });
 
-        // Get list of messages since last sync (or last 50 messages if first sync)
-        var query = emailAccount.LastSyncAt.HasValue 
-            ? $"after:{new DateTimeOffset(emailAccount.LastSyncAt.Value).ToUnixTimeSeconds()}" 
-            : "in:inbox newer_than:7d"; // First sync: get emails from last 7 days in inbox
+        var baseline = DateTime.UtcNow.AddDays(-7);
+        var lastSyncUtc = emailAccount.LastSyncAt.HasValue
+            ? DateTime.SpecifyKind(emailAccount.LastSyncAt.Value, DateTimeKind.Utc)
+            : (DateTime?)null;
 
-        var request = service.Users.Messages.List("me");
-        request.Q = query;
-        request.MaxResults = 50;
-
-        var messagesResponse = await request.ExecuteAsync(ct);
-        
-        if (messagesResponse.Messages == null || !messagesResponse.Messages.Any())
+        // Always fetch the last 7 days to ensure complete inbox history
+        var syncStart = baseline;
+        if (!lastSyncUtc.HasValue || lastSyncUtc.Value < baseline)
         {
-            _logger.LogInformation("No new Gmail messages to sync for account {AccountId}", emailAccount.Id);
-            return;
+            // First sync or stale sync: fetch from 7 days ago
+            syncStart = baseline;
         }
+        else
+        {
+            // Regular refresh: still fetch last 7 days to ensure we have complete history
+            syncStart = baseline;
+        }
+
+        // Build Gmail search query - use newer_than:7d to robustly fetch last 7 days
+        // This handles timezones better than a date-only "after:" filter
+        var query = "in:inbox newer_than:7d";
+
+        // Pre-fetch all existing ExternalEmailIds for this account to avoid duplicate checks in loop
+        var existingExternalIds = await _context.EmailMessages
+            .Where(em => em.EmailAccountId == emailAccount.Id)
+            .Select(em => em.ExternalEmailId)
+            .ToHashSetAsync(ct);
 
         var processedCount = 0;
-        foreach (var messageRef in messagesResponse.Messages)
+        var processedInBatch = new HashSet<string>(); // Track IDs processed in this batch to avoid duplicates
+        string? nextPageToken = null;
+        var maxPages = 50; // Increased to allow more emails from past 7 days (5000 emails max)
+        var pageCount = 0;
+
+        do
         {
-            try
-            {
-                // Get full message details
-                var message = await service.Users.Messages.Get("me", messageRef.Id).ExecuteAsync(ct);
-                
-                // Check if we already have this email
-                var existingEmail = await _context.EmailMessages
-                    .FirstOrDefaultAsync(em => em.ExternalEmailId == messageRef.Id, ct);
-                
-                if (existingEmail != null)
-                {
-                    continue; // Skip already processed emails
-                }
+            var request = service.Users.Messages.List("me");
+            request.Q = query;
+            request.LabelIds = new[] { "INBOX" };
+            request.MaxResults = 100; // Gmail API max per page
+            request.PageToken = nextPageToken;
 
-                // Parse email
-                var emailMessage = await ParseGmailMessageAsync(message, emailAccount.Id, ct);
-                
-                if (emailMessage != null)
+            var messagesResponse = await request.ExecuteAsync(ct);
+            
+            if (messagesResponse.Messages == null || !messagesResponse.Messages.Any())
+            {
+                if (pageCount == 0)
                 {
-                    _context.EmailMessages.Add(emailMessage);
-                    processedCount++;
+                    _logger.LogInformation("No new Gmail messages to sync for account {AccountId}", emailAccount.Id);
+                }
+                break;
+            }
+
+            pageCount++;
+            _logger.LogDebug("Processing page {Page} with {Count} messages for account {AccountId}", pageCount, messagesResponse.Messages.Count, emailAccount.Id);
+        
+            foreach (var messageRef in messagesResponse.Messages)
+            {
+                try
+                {
+                    var messageId = messageRef.Id;
+                    
+                    // Skip if already exists in database or already processed in this batch
+                    if (existingExternalIds.Contains(messageId) || processedInBatch.Contains(messageId))
+                    {
+                        continue;
+                    }
+                    
+                    processedInBatch.Add(messageId);
+                    
+                    // Get full message details
+                    var message = await service.Users.Messages.Get("me", messageId).ExecuteAsync(ct);
+                    
+                    // Parse email
+                    var emailMessage = await ParseGmailMessageAsync(message, emailAccount.Id, ct);
+                    
+                    if (emailMessage != null)
+                    {
+                        // Save individually to avoid batch insert conflicts and race conditions
+                        try
+                        {
+                            // Double-check before inserting (race condition protection)
+                            var exists = await _context.EmailMessages
+                                .AnyAsync(em => em.ExternalEmailId == emailMessage.ExternalEmailId, ct);
+                            
+                            if (!exists)
+                            {
+                                _context.EmailMessages.Add(emailMessage);
+                                await _context.SaveChangesAsync(ct);
+                                processedCount++;
+                                existingExternalIds.Add(emailMessage.ExternalEmailId); // Update cache for subsequent checks
+                            }
+                        }
+                        catch (Microsoft.EntityFrameworkCore.DbUpdateException ex) when (ex.InnerException is Microsoft.Data.SqlClient.SqlException sqlEx && sqlEx.Number == 2601)
+                        {
+                            // Duplicate key - another sync may have inserted it, skip silently
+                            _context.ChangeTracker.Clear();
+                            _logger.LogDebug("Skipping duplicate email {ExternalEmailId} during sync", emailMessage.ExternalEmailId);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error processing Gmail message {MessageId}", messageRef.Id);
+                    _context.ChangeTracker.Clear(); // Clear any failed entities
                 }
             }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Error processing Gmail message {MessageId}", messageRef.Id);
-            }
-        }
 
-        await _context.SaveChangesAsync(ct);
-        _logger.LogInformation("Synced {Count} Gmail emails for account {AccountId}", processedCount, emailAccount.Id);
+            // Get next page token for pagination
+            nextPageToken = messagesResponse.NextPageToken;
+            
+            // Break if we've reached max pages or no more pages
+            if (pageCount >= maxPages || string.IsNullOrEmpty(nextPageToken))
+            {
+                break;
+            }
+        } while (!string.IsNullOrEmpty(nextPageToken) && pageCount < maxPages);
+
+        _logger.LogInformation("Synced {Count} Gmail emails for account {AccountId} across {Pages} pages", processedCount, emailAccount.Id, pageCount);
 
         // Convert synced emails to Direct Messages
         if (processedCount > 0)
@@ -669,10 +794,18 @@ public class EmailService : IEmailService
         using var httpClient = new HttpClient();
         httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
 
-        // Build filter for messages since last sync
-        var filter = emailAccount.LastSyncAt.HasValue
-            ? $"receivedDateTime ge {emailAccount.LastSyncAt.Value:yyyy-MM-ddTHH:mm:ssZ}"
-            : "isRead eq false";
+        var baseline = DateTime.UtcNow.AddDays(-7);
+        var lastSyncUtc = emailAccount.LastSyncAt.HasValue
+            ? DateTime.SpecifyKind(emailAccount.LastSyncAt.Value, DateTimeKind.Utc)
+            : (DateTime?)null;
+
+        // Ensure we always fetch at least the last 7 days to backfill
+        var syncStart = lastSyncUtc.HasValue && lastSyncUtc.Value < baseline
+            ? lastSyncUtc.Value
+            : baseline;
+
+        // Build filter for messages since sync start
+        var filter = $"receivedDateTime ge {syncStart:yyyy-MM-ddTHH:mm:ssZ}";
 
         var url = $"https://graph.microsoft.com/v1.0/me/messages?$filter={Uri.EscapeDataString(filter)}&$top=50&$orderby=receivedDateTime desc";
         var response = await httpClient.GetAsync(url, ct);
@@ -698,6 +831,15 @@ public class EmailService : IEmailService
         }
 
         var processedCount = 0;
+        
+        // Pre-fetch all existing ExternalEmailIds for this account to avoid duplicate checks in loop
+        var existingExternalIds = await _context.EmailMessages
+            .Where(em => em.EmailAccountId == emailAccount.Id)
+            .Select(em => em.ExternalEmailId)
+            .ToHashSetAsync(ct);
+        
+        var processedInBatch = new HashSet<string>(); // Track IDs processed in this batch to avoid duplicates
+        
         foreach (var messageData in messages)
         {
             try
@@ -707,32 +849,49 @@ public class EmailService : IEmailService
                 {
                     continue;
                 }
-
-                // Check if we already have this email
-                var existingEmail = await _context.EmailMessages
-                    .FirstOrDefaultAsync(em => em.ExternalEmailId == messageId, ct);
                 
-                if (existingEmail != null)
+                // Skip if already exists in database or already processed in this batch
+                if (existingExternalIds.Contains(messageId) || processedInBatch.Contains(messageId))
                 {
                     continue;
                 }
+                
+                processedInBatch.Add(messageId);
 
                 // Parse email
                 var emailMessage = ParseOutlookMessage(messageData, emailAccount.Id);
                 
                 if (emailMessage != null)
                 {
-                    _context.EmailMessages.Add(emailMessage);
-                    processedCount++;
+                    // Save individually to avoid batch insert conflicts and race conditions
+                    try
+                    {
+                        // Double-check before inserting (race condition protection)
+                        var exists = await _context.EmailMessages
+                            .AnyAsync(em => em.ExternalEmailId == emailMessage.ExternalEmailId, ct);
+                        
+                        if (!exists)
+                        {
+                            _context.EmailMessages.Add(emailMessage);
+                            await _context.SaveChangesAsync(ct);
+                            processedCount++;
+                            existingExternalIds.Add(emailMessage.ExternalEmailId); // Update cache for subsequent checks
+                        }
+                    }
+                    catch (Microsoft.EntityFrameworkCore.DbUpdateException ex) when (ex.InnerException is Microsoft.Data.SqlClient.SqlException sqlEx && sqlEx.Number == 2601)
+                    {
+                        // Duplicate key - another sync may have inserted it, skip silently
+                        _context.ChangeTracker.Clear();
+                        _logger.LogDebug("Skipping duplicate email {ExternalEmailId} during sync", emailMessage.ExternalEmailId);
+                    }
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Error processing Outlook message");
+                _context.ChangeTracker.Clear(); // Clear any failed entities
             }
         }
-
-        await _context.SaveChangesAsync(ct);
         _logger.LogInformation("Synced {Count} Outlook emails for account {AccountId}", processedCount, emailAccount.Id);
 
         // Convert synced emails to Direct Messages
@@ -983,6 +1142,16 @@ public class EmailService : IEmailService
             "", 
             System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Singleline);
 
+        // Convert block elements to newlines before removing tags
+        // Replace block-level elements with newlines
+        html = System.Text.RegularExpressions.Regex.Replace(html, 
+            @"</?(p|div|h[1-6]|li|tr|td|th|br)[^>]*>", "\n", 
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        // Replace <br> tags (including <br/> and <br />)
+        html = System.Text.RegularExpressions.Regex.Replace(html, 
+            @"<br\s*/?>", "\n", 
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
         // Replace common HTML entities
         html = html.Replace("&nbsp;", " ")
                    .Replace("&amp;", "&")
@@ -997,8 +1166,14 @@ public class EmailService : IEmailService
         // Decode other HTML entities
         html = System.Net.WebUtility.HtmlDecode(html);
 
-        // Normalize whitespace
-        html = System.Text.RegularExpressions.Regex.Replace(html, @"\s+", " ");
+        // Normalize whitespace while preserving newlines
+        // Replace multiple spaces/tabs with single space (but preserve newlines)
+        html = System.Text.RegularExpressions.Regex.Replace(html, @"[ \t]+", " ");
+        // Replace multiple consecutive newlines with max 2 newlines (for paragraph breaks)
+        html = System.Text.RegularExpressions.Regex.Replace(html, @"\n{3,}", "\n\n");
+        // Clean up spaces at start/end of lines
+        html = System.Text.RegularExpressions.Regex.Replace(html, @"[ \t]+\n", "\n");
+        html = System.Text.RegularExpressions.Regex.Replace(html, @"\n[ \t]+", "\n");
         
         return html.Trim();
     }

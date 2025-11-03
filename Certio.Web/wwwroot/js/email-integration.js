@@ -86,8 +86,8 @@ function updateEmailStatusUI() {
             }
         }
         
-        // Trigger initial sync when account is connected
-        triggerEmailSync();
+        // Don't trigger sync automatically on page load - let it happen when user opens inbox
+        // This prevents rapid firing on page load
     } else {
         if (connectedDiv) connectedDiv.style.display = 'none';
         if (notConnectedDiv) notConnectedDiv.style.display = 'block';
@@ -207,6 +207,7 @@ function setupEmailEventListeners() {
     const closeInboxModalBtn = document.getElementById('closeInboxModal');
     const refreshInboxBtn = document.getElementById('refreshInboxBtn');
     const inboxModal = document.getElementById('emailInboxModal');
+    const inboxSearchInput = document.getElementById('inboxSearchInput');
     
     if (closeInboxModalBtn) {
         closeInboxModalBtn.addEventListener('click', function(e) {
@@ -222,9 +223,41 @@ function setupEmailEventListeners() {
             e.stopPropagation();
             await triggerEmailSync();
             setTimeout(async () => {
-                await loadInboxEmails();
+                await loadInboxEmails(true); // Reset pagination on refresh
                 setTimeout(() => adjustEmailHeaderForScrollbar(), 100);
             }, 1000); // Reload after sync
+        });
+    }
+    
+    // Search input handler
+    if (inboxSearchInput) {
+        let searchTimeout;
+        const scheduleSearch = (query, immediate = false) => {
+            clearTimeout(searchTimeout);
+            if (immediate) {
+                loadInboxEmails(true, query);
+            } else {
+                searchTimeout = setTimeout(() => {
+                    loadInboxEmails(true, query);
+                }, SEARCH_DEBOUNCE_MS);
+            }
+        };
+
+        inboxSearchInput.addEventListener('input', function(e) {
+            e.stopPropagation();
+            const query = e.target.value.trim();
+            scheduleSearch(query);
+        });
+        
+        inboxSearchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const query = e.target.value.trim();
+                scheduleSearch(query, true);
+            } else if (e.key === 'Escape') {
+                e.target.value = '';
+                scheduleSearch('', true);
+            }
         });
     }
     
@@ -340,6 +373,13 @@ function toggleEmailMode(enabled = null) {
     const sendAsEmailToggle = document.getElementById('sendAsEmailToggle');
     
     if (!emailAccountStatus) {
+        if (enabled === false) {
+            isEmailMode = false;
+            if (regularInput) regularInput.style.display = 'flex';
+            if (emailInput) emailInput.style.display = 'none';
+            if (sendAsEmailToggle) sendAsEmailToggle.textContent = 'Switch to Email Mode';
+            return;
+        }
         alert('Please connect your email account first.');
         return;
     }
@@ -520,9 +560,29 @@ function updateMessageDisplayForEmails() {
     });
 }
 
+// Track sync state to prevent rapid firing
+let emailSyncInProgress = false;
+let lastSyncTriggerTime = 0;
+const SYNC_DEBOUNCE_MS = 5000; // 5 second debounce
+
 // Trigger email sync
 async function triggerEmailSync() {
     if (!emailAccountStatus) return;
+    
+    // Prevent rapid firing - debounce sync requests
+    const now = Date.now();
+    if (emailSyncInProgress) {
+        console.log('Email sync already in progress, skipping');
+        return;
+    }
+    
+    if (now - lastSyncTriggerTime < SYNC_DEBOUNCE_MS) {
+        console.log('Email sync debounced, too soon since last sync');
+        return;
+    }
+    
+    emailSyncInProgress = true;
+    lastSyncTriggerTime = now;
     
     try {
         const response = await fetch('/api/email-oauth/sync', {
@@ -537,18 +597,35 @@ async function triggerEmailSync() {
         }
     } catch (error) {
         console.error('Error triggering email sync:', error);
+    } finally {
+        // Reset sync flag after a delay to allow sync to complete
+        setTimeout(() => {
+            emailSyncInProgress = false;
+        }, 25000); // 25 seconds - longer than typical sync time
     }
 }
+
+// Track if inbox is already open to prevent rapid calls
+let inboxModalOpen = false;
 
 // Open inbox view
 async function openInbox() {
     console.log('openInbox() called');
+    
+    // Prevent rapid firing - if modal is already open/opening, ignore
+    if (inboxModalOpen) {
+        console.log('Inbox modal already open, ignoring duplicate call');
+        return;
+    }
+    
     const modal = document.getElementById('emailInboxModal');
     if (!modal) {
         console.error('Inbox modal not found!');
         alert('Inbox modal not found.');
         return;
     }
+    
+    inboxModalOpen = true;
     
     // Ensure modal is appended to body for proper fixed positioning
     // This fixes issues when modal is nested in positioned containers
@@ -587,7 +664,7 @@ async function openInbox() {
                 e.stopPropagation();
                 console.log('Refresh button clicked');
                 await triggerEmailSync();
-                setTimeout(() => loadInboxEmails(), 1000);
+                setTimeout(() => loadInboxEmails(true), 1000); // Reset pagination on refresh
             });
         }
     }
@@ -653,14 +730,47 @@ async function openInbox() {
     console.log('Modal parent:', modal.parentElement?.tagName);
     console.log('Modal in body:', modal.parentElement === document.body);
     
-    // Load emails
-    await loadInboxEmails();
+    // Load emails (reset pagination when opening modal)
+    // Don't trigger sync here - let the GetInbox endpoint handle it intelligently
+    await loadInboxEmails(true);
     
     // Adjust header for scrollbar after modal opens
     setTimeout(() => adjustEmailHeaderForScrollbar(), 100);
     
     // Adjust modal position based on sidebar state
     adjustEmailModalPosition();
+}
+
+function escapeHtml(text) {
+    const tempDiv = document.createElement('div');
+    tempDiv.textContent = text;
+    return tempDiv.innerHTML;
+}
+
+// Close inbox modal
+function closeInboxModal() {
+    const modal = document.getElementById('emailInboxModal');
+    if (modal) {
+        modal.style.display = 'none';
+        inboxModalOpen = false; // Reset flag when closing
+    }
+    document.body.style.overflow = '';
+    // Clean up scroll listener and pagination state
+    removeInboxScrollListener();
+    inboxPaginationState = {
+        skip: 0,
+        hasMore: true,
+        loading: false,
+        total: 0
+    };
+    // Clear search state
+    currentSearchQuery = '';
+    
+    // Clear search input
+    const searchInput = document.getElementById('inboxSearchInput');
+    if (searchInput) {
+        searchInput.value = '';
+    }
 }
 
 // Adjust header row margin for scrollbar (same as History page)
@@ -742,18 +852,71 @@ function adjustEmailModalPosition() {
     }
 }
 
-// Load emails into inbox modal
-async function loadInboxEmails() {
+// Email inbox pagination state
+let inboxPaginationState = {
+    skip: 0,
+    hasMore: true,
+    loading: false,
+    total: 0
+};
+
+let currentSearchQuery = '';
+const SEARCH_DEBOUNCE_MS = 300;
+const SEARCH_RESULT_FETCH_SIZE = 200;
+
+// Load emails into inbox modal with lazy loading / search support
+async function loadInboxEmails(reset = false, overrideSearchQuery = null) {
     const emailList = document.getElementById('inboxEmailList');
     const loadingState = document.getElementById('inboxLoadingState');
     const emptyState = document.getElementById('inboxEmptyState');
+    const searchInput = document.getElementById('inboxSearchInput');
     
     if (!emailList || !loadingState || !emptyState) return;
     
-    // Show loading
-    emailList.style.display = 'none';
-    loadingState.style.display = 'block';
-    emptyState.style.display = 'none';
+    if (overrideSearchQuery !== null && overrideSearchQuery !== undefined)
+    {
+        currentSearchQuery = overrideSearchQuery.trim();
+        if (searchInput && searchInput.value !== overrideSearchQuery) {
+            searchInput.value = overrideSearchQuery;
+        }
+        reset = true;
+    }
+    
+    const isSearching = currentSearchQuery.length > 0;
+    
+    // Reset pagination state if requested
+    if (reset) {
+        inboxPaginationState = {
+            skip: 0,
+            hasMore: !isSearching,
+            loading: false,
+            total: 0
+        };
+        emailList.innerHTML = '';
+        if (!isSearching && searchInput && searchInput.value) {
+            searchInput.value = '';
+        }
+        removeInboxScrollListener();
+    }
+    
+    // Prevent concurrent loads
+    if (inboxPaginationState.loading) {
+        return;
+    }
+    
+    // Show loading indicator only on first load (or search reset)
+    if (reset || inboxPaginationState.skip === 0 || isSearching) {
+        emailList.style.display = 'none';
+        loadingState.style.display = 'block';
+        emptyState.style.display = 'none';
+    } else {
+        // Show bottom loading indicator for pagination when not searching
+        if (!isSearching) {
+            showInboxPaginationLoading();
+        }
+    }
+    
+    inboxPaginationState.loading = true;
     
     try {
         const currentOrgId = document.querySelector('[data-organization-id]')?.dataset.organizationId;
@@ -761,22 +924,58 @@ async function loadInboxEmails() {
             throw new Error('Organization ID not found.');
         }
         
-        const response = await fetch(`/api/email-oauth/inbox?orgId=${currentOrgId}`);
+        const fetchParams = new URLSearchParams({ orgId: currentOrgId });
+        if (isSearching) {
+            fetchParams.set('skip', '0');
+            fetchParams.set('take', SEARCH_RESULT_FETCH_SIZE.toString());
+            fetchParams.set('search', currentSearchQuery);
+        } else {
+            fetchParams.set('skip', inboxPaginationState.skip.toString());
+            fetchParams.set('take', '25');
+        }
+
+        const response = await fetch(`/api/email-oauth/inbox?${fetchParams.toString()}`);
         const result = await response.json();
         
-        // Hide loading
-        loadingState.style.display = 'none';
+        // Hide initial loading
+        if (reset || inboxPaginationState.skip === 0 || isSearching) {
+            loadingState.style.display = 'none';
+        } else {
+            hideInboxPaginationLoading();
+        }
         
         if (result.success && result.messages && result.messages.length > 0) {
-            emailList.innerHTML = '';
             emailList.style.display = 'flex';
             emailList.style.flexDirection = 'column';
+            emptyState.style.display = 'none';
             
-            // Display emails in Gmail-style list with Billing card style
+            if (reset) {
+                emailList.innerHTML = '';
+            }
+
             result.messages.forEach(email => {
                 const emailItem = createEmailListItem(email);
                 emailList.appendChild(emailItem);
             });
+            
+            if (isSearching) {
+                inboxPaginationState.skip = result.messages.length;
+                inboxPaginationState.hasMore = false;
+                inboxPaginationState.total = result.total || result.messages.length;
+                removeInboxScrollListener();
+            } else {
+                // Update pagination state
+                inboxPaginationState.skip += result.messages.length;
+                inboxPaginationState.hasMore = result.hasMore || false;
+                inboxPaginationState.total = result.total || 0;
+                
+                // Setup scroll listener if we have more emails
+                if (inboxPaginationState.hasMore) {
+                    setupInboxScrollListener();
+                } else {
+                    removeInboxScrollListener();
+                }
+            }
             
             // Update unread badge
             updateInboxModalBadge();
@@ -784,17 +983,106 @@ async function loadInboxEmails() {
             // Adjust header for scrollbar after loading emails
             setTimeout(() => adjustEmailHeaderForScrollbar(), 100);
         } else {
-            emptyState.style.display = 'block';
+            if (reset || inboxPaginationState.skip === 0) {
+                emailList.style.display = 'none';
+                emptyState.style.display = 'block';
+                if (isSearching && currentSearchQuery) {
+                    emptyState.innerHTML = `
+                        <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                        <div>No emails found matching "${escapeHtml(currentSearchQuery)}"</div>
+                    `;
+                } else {
+                    emptyState.innerHTML = `
+                        <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                        <div>No emails yet. Emails will appear here once synced.</div>
+                    `;
+                }
+            }
+            // Remove scroll listener if no more emails
+            removeInboxScrollListener();
         }
     } catch (error) {
         console.error('Error loading inbox:', error);
-        loadingState.style.display = 'none';
-        emptyState.style.display = 'block';
-        emptyState.innerHTML = `
-            <i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
-            <div>Failed to load emails. Please try again.</div>
-        `;
+        if (reset || inboxPaginationState.skip === 0) {
+            loadingState.style.display = 'none';
+            emptyState.style.display = 'block';
+            emptyState.innerHTML = `
+                <i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                <div>Failed to load emails. Please try again.</div>
+            `;
+        } else {
+            hideInboxPaginationLoading();
+        }
+        removeInboxScrollListener();
+    } finally {
+        inboxPaginationState.loading = false;
     }
+}
+
+// Show pagination loading indicator at bottom of list
+function showInboxPaginationLoading() {
+    const emailList = document.getElementById('inboxEmailList');
+    if (!emailList) return;
+    
+    // Remove existing loading indicator if any
+    const existingLoader = emailList.querySelector('.inbox-pagination-loader');
+    if (existingLoader) return;
+    
+    const loader = document.createElement('div');
+    loader.className = 'inbox-pagination-loader';
+    loader.style.cssText = 'text-align: center; padding: 1rem; color: #9ca3af;';
+    loader.innerHTML = `
+        <div class="spinner-border spinner-border-sm" role="status" style="margin-right: 0.5rem;">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <span>Loading more emails...</span>
+    `;
+    emailList.appendChild(loader);
+}
+
+// Hide pagination loading indicator
+function hideInboxPaginationLoading() {
+    const emailList = document.getElementById('inboxEmailList');
+    if (!emailList) return;
+    
+    const loader = emailList.querySelector('.inbox-pagination-loader');
+    if (loader) {
+        loader.remove();
+    }
+}
+
+// Setup scroll listener for infinite scroll
+let inboxScrollListener = null;
+function setupInboxScrollListener() {
+    // Remove existing listener if any
+    removeInboxScrollListener();
+    
+    const emailList = document.getElementById('inboxEmailList');
+    if (!emailList || !inboxPaginationState.hasMore) return;
+    
+    inboxScrollListener = () => {
+        // Check if user is near bottom (within 200px)
+        const scrollTop = emailList.scrollTop;
+        const scrollHeight = emailList.scrollHeight;
+        const clientHeight = emailList.clientHeight;
+        
+        if (scrollHeight - scrollTop - clientHeight < 200 && 
+            inboxPaginationState.hasMore && 
+            !inboxPaginationState.loading) {
+            loadInboxEmails(false);
+        }
+    };
+    
+    emailList.addEventListener('scroll', inboxScrollListener);
+}
+
+// Remove scroll listener
+function removeInboxScrollListener() {
+    const emailList = document.getElementById('inboxEmailList');
+    if (!emailList || !inboxScrollListener) return;
+    
+    emailList.removeEventListener('scroll', inboxScrollListener);
+    inboxScrollListener = null;
 }
 
 // Create Gmail-style email list item using billing card layout
@@ -947,14 +1235,39 @@ async function notalizeEmail(email, notalizeBtn = null) {
         
         // Extract email body text (prefer bodyText, fallback to parsing body)
         let emailBodyText = email.bodyText || '';
-        if (!emailBodyText && email.body) {
+        
+        // If bodyText is empty or contains HTML tags, extract from HTML body instead
+        if ((!emailBodyText || emailBodyText.includes('<') || emailBodyText.includes('>')) && email.body) {
             // Parse HTML to plain text
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = email.body;
-            const scripts = tempDiv.querySelectorAll('script, style');
+            
+            // Remove script, style, and other non-content elements
+            const scripts = tempDiv.querySelectorAll('script, style, noscript, iframe, embed, object');
             scripts.forEach(el => el.remove());
+            
+            // Get text content (preserves newlines from block elements)
             emailBodyText = tempDiv.textContent || tempDiv.innerText || '';
-            emailBodyText = emailBodyText.replace(/\s+/g, ' ').trim();
+        }
+        
+        // Preserve newlines while cleaning up whitespace (apply to both bodyText and parsed HTML)
+        if (emailBodyText) {
+            // Replace multiple spaces/tabs with single space (but preserve newlines)
+            emailBodyText = emailBodyText.replace(/[ \t]+/g, ' ');
+            // Replace multiple consecutive newlines with max 2 newlines (for paragraph breaks)
+            emailBodyText = emailBodyText.replace(/\n{3,}/g, '\n\n');
+            // Clean up spaces at start/end of lines
+            emailBodyText = emailBodyText.replace(/[ \t]+\n/g, '\n').replace(/\n[ \t]+/g, '\n');
+            emailBodyText = emailBodyText.trim();
+        }
+        
+        // If we still don't have text, try to extract from HTML one more time
+        if (!emailBodyText && email.body) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = email.body;
+            const scripts = tempDiv.querySelectorAll('script, style, noscript, iframe, embed, object');
+            scripts.forEach(el => el.remove());
+            emailBodyText = (tempDiv.textContent || tempDiv.innerText || '').trim();
         }
         
         const request = {
@@ -1001,7 +1314,7 @@ async function notalizeEmail(email, notalizeBtn = null) {
             const isNewThread = result.thread.isNewThread;
             
             // Add new thread to Direct Messages list in real-time
-            const otherUserColor = result.thread.otherUserColor || (isExternalUser && isNewThread ? '#9ca3af' : '#3d1019');
+            const otherUserColor = result.thread.otherUserColor || (isExternalUser && isNewThread ? '#aaaaaa' : '#3d1019');
             addDirectMessageThreadToList(otherUserId, otherUserName, isExternalUser && isNewThread, otherUserColor);
             
             // Reload communications sidebar to show new user in Direct Messages list
@@ -1098,19 +1411,26 @@ function addDirectMessageThreadToList(userId, userName, isExternalUser = false, 
         }
         
         // Create avatar with color from parameter or fallback
-        const avatarBg = userColor || (isExternalUser ? '#9ca3af' : '#3d1019');
+        let avatarBg = userColor || (isExternalUser ? '#aaaaaa' : '#3d1019');
+        // Normalize #9ca3af to #aaaaaa for external contacts
+        if (isExternalUser && avatarBg === '#9ca3af') {
+            avatarBg = '#aaaaaa';
+        }
         const avatarClass = isExternalUser ? 'member-avatar external-contacts-avatar' : 'member-avatar';
+        
+        // External users don't get status indicators
+        const statusIndicatorHtml = isExternalUser ? '' : '<div class="status-indicator offline"></div>';
         
         newMemberItem.innerHTML = `
             <div class="${avatarClass}" style="background: ${avatarBg} !important;">
                 <span>${avatar}</span>
-                <div class="status-indicator offline"></div>
+                ${statusIndicatorHtml}
             </div>
             <div class="member-info">
                 <div class="member-name-row">
                     <span class="member-name">${userName}</span>
                 </div>
-                <p class="member-activity">Email messages</p>
+                <p class="member-activity">${isExternalUser ? 'External' : 'Email messages'}</p>
             </div>
         `;
         
@@ -1258,7 +1578,11 @@ async function reloadCommunicationsDirectMessagesList() {
             
             const avatar = member.avatar || member.name.charAt(0);
             const isExternalContacts = member.isExternalContacts || member.organizationName?.endsWith("'s External Contacts");
-            const avatarColor = member.color || member.Color || (isExternalContacts ? '#9ca3af' : '#3d1019');
+            let avatarColor = member.color || member.Color || (isExternalContacts ? '#aaaaaa' : '#3d1019');
+            // Normalize #9ca3af to #aaaaaa for external contacts
+            if (isExternalContacts && avatarColor === '#9ca3af') {
+                avatarColor = '#aaaaaa';
+            }
             
             const memberItem = document.createElement('div');
             memberItem.className = 'team-member dm-user-item';
@@ -1277,16 +1601,21 @@ async function reloadCommunicationsDirectMessagesList() {
             
             const avatarClass = isExternalContacts ? 'member-avatar external-contacts-avatar' : 'member-avatar';
             
+            // Only show status indicator for non-external users
+            const statusIndicatorHtml = isExternalContacts ? '' : `<div class="status-indicator ${member.status || 'offline'}"></div>`;
+            // Set activity text - External for external contacts, otherwise use member.activity or derive from status
+            const activityText = isExternalContacts ? 'External' : (member.activity || (member.status === 'online' ? 'Online' : 'Offline'));
+            
             memberItem.innerHTML = `
                 <div class="${avatarClass}" style="background: ${avatarColor} !important;">
                     <span>${avatar}</span>
-                    <div class="status-indicator ${member.status || 'offline'}"></div>
+                    ${statusIndicatorHtml}
                 </div>
                 <div class="member-info">
                     <div class="member-name-row">
                         <span class="member-name">${member.name}</span>
                     </div>
-                    <p class="member-activity">${member.activity || (member.status === 'online' ? 'Online' : 'Offline')}</p>
+                    <p class="member-activity">${activityText}</p>
                 </div>
             `;
             
@@ -1368,13 +1697,6 @@ function formatEmailDate(dateString) {
 }
 
 // Close inbox modal
-function closeInboxModal() {
-    const modal = document.getElementById('emailInboxModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-}
-
 // Update inbox modal badge
 async function updateInboxModalBadge() {
     try {

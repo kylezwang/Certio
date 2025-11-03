@@ -255,7 +255,10 @@
                              style="cursor: @(member.CanDirectMessage ? "pointer" : "not-allowed"); @(member.CanDirectMessage ? "" : "opacity: 0.6;")">
                             <div class="member-avatar @(member.IsExternalContacts ? "external-contacts-avatar" : "")" style="background: @member.Color !important;">
                                 <span>@member.Avatar</span>
+                                @if (!member.IsExternalContacts)
+                                {
                                 <div class="status-indicator @member.Status"></div>
+                                }
                             </div>
                             <div class="member-info">
                                 <div class="member-name-row">
@@ -333,7 +336,7 @@
                             // Override to gray if external contacts
                             if (isExternalContacts)
                             {
-                                avatarColor = "#9ca3af";
+                                avatarColor = "#aaaaaa";
                             }
                         }
                         

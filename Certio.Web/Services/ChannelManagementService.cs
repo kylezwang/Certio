@@ -7,6 +7,8 @@ using Certio.Web.ViewModels;
 using Microsoft.Extensions.Logging;
 using Certio.Domain.Organizations;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Certio.Web.Services;
 
@@ -111,75 +113,116 @@ public class ChannelManagementService : Certio.Web.Services.IChannelManagementSe
         return unreadCount;
     }
 
-    public async Task<List<CommunicationsTeamMember>> GetOrganizationTeamMembersAsync(int organizationId)
+    public async Task<List<CommunicationsTeamMember>> GetOrganizationTeamMembersAsync(int organizationId, int currentUserId)
     {
         // Get direct organization members
         var directMembers = await _context.UserOrganizations
-            .Where(uo => uo.OrganizationId == organizationId && 
-                         uo.IsActive && 
-                         uo.User != null && 
-                         uo.User.IsActive && 
-                         !uo.User.IsDeleted)
-            .Include(uo => uo.User)
-            .Include(uo => uo.Organization)
-            .Select(uo => new CommunicationsTeamMember
-        {
-            UserId = uo.UserId,
-            Name = $"{uo.User.FirstName} {uo.User.LastName}",
-            Role = uo.Role ?? "Member",
-            Status = "offline", // Will be updated by SignalR
-            Avatar = $"{uo.User.FirstName.Substring(0, 1)}{uo.User.LastName.Substring(0, 1)}",
-            Activity = "Offline",
-            RoleIcon = "", // Remove role icons
-            RoleColor = "", // Remove role colors
-                OrganizationId = organizationId,
-                OrganizationName = uo.Organization != null ? uo.Organization.Name : null,
-                IsExternalContacts = uo.Organization != null && uo.Organization.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase),
-                Color = uo.User.Color ?? "#3d1019" // Use user's color, default to maroon
-            })
-            .ToListAsync();
-
-        // Get organization relationship members (firm-based access)
-        var relationshipMembers = await _context.OrganizationRelationships
-            .Where(or => (or.SourceOrganizationId == organizationId || or.TargetOrganizationId == organizationId) && 
-                         or.IsActive && 
-                         or.RelationshipType == "LawFirmClient")
-            .Include(or => or.SourceOrganization)
-                .ThenInclude(so => so.UserOrganizations)
-                    .ThenInclude(uo => uo.User)
-            .Include(or => or.SourceOrganization)
-                .ThenInclude(so => so.UserOrganizations)
-                    .ThenInclude(uo => uo.Organization)
-            .Include(or => or.TargetOrganization)
-                .ThenInclude(to => to.UserOrganizations)
-                    .ThenInclude(uo => uo.User)
-            .Include(or => or.TargetOrganization)
-                .ThenInclude(to => to.UserOrganizations)
-                    .ThenInclude(uo => uo.Organization)
-            .SelectMany(or => or.SourceOrganization.UserOrganizations.Concat(or.TargetOrganization.UserOrganizations))
-            .Where(uo => uo.IsActive && 
-                         uo.User != null && 
-                         uo.User.IsActive && 
+            .Where(uo => uo.OrganizationId == organizationId &&
+                         uo.IsActive &&
+                         uo.User != null &&
+                         uo.User.IsActive &&
                          !uo.User.IsDeleted)
             .Select(uo => new CommunicationsTeamMember
             {
                 UserId = uo.UserId,
-                Name = $"{uo.User.FirstName} {uo.User.LastName}",
+                Name = $"{uo.User!.FirstName} {uo.User.LastName}".Trim(),
                 Role = uo.Role ?? "Member",
                 Status = "offline", // Will be updated by SignalR
-                Avatar = $"{uo.User.FirstName.Substring(0, 1)}{uo.User.LastName.Substring(0, 1)}",
+                Avatar = string.Concat(
+                        string.IsNullOrEmpty(uo.User!.FirstName) ? "?" : uo.User.FirstName.Substring(0, 1),
+                        string.IsNullOrEmpty(uo.User.LastName) ? string.Empty : uo.User.LastName.Substring(0, 1))
+                    .ToUpper(),
                 Activity = "Offline",
-                RoleIcon = "", // Remove role icons
-                RoleColor = "", // Remove role colors
-                OrganizationId = uo.OrganizationId,
+                RoleIcon = "",
+                RoleColor = "",
+                OrganizationId = organizationId,
                 OrganizationName = uo.Organization != null ? uo.Organization.Name : null,
                 IsExternalContacts = uo.Organization != null && uo.Organization.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase),
-                Color = uo.User.Color ?? "#3d1019" // Use user's color, default to maroon
+                Color = uo.User.Color ?? "#3d1019"
             })
             .ToListAsync();
 
-        // Combine and deduplicate by UserId
-        var allMembers = directMembers.Concat(relationshipMembers)
+        // Determine accessible client organizations via relationships the user participates in
+        var relationshipCandidates = await _context.OrganizationRelationships
+            .Where(or => or.SourceOrganizationId == organizationId &&
+                         or.IsActive &&
+                         !or.IsDeleted &&
+                         or.RelationshipType == RelationshipTypes.LawFirmClient &&
+                         (!or.ExpiresAt.HasValue || or.ExpiresAt.Value > DateTime.UtcNow))
+            .Select(or => new
+            {
+                or.Id,
+                or.TargetOrganizationId,
+                TargetOwnerId = (int?)or.TargetOrganization!.OwnerId
+            })
+            .ToListAsync();
+
+        var accessibleClientOrgIds = new HashSet<int>();
+
+        if (relationshipCandidates.Any())
+        {
+            var relationshipIdList = relationshipCandidates.Select(rc => rc.Id).ToList();
+            var targetOrgIdList = relationshipCandidates.Select(rc => rc.TargetOrganizationId).ToList();
+
+            var assignedRelationshipIds = await _context.OrganizationRelationshipAssignedUsers
+                .Where(a => a.UserId == currentUserId && relationshipIdList.Contains(a.RelationshipId))
+                .Select(a => a.RelationshipId)
+                .ToListAsync();
+
+            var directMembershipOrgIds = await _context.UserOrganizations
+                .Where(uo => uo.UserId == currentUserId &&
+                             uo.IsActive &&
+                             targetOrgIdList.Contains(uo.OrganizationId))
+                .Select(uo => uo.OrganizationId)
+                .ToListAsync();
+
+            var assignedSet = assignedRelationshipIds.ToHashSet();
+            var directSet = directMembershipOrgIds.ToHashSet();
+
+            foreach (var candidate in relationshipCandidates)
+            {
+                if (assignedSet.Contains(candidate.Id) ||
+                    directSet.Contains(candidate.TargetOrganizationId) ||
+                    (candidate.TargetOwnerId.HasValue && candidate.TargetOwnerId.Value == currentUserId))
+                {
+                    accessibleClientOrgIds.Add(candidate.TargetOrganizationId);
+                }
+            }
+        }
+
+        var relationshipMembers = new List<CommunicationsTeamMember>();
+
+        if (accessibleClientOrgIds.Count > 0)
+        {
+            relationshipMembers = await _context.UserOrganizations
+                .Where(uo => accessibleClientOrgIds.Contains(uo.OrganizationId) &&
+                             uo.IsActive &&
+                             uo.User != null &&
+                             uo.User.IsActive &&
+                             !uo.User.IsDeleted)
+                .Select(uo => new CommunicationsTeamMember
+                {
+                    UserId = uo.UserId,
+                    Name = $"{uo.User!.FirstName} {uo.User.LastName}".Trim(),
+                    Role = uo.Role ?? "Member",
+                    Status = "offline", // Will be updated by SignalR
+                    Avatar = string.Concat(
+                            string.IsNullOrEmpty(uo.User!.FirstName) ? "?" : uo.User.FirstName.Substring(0, 1),
+                            string.IsNullOrEmpty(uo.User.LastName) ? string.Empty : uo.User.LastName.Substring(0, 1))
+                        .ToUpper(),
+                    Activity = "Offline",
+                    RoleIcon = "",
+                    RoleColor = "",
+                    OrganizationId = uo.OrganizationId,
+                    OrganizationName = uo.Organization != null ? uo.Organization.Name : null,
+                    IsExternalContacts = uo.Organization != null && uo.Organization.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase),
+                    Color = uo.User.Color ?? "#3d1019"
+                })
+                .ToListAsync();
+        }
+
+        var allMembers = directMembers
+            .Concat(relationshipMembers)
             .GroupBy(m => m.UserId)
             .Select(g => g.First())
             .ToList();
@@ -265,37 +308,72 @@ public class ChannelManagementService : Certio.Web.Services.IChannelManagementSe
             .ToListAsync();
     }
 
-    public async Task<Dictionary<int, List<Conversation>>> GetClientOrganizationChannelsForLawFirmAsync(int lawFirmOrgId)
+    public async Task<Dictionary<int, List<Conversation>>> GetClientOrganizationChannelsForLawFirmAsync(int lawFirmOrgId, int userId)
     {
-        // Get all valid client relationships for this law firm
         var relationships = await _context.OrganizationRelationships
             .Where(or => or.SourceOrganizationId == lawFirmOrgId &&
                         or.IsActive &&
                         !or.IsDeleted &&
-                        or.RelationshipType == "LawFirmClient" &&
+                        or.RelationshipType == RelationshipTypes.LawFirmClient &&
                         (!or.ExpiresAt.HasValue || or.ExpiresAt.Value > DateTime.UtcNow))
-            .Include(or => or.TargetOrganization)
+            .Select(or => new
+            {
+                or.Id,
+                or.TargetOrganizationId,
+                TargetOwnerId = (int?)or.TargetOrganization!.OwnerId
+            })
             .ToListAsync();
 
-        var result = new Dictionary<int, List<Conversation>>();
-
-        foreach (var relationship in relationships)
+        if (!relationships.Any())
         {
-            var clientOrgId = relationship.TargetOrganizationId;
-
-            // Get all channels for this client organization (both general and matter-specific)
-            var channels = await _context.Conversations
-                .Where(c => c.OrganizationId == clientOrgId && c.IsChannel)
-                .Include(c => c.Matter)
-                .Include(c => c.Messages)
-                .OrderBy(c => c.MatterId.HasValue ? 1 : 0) // General channels first, then matter channels
-                .ThenBy(c => c.Title)
-                .ToListAsync();
-
-            result[clientOrgId] = channels;
+            return new Dictionary<int, List<Conversation>>();
         }
 
-        return result;
+        var relationshipIds = relationships.Select(rel => rel.Id).ToList();
+        var targetOrgIds = relationships.Select(rel => rel.TargetOrganizationId).ToList();
+
+        var assignedRelationshipIds = await _context.OrganizationRelationshipAssignedUsers
+            .Where(a => a.UserId == userId && relationshipIds.Contains(a.RelationshipId))
+            .Select(a => a.RelationshipId)
+            .ToListAsync();
+        var assignedSet = assignedRelationshipIds.ToHashSet();
+
+        var directMembershipOrgIds = await _context.UserOrganizations
+            .Where(uo => uo.UserId == userId &&
+                         uo.IsActive &&
+                         targetOrgIds.Contains(uo.OrganizationId))
+            .Select(uo => uo.OrganizationId)
+            .ToListAsync();
+        var directSet = directMembershipOrgIds.ToHashSet();
+
+        var accessibleOrgIds = relationships
+            .Where(rel => assignedSet.Contains(rel.Id) ||
+                          directSet.Contains(rel.TargetOrganizationId) ||
+                          (rel.TargetOwnerId.HasValue && rel.TargetOwnerId.Value == userId))
+            .Select(rel => rel.TargetOrganizationId)
+            .Distinct()
+            .ToList();
+
+        if (!accessibleOrgIds.Any())
+        {
+            return new Dictionary<int, List<Conversation>>();
+        }
+
+        var channels = await _context.Conversations
+            .Where(c => accessibleOrgIds.Contains(c.OrganizationId) && c.IsChannel)
+            .Include(c => c.Matter)
+            .Include(c => c.Messages)
+            .ToListAsync();
+
+        var grouped = channels
+            .GroupBy(c => c.OrganizationId)
+            .ToDictionary(
+                g => g.Key,
+                g => g.OrderBy(c => c.MatterId.HasValue ? 1 : 0)
+                      .ThenBy(c => c.Title)
+                      .ToList());
+
+        return grouped;
     }
 
     private static string ConvertToKebabCase(string input)

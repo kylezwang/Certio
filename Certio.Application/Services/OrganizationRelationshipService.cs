@@ -238,6 +238,7 @@ namespace Certio.Application.Services
                 }
 
                 // Validate all users to assign are law firm members
+                // Exception: When assigning the client owner to a new client relationship, they may not be a law firm member yet
                 var validUserIds = await _context.UserOrganizations
                     .Where(uo => 
                         userIdsToAssign.Contains(uo.UserId) &&
@@ -247,7 +248,24 @@ namespace Certio.Application.Services
                     .Select(uo => uo.UserId)
                     .ToListAsync();
 
+                // For LawFirmClient relationships, check if any assigned users are the client owner
+                // If so, allow them even if they're not law firm members (they're being assigned as the client owner)
+                Organization? clientOrg = null;
                 var invalidUserIds = userIdsToAssign.Except(validUserIds).ToList();
+                if (invalidUserIds.Any() && relationship.RelationshipType == RelationshipTypes.LawFirmClient)
+                {
+                    // Get the client organization to check if any invalid users are the client owner
+                    clientOrg = await _context.Organizations
+                        .Where(o => o.Id == relationship.TargetOrganizationId)
+                        .FirstOrDefaultAsync();
+
+                    if (clientOrg != null && clientOrg.OwnerId > 0)
+                    {
+                        // Allow the client owner to be assigned even if not a law firm member
+                        invalidUserIds = invalidUserIds.Where(id => id != clientOrg.OwnerId).ToList();
+                    }
+                }
+
                 if (invalidUserIds.Any())
                 {
                     throw new InvalidOperationException(
@@ -269,6 +287,66 @@ namespace Certio.Application.Services
                     AssignedAt = DateTime.UtcNow,
                     AssignedById = userId
                 }).ToList();
+
+                // Scenario 2: Deactivate client owner's external contact memberships when assigning law firm members
+                // If this is a LawFirmClient relationship, check if client owner is in any assigned user's External Contacts
+                // NOTE: This only applies when assigning law firm members (not when assigning the client owner themselves)
+                if (relationship.RelationshipType == RelationshipTypes.LawFirmClient && newUserIds.Any())
+                {
+                    // Use the client org we already loaded, or load it if we didn't need it for validation
+                    if (clientOrg == null)
+                    {
+                        clientOrg = await _context.Organizations
+                            .Where(o => o.Id == relationship.TargetOrganizationId)
+                            .FirstOrDefaultAsync();
+                    }
+
+                    if (clientOrg != null && clientOrg.OwnerId > 0)
+                    {
+                        var clientOwnerId = clientOrg.OwnerId;
+
+                        // Only process if the assigned users are different from the client owner
+                        // (i.e., we're assigning law firm members, not the client owner themselves)
+                        var assignedUserIdsNotOwner = newUserIds.Where(id => id != clientOwnerId).ToList();
+                        
+                        if (assignedUserIdsNotOwner.Any())
+                        {
+                            // Find all External Contacts organizations owned by the assigned users
+                            var externalContactsOrgs = await _context.Organizations
+                                .Where(o => assignedUserIdsNotOwner.Contains(o.OwnerId) &&
+                                            o.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase))
+                                .ToListAsync();
+
+                            // Find all active external memberships of the client owner in these External Contacts orgs
+                            var externalContactsOrgIds = externalContactsOrgs.Select(o => o.Id).ToList();
+                            if (externalContactsOrgIds.Any())
+                            {
+                                var clientOwnerMemberships = await _context.UserOrganizations
+                                    .Include(uo => uo.Organization)
+                                    .Where(uo => uo.UserId == clientOwnerId &&
+                                                 externalContactsOrgIds.Contains(uo.OrganizationId) &&
+                                                 uo.IsActive &&
+                                                 uo.UserType == UserTypes.External &&
+                                                 uo.Organization != null &&
+                                                 uo.Organization.Name.ToLower().EndsWith("'s external contacts"))
+                                    .ToListAsync();
+
+                                // Deactivate the client owner's memberships in these External Contacts organizations
+                                foreach (var membership in clientOwnerMemberships)
+                                {
+                                    membership.IsActive = false;
+                                    membership.LeftAt = DateTime.UtcNow;
+                                    _context.UserOrganizations.Update(membership);
+
+                                    var assignedUserId = membership.Organization?.OwnerId ?? 0;
+                                    _logger.LogInformation(
+                                        "Deactivated client owner {ClientOwnerId} membership in External Contacts org {OrgId} owned by assigned user {AssignedUserId}",
+                                        clientOwnerId, membership.OrganizationId, assignedUserId);
+                                }
+                            }
+                        }
+                    }
+                }
 
                 if (newAssignments.Any())
                 {

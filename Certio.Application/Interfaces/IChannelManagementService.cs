@@ -11,5 +11,5 @@ public interface IChannelManagementService
     Task<List<int>> GetOnlineUserIdsAsync(int organizationId);
     Task<Conversation?> CreateMatterChannelAsync(int matterId, int organizationId, int createdById);
     Task<List<Conversation>> GetMatterChannelsForOrganizationAsync(int organizationId);
-    Task<Dictionary<int, List<Conversation>>> GetClientOrganizationChannelsForLawFirmAsync(int lawFirmOrgId);
+    Task<Dictionary<int, List<Conversation>>> GetClientOrganizationChannelsForLawFirmAsync(int lawFirmOrgId, int userId);
 }

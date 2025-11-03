@@ -398,7 +398,7 @@
 /* External contacts avatars get gray background */
 .recent-message-avatar[data-is-external="true"],
 .recent-message-avatar.external-contacts-avatar {
-    background: #9ca3af;
+    background: #aaaaaa;
 }
 
 .recent-message-content {
