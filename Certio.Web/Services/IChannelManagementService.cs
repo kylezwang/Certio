@@ -6,6 +6,6 @@ namespace Certio.Web.Services;
 
 public interface IChannelManagementService : Certio.Application.Interfaces.IChannelManagementService
 {
-    Task<List<CommunicationsTeamMember>> GetOrganizationTeamMembersAsync(int organizationId);
+    Task<List<CommunicationsTeamMember>> GetOrganizationTeamMembersAsync(int organizationId, int currentUserId);
 }
 

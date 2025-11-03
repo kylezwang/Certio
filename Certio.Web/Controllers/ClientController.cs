@@ -554,6 +554,13 @@ namespace Certio.Web.Controllers
             ViewBag.CurrentUserName = $"{customUser.FirstName} {customUser.LastName}".Trim();
             ViewBag.CurrentUserInitials = GetInitials(customUser.FirstName, customUser.LastName);
 
+            // Preserve TempData value for NewClientOrgId (TempData is consumed on read)
+            var newClientOrgId = TempData["NewClientOrgId"] != null ? (int?)Convert.ToInt32(TempData["NewClientOrgId"]) : null;
+            if (newClientOrgId.HasValue)
+            {
+                TempData["NewClientOrgId"] = newClientOrgId.Value; // Restore for later use
+            }
+
             // Get organization relationships (clients) for this organization
             var organization = await _db.Organizations
                 .Include(o => o.OrganizationRelationships)
@@ -574,20 +581,68 @@ namespace Certio.Web.Controllers
                                 or.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient)
                     .ToList();
 
+                // Check which relationships the user has access to
+                var assignedSet = new HashSet<int>();
+                var directSet = new HashSet<int>();
+                
+                if (relationships.Any())
+                {
+                    var relationshipIds = relationships.Select(r => r.Id).ToList();
+                    var assignedRelationshipIds = await _db.OrganizationRelationshipAssignedUsers
+                        .Where(a => a.UserId == customUser.Id && relationshipIds.Contains(a.RelationshipId))
+                        .Select(a => a.RelationshipId)
+                        .ToListAsync();
+                    assignedSet = assignedRelationshipIds.ToHashSet();
+
+                    var targetOrgIds = relationships.Select(r => r.TargetOrganizationId).ToList();
+                    var directMembershipOrgIds = await _db.UserOrganizations
+                        .Where(uo => uo.UserId == customUser.Id &&
+                                     uo.IsActive &&
+                                     targetOrgIds.Contains(uo.OrganizationId))
+                        .Select(uo => uo.OrganizationId)
+                        .ToListAsync();
+                    directSet = directMembershipOrgIds.ToHashSet();
+                }
+
                 foreach (var rel in relationships)
                 {
                     var targetOrg = rel.TargetOrganization;
                     if (targetOrg != null)
                     {
+                        // Check if this is an External Contacts organization
+                        var isExternalGuestsOrg = targetOrg.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase);
+                        
+                        // Filter out external organizations where the current user is not the owner
+                        if (isExternalGuestsOrg && targetOrg.OwnerId != customUser.Id)
+                        {
+                            continue; // Skip external organizations owned by other users
+                        }
+
+                        // For non-external organizations, check if user has access
+                        if (!isExternalGuestsOrg)
+                        {
+                            var hasAccess = assignedSet.Contains(rel.Id) ||
+                                          directSet.Contains(targetOrg.Id) ||
+                                          targetOrg.OwnerId == customUser.Id ||
+                                           rel.CreatedById == customUser.Id;
+                            
+                            if (!hasAccess)
+                            {
+                                continue; // Skip organizations user doesn't have access to
+                            }
+                        }
+
                         var ownerName = $"{targetOrg.Owner?.FirstName} {targetOrg.Owner?.LastName}".Trim();
                         var ownerInitials = GetInitials(targetOrg.Owner?.FirstName ?? "", targetOrg.Owner?.LastName ?? "");
                         
-                        // Get owner's role in their organization
-                        var ownerRole = targetOrg.UserOrganizations
-                            .FirstOrDefault(uo => uo.UserId == targetOrg.OwnerId && uo.IsActive)?.Role ?? "Owner";
+                        // Get owner's membership (if they have already joined)
+                        var ownerMembership = targetOrg.UserOrganizations
+                            .FirstOrDefault(uo => uo.UserId == targetOrg.OwnerId && uo.IsActive);
+
+                        var ownerRole = ownerMembership?.Role ?? "Owner";
+                        var ownerHasMembership = ownerMembership != null;
+                        var ownerDisplayColor = ownerHasMembership ? "#69848C" : "#aaaaaa";
                         
-                        // Check if this is an External Contacts organization
-                        var isExternalGuestsOrg = targetOrg.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase);
                         var displayOrgName = isExternalGuestsOrg ? targetOrg.Name : targetOrg.Name; // Show full name on Clients page
                         
                         // Get all users in the organization (for External Contacts, this will show all external users)
@@ -599,10 +654,14 @@ namespace Certio.Web.Controllers
                                 UserName = $"{uo.User?.FirstName} {uo.User?.LastName}".Trim(),
                                 UserInitials = GetInitials(uo.User?.FirstName ?? "", uo.User?.LastName ?? ""),
                                 UserRole = uo.Role ?? "Guest",
-                                UserEmail = uo.User?.Email ?? ""
+                                UserEmail = uo.User?.Email ?? "",
+                                UserColor = uo.User?.Color ?? "#69848C"
                             })
                             .Where(u => !string.IsNullOrWhiteSpace(u.UserName))
                             .ToList();
+
+                        // Check if this is the newly created client organization
+                        var isNewClientOrg = newClientOrgId.HasValue && newClientOrgId.Value == targetOrg.Id;
                         
                         clientRelationships.Add(new
                         {
@@ -615,15 +674,31 @@ namespace Certio.Web.Controllers
                             OwnerInitials = ownerInitials,
                             OwnerEmail = targetOrg.Owner?.Email ?? "",
                             OwnerRole = ownerRole,
+                            OwnerHasMembership = ownerHasMembership,
+                            OwnerDisplayColor = ownerDisplayColor,
                             RelationshipId = rel.Id,
                             IsExternalGuests = isExternalGuestsOrg, // Flag for styling
+                            IsNewClient = isNewClientOrg, // Flag for newly created client
+                            CreatedAt = rel.CreatedAt, // For sorting by creation date
                             Users = orgUsers // All users in the organization
                         });
                     }
                 }
             }
 
-            ViewBag.ClientRelationships = clientRelationships;
+            // Sort client relationships:
+            // 1. External Contacts organizations always at the bottom
+            // 2. Newly created client organizations at the top
+            // 3. Other client organizations sorted by creation date (newest first)
+            var sortedClientRelationships = clientRelationships
+                .Cast<dynamic>()
+                .OrderByDescending(cr => cr.IsExternalGuests == false) // External orgs last (false < true in descending)
+                .ThenByDescending(cr => cr.IsNewClient) // New clients first
+                .ThenByDescending(cr => (DateTime)cr.CreatedAt) // Then by creation date (newest first)
+                .Cast<object>()
+                .ToList();
+
+            ViewBag.ClientRelationships = sortedClientRelationships;
 
             return View("~/Views/Client/Clients.cshtml");
         }
@@ -946,6 +1021,287 @@ namespace Certio.Web.Controllers
             model.Step = 1;
             
             return View("~/Views/Home/AddPeople.cshtml", model);
+        }
+
+        // GET /Client/{orgId}/NewClient
+        [Authorize(Policy = "OrgMember")]
+        [HttpGet("/Client/{orgId:int}/NewClient")]
+        public async Task<IActionResult> NewClient(int orgId)
+        {
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                TempData["Error"] = "Unable to resolve current user.";
+                return RedirectToAction("Clients", new { orgId });
+            }
+
+            // Verify user is in a law firm organization
+            var lawFirmMembership = await _db.UserOrganizations
+                .Include(uo => uo.Organization)
+                .FirstOrDefaultAsync(uo => uo.UserId == customUser.Id && 
+                                             uo.IsActive && 
+                                             uo.Organization.Type == Certio.Domain.Organizations.OrganizationType.LawFirm);
+
+            if (lawFirmMembership == null)
+            {
+                TempData["Error"] = "Only law firm users can create new client organizations.";
+                return RedirectToAction("Clients", new { orgId });
+            }
+
+            var lawFirmOrgId = lawFirmMembership.OrganizationId;
+            var lawFirmOrgName = lawFirmMembership.Organization?.Name ?? "Law Firm";
+
+            // Get external users from external organization relationships
+            var externalUsers = await GetExternalUsersAsync(lawFirmOrgId, CancellationToken.None);
+
+            var model = new NewClientFormViewModel
+            {
+                LawFirmOrganizationId = lawFirmOrgId,
+                LawFirmOrganizationName = lawFirmOrgName,
+                AvailableExternalUsers = externalUsers
+            };
+
+            ViewBag.OrganizationId = orgId;
+            ViewBag.OrganizationName = lawFirmOrgName;
+
+            return View("~/Views/Client/NewClient.cshtml", model);
+        }
+
+        // POST /Client/{orgId}/NewClient
+        [Authorize(Policy = "OrgMember")]
+        [HttpPost("/Client/{orgId:int}/NewClient")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> NewClient(int orgId, NewClientFormViewModel model, CancellationToken ct)
+        {
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                TempData["Error"] = "Unable to resolve current user.";
+                return RedirectToAction("Clients", new { orgId });
+            }
+
+            if (!ModelState.IsValid)
+            {
+                // Reload available external users
+                var lawFirmMembership = await _db.UserOrganizations
+                    .Include(uo => uo.Organization)
+                    .FirstOrDefaultAsync(uo => uo.UserId == customUser.Id && 
+                                                 uo.IsActive && 
+                                                 uo.Organization.Type == Certio.Domain.Organizations.OrganizationType.LawFirm);
+
+                if (lawFirmMembership != null)
+                {
+                    var externalUsers = await GetExternalUsersAsync(lawFirmMembership.OrganizationId, ct);
+                    model.AvailableExternalUsers = externalUsers;
+                    model.LawFirmOrganizationId = lawFirmMembership.OrganizationId;
+                    model.LawFirmOrganizationName = lawFirmMembership.Organization?.Name ?? "Law Firm";
+                }
+
+                ViewBag.OrganizationId = orgId;
+                return View("~/Views/Client/NewClient.cshtml", model);
+            }
+
+            // Validate that a primary client is selected
+            if (!model.SelectedExternalUserId.HasValue)
+            {
+                ModelState.AddModelError("SelectedExternalUserId", "Please select a primary client.");
+                var lawFirmMembershipReload = await _db.UserOrganizations
+                    .Include(uo => uo.Organization)
+                    .FirstOrDefaultAsync(uo => uo.UserId == customUser.Id && 
+                                                 uo.IsActive && 
+                                                 uo.Organization.Type == Certio.Domain.Organizations.OrganizationType.LawFirm);
+
+                if (lawFirmMembershipReload != null)
+                {
+                    var externalUsersReload = await GetExternalUsersAsync(lawFirmMembershipReload.OrganizationId, ct);
+                    model.AvailableExternalUsers = externalUsersReload;
+                    model.LawFirmOrganizationId = lawFirmMembershipReload.OrganizationId;
+                    model.LawFirmOrganizationName = lawFirmMembershipReload.Organization?.Name ?? "Law Firm";
+                }
+                ViewBag.OrganizationId = orgId;
+                return View("~/Views/Client/NewClient.cshtml", model);
+            }
+
+            // Verify user is in a law firm organization
+            var lawFirmMembershipCheck = await _db.UserOrganizations
+                .Include(uo => uo.Organization)
+                .FirstOrDefaultAsync(uo => uo.UserId == customUser.Id && 
+                                             uo.IsActive && 
+                                             uo.Organization.Type == Certio.Domain.Organizations.OrganizationType.LawFirm);
+
+            if (lawFirmMembershipCheck == null)
+            {
+                TempData["Error"] = "Only law firm users can create new client organizations.";
+                return RedirectToAction("Clients", new { orgId });
+            }
+
+            var lawFirmOrgId = lawFirmMembershipCheck.OrganizationId;
+
+            // Validate that the selected external user exists and is actually an external user
+            var selectedExternalUser = await _db.Users
+                .FirstOrDefaultAsync(u => u.Id == model.SelectedExternalUserId.Value && u.IsActive && !u.IsDeleted, ct);
+
+            if (selectedExternalUser == null)
+            {
+                TempData["Error"] = "Selected external user not found.";
+                var externalUsersReload = await GetExternalUsersAsync(lawFirmOrgId, ct);
+                model.AvailableExternalUsers = externalUsersReload;
+                model.LawFirmOrganizationId = lawFirmOrgId;
+                model.LawFirmOrganizationName = lawFirmMembershipCheck.Organization?.Name ?? "Law Firm";
+                ViewBag.OrganizationId = orgId;
+                return View("~/Views/Client/NewClient.cshtml", model);
+            }
+
+            // Verify the user is actually an external user
+            var isExternalUser = await _db.UserOrganizations
+                .AnyAsync(uo => uo.UserId == model.SelectedExternalUserId.Value &&
+                                uo.UserType == Certio.Domain.Users.UserTypes.External &&
+                                uo.IsActive, ct);
+
+            if (!isExternalUser)
+            {
+                TempData["Error"] = "Selected user is not an external user.";
+                var externalUsersReload = await GetExternalUsersAsync(lawFirmOrgId, ct);
+                model.AvailableExternalUsers = externalUsersReload;
+                model.LawFirmOrganizationId = lawFirmOrgId;
+                model.LawFirmOrganizationName = lawFirmMembershipCheck.Organization?.Name ?? "Law Firm";
+                ViewBag.OrganizationId = orgId;
+                return View("~/Views/Client/NewClient.cshtml", model);
+            }
+
+            // Create new client organization with selected user as Owner
+            var newClientOrg = new Certio.Domain.Organizations.Organization
+            {
+                Name = model.ClientOrganizationName.Trim(),
+                Description = "Client Organization",
+                OwnerId = model.SelectedExternalUserId.Value, // Set selected external user as Owner
+                Type = Certio.Domain.Organizations.OrganizationType.Client,
+                IsPersonal = false,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _db.Organizations.Add(newClientOrg);
+            await _db.SaveChangesAsync(ct);
+
+            // Create relationship between law firm and new client organization
+            var relationship = new Certio.Domain.Organizations.OrganizationRelationship
+            {
+                SourceOrganizationId = lawFirmOrgId,
+                TargetOrganizationId = newClientOrg.Id,
+                RelationshipType = Certio.Domain.Organizations.RelationshipTypes.LawFirmClient,
+                AccessLevel = Certio.Domain.Organizations.AccessLevels.FullAccess,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                CreatedById = customUser.Id
+            };
+
+            _db.OrganizationRelationships.Add(relationship);
+            await _db.SaveChangesAsync(ct);
+
+            // Assign the selected external user to the relationship
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+            
+            var assignmentResult = await _relationshipService.AssignUsersToRelationshipAsync(
+                relationship.Id,
+                customUser.Id,
+                new List<int> { model.SelectedExternalUserId.Value },
+                ipAddress,
+                userAgent);
+
+            if (!assignmentResult.Success)
+            {
+                TempData["Error"] = $"Failed to assign client: {assignmentResult.ErrorMessage}";
+                var externalUsersReload = await GetExternalUsersAsync(lawFirmOrgId, ct);
+                model.AvailableExternalUsers = externalUsersReload;
+                model.LawFirmOrganizationId = lawFirmOrgId;
+                model.LawFirmOrganizationName = lawFirmMembershipCheck.Organization?.Name ?? "Law Firm";
+                ViewBag.OrganizationId = orgId;
+                return View("~/Views/Client/NewClient.cshtml", model);
+            }
+
+            // Store external user ID in team name field with special prefix for transfer logic
+            // Format: "NEW_CLIENT_EXTERNAL_IDS:userId"
+            string externalUserIdsMetadata = $"NEW_CLIENT_EXTERNAL_IDS:{model.SelectedExternalUserId.Value}";
+
+            // Generate join code for the primary client user (as Owner)
+            var join = await _joinCodeService.GenerateAsync(
+                organizationId: newClientOrg.Id,
+                createdByUserId: customUser.Id,
+                invitedUserType: Certio.Domain.Users.UserTypes.Client,
+                invitedRole: Certio.Domain.Users.OrganizationRoles.Owner,
+                teamName: externalUserIdsMetadata,
+                maxUses: 1,
+                ttl: TimeSpan.FromDays(7),
+                ct: ct);
+
+            TempData["Success"] = $"Client organization '{model.ClientOrganizationName}' created successfully. Share the join code with the client representative.";
+            TempData["JoinCode"] = join.Code;
+            TempData["NewClientOrgId"] = newClientOrg.Id;
+            ViewBag.OrganizationId = orgId;
+            ViewBag.OrganizationName = lawFirmMembershipCheck.Organization?.Name ?? "Law Firm";
+
+            // Redirect to show success with join code
+            return RedirectToAction("Clients", new { orgId });
+        }
+
+        private async Task<List<ExternalUserDto>> GetExternalUsersAsync(int lawFirmOrgId, CancellationToken ct)
+        {
+            var externalUsers = new List<ExternalUserDto>();
+            var addedUserIds = new HashSet<int>(); // Track users we've already added to prevent duplicates
+
+            // Find all external organizations (ending with "'s External Contacts") related to this law firm
+            var externalRelationships = await _db.OrganizationRelationships
+                .Include(or => or.TargetOrganization)
+                    .ThenInclude(to => to.UserOrganizations)
+                        .ThenInclude(uo => uo.User)
+                .Where(or => or.SourceOrganizationId == lawFirmOrgId &&
+                             or.IsActive &&
+                             !or.IsDeleted &&
+                             or.TargetOrganization != null &&
+                             or.TargetOrganization.Name.ToLower().EndsWith("'s external contacts"))
+                .ToListAsync(ct);
+
+            foreach (var relationship in externalRelationships)
+            {
+                var externalOrg = relationship.TargetOrganization;
+                if (externalOrg == null) continue;
+
+                // Get all external users from this organization
+                var usersInOrg = externalOrg.UserOrganizations
+                    .Where(uo => uo.IsActive && 
+                                 uo.User != null && 
+                                 uo.User.IsActive && 
+                                 !uo.User.IsDeleted &&
+                                 uo.UserType == Certio.Domain.Users.UserTypes.External)
+                    .ToList();
+
+                foreach (var userOrg in usersInOrg)
+                {
+                    var user = userOrg.User;
+                    if (user == null) continue;
+
+                    // Only add if we haven't seen this user ID before
+                    if (!addedUserIds.Contains(user.Id))
+                    {
+                        externalUsers.Add(new ExternalUserDto
+                        {
+                            Id = user.Id,
+                            Name = $"{user.FirstName} {user.LastName}".Trim(),
+                            Email = user.Email ?? "",
+                            Role = userOrg.Role ?? "Guest",
+                            UserType = userOrg.UserType ?? Certio.Domain.Users.UserTypes.External,
+                            ExternalOrganizationId = externalOrg.Id,
+                            ExternalOrganizationName = externalOrg.Name
+                        });
+                        
+                        addedUserIds.Add(user.Id);
+                    }
+                }
+            }
+
+            return externalUsers.OrderBy(u => u.Name).ThenBy(u => u.Email).ToList();
         }
     }
 }

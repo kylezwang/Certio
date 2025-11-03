@@ -127,6 +127,7 @@ namespace Certio.Web.Services
                 var lawFirmMembership = await _db.UserOrganizations
                     .Include(uo => uo.Organization)
                     .ThenInclude(o => o.OrganizationRelationships)
+                    .ThenInclude(rel => rel.TargetOrganization)
                     .FirstOrDefaultAsync(uo => 
                         uo.UserId == userId && 
                         uo.IsActive && 
@@ -143,6 +144,9 @@ namespace Certio.Web.Services
 
                 if (relationship == null)
                     return false;
+
+                if (relationship.TargetOrganization?.OwnerId == userId)
+                    return true;
 
                 // Determine user's firm role
                 var role = lawFirmMembership.Role;
@@ -225,16 +229,25 @@ namespace Certio.Web.Services
                 }
                 else
                 {
-                    // Non-partners see clients where they are explicitly assigned
                     var relationshipIds = relationships.Select(r => r.Id).ToList();
                     var assignedRelationshipIds = await _db.OrganizationRelationshipAssignedUsers
                         .Where(a => a.UserId == userId && relationshipIds.Contains(a.RelationshipId))
                         .Select(a => a.RelationshipId)
                         .ToListAsync();
+                    var assignedSet = assignedRelationshipIds.ToHashSet();
 
-                    foreach (var rel in relationships.Where(r => assignedRelationshipIds.Contains(r.Id)))
+                    foreach (var rel in relationships)
                     {
-                        accessibleOrganizations.Add(rel.TargetOrganization);
+                        if (rel.TargetOrganization == null)
+                            continue;
+
+                        var isAssigned = assignedSet.Contains(rel.Id);
+                        var isOwner = rel.TargetOrganization.OwnerId == userId;
+
+                        if (isAssigned || isOwner)
+                        {
+                            accessibleOrganizations.Add(rel.TargetOrganization);
+                        }
                     }
                 }
 
@@ -294,6 +307,9 @@ namespace Certio.Web.Services
                 if (relationship == null)
                     return null;
 
+                if (relationship.TargetOrganization?.OwnerId == userId)
+                    return relationship;
+
                 var role = lawFirmMembership.Role;
                 var isPartner = string.Equals(role, OrganizationRoles.Partner, StringComparison.OrdinalIgnoreCase);
                 
@@ -335,6 +351,7 @@ namespace Certio.Web.Services
                 var lawFirmMembership = await _db.UserOrganizations
                     .Include(uo => uo.Organization)
                     .ThenInclude(o => o.OrganizationRelationships)
+                    .ThenInclude(rel => rel.TargetOrganization)
                     .FirstOrDefaultAsync(uo => 
                         uo.UserId == userId && 
                         uo.IsActive && 
@@ -355,6 +372,13 @@ namespace Certio.Web.Services
                 if (relationship == null)
                 {
                     info.AccessSummary = "Client not linked to law firm";
+                    return info;
+                }
+
+                if (relationship.TargetOrganization?.OwnerId == userId)
+                {
+                    info.HasAccess = true;
+                    info.AccessSummary = "Owner of external organization";
                     return info;
                 }
 

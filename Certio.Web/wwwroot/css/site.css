@@ -4015,7 +4015,7 @@ body.communications-page .communications-layout {
 .team-member[data-is-external="true"] .member-avatar,
 .team-member .member-avatar.external-user-avatar,
 .team-member .member-avatar.external-contacts-avatar {
-  background: #9ca3af !important; /* Lighter gray background for external users */
+  background: #aaaaaa !important; /* Lighter gray background for external users */
 }
 
 /* Pulse animation for new items */

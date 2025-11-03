@@ -61,6 +61,7 @@ namespace Certio.Web.Services
         /// <summary>
         /// Ensures a custom User record exists for the given email
         /// Creates one if it doesn't exist
+        /// If multiple users exist with the same email, prefers the one with active memberships
         /// </summary>
         public async Task<User?> EnsureCustomUserExistsByEmailAsync(string email)
         {
@@ -72,19 +73,7 @@ namespace Certio.Web.Services
                     return null;
                 }
 
-                // Check if custom user already exists
-                var existingUser = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Email == email);
-
-                if (existingUser != null)
-                {
-                    _logger.LogDebug("Custom user already exists for email {Email}", email);
-                    // Backfill defaults if needed
-                    await EnsureDefaultsAsync(existingUser);
-                    return existingUser;
-                }
-
-                // Get the Identity user
+                // Get the Identity user first (we'll use this to prefer the correct custom User)
                 var identityUser = await _userManager.FindByEmailAsync(email);
                 if (identityUser == null)
                 {
@@ -92,7 +81,35 @@ namespace Certio.Web.Services
                     return null;
                 }
 
-                // Create custom user
+                // Check if custom user already exists - check for duplicates
+                var existingUsers = await _context.Users
+                    .Include(u => u.UserOrganizations)
+                    .Where(u => u.Email == email)
+                    .ToListAsync();
+
+                if (existingUsers.Count > 1)
+                {
+                    _logger.LogWarning("Multiple custom users found for email {Email}: {UserIds}. Preferring most recently created (registered user).", 
+                        email, string.Join(", ", existingUsers.Select(u => $"{u.Id} ({u.FirstName} {u.LastName}, created {u.CreatedAt})")));
+                    
+                    // Prefer most recently created user - this is the one that was registered with the Identity account
+                    // This ensures that when someone registers with an email that already has a custom User (e.g., from notalize),
+                    // we use the newly registered user instead of the old one
+                    var mostRecentUser = existingUsers.OrderByDescending(u => u.CreatedAt).First();
+                    _logger.LogInformation("Selected most recent custom user {UserId} ({FirstName} {LastName}) for email {Email}", 
+                        mostRecentUser.Id, mostRecentUser.FirstName, mostRecentUser.LastName, email);
+                    await EnsureDefaultsAsync(mostRecentUser);
+                    return mostRecentUser;
+                }
+                else if (existingUsers.Count == 1)
+                {
+                    _logger.LogDebug("Custom user already exists for email {Email}", email);
+                    // Backfill defaults if needed
+                    await EnsureDefaultsAsync(existingUsers[0]);
+                    return existingUsers[0];
+                }
+
+                // No existing custom user - create one
                 var customUser = await CreateCustomUserFromIdentityAsync(identityUser);
                 _context.Users.Add(customUser);
                 await _context.SaveChangesAsync();

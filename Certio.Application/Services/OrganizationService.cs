@@ -6,6 +6,8 @@ using Certio.Domain.Users;
 using Certio.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Certio.Application.Services
 {
@@ -50,35 +52,75 @@ namespace Certio.Application.Services
                     })
                     .ToListAsync();
 
-                // Get organizations accessible via law firm relationships
-                var firmOrgs = await _context.UserOrganizations
-                    .Where(uo => 
-                        uo.UserId == userId && 
-                        uo.IsActive && 
+                // Get organizations accessible via law firm relationships where the user is assigned or a direct member
+                var lawFirmOrgIds = await _context.UserOrganizations
+                    .Where(uo =>
+                        uo.UserId == userId &&
+                        uo.IsActive &&
                         uo.UserType == UserTypes.LawFirm)
-                    .SelectMany(uo => uo.Organization!.OrganizationRelationships
-                        .Where(rel => 
-                            rel.IsActive && 
-                            !rel.IsDeleted && 
-                            rel.RelationshipType == RelationshipTypes.LawFirmClient &&
-                            (!rel.ExpiresAt.HasValue || rel.ExpiresAt.Value > DateTime.UtcNow))
-                        .Select(rel => new OrganizationDto
-                        {
-                            Id = rel.TargetOrganization!.Id,
-                            Name = rel.TargetOrganization!.Name,
-                            Description = rel.TargetOrganization.Description,
-                            OwnerId = rel.TargetOrganization.OwnerId,
-                            OwnerFirstName = rel.TargetOrganization.Owner.FirstName,
-                            OwnerLastName = rel.TargetOrganization.Owner.LastName,
-                            Type = rel.TargetOrganization.Type,
-                            IsPersonal = rel.TargetOrganization.IsPersonal,
-                            IsPrimary = false, // Firm-based access is not primary
-                            IsActive = rel.TargetOrganization.IsActive,
-                            Color = rel.TargetOrganization.Color,
-                            Logo = rel.TargetOrganization.Logo,
-                            CreatedAt = rel.TargetOrganization.CreatedAt
-                        }))
+                    .Select(uo => uo.OrganizationId)
                     .ToListAsync();
+
+                var firmOrgs = new List<OrganizationDto>();
+
+                if (lawFirmOrgIds.Any())
+                {
+                    var relationships = await _context.OrganizationRelationships
+                        .Where(rel => lawFirmOrgIds.Contains(rel.SourceOrganizationId) &&
+                                      rel.IsActive &&
+                                      !rel.IsDeleted &&
+                                      rel.RelationshipType == RelationshipTypes.LawFirmClient &&
+                                      (!rel.ExpiresAt.HasValue || rel.ExpiresAt.Value > DateTime.UtcNow))
+                        .Include(rel => rel.TargetOrganization)
+                            .ThenInclude(org => org.Owner)
+                        .ToListAsync();
+
+                    if (relationships.Any())
+                    {
+                        var relationshipIds = relationships.Select(rel => rel.Id).ToList();
+                        var assignedRelationshipIds = await _context.OrganizationRelationshipAssignedUsers
+                            .Where(a => a.UserId == userId && relationshipIds.Contains(a.RelationshipId))
+                            .Select(a => a.RelationshipId)
+                            .ToListAsync();
+                        var assignedSet = assignedRelationshipIds.ToHashSet();
+
+                        var directOrgIds = directOrgs.Select(o => o.Id).ToHashSet();
+
+                        foreach (var rel in relationships)
+                        {
+                            if (rel.TargetOrganization == null)
+                            {
+                                continue;
+                            }
+
+                            var hasDirectMembership = directOrgIds.Contains(rel.TargetOrganizationId);
+                            var isAssigned = assignedSet.Contains(rel.Id);
+                            var isOwner = rel.TargetOrganization.OwnerId == userId;
+
+                            if (!hasDirectMembership && !isAssigned && !isOwner)
+                            {
+                                continue;
+                            }
+
+                            firmOrgs.Add(new OrganizationDto
+                            {
+                                Id = rel.TargetOrganization.Id,
+                                Name = rel.TargetOrganization.Name,
+                                Description = rel.TargetOrganization.Description,
+                                OwnerId = rel.TargetOrganization.OwnerId,
+                                OwnerFirstName = rel.TargetOrganization.Owner?.FirstName ?? string.Empty,
+                                OwnerLastName = rel.TargetOrganization.Owner?.LastName ?? string.Empty,
+                                Type = rel.TargetOrganization.Type,
+                                IsPersonal = rel.TargetOrganization.IsPersonal,
+                                IsPrimary = false,
+                                IsActive = rel.TargetOrganization.IsActive,
+                                Color = rel.TargetOrganization.Color,
+                                Logo = rel.TargetOrganization.Logo,
+                                CreatedAt = rel.TargetOrganization.CreatedAt
+                            });
+                        }
+                    }
+                }
 
                 // Combine and deduplicate by organization ID
                 var allOrgs = directOrgs

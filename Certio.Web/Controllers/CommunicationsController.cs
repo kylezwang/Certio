@@ -64,7 +64,7 @@ namespace Certio.Web.Controllers
             var isLawFirm = org?.Type == OrganizationType.LawFirm;
             
             // Load team members from organization using service
-            var orgTeamMembers = await _channelManagementService.GetOrganizationTeamMembersAsync(orgId);
+            var orgTeamMembers = await _channelManagementService.GetOrganizationTeamMembersAsync(orgId, customUser.Id);
             
             // Use UserPresenceService for real-time presence detection
             var onlineUserIds = _userPresenceService.GetOnlineUsersInOrganization(orgId);
@@ -72,9 +72,18 @@ namespace Certio.Web.Controllers
             // Update online status for team members and set Activity text
             foreach (var member in orgTeamMembers)
             {
-                var isOnline = onlineUserIds.Contains(member.UserId);
-                member.Status = isOnline ? "online" : "offline";
-                member.Activity = isOnline ? "Online" : "Offline";
+                // External contacts should show "External" instead of online/offline status
+                if (member.IsExternalContacts)
+                {
+                    member.Status = "external";
+                    member.Activity = "External";
+                }
+                else
+                {
+                    var isOnline = onlineUserIds.Contains(member.UserId);
+                    member.Status = isOnline ? "online" : "offline";
+                    member.Activity = isOnline ? "Online" : "Offline";
+                }
             }
             
             // Sort team members with priority:
@@ -173,7 +182,7 @@ namespace Certio.Web.Controllers
             }
 
             // Load team members
-            var orgTeamMembers = await _channelManagementService.GetOrganizationTeamMembersAsync(orgId);
+            var orgTeamMembers = await _channelManagementService.GetOrganizationTeamMembersAsync(orgId, customUser.Id);
             
             // Use UserPresenceService for real-time presence detection
             var onlineUserIds = _userPresenceService.GetOnlineUsersInOrganization(orgId);
@@ -181,9 +190,18 @@ namespace Certio.Web.Controllers
             // Update online status for team members and set Activity text
             foreach (var member in orgTeamMembers)
             {
-                var isOnline = onlineUserIds.Contains(member.UserId);
-                member.Status = isOnline ? "online" : "offline";
-                member.Activity = isOnline ? "Online" : "Offline";
+                // External contacts should show "External" instead of online/offline status
+                if (member.IsExternalContacts)
+                {
+                    member.Status = "external";
+                    member.Activity = "External";
+                }
+                else
+                {
+                    var isOnline = onlineUserIds.Contains(member.UserId);
+                    member.Status = isOnline ? "online" : "offline";
+                    member.Activity = isOnline ? "Online" : "Offline";
+                }
             }
             
             // Sort team members with priority:
@@ -291,15 +309,24 @@ namespace Certio.Web.Controllers
             }
 
             // Get team members with online status
-            var orgTeamMembers = await _channelManagementService.GetOrganizationTeamMembersAsync(orgId);
+            var orgTeamMembers = await _channelManagementService.GetOrganizationTeamMembersAsync(orgId, customUser.Id);
             var onlineUserIds = _userPresenceService.GetOnlineUsersInOrganization(orgId);
             
             // Update online status for team members and set Activity text
             foreach (var member in orgTeamMembers)
             {
-                var isOnline = onlineUserIds.Contains(member.UserId);
-                member.Status = isOnline ? "online" : "offline";
-                member.Activity = isOnline ? "Online" : "Offline";
+                // External contacts should show "External" instead of online/offline status
+                if (member.IsExternalContacts)
+                {
+                    member.Status = "external";
+                    member.Activity = "External";
+                }
+                else
+                {
+                    var isOnline = onlineUserIds.Contains(member.UserId);
+                    member.Status = isOnline ? "online" : "offline";
+                    member.Activity = isOnline ? "Online" : "Offline";
+                }
             }
             
             // Sort team members with priority:
@@ -524,7 +551,7 @@ namespace Certio.Web.Controllers
             });
 
             // 2. Get all client organizations and their channels
-            var clientOrgChannelsDict = await _channelManagementService.GetClientOrganizationChannelsForLawFirmAsync(orgId);
+            var clientOrgChannelsDict = await _channelManagementService.GetClientOrganizationChannelsForLawFirmAsync(orgId, userId);
             
             if (clientOrgChannelsDict.Any())
             {

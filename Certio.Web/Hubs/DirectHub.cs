@@ -111,7 +111,8 @@ public class DirectHub : Hub
                 message.EditedAt,
                 message.IsDeleted,
                 senderColor = senderColor,
-                isExternalContacts = isExternalContacts
+                isExternalContacts = isExternalContacts,
+                emailSubject = message.EmailSubject
             });
 
             _logger.LogInformation("User {UserId} sent message {MessageId} in thread {ThreadId}", 

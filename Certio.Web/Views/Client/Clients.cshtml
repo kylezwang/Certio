@@ -13,7 +13,7 @@
                 Manage clients under @(ViewBag.OrganizationName ?? "Organization")
             </p>
         </div>
-        <a class="btn btn-primary d-flex align-items-center gap-2" href="#" id="newClientBtn">
+        <a class="btn btn-primary d-flex align-items-center gap-2" href="@Url.Action("NewClient", "Client", new { orgId = ViewBag.OrganizationId ?? 0 })" id="newClientBtn">
             <i class="fas fa-user-plus"></i>
             New client
         </a>
@@ -56,8 +56,15 @@
                 var orgUsers = client.Users ?? new List<dynamic>(); // Get all users in the organization
                 
                 <div class="mb-5 client-section">
+                    @{
+                        var ownerHasMembership = client.OwnerHasMembership ?? false;
+                        var hasRegisteredUsers = orgUsers.Count > 0;
+                        var isConfirmed = ownerHasMembership || hasRegisteredUsers;
+                        var iconColor = isExternalGuests ? "#aaaaaa" : (isConfirmed ? "#3d1019" : "#aaaaaa");
+                        var iconClass = isExternalGuests ? "external-guests-icon" : (isConfirmed ? "" : "pending-client-icon");
+                    }
                     <div class="team-section-header">
-                        <i class="fa-solid fa-building-user @(isExternalGuests ? "external-guests-icon" : "")"></i>
+                        <i class="fa-solid fa-building-user @iconClass" style="color: @iconColor;"></i>
                         <h2>@orgName</h2>
                         <span class="team-badge">@(orgUsers.Count > 0 ? orgUsers.Count : 1)</span>
                     </div>
@@ -72,6 +79,7 @@
                                 var userInitials = user.UserInitials ?? "??";
                                 var userRole = user.UserRole ?? "Guest";
                                 var userId = user.UserId ?? 0;
+                                var userColor = user.UserColor ?? "#69848C";
                                 
                                 <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 client-card team-member-card" 
                                      data-name="@(userName.ToString().ToLower())" 
@@ -81,7 +89,7 @@
                                             <div class="card-body d-flex flex-column align-items-center text-center p-4">
                                                 <!-- Avatar -->
                                                 <div class="mb-3">
-                                                    <div class="team-member-avatar @(isExternalGuests ? "external-guests-avatar" : "")" style="@(isExternalGuests ? "" : "background-color: #a32b43;")">
+                                                    <div class="team-member-avatar @(isExternalGuests ? "external-guests-avatar" : "")" style="@(isExternalGuests ? "" : $"background-color: {userColor};")">
                                                         @userInitials
                                                     </div>
                                                 </div>
@@ -93,7 +101,7 @@
                                                 <!-- Organization Type -->
                                                 <div class="d-flex align-items-center gap-1 text-muted small">
                                                     <i class="fas fa-briefcase" style="font-size: 0.75rem;"></i>
-                                                    <span>Client</span>
+                                                    <span>@(isExternalGuests ? "External" : (isConfirmed ? "Active" : "Pending"))</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -104,6 +112,7 @@
                         else
                         {
                             @* Fallback to showing owner if no users list *@
+                            var ownerColor = (client.OwnerDisplayColor ?? "#69848C").ToString();
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 client-card team-member-card" 
                                  data-name="@(clientName.ToString().ToLower())" 
                                  data-org="@(orgName.ToString().ToLower())">
@@ -112,7 +121,7 @@
                                         <div class="card-body d-flex flex-column align-items-center text-center p-4">
                                             <!-- Avatar -->
                                             <div class="mb-3">
-                                                <div class="team-member-avatar @(isExternalGuests ? "external-guests-avatar" : "")" style="@(isExternalGuests ? "" : "background-color: #a32b43;")">
+                                                <div class="team-member-avatar @(isExternalGuests ? "external-guests-avatar" : "")" style="@(isExternalGuests ? "" : $"background-color: {ownerColor};")">
                                                     @initials
                                                 </div>
                                             </div>
@@ -124,7 +133,7 @@
                                             <!-- Organization Type -->
                                             <div class="d-flex align-items-center gap-1 text-muted small">
                                                 <i class="fas fa-briefcase" style="font-size: 0.75rem;"></i>
-                                                <span>Client</span>
+                                                <span>@(isExternalGuests ? "External" : (isConfirmed ? "Active" : "Pending"))</span>
                                             </div>
                                         </div>
                                     </div>
@@ -147,6 +156,108 @@
         }
     </div>
 </div>
+
+@* Join Code Modal - Using task-details-modal structure *@
+@if (TempData["JoinCode"] != null)
+{
+    <div class="task-details-modal" id="joinCodeModal" style="display: none; border-radius: 12px; left: 23vw; bottom: 0;">
+        <div class="modal-dialog" style="margin-bottom: 1.5rem;">
+            <div class="task-details-content">
+                <!-- Modal Header -->
+                <div class="task-details-header">
+                    <div class="task-details-header-left">
+                        <div class="task-status-dropdown" style="pointer-events: none;">
+                            <div class="form-select task-status-select" style="border: none; background: transparent; padding: 0.5rem 1rem;">
+                                <span style="color: #3d1019; font-weight: 600;">Join Code</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="task-details-header-middle">
+                        <span class="text-muted" style="font-size: 0.875rem;">Generated</span>
+                    </div>
+                    <div class="task-details-header-right">
+                        <button type="button" class="btn-close" id="closeJoinCodeModal" aria-label="Close"></button>
+                    </div>
+                </div>
+
+                <!-- Title Section -->
+                <div class="task-details-title-section">
+                    <div class="task-title-container">
+                        <i class="fa-solid fa-key task-title-icon" style="color: #3d1019;"></i>
+                        <h2 class="task-title" style="cursor: default;">Join Code Generated</h2>
+                    </div>
+                </div>
+
+                <!-- Success Message -->
+                    @if (TempData["Success"] != null)
+                    {
+                    <div class="task-details-body" style="padding: 0 1.5rem 1rem;">
+                        <div class="alert alert-success" style="margin-bottom: 1rem; border-radius: 8px;">
+                            <i class="fas fa-check-circle me-2"></i>
+                            @TempData["Success"]
+                        </div>
+                        </div>
+                    }
+
+                <!-- Main Content Area -->
+                <div class="task-details-body">
+                    <!-- Left Panel -->
+                    <div class="task-details-left">
+                        <!-- Join Code Section -->
+                        <div class="task-section">
+                            <div class="task-section-header">
+                                <h6 class="task-section-title">
+                                    <i class="fas fa-key"></i> Join Code
+                                </h6>
+                            </div>
+                            <div class="task-section-content">
+                                <div class="input-group" style="margin-bottom: 1rem;">
+                                    <input type="text" class="form-control form-control-lg" id="joinCodeValue" readonly value="@TempData["JoinCode"]" style="font-size: 1.25rem; font-weight: 600; letter-spacing: 0.1em; font-family: monospace; background-color: #f8f9fa;">
+                                    <button class="btn btn-outline-secondary" type="button" id="copyJoinCodeBtn" style="border-radius: 0.5rem;">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <small class="text-muted d-block" style="font-size: 0.875rem;">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Share this code with the client representative. It expires in 7 days.
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Instructions Section -->
+                        <div class="task-section" style="margin-bottom: 0;">
+                            <div class="task-section-header">
+                                <h6 class="task-section-title">
+                                    <i class="fas fa-info-circle"></i> Instructions
+                                </h6>
+                            </div>
+                            <div class="task-section-content">
+                                <div style="font-size: 0.875rem; color: #4a5568;">
+                                    <p style="margin-bottom: 0.5rem;">
+                                        <strong>1.</strong> Copy the join code above
+                                    </p>
+                                    <p style="margin-bottom: 0.5rem;">
+                                        <strong>2.</strong> Share it with the client representative via email or secure messaging
+                                    </p>
+                                    <p style="margin-bottom: 0;">
+                                        <strong>3.</strong> The client will use this code to join the organization
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="task-action-buttons" style="padding: 0 1.5rem 1.5rem; justify-content: flex-end;">
+                    <button type="button" class="btn btn-primary" id="doneJoinCodeBtn" style="border-radius: 0.5rem;">
+                        Done
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 @section GlobalSidebarFinalCard {
     <partial name="_ClientsFilters" />
@@ -189,6 +300,63 @@
                     });
                 }
             });
+
+            // Join code modal
+            const joinCode = '@(TempData["JoinCode"] ?? "")';
+            if (joinCode && joinCode.length > 0) {
+                const modalEl = document.getElementById('joinCodeModal');
+                if (modalEl) {
+                    // Show modal using task-details-modal style
+                    modalEl.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                    
+                    const copyBtn = document.getElementById('copyJoinCodeBtn');
+                    const input = document.getElementById('joinCodeValue');
+                    const closeBtn = document.getElementById('closeJoinCodeModal');
+                    const doneBtn = document.getElementById('doneJoinCodeBtn');
+                    
+                    // Copy functionality
+                    if (copyBtn && input) {
+                        copyBtn.addEventListener('click', async () => {
+                            try {
+                                await navigator.clipboard.writeText(input.value);
+                                const originalHtml = copyBtn.innerHTML;
+                                copyBtn.innerHTML = '<i class="fas fa-check"></i>';
+                                copyBtn.classList.add('btn-success');
+                                copyBtn.classList.remove('btn-outline-secondary');
+                                setTimeout(() => {
+                                    copyBtn.innerHTML = originalHtml;
+                                    copyBtn.classList.remove('btn-success');
+                                    copyBtn.classList.add('btn-outline-secondary');
+                                }, 1500);
+                            } catch (err) {
+                                console.error('Failed to copy:', err);
+                            }
+                        });
+                    }
+                    
+                    // Close handlers
+                    function closeJoinCodeModal() {
+                        modalEl.style.display = 'none';
+                        document.body.style.overflow = '';
+                    }
+                    
+                    if (closeBtn) {
+                        closeBtn.addEventListener('click', closeJoinCodeModal);
+                    }
+                    
+                    if (doneBtn) {
+                        doneBtn.addEventListener('click', closeJoinCodeModal);
+                    }
+                    
+                    // Close on backdrop click
+                    modalEl.addEventListener('click', function(e) {
+                        if (e.target === modalEl) {
+                            closeJoinCodeModal();
+                        }
+                    });
+                }
+            }
         });
     </script>
 }
@@ -231,11 +399,15 @@
     }
 
     .team-section-header i.external-guests-icon {
-        color: #9ca3af; /* Gray color for External Guests */
+        color: #aaaaaa; /* Gray color for External Guests */
+    }
+
+    .team-section-header i.pending-client-icon {
+        color: #aaaaaa; /* Gray color for pending client organizations */
     }
 
     .team-member-avatar.external-guests-avatar {
-        background-color: #9ca3af !important; /* Gray background for External Guests */
+        background-color: #aaaaaa !important; /* Gray background for External Guests */
     }
 
     .team-section-header h2 {
@@ -261,4 +433,41 @@
             max-width: 20%;
         }
     }
+    
+    /* Join Code Modal specific adjustments */
+    #joinCodeModal.task-details-modal {
+        position: fixed;
+        top: 7vh;
+        left: 23vw;
+        right: 320px;
+        bottom: 0;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(0, 0, 0, 0.5);
+        pointer-events: auto;
+    }
+    
+    #joinCodeModal.task-details-modal .modal-dialog {
+        max-width: 90%;
+        width: 45rem;
+        margin: 0;
+        max-height: 90%;
+        border-radius: 12px;
+        pointer-events: auto;
+        position: relative;
+        z-index: 1001;
+    }
+    
+    /* Adjust for hidden sidebar */
+    .sidebar-hidden #joinCodeModal.task-details-modal {
+        left: calc(6vw + 1rem);
+    }
+    
+    /* Adjust for hidden chat panel */
+    .chat-hidden #joinCodeModal.task-details-modal {
+        right: 1rem !important;
+    }
 </style>
+<link rel="stylesheet" href="~/css/tasks.css" />

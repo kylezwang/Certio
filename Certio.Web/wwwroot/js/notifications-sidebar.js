@@ -364,7 +364,11 @@
             
             // Get sender color and check if external contacts
             const isExternalContacts = message.isExternalContacts || false;
-            const senderColor = message.senderColor || (isExternalContacts ? '#9ca3af' : '#3d1019');
+            let senderColor = message.senderColor || (isExternalContacts ? '#aaaaaa' : '#3d1019');
+            // Normalize #9ca3af to #aaaaaa for external contacts
+            if (isExternalContacts && senderColor === '#9ca3af') {
+                senderColor = '#aaaaaa';
+            }
             
             // Build avatar style with color
             const avatarStyle = `background: ${senderColor} !important;`;

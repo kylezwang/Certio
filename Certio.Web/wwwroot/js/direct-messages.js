@@ -368,7 +368,11 @@ function appendDirectMessage(message, previousMessage = null) {
 
     // Get sender color and check if external contacts
     const isExternalContacts = message.isExternalContacts || false;
-    const senderColor = message.senderColor || (isExternalContacts ? '#9ca3af' : '#3d1019');
+    let senderColor = message.senderColor || (isExternalContacts ? '#aaaaaa' : '#3d1019');
+    // Normalize #9ca3af to #aaaaaa for external contacts
+    if (isExternalContacts && senderColor === '#9ca3af') {
+        senderColor = '#aaaaaa';
+    }
     
     // Build avatar style with color - don't apply inline style for current user (let CSS gradient handle it)
     let avatarStyle = '';
@@ -381,6 +385,33 @@ function appendDirectMessage(message, previousMessage = null) {
     // For current user, CSS will apply the gradient via .message-item.current-user-message .message-avatar
 
     const timestamp = formatTimestamp(message.createdAt);
+
+    const messageType = (message.messageType || message.MessageType || '').toLowerCase();
+    const subjectLine = message.emailSubject || message.EmailSubject || '';
+    let bodyText = message.body || message.Body || '';
+
+    // For email messages, ensure subject is prepended if not already present
+    if (messageType === 'email') {
+        const subjectText = subjectLine ? String(subjectLine).trim() : '';
+        if (subjectText) {
+            const trimmedBodyStart = bodyText ? bodyText.trimStart() : '';
+            if (!trimmedBodyStart.startsWith(subjectText)) {
+                bodyText = `${subjectText}\n\n${bodyText}`.trim();
+            }
+        }
+    }
+
+    // Normalize line endings and escape HTML
+    let normalizedText = bodyText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    
+    // Escape HTML to prevent XSS
+    const escapedText = escapeHtml(normalizedText);
+    
+    // Convert newlines to <br> tags for proper rendering
+    // First, replace sequences of 2+ newlines with double <br> (paragraph breaks)
+    let withBreaks = escapedText.replace(/\n{2,}/g, '<br><br>');
+    // Then replace remaining single newlines with single <br>
+    withBreaks = withBreaks.replace(/\n/g, '<br>');
     
     messageElement.innerHTML = `
         <div class="${avatarClass}"${avatarStyle ? ` style="${avatarStyle}"` : ''}>
@@ -391,7 +422,7 @@ function appendDirectMessage(message, previousMessage = null) {
                 <span class="message-author">${escapeHtml(message.senderName)}</span>
                 <span class="message-time">${timestamp}</span>
             </div>
-            <p class="message-text">${escapeHtml(message.body || '')}</p>
+            <p class="message-text">${withBreaks}</p>
         </div>
         ${isGrouped ? `<div class="hover-timestamp">${timestamp}</div>` : ''}
     `;
