@@ -52,12 +52,34 @@ function setupSignalRHandlers() {
 
     // Receive channel message
     communicationsConnection.on("ReceiveChannelMessage", function (message) {
+        // Only show channel messages if we're NOT in direct message mode
+        if (typeof isInDirectMessageMode === 'function' && isInDirectMessageMode()) {
+            console.log('Ignoring channel message - currently in DM mode');
+            return;
+        }
+        
+        // Also check if message is for the current channel
+        const messageChannelId = message.ChannelId || message.ConversationId || message.channelId;
+        const currentChannelIdStr = currentChannelId ? currentChannelId.toString() : null;
+        const messageChannelIdStr = messageChannelId ? messageChannelId.toString() : null;
+        
+        if (messageChannelIdStr && currentChannelIdStr && messageChannelIdStr !== currentChannelIdStr) {
+            console.log('Ignoring channel message - not for current channel:', messageChannelIdStr, 'vs', currentChannelIdStr);
+            return;
+        }
+        
         appendMessage(message);
         scrollToBottom();
     });
 
     // Receive regular message
     communicationsConnection.on("ReceiveMessage", function (message) {
+        // Only show channel messages if we're NOT in direct message mode
+        if (typeof isInDirectMessageMode === 'function' && isInDirectMessageMode()) {
+            console.log('Ignoring regular message - currently in DM mode');
+            return;
+        }
+        
         appendMessage(message);
         scrollToBottom();
     });
@@ -323,9 +345,27 @@ function displayMessages(messages) {
 
 // Append a single message
 function appendMessage(message, animate = true, previousMessage = null) {
-    const messagesContainer = document.querySelector('.messages-list');
+    // Double-check: Don't append channel messages if we're in DM mode
+    if (typeof isInDirectMessageMode === 'function' && isInDirectMessageMode()) {
+        console.log('appendMessage: Ignoring channel message - currently in DM mode');
+        return;
+    }
+    
+    // Find the messages container - ONLY target the main chat area (Communications page)
+    // The Communications page uses .main-chat .messages-list, sidebar uses #commsMessagesList
+    // We want to avoid appending to sidebar accidentally
+    const messagesContainer = document.querySelector('.main-chat .messages-list');
+    
     if (!messagesContainer) {
-        console.error('Messages container not found');
+        // If main chat container doesn't exist, this might be a different page context
+        // Don't append to sidebar container - that's handled by communications-sidebar.js
+        console.log('appendMessage: Main chat container not found, skipping (might be sidebar context)');
+        return;
+    }
+    
+    // Double-check: Make sure we're not in sidebar
+    if (messagesContainer.closest('#commsSidebarPanel')) {
+        console.log('appendMessage: Container is in sidebar, skipping (should be handled by sidebar script)');
         return;
     }
 
@@ -717,9 +757,20 @@ async function switchChannel(channelId, channelName, isMatterChannel, matterTitl
     // UI is already updated by the inline click handler in Communications.cshtml
     // This function now focuses on the data/SignalR operations
     
+    // Exit DM mode if we're switching from DM to channel
+    if (typeof exitDirectMessageMode === 'function') {
+        exitDirectMessageMode();
+    }
+    
     // Reset pagination state for the new channel
     oldestMessageId = null;
     hasMoreMessages = true;
+    
+    // Update message input placeholder
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput) {
+        messageInput.placeholder = `Message #${channelName}`;
+    }
     
     // Show simple loading indicator while switching
     const messagesContainer = document.querySelector('.messages-list');

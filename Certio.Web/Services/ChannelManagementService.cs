@@ -144,17 +144,12 @@ public class ChannelManagementService : Certio.Web.Services.IChannelManagementSe
 
         // Determine accessible client organizations via relationships the user participates in
         var relationshipCandidates = await _context.OrganizationRelationships
+            .Include(or => or.TargetOrganization)
             .Where(or => or.SourceOrganizationId == organizationId &&
                          or.IsActive &&
                          !or.IsDeleted &&
                          or.RelationshipType == RelationshipTypes.LawFirmClient &&
                          (!or.ExpiresAt.HasValue || or.ExpiresAt.Value > DateTime.UtcNow))
-            .Select(or => new
-            {
-                or.Id,
-                or.TargetOrganizationId,
-                TargetOwnerId = (int?)or.TargetOrganization!.OwnerId
-            })
             .ToListAsync();
 
         var accessibleClientOrgIds = new HashSet<int>();
@@ -176,14 +171,53 @@ public class ChannelManagementService : Certio.Web.Services.IChannelManagementSe
                 .Select(uo => uo.OrganizationId)
                 .ToListAsync();
 
+            // Check which client organizations are confirmed
+            // A client is confirmed if:
+            // 1. The owner has joined (has membership), OR
+            // 2. There are registered users (any active UserOrganizations entries)
+            var clientOrgUsers = await _context.UserOrganizations
+                .Where(uo => uo.IsActive && targetOrgIdList.Contains(uo.OrganizationId))
+                .Select(uo => new { uo.OrganizationId, uo.UserId })
+                .ToListAsync();
+
+            var confirmedOrgIds = new HashSet<int>();
+            foreach (var candidate in relationshipCandidates)
+            {
+                var targetOrg = candidate.TargetOrganization;
+                if (targetOrg == null) continue;
+
+                var orgUserIds = clientOrgUsers
+                    .Where(u => u.OrganizationId == targetOrg.Id)
+                    .Select(u => u.UserId)
+                    .ToList();
+
+                var hasRegisteredUsers = orgUserIds.Any();
+                var ownerHasMembership = orgUserIds.Contains(targetOrg.OwnerId);
+                var isConfirmed = ownerHasMembership || hasRegisteredUsers;
+
+                if (isConfirmed)
+                {
+                    confirmedOrgIds.Add(targetOrg.Id);
+                }
+            }
+
             var assignedSet = assignedRelationshipIds.ToHashSet();
             var directSet = directMembershipOrgIds.ToHashSet();
 
             foreach (var candidate in relationshipCandidates)
             {
-                if (assignedSet.Contains(candidate.Id) ||
-                    directSet.Contains(candidate.TargetOrganizationId) ||
-                    (candidate.TargetOwnerId.HasValue && candidate.TargetOwnerId.Value == currentUserId))
+                var targetOrg = candidate.TargetOrganization;
+                if (targetOrg == null) continue;
+
+                // If confirmed, include ALL users from this organization
+                // Otherwise, use the existing assignment/permission logic
+                if (confirmedOrgIds.Contains(targetOrg.Id))
+                {
+                    accessibleClientOrgIds.Add(candidate.TargetOrganizationId);
+                }
+                else if (assignedSet.Contains(candidate.Id) ||
+                         directSet.Contains(candidate.TargetOrganizationId) ||
+                         (targetOrg.OwnerId == currentUserId))
                 {
                     accessibleClientOrgIds.Add(candidate.TargetOrganizationId);
                 }

@@ -3,7 +3,11 @@
     ViewData["BodyClass"] = "settings-page";
     Layout = "_ClientLayout";
     var isLawFirm = ViewBag.OrganizationType != null && ViewBag.OrganizationType.ToString() == "LawFirm";
+    var organizationId = ViewBag.OrganizationId ?? ViewContext.HttpContext.Items["CurrentOrganizationId"];
 }
+
+<!-- Organization ID for JavaScript access -->
+<div class="d-none" data-organization-id="@organizationId"></div>
 
 <div class="settings-container">
     <!-- Header -->
@@ -858,6 +862,33 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Join Code Notalize Template</h3>
+                            <p>Customize the message template sent when notalizing join codes</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content" style="width: 100%;">
+                                    <label class="settings-row-label">Message Template</label>
+                                    <p class="settings-row-description">
+                                        Use <strong>(Client Name)</strong>, <strong>{join code}</strong>, and <strong>(Current user's first and last name)</strong> as placeholders
+                                    </p>
+                                    <textarea id="joinCodeTemplate" class="form-control" rows="8" 
+                                              placeholder="Hello (Client Name),&#10;&#10;Here's the join code you need to use when creating your Notal account:&#10;&#10;{join code}&#10;&#10;Thanks,&#10;&#10;(Current user's first and last name)" 
+                                              style="margin-top: 0.5rem; font-family: monospace; font-size: 0.9rem;"></textarea>
+                                    <button type="button" id="saveJoinCodeTemplate" class="btn btn-primary mt-3" style="border-radius: 0.5rem;">
+                                        Save Template
+                                    </button>
+                                    <button type="button" id="resetJoinCodeTemplate" class="btn btn-secondary mt-3 ms-2" style="border-radius: 0.5rem;">
+                                        Reset to Default
+                                    </button>
+                                    <div id="joinCodeTemplateStatus" class="mt-2" style="display: none;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -907,6 +938,93 @@
 
             // Listen for hash changes
             window.addEventListener('hashchange', handleHashChange);
+
+            // Join Code Template functionality
+            const joinCodeTemplate = document.getElementById('joinCodeTemplate');
+            const saveJoinCodeTemplate = document.getElementById('saveJoinCodeTemplate');
+            const resetJoinCodeTemplate = document.getElementById('resetJoinCodeTemplate');
+            const joinCodeTemplateStatus = document.getElementById('joinCodeTemplateStatus');
+            
+            // Get organization ID from page
+            const orgIdElement = document.querySelector('[data-organization-id]');
+            const orgId = orgIdElement ? parseInt(orgIdElement.getAttribute('data-organization-id')) : null;
+            
+            if (joinCodeTemplate && saveJoinCodeTemplate && orgId) {
+                // Load template on page load
+                loadJoinCodeTemplate();
+                
+                // Save template
+                saveJoinCodeTemplate.addEventListener('click', async function() {
+                    const template = joinCodeTemplate.value.trim();
+                    if (!template) {
+                        showTemplateStatus('Template cannot be empty', 'error');
+                        return;
+                    }
+                    
+                    try {
+                        const response = await fetch(`/api/dm/settings/join-code-template?orgId=${orgId}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ template: template })
+                        });
+                        
+                        const result = await response.json();
+                        if (result.success) {
+                            showTemplateStatus('Template saved successfully', 'success');
+                        } else {
+                            showTemplateStatus(result.error || 'Failed to save template', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error saving template:', error);
+                        showTemplateStatus('Failed to save template. Please try again.', 'error');
+                    }
+                });
+                
+                // Reset to default
+                resetJoinCodeTemplate.addEventListener('click', function() {
+                    const defaultTemplate = `Hello (Client Name), 
+
+Here's the join code you need to use when creating your Notal account: 
+
+{join code}
+
+Thanks,
+
+(Current user's first and last name)`;
+                    joinCodeTemplate.value = defaultTemplate;
+                    showTemplateStatus('Template reset to default. Click Save to apply.', 'info');
+                });
+            }
+            
+            async function loadJoinCodeTemplate() {
+                if (!orgId) return;
+                
+                try {
+                    const response = await fetch(`/api/dm/settings/join-code-template?orgId=${orgId}`);
+                    const result = await response.json();
+                    if (result.success && result.template) {
+                        joinCodeTemplate.value = result.template;
+                    }
+                } catch (error) {
+                    console.error('Error loading template:', error);
+                }
+            }
+            
+            function showTemplateStatus(message, type) {
+                if (!joinCodeTemplateStatus) return;
+                
+                joinCodeTemplateStatus.style.display = 'block';
+                joinCodeTemplateStatus.className = `mt-2 alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'}`;
+                joinCodeTemplateStatus.textContent = message;
+                
+                if (type === 'success') {
+                    setTimeout(() => {
+                        joinCodeTemplateStatus.style.display = 'none';
+                    }, 3000);
+                }
+            }
         });
     </script>
 }

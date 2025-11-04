@@ -549,6 +549,37 @@ namespace Certio.Web.Controllers
                         validJoin = await joinSvc.GetValidAsync(joinCode);
                     }
                 }
+
+                // Check for existing external user to migrate BEFORE creating Identity user
+                Certio.Domain.Users.User? existingExternalUserToMigrate = null;
+                if (validJoin != null && 
+                    !string.IsNullOrWhiteSpace(validJoin.TeamName) && 
+                    validJoin.TeamName.StartsWith("NEW_CLIENT_EXTERNAL_IDS:", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Extract external user ID from metadata (format: "NEW_CLIENT_EXTERNAL_IDS:userId")
+                    var externalUserIdStr = validJoin.TeamName.Substring("NEW_CLIENT_EXTERNAL_IDS:".Length);
+                    if (int.TryParse(externalUserIdStr, out var externalUserId))
+                    {
+                        // Check if an external user with this email exists (check by email, not just ID)
+                        var normalizedEmail = storedEmail?.ToLowerInvariant().Trim();
+                        existingExternalUserToMigrate = await _context.Users
+                            .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail && u.Id == externalUserId);
+                        
+                        // If not found by ID, try to find by email only (in case of mismatch)
+                        if (existingExternalUserToMigrate == null)
+                        {
+                            existingExternalUserToMigrate = await _context.Users
+                                .Include(u => u.UserOrganizations)
+                                .ThenInclude(uo => uo.Organization)
+                                .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail &&
+                                    u.UserOrganizations.Any(uo => uo.IsActive && 
+                                                                  uo.UserType == Certio.Domain.Users.UserTypes.External &&
+                                                                  uo.Organization != null &&
+                                                                  uo.Organization.Name.ToLower().EndsWith("'s external contacts")));
+                        }
+                    }
+                }
+
                 // Create Identity user
                 var identityUser = new IdentityUser 
                 { 
@@ -565,56 +596,79 @@ namespace Certio.Web.Controllers
                     return RedirectToAction("Register", new { step = 4 });
                 }
 
-                // Check if custom User already exists with this email
-                var existingCustomUser = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Email == storedEmail);
-                
+                // Determine custom User - migrate existing external user or use existing/create new
                 Certio.Domain.Users.User customUser;
-                if (existingCustomUser != null)
+                if (existingExternalUserToMigrate != null)
                 {
-                    // Update existing custom User with registration details
-                    existingCustomUser.FirstName = firstName;
-                    existingCustomUser.LastName = lastName;
-                    existingCustomUser.PhoneNumber = phoneNumber;
-                    existingCustomUser.IsActive = true;
+                    // Migrate existing external user instead of creating new one
+                    existingExternalUserToMigrate.FirstName = firstName;
+                    existingExternalUserToMigrate.LastName = lastName;
+                    existingExternalUserToMigrate.PhoneNumber = phoneNumber;
+                    existingExternalUserToMigrate.IsActive = true;
+                    existingExternalUserToMigrate.Color = "#69848C"; // Client color
                     // Don't update CreatedAt - preserve original creation date
-                    if (string.IsNullOrEmpty(existingCustomUser.Color))
-                    {
-                        existingCustomUser.Color = GetRandomColor();
-                    }
-                    _context.Users.Update(existingCustomUser);
+                    _context.Users.Update(existingExternalUserToMigrate);
                     await _context.SaveChangesAsync();
-                    customUser = existingCustomUser;
+                    customUser = existingExternalUserToMigrate;
                 }
                 else
                 {
-                    // Create new custom User record
-                    customUser = new Certio.Domain.Users.User
+                    // Check if custom User already exists with this email
+                    var existingCustomUser = await _context.Users
+                        .FirstOrDefaultAsync(u => u.Email == storedEmail);
+                    
+                    if (existingCustomUser != null)
                     {
-                        FirstName = firstName,
-                        LastName = lastName,
-                        Email = storedEmail,
-                        PhoneNumber = phoneNumber,
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow,
-                        Color = GetRandomColor()
-                    };
+                        // Update existing custom User with registration details
+                        existingCustomUser.FirstName = firstName;
+                        existingCustomUser.LastName = lastName;
+                        existingCustomUser.PhoneNumber = phoneNumber;
+                        existingCustomUser.IsActive = true;
+                        // Don't update CreatedAt - preserve original creation date
+                        if (string.IsNullOrEmpty(existingCustomUser.Color))
+                        {
+                            existingCustomUser.Color = GetRandomColor();
+                        }
+                        _context.Users.Update(existingCustomUser);
+                        await _context.SaveChangesAsync();
+                        customUser = existingCustomUser;
+                    }
+                    else
+                    {
+                        // Create new custom User record
+                        customUser = new Certio.Domain.Users.User
+                        {
+                            FirstName = firstName,
+                            LastName = lastName,
+                            Email = storedEmail,
+                            PhoneNumber = phoneNumber,
+                            IsActive = true,
+                            CreatedAt = DateTime.UtcNow,
+                            Color = GetRandomColor()
+                        };
 
-                    _context.Users.Add(customUser);
-                    await _context.SaveChangesAsync();
+                        _context.Users.Add(customUser);
+                        await _context.SaveChangesAsync();
+                    }
                 }
 
                 // Determine organization and role based on selection
-                int organizationId;
+                int organizationId = 0;
                 var userType = Certio.Domain.Users.UserTypes.Client;
                 var organizationRole = Certio.Domain.Users.OrganizationRoles.Member;
 
                 if (validJoin != null)
                 {
-                    // Joining existing organization
+                    // Joining existing organization - DO NOT create default organization
                     organizationId = validJoin.OrganizationId;
                     userType = validJoin.InvitedUserType;
                     organizationRole = validJoin.InvitedRole;
+                }
+                else if (organizationType == "join")
+                {
+                    // Invalid join code - should not have reached here, but handle gracefully
+                    TempData["Error"] = "Invalid or expired join code. Please check your join code and try again.";
+                    return RedirectToAction("Register", new { step = 2 });
                 }
                 else if (organizationType == "client")
                 {
@@ -708,7 +762,7 @@ namespace Certio.Web.Controllers
                     await _context.SaveChangesAsync();
                 }
 
-                // If joined via code, consume code and add to team if specified
+                // If joined via code, consume code and handle external user migration
                 if (validJoin != null)
                 {
                     var joinSvc = HttpContext.RequestServices.GetService<Certio.Web.Services.IJoinCodeService>();
@@ -721,44 +775,27 @@ namespace Certio.Web.Controllers
                     if (!string.IsNullOrWhiteSpace(validJoin.TeamName) && 
                         validJoin.TeamName.StartsWith("NEW_CLIENT_EXTERNAL_IDS:", StringComparison.OrdinalIgnoreCase))
                     {
-                        // Extract external user ID from metadata (format: "NEW_CLIENT_EXTERNAL_IDS:userId")
-                        var externalUserIdStr = validJoin.TeamName.Substring("NEW_CLIENT_EXTERNAL_IDS:".Length);
-                        if (int.TryParse(externalUserIdStr, out var externalUserId))
+                        // If we migrated an external user, deactivate their external organization memberships
+                        if (existingExternalUserToMigrate != null)
                         {
-                            // Check if an external user with this email already exists in the system
-                            var normalizedEmail = storedEmail?.ToLowerInvariant().Trim();
-                            var existingExternalUser = await _context.Users
-                                .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail && u.Id == externalUserId);
+                            // Find external organization memberships for this user
+                            var externalMemberships = await _context.UserOrganizations
+                                .Include(uo => uo.Organization)
+                                .Where(uo => uo.UserId == customUser.Id &&
+                                             uo.IsActive &&
+                                             uo.UserType == Certio.Domain.Users.UserTypes.External &&
+                                             uo.Organization != null &&
+                                             uo.Organization.Name.ToLower().EndsWith("'s external contacts"))
+                                .ToListAsync();
 
-                            if (existingExternalUser != null)
+                            // Deactivate external memberships (soft remove)
+                            foreach (var extMembership in externalMemberships)
                             {
-                                // Find external organization memberships for this user
-                                var externalMemberships = await _context.UserOrganizations
-                                    .Include(uo => uo.Organization)
-                                    .Where(uo => uo.UserId == existingExternalUser.Id &&
-                                                 uo.IsActive &&
-                                                 uo.UserType == Certio.Domain.Users.UserTypes.External &&
-                                                 uo.Organization != null &&
-                                                 uo.Organization.Name.ToLower().EndsWith("'s external contacts"))
-                                    .ToListAsync();
-
-                                // Deactivate external memberships (soft remove)
-                                foreach (var extMembership in externalMemberships)
-                                {
-                                    extMembership.IsActive = false;
-                                    extMembership.LeftAt = DateTime.UtcNow;
-                                }
-
-                                // Update user color to client color (#A6D0DD - light blue) for the existing user
-                                existingExternalUser.Color = "#69848C";
-                                _context.Users.Update(existingExternalUser);
-
-                                // Also set the new user's color since they're the same person
-                                customUser.Color = "#69848C";
-                                _context.Users.Update(customUser);
-
-                                await _context.SaveChangesAsync();
+                                extMembership.IsActive = false;
+                                extMembership.LeftAt = DateTime.UtcNow;
                             }
+
+                            await _context.SaveChangesAsync();
                         }
                     }
 
@@ -1960,7 +1997,7 @@ namespace Certio.Web.Controllers
                             }
 
                             // Update user color to client color (#A6D0DD - light blue)
-                            customUser.Color = "#A6D0DD";
+                            customUser.Color = "#69848C";
                             _context.Users.Update(customUser);
 
                             await _context.SaveChangesAsync();

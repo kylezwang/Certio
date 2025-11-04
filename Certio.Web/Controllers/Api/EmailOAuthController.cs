@@ -8,6 +8,9 @@ using Certio.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Certio.Domain.Services;
+using System.Security.Cryptography;
+using System.Text;
+using Certio.Web.Services;
 
 namespace Certio.Web.Controllers.Api;
 
@@ -20,17 +23,20 @@ public class EmailOAuthController : Controller
     private readonly ILogger<EmailOAuthController> _logger;
     private readonly IConfiguration _configuration;
     private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly ICacheService _cacheService;
 
     public EmailOAuthController(
         IEmailService emailService,
         ILogger<EmailOAuthController> logger,
         IConfiguration configuration,
-        IServiceScopeFactory serviceScopeFactory)
+        IServiceScopeFactory serviceScopeFactory,
+        ICacheService cacheService)
     {
         _emailService = emailService;
         _logger = logger;
         _configuration = configuration;
         _serviceScopeFactory = serviceScopeFactory;
+        _cacheService = cacheService;
     }
 
     /// <summary>
@@ -404,11 +410,27 @@ public class EmailOAuthController : Controller
             using var scope = HttpContext.RequestServices.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             
-            // Gather all email account IDs for this user
-            var userAccountIds = await context.EmailAccounts
-                .Where(ea => ea.UserId == userId)
-                .Select(ea => ea.Id)
-                .ToListAsync();
+            // FIXED: Cache user account IDs (queried every time, rarely changes)
+            var accountIdsCacheKey = $"user_email_accounts:{userId}";
+            var userAccountIds = await _cacheService.GetAsync<List<int>>(accountIdsCacheKey);
+            
+            if (userAccountIds == null)
+            {
+                _logger.LogDebug("Cache miss for user account IDs - loading from database for user {UserId}", userId);
+                userAccountIds = await context.EmailAccounts
+                    .Where(ea => ea.UserId == userId)
+                    .Select(ea => ea.Id)
+                    .OrderBy(id => id) // Sort for consistent cache key
+                    .ToListAsync();
+                
+                // Cache for 30 minutes (only invalidates when accounts change)
+                await _cacheService.SetAsync(accountIdsCacheKey, userAccountIds, TimeSpan.FromMinutes(30));
+                _logger.LogDebug("Cached {Count} account IDs for user {UserId}", userAccountIds.Count, userId);
+            }
+            else
+            {
+                _logger.LogDebug("Cache hit for user account IDs - using cached {Count} IDs for user {UserId}", userAccountIds.Count, userId);
+            }
 
             // Base query: email messages across all accounts
             // For search, use narrower time window for better performance
@@ -463,8 +485,52 @@ public class EmailOAuthController : Controller
 
             // Fetch with efficient pagination
             var pageSize = Math.Min(take, 25);
+
+            // Helper to create normalized cache key
+            string CreateCacheKey(string prefix, string? searchTerm = null, int? skipVal = null, int? takeVal = null)
+            {
+                var keyBuilder = new StringBuilder(prefix);
+                keyBuilder.Append($":{userId}");
+                
+                // Include account IDs in cache key (sorted for consistency)
+                var accountIdsStr = string.Join(",", userAccountIds.OrderBy(id => id));
+                keyBuilder.Append($":accounts:{accountIdsStr}");
+                
+                if (searchTerm != null)
+                {
+                    // Normalize search term (lowercase, trim) for cache key consistency
+                    var normalizedSearch = searchTerm.Trim().ToLowerInvariant();
+                    // Use hash for very long search terms to keep cache keys manageable
+                    if (normalizedSearch.Length > 50)
+                    {
+                        using var sha256 = SHA256.Create();
+                        var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(normalizedSearch));
+                        normalizedSearch = Convert.ToBase64String(hash)[..16]; // Use first 16 chars of hash
+                    }
+                    keyBuilder.Append($":search:{normalizedSearch}");
+                }
+                
+                if (skipVal.HasValue) keyBuilder.Append($":skip:{skipVal.Value}");
+                if (takeVal.HasValue) keyBuilder.Append($":take:{takeVal.Value}");
+                
+                return keyBuilder.ToString();
+            }
+
             if (isSearching)
             {
+                // FIXED: Cache search results for 5 minutes (balance freshness vs speed)
+                var trimmed = search!.Trim();
+                var searchCacheKey = CreateCacheKey("email_search", trimmed);
+                
+                var cachedSearchResult = await _cacheService.GetAsync<object>(searchCacheKey);
+                if (cachedSearchResult != null)
+                {
+                    _logger.LogDebug("Cache hit for email search '{SearchTerm}' for user {UserId}", trimmed, userId);
+                    return Ok(cachedSearchResult);
+                }
+                
+                _logger.LogDebug("Cache miss for email search '{SearchTerm}' - querying database for user {UserId}", trimmed, userId);
+                
                 const int maxSearchResults = 50;
                 var rawItems = await orderedProjectedQuery
                     .Take(maxSearchResults)
@@ -487,16 +553,34 @@ public class EmailOAuthController : Controller
                     isImportant = false
                 }).ToList();
 
-                return Ok(new
+                var searchResult = new
                 {
                     success = true,
                     messages = inboxMessages,
                     hasMore = false,
                     total = inboxMessages.Count
-                });
+                };
+
+                // Cache search result for 5 minutes
+                await _cacheService.SetAsync(searchCacheKey, searchResult, TimeSpan.FromMinutes(5));
+                _logger.LogDebug("Cached search result for '{SearchTerm}' ({Count} messages) for user {UserId}", trimmed, inboxMessages.Count, userId);
+
+                return Ok(searchResult);
             }
             else
             {
+                // FIXED: Cache inbox listing for 2 minutes (shorter TTL since new emails come in)
+                var inboxCacheKey = CreateCacheKey("email_inbox", null, skip, pageSize);
+                
+                var cachedInboxResult = await _cacheService.GetAsync<object>(inboxCacheKey);
+                if (cachedInboxResult != null)
+                {
+                    _logger.LogDebug("Cache hit for inbox listing (skip={Skip}, take={Take}) for user {UserId}", skip, pageSize, userId);
+                    return Ok(cachedInboxResult);
+                }
+                
+                _logger.LogDebug("Cache miss for inbox listing (skip={Skip}, take={Take}) - querying database for user {UserId}", skip, pageSize, userId);
+                
                 var rawItems = await orderedProjectedQuery
                     .Skip(skip)
                     .Take(pageSize + 1)
@@ -527,13 +611,19 @@ public class EmailOAuthController : Controller
 
                 var approxTotal = skip + inboxMessages.Count + (hasMore ? 1 : 0);
 
-                return Ok(new
+                var inboxResult = new
                 {
                     success = true,
                     messages = inboxMessages,
                     hasMore,
                     total = approxTotal
-                });
+                };
+
+                // Cache inbox result for 2 minutes
+                await _cacheService.SetAsync(inboxCacheKey, inboxResult, TimeSpan.FromMinutes(2));
+                _logger.LogDebug("Cached inbox listing (skip={Skip}, take={Take}, {Count} messages) for user {UserId}", skip, pageSize, inboxMessages.Count, userId);
+
+                return Ok(inboxResult);
             }
         }
         catch (Exception ex)

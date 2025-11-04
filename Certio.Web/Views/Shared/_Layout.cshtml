@@ -227,21 +227,23 @@
         }
 
         .clients-list {
-            padding: 0.5rem 0;
+            padding: 0.5rem 0.5rem;
         }
 
         .client-item {
             padding: 0.75rem 1rem;
             border-bottom: 1px solid #f3f4f6;
             cursor: pointer;
-            transition: background-color 0.2s ease;
+            transition: background-color 0.2s ease, border-radius 0.2s ease;
             display: flex;
             flex-direction: column;
             gap: 0.25rem;
         }
 
-        .client-item:hover {
-            background-color: #f9fafb;
+        .client-item:hover,
+        .client-item.active {
+            background-color: #eef1f3;
+            border-radius: 12px;
         }
 
         .client-item:last-child {
@@ -875,11 +877,61 @@
                 }
             }
 
+            // Helper function to get last opened client organization ID from localStorage
+            function getLastOpenedClientOrgId() {
+                try {
+                    return localStorage.getItem('lastOpenedClientOrgId');
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            // Helper function to set last opened client organization ID in localStorage
+            function setLastOpenedClientOrgId(orgId) {
+                try {
+                    if (orgId && !isNaN(orgId)) {
+                        localStorage.setItem('lastOpenedClientOrgId', orgId.toString());
+                    }
+                } catch (e) {
+                    // Ignore localStorage errors
+                }
+            }
+
+            // Helper function to get current scoped client organization ID
+            function getCurrentClientOrgId() {
+                const currentPath = window.location.pathname;
+                
+                // Quick check: use meta tag if available (synchronous, no delay)
+                const orgTypeMeta = document.querySelector('meta[name="organization-type"]');
+                if (orgTypeMeta) {
+                    const orgType = orgTypeMeta.getAttribute('content');
+                    if (orgType && orgType !== 'LawFirm') {
+                        // Extract orgId from current URL path
+                        const urlMatch = currentPath.match(/^\/Client\/(\d+)/);
+                        if (urlMatch) {
+                            return parseInt(urlMatch[1]);
+                        }
+                    }
+                }
+                
+                // Fallback: Extract orgId from URL path pattern
+                const urlMatch = currentPath.match(/^\/Client\/(\d+)/);
+                if (urlMatch) {
+                    return parseInt(urlMatch[1]);
+                }
+                
+                return null;
+            }
+
             // Populate clients list
             async function populateClientsList() {
                 clientsList.innerHTML = '';
                 try {
-                    const response = await fetch('/Client/List', { credentials: 'include' });
+                    const lastOpenedOrgId = getLastOpenedClientOrgId();
+                    const url = lastOpenedOrgId 
+                        ? `/Client/List?lastOpenedOrgId=${encodeURIComponent(lastOpenedOrgId)}`
+                        : '/Client/List';
+                    const response = await fetch(url, { credentials: 'include' });
                     const result = await response.json();
                     if (!result.success) {
                         const msg = document.createElement('div');
@@ -888,7 +940,11 @@
                         clientsList.appendChild(msg);
                         return;
                     }
-                    const orgs = (result.organizations || []).filter(o => o.organizationType !== 'LawFirm');
+                    // Filter: Only show confirmed client organizations (not LawFirm, not pending)
+                    const orgs = (result.organizations || []).filter(o => 
+                        o.organizationType !== 'LawFirm' && 
+                        o.isConfirmed === true
+                    );
                     if (orgs.length === 0) {
                         const empty = document.createElement('div');
                         empty.className = 'client-item';
@@ -896,17 +952,31 @@
                         clientsList.appendChild(empty);
                         return;
                     }
+                    
+                    // Get current scoped client organization ID
+                    const currentOrgId = getCurrentClientOrgId();
+                    
+                    // Verify currentOrgId is actually a client organization
+                    let isCurrentOrgClient = false;
+                    if (currentOrgId) {
+                        const currentOrg = orgs.find(o => o.organizationId === currentOrgId);
+                        isCurrentOrgClient = currentOrg !== undefined;
+                    }
+                    
                     orgs.forEach(o => {
                         // Use displayOwnerName if available, otherwise construct from ownerFirstName/ownerLastName
                         const ownerName = o.displayOwnerName || `${o.ownerFirstName} ${o.ownerLastName}`.trim();
                         const clientItem = document.createElement('div');
-                        clientItem.className = 'client-item';
+                        const isActive = isCurrentOrgClient && o.organizationId === currentOrgId;
+                        clientItem.className = isActive ? 'client-item active' : 'client-item';
                         clientItem.innerHTML = `
                             <h5 class="client-name">${ownerName}</h5>
                             <p class="client-company">${o.organizationName}</p>
                             <p class="client-status">${o.isPrimary ? 'Primary' : (o.isPersonal ? 'Personal' : 'Active')}</p>
                         `;
                         clientItem.addEventListener('click', () => {
+                            // Track last opened client organization
+                            setLastOpenedClientOrgId(o.organizationId);
                             window.location.href = `/Client/${o.organizationId}/Dashboard`;
                         });
                         clientsList.appendChild(clientItem);

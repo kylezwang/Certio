@@ -805,9 +805,35 @@ function requestClarity() {
 
 // Get current user ID (you'll need to implement this based on your auth system)
 function getCurrentUserId() {
-    // This should return the actual user ID from your authentication system
-    const userId = document.querySelector('[data-user-id]')?.dataset.userId;
-    return userId ? parseInt(userId) : null;
+    // Get from appContext first - THIS IS THE PRIMARY SOURCE
+    const appContext = document.getElementById('appContext');
+    if (appContext) {
+        const userId = appContext.dataset.currentUserId;
+        // Don't return "0" which is the default when user is null
+        if (userId && userId !== "0" && userId !== "null" && userId !== "") {
+            return parseInt(userId);
+        }
+    }
+    
+    // Try from specific data-current-user-id attribute (not data-user-id which could be any user)
+    const userIdElement = document.querySelector('[data-current-user-id]');
+    if (userIdElement && userIdElement.dataset.currentUserId) {
+        const userId = userIdElement.dataset.currentUserId;
+        if (userId && userId !== "0" && userId !== "null" && userId !== "") {
+            return parseInt(userId);
+        }
+    }
+    
+    // Fallback to window object
+    if (window.currentUserId) {
+        return parseInt(window.currentUserId);
+    }
+    
+    // REMOVED DANGEROUS FALLBACK: querySelector('[data-user-id]') was picking up
+    // any user element on the page, including client users in scoped views
+    
+    console.warn('getCurrentUserId: Could not find current user ID from any source');
+    return null;
 }
 
 // Get current user type

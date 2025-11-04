@@ -757,6 +757,258 @@ public class DirectMessagesController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Notalize a join code - Get or create DM thread with external user and return template
+    /// </summary>
+    [HttpPost("notalize-join-code")]
+    public async Task<IActionResult> NotalizeJoinCode([FromBody] NotalizeJoinCodeRequest request, [FromQuery] int orgId)
+    {
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            
+            // Validate request
+            if (string.IsNullOrWhiteSpace(request.JoinCode))
+            {
+                return BadRequest(new { success = false, error = "Join code is required" });
+            }
+            
+            // Get join code details
+            var joinCode = await _context.OrganizationJoinCodes
+                .Include(jc => jc.Organization)
+                .FirstOrDefaultAsync(jc => jc.Code == request.JoinCode.Trim() && 
+                                         jc.OrganizationId == request.ClientOrgId &&
+                                         jc.IsActive && 
+                                         jc.ExpiresAt > DateTime.UtcNow && 
+                                         jc.UsesRemaining > 0);
+            
+            if (joinCode == null)
+            {
+                return BadRequest(new { success = false, error = "Invalid or expired join code" });
+            }
+            
+            // Get client organization
+            var clientOrg = joinCode.Organization;
+            if (clientOrg == null || clientOrg.Type != Domain.Organizations.OrganizationType.Client)
+            {
+                return BadRequest(new { success = false, error = "Join code is not for a client organization" });
+            }
+            
+            // Get external user (owner of client organization)
+            var externalUser = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == clientOrg.OwnerId && u.IsActive);
+            
+            if (externalUser == null)
+            {
+                return BadRequest(new { success = false, error = "Client organization owner not found" });
+            }
+            
+            // Get or create thread
+            var thread = await _directMessageService.GetOrCreateThreadAsync(orgId, currentUserId, externalUser.Id);
+            
+            // Get current user for template
+            var currentUser = await _context.Users.FindAsync(currentUserId);
+            if (currentUser == null)
+            {
+                return BadRequest(new { success = false, error = "Current user not found" });
+            }
+            
+            // Get template from organization settings
+            var template = await GetJoinCodeNotalizeTemplateAsync(orgId);
+            
+            // Replace template variables
+            var clientName = externalUser.FirstName != null && externalUser.LastName != null
+                ? $"{externalUser.FirstName} {externalUser.LastName}".Trim()
+                : externalUser.Email ?? "Client";
+            
+            var userName = currentUser.FirstName != null && currentUser.LastName != null
+                ? $"{currentUser.FirstName} {currentUser.LastName}".Trim()
+                : currentUser.Email ?? "User";
+            
+            var messageText = template
+                .Replace("{Client Name}", clientName)
+                .Replace("{join code}", joinCode.Code)
+                .Replace("(Client Name)", clientName)
+                .Replace("(Current user's first and last name)", userName);
+            
+            _logger.LogInformation("Notalize join code {JoinCode} for client {ClientId} in org {OrgId} by user {UserId}", 
+                joinCode.Code, externalUser.Id, orgId, currentUserId);
+            
+            return Ok(new { 
+                success = true, 
+                thread = new {
+                    id = thread.Id,
+                    otherUserId = externalUser.Id,
+                    otherUserName = externalUser.FirstName != null && externalUser.LastName != null
+                        ? $"{externalUser.FirstName} {externalUser.LastName}".Trim()
+                        : externalUser.Email ?? "Client",
+                    otherUserEmail = externalUser.Email,
+                    isExternalUser = true,
+                    isNewThread = false,
+                    otherUserColor = externalUser.Color ?? "#aaaaaa"
+                },
+                messageTemplate = messageText
+            });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "Unauthorized attempt to notalize join code in org {OrgId}", orgId);
+            return Unauthorized(new { success = false, error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error notalizing join code");
+            return StatusCode(500, new { success = false, error = $"Failed to notalize join code: {ex.Message}" });
+        }
+    }
+    
+    /// <summary>
+    /// Get join code notalize template from organization settings
+    /// </summary>
+    private async Task<string> GetJoinCodeNotalizeTemplateAsync(int orgId)
+    {
+        var organization = await _context.Organizations.FindAsync(orgId);
+        if (organization == null)
+        {
+            return GetDefaultJoinCodeTemplate();
+        }
+        
+        // Parse settings JSON
+        if (string.IsNullOrWhiteSpace(organization.Settings))
+        {
+            return GetDefaultJoinCodeTemplate();
+        }
+        
+        try
+        {
+            var settings = JsonSerializer.Deserialize<Dictionary<string, object>>(organization.Settings);
+            if (settings != null && settings.TryGetValue("JoinCodeNotalizeTemplate", out var templateObj))
+            {
+                var template = templateObj?.ToString();
+                if (!string.IsNullOrWhiteSpace(template))
+                {
+                    return template;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to parse organization settings for org {OrgId}", orgId);
+        }
+        
+        return GetDefaultJoinCodeTemplate();
+    }
+    
+    /// <summary>
+    /// Get default join code template
+    /// </summary>
+    private string GetDefaultJoinCodeTemplate()
+    {
+        return @"Hello (Client Name), 
+
+Here's the join code you need to use when creating your Notal account: 
+
+{join code}
+
+Thanks,
+
+(Current user's first and last name)";
+    }
+    
+    /// <summary>
+    /// Save join code notalize template to organization settings
+    /// </summary>
+    [HttpPost("settings/join-code-template")]
+    public async Task<IActionResult> SaveJoinCodeTemplate([FromBody] SaveSettingsRequest request, [FromQuery] int orgId)
+    {
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            
+            // Verify user has access to organization
+            var hasAccess = await _context.UserOrganizations
+                .AnyAsync(uo => uo.UserId == currentUserId && 
+                              uo.OrganizationId == orgId && 
+                              uo.IsActive);
+            
+            if (!hasAccess)
+            {
+                return Unauthorized(new { success = false, error = "You do not have access to this organization" });
+            }
+            
+            var organization = await _context.Organizations.FindAsync(orgId);
+            if (organization == null)
+            {
+                return NotFound(new { success = false, error = "Organization not found" });
+            }
+            
+            // Parse or create settings JSON
+            Dictionary<string, object> settings;
+            if (string.IsNullOrWhiteSpace(organization.Settings))
+            {
+                settings = new Dictionary<string, object>();
+            }
+            else
+            {
+                try
+                {
+                    settings = JsonSerializer.Deserialize<Dictionary<string, object>>(organization.Settings) 
+                        ?? new Dictionary<string, object>();
+                }
+                catch
+                {
+                    settings = new Dictionary<string, object>();
+                }
+            }
+            
+            // Update template
+            settings["JoinCodeNotalizeTemplate"] = request.Template ?? GetDefaultJoinCodeTemplate();
+            
+            // Save back to organization
+            organization.Settings = JsonSerializer.Serialize(settings);
+            await _context.SaveChangesAsync();
+            
+            return Ok(new { success = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error saving join code template");
+            return StatusCode(500, new { success = false, error = $"Failed to save template: {ex.Message}" });
+        }
+    }
+    
+    /// <summary>
+    /// Get join code notalize template from organization settings
+    /// </summary>
+    [HttpGet("settings/join-code-template")]
+    public async Task<IActionResult> GetJoinCodeTemplate([FromQuery] int orgId)
+    {
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            
+            // Verify user has access to organization
+            var hasAccess = await _context.UserOrganizations
+                .AnyAsync(uo => uo.UserId == currentUserId && 
+                              uo.OrganizationId == orgId && 
+                              uo.IsActive);
+            
+            if (!hasAccess)
+            {
+                return Unauthorized(new { success = false, error = "You do not have access to this organization" });
+            }
+            
+            var template = await GetJoinCodeNotalizeTemplateAsync(orgId);
+            
+            return Ok(new { success = true, template });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting join code template");
+            return StatusCode(500, new { success = false, error = $"Failed to get template: {ex.Message}" });
+        }
+    }
+
     private int GetCurrentUserId()
     {
         // First try to get the custom user ID from context (set by UserSyncMiddleware)
@@ -792,5 +1044,16 @@ public class NotalizeRequest
     public string? ExternalEmailId { get; set; }
     public string? EmailThreadId { get; set; }
     public DateTime? ReceivedAt { get; set; }
+}
+
+public class NotalizeJoinCodeRequest
+{
+    public string JoinCode { get; set; } = "";
+    public int ClientOrgId { get; set; }
+}
+
+public class SaveSettingsRequest
+{
+    public string? Template { get; set; }
 }
 

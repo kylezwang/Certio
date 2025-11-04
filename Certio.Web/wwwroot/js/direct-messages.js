@@ -2,6 +2,7 @@
 let directConnection = null;
 let currentDirectThreadId = null;
 let currentDirectUserId = null;
+let currentDirectUserName = null;
 let currentDirectOrgId = null;
 let currentDirectOtherUserId = null;
 let currentDirectOtherUserName = null;
@@ -10,9 +11,20 @@ let isDMTyping = false;
 let isDirectMessageMode = false;
 
 // Initialize direct messaging connection
-async function initializeDirectMessaging(userId, organizationId) {
+async function initializeDirectMessaging(userId, organizationId, userName = null) {
     currentDirectUserId = userId;
     currentDirectOrgId = organizationId;
+    if (userName) {
+        currentDirectUserName = userName;
+    } else {
+        // Try to get from global context
+        const appContext = document.getElementById('appContext');
+        if (appContext && appContext.dataset.currentUserName) {
+            currentDirectUserName = appContext.dataset.currentUserName;
+        } else {
+            currentDirectUserName = 'You';
+        }
+    }
 
     // Initialize SignalR connection
     if (typeof signalR === 'undefined') {
@@ -44,14 +56,39 @@ function setupDirectMessageHandlers() {
 
     // Receive direct message (unique event name to avoid conflict with AI chat)
     directConnection.on("ReceiveDirectMessage", function (message) {
+        // Only process if we're in direct message mode
+        if (!isDirectMessageMode) {
+            console.log('Ignoring direct message - not in DM mode');
+            return;
+        }
+        
+        // Check if message is for the current thread
+        const messageThreadId = message.ThreadId || message.threadId;
+        let normalizedMessageThreadId = messageThreadId ? messageThreadId.toString().toLowerCase().trim().replace(/[{}]/g, '') : null;
+        let normalizedCurrentThreadId = currentDirectThreadId ? currentDirectThreadId.toString().toLowerCase().trim().replace(/[{}]/g, '') : null;
+        
+        if (normalizedMessageThreadId && normalizedCurrentThreadId && normalizedMessageThreadId !== normalizedCurrentThreadId) {
+            console.log('Ignoring direct message - not for current thread:', normalizedMessageThreadId, 'vs', normalizedCurrentThreadId);
+            return;
+        }
+        
+        // Remove optimistic message if it exists (by checking if we have a temp message)
+        const messagesContainer = document.querySelector('.messages-list');
+        if (messagesContainer) {
+            const tempMessage = messagesContainer.querySelector('[data-message-id^="temp-"]');
+            if (tempMessage) {
+                tempMessage.remove();
+            }
+        }
+        
         appendDirectMessage(message);
         if (typeof scrollToBottom === 'function') {
             setTimeout(scrollToBottom, 100);
         }
         
         // Auto mark as read if thread is open
-        if (message.ThreadId === currentDirectThreadId) {
-            markDirectThreadAsRead(message.ThreadId);
+        if (messageThreadId === currentDirectThreadId || normalizedMessageThreadId === normalizedCurrentThreadId) {
+            markDirectThreadAsRead(messageThreadId || currentDirectThreadId);
         }
     });
 
@@ -216,15 +253,46 @@ async function sendDirectMessage(body, messageType = 'Text') {
         return;
     }
 
-    try {
-        await directConnection.invoke("SendMessage", currentDirectThreadId, body, messageType);
-        
-        // Clear input - use the shared message input
+    // Clear input immediately for better UX
         const messageInput = document.getElementById('messageInput');
         if (messageInput) {
             messageInput.value = '';
             messageInput.style.height = 'auto';
         }
+
+    try {
+        // Get current user name if not set
+        if (!currentDirectUserName) {
+            const appContext = document.getElementById('appContext');
+            if (appContext && appContext.dataset.currentUserName) {
+                currentDirectUserName = appContext.dataset.currentUserName;
+            } else {
+                currentDirectUserName = 'You';
+            }
+        }
+        
+        // Create optimistic message for immediate display
+        const optimisticMessage = {
+            id: 'temp-' + Date.now(),
+            senderId: currentDirectUserId,
+            senderName: currentDirectUserName,
+            body: body,
+            content: body,
+            createdAt: new Date().toISOString(),
+            CreatedAt: new Date().toISOString(),
+            Time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        
+        // Append optimistic message immediately
+        appendDirectMessage(optimisticMessage);
+        setTimeout(() => {
+            const messagesContainer = document.querySelector('.messages-container');
+            if (messagesContainer) {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        }, 100);
+        
+        await directConnection.invoke("SendMessage", currentDirectThreadId, body, messageType);
         
         // Stop typing indicator
         await sendDirectTypingIndicator(false);
@@ -232,6 +300,20 @@ async function sendDirectMessage(body, messageType = 'Text') {
     } catch (error) {
         console.error("Error sending direct message:", error);
         showDirectMessageError("Failed to send message");
+        
+        // Remove optimistic message if it exists
+        const messagesContainer = document.querySelector('.messages-list');
+        if (messagesContainer) {
+            const tempMessage = messagesContainer.querySelector('[data-message-id^="temp-"]');
+            if (tempMessage) {
+                tempMessage.remove();
+            }
+        }
+        
+        // Restore message in input on error
+        if (messageInput) {
+            messageInput.value = body;
+        }
     }
 }
 
@@ -336,23 +418,69 @@ function displayDirectMessages(messages) {
 }
 
 function appendDirectMessage(message, previousMessage = null) {
-    // Use the existing messages-list container
-    const messagesContainer = document.querySelector('.messages-list');
-    if (!messagesContainer) return;
+    // Double-check: Only append if we're in DM mode
+    if (!isDirectMessageMode) {
+        console.log('appendDirectMessage: Ignoring - not in DM mode');
+        return;
+    }
+    
+    // Find the messages container - ONLY target the main chat area (Communications page)
+    // The Communications page uses .main-chat .messages-list, sidebar uses #commsMessagesList
+    // We want to avoid appending to sidebar accidentally
+    const messagesContainer = document.querySelector('.main-chat .messages-list');
+    
+    if (!messagesContainer) {
+        // If main chat container doesn't exist, this might be a different page context
+        // Don't append to sidebar container - that's handled by communications-sidebar.js
+        console.log('appendDirectMessage: Main chat container not found, skipping (might be sidebar context)');
+        return;
+    }
+    
+    // Double-check: Make sure we're not in sidebar
+    if (messagesContainer.closest('#commsSidebarPanel')) {
+        console.log('appendDirectMessage: Container is in sidebar, skipping (should be handled by sidebar script)');
+        return;
+    }
+
+    // Check if message already exists (prevent duplicates from SignalR and optimistic updates)
+    const messageId = message.id || message.Id || message.Id;
+    if (messageId && !messageId.toString().startsWith('temp-')) {
+        const existingMessage = messagesContainer.querySelector(`[data-message-id="${messageId}"]`);
+        if (existingMessage) {
+            console.log('Message already exists, skipping duplicate:', messageId);
+            return;
+        }
+    }
+
+    // Get previous message from DOM if not provided
+    if (!previousMessage && messagesContainer.children.length > 0) {
+        const lastMessageElement = messagesContainer.children[messagesContainer.children.length - 1];
+        if (lastMessageElement && lastMessageElement.dataset && lastMessageElement.dataset.messageId) {
+            // Try to extract previous message data from DOM
+            const prevSenderId = lastMessageElement.dataset.senderId;
+            const prevCreatedAt = lastMessageElement.dataset.createdAt;
+            if (prevSenderId && prevCreatedAt) {
+                previousMessage = {
+                    senderId: prevSenderId,
+                    createdAt: prevCreatedAt
+                };
+            }
+        }
+    }
 
     // Check if we should group this message with the previous one
     let isGrouped = false;
     if (previousMessage) {
-        const isSameSender = parseInt(message.senderId) === parseInt(previousMessage.senderId);
+        const isSameSender = parseInt(message.senderId || message.SenderId) === parseInt(previousMessage.senderId || previousMessage.SenderId);
         if (isSameSender) {
-            const currentTime = new Date(message.createdAt);
-            const previousTime = new Date(previousMessage.createdAt);
+            const currentTime = new Date(message.createdAt || message.CreatedAt);
+            const previousTime = new Date(previousMessage.createdAt || previousMessage.CreatedAt);
             const diffInMinutes = (currentTime - previousTime) / (1000 * 60);
             isGrouped = diffInMinutes <= 15;
         }
     }
 
-    const isOwnMessage = parseInt(message.senderId) === parseInt(currentDirectUserId);
+    const isOwnMessage = parseInt(message.senderId || message.SenderId) === parseInt(currentDirectUserId);
     const messageElement = document.createElement('div');
     messageElement.className = 'message-item';
     if (isOwnMessage) {
@@ -361,7 +489,9 @@ function appendDirectMessage(message, previousMessage = null) {
     if (isGrouped) {
         messageElement.classList.add('grouped-message');
     }
-    messageElement.dataset.messageId = message.id;
+    messageElement.dataset.messageId = message.id || message.Id || 'temp-' + Date.now();
+    messageElement.dataset.senderId = message.senderId || message.SenderId;
+    messageElement.dataset.createdAt = message.createdAt || message.CreatedAt;
 
     // Get user initials for avatar
     const initials = message.senderName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -475,6 +605,51 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+// Exit DM mode (called when switching back to channels)
+function exitDirectMessageMode() {
+    // Store thread ID before clearing it
+    const threadIdToLeave = currentDirectThreadId;
+    
+    // Clear state
+    isDirectMessageMode = false;
+    currentDirectThreadId = null;
+    currentDirectOtherUserId = null;
+    currentDirectOtherUserName = null;
+    
+    // Reset UI to channel mode
+    const messageInput = document.getElementById('messageInput');
+    const commsMessageInput = document.getElementById('commsMessageInput');
+    
+    if (messageInput) {
+        // Reset placeholder - try to get active channel name
+        const channelTitle = document.querySelector('.channel-title');
+        if (channelTitle) {
+            const channelName = channelTitle.textContent.trim();
+            messageInput.placeholder = `Message #${channelName}`;
+        } else {
+            messageInput.placeholder = 'Type a message...';
+        }
+    }
+    
+    if (commsMessageInput) {
+        // Reset placeholder for communications sidebar
+        const commsChannelTitle = document.getElementById('commsChannelTitle');
+        if (commsChannelTitle) {
+            const channelName = commsChannelTitle.textContent.trim();
+            commsMessageInput.placeholder = `Message #${channelName}`;
+        } else {
+            commsMessageInput.placeholder = 'Type a message...';
+        }
+    }
+    
+    // Leave SignalR thread if connected
+    if (directConnection && directConnection.state === signalR.HubConnectionState.Connected && threadIdToLeave) {
+        directConnection.invoke("LeaveThread", threadIdToLeave).catch(err => {
+            console.error('Error leaving thread:', err);
+        });
+    }
+}
+
 // Export function to check if in DM mode
 function isInDirectMessageMode() {
     return isDirectMessageMode;
@@ -488,4 +663,7 @@ function sendCurrentDirectMessage(message) {
     }
     return false;
 }
+
+// Export exit function
+window.exitDirectMessageMode = exitDirectMessageMode;
 
