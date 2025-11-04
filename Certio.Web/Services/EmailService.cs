@@ -23,6 +23,7 @@ public class EmailService : IEmailService
     private readonly IEmailToDmService _emailToDmService;
     private readonly ILogger<EmailService> _logger;
     private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ICacheService _cacheService;
 
     public EmailService(
         ApplicationDbContext context,
@@ -30,7 +31,8 @@ public class EmailService : IEmailService
         IDataProtectionProvider dataProtectionProvider,
         IEmailToDmService emailToDmService,
         ILogger<EmailService> logger,
-        IServiceScopeFactory scopeFactory)
+        IServiceScopeFactory scopeFactory,
+        ICacheService cacheService)
     {
         _context = context;
         _configuration = configuration;
@@ -38,6 +40,7 @@ public class EmailService : IEmailService
         _emailToDmService = emailToDmService;
         _logger = logger;
         _scopeFactory = scopeFactory;
+        _cacheService = cacheService;
     }
 
     public string GetGmailAuthUrl(string redirectUri)
@@ -331,6 +334,11 @@ public class EmailService : IEmailService
 
             emailAccount.IsActive = false;
             await _context.SaveChangesAsync(ct);
+
+            // Clear cache for this email account
+            var cacheKey = $"email_ids:{emailAccount.Id}";
+            await _cacheService.RemoveAsync(cacheKey);
+            _logger.LogDebug("Cleared email ID cache for disconnected account {AccountId}", emailAccount.Id);
 
             _logger.LogInformation("Disconnected email account {AccountId} for user {UserId}", emailAccount.Id, userId);
         }
@@ -663,33 +671,54 @@ public class EmailService : IEmailService
             ? DateTime.SpecifyKind(emailAccount.LastSyncAt.Value, DateTimeKind.Utc)
             : (DateTime?)null;
 
-        // Always fetch the last 7 days to ensure complete inbox history
+        // FIXED: Use incremental sync - only fetch since last sync (not always 7 days)
         var syncStart = baseline;
+        string query;
+        var isInitialOrStaleSync = false;
+        
         if (!lastSyncUtc.HasValue || lastSyncUtc.Value < baseline)
         {
-            // First sync or stale sync: fetch from 7 days ago
+            // First sync or very stale sync (>7 days old): fetch from 7 days ago
             syncStart = baseline;
+            query = "in:inbox newer_than:7d";
+            isInitialOrStaleSync = true;
+            _logger.LogInformation("Performing initial/stale sync for account {AccountId} - fetching last 7 days", emailAccount.Id);
         }
         else
         {
-            // Regular refresh: still fetch last 7 days to ensure we have complete history
-            syncStart = baseline;
+            // Incremental sync: only fetch emails since last sync
+            syncStart = lastSyncUtc.Value.AddMinutes(-5); // 5-minute overlap for safety
+            var hoursAgo = (int)Math.Ceiling((DateTime.UtcNow - syncStart).TotalHours);
+            query = $"in:inbox newer_than:{hoursAgo}h";
+            _logger.LogInformation("Performing incremental sync for account {AccountId} - fetching last {Hours}h", emailAccount.Id, hoursAgo);
         }
 
-        // Build Gmail search query - use newer_than:7d to robustly fetch last 7 days
-        // This handles timezones better than a date-only "after:" filter
-        var query = "in:inbox newer_than:7d";
-
-        // Pre-fetch all existing ExternalEmailIds for this account to avoid duplicate checks in loop
-        var existingExternalIds = await _context.EmailMessages
-            .Where(em => em.EmailAccountId == emailAccount.Id)
-            .Select(em => em.ExternalEmailId)
-            .ToHashSetAsync(ct);
+        // FIXED: Use two-tier cache for existing email IDs
+        var cacheKey = $"email_ids:{emailAccount.Id}";
+        var existingExternalIds = await _cacheService.GetAsync<HashSet<string>>(cacheKey);
+        
+        if (existingExternalIds == null)
+        {
+            _logger.LogDebug("Cache miss for email IDs - loading from database for account {AccountId}", emailAccount.Id);
+            existingExternalIds = await _context.EmailMessages
+                .Where(em => em.EmailAccountId == emailAccount.Id)
+                .Select(em => em.ExternalEmailId)
+                .ToHashSetAsync(ct);
+            
+            // Cache for 30 minutes (will be updated as we sync)
+            await _cacheService.SetAsync(cacheKey, existingExternalIds, TimeSpan.FromMinutes(30));
+            _logger.LogDebug("Cached {Count} email IDs for account {AccountId}", existingExternalIds.Count, emailAccount.Id);
+        }
+        else
+        {
+            _logger.LogDebug("Cache hit for email IDs - using cached {Count} IDs for account {AccountId}", existingExternalIds.Count, emailAccount.Id);
+        }
 
         var processedCount = 0;
         var processedInBatch = new HashSet<string>(); // Track IDs processed in this batch to avoid duplicates
         string? nextPageToken = null;
-        var maxPages = 50; // Increased to allow more emails from past 7 days (5000 emails max)
+        // FIXED: Use fewer pages for incremental syncs (more efficient)
+        var maxPages = isInitialOrStaleSync ? 50 : 10; // 50 pages (5000 emails) for initial, 10 pages (1000 emails) for incremental
         var pageCount = 0;
 
         do
@@ -748,7 +777,10 @@ public class EmailService : IEmailService
                                 _context.EmailMessages.Add(emailMessage);
                                 await _context.SaveChangesAsync(ct);
                                 processedCount++;
-                                existingExternalIds.Add(emailMessage.ExternalEmailId); // Update cache for subsequent checks
+                                existingExternalIds.Add(emailMessage.ExternalEmailId); // Update in-memory set for subsequent checks in this sync
+                                
+                                // Update cache after adding new email
+                                await _cacheService.SetAsync(cacheKey, existingExternalIds, TimeSpan.FromMinutes(30));
                             }
                         }
                         catch (Microsoft.EntityFrameworkCore.DbUpdateException ex) when (ex.InnerException is Microsoft.Data.SqlClient.SqlException sqlEx && sqlEx.Number == 2601)
@@ -799,10 +831,23 @@ public class EmailService : IEmailService
             ? DateTime.SpecifyKind(emailAccount.LastSyncAt.Value, DateTimeKind.Utc)
             : (DateTime?)null;
 
-        // Ensure we always fetch at least the last 7 days to backfill
-        var syncStart = lastSyncUtc.HasValue && lastSyncUtc.Value < baseline
-            ? lastSyncUtc.Value
-            : baseline;
+        // FIXED: Use incremental sync - only fetch since last sync (not always 7 days)
+        DateTime syncStart;
+        var isInitialOrStaleSync = false;
+        
+        if (!lastSyncUtc.HasValue || lastSyncUtc.Value < baseline)
+        {
+            // First sync or very stale sync: fetch from 7 days ago
+            syncStart = baseline;
+            isInitialOrStaleSync = true;
+            _logger.LogInformation("Performing initial/stale sync for Outlook account {AccountId} - fetching last 7 days", emailAccount.Id);
+        }
+        else
+        {
+            // Incremental sync: only fetch emails since last sync with 5-minute overlap for safety
+            syncStart = lastSyncUtc.Value.AddMinutes(-5);
+            _logger.LogInformation("Performing incremental sync for Outlook account {AccountId} - fetching since {SyncStart}", emailAccount.Id, syncStart);
+        }
 
         // Build filter for messages since sync start
         var filter = $"receivedDateTime ge {syncStart:yyyy-MM-ddTHH:mm:ssZ}";
@@ -832,11 +877,26 @@ public class EmailService : IEmailService
 
         var processedCount = 0;
         
-        // Pre-fetch all existing ExternalEmailIds for this account to avoid duplicate checks in loop
-        var existingExternalIds = await _context.EmailMessages
-            .Where(em => em.EmailAccountId == emailAccount.Id)
-            .Select(em => em.ExternalEmailId)
-            .ToHashSetAsync(ct);
+        // FIXED: Use two-tier cache for existing email IDs
+        var cacheKey = $"email_ids:{emailAccount.Id}";
+        var existingExternalIds = await _cacheService.GetAsync<HashSet<string>>(cacheKey);
+        
+        if (existingExternalIds == null)
+        {
+            _logger.LogDebug("Cache miss for email IDs - loading from database for Outlook account {AccountId}", emailAccount.Id);
+            existingExternalIds = await _context.EmailMessages
+                .Where(em => em.EmailAccountId == emailAccount.Id)
+                .Select(em => em.ExternalEmailId)
+                .ToHashSetAsync(ct);
+            
+            // Cache for 30 minutes
+            await _cacheService.SetAsync(cacheKey, existingExternalIds, TimeSpan.FromMinutes(30));
+            _logger.LogDebug("Cached {Count} email IDs for Outlook account {AccountId}", existingExternalIds.Count, emailAccount.Id);
+        }
+        else
+        {
+            _logger.LogDebug("Cache hit for email IDs - using cached {Count} IDs for Outlook account {AccountId}", existingExternalIds.Count, emailAccount.Id);
+        }
         
         var processedInBatch = new HashSet<string>(); // Track IDs processed in this batch to avoid duplicates
         
@@ -875,7 +935,10 @@ public class EmailService : IEmailService
                             _context.EmailMessages.Add(emailMessage);
                             await _context.SaveChangesAsync(ct);
                             processedCount++;
-                            existingExternalIds.Add(emailMessage.ExternalEmailId); // Update cache for subsequent checks
+                            existingExternalIds.Add(emailMessage.ExternalEmailId); // Update in-memory set for subsequent checks in this sync
+                            
+                            // Update cache after adding new email
+                            await _cacheService.SetAsync(cacheKey, existingExternalIds, TimeSpan.FromMinutes(30));
                         }
                     }
                     catch (Microsoft.EntityFrameworkCore.DbUpdateException ex) when (ex.InnerException is Microsoft.Data.SqlClient.SqlException sqlEx && sqlEx.Number == 2601)

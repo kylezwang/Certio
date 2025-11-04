@@ -196,6 +196,17 @@ body {
   padding-left: 2.5rem;
 }
 
+/* Page Header Search Bar Focus State - Match Email Inbox */
+#headerSearchContainer input {
+  transition: all 0.2s ease;
+}
+
+#headerSearchContainer input:focus {
+  outline: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  background-color: white !important;
+}
+
 /* Large Search Container - matches AI Chat input styling */
 .search-container-large {
   display: flex;

@@ -52,7 +52,7 @@ namespace Certio.Web.Controllers
 
         // GET /Client/List
         [HttpGet]
-        public async Task<IActionResult> List(CancellationToken ct)
+        public async Task<IActionResult> List(int? lastOpenedOrgId, CancellationToken ct)
         {
             var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
             if (customUser == null)
@@ -60,32 +60,242 @@ namespace Certio.Web.Controllers
                 return Json(new { success = false, message = "User not authenticated." });
             }
 
-            // Use organization service to get accessible organizations
-            var result = await _organizationService.GetAccessibleOrganizationsAsync(customUser.Id);
-            
-            if (!result.Success)
+            // Find the user's law firm organization
+            var lawFirmMembership = await _db.UserOrganizations
+                .Include(uo => uo.Organization)
+                .ThenInclude(o => o.OrganizationRelationships)
+                .ThenInclude(or => or.TargetOrganization)
+                .ThenInclude(to => to.Owner)
+                .Include(uo => uo.Organization)
+                .ThenInclude(o => o.OrganizationRelationships)
+                .ThenInclude(or => or.TargetOrganization)
+                .ThenInclude(to => to.UserOrganizations)
+                .ThenInclude(uo => uo.User)
+                .Include(uo => uo.Organization)
+                .ThenInclude(o => o.UserOrganizations.Where(uo2 => uo2.IsActive))
+                .FirstOrDefaultAsync(uo => 
+                    uo.UserId == customUser.Id && 
+                    uo.IsActive && 
+                    uo.UserType == Certio.Domain.Users.UserTypes.LawFirm, ct);
+
+            var allOrgs = new List<object>();
+
+            if (lawFirmMembership != null && lawFirmMembership.Organization != null)
             {
-                return Json(new { success = false, message = result.ErrorMessage });
+                var relationships = lawFirmMembership.Organization.OrganizationRelationships
+                    .Where(or => or.IsValid() && 
+                                or.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient)
+                    .ToList();
+
+                // Check which relationships the user has access to
+                var assignedSet = new HashSet<int>();
+                var directSet = new HashSet<int>();
+                
+                if (relationships.Any())
+                {
+                    var relationshipIds = relationships.Select(r => r.Id).ToList();
+                    var assignedRelationshipIds = await _db.OrganizationRelationshipAssignedUsers
+                        .Where(a => a.UserId == customUser.Id && relationshipIds.Contains(a.RelationshipId))
+                        .Select(a => a.RelationshipId)
+                        .ToListAsync(ct);
+                    assignedSet = assignedRelationshipIds.ToHashSet();
+
+                    var targetOrgIds = relationships.Select(r => r.TargetOrganizationId).ToList();
+                    var directMembershipOrgIds = await _db.UserOrganizations
+                        .Where(uo => uo.UserId == customUser.Id &&
+                                     uo.IsActive &&
+                                     targetOrgIds.Contains(uo.OrganizationId))
+                        .Select(uo => uo.OrganizationId)
+                        .ToListAsync(ct);
+                    directSet = directMembershipOrgIds.ToHashSet();
+                }
+
+                foreach (var rel in relationships)
+                {
+                    var targetOrg = rel.TargetOrganization;
+                    if (targetOrg == null)
+                        continue;
+
+                    // Check if this is an External Contacts organization
+                    var isExternalGuestsOrg = targetOrg.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase);
+                    
+                    // Filter out external organizations where the current user is not the owner
+                    if (isExternalGuestsOrg && targetOrg.OwnerId != customUser.Id)
+                    {
+                        continue; // Skip external organizations owned by other users
+                    }
+
+                    // For non-external organizations, check if user has access
+                    if (!isExternalGuestsOrg)
+                    {
+                        var hasAccess = assignedSet.Contains(rel.Id) ||
+                                      directSet.Contains(targetOrg.Id) ||
+                                      targetOrg.OwnerId == customUser.Id ||
+                                       rel.CreatedById == customUser.Id;
+                        
+                        if (!hasAccess)
+                        {
+                            continue; // Skip organizations user doesn't have access to
+                        }
+                    }
+
+                    // Get owner's membership (if they have already joined)
+                    var ownerMembership = targetOrg.UserOrganizations
+                        .FirstOrDefault(uo => uo.UserId == targetOrg.OwnerId && uo.IsActive);
+
+                    var ownerHasMembership = ownerMembership != null;
+                    
+                    // Get all users in the organization
+                    var orgUsers = targetOrg.UserOrganizations
+                        .Where(uo => uo.IsActive && uo.User != null)
+                        .ToList();
+                    
+                    var hasRegisteredUsers = orgUsers.Any();
+                    
+                    // Organization is confirmed if owner has membership OR there are registered users
+                    var isConfirmed = ownerHasMembership || hasRegisteredUsers;
+
+                    // Check if this was just confirmed (owner joined within last 7 days)
+                    var isNewlyConfirmed = false;
+                    if (isConfirmed && ownerMembership != null)
+                    {
+                        var daysSinceJoined = (DateTime.UtcNow - ownerMembership.JoinedAt).TotalDays;
+                        isNewlyConfirmed = daysSinceJoined <= 7;
+                    }
+
+                    var ownerFirstName = targetOrg.Owner?.FirstName ?? "";
+                    var ownerLastName = targetOrg.Owner?.LastName ?? "";
+                    var displayOwnerName = isExternalGuestsOrg 
+                        ? "External Contacts" 
+                        : $"{ownerFirstName} {ownerLastName}".Trim();
+
+                    allOrgs.Add(new
+                    {
+                        organizationId = targetOrg.Id,
+                        organizationName = targetOrg.Name,
+                        ownerFirstName = ownerFirstName,
+                        ownerLastName = ownerLastName,
+                        isPersonal = targetOrg.IsPersonal,
+                        isPrimary = false, // Not applicable for client organizations in popup
+                        organizationType = targetOrg.Type.ToString(),
+                        displayOwnerName = displayOwnerName,
+                        isExternalContacts = isExternalGuestsOrg,
+                        ownerHasMembership = ownerHasMembership,
+                        hasRegisteredUsers = hasRegisteredUsers,
+                        isConfirmed = isConfirmed,
+                        isNewlyConfirmed = isNewlyConfirmed,
+                        createdAt = rel.CreatedAt,
+                        isLastOpened = lastOpenedOrgId.HasValue && lastOpenedOrgId.Value == targetOrg.Id && !isExternalGuestsOrg
+                    });
+                }
             }
 
-            // Map DTOs to anonymous objects for JSON response
-            var allOrgs = result.Data!.Select(org => new
-            {
-                organizationId = org.Id,
-                organizationName = org.Name,
-                ownerFirstName = org.OwnerFirstName,
-                ownerLastName = org.OwnerLastName,
-                isPersonal = org.IsPersonal,
-                isPrimary = org.IsPrimary,
-                organizationType = org.Type.ToString(),
-                // Check if this is an External Contacts organization and set display name
-                displayOwnerName = org.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase) 
-                    ? "External Contacts" 
-                    : $"{org.OwnerFirstName} {org.OwnerLastName}".Trim(),
-                isExternalContacts = org.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase)
-            }).ToList();
+            // Also include direct organization memberships (non-law firm)
+            var directOrgs = await _db.UserOrganizations
+                .Include(uo => uo.Organization)
+                .ThenInclude(o => o.UserOrganizations.Where(uo2 => uo2.IsActive))
+                .Where(uo => uo.UserId == customUser.Id && 
+                             uo.IsActive && 
+                             uo.Organization.Type != Certio.Domain.Organizations.OrganizationType.LawFirm)
+                .Select(uo => uo.Organization)
+                .ToListAsync(ct);
 
-            return Json(new { success = true, organizations = allOrgs });
+            foreach (var org in directOrgs)
+            {
+                // Skip if already added from relationships
+                if (allOrgs.Any(o => ((dynamic)o).organizationId == org.Id))
+                    continue;
+
+                var orgUsers = org.UserOrganizations.Where(uo => uo.IsActive).ToList();
+                var ownerMembership = orgUsers.FirstOrDefault(uo => uo.UserId == org.OwnerId);
+                var ownerHasMembership = ownerMembership != null;
+                var hasRegisteredUsers = orgUsers.Any();
+                var isConfirmed = ownerHasMembership || hasRegisteredUsers;
+
+                // Check if newly confirmed
+                var isNewlyConfirmed = false;
+                if (isConfirmed && ownerMembership != null)
+                {
+                    var daysSinceJoined = (DateTime.UtcNow - ownerMembership.JoinedAt).TotalDays;
+                    isNewlyConfirmed = daysSinceJoined <= 7;
+                }
+
+                var ownerFirstName = org.Owner?.FirstName ?? "";
+                var ownerLastName = org.Owner?.LastName ?? "";
+                var isExternalGuestsOrg = org.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase);
+                var displayOwnerName = isExternalGuestsOrg 
+                    ? "External Contacts" 
+                    : $"{ownerFirstName} {ownerLastName}".Trim();
+
+                allOrgs.Add(new
+                {
+                    organizationId = org.Id,
+                    organizationName = org.Name,
+                    ownerFirstName = ownerFirstName,
+                    ownerLastName = ownerLastName,
+                    isPersonal = org.IsPersonal,
+                    isPrimary = false,
+                    organizationType = org.Type.ToString(),
+                    displayOwnerName = displayOwnerName,
+                    isExternalContacts = isExternalGuestsOrg,
+                    ownerHasMembership = ownerHasMembership,
+                    hasRegisteredUsers = hasRegisteredUsers,
+                    isConfirmed = isConfirmed,
+                    isNewlyConfirmed = isNewlyConfirmed,
+                    createdAt = org.CreatedAt,
+                    isLastOpened = lastOpenedOrgId.HasValue && lastOpenedOrgId.Value == org.Id && !isExternalGuestsOrg
+                });
+            }
+
+            // Add the law firm organization itself (for other parts of the code that expect it)
+            if (lawFirmMembership != null && lawFirmMembership.Organization != null)
+            {
+                var firmOrg = lawFirmMembership.Organization;
+                var firmOrgUsers = firmOrg.UserOrganizations?.Where(uo => uo.IsActive).ToList() ?? new List<Certio.Domain.Users.UserOrganization>();
+                var firmOwnerMembership = firmOrgUsers.FirstOrDefault(uo => uo.UserId == firmOrg.OwnerId);
+                var firmOwnerHasMembership = firmOwnerMembership != null;
+                var firmHasRegisteredUsers = firmOrgUsers.Any();
+                var firmIsConfirmed = firmOwnerHasMembership || firmHasRegisteredUsers;
+
+                var firmOwnerFirstName = firmOrg.Owner?.FirstName ?? "";
+                var firmOwnerLastName = firmOrg.Owner?.LastName ?? "";
+                var firmDisplayOwnerName = $"{firmOwnerFirstName} {firmOwnerLastName}".Trim();
+
+                allOrgs.Add(new
+                {
+                    organizationId = firmOrg.Id,
+                    organizationName = firmOrg.Name,
+                    ownerFirstName = firmOwnerFirstName,
+                    ownerLastName = firmOwnerLastName,
+                    isPersonal = firmOrg.IsPersonal,
+                    isPrimary = lawFirmMembership.IsPrimary,
+                    organizationType = firmOrg.Type.ToString(),
+                    displayOwnerName = firmDisplayOwnerName,
+                    isExternalContacts = false,
+                    ownerHasMembership = firmOwnerHasMembership,
+                    hasRegisteredUsers = firmHasRegisteredUsers,
+                    isConfirmed = firmIsConfirmed,
+                    isNewlyConfirmed = false,
+                    createdAt = firmOrg.CreatedAt,
+                    isLastOpened = false
+                });
+            }
+
+            // Sort organizations:
+            // 1. External Contacts organizations always at the bottom
+            // 2. Last opened organization at the top (excluding external)
+            // 3. Newly confirmed client organizations next
+            // 4. Other client organizations sorted by creation date (newest first)
+            var sortedOrgs = allOrgs
+                .Cast<dynamic>()
+                .OrderByDescending(o => o.isExternalContacts == false) // External orgs last
+                .ThenByDescending(o => o.isLastOpened == true) // Last opened first (but not external)
+                .ThenByDescending(o => o.isNewlyConfirmed == true && o.isConfirmed == true) // Newly confirmed next
+                .ThenByDescending(o => (DateTime)o.createdAt) // Then by creation date (newest first)
+                .Cast<object>()
+                .ToList();
+
+            return Json(new { success = true, organizations = sortedOrgs });
         }
 
         // GET /Client/{orgId}/Dashboard
@@ -643,6 +853,14 @@ namespace Certio.Web.Controllers
                         var ownerHasMembership = ownerMembership != null;
                         var ownerDisplayColor = ownerHasMembership ? "#69848C" : "#aaaaaa";
                         
+                        // Check if this was just confirmed (owner joined within last 7 days)
+                        var isNewlyConfirmed = false;
+                        if (ownerHasMembership && ownerMembership != null)
+                        {
+                            var daysSinceJoined = (DateTime.UtcNow - ownerMembership.JoinedAt).TotalDays;
+                            isNewlyConfirmed = daysSinceJoined <= 7;
+                        }
+                        
                         var displayOrgName = isExternalGuestsOrg ? targetOrg.Name : targetOrg.Name; // Show full name on Clients page
                         
                         // Get all users in the organization (for External Contacts, this will show all external users)
@@ -679,6 +897,7 @@ namespace Certio.Web.Controllers
                             RelationshipId = rel.Id,
                             IsExternalGuests = isExternalGuestsOrg, // Flag for styling
                             IsNewClient = isNewClientOrg, // Flag for newly created client
+                            IsNewlyConfirmed = isNewlyConfirmed, // Flag for newly confirmed client
                             CreatedAt = rel.CreatedAt, // For sorting by creation date
                             Users = orgUsers // All users in the organization
                         });
@@ -689,11 +908,13 @@ namespace Certio.Web.Controllers
             // Sort client relationships:
             // 1. External Contacts organizations always at the bottom
             // 2. Newly created client organizations at the top
-            // 3. Other client organizations sorted by creation date (newest first)
+            // 3. Newly confirmed client organizations next
+            // 4. Other client organizations sorted by creation date (newest first)
             var sortedClientRelationships = clientRelationships
                 .Cast<dynamic>()
                 .OrderByDescending(cr => cr.IsExternalGuests == false) // External orgs last (false < true in descending)
                 .ThenByDescending(cr => cr.IsNewClient) // New clients first
+                .ThenByDescending(cr => cr.IsNewlyConfirmed == true && cr.OwnerHasMembership == true) // Newly confirmed next
                 .ThenByDescending(cr => (DateTime)cr.CreatedAt) // Then by creation date (newest first)
                 .Cast<object>()
                 .ToList();
@@ -1023,6 +1244,57 @@ namespace Certio.Web.Controllers
             return View("~/Views/Home/AddPeople.cshtml", model);
         }
 
+        // GET /Client/GetJoinCode
+        [Authorize]
+        [HttpGet("/Client/GetJoinCode")]
+        public async Task<IActionResult> GetJoinCode(int orgId, CancellationToken ct)
+        {
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                return Json(new { success = false, message = "User not authenticated." });
+            }
+
+            // Check if user has direct membership first
+            var hasDirectAccess = await _db.UserOrganizations
+                .AnyAsync(uo => uo.UserId == customUser.Id && 
+                              uo.OrganizationId == orgId && 
+                              uo.IsActive, ct);
+
+            // If no direct access, check firm-based access through relationships
+            if (!hasDirectAccess)
+            {
+                var hasFirmAccess = await _firmRelationshipCache.HasFirmAccessAsync(customUser.Id, orgId);
+                if (!hasFirmAccess)
+                {
+                    return Json(new { success = false, message = "You do not have access to this organization." });
+                }
+            }
+
+            // Get the most recent active join code for this organization
+            var joinCode = await _db.OrganizationJoinCodes
+                .Where(j => j.OrganizationId == orgId && 
+                           j.IsActive && 
+                           j.ExpiresAt > DateTime.UtcNow && 
+                           j.UsesRemaining > 0)
+                .OrderByDescending(j => j.CreatedAt)
+                .FirstOrDefaultAsync(ct);
+
+            if (joinCode == null)
+            {
+                return Json(new { success = false, message = "No active join code found for this organization." });
+            }
+
+            var organization = await _db.Organizations
+                .FirstOrDefaultAsync(o => o.Id == orgId, ct);
+
+            return Json(new { 
+                success = true, 
+                joinCode = joinCode.Code,
+                organizationName = organization?.Name ?? "Client Organization"
+            });
+        }
+
         // GET /Client/{orgId}/NewClient
         [Authorize(Policy = "OrgMember")]
         [HttpGet("/Client/{orgId:int}/NewClient")]
@@ -1236,7 +1508,7 @@ namespace Certio.Web.Controllers
                 ttl: TimeSpan.FromDays(7),
                 ct: ct);
 
-            TempData["Success"] = $"Client organization '{model.ClientOrganizationName}' created successfully. Share the join code with the client representative.";
+            TempData["Success"] = $"Client organization '{model.ClientOrganizationName}' created successfully.";
             TempData["JoinCode"] = join.Code;
             TempData["NewClientOrgId"] = newClientOrg.Id;
             ViewBag.OrganizationId = orgId;

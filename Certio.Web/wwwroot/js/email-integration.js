@@ -1500,29 +1500,44 @@ async function reloadCommunicationsDirectMessagesList() {
             return;
         }
         
-        // Get current user ID from page (check for global variable first, then DOM)
+        // Get current user ID from page
         let currentUserId = null;
         
-        // Try to get from global scope (set by Communications.cshtml)
-        if (typeof window.currentUserId !== 'undefined') {
-            currentUserId = window.currentUserId;
-        } else {
-            // Try to get from DOM
-            currentUserId = document.querySelector('.current-user-avatar')?.closest('.team-member')?.getAttribute('data-user-id') ||
-                           document.querySelector('[data-user-id]')?.getAttribute('data-user-id');
+        // Try from appContext first - THIS IS THE PRIMARY SOURCE
+        const appContext = document.getElementById('appContext');
+        if (appContext && appContext.dataset.currentUserId) {
+            const userId = appContext.dataset.currentUserId;
+            if (userId && userId !== "0" && userId !== "null" && userId !== "") {
+                currentUserId = userId;
+            }
         }
         
-        // Last resort: try to parse from script tag
+        // Try from global scope (set by Communications.cshtml)
+        if (!currentUserId && typeof window.currentUserId !== 'undefined') {
+            currentUserId = window.currentUserId;
+        }
+        
+        // Try from data-current-user-id attribute (specific to current user)
         if (!currentUserId) {
-            const scripts = document.querySelectorAll('script');
-            for (const script of scripts) {
-                const match = script.textContent.match(/const currentUserId = ['"]([^'"]+)['"]/);
-                if (match) {
-                    currentUserId = match[1];
-                    break;
+            const userIdElement = document.querySelector('[data-current-user-id]');
+            if (userIdElement && userIdElement.dataset.currentUserId) {
+                const userId = userIdElement.dataset.currentUserId;
+                if (userId && userId !== "0" && userId !== "null" && userId !== "") {
+                    currentUserId = userId;
                 }
             }
         }
+        
+        // Try to find current user by looking for .current-user-avatar within .team-member
+        if (!currentUserId) {
+            const currentUserElement = document.querySelector('.current-user-avatar')?.closest('.team-member');
+            if (currentUserElement) {
+                currentUserId = currentUserElement.getAttribute('data-user-id');
+            }
+        }
+        
+        // REMOVED DANGEROUS FALLBACK: querySelector('[data-user-id]') was picking up
+        // any user element on the page, including client users in scoped views
         
         if (!currentUserId) {
             console.warn('Current user ID not found, cannot reload Direct Messages list');
@@ -1682,18 +1697,26 @@ function openEmailInProvider(provider, threadId, externalId) {
 // Format email date
 function formatEmailDate(dateString) {
     const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
     
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m`;
-    if (diffHours < 24) return `${diffHours}h`;
-    if (diffDays < 7) return `${diffDays}d`;
+    // Format time (e.g., "4:30 PM")
+    const time = date.toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        hour12: true 
+    });
     
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    // Format date (e.g., "11/3/2025")
+    const dateStr = date.toLocaleDateString('en-US', { 
+        month: 'numeric', 
+        day: 'numeric',
+        year: 'numeric'
+    });
+    
+    // Return HTML with time on top and date on bottom
+    return `<div style="display: flex; flex-direction: column; align-items: flex-end; line-height: 1.3;">
+        <div style="font-size: 0.875rem;">${time}</div>
+        <div style="font-size: 0.75rem; color: #9ca3af;">${dateStr}</div>
+    </div>`;
 }
 
 // Close inbox modal
@@ -1877,4 +1900,5 @@ if (typeof document !== 'undefined') {
         });
     });
 }
+
 

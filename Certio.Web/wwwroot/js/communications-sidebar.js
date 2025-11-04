@@ -742,10 +742,21 @@ function selectCommsChannel(channelId, channelName, channelType, channelIcon) {
         commsSidebarState.currentUserName = getCurrentUserName();
     }
     
+    // Exit DM mode if we're switching from DM to channel
+    if (commsSidebarState.currentChannelType === 'dm' && typeof exitDirectMessageMode === 'function') {
+        exitDirectMessageMode();
+    }
+    
     // Update state
     commsSidebarState.currentChannelId = channelId;
     commsSidebarState.currentChannelName = channelName;
     commsSidebarState.currentChannelType = channelType;
+    
+    // Update message input placeholder for channel
+    const messageInput = document.getElementById('commsMessageInput');
+    if (messageInput) {
+        messageInput.placeholder = `Message #${channelName}`;
+    }
     
     // Update active state in channels list
     document.querySelectorAll('.comms-channel-item').forEach(item => {
@@ -1073,6 +1084,25 @@ async function sendCommsMessage() {
             console.log('📤 Normalized threadId for send:', threadIdForSend);
             console.log('📤 Invoking DirectHub.SendMessage with:', { threadId: threadIdForSend, message, messageType: 'Text' });
             
+            // Create optimistic message for immediate display
+            const optimisticMessage = {
+                id: 'temp-' + Date.now(),
+                senderId: commsSidebarState.currentUserId,
+                SenderId: commsSidebarState.currentUserId,
+                senderName: commsSidebarState.currentUserName || 'You',
+                SenderName: commsSidebarState.currentUserName || 'You',
+                body: message,
+                Body: message,
+                content: message,
+                Content: message,
+                createdAt: new Date().toISOString(),
+                CreatedAt: new Date().toISOString(),
+                Time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            
+            // Add optimistic message to UI immediately
+            addMessageToUI(optimisticMessage);
+            
             // Send via DirectHub SignalR
             await commsSidebarState.directSignalRConnection.invoke("SendMessage", threadIdForSend, message, "Text");
             
@@ -1113,9 +1143,15 @@ async function sendCommsMessage() {
     } catch (error) {
         console.error('Error sending message:', error);
         
-        // Show error to user
+        // Remove optimistic message if it exists
         const messagesList = document.getElementById('commsMessagesList');
         if (messagesList) {
+            const tempMessage = messagesList.querySelector('[data-message-id^="temp-"]');
+            if (tempMessage) {
+                tempMessage.remove();
+            }
+            
+            // Show error to user
             const errorHtml = `<div style="padding: 0.5rem; margin: 0.5rem; background: #fee; color: #c33; border-radius: 4px; font-size: 0.875rem;">
                 Failed to send message: ${error.message}
             </div>`;
@@ -1177,7 +1213,14 @@ function initializeCommsSignalR() {
     commsSidebarState.signalRConnection.on("ReceiveChannelMessage", function(message) {
         console.log('Received channel message via SignalR:', message);
         console.log('Current channel ID:', commsSidebarState.currentChannelId);
+        console.log('Current channel type:', commsSidebarState.currentChannelType);
         console.log('Message ConversationId:', message.ConversationId, 'ChannelId:', message.ChannelId);
+        
+        // Only show channel messages if we're NOT in DM mode
+        if (commsSidebarState.currentChannelType === 'dm') {
+            console.log('Ignoring channel message - sidebar is in DM mode');
+            return;
+        }
         
         // Compare channel IDs (handle both string and number)
         // ChatHub sends ConversationId and ChannelId fields
@@ -1288,6 +1331,16 @@ function initializeDirectSignalR() {
         console.log('📧 Message threadId (lowercase t):', message.threadId);
         console.log('📍 Current thread ID:', commsSidebarState.currentChannelId);
         console.log('🔖 Current channel type:', commsSidebarState.currentChannelType);
+        
+        // Remove optimistic message if it exists (by checking if we have a temp message)
+        const messagesList = document.getElementById('commsMessagesList');
+        if (messagesList) {
+            const tempMessage = messagesList.querySelector('[data-message-id^="temp-"]');
+            if (tempMessage) {
+                console.log('🗑️ Removing optimistic message');
+                tempMessage.remove();
+            }
+        }
         
         // Normalize thread IDs for comparison (GUIDs can come in different formats)
         // SignalR may camelCase properties, so check multiple variations
@@ -1487,7 +1540,7 @@ function getCurrentOrgId() {
 }
 
 function getCurrentUserId() {
-    // Get from appContext first
+    // Get from appContext first - THIS IS THE PRIMARY SOURCE
     const appContext = document.getElementById('appContext');
     if (appContext) {
         const userId = appContext.dataset.currentUserId;
@@ -1497,19 +1550,10 @@ function getCurrentUserId() {
         }
     }
     
-    // Try from data attribute
+    // Try from specific data-current-user-id attribute (not data-user-id which could be any user)
     const userIdElement = document.querySelector('[data-current-user-id]');
     if (userIdElement && userIdElement.dataset.currentUserId) {
         const userId = userIdElement.dataset.currentUserId;
-        if (userId && userId !== "0" && userId !== "null" && userId !== "") {
-            return userId;
-        }
-    }
-    
-    // Try from data-user-id
-    const userElement = document.querySelector('[data-user-id]');
-    if (userElement && userElement.dataset.userId) {
-        const userId = userElement.dataset.userId;
         if (userId && userId !== "0" && userId !== "null" && userId !== "") {
             return userId;
         }
@@ -1532,6 +1576,10 @@ function getCurrentUserId() {
         }
     }
     
+    // REMOVED DANGEROUS FALLBACK: querySelector('[data-user-id]') was picking up
+    // any user element on the page, including client users in scoped views
+    
+    console.warn('getCurrentUserId: Could not find current user ID from any source');
     return null;
 }
 

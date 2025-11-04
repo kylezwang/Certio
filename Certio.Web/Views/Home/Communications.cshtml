@@ -563,7 +563,7 @@
 
             // Initialize Direct Messaging
             if (typeof initializeDirectMessaging === 'function') {
-                initializeDirectMessaging(currentUserId, currentOrganizationId);
+                initializeDirectMessaging(currentUserId, currentOrganizationId, currentUserName);
                 console.log('Direct messaging initialized');
             }
             
@@ -759,6 +759,113 @@
             // Make scrollToBottom available globally for future use
             window.scrollToBottom = scrollToBottom;
             window.smoothScrollToBottom = smoothScrollToBottom;
+
+            // Handle Notalize join code redirect
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('notalize') === 'true') {
+                const messageTemplate = sessionStorage.getItem('notalizeJoinCodeMessage');
+                const threadId = sessionStorage.getItem('notalizeJoinCodeThreadId');
+                const otherUserId = sessionStorage.getItem('notalizeJoinCodeOtherUserId');
+                const otherUserName = sessionStorage.getItem('notalizeJoinCodeOtherUserName');
+
+                if (messageTemplate && otherUserId && otherUserName) {
+                    // Clean up URL immediately
+                    const newUrl = window.location.pathname;
+                    window.history.replaceState({}, '', newUrl);
+
+                    // Wait for all scripts to load and page to be ready
+                    const waitForScripts = setInterval(() => {
+                        // Check if openDirectThread is available (from direct-messages.js)
+                        if (typeof openDirectThread === 'function') {
+                            clearInterval(waitForScripts);
+                            
+                            console.log('Opening DM thread for notalize:', otherUserName, otherUserId);
+                            
+                            // Open the DM thread
+                            openDirectThread(otherUserId, otherUserName).then(() => {
+                                console.log('DM thread opened, waiting for UI to update...');
+                                
+                                // Wait a bit for the UI to update after opening the thread
+                                setTimeout(() => {
+                                    // Wait for the DM view to be fully loaded and message input to be available
+                                    let attempts = 0;
+                                    const maxAttempts = 25; // Increased attempts
+                                    const checkInterval = setInterval(() => {
+                                        attempts++;
+                                        
+                                        // Try to find the message input
+                                        const messageInput = document.getElementById('messageInput');
+                                        
+                                        // Check if we're in DM mode by looking at the channel title
+                                        const channelTitle = document.querySelector('.channel-title');
+                                        const isDMVisible = channelTitle && 
+                                                           (channelTitle.textContent.trim() === otherUserName.trim() ||
+                                                            channelTitle.textContent.trim() === otherUserName.split(' ')[0]?.trim());
+                                        
+                                        // Also check if messages container shows DM content
+                                        const messagesContainer = document.querySelector('.messages-container');
+                                        const hasMessages = messagesContainer && messagesContainer.children.length > 0;
+                                        
+                                        if (messageInput && (isDMVisible || hasMessages) && messageTemplate) {
+                                            console.log('Setting message template in input');
+                                            
+                                            // Set the message value
+                                            messageInput.value = messageTemplate;
+                                            
+                                            // Trigger input event to ensure any handlers are notified
+                                            const inputEvent = new Event('input', { bubbles: true });
+                                            messageInput.dispatchEvent(inputEvent);
+                                            
+                                            // Also trigger change event
+                                            const changeEvent = new Event('change', { bubbles: true });
+                                            messageInput.dispatchEvent(changeEvent);
+                                            
+                                            // Focus the input
+                                            setTimeout(() => {
+                                                messageInput.focus();
+                                                // Set cursor to end of text
+                                                messageInput.setSelectionRange(messageTemplate.length, messageTemplate.length);
+                                            }, 100);
+                                            
+                                            // Scroll input into view if needed
+                                            messageInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                                            
+                                            // Clear sessionStorage
+                                            sessionStorage.removeItem('notalizeJoinCodeMessage');
+                                            sessionStorage.removeItem('notalizeJoinCodeThreadId');
+                                            sessionStorage.removeItem('notalizeJoinCodeOtherUserId');
+                                            sessionStorage.removeItem('notalizeJoinCodeOtherUserName');
+                                            
+                                            clearInterval(checkInterval);
+                                        } else if (attempts >= maxAttempts) {
+                                            console.warn('Message input not found or DM not opened after multiple attempts', {
+                                                messageInput: !!messageInput,
+                                                isDMVisible: isDMVisible,
+                                                channelTitle: channelTitle?.textContent,
+                                                hasMessages: hasMessages,
+                                                attempts: attempts
+                                            });
+                                            clearInterval(checkInterval);
+                                        }
+                                    }, 300);
+                                }, 500); // Wait 500ms after thread opens for UI to update
+                            }).catch(error => {
+                                console.error('Error opening DM thread for notalize:', error);
+                            });
+                        } else if (document.readyState === 'complete') {
+                            // If scripts haven't loaded after page is complete, try again with a longer delay
+                            clearInterval(waitForScripts);
+                            setTimeout(() => {
+                                if (typeof openDirectThread === 'function') {
+                                    openDirectThread(otherUserId, otherUserName);
+                                } else {
+                                    console.error('openDirectThread function not available after page load');
+                                }
+                            }, 1000);
+                        }
+                    }, 100);
+                }
+            }
 
             // Scroll to bottom button functionality + Lazy loading (Discord/Slack style)
             const scrollToBottomBtn = document.getElementById('scrollToBottomBtn');

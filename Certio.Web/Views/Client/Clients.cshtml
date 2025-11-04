@@ -60,7 +60,7 @@
                         var ownerHasMembership = client.OwnerHasMembership ?? false;
                         var hasRegisteredUsers = orgUsers.Count > 0;
                         var isConfirmed = ownerHasMembership || hasRegisteredUsers;
-                        var iconColor = isExternalGuests ? "#aaaaaa" : (isConfirmed ? "#3d1019" : "#aaaaaa");
+                        var iconColor = isExternalGuests ? "#aaaaaa" : (isConfirmed ? "#69848C" : "#aaaaaa");
                         var iconClass = isExternalGuests ? "external-guests-icon" : (isConfirmed ? "" : "pending-client-icon");
                     }
                     <div class="team-section-header">
@@ -99,9 +99,21 @@
                                                 <p class="text-muted small mb-3">@userRole</p>
                                                 
                                                 <!-- Organization Type -->
-                                                <div class="d-flex align-items-center gap-1 text-muted small">
-                                                    <i class="fas fa-briefcase" style="font-size: 0.75rem;"></i>
-                                                    <span>@(isExternalGuests ? "External" : (isConfirmed ? "Active" : "Pending"))</span>
+                                                <div class="d-flex flex-column align-items-center gap-1">
+                                                    <div class="d-flex align-items-center gap-1 text-muted small">
+                                                        <i class="fas fa-briefcase" style="font-size: 0.75rem;"></i>
+                                                        <span>@(isExternalGuests ? "External" : (isConfirmed ? "Active" : "Pending"))</span>
+                                                    </div>
+                                                    @if (!isExternalGuests && !isConfirmed)
+                                                    {
+                                                        <button type="button" class="btn btn-link p-0 view-join-code-btn" 
+                                                                data-org-id="@orgId" 
+                                                                style="color: #aaaaaa; text-decoration: none; border: none; background: none; padding: 0.25rem !important;"
+                                                                title="View Join Code"
+                                                                onclick="event.preventDefault(); event.stopPropagation(); viewJoinCode(@orgId);">
+                                                            <i class="fas fa-key" style="font-size: 1rem;"></i>
+                                                        </button>
+                                                    }
                                                 </div>
                                             </div>
                                         </div>
@@ -131,9 +143,21 @@
                                             <p class="text-muted small mb-3">@role</p>
                                             
                                             <!-- Organization Type -->
-                                            <div class="d-flex align-items-center gap-1 text-muted small">
-                                                <i class="fas fa-briefcase" style="font-size: 0.75rem;"></i>
-                                                <span>@(isExternalGuests ? "External" : (isConfirmed ? "Active" : "Pending"))</span>
+                                            <div class="d-flex flex-column align-items-center gap-1">
+                                                <div class="d-flex align-items-center gap-1 text-muted small">
+                                                    <i class="fas fa-briefcase" style="font-size: 0.75rem;"></i>
+                                                    <span>@(isExternalGuests ? "External" : (isConfirmed ? "Active" : "Pending"))</span>
+                                                </div>
+                                                @if (!isExternalGuests && !isConfirmed)
+                                                {
+                                                    <button type="button" class="btn btn-link p-0 view-join-code-btn" 
+                                                            data-org-id="@orgId" 
+                                                            style="color: #aaaaaa; text-decoration: none; border: none; background: none; padding: 0.25rem !important;"
+                                                            title="View Join Code"
+                                                            onclick="event.preventDefault(); event.stopPropagation(); viewJoinCode(@orgId);">
+                                                        <i class="fas fa-key" style="font-size: 1rem;"></i>
+                                                    </button>
+                                                }
                                             </div>
                                         </div>
                                     </div>
@@ -165,16 +189,6 @@
             <div class="task-details-content">
                 <!-- Modal Header -->
                 <div class="task-details-header">
-                    <div class="task-details-header-left">
-                        <div class="task-status-dropdown" style="pointer-events: none;">
-                            <div class="form-select task-status-select" style="border: none; background: transparent; padding: 0.5rem 1rem;">
-                                <span style="color: #3d1019; font-weight: 600;">Join Code</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="task-details-header-middle">
-                        <span class="text-muted" style="font-size: 0.875rem;">Generated</span>
-                    </div>
                     <div class="task-details-header-right">
                         <button type="button" class="btn-close" id="closeJoinCodeModal" aria-label="Close"></button>
                     </div>
@@ -211,15 +225,14 @@
                                 </h6>
                             </div>
                             <div class="task-section-content">
-                                <div class="input-group" style="margin-bottom: 1rem;">
+                                <div class="input-group" style="margin-bottom: 0.75rem;">
                                     <input type="text" class="form-control form-control-lg" id="joinCodeValue" readonly value="@TempData["JoinCode"]" style="font-size: 1.25rem; font-weight: 600; letter-spacing: 0.1em; font-family: monospace; background-color: #f8f9fa;">
                                     <button class="btn btn-outline-secondary" type="button" id="copyJoinCodeBtn" style="border-radius: 0.5rem;">
                                         <i class="fas fa-copy"></i>
                                     </button>
                                 </div>
-                                <small class="text-muted d-block" style="font-size: 0.875rem;">
-                                    <i class="fas fa-info-circle me-1"></i>
-                                    Share this code with the client representative. It expires in 7 days.
+                                <small class="text-muted d-block mb-4" style="font-size: 0.875rem;">
+                                    Share this code with the client via email, also handled through Communications hub. It expires in 7 days.
                                 </small>
                             </div>
                         </div>
@@ -234,13 +247,13 @@
                             <div class="task-section-content">
                                 <div style="font-size: 0.875rem; color: #4a5568;">
                                     <p style="margin-bottom: 0.5rem;">
-                                        <strong>1.</strong> Copy the join code above
+                                        <strong>1.</strong> Copy the join code above.
                                     </p>
                                     <p style="margin-bottom: 0.5rem;">
-                                        <strong>2.</strong> Share it with the client representative via email or secure messaging
+                                        <strong>2.</strong> Share it with the client representative via Communications hub handled through email.
                                     </p>
                                     <p style="margin-bottom: 0;">
-                                        <strong>3.</strong> The client will use this code to join the organization
+                                        <strong>3.</strong> The client will use this code to join the organization and will be pending until use.
                                     </p>
                                 </div>
                             </div>
@@ -265,9 +278,44 @@
 
 @section Scripts {
     <script>
+        // Helper function to get last opened client organization ID from localStorage
+        function getLastOpenedClientOrgId() {
+            try {
+                return localStorage.getItem('lastOpenedClientOrgId');
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // Helper function to set last opened client organization ID in localStorage
+        function setLastOpenedClientOrgId(orgId) {
+            try {
+                if (orgId && !isNaN(orgId)) {
+                    localStorage.setItem('lastOpenedClientOrgId', orgId.toString());
+                }
+            } catch (e) {
+                // Ignore localStorage errors
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const searchInput = document.getElementById('clientSearchInput');
             const clientCards = document.querySelectorAll('.client-card');
+
+            // Track when client cards are clicked
+            clientCards.forEach(card => {
+                const link = card.querySelector('a[href^="/Client/"]');
+                if (link) {
+                    link.addEventListener('click', function(e) {
+                        const href = this.getAttribute('href');
+                        const match = href.match(/\/Client\/(\d+)\/Dashboard/);
+                        if (match && match[1]) {
+                            const orgId = match[1];
+                            setLastOpenedClientOrgId(orgId);
+                        }
+                    });
+                }
+            });
 
             // Search functionality
             if (searchInput) {
@@ -300,6 +348,47 @@
                     });
                 }
             });
+
+            // Apply client-side sorting based on last opened
+            const clientsContainer = document.getElementById('clientsContainer');
+            if (clientsContainer) {
+                const lastOpenedOrgId = getLastOpenedClientOrgId();
+                const sections = Array.from(clientsContainer.querySelectorAll('.client-section'));
+                
+                // Sort sections: External Contacts at bottom, last opened at top (excluding external)
+                sections.sort((a, b) => {
+                    const aLink = a.querySelector('a[href^="/Client/"]');
+                    const bLink = b.querySelector('a[href^="/Client/"]');
+                    
+                    if (!aLink || !bLink) return 0;
+                    
+                    const aMatch = aLink.getAttribute('href').match(/\/Client\/(\d+)\/Dashboard/);
+                    const bMatch = bLink.getAttribute('href').match(/\/Client\/(\d+)\/Dashboard/);
+                    const aOrgId = aMatch ? aMatch[1] : null;
+                    const bOrgId = bMatch ? bMatch[1] : null;
+                    
+                    // Check if external contacts
+                    const aIsExternal = a.querySelector('.external-guests-icon') !== null;
+                    const bIsExternal = b.querySelector('.external-guests-icon') !== null;
+                    
+                    // External contacts always at bottom
+                    if (aIsExternal && !bIsExternal) return 1;
+                    if (!aIsExternal && bIsExternal) return -1;
+                    
+                    // Last opened at top (but not external)
+                    if (!aIsExternal && !bIsExternal && lastOpenedOrgId) {
+                        if (aOrgId === lastOpenedOrgId && bOrgId !== lastOpenedOrgId) return -1;
+                        if (aOrgId !== lastOpenedOrgId && bOrgId === lastOpenedOrgId) return 1;
+                    }
+                    
+                    return 0; // Keep original order for others
+                });
+                
+                // Re-append sections in sorted order
+                sections.forEach(section => {
+                    clientsContainer.appendChild(section);
+                });
+            }
 
             // Join code modal
             const joinCode = '@(TempData["JoinCode"] ?? "")';
@@ -357,6 +446,237 @@
                     });
                 }
             }
+
+            // View Join Code functionality
+            window.viewJoinCode = async function(orgId) {
+                try {
+                    const response = await fetch(`/Client/GetJoinCode?orgId=${orgId}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    const data = await response.json();
+                    if (data.success && data.joinCode) {
+                        // Show the join code in a modal
+                        showJoinCodeModal(data.joinCode, data.organizationName || 'Client Organization', orgId);
+                    } else {
+                        alert(data.message || 'Unable to retrieve join code. Please generate a new one.');
+                    }
+                } catch (error) {
+                    console.error('Error fetching join code:', error);
+                    alert('An error occurred while fetching the join code.');
+                }
+            };
+
+            // Notalize join code functionality
+            async function notalizeJoinCode(joinCode, clientOrgId) {
+                try {
+                    // Get law firm organization ID
+                    const lawFirmOrgId = @(ViewBag.OrganizationId ?? 0);
+                    if (!lawFirmOrgId) {
+                        alert('Unable to determine organization context. Please try again.');
+                        return;
+                    }
+
+                    // Disable button during request
+                    const notalizeBtn = document.getElementById('notalizeViewJoinCodeBtn');
+                    if (notalizeBtn) {
+                        notalizeBtn.style.opacity = '0.5';
+                        notalizeBtn.style.pointerEvents = 'none';
+                    }
+
+                    // Call notalize API
+                    const response = await fetch(`/api/dm/notalize-join-code?orgId=${lawFirmOrgId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            JoinCode: joinCode,
+                            ClientOrgId: clientOrgId
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success && result.thread && result.messageTemplate) {
+                        // Store message template in sessionStorage for Communications page
+                        sessionStorage.setItem('notalizeJoinCodeMessage', result.messageTemplate);
+                        sessionStorage.setItem('notalizeJoinCodeThreadId', result.thread.id);
+                        sessionStorage.setItem('notalizeJoinCodeOtherUserId', result.thread.otherUserId);
+                        sessionStorage.setItem('notalizeJoinCodeOtherUserName', result.thread.otherUserName);
+
+                        // Redirect to Communications page
+                        window.location.href = `/Client/${lawFirmOrgId}/Communications?notalize=true`;
+                    } else {
+                        alert(result.error || 'Failed to notalize join code. Please try again.');
+                        if (notalizeBtn) {
+                            notalizeBtn.style.opacity = '';
+                            notalizeBtn.style.pointerEvents = '';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error notalizing join code:', error);
+                    alert('Failed to notalize join code. Please try again.');
+                    const notalizeBtn = document.getElementById('notalizeViewJoinCodeBtn');
+                    if (notalizeBtn) {
+                        notalizeBtn.style.opacity = '';
+                        notalizeBtn.style.pointerEvents = '';
+                    }
+                }
+            }
+
+            function showJoinCodeModal(joinCode, orgName, clientOrgId) {
+                // Create or update modal
+                let modal = document.getElementById('viewJoinCodeModal');
+                if (!modal) {
+                    modal = document.createElement('div');
+                    modal.id = 'viewJoinCodeModal';
+                    modal.className = 'task-details-modal';
+                    modal.style.cssText = 'display: none; border-radius: 12px; left: 23vw; bottom: 0;';
+                    modal.innerHTML = `
+                        <div class="modal-dialog" style="margin-bottom: 1.5rem;">
+                            <div class="task-details-content">
+                                <!-- Modal Header -->
+                                <div class="task-details-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem;">
+                                    <div class="task-details-header-left" style="display: flex; align-items: center; gap: 0.5rem; flex: 1;">
+                                        <i class="fa-solid fa-key" style="color: #3d1019; font-size: 1.25rem;"></i>
+                                        <h2 class="task-title" style="cursor: default; margin: 0; font-size: 1.25rem; font-weight: 600; color: #3d1019;">Join Code Generated</h2>
+                                    </div>
+                                    <div class="task-details-header-right" style="margin-left: auto;">
+                                        <button type="button" class="btn-close" id="closeViewJoinCodeModal" aria-label="Close"></button>
+                                    </div>
+                                </div>
+
+                                <!-- Success Message -->
+                                <div class="task-details-body" style="padding: 0 1.5rem 1rem;">
+                                    <div class="alert alert-success" style="margin-bottom: 1rem; border-radius: 8px;">
+                                        <i class="fas fa-check-circle me-2"></i>
+                                        Client organization '${orgName}' created successfully.
+                                    </div>
+                                </div>
+
+                                <!-- Main Content Area -->
+                                <div class="task-details-body">
+                                    <!-- Left Panel -->
+                                    <div class="task-details-left">
+                                        <!-- Join Code Section -->
+                                        <div class="task-section">
+                                            <div class="task-section-header">
+                                                <h6 class="task-section-title">
+                                                    <i class="fas fa-key"></i> Join Code
+                                                </h6>
+                                            </div>
+                                            <div class="task-section-content">
+                                                <div style="position: relative; margin-bottom: 0.75rem;">
+                                                    <input type="text" class="form-control form-control-lg" id="viewJoinCodeValue" readonly style="font-size: 1.25rem; font-weight: 600; letter-spacing: 0.1em; font-family: monospace; background-color: #f8f9fa; padding-right: 5.5rem;">
+                                                    <div style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 0.5rem;">
+                                                        <button class="join-code-action-btn" type="button" id="copyViewJoinCodeBtn" title="Copy">
+                                                            <i class="fas fa-copy"></i>
+                                                        </button>
+                                                        <button class="join-code-action-btn" type="button" id="notalizeViewJoinCodeBtn" title="Notalize">
+                                                            <img src="/images/Notal_Logo.png" alt="Notalize" style="width: 18px; height: 18px; object-fit: contain;" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <small class="text-muted d-block mb-4" style="font-size: 0.875rem;">
+                                                    Share this code with the client via email, also handled through Communications hub. It expires in 7 days.
+                                                </small>
+                                            </div>
+                                        </div>
+
+                                        <!-- Instructions Section -->
+                                        <div class="task-section" style="margin-bottom: 0;">
+                                            <div class="task-section-header">
+                                                <h6 class="task-section-title">
+                                                    <i class="fas fa-info-circle"></i> Instructions
+                                                </h6>
+                                            </div>
+                                            <div class="task-section-content">
+                                                <div style="font-size: 0.875rem; color: #4a5568;">
+                                                    <p style="margin-bottom: 0.5rem;">
+                                                        <strong>1.</strong> Click Notalize <em>(recommended)</em>, <strong>or</strong> Copy the join code above.
+                                                    </p>
+                                                    <p style="margin-bottom: 0.5rem;">
+                                                        <strong>2.</strong> Share it with the client via email mode in the Communications hub.
+                                                    </p>
+                                                    <p style="margin-bottom: 0;">
+                                                        <strong>3.</strong> The client will use this code to join the organization and will be pending until usage.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="task-action-buttons" style="padding: 0 1.5rem 1.5rem; justify-content: flex-end;">
+                                    <button type="button" class="btn btn-primary" id="doneViewJoinCodeBtn" style="border-radius: 0.5rem;">
+                                        Done
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(modal);
+
+                    // Setup event listeners
+                    const closeBtn = modal.querySelector('#closeViewJoinCodeModal');
+                    const doneBtn = modal.querySelector('#doneViewJoinCodeBtn');
+                    const copyBtn = modal.querySelector('#copyViewJoinCodeBtn');
+                    const notalizeBtn = modal.querySelector('#notalizeViewJoinCodeBtn');
+                    const input = modal.querySelector('#viewJoinCodeValue');
+
+                    function closeModal() {
+                        modal.style.display = 'none';
+                        document.body.style.overflow = '';
+                    }
+
+                    closeBtn.addEventListener('click', closeModal);
+                    doneBtn.addEventListener('click', closeModal);
+
+                    if (copyBtn && input) {
+                        copyBtn.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            try {
+                                await navigator.clipboard.writeText(input.value);
+                                const originalHtml = copyBtn.innerHTML;
+                                copyBtn.innerHTML = '<i class="fas fa-check"></i>';
+                                setTimeout(() => {
+                                    copyBtn.innerHTML = originalHtml;
+                                }, 1500);
+                            } catch (err) {
+                                console.error('Failed to copy:', err);
+                            }
+                        });
+                    }
+
+                    if (notalizeBtn && input) {
+                        notalizeBtn.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            await notalizeJoinCode(input.value, clientOrgId);
+                        });
+                    }
+
+                    modal.addEventListener('click', function(e) {
+                        if (e.target === modal) {
+                            closeModal();
+                        }
+                    });
+                }
+
+                // Update modal content
+                document.getElementById('viewJoinCodeValue').value = joinCode;
+                // Update success message with organization name
+                const successAlert = modal.querySelector('.alert-success');
+                if (successAlert) {
+                    successAlert.innerHTML = `<i class="fas fa-check-circle me-2"></i>Client organization '${orgName}' created successfully.`;
+                }
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
         });
     </script>
 }
@@ -408,6 +728,49 @@
 
     .team-member-avatar.external-guests-avatar {
         background-color: #aaaaaa !important; /* Gray background for External Guests */
+    }
+
+    .view-join-code-btn {
+        transition: color 0.2s ease-in-out;
+    }
+
+    .view-join-code-btn:hover {
+        color: #3d1019 !important;
+    }
+
+    .view-join-code-btn:hover i {
+        color: #3d1019 !important;
+    }
+
+    .join-code-action-btn {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border-radius: 50%;
+        background-color: transparent;
+        border: none;
+        padding: 0;
+        color: #4a5568;
+    }
+
+    .join-code-action-btn:hover {
+        background-color: rgba(0, 0, 0, 0.08);
+        opacity: 1;
+    }
+
+    .join-code-action-btn i {
+        font-size: 1rem;
+    }
+
+    .join-code-action-btn img {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+        transition: opacity 0.15s;
     }
 
     .team-section-header h2 {
