@@ -19,6 +19,13 @@ appsettings.Production.json
 *.db-shm
 *.db-wal
 dump.rdb
+# Explicitly exclude SQLite files in all directories
+**/app.db
+**/app.db-shm
+**/app.db-wal
+**/bin/**/*.db
+**/bin/**/*.db-shm
+**/bin/**/*.db-wal
 
 # Python cache
 __pycache__/

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends, Request, status
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional, Union
 from openai import OpenAI
@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 import re
 import time
 from collections import deque
+import secrets
 from simplified_cost_optimization import (
     SimplifiedModelSelector, TaskComplexityAnalyzer, UsageTracker,
     ModelType, TaskComplexity
@@ -135,6 +136,69 @@ class RateLimiter:
 
 # Global rate limiter - very conservative to avoid 429 errors
 rate_limiter = RateLimiter(max_requests_per_minute=15)  # Very conservative limit
+
+
+class APIRateLimiter:
+    """Lightweight per-client API rate limiter"""
+
+    def __init__(self, max_requests: int, window_seconds: int = 60):
+        self.max_requests = max_requests
+        self.window_seconds = window_seconds
+        self.access_log: Dict[str, deque] = {}
+        self.lock = asyncio.Lock()
+
+    async def check(self, identifier: str):
+        async with self.lock:
+            now = time.time()
+            request_log = self.access_log.setdefault(identifier, deque())
+
+            # Remove expired requests
+            while request_log and request_log[0] <= now - self.window_seconds:
+                request_log.popleft()
+
+            if len(request_log) >= self.max_requests:
+                retry_after = max(0.0, self.window_seconds - (now - request_log[0]))
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail="Rate limit exceeded",
+                    headers={"Retry-After": str(int(retry_after) + 1)}
+                )
+
+            request_log.append(now)
+
+    def reset(self):
+        """Testing helper to clear counters."""
+        self.access_log.clear()
+
+
+api_rate_limit_per_minute = int(os.getenv("AI_API_RATE_LIMIT_PER_MINUTE", "60"))
+api_rate_limit_window_seconds = int(os.getenv("AI_API_RATE_LIMIT_WINDOW_SECONDS", "60"))
+api_rate_limiter = APIRateLimiter(max_requests=api_rate_limit_per_minute, window_seconds=api_rate_limit_window_seconds)
+
+
+async def authenticate_request(request: Request) -> str:
+    expected_key = os.getenv("AI_API_KEY")
+    if not expected_key:
+        logger.error("AI_API_KEY is not configured; rejecting request")
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="AI service credentials not configured")
+
+    provided_key = request.headers.get("x-api-key")
+    if not provided_key:
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            provided_key = auth_header[7:]
+
+    if not provided_key or not secrets.compare_digest(provided_key.strip(), expected_key.strip()):
+        client_host = request.client.host if request.client else "unknown"
+        logger.warning("Unauthorized AI service request from %s", client_host)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
+
+    client_identifier = provided_key.strip()
+    if request.client and request.client.host:
+        client_identifier = f"{client_identifier}:{request.client.host}"
+
+    await api_rate_limiter.check(client_identifier)
+    return provided_key
 
 # Initialize cost optimization components
 model_selector = SimplifiedModelSelector()
@@ -1134,7 +1198,7 @@ async def health_check():
     }
 
 @app.get("/analytics/usage")
-async def get_usage_analytics():
+async def get_usage_analytics(_: str = Depends(authenticate_request)):
     """Get comprehensive usage analytics for cost optimization"""
     try:
         analytics = usage_tracker.get_usage_analytics()
@@ -1148,7 +1212,7 @@ async def get_usage_analytics():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/analytics/cost-optimization")
-async def get_cost_optimization_analytics():
+async def get_cost_optimization_analytics(_: str = Depends(authenticate_request)):
     """Get cost optimization recommendations and analytics"""
     try:
         usage_analytics = usage_tracker.get_usage_analytics()
@@ -1166,7 +1230,7 @@ async def get_cost_optimization_analytics():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/analytics/task-complexity")
-async def analyze_task_complexity(request: dict):
+async def analyze_task_complexity(request: dict, _: str = Depends(authenticate_request)):
     """Analyze task complexity for optimization recommendations"""
     try:
         prompt = request.get("prompt", "")
@@ -1195,7 +1259,7 @@ async def analyze_task_complexity(request: dict):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/analytics/background-agents")
-async def get_background_agent_stats():
+async def get_background_agent_stats(_: str = Depends(authenticate_request)):
     """Get background agent statistics and status"""
     try:
         stats = background_agent_manager.get_stats()
@@ -1209,7 +1273,7 @@ async def get_background_agent_stats():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/background-agents/submit-task")
-async def submit_background_task(request: dict):
+async def submit_background_task(request: dict, _: str = Depends(authenticate_request)):
     """Submit a task for background processing"""
     try:
         task_type = request.get("task_type")
@@ -1236,7 +1300,7 @@ async def submit_background_task(request: dict):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/background-agents/task-status/{task_id}")
-async def get_background_task_status(task_id: str):
+async def get_background_task_status(task_id: str, _: str = Depends(authenticate_request)):
     """Get the status of a background task"""
     try:
         task = background_agent_manager.get_task_status(task_id)
@@ -1264,7 +1328,7 @@ async def get_background_task_status(task_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/analytics/context-optimization")
-async def get_context_optimization_stats():
+async def get_context_optimization_stats(_: str = Depends(authenticate_request)):
     """Get context optimization statistics"""
     try:
         stats = context_manager.get_compression_stats()
@@ -1278,7 +1342,7 @@ async def get_context_optimization_stats():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/context/optimize")
-async def optimize_context_endpoint(request: dict):
+async def optimize_context_endpoint(request: dict, _: str = Depends(authenticate_request)):
     """Optimize context for a conversation"""
     try:
         messages = request.get("messages", [])
@@ -1300,7 +1364,7 @@ async def optimize_context_endpoint(request: dict):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/analytics/cost-dashboard")
-async def get_cost_dashboard():
+async def get_cost_dashboard(_: str = Depends(authenticate_request)):
     """Get simplified cost analytics dashboard"""
     try:
         analytics = usage_tracker.get_usage_analytics()
@@ -1320,7 +1384,7 @@ async def get_cost_dashboard():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/analytics/cost-report/{time_period}")
-async def get_cost_report(time_period: str):
+async def get_cost_report(time_period: str, _: str = Depends(authenticate_request)):
     """Get detailed cost report for specified time period"""
     try:
         if time_period not in ["1h", "24h", "7d", "30d"]:
@@ -1345,7 +1409,7 @@ async def get_cost_report(time_period: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/analytics/routing-performance")
-async def get_routing_performance():
+async def get_routing_performance(_: str = Depends(authenticate_request)):
     """Get intelligent routing performance analytics"""
     try:
         analytics = intelligent_router.get_routing_analytics()
@@ -1359,7 +1423,7 @@ async def get_routing_performance():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/routing/optimize-rules")
-async def optimize_routing_rules():
+async def optimize_routing_rules(_: str = Depends(authenticate_request)):
     """Optimize routing rules based on performance history"""
     try:
         intelligent_router.optimize_routing_rules()
@@ -1373,7 +1437,7 @@ async def optimize_routing_rules():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/routing/route-task")
-async def route_task_endpoint(request: dict):
+async def route_task_endpoint(request: dict, _: str = Depends(authenticate_request)):
     """Route a task using intelligent routing system"""
     try:
         task_type = TaskType(request.get("task_type", "conversational_response"))
@@ -1417,7 +1481,7 @@ async def route_task_endpoint(request: dict):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/analytics/record-cost-event")
-async def record_cost_event(request: dict):
+async def record_cost_event(request: dict, _: str = Depends(authenticate_request)):
     """Record a cost event for analytics"""
     try:
         model = request.get("model", "gpt-3.5-turbo")
@@ -1445,7 +1509,7 @@ async def record_cost_event(request: dict):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/knowledge/search")
-async def search_knowledge_endpoint(query: str, category: Optional[str] = None):
+async def search_knowledge_endpoint(query: str, category: Optional[str] = None, _: str = Depends(authenticate_request)):
     """Search the Notal knowledge base"""
     try:
         results = search_project_knowledge(query, category)
@@ -1462,7 +1526,7 @@ async def search_knowledge_endpoint(query: str, category: Optional[str] = None):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/knowledge/stats")
-async def get_knowledge_stats():
+async def get_knowledge_stats(_: str = Depends(authenticate_request)):
     """Get knowledge base statistics"""
     try:
         # Get stats from the active RAG system
@@ -1479,7 +1543,7 @@ async def get_knowledge_stats():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/knowledge/add")
-async def add_custom_knowledge(request: dict):
+async def add_custom_knowledge(request: dict, _: str = Depends(authenticate_request)):
     """Add custom knowledge to the system"""
     try:
         content = request.get("content")
@@ -1503,7 +1567,7 @@ async def add_custom_knowledge(request: dict):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/training/add-conversations")
-async def add_conversation_training_data_endpoint(request: dict):
+async def add_conversation_training_data_endpoint(request: dict, _: str = Depends(authenticate_request)):
     """Add training data from conversations"""
     try:
         conversations = request.get("conversations", [])
@@ -1523,7 +1587,7 @@ async def add_conversation_training_data_endpoint(request: dict):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/training/update-performance")
-async def update_agent_performance_endpoint(request: dict):
+async def update_agent_performance_endpoint(request: dict, _: str = Depends(authenticate_request)):
     """Update agent performance metrics"""
     try:
         agent_type = request.get("agent_type")
@@ -1545,7 +1609,7 @@ async def update_agent_performance_endpoint(request: dict):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/training/recommendations")
-async def get_training_recommendations_endpoint():
+async def get_training_recommendations_endpoint(_: str = Depends(authenticate_request)):
     """Get training recommendations"""
     try:
         recommendations = get_training_recommendations()
@@ -1560,7 +1624,7 @@ async def get_training_recommendations_endpoint():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/training/stats")
-async def get_training_stats_endpoint():
+async def get_training_stats_endpoint(_: str = Depends(authenticate_request)):
     """Get comprehensive training statistics"""
     try:
         from certio_training_pipeline import certio_training
@@ -1575,7 +1639,7 @@ async def get_training_stats_endpoint():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/training/should-retrain/{agent_type}")
-async def should_retrain_agent_endpoint(agent_type: str):
+async def should_retrain_agent_endpoint(agent_type: str, _: str = Depends(authenticate_request)):
     """Check if an agent should be retrained"""
     try:
         should_retrain = should_retrain_agent(agent_type)
@@ -1590,7 +1654,7 @@ async def should_retrain_agent_endpoint(agent_type: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/analytics/optimization-summary")
-async def get_optimization_summary():
+async def get_optimization_summary(_: str = Depends(authenticate_request)):
     """Get comprehensive optimization summary"""
     try:
         # Get all analytics
@@ -1658,7 +1722,7 @@ def _calculate_optimization_score(usage_analytics, cost_report, routing_analytic
     return max(0, min(100, score))
 
 @app.post("/agents/summarize", response_model=ConversationSummary)
-async def summarize_conversation(request: AIAgentRequest):
+async def summarize_conversation(request: AIAgentRequest, _: str = Depends(authenticate_request)):
     """Summarize a conversation using ChatSummarizer agent"""
     try:
         result = await chat_summarizer.process(request.messages)
@@ -1668,7 +1732,7 @@ async def summarize_conversation(request: AIAgentRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/agents/extract-goals", response_model=ClientGoal)
-async def extract_client_goals(request: AIAgentRequest):
+async def extract_client_goals(request: AIAgentRequest, _: str = Depends(authenticate_request)):
     """Extract client goals using ClientGoalExtractor agent"""
     try:
         result = await goal_extractor.process(request.messages)
@@ -1678,7 +1742,7 @@ async def extract_client_goals(request: AIAgentRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/agents/suggest-reply", response_model=ReplySuggestion)
-async def suggest_reply(request: AIAgentRequest):
+async def suggest_reply(request: AIAgentRequest, _: str = Depends(authenticate_request)):
     """Suggest a reply using ReplySuggester agent"""
     try:
         result = await reply_suggester.process(request.messages, request.user_type)
@@ -1688,7 +1752,7 @@ async def suggest_reply(request: AIAgentRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/agents/explain-clarity", response_model=ClarityExplanation)
-async def explain_clarity(request: AIAgentRequest):
+async def explain_clarity(request: AIAgentRequest, _: str = Depends(authenticate_request)):
     """Explain legal language using ClarityAgent"""
     try:
         if not request.text:
@@ -1700,7 +1764,7 @@ async def explain_clarity(request: AIAgentRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/agents/process-all")
-async def process_all_agents(request: AIAgentRequest):
+async def process_all_agents(request: AIAgentRequest, _: str = Depends(authenticate_request)):
     """Process all agents for a conversation using intelligent orchestration"""
     try:
         user_type = request.user_type or "Client"
@@ -1720,7 +1784,7 @@ async def process_all_agents(request: AIAgentRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/agents/process-intelligent")
-async def process_intelligent(request: AIAgentRequest):
+async def process_intelligent(request: AIAgentRequest, _: str = Depends(authenticate_request)):
     """Intelligently process conversation with context-aware agent selection"""
     try:
         user_type = request.user_type or "Client"
@@ -1745,14 +1809,14 @@ async def process_intelligent(request: AIAgentRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/agents/conversational-response")
-async def conversational_response(request: dict):
+async def conversational_response(payload: dict, _: str = Depends(authenticate_request)):
     """Generate highly intelligent conversational AI response with integrated analysis - Cursor-style single API call"""
     try:
-        conversation_id = request.get("conversation_id", "")
-        messages = request.get("messages", [])
-        user_message = request.get("user_message", "")
-        user_type = request.get("user_type", "Client")
-        stream = request.get("stream", False)  # Support streaming
+        conversation_id = payload.get("conversation_id", "")
+        messages = payload.get("messages", [])
+        user_message = payload.get("user_message", "")
+        user_type = payload.get("user_type", "Client")
+        stream = payload.get("stream", False)  # Support streaming
         
         # Quick analysis for conversation context (no API call)
         conversation_analysis = _quick_conversation_analysis(messages, user_message, user_type)
@@ -1782,6 +1846,15 @@ Be friendly, professional, and concise. Format your response as proper HTML."""
             temperature = 0.3
         else:
             # Comprehensive response with integrated analysis for complex queries
+            # Check if this is an onboarding/getting started query - needs more tokens
+            user_message_lower = user_message.lower()
+            is_onboarding_query = any(phrase in user_message_lower for phrase in [
+                "get started", "getting started", "let's get started", "lets get started",
+                "how do i get started", "how to get started", "how can i get started",
+                "where do i start", "where should i start", "where to start",
+                "i'm new", "im new", "i am new", "new to notal", "new user"
+            ])
+            
             base_system_prompt = f"""You are Notal AI, an advanced legal assistant. Provide a comprehensive response that includes both conversation and analysis.
 
 CONVERSATION CONTEXT:
@@ -1847,9 +1920,11 @@ IMPORTANT: Format your response using proper HTML tags, not markdown or raw text
 
 Respond as an intelligent legal assistant:"""
             
-            # Use GPT-4o for complex responses  
+            # Use GPT-4o for complex responses
+            # Use is_onboarding_query from earlier check
             selected_model = get_model_name(ModelType.GPT_4O) if os.getenv("AZURE_OPENAI_ENDPOINT") else "gpt-4o"
-            max_tokens = 1500
+            # Increase max_tokens for onboarding queries to ensure complete responses
+            max_tokens = 3000 if is_onboarding_query else 1500
             temperature = 0.7
         
         # Analyze task complexity for cost optimization
@@ -1908,16 +1983,16 @@ Respond as an intelligent legal assistant:"""
         return "I apologize, but I'm experiencing technical difficulties right now. Please try again in a moment, or contact our support team if the issue persists. I'm here to help with your legal questions and concerns."
 
 @app.post("/agents/conversational-response-stream")
-async def conversational_response_stream(request: dict):
+async def conversational_response_stream(payload: dict, _: str = Depends(authenticate_request)):
     """Generate streaming conversational AI response with RAG and dynamic model selection"""
     from starlette.responses import StreamingResponse
     
     async def generate_stream():
         try:
-            conversation_id = request.get("conversation_id", "")
-            messages = request.get("messages", [])
-            user_message = request.get("user_message", "")
-            user_type = request.get("user_type", "Client")
+            conversation_id = payload.get("conversation_id", "")
+            messages = payload.get("messages", [])
+            user_message = payload.get("user_message", "")
+            user_type = payload.get("user_type", "Client")
             
             # Quick analysis for conversation context (no API call)
             conversation_analysis = _quick_conversation_analysis(messages, user_message, user_type)
@@ -1947,6 +2022,15 @@ IMPORTANT: Return ONLY the HTML content with <p> tags and <br> for line breaks. 
                 temperature = 0.3
             else:
                 # Comprehensive response with integrated analysis for complex queries
+                # Check if this is an onboarding/getting started query - needs more tokens
+                user_message_lower = user_message.lower()
+                is_onboarding_query = any(phrase in user_message_lower for phrase in [
+                    "get started", "getting started", "let's get started", "lets get started",
+                    "how do i get started", "how to get started", "how can i get started",
+                    "where do i start", "where should i start", "where to start",
+                    "i'm new", "im new", "i am new", "new to notal", "new user"
+                ])
+                
                 base_system_prompt = f"""You are Notal AI, an advanced legal assistant. Provide a comprehensive, helpful response.
 
 CONVERSATION CONTEXT:
@@ -1993,9 +2077,10 @@ CRITICAL: Return ONLY the HTML content. Do NOT wrap your response in ```html cod
 
 Respond as an intelligent legal assistant:"""
                 
-                # Use GPT-4o for complex responses  
+                # Use GPT-4o for complex responses
+                # Increase max_tokens for onboarding queries to ensure complete responses
                 selected_model = get_model_name(ModelType.GPT_4O)
-                max_tokens = 1500
+                max_tokens = 3000 if is_onboarding_query else 1500
                 temperature = 0.7
             
             # Analyze task complexity for cost optimization
@@ -2121,6 +2206,17 @@ def _quick_conversation_analysis(messages: List[dict], user_message: str, user_t
 def _is_simple_message(user_message: str, conversation_analysis: dict) -> bool:
     """Determine if this is a simple message that doesn't need complex processing"""
     message_lower = user_message.lower().strip()
+    
+    # NEVER treat "get started" queries as simple - they need comprehensive guidance
+    getting_started_phrases = [
+        "get started", "getting started", "let's get started", "lets get started",
+        "how do i get started", "how to get started", "how can i get started",
+        "where do i start", "where should i start", "where to start",
+        "i'm new", "im new", "i am new", "new to notal", "new user"
+    ]
+    
+    if any(phrase in message_lower for phrase in getting_started_phrases):
+        return False  # Always treat as complex for comprehensive response
     
     # Simple greetings
     simple_greetings = [

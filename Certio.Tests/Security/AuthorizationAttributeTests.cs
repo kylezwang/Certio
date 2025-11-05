@@ -269,13 +269,24 @@ namespace Certio.Tests.Security
                 _permissionServiceMock.Object,
                 _taskLoggerMock.Object);
 
-            var authContext = CreateAuthorizationContext(userId, null);
-            var queryCollection = new QueryCollection(new Dictionary<string, Microsoft.Extensions.Primitives.StringValues>
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.QueryString = new QueryString($"?taskId={taskId}");
+
+            var claims = new List<Claim>
             {
-                { "taskId", taskId.ToString() }
-            });
-            authContext.HttpContext.Request.QueryString = new QueryString($"?taskId={taskId}");
-            Mock.Get(authContext.HttpContext.Request).Setup(r => r.Query).Returns(queryCollection);
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString())
+            };
+            var identity = new ClaimsIdentity(claims, "TestAuth");
+            httpContext.User = new ClaimsPrincipal(identity);
+
+            var actionContext = new ActionContext(
+                httpContext,
+                new RouteData(),
+                new Microsoft.AspNetCore.Mvc.Abstractions.ActionDescriptor());
+
+            var authContext = new AuthorizationFilterContext(
+                actionContext,
+                new List<IFilterMetadata>());
 
             // Act
             await filter.OnAuthorizationAsync(authContext);
@@ -300,6 +311,17 @@ namespace Certio.Tests.Security
                 };
                 var identity = new ClaimsIdentity(claims, "TestAuth");
                 httpContext.User = new ClaimsPrincipal(identity);
+
+                // Add CustomUser to HttpContext.Items for RequirePermissionFilter
+                var customUser = new User
+                {
+                    Id = userId.Value,
+                    Email = $"test{userId.Value}@example.com",
+                    FirstName = "Test",
+                    LastName = "User",
+                    UserOrganizations = new List<UserOrganization>()
+                };
+                httpContext.Items["CustomUser"] = customUser;
             }
 
             if (orgId.HasValue)
@@ -308,6 +330,8 @@ namespace Certio.Tests.Security
                 Mock.Get(httpContext.Session)
                     .Setup(s => s.TryGetValue("OrganizationId", out It.Ref<byte[]>.IsAny))
                     .Returns(false);
+                
+                httpContext.Items["CurrentOrganizationId"] = orgId.Value;
             }
 
             var actionContext = new ActionContext(

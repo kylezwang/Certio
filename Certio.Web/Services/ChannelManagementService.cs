@@ -138,7 +138,8 @@ public class ChannelManagementService : Certio.Web.Services.IChannelManagementSe
                 OrganizationId = organizationId,
                 OrganizationName = uo.Organization != null ? uo.Organization.Name : null,
                 IsExternalContacts = uo.Organization != null && uo.Organization.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase),
-                Color = uo.User.Color ?? "#3d1019"
+                Color = uo.User.Color ?? "#3d1019",
+                Email = uo.User.Email
             })
             .ToListAsync();
 
@@ -250,7 +251,8 @@ public class ChannelManagementService : Certio.Web.Services.IChannelManagementSe
                     OrganizationId = uo.OrganizationId,
                     OrganizationName = uo.Organization != null ? uo.Organization.Name : null,
                     IsExternalContacts = uo.Organization != null && uo.Organization.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase),
-                    Color = uo.User.Color ?? "#3d1019"
+                    Color = uo.User.Color ?? "#3d1019",
+                    Email = uo.User.Email
                 })
                 .ToListAsync();
         }

@@ -484,112 +484,8 @@ namespace Certio.Web.Controllers
         // All communications functionality is now in CommunicationsController
 
         // GET /Client/{orgId}/Documents
-        [Authorize(Policy = "OrgMember")]
-        [HttpGet("/Client/{orgId:int}/Documents")]
-        public async Task<IActionResult> Documents(int orgId)
-        {
-            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
-            if (customUser == null)
-            {
-                return RedirectToAction("Index", "Home");
-            }
-
-            ViewBag.OrganizationId = orgId;
-            var org = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync();
-            ViewBag.OrganizationName = org?.Name ?? "Client";
-            ViewBag.OrganizationType = org?.Type ?? Certio.Domain.Organizations.OrganizationType.Client;
-            
-            var useSample = _configuration.GetValue<bool>("Features:UseSampleData");
-            DocumentsViewModel model;
-            if (useSample)
-            {
-                // Copy of HomeController.Documents sample data
-                var documents = new List<Certio.Domain.Documents.Document>
-                {
-                    new Certio.Domain.Documents.Document { Id = 1, Name = "Morrison Industries - Service Agreement", Type = "Contract", FileSize = "2.4 MB", LastModifiedDate = new DateTime(2024, 1, 15), Status = "Final", Visibility = "Private", Tags = new List<string> { "Contract", "Client", "Morrison" }, Icon = "FileText" },
-                    new Certio.Domain.Documents.Document { Id = 2, Name = "Compliance Audit Report Q4 2023", Type = "Report", FileSize = "5.1 MB", LastModifiedDate = new DateTime(2024, 1, 12), Status = "Published", Visibility = "Team", Tags = new List<string> { "Compliance", "Audit", "Q4" }, Icon = "File" },
-                    new Certio.Domain.Documents.Document { Id = 3, Name = "Legal Research - AI Regulations", Type = "Research", FileSize = "1.8 MB", LastModifiedDate = new DateTime(2024, 1, 10), Status = "Draft", Visibility = "Private", Tags = new List<string> { "Research", "AI", "Regulations" }, Icon = "FileText" },
-                    new Certio.Domain.Documents.Document { Id = 4, Name = "Client Onboarding Presentation", Type = "Presentation", FileSize = "12.3 MB", LastModifiedDate = new DateTime(2024, 1, 8), Status = "Review", Visibility = "Public", Tags = new List<string> { "Presentation", "Onboarding" }, Icon = "Image" },
-                    new Certio.Domain.Documents.Document { Id = 5, Name = "Contract Template Library", Type = "Templates", FileSize = "8.7 MB", LastModifiedDate = new DateTime(2024, 1, 5), Status = "Active", Visibility = "Team", Tags = new List<string> { "Templates", "Contracts" }, Icon = "Archive" }
-                };
-
-                var folders = new List<Certio.Domain.Documents.FolderInfo>
-                {
-                    new Certio.Domain.Documents.FolderInfo { Name = "Contracts", Count = 24, Icon = "FileText" },
-                    new Certio.Domain.Documents.FolderInfo { Name = "Compliance", Count = 12, Icon = "File" },
-                    new Certio.Domain.Documents.FolderInfo { Name = "Research", Count = 18, Icon = "FileText" },
-                    new Certio.Domain.Documents.FolderInfo { Name = "Templates", Count = 8, Icon = "Archive" },
-                    new Certio.Domain.Documents.FolderInfo { Name = "Client Files", Count = 35, Icon = "File" }
-                };
-
-                var storage = new Certio.Domain.Documents.StorageInfo { UsedGB = 156.7, TotalGB = 500, DocumentCount = 247, SharedCount = 42, RecentCount = 15 };
-
-                model = new DocumentsViewModel { Documents = documents, Folders = folders, Storage = storage };
-            }
-            else
-            {
-                model = new DocumentsViewModel();
-            }
-
-            // Fetch real matters from all accessible organizations (including relationships)
-            var accessibleOrgsResult = await _organizationService.GetAccessibleOrganizationsAsync(customUser.Id);
-            List<MatterDto> allMatters = new List<MatterDto>();
-            
-            if (accessibleOrgsResult.Success)
-            {
-                // Get matters from all accessible organizations
-                foreach (var accessibleOrg in accessibleOrgsResult.Data!)
-                {
-                    var mattersResult = await _matterService.ListMattersAsync(customUser.Id, accessibleOrg.Id);
-                    if (mattersResult.Success && mattersResult.Data != null)
-                    {
-                        allMatters.AddRange(mattersResult.Data);
-                    }
-                }
-            }
-
-            // Map DTOs to entities for view
-            model.Matters = allMatters.Select(dto => new Matter
-            {
-                Id = dto.Id,
-                Title = dto.Title,
-                Description = dto.Description,
-                Status = dto.Status,
-                PracticeArea = dto.PracticeArea,
-                CreatedAt = dto.CreatedAt,
-                OrganizationId = dto.OrganizationId,
-                DueDate = dto.DueDate,
-                StartDate = dto.StartDate,
-                CompletedDate = dto.CompletedDate,
-                AccessLevel = dto.AccessLevel,
-                TeamId = dto.TeamId,
-                ClientId = dto.ClientId,
-                Assignments = dto.Assignments.Select(a => new MatterAssignment
-                {
-                    Id = a.Id,
-                    MatterId = a.MatterId,
-                    UserId = a.UserId,
-                    AssignmentType = a.AssignmentType,
-                    Role = a.Role,
-                    IsNotifyRecipient = a.IsNotifyRecipient,
-                    AssignedAt = a.AssignedAt,
-                    User = a.User != null ? new Certio.Domain.Users.User
-                    {
-                        Id = a.User.Id,
-                        FirstName = a.User.FirstName,
-                        LastName = a.User.LastName,
-                        Email = a.User.Email
-                    } : null!
-                }).ToList(),
-                TaskItems = Enumerable.Range(0, dto.TasksCompleted)
-                    .Select(_ => new Certio.Domain.Tasks.TaskItem { Status = "Completed" })
-                    .Concat(Enumerable.Range(0, dto.TotalTasks - dto.TasksCompleted)
-                        .Select(_ => new Certio.Domain.Tasks.TaskItem { Status = "Pending" }))
-                    .ToList()
-            }).ToList();
-
-            return View("~/Views/Home/Documents.cshtml", model);
-        }
+        // NOTE: Moved to DocumentsController.Index
+        // This route is now handled by DocumentsController
 
         // GET /Client/{orgId}/Teams
         [Authorize(Policy = "OrgMember")]
@@ -1574,6 +1470,17 @@ namespace Certio.Web.Controllers
             }
 
             return externalUsers.OrderBy(u => u.Name).ThenBy(u => u.Email).ToList();
+        }
+
+        private static Guid CreateDeterministicGuid(string namespacePrefix, int value)
+        {
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var hash = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes($"{namespacePrefix}:{value.ToString(System.Globalization.CultureInfo.InvariantCulture)}"));
+            Span<byte> guidBytes = stackalloc byte[16];
+            hash.AsSpan(0, 16).CopyTo(guidBytes);
+            guidBytes[6] = (byte)((guidBytes[6] & 0x0F) | 0x40); // Version 4
+            guidBytes[8] = (byte)((guidBytes[8] & 0x3F) | 0x80); // Variant RFC 4122
+            return new Guid(guidBytes);
         }
     }
 }

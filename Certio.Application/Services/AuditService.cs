@@ -107,29 +107,9 @@ namespace Certio.Application.Services
                 })
                 .ToListAsync();
 
-            var documentQuery = _context.Documents
-                .Where(d => d.IsAIGenerated && d.ApprovalStatus == "Pending");
-
-            var documents = await documentQuery
-                .Select(d => new AuditLogDTO
-                {
-                    EntityType = "Document",
-                    EntityId = d.Id,
-                    EntityTitle = d.Name,
-                    IsAIAction = true,
-                    AIAgentType = d.AIAgentType,
-                    SourceConversationId = d.SourceConversationId,
-                    SourceMessageId = d.SourceMessageId,
-                    ApprovalStatus = d.ApprovalStatus,
-                    NeedsReview = true,
-                    Timestamp = d.CreatedAt
-                })
-                .ToListAsync();
-
             var result = new List<AuditLogDTO>();
             result.AddRange(matters);
             result.AddRange(tasks);
-            result.AddRange(documents);
 
             return result.OrderByDescending(a => a.Timestamp).ToList();
         }

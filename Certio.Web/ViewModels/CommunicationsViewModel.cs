@@ -78,6 +78,7 @@ namespace Certio.Web.ViewModels
         public string? OrganizationName { get; set; }
         public bool IsExternalContacts { get; set; } = false;
         public string Color { get; set; } = "#3d1019"; // Default to maroon, will be overridden by User.Color
+        public string? Email { get; set; }
     }
 }
 

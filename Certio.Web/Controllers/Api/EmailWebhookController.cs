@@ -5,6 +5,10 @@ using Certio.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
+using System.Linq;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
 
 namespace Certio.Web.Controllers.Api;
 
@@ -17,19 +21,22 @@ public class EmailWebhookController : ControllerBase
     private readonly IEmailToDmService _emailToDmService;
     private readonly IConfiguration _configuration;
     private readonly ILogger<EmailWebhookController> _logger;
+    private readonly IWebHostEnvironment _environment;
 
     public EmailWebhookController(
         ApplicationDbContext context,
         IEmailService emailService,
         IEmailToDmService emailToDmService,
         IConfiguration configuration,
-        ILogger<EmailWebhookController> logger)
+        ILogger<EmailWebhookController> logger,
+        IWebHostEnvironment? environment = null)
     {
         _context = context;
         _emailService = emailService;
         _emailToDmService = emailToDmService;
         _configuration = configuration;
         _logger = logger;
+        _environment = environment ?? new NoopWebHostEnvironment();
     }
 
     /// <summary>
@@ -40,6 +47,33 @@ public class EmailWebhookController : ControllerBase
     {
         try
         {
+            // Validate shared secret - REQUIRED in production
+            var expectedToken = _configuration["EmailIntegration:GmailVerificationToken"];
+            var isProduction = !_environment.IsDevelopment();
+            
+            if (isProduction && string.IsNullOrWhiteSpace(expectedToken))
+            {
+                _logger.LogError("Gmail webhook secret is required in production but is missing");
+                return StatusCode(500, new { error = "Webhook secret configuration error" });
+            }
+            
+            // In production, secret validation is mandatory
+            if (isProduction || !string.IsNullOrWhiteSpace(expectedToken))
+            {
+                var headerToken = Request.Headers["X-Goog-Channel-Token"].FirstOrDefault();
+                if (string.IsNullOrEmpty(headerToken))
+                {
+                    _logger.LogWarning("Gmail webhook missing channel token header");
+                    return Unauthorized();
+                }
+
+                if (!IsSecureMatch(expectedToken, headerToken))
+                {
+                    _logger.LogWarning("Gmail webhook token mismatch");
+                    return Unauthorized();
+                }
+            }
+
             // Gmail webhooks come via Google Cloud Pub/Sub
             // The payload contains message data with email notification
             var payloadJson = System.Text.Json.JsonSerializer.Serialize(payload);
@@ -58,6 +92,16 @@ public class EmailWebhookController : ControllerBase
             if (message == null || !message.ContainsKey("data"))
             {
                 return BadRequest(new { error = "Invalid message format" });
+            }
+
+            if (!string.IsNullOrWhiteSpace(expectedToken) && message.TryGetValue("attributes", out var attributesObj))
+            {
+                var attributes = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(attributesObj.ToString()!);
+                if (attributes == null || !attributes.TryGetValue("token", out var attributeToken) || !IsSecureMatch(expectedToken, attributeToken?.ToString() ?? string.Empty))
+                {
+                    _logger.LogWarning("Gmail webhook attribute token mismatch");
+                    return Unauthorized();
+                }
             }
 
             // Decode base64 message data
@@ -106,17 +150,6 @@ public class EmailWebhookController : ControllerBase
             var payloadJson = System.Text.Json.JsonSerializer.Serialize(payload);
             _logger.LogInformation("Received Outlook webhook: {Payload}", payloadJson);
 
-            // Validate webhook signature (if configured)
-            if (!string.IsNullOrEmpty(_configuration["EmailIntegration:WebhookSecret"]))
-            {
-                var isValid = ValidateOutlookWebhookSignature(Request);
-                if (!isValid)
-                {
-                    _logger.LogWarning("Invalid webhook signature");
-                    return Unauthorized();
-                }
-            }
-
             // Parse notification
             var notification = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(payloadJson);
             if (notification == null)
@@ -139,6 +172,36 @@ public class EmailWebhookController : ControllerBase
                 
                 if (notifications != null && notifications.Any())
                 {
+                    var secret = _configuration["EmailIntegration:WebhookSecret"];
+                    var isProduction = !_environment.IsDevelopment();
+                    
+                    // In production, secret validation is mandatory
+                    if (isProduction && string.IsNullOrWhiteSpace(secret))
+                    {
+                        _logger.LogError("Outlook webhook secret is required in production but is missing");
+                        return StatusCode(500, new { error = "Webhook secret configuration error" });
+                    }
+                    
+                    // Validate secret if configured (mandatory in production)
+                    if (isProduction || !string.IsNullOrWhiteSpace(secret))
+                    {
+                        foreach (var item in notifications)
+                        {
+                            if (!item.TryGetValue("clientState", out var clientStateObj))
+                            {
+                                _logger.LogWarning("Outlook webhook missing clientState");
+                                return Unauthorized();
+                            }
+
+                            var clientState = clientStateObj?.ToString();
+                            if (string.IsNullOrEmpty(clientState) || !IsSecureMatch(secret, clientState))
+                            {
+                                _logger.LogWarning("Outlook webhook clientState mismatch");
+                                return Unauthorized();
+                            }
+                        }
+                    }
+
                     // When webhook is received, sync all active Outlook accounts
                     // This is because we can't easily determine which account the message belongs to from the webhook payload
                     var activeAccounts = await _context.EmailAccounts
@@ -168,19 +231,17 @@ public class EmailWebhookController : ControllerBase
         }
     }
 
-    private bool ValidateOutlookWebhookSignature(HttpRequest request)
+    private static bool IsSecureMatch(string expected, string actual)
     {
-        // Microsoft Graph webhook validation
-        // In production, validate using certificate or shared secret
-        // For now, basic validation
-        var webhookSecret = _configuration["EmailIntegration:WebhookSecret"];
-        if (string.IsNullOrEmpty(webhookSecret))
+        if (string.IsNullOrEmpty(expected) || string.IsNullOrEmpty(actual))
         {
-            return true; // If no secret configured, allow
+            return false;
         }
 
-        // Basic validation - in production, use proper certificate validation
-        return true;
+        var expectedBytes = Encoding.UTF8.GetBytes(expected);
+        var actualBytes = Encoding.UTF8.GetBytes(actual);
+
+        return CryptographicOperations.FixedTimeEquals(expectedBytes, actualBytes);
     }
 
     private int? ExtractEmailAccountIdFromResource(string resource)
@@ -208,6 +269,16 @@ public class EmailWebhookController : ControllerBase
         // Return null to indicate we should sync all accounts
         // In production, implement proper message-to-account mapping
         return null;
+    }
+
+    private sealed class NoopWebHostEnvironment : IWebHostEnvironment
+    {
+        public string EnvironmentName { get; set; } = Environments.Development;
+        public string ApplicationName { get; set; } = "Certio";
+        public string WebRootPath { get; set; } = string.Empty;
+        public string ContentRootPath { get; set; } = string.Empty;
+        public IFileProvider WebRootFileProvider { get; set; } = new NullFileProvider();
+        public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
     }
 }
 

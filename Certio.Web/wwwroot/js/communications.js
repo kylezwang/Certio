@@ -98,13 +98,15 @@ function setupSignalRHandlers() {
 
     // User joined channel
     communicationsConnection.on("UserJoinedChannel", function (data) {
-        console.log(`${data.UserName} joined the channel`);
+        const userName = data.UserName || data.userName || 'Unknown User';
+        console.log(`${userName} joined the channel`);
         updateOnlineUsers();
     });
 
     // User left channel
     communicationsConnection.on("UserLeftChannel", function (data) {
-        console.log(`${data.UserName} left the channel`);
+        const userName = data.UserName || data.userName || 'Unknown User';
+        console.log(`${userName} left the channel`);
         updateOnlineUsers();
     });
 
@@ -766,10 +768,18 @@ async function switchChannel(channelId, channelName, isMatterChannel, matterTitl
     oldestMessageId = null;
     hasMoreMessages = true;
     
-    // Update message input placeholder
+    // Update message input placeholder - check if email mode is active
     const messageInput = document.getElementById('messageInput');
     if (messageInput) {
-        messageInput.placeholder = `Message #${channelName}`;
+        // Check if email mode is active (check if switcher button shows paper airplane icon)
+        const emailSwitcherBtn = document.getElementById('emailSwitcherBtn');
+        const isEmailMode = emailSwitcherBtn && emailSwitcherBtn.querySelector('i')?.classList.contains('fa-paper-plane');
+        
+        if (isEmailMode) {
+            messageInput.placeholder = `Email #${channelName}`;
+        } else {
+            messageInput.placeholder = `Message #${channelName}`;
+        }
     }
     
     // Show simple loading indicator while switching

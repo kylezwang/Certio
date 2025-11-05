@@ -26,6 +26,9 @@ public class RedisCacheService : ICacheService
     private static readonly TimeSpan ChannelMetadataExpiration = TimeSpan.FromHours(1); // Warm data
     private static readonly TimeSpan UserPresenceExpiration = TimeSpan.FromMinutes(5); // Very hot data
     
+    // Maximum payload size we are willing to push to Redis (bytes)
+    private const int MaxDistributedCachePayloadBytes = 512 * 1024; // 512 KB safety guard
+
     // Cache key prefixes
     private const string MESSAGE_PREFIX = "msg:";
     private const string CHANNEL_PREFIX = "ch:";
@@ -96,16 +99,30 @@ public class RedisCacheService : ICacheService
 
     public async Task SetAsync<T>(string key, T value, TimeSpan? expiration = null) where T : class
     {
+        var exp = expiration ?? DefaultExpiration;
+        var memoryCacheDuration = TimeSpan.FromMinutes(Math.Min(5, exp.TotalMinutes));
+
         try
         {
-            var exp = expiration ?? DefaultExpiration;
-            
-            // Set in memory cache (L1)
-            _memoryCache.Set(key, value, TimeSpan.FromMinutes(Math.Min(5, exp.TotalMinutes)));
-            
-            // Set in distributed cache (L2 - Redis)
+            // Serialize once so we can inspect payload size before pushing to Redis
             var serializedData = JsonSerializer.Serialize(value, JsonOptions);
-            
+            var payloadSize = serializedData.Length;
+
+            if (payloadSize > MaxDistributedCachePayloadBytes)
+            {
+                _logger.LogWarning(
+                    "Skipping Redis cache set for key {Key} because payload size {PayloadSize} bytes exceeds safety limit {Limit} bytes",
+                    key, payloadSize, MaxDistributedCachePayloadBytes);
+
+                // Still warm the in-memory cache for the configured duration
+                _memoryCache.Set(key, value, memoryCacheDuration);
+                return;
+            }
+
+            // Set in memory cache (L1)
+            _memoryCache.Set(key, value, memoryCacheDuration);
+
+            // Set in distributed cache (L2 - Redis)
             var options = new DistributedCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = exp
@@ -116,6 +133,16 @@ public class RedisCacheService : ICacheService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error setting cache for key: {Key}", key);
+
+            try
+            {
+                // Ensure at least the in-memory cache is populated when Redis serialization fails
+                _memoryCache.Set(key, value, memoryCacheDuration);
+            }
+            catch (Exception memoryEx)
+            {
+                _logger.LogError(memoryEx, "Error setting fallback memory cache for key: {Key}", key);
+            }
         }
     }
 

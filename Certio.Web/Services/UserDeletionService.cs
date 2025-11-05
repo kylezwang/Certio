@@ -190,16 +190,6 @@ namespace Certio.Web.Services
                 message.Sender = _anonymizationSettings.DeletedSenderName;
             }
 
-            // Anonymize personal comments
-            var personalComments = await _context.DocumentComments
-                .Where(dc => dc.UserId == userId)
-                .ToListAsync();
-
-            foreach (var comment in personalComments)
-            {
-                comment.Content = _anonymizationSettings.DeletedCommentMessage;
-            }
-
             // Anonymize status item comments
             var statusItemComments = await _context.StatusItemComments
                 .Where(sic => sic.UserId == userId)
@@ -254,13 +244,6 @@ namespace Certio.Web.Services
                 .ToListAsync();
             _context.ChatMessages.RemoveRange(chatMessages);
 
-            // Remove personal document comments
-            var documentComments = await _context.DocumentComments
-                .Where(dc => dc.UserId == userId)
-                .ToListAsync();
-            _context.DocumentComments.RemoveRange(documentComments);
-
-
             // Remove personal matter permissions
             var matterPermissions = await _context.MatterPermissions
                 .Where(mp => mp.UserId == userId)
@@ -273,17 +256,11 @@ namespace Certio.Web.Services
                 .ToListAsync();
             _context.ConversationParticipants.RemoveRange(conversationParticipants);
 
-            // Remove personal document reviews
-            var documentReviews = await _context.DocumentReviews
-                .Where(dr => dr.ReviewerId == userId)
+            // Remove document permissions linked to the user (if stored as hashed identifier)
+            var documentPermissions = await _context.DocumentPermissions
+                .Where(dp => dp.GrantedBy == ConvertUserIdToGuid(userId) || dp.UserId == ConvertUserIdToGuid(userId))
                 .ToListAsync();
-            _context.DocumentReviews.RemoveRange(documentReviews);
-
-            // Remove personal document signatures
-            var documentSignatures = await _context.DocumentSignatures
-                .Where(ds => ds.SignerId == userId)
-                .ToListAsync();
-            _context.DocumentSignatures.RemoveRange(documentSignatures);
+            _context.DocumentPermissions.RemoveRange(documentPermissions);
         }
 
         private async Task AnonymizeBusinessMetricsAsync(int userId)
@@ -312,6 +289,13 @@ namespace Certio.Web.Services
                 _context.MatterAssignments.Remove(assignment);
             }
 
+        }
+
+        private static Guid ConvertUserIdToGuid(int userId)
+        {
+            Span<byte> buffer = stackalloc byte[16];
+            BitConverter.TryWriteBytes(buffer, userId);
+            return new Guid(buffer);
         }
     }
 }

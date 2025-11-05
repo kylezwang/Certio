@@ -221,12 +221,15 @@ namespace Certio.Web.Services
             }
 
             var result = await _permissionService.GetFirmRelationshipAsync(userId, organizationId);
-            if (result != null)
+            if (result == null)
             {
-                await _cacheService.SetAsync(cacheKey, result, PermissionCacheExpiration);
+                return null;
             }
+
+            var sanitized = CreateCacheFriendlyRelationship(result);
+            await _cacheService.SetAsync(cacheKey, sanitized, PermissionCacheExpiration);
             
-            return result;
+            return sanitized;
         }
 
         public async Task<bool> CanPerformTaskOperationAsync(int userId, int taskId, Permission permission)
@@ -271,6 +274,75 @@ namespace Certio.Web.Services
         {
             _logger.LogInformation("Invalidating task access caches for task {TaskId}", taskId);
             await Task.CompletedTask;
+        }
+
+        private static OrganizationRelationship CreateCacheFriendlyRelationship(OrganizationRelationship relationship)
+        {
+            var sanitized = new OrganizationRelationship
+            {
+                Id = relationship.Id,
+                SourceOrganizationId = relationship.SourceOrganizationId,
+                TargetOrganizationId = relationship.TargetOrganizationId,
+                RelationshipType = relationship.RelationshipType,
+                AccessLevel = relationship.AccessLevel,
+                Description = relationship.Description,
+                IsActive = relationship.IsActive,
+                ExpiresAt = relationship.ExpiresAt,
+                CreatedAt = relationship.CreatedAt,
+                LastModifiedDate = relationship.LastModifiedDate,
+                CreatedById = relationship.CreatedById,
+                ModifiedById = relationship.ModifiedById,
+                DeletedAt = relationship.DeletedAt,
+                DeletedById = relationship.DeletedById,
+                DeletionReason = relationship.DeletionReason,
+                IsDeleted = relationship.IsDeleted
+            };
+
+            sanitized.SourceOrganization = relationship.SourceOrganization != null
+                ? new Organization
+                {
+                    Id = relationship.SourceOrganization.Id,
+                    Name = relationship.SourceOrganization.Name,
+                    Description = relationship.SourceOrganization.Description,
+                    OwnerId = relationship.SourceOrganization.OwnerId,
+                    Type = relationship.SourceOrganization.Type,
+                    IsPersonal = relationship.SourceOrganization.IsPersonal,
+                    IsActive = relationship.SourceOrganization.IsActive,
+                    Color = relationship.SourceOrganization.Color,
+                    Logo = relationship.SourceOrganization.Logo
+                }
+                : new Organization
+                {
+                    Id = relationship.SourceOrganizationId,
+                    Name = string.Empty,
+                    OwnerId = 0,
+                    Type = OrganizationType.LawFirm,
+                    IsActive = false
+                };
+
+            sanitized.TargetOrganization = relationship.TargetOrganization != null
+                ? new Organization
+                {
+                    Id = relationship.TargetOrganization.Id,
+                    Name = relationship.TargetOrganization.Name,
+                    Description = relationship.TargetOrganization.Description,
+                    OwnerId = relationship.TargetOrganization.OwnerId,
+                    Type = relationship.TargetOrganization.Type,
+                    IsPersonal = relationship.TargetOrganization.IsPersonal,
+                    IsActive = relationship.TargetOrganization.IsActive,
+                    Color = relationship.TargetOrganization.Color,
+                    Logo = relationship.TargetOrganization.Logo
+                }
+                : new Organization
+                {
+                    Id = relationship.TargetOrganizationId,
+                    Name = string.Empty,
+                    OwnerId = 0,
+                    Type = OrganizationType.Client,
+                    IsActive = false
+                };
+
+            return sanitized;
         }
     }
 }

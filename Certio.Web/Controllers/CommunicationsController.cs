@@ -365,7 +365,7 @@ namespace Certio.Web.Controllers
 
             try
             {
-                // Get conversation/channel
+                // Get conversation/channel - first find by ID, then verify access
                 var conversation = await _db.Conversations
                     .Include(c => c.Participants)
                         .ThenInclude(cp => cp.User)
@@ -375,11 +375,18 @@ namespace Certio.Web.Controllers
                     .Include(c => c.Matter)
                         .ThenInclude(m => m.Permissions)
                             .ThenInclude(p => p.User)
-                    .FirstOrDefaultAsync(c => c.Id == channelId && c.OrganizationId == orgId);
+                    .FirstOrDefaultAsync(c => c.Id == channelId);
 
                 if (conversation == null)
                 {
                     return Json(new { success = false, message = "Channel not found" });
+                }
+
+                // Verify user has access to this channel (using the same logic as CanUserAccessConversationAsync)
+                var hasAccess = await _chatService.CanUserAccessConversationAsync(conversation.Id, customUser.Id, orgId);
+                if (!hasAccess)
+                {
+                    return Json(new { success = false, message = "Access denied to channel" });
                 }
 
                 // Get online users
@@ -418,9 +425,9 @@ namespace Certio.Web.Controllers
                                 avatar = initials,
                                 status = isOnline ? "online" : "offline",
                                 color = user.Color ?? "#3d1019",
-                                Color = user.Color ?? "#3d1019",
                                 isExternalContacts = isExternalContacts,
-                                organizationName = userOrg?.Organization?.Name
+                                organizationName = userOrg?.Organization?.Name,
+                                email = user.Email
                             });
                         }
                     }
@@ -453,9 +460,9 @@ namespace Certio.Web.Controllers
                                     avatar = initials,
                                     status = isOnline ? "online" : "offline",
                                     color = user.Color ?? "#3d1019",
-                                    Color = user.Color ?? "#3d1019",
                                     isExternalContacts = isExternalContacts,
-                                    organizationName = userOrg?.Organization?.Name
+                                    organizationName = userOrg?.Organization?.Name,
+                                    email = user.Email
                                 });
                             }
                         }
@@ -463,30 +470,108 @@ namespace Certio.Web.Controllers
                 }
                 else
                 {
-                    // For non-matter channels, show conversation participants
-                    foreach (var participant in conversation.Participants.Where(p => p.User != null && p.User.IsActive))
-                    {
-                        var user = participant.User;
-                        var initials = $"{user.FirstName?.FirstOrDefault() ?? '?'}{user.LastName?.FirstOrDefault() ?? '?'}";
-                        var isOnline = onlineUserIds.Contains(user.Id);
-                        
-                        // Get user's organization membership for this org
-                        var userOrg = await _db.UserOrganizations
-                            .Include(uo => uo.Organization)
-                            .FirstOrDefaultAsync(uo => uo.UserId == user.Id && uo.OrganizationId == orgId);
-                        var isExternalContacts = userOrg?.Organization?.Name?.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase) ?? false;
+                    // For non-matter channels, show conversation participants if they exist
+                    // Otherwise, fall back to organization members who have access to this channel
+                    var channelOrgId = conversation.OrganizationId;
+                    var participantUsers = conversation.Participants
+                        .Where(p => p.User != null && p.User.IsActive)
+                        .Select(p => p.User)
+                        .ToList();
 
-                        members.Add(new
+                    var userIds = new HashSet<int>();
+
+                    if (participantUsers.Any())
+                    {
+                        // Use explicit participants
+                        foreach (var user in participantUsers)
                         {
-                            userId = user.Id,
-                            name = $"{user.FirstName} {user.LastName}".Trim(),
-                            avatar = initials,
-                            status = isOnline ? "online" : "offline",
-                            color = user.Color ?? "#3d1019",
-                            Color = user.Color ?? "#3d1019",
-                            isExternalContacts = isExternalContacts,
-                            organizationName = userOrg?.Organization?.Name
-                        });
+                            if (!userIds.Add(user.Id)) continue;
+
+                            var initials = $"{user.FirstName?.FirstOrDefault() ?? '?'}{user.LastName?.FirstOrDefault() ?? '?'}";
+                            var isOnline = onlineUserIds.Contains(user.Id);
+                            
+                            // Get user's organization membership for this org
+                            var userOrg = await _db.UserOrganizations
+                                .Include(uo => uo.Organization)
+                                .FirstOrDefaultAsync(uo => uo.UserId == user.Id && uo.OrganizationId == orgId);
+                            var isExternalContacts = userOrg?.Organization?.Name?.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase) ?? false;
+
+                            members.Add(new
+                            {
+                                userId = user.Id,
+                                name = $"{user.FirstName} {user.LastName}".Trim(),
+                                avatar = initials,
+                                status = isOnline ? "online" : "offline",
+                                color = user.Color ?? "#3d1019",
+                                isExternalContacts = isExternalContacts,
+                                organizationName = userOrg?.Organization?.Name,
+                                email = user.Email
+                            });
+                        }
+                    }
+                    else
+                    {
+                        // No explicit participants - this is an organization-wide channel
+                        // Get all organization members who have access to this channel's organization
+                        var orgMembers = await _db.UserOrganizations
+                            .Include(uo => uo.User)
+                            .Include(uo => uo.Organization)
+                            .Where(uo => uo.OrganizationId == channelOrgId &&
+                                         uo.IsActive &&
+                                         uo.User != null &&
+                                         uo.User.IsActive &&
+                                         !uo.User.IsDeleted)
+                            .ToListAsync();
+
+                        foreach (var userOrg in orgMembers)
+                        {
+                            var user = userOrg.User;
+                            if (user == null || !userIds.Add(user.Id)) continue;
+
+                            var initials = $"{user.FirstName?.FirstOrDefault() ?? '?'}{user.LastName?.FirstOrDefault() ?? '?'}";
+                            var isOnline = onlineUserIds.Contains(user.Id);
+                            var isExternalContacts = userOrg.Organization?.Name?.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase) ?? false;
+
+                            members.Add(new
+                            {
+                                userId = user.Id,
+                                name = $"{user.FirstName} {user.LastName}".Trim(),
+                                avatar = initials,
+                                status = isOnline ? "online" : "offline",
+                                color = user.Color ?? "#3d1019",
+                                isExternalContacts = isExternalContacts,
+                                organizationName = userOrg.Organization?.Name,
+                                email = user.Email
+                            });
+                        }
+                    }
+
+                    // For client organization relationship channels, always include the organization owner if not already in the list
+                    // This ensures the client owner's email appears even if they haven't explicitly joined the channel
+                    var channelOrg = await _db.Organizations
+                        .Include(o => o.Owner)
+                        .FirstOrDefaultAsync(o => o.Id == channelOrgId);
+                    
+                    if (channelOrg != null && channelOrg.OwnerId > 0 && !userIds.Contains(channelOrg.OwnerId))
+                    {
+                        var owner = channelOrg.Owner;
+                        if (owner != null && owner.IsActive && !owner.IsDeleted && !string.IsNullOrEmpty(owner.Email))
+                        {
+                            var ownerInitials = $"{owner.FirstName?.FirstOrDefault() ?? '?'}{owner.LastName?.FirstOrDefault() ?? '?'}";
+                            var ownerIsOnline = onlineUserIds.Contains(owner.Id);
+                            
+                            members.Add(new
+                            {
+                                userId = owner.Id,
+                                name = $"{owner.FirstName} {owner.LastName}".Trim(),
+                                avatar = ownerInitials,
+                                status = ownerIsOnline ? "online" : "offline",
+                                color = owner.Color ?? "#3d1019",
+                                isExternalContacts = false,
+                                organizationName = channelOrg.Name,
+                                email = owner.Email
+                            });
+                        }
                     }
                 }
 

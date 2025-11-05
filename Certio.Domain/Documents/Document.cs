@@ -1,196 +1,355 @@
+using System;
 using System.ComponentModel.DataAnnotations;
-using Certio.Domain.Users;
-using Certio.Domain.Matters;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json;
 
-namespace Certio.Domain.Documents
+namespace Certio.Domain.Documents;
+
+public enum DocumentSourceType
 {
+    GoogleDrive = 1,
+    OneDrive = 2,
+    InternalUpload = 3
+}
+
+public enum DocumentStatus
+{
+    Draft = 0,
+    Review = 1,
+    Final = 2,
+    Published = 3
+}
+
+public enum DocumentPermissionLevel
+{
+    Read = 0,
+    Comment = 1,
+    Edit = 2,
+    Owner = 3
+}
+
+public enum ExternalConnectionProvider
+{
+    Google = 1,
+    Microsoft = 2
+}
+
     public class Document
     {
-        public int Id { get; set; }
+    [Key]
+    public Guid Id { get; set; } = Guid.NewGuid();
         
         [Required]
-        [StringLength(200)]
-        public string Name { get; set; } = "";
+    public Guid OrgId { get; set; }
         
-        [StringLength(500)]
-        public string? Description { get; set; }
+    public Guid? MatterId { get; set; }
         
         [Required]
-        [StringLength(50)]
-        public string Type { get; set; } = ""; // Contract, Report, Research, Presentation, Template, Legal Document
+    public DocumentSourceType SourceType { get; set; }
         
-        [StringLength(20)]
-        public string FileSize { get; set; } = ""; // e.g., "2.4 MB"
-        
-        [StringLength(100)]
-        public string? FilePath { get; set; }
-        
-        [StringLength(50)]
-        public string? FileExtension { get; set; }
-        
-        [StringLength(100)]
-        public string? MimeType { get; set; }
-        
-        public int? MatterId { get; set; }
-        public int? StatusItemId { get; set; }
-        public int? CreatedById { get; set; }
+    [MaxLength(256)]
+    public string? ExternalFileId { get; set; }
         
         [Required]
-        [StringLength(20)]
-        public string Status { get; set; } = "Draft"; // Draft, InReview, Approved, Rejected, Published, Archived
+    [MaxLength(300)]
+    public string Title { get; set; } = string.Empty;
         
         [Required]
-        [StringLength(20)]
-        public string Visibility { get; set; } = "Private"; // Public, Team, Private
+    [MaxLength(150)]
+    public string FileType { get; set; } = string.Empty;
+
+    public long FileSizeBytes { get; set; }
+
+    [Required]
+    public DocumentStatus Status { get; set; } = DocumentStatus.Draft;
         
-        [StringLength(20)]
-        public string DocumentType { get; set; } = "General"; // Contract, Agreement, Form, Template, Legal, Business
+    [MaxLength(120)]
+    public string Category { get; set; } = "General";
         
-        public List<string> Tags { get; set; } = new List<string>();
+    public Guid? OwnerUserId { get; set; }
         
-        [StringLength(50)]
-        public string Icon { get; set; } = "FileText"; // FileText, File, Image, Video, Archive
-        
-        public bool IsTemplate { get; set; } = false;
-        public bool RequiresSignature { get; set; } = false;
-        public bool IsSigned { get; set; } = false;
-        
-        public DateTime? SignedDate { get; set; }
-        public DateTime? ReviewDueDate { get; set; }
-        
-    // Audit fields
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? ModifiedAt { get; set; }
-    public int? ModifiedById { get; set; }
-    public DateTime? LastModifiedDate { get; set; } // Legacy - use ModifiedAt
-    
-    // Soft delete fields
-    public bool IsDeleted { get; set; } = false;
+
+    public DateTime ModifiedAt { get; set; } = DateTime.UtcNow;
+
+    public bool IsPrivate { get; set; }
+
+    [MaxLength(512)]
+    public string? PreviewUrl { get; set; }
+
+    [MaxLength(512)]
+    public string? EmbedUrl { get; set; }
+
+    [MaxLength(512)]
+    public string? DownloadUrl { get; set; }
+
+    public Guid? VectorId { get; set; }
+
+    public DateTime? LastEmbeddedAt { get; set; }
+
+    [MaxLength(128)]
+    public string? Checksum { get; set; }
+
+    public List<string> Tags { get; set; } = new();
+
+    public Dictionary<string, string?> Metadata { get; set; } = new();
+
+    public Guid? AuditTrailId { get; set; }
+
     public DateTime? DeletedAt { get; set; }
-    public int? DeletedById { get; set; }
-    
-    // AI generation fields
-    public bool IsAIGenerated { get; set; } = false;
-    
-    [StringLength(50)]
-    public string? AIAgentType { get; set; }
-    
-    public string? AIGenerationMetadata { get; set; } // JSON
-    public int? SourceConversationId { get; set; }
-    public int? SourceMessageId { get; set; }
-    
-    // Approval fields for AI-generated content
-    [StringLength(20)]
-    public string? ApprovalStatus { get; set; } // Pending, Approved, Rejected
-    
-    public int? ApprovedById { get; set; }
-    public DateTime? ApprovedAt { get; set; }
-    
-    [StringLength(500)]
-    public string? ApprovalNotes { get; set; }
-    
-    // Computed properties for views
-    public string Author => CreatedBy?.FirstName + " " + CreatedBy?.LastName ?? "Unknown";
-    public DateTime Modified => LastModifiedDate ?? CreatedAt;
-    public string Size => FileSize;
-    
-    // Navigation properties
-    public virtual Matter? Matter { get; set; }
-    public virtual StatusItem? StatusItem { get; set; }
-    public virtual User? CreatedBy { get; set; }
-    public virtual ICollection<DocumentVersion> Versions { get; set; } = new List<DocumentVersion>();
-    public virtual ICollection<DocumentReview> Reviews { get; set; } = new List<DocumentReview>();
-    public virtual ICollection<DocumentComment> Comments { get; set; } = new List<DocumentComment>();
-    public virtual ICollection<DocumentSignature> Signatures { get; set; } = new List<DocumentSignature>();
+
+    public string? StorageBucket { get; set; }
+
+    public ICollection<DocumentVersion> Versions { get; set; } = new List<DocumentVersion>();
+
+    public ICollection<DocumentVector> Vectors { get; set; } = new List<DocumentVector>();
+
+    public ICollection<DocumentPermission> Permissions { get; set; } = new List<DocumentPermission>();
+
+    [NotMapped]
+    public string Name
+    {
+        get => Title;
+        set => Title = value;
+    }
+
+    [NotMapped]
+    public string Type
+    {
+        get => FileType;
+        set => FileType = value;
+    }
+
+    [NotMapped]
+    public string Icon => SourceType switch
+    {
+        DocumentSourceType.GoogleDrive => "File",
+        DocumentSourceType.OneDrive => "File",
+        _ => "FileText"
+    };
+
+    [NotMapped]
+    public string Visibility
+    {
+        get => IsPrivate ? "Private" : "Shared";
+        set => IsPrivate = string.Equals(value, "Private", StringComparison.OrdinalIgnoreCase);
+    }
+
+    [NotMapped]
+    public string Author
+    {
+        get
+        {
+            if (Metadata.TryGetValue("ownerName", out var owner) && !string.IsNullOrWhiteSpace(owner))
+            {
+                return owner!;
+            }
+
+            return "Unknown";
+        }
+        set
+        {
+            Metadata["ownerName"] = value;
+        }
+    }
+
+    [NotMapped]
+    public DateTime Modified => ModifiedAt;
+
+    [NotMapped]
+    public string Size => FormatFileSize(FileSizeBytes);
+
+    private static string FormatFileSize(long size)
+    {
+        if (size <= 0)
+        {
+            return "—";
+        }
+
+        string[] suffixes = { "B", "KB", "MB", "GB", "TB" };
+        var index = 0;
+        double displaySize = size;
+
+        while (displaySize >= 1024 && index < suffixes.Length - 1)
+        {
+            displaySize /= 1024;
+            index++;
+        }
+
+        return $"{displaySize:0.#} {suffixes[index]}";
+    }
     }
     
     public class DocumentVersion
     {
-        public int Id { get; set; }
-        
-        public int DocumentId { get; set; }
+    [Key]
+    public Guid Id { get; set; } = Guid.NewGuid();
+
+    [Required]
+    public Guid DocumentId { get; set; }
+
+    [Required]
         public int VersionNumber { get; set; }
         
-        [StringLength(500)]
-        public string? ChangeDescription { get; set; }
-        
-        [StringLength(100)]
-        public string? FilePath { get; set; }
-        
-        public int? CreatedById { get; set; }
+    public DateTime ModifiedAt { get; set; } = DateTime.UtcNow;
+
+    public Guid ModifiedByUserId { get; set; }
+
+    [MaxLength(256)]
+    public string? ExternalRevisionId { get; set; }
+
+    [MaxLength(128)]
+    public string? Checksum { get; set; }
+
+    [MaxLength(512)]
+    public string StorageUrl { get; set; } = string.Empty;
+
+    public Guid? VectorId { get; set; }
+
+    public DateTime? EmbeddingTimestamp { get; set; }
+
+    [MaxLength(500)]
+    public string? Notes { get; set; }
+
+    public Document Document { get; set; } = null!;
+}
+
+public class DocumentVector
+{
+    [Key]
+    public Guid Id { get; set; } = Guid.NewGuid();
+
+    [Required]
+    public Guid DocumentId { get; set; }
+
+    public Guid? VersionId { get; set; }
+
+    [Required]
+    public int ChunkIndex { get; set; }
+
+    [Required]
+    public string ContentChunk { get; set; } = string.Empty;
+
+    public float[]? Embedding { get; set; }
+
+    [MaxLength(200)]
+    public string? EmbeddingReference { get; set; }
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         
-        // Navigation properties
-        public virtual Document Document { get; set; } = null!;
-        public virtual User? CreatedBy { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+
+    [MaxLength(100)]
+    public string SourceType { get; set; } = string.Empty;
+
+    [Required]
+    public Guid OrgId { get; set; }
+
+    public Guid? MatterId { get; set; }
+
+    public Dictionary<string, string?> Tags { get; set; } = new();
+
+    public Document Document { get; set; } = null!;
+
+    public DocumentVersion? Version { get; set; }
     }
     
-    public class DocumentReview
-    {
-        public int Id { get; set; }
-        
-        public int DocumentId { get; set; }
-        public int ReviewerId { get; set; }
+public class RagQuery
+{
+    [Key]
+    public Guid Id { get; set; } = Guid.NewGuid();
+
+    [Required]
+    public Guid OrgId { get; set; }
+
+    [Required]
+    public Guid UserId { get; set; }
         
         [Required]
-        [StringLength(20)]
-        public string Status { get; set; } = "Pending"; // Pending, Approved, Rejected, NeedsRevision
-        
-        [StringLength(1000)]
-        public string? Comments { get; set; }
-        
-        public DateTime? ReviewedAt { get; set; }
+    public string QueryText { get; set; } = string.Empty;
+
+    public int TopK { get; set; } = 5;
+
+    public List<Guid> RetrievedVectorIds { get; set; } = new();
+
+    public Dictionary<string, string?> ContextJson { get; set; } = new();
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         
-        // Navigation properties
-        public virtual Document Document { get; set; } = null!;
-        public virtual User Reviewer { get; set; } = null!;
-    }
-    
-    public class DocumentComment
-    {
-        public int Id { get; set; }
+    [MaxLength(120)]
+    public string? UsedByAgent { get; set; }
+}
+
+public class ExternalConnection
+{
+    [Key]
+    public Guid Id { get; set; } = Guid.NewGuid();
+
+    [Required]
+    public Guid OrgId { get; set; }
+
+    [Required]
+    public Guid UserId { get; set; }
+
+    [Required]
+    public ExternalConnectionProvider Provider { get; set; }
+
+    [Required]
+    public string AccessToken { get; set; } = string.Empty; // Encrypted, nvarchar(max)
         
-        public int DocumentId { get; set; }
-        public int UserId { get; set; }
+    [Required]
+    public string RefreshToken { get; set; } = string.Empty; // Encrypted, nvarchar(max)
         
-        [Required]
-        [StringLength(2000)]
-        public string Content { get; set; } = "";
-        
-        public int? ParentCommentId { get; set; }
+    public DateTime TokenExpiry { get; set; }
+
+    public List<string> Scopes { get; set; } = new();
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime? LastModifiedDate { get; set; }
-        
-        // Navigation properties
-        public virtual Document Document { get; set; } = null!;
-        public virtual User User { get; set; } = null!;
-        public virtual DocumentComment? ParentComment { get; set; }
-        public virtual ICollection<DocumentComment> Replies { get; set; } = new List<DocumentComment>();
+
+    public DateTime? UpdatedAt { get; set; }
+}
+
+public class DocumentPermission
+{
+    [Key]
+    public Guid Id { get; set; } = Guid.NewGuid();
+
+    [Required]
+    public Guid DocumentId { get; set; }
+
+    [Required]
+    public Guid UserId { get; set; }
+
+    [Required]
+    public DocumentPermissionLevel PermissionLevel { get; set; }
+
+    [Required]
+    public Guid GrantedBy { get; set; }
+
+    public DateTime GrantedAt { get; set; } = DateTime.UtcNow;
+
+    public Document Document { get; set; } = null!;
     }
     
-    public class DocumentSignature
-    {
-        public int Id { get; set; }
+public class RagCacheEntry
+{
+    [Key]
+    public Guid Id { get; set; } = Guid.NewGuid();
+
+    [Required]
+    public Guid OrgId { get; set; }
+
+    [Required]
+    public Guid UserId { get; set; }
         
-        public int DocumentId { get; set; }
-        public int SignerId { get; set; }
+    [Required]
+    [MaxLength(128)]
+    public string QueryHash { get; set; } = string.Empty;
         
-        [StringLength(100)]
-        public string? SignatureData { get; set; } // Base64 encoded signature
+    [Required]
+    public string ContextJson { get; set; } = string.Empty;
         
-        [StringLength(100)]
-        public string? IPAddress { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         
-        [StringLength(200)]
-        public string? UserAgent { get; set; }
-        
-        public DateTime SignedAt { get; set; } = DateTime.UtcNow;
-        
-        // Navigation properties
-        public virtual Document Document { get; set; } = null!;
-        public virtual User Signer { get; set; } = null!;
-    }
+    public DateTime ExpiresAt { get; set; }
 }

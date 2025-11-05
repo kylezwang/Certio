@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using Certio.Domain.Users;
-using Certio.Domain.Documents;
 
 namespace Certio.Domain.Matters
 {
@@ -55,7 +54,6 @@ namespace Certio.Domain.Matters
         public virtual ICollection<StatusItemDependency> DependentItems { get; set; } = new List<StatusItemDependency>();
         public virtual ICollection<StatusItemAssignment> Assignments { get; set; } = new List<StatusItemAssignment>();
         public virtual ICollection<StatusItemComment> Comments { get; set; } = new List<StatusItemComment>();
-        public virtual ICollection<Document> RelatedDocuments { get; set; } = new List<Document>();
     }
     
     public class StatusItemDependency
