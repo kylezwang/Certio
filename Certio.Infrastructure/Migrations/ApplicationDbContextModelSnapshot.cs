@@ -391,315 +391,364 @@ namespace Certio.Infrastructure.Migrations
 
             modelBuilder.Entity("Certio.Domain.Documents.Document", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("uniqueidentifier");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<Guid?>("AuditTrailId")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("AIAgentType")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
 
-                    b.Property<string>("AIGenerationMetadata")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ApprovalNotes")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("ApprovalStatus")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<DateTime?>("ApprovedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ApprovedById")
-                        .HasColumnType("int");
+                    b.Property<string>("Checksum")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("CreatedById")
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("DeletedById")
-                        .HasColumnType("int");
+                    b.Property<string>("DownloadUrl")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                    b.Property<string>("EmbedUrl")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
 
-                    b.Property<string>("DocumentType")
+                    b.Property<string>("ExternalFileId")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<long>("FileSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("FileType")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
 
-                    b.Property<string>("FileExtension")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("FilePath")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("FileSize")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("Icon")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<bool>("IsAIGenerated")
+                    b.Property<bool>("IsPrivate")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsSigned")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsTemplate")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime?>("LastModifiedDate")
+                    b.Property<DateTime?>("LastEmbeddedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("MatterId")
-                        .HasColumnType("int");
+                    b.Property<Guid?>("MatterId")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("MimeType")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<bool>("RequiresSignature")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime?>("ReviewDueDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("SignedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("SourceConversationId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("SourceMessageId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<int?>("StatusItemId")
-                        .HasColumnType("int");
-
-                    b.PrimitiveCollection<string>("Tags")
+                    b.Property<string>("Metadata")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("TaskItemId")
+                    b.Property<DateTime>("ModifiedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<Guid>("OrgId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("OwnerUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("PreviewUrl")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<int>("SourceType")
                         .HasColumnType("int");
 
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int?>("UserId")
+                    b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<string>("Visibility")
+                    b.Property<string>("StorageBucket")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Tags")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<Guid?>("VectorId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedAt");
 
-                    b.HasIndex("CreatedById");
+                    b.HasIndex("OrgId", "MatterId", "Status");
 
-                    b.HasIndex("MatterId");
-
-                    b.HasIndex("StatusItemId");
-
-                    b.HasIndex("TaskItemId");
-
-                    b.HasIndex("UserId");
+                    b.HasIndex("OrgId", "SourceType", "Status");
 
                     b.ToTable("Documents");
                 });
 
-            modelBuilder.Entity("Certio.Domain.Documents.DocumentComment", b =>
+            modelBuilder.Entity("Certio.Domain.Documents.DocumentPermission", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("DocumentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("GrantedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("GrantedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("PermissionLevel")
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Content")
+                    b.HasKey("Id");
+
+                    b.HasIndex("DocumentId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("DocumentPermissions");
+                });
+
+            modelBuilder.Entity("Certio.Domain.Documents.DocumentVector", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("ChunkIndex")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ContentChunk")
                         .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("DocumentId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("DocumentId")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime?>("LastModifiedDate")
-                        .HasColumnType("datetime2");
+                    b.Property<string>("Embedding")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("ParentCommentId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DocumentId");
-
-                    b.HasIndex("ParentCommentId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("DocumentComments");
-                });
-
-            modelBuilder.Entity("Certio.Domain.Documents.DocumentReview", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Comments")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("DocumentId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("ReviewedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("ReviewerId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DocumentId");
-
-                    b.HasIndex("ReviewerId");
-
-                    b.ToTable("DocumentReviews");
-                });
-
-            modelBuilder.Entity("Certio.Domain.Documents.DocumentSignature", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("DocumentId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("IPAddress")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("SignatureData")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("SignedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("SignerId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserAgent")
+                    b.Property<string>("EmbeddingReference")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<Guid?>("MatterId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("OrgId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SourceType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Tags")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("VersionId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("DocumentId");
 
-                    b.HasIndex("SignerId");
+                    b.HasIndex("VersionId");
 
-                    b.ToTable("DocumentSignatures");
+                    b.HasIndex("OrgId", "DocumentId", "ChunkIndex")
+                        .IsUnique();
+
+                    b.ToTable("DocumentVectors");
                 });
 
             modelBuilder.Entity("Certio.Domain.Documents.DocumentVersion", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("uniqueidentifier");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<string>("Checksum")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
-                    b.Property<string>("ChangeDescription")
+                    b.Property<Guid>("DocumentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("EmbeddingTimestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ExternalRevisionId")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("ModifiedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Notes")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                    b.Property<string>("StorageUrl")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
 
-                    b.Property<int?>("CreatedById")
-                        .HasColumnType("int");
-
-                    b.Property<int>("DocumentId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("FilePath")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<Guid?>("VectorId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("VersionNumber")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatedById");
-
-                    b.HasIndex("DocumentId");
+                    b.HasIndex("DocumentId", "VersionNumber")
+                        .IsUnique();
 
                     b.ToTable("DocumentVersions");
+                });
+
+            modelBuilder.Entity("Certio.Domain.Documents.ExternalConnection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AccessToken")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("OrgId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Provider")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RefreshToken")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Scopes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("TokenExpiry")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrgId", "UserId", "Provider")
+                        .IsUnique();
+
+                    b.ToTable("ExternalConnections");
+                });
+
+            modelBuilder.Entity("Certio.Domain.Documents.RagCacheEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ContextJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("OrgId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("QueryHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrgId", "UserId", "QueryHash");
+
+                    b.ToTable("RagCache");
+                });
+
+            modelBuilder.Entity("Certio.Domain.Documents.RagQuery", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ContextJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("OrgId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("QueryText")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RetrievedVectorIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TopK")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UsedByAgent")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrgId", "CreatedAt");
+
+                    b.ToTable("RagQueries");
                 });
 
             modelBuilder.Entity("Certio.Domain.Matters.Matter", b =>
@@ -1137,8 +1186,8 @@ namespace Certio.Infrastructure.Migrations
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("DocumentId")
-                        .HasColumnType("int");
+                    b.Property<Guid?>("DocumentId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsArchived")
                         .HasColumnType("bit");
@@ -1606,8 +1655,8 @@ namespace Certio.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("DocumentId")
-                        .HasColumnType("int");
+                    b.Property<Guid?>("DocumentId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsApproved")
                         .HasColumnType("bit");
@@ -1830,8 +1879,8 @@ namespace Certio.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("DocumentId")
-                        .HasColumnType("int");
+                    b.Property<Guid?>("DocumentId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Implications")
                         .HasColumnType("nvarchar(max)");
@@ -3415,116 +3464,42 @@ namespace Certio.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Certio.Domain.Documents.Document", b =>
+            modelBuilder.Entity("Certio.Domain.Documents.DocumentPermission", b =>
                 {
-                    b.HasOne("Certio.Domain.Users.User", "CreatedBy")
+                    b.HasOne("Certio.Domain.Documents.Document", "Document")
+                        .WithMany("Permissions")
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Document");
+                });
+
+            modelBuilder.Entity("Certio.Domain.Documents.DocumentVector", b =>
+                {
+                    b.HasOne("Certio.Domain.Documents.Document", "Document")
+                        .WithMany("Vectors")
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Certio.Domain.Documents.DocumentVersion", "Version")
                         .WithMany()
-                        .HasForeignKey("CreatedById")
+                        .HasForeignKey("VersionId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Certio.Domain.Matters.Matter", "Matter")
-                        .WithMany("Documents")
-                        .HasForeignKey("MatterId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Certio.Domain.Matters.StatusItem", "StatusItem")
-                        .WithMany("RelatedDocuments")
-                        .HasForeignKey("StatusItemId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("Certio.Domain.Tasks.TaskItem", null)
-                        .WithMany("RelatedDocuments")
-                        .HasForeignKey("TaskItemId");
-
-                    b.HasOne("Certio.Domain.Users.User", null)
-                        .WithMany("CreatedDocuments")
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("CreatedBy");
-
-                    b.Navigation("Matter");
-
-                    b.Navigation("StatusItem");
-                });
-
-            modelBuilder.Entity("Certio.Domain.Documents.DocumentComment", b =>
-                {
-                    b.HasOne("Certio.Domain.Documents.Document", "Document")
-                        .WithMany("Comments")
-                        .HasForeignKey("DocumentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Certio.Domain.Documents.DocumentComment", "ParentComment")
-                        .WithMany("Replies")
-                        .HasForeignKey("ParentCommentId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Certio.Domain.Users.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Document");
 
-                    b.Navigation("ParentComment");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Certio.Domain.Documents.DocumentReview", b =>
-                {
-                    b.HasOne("Certio.Domain.Documents.Document", "Document")
-                        .WithMany("Reviews")
-                        .HasForeignKey("DocumentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Certio.Domain.Users.User", "Reviewer")
-                        .WithMany()
-                        .HasForeignKey("ReviewerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Document");
-
-                    b.Navigation("Reviewer");
-                });
-
-            modelBuilder.Entity("Certio.Domain.Documents.DocumentSignature", b =>
-                {
-                    b.HasOne("Certio.Domain.Documents.Document", "Document")
-                        .WithMany("Signatures")
-                        .HasForeignKey("DocumentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Certio.Domain.Users.User", "Signer")
-                        .WithMany()
-                        .HasForeignKey("SignerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Document");
-
-                    b.Navigation("Signer");
+                    b.Navigation("Version");
                 });
 
             modelBuilder.Entity("Certio.Domain.Documents.DocumentVersion", b =>
                 {
-                    b.HasOne("Certio.Domain.Users.User", "CreatedBy")
-                        .WithMany()
-                        .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("Certio.Domain.Documents.Document", "Document")
                         .WithMany("Versions")
                         .HasForeignKey("DocumentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("CreatedBy");
 
                     b.Navigation("Document");
                 });
@@ -4398,25 +4373,16 @@ namespace Certio.Infrastructure.Migrations
 
             modelBuilder.Entity("Certio.Domain.Documents.Document", b =>
                 {
-                    b.Navigation("Comments");
+                    b.Navigation("Permissions");
 
-                    b.Navigation("Reviews");
-
-                    b.Navigation("Signatures");
+                    b.Navigation("Vectors");
 
                     b.Navigation("Versions");
-                });
-
-            modelBuilder.Entity("Certio.Domain.Documents.DocumentComment", b =>
-                {
-                    b.Navigation("Replies");
                 });
 
             modelBuilder.Entity("Certio.Domain.Matters.Matter", b =>
                 {
                     b.Navigation("Assignments");
-
-                    b.Navigation("Documents");
 
                     b.Navigation("Permissions");
 
@@ -4434,8 +4400,6 @@ namespace Certio.Infrastructure.Migrations
                     b.Navigation("Dependencies");
 
                     b.Navigation("DependentItems");
-
-                    b.Navigation("RelatedDocuments");
 
                     b.Navigation("SubStatusItems");
                 });
@@ -4492,8 +4456,6 @@ namespace Certio.Infrastructure.Migrations
 
                     b.Navigation("DependentItems");
 
-                    b.Navigation("RelatedDocuments");
-
                     b.Navigation("SubTaskItems");
 
                     b.Navigation("SubTasks");
@@ -4520,8 +4482,6 @@ namespace Certio.Infrastructure.Migrations
             modelBuilder.Entity("Certio.Domain.Users.User", b =>
                 {
                     b.Navigation("ChatMessages");
-
-                    b.Navigation("CreatedDocuments");
 
                     b.Navigation("CreatedJoinCodes");
 

@@ -5,25 +5,15 @@ using Certio.Web.Hubs;
 using Certio.Web.Middleware;
 using Certio.Web.Security;
 using Certio.Web.Services;
+using Certio.Application.Interfaces;
+using Certio.Application.Services.Documents;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 
 // Set up environment variables for Windows development
 static void SetupEnvironmentVariables()
 {
-    // Set default environment variables if not already set
-    if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SQL_PASSWORD")))
-    {
-        Environment.SetEnvironmentVariable("SQL_PASSWORD", "YourStrong@Passw0rd", EnvironmentVariableTarget.Process);
-        Console.WriteLine("🔧 Set default SQL_PASSWORD environment variable");
-    }
-    
-    if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("USE_AZURE_SQL")))
-    {
-        Environment.SetEnvironmentVariable("USE_AZURE_SQL", "false", EnvironmentVariableTarget.Process);
-        Console.WriteLine("🔧 Set USE_AZURE_SQL to false for local development");
-    }
-    
     // Load from .env file if it exists
     var envFile = Path.Combine(Directory.GetCurrentDirectory(), ".env");
     if (File.Exists(envFile))
@@ -48,6 +38,11 @@ static void SetupEnvironmentVariables()
     else
     {
         // .env file not found, using system environment variables
+    }
+
+    if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SQL_PASSWORD")))
+    {
+        Console.WriteLine("❌ SQL_PASSWORD environment variable is not set. Add it to your environment or .env file.");
     }
 }
 
@@ -169,6 +164,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddEnvironmentVariables();
 
+var isDevelopment = builder.Environment.IsDevelopment();
+
 // Map flat env vars to hierarchical configuration keys (so .env or shell vars override appsettings)
 var googleMapsEnvKey = Environment.GetEnvironmentVariable("GOOGLE_MAPS_API_KEY");
 if (!string.IsNullOrWhiteSpace(googleMapsEnvKey))
@@ -180,6 +177,80 @@ var aiApiKey = Environment.GetEnvironmentVariable("AI_API_KEY");
 if (!string.IsNullOrWhiteSpace(aiApiKey))
 {
     builder.Configuration["AIService:ApiKey"] = aiApiKey;
+}
+
+// Map EmailIntegration environment variables
+var gmailClientId = Environment.GetEnvironmentVariable("GMAIL_CLIENT_ID");
+if (!string.IsNullOrWhiteSpace(gmailClientId))
+{
+    builder.Configuration["EmailIntegration:Gmail:ClientId"] = gmailClientId;
+}
+
+var gmailClientSecret = Environment.GetEnvironmentVariable("GMAIL_CLIENT_SECRET");
+if (!string.IsNullOrWhiteSpace(gmailClientSecret))
+{
+    builder.Configuration["EmailIntegration:Gmail:ClientSecret"] = gmailClientSecret;
+}
+
+var gmailRedirectUri = Environment.GetEnvironmentVariable("GMAIL_REDIRECT_URI");
+if (!string.IsNullOrWhiteSpace(gmailRedirectUri))
+{
+    builder.Configuration["EmailIntegration:Gmail:RedirectUri"] = gmailRedirectUri;
+}
+
+var outlookClientId = Environment.GetEnvironmentVariable("OUTLOOK_CLIENT_ID");
+if (!string.IsNullOrWhiteSpace(outlookClientId))
+{
+    builder.Configuration["EmailIntegration:Outlook:ClientId"] = outlookClientId;
+}
+
+var outlookClientSecret = Environment.GetEnvironmentVariable("OUTLOOK_CLIENT_SECRET");
+if (!string.IsNullOrWhiteSpace(outlookClientSecret))
+{
+    builder.Configuration["EmailIntegration:Outlook:ClientSecret"] = outlookClientSecret;
+}
+
+var outlookRedirectUri = Environment.GetEnvironmentVariable("OUTLOOK_REDIRECT_URI");
+if (!string.IsNullOrWhiteSpace(outlookRedirectUri))
+{
+    builder.Configuration["EmailIntegration:Outlook:RedirectUri"] = outlookRedirectUri;
+}
+
+// Map DocumentIntegration environment variables
+var googleDriveClientId = Environment.GetEnvironmentVariable("GOOGLE_DRIVE_CLIENT_ID");
+if (!string.IsNullOrWhiteSpace(googleDriveClientId))
+{
+    builder.Configuration["DocumentIntegration:GoogleDrive:ClientId"] = googleDriveClientId;
+}
+
+var googleDriveClientSecret = Environment.GetEnvironmentVariable("GOOGLE_DRIVE_CLIENT_SECRET");
+if (!string.IsNullOrWhiteSpace(googleDriveClientSecret))
+{
+    builder.Configuration["DocumentIntegration:GoogleDrive:ClientSecret"] = googleDriveClientSecret;
+}
+
+var googleDriveRedirectUri = Environment.GetEnvironmentVariable("GOOGLE_DRIVE_REDIRECT_URI");
+if (!string.IsNullOrWhiteSpace(googleDriveRedirectUri))
+{
+    builder.Configuration["DocumentIntegration:GoogleDrive:RedirectUri"] = googleDriveRedirectUri;
+}
+
+var oneDriveClientId = Environment.GetEnvironmentVariable("ONEDRIVE_CLIENT_ID");
+if (!string.IsNullOrWhiteSpace(oneDriveClientId))
+{
+    builder.Configuration["DocumentIntegration:OneDrive:ClientId"] = oneDriveClientId;
+}
+
+var oneDriveClientSecret = Environment.GetEnvironmentVariable("ONEDRIVE_CLIENT_SECRET");
+if (!string.IsNullOrWhiteSpace(oneDriveClientSecret))
+{
+    builder.Configuration["DocumentIntegration:OneDrive:ClientSecret"] = oneDriveClientSecret;
+}
+
+var oneDriveRedirectUri = Environment.GetEnvironmentVariable("ONEDRIVE_REDIRECT_URI");
+if (!string.IsNullOrWhiteSpace(oneDriveRedirectUri))
+{
+    builder.Configuration["DocumentIntegration:OneDrive:RedirectUri"] = oneDriveRedirectUri;
 }
 
 // Add HTTP Context Accessor for audit interceptor
@@ -199,14 +270,22 @@ builder.Services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options => {
-    options.SignIn.RequireConfirmedAccount = false;
+    options.SignIn.RequireConfirmedAccount = true;
+    options.SignIn.RequireConfirmedEmail = true;
+    options.SignIn.RequireConfirmedPhoneNumber = false;
+
     options.Password.RequireDigit = true;
     options.Password.RequireLowercase = true;
-    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireNonAlphanumeric = true;
     options.Password.RequireUppercase = true;
-    options.Password.RequiredLength = 6;
-    options.SignIn.RequireConfirmedEmail = false;
-    options.SignIn.RequireConfirmedPhoneNumber = false;
+    options.Password.RequiredLength = 12;
+    options.Password.RequiredUniqueChars = 4;
+
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+    options.Lockout.AllowedForNewUsers = true;
+
+    options.User.RequireUniqueEmail = true;
 }).AddEntityFrameworkStores<ApplicationDbContext>();
 
 // Configure authentication cookies with maximum security
@@ -215,8 +294,8 @@ builder.Services.ConfigureApplicationCookie(options =>
     // Cookie security settings
     options.Cookie.Name = "CertioAuth";
     options.Cookie.HttpOnly = true; // Prevent XSS attacks
-    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // HTTPS when available
-    options.Cookie.SameSite = SameSiteMode.Lax; // Allow cross-site for logout
+    options.Cookie.SecurePolicy = isDevelopment ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+    options.Cookie.SameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.Strict;
     options.Cookie.IsEssential = true; // Required for functionality
     options.Cookie.Path = "/"; // Explicit path
     
@@ -243,8 +322,8 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.None; // Allow HTTP in development
-    options.Cookie.SameSite = SameSiteMode.Lax; // Less restrictive for development
+    options.Cookie.SecurePolicy = isDevelopment ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+    options.Cookie.SameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.Strict;
 });
 
 // Multi-level caching strategy (Discord/Slack style)
@@ -347,6 +426,31 @@ builder.Services.AddScoped<Certio.Application.Interfaces.IEmailSendingService, C
 builder.Services.AddScoped<Certio.Web.Services.IChannelManagementService, Certio.Web.Services.ChannelManagementService>();
 builder.Services.AddScoped<Certio.Application.Interfaces.IChannelManagementService, Certio.Web.Services.ChannelManagementService>();
 builder.Services.AddSingleton<Certio.Web.Services.IUserPresenceService, Certio.Web.Services.UserPresenceService>();
+
+// Unified Document System Services
+builder.Services.AddScoped<IDriveSyncService>(sp =>
+{
+    var dbContext = sp.GetRequiredService<ApplicationDbContext>();
+    var logger = sp.GetRequiredService<ILogger<DriveSyncService>>();
+    var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+    var dataProtectionProvider = sp.GetRequiredService<IDataProtectionProvider>();
+    var protector = dataProtectionProvider.CreateProtector("DriveOAuthTokens");
+    
+    // Use explicit lambda to ensure correct overload selection (Unprotect(string) returns string)
+    Func<string, string> decryptFunc = (string encryptedToken) =>
+    {
+        return protector.Unprotect(encryptedToken);
+    };
+    return new DriveSyncService(dbContext, logger, httpClientFactory, decryptFunc);
+});
+builder.Services.AddScoped<IDocumentIndexerService, DocumentIndexerService>();
+builder.Services.AddScoped<IVectorStoreService, VectorStoreService>();
+builder.Services.AddScoped<IRagContextService, RagContextService>();
+builder.Services.AddScoped<IDocumentAuditService, DocumentAuditService>();
+builder.Services.AddScoped<IWebhookHandlerService, WebhookHandlerService>();
+builder.Services.AddScoped<IDocumentEmbedService, DocumentEmbedService>();
+builder.Services.AddSingleton<IEmbeddingJobQueue, EmbeddingJobQueue>();
+builder.Services.AddHostedService<BackgroundEmbeddingWorker>();
 
 // User Sync Services
 builder.Services.AddScoped<Certio.Web.Services.IUserSyncService, Certio.Web.Services.UserSyncService>();

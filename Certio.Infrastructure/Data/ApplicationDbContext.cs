@@ -1,5 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System.Linq;
+using System.Text.Json;
 using Certio.Domain.Matters;
 using Certio.Domain.Services;
 using Certio.Domain.Users;
@@ -59,9 +63,11 @@ namespace Certio.Infrastructure.Data
         // Document Entities
         public DbSet<Document> Documents => Set<Document>();
         public DbSet<DocumentVersion> DocumentVersions => Set<DocumentVersion>();
-        public DbSet<DocumentReview> DocumentReviews => Set<DocumentReview>();
-        public DbSet<DocumentComment> DocumentComments => Set<DocumentComment>();
-        public DbSet<DocumentSignature> DocumentSignatures => Set<DocumentSignature>();
+        public DbSet<DocumentVector> DocumentVectors => Set<DocumentVector>();
+        public DbSet<DocumentPermission> DocumentPermissions => Set<DocumentPermission>();
+        public DbSet<RagQuery> RagQueries => Set<RagQuery>();
+        public DbSet<RagCacheEntry> RagCache => Set<RagCacheEntry>();
+        public DbSet<ExternalConnection> ExternalConnections => Set<ExternalConnection>();
         
         // Chat Entities
         public DbSet<Conversation> Conversations => Set<Conversation>();
@@ -614,85 +620,125 @@ namespace Certio.Infrastructure.Data
 
         private void ConfigureDocumentRelationships(ModelBuilder builder)
         {
-            builder.Entity<Document>()
-                .HasMany(d => d.Versions)
-                .WithOne(dv => dv.Document)
-                .HasForeignKey(dv => dv.DocumentId)
+            var jsonSerializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+
+            var stringListConverter = new ValueConverter<List<string>, string>(
+                v => JsonSerializer.Serialize(v, jsonSerializerOptions),
+                v => string.IsNullOrWhiteSpace(v) ? new List<string>() : JsonSerializer.Deserialize<List<string>>(v, jsonSerializerOptions) ?? new List<string>());
+
+            var stringListComparer = new ValueComparer<List<string>>(
+                (c1, c2) => ReferenceEquals(c1, c2) || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
+                c => (c ?? new List<string>()).Aggregate(0, (a, v) => HashCode.Combine(a, v == null ? 0 : v.GetHashCode())),
+                c => c == null ? new List<string>() : c.ToList());
+
+            var stringDictionaryConverter = new ValueConverter<Dictionary<string, string?>, string>(
+                v => JsonSerializer.Serialize(v, jsonSerializerOptions),
+                v => string.IsNullOrWhiteSpace(v) ? new Dictionary<string, string?>() : JsonSerializer.Deserialize<Dictionary<string, string?>>(v, jsonSerializerOptions) ?? new Dictionary<string, string?>());
+
+            var stringDictionaryComparer = new ValueComparer<Dictionary<string, string?>>(
+                (c1, c2) => ReferenceEquals(c1, c2) || (c1 != null && c2 != null && c1.Count == c2.Count && !c1.Except(c2).Any()),
+                c => (c ?? new Dictionary<string, string?>()).Aggregate(0, (a, v) => HashCode.Combine(a, v.Key.GetHashCode(), v.Value == null ? 0 : v.Value.GetHashCode())),
+                c => c == null ? new Dictionary<string, string?>() : c.ToDictionary(k => k.Key, v => v.Value));
+
+            var guidListConverter = new ValueConverter<List<Guid>, string>(
+                v => JsonSerializer.Serialize(v, jsonSerializerOptions),
+                v => string.IsNullOrWhiteSpace(v) ? new List<Guid>() : JsonSerializer.Deserialize<List<Guid>>(v, jsonSerializerOptions) ?? new List<Guid>());
+
+            var guidListComparer = new ValueComparer<List<Guid>>(
+                (c1, c2) => ReferenceEquals(c1, c2) || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
+                c => (c ?? new List<Guid>()).Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                c => c == null ? new List<Guid>() : c.ToList());
+
+            var floatArrayConverter = new ValueConverter<float[]?, string?>(
+                v => v == null ? null : JsonSerializer.Serialize(v, jsonSerializerOptions),
+                v => string.IsNullOrWhiteSpace(v) ? null : JsonSerializer.Deserialize<float[]>(v, jsonSerializerOptions));
+
+            var floatArrayComparer = new ValueComparer<float[]?>(
+                (c1, c2) => (c1 ?? Array.Empty<float>()).SequenceEqual(c2 ?? Array.Empty<float>()),
+                c => (c ?? Array.Empty<float>()).Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                c => c == null ? null : c.ToArray());
+
+            builder.Entity<Document>(entity =>
+            {
+                entity.HasIndex(e => e.CreatedAt);
+                entity.HasIndex(e => new { e.OrgId, e.MatterId, e.Status });
+                entity.HasIndex(e => new { e.OrgId, e.SourceType, e.Status });
+                entity.Property(e => e.Tags)
+                    .HasConversion(stringListConverter)
+                    .Metadata.SetValueComparer(stringListComparer);
+                entity.Property(e => e.Metadata)
+                    .HasConversion(stringDictionaryConverter)
+                    .Metadata.SetValueComparer(stringDictionaryComparer);
+                entity.Property(e => e.CreatedAt)
+                    .HasDefaultValueSql("GETUTCDATE()");
+                entity.Property(e => e.ModifiedAt)
+                    .HasDefaultValueSql("GETUTCDATE()");
+
+                entity.HasMany(d => d.Versions)
+                    .WithOne(v => v.Document)
+                    .HasForeignKey(v => v.DocumentId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.Entity<Document>()
-                .HasMany(d => d.Reviews)
-                .WithOne(dr => dr.Document)
-                .HasForeignKey(dr => dr.DocumentId)
+                entity.HasMany(d => d.Vectors)
+                    .WithOne(v => v.Document)
+                    .HasForeignKey(v => v.DocumentId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.Entity<Document>()
-                .HasMany(d => d.Comments)
-                .WithOne(dc => dc.Document)
-                .HasForeignKey(dc => dc.DocumentId)
+                entity.HasMany(d => d.Permissions)
+                    .WithOne(p => p.Document)
+                    .HasForeignKey(p => p.DocumentId)
                 .OnDelete(DeleteBehavior.Cascade);
+            });
 
-            builder.Entity<Document>()
-                .HasMany(d => d.Signatures)
-                .WithOne(ds => ds.Document)
-                .HasForeignKey(ds => ds.DocumentId)
-                .OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<DocumentVersion>(entity =>
+            {
+                entity.HasIndex(e => new { e.DocumentId, e.VersionNumber }).IsUnique();
+            });
 
-            // Configure User relationships for Document
-            builder.Entity<Document>()
-                .HasOne(d => d.CreatedBy)
+            builder.Entity<DocumentVector>(entity =>
+            {
+                entity.HasIndex(e => new { e.OrgId, e.DocumentId, e.ChunkIndex }).IsUnique();
+                entity.Property(e => e.Tags)
+                    .HasConversion(stringDictionaryConverter)
+                    .Metadata.SetValueComparer(stringDictionaryComparer);
+                entity.Property(e => e.Embedding)
+                    .HasConversion(floatArrayConverter)
+                    .Metadata.SetValueComparer(floatArrayComparer);
+
+                entity.HasOne(v => v.Version)
                 .WithMany()
-                .HasForeignKey(d => d.CreatedById)
+                    .HasForeignKey(v => v.VersionId)
                 .OnDelete(DeleteBehavior.SetNull);
+            });
 
-            // Configure Matter relationship for Document
-            builder.Entity<Document>()
-                .HasOne(d => d.Matter)
-                .WithMany(m => m.Documents)
-                .HasForeignKey(d => d.MatterId)
-                .OnDelete(DeleteBehavior.SetNull);
+            builder.Entity<DocumentPermission>(entity =>
+            {
+                entity.HasIndex(e => new { e.DocumentId, e.UserId }).IsUnique();
+            });
 
-            // Configure StatusItem relationship for Document
-            builder.Entity<Document>()
-                .HasOne(d => d.StatusItem)
-                .WithMany(si => si.RelatedDocuments)
-                .HasForeignKey(d => d.StatusItemId)
-                .OnDelete(DeleteBehavior.NoAction);
+            builder.Entity<RagQuery>(entity =>
+            {
+                entity.HasIndex(e => new { e.OrgId, e.CreatedAt });
+                entity.Property(e => e.RetrievedVectorIds)
+                    .HasConversion(guidListConverter)
+                    .Metadata.SetValueComparer(guidListComparer);
+                entity.Property(e => e.ContextJson)
+                    .HasConversion(stringDictionaryConverter)
+                    .Metadata.SetValueComparer(stringDictionaryComparer);
+            });
 
-            // Configure DocumentVersion relationships
-            builder.Entity<DocumentVersion>()
-                .HasOne(dv => dv.CreatedBy)
-                .WithMany()
-                .HasForeignKey(dv => dv.CreatedById)
-                .OnDelete(DeleteBehavior.SetNull);
+            builder.Entity<ExternalConnection>(entity =>
+            {
+                entity.HasIndex(e => new { e.OrgId, e.UserId, e.Provider }).IsUnique();
+                entity.Property(e => e.Scopes)
+                    .HasConversion(stringListConverter)
+                    .Metadata.SetValueComparer(stringListComparer);
+            });
 
-            // Configure DocumentReview relationships
-            builder.Entity<DocumentReview>()
-                .HasOne(dr => dr.Reviewer)
-                .WithMany()
-                .HasForeignKey(dr => dr.ReviewerId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // Configure DocumentComment relationships
-            builder.Entity<DocumentComment>()
-                .HasOne(dc => dc.User)
-                .WithMany()
-                .HasForeignKey(dc => dc.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // Configure self-referencing relationships for DocumentComment
-            builder.Entity<DocumentComment>()
-                .HasOne(dc => dc.ParentComment)
-                .WithMany(dc => dc.Replies)
-                .HasForeignKey(dc => dc.ParentCommentId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // Configure DocumentSignature relationships
-            builder.Entity<DocumentSignature>()
-                .HasOne(ds => ds.Signer)
-                .WithMany()
-                .HasForeignKey(ds => ds.SignerId)
-                .OnDelete(DeleteBehavior.Restrict);
+            builder.Entity<RagCacheEntry>(entity =>
+            {
+                entity.HasIndex(e => new { e.OrgId, e.UserId, e.QueryHash });
+            });
         }
 
         private void ConfigureChatRelationships(ModelBuilder builder)

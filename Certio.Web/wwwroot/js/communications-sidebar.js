@@ -1278,13 +1278,19 @@ function initializeCommsSignalR() {
     
     // Handle user online/offline status
     commsSidebarState.signalRConnection.on("UserOnline", function(data) {
-        console.log('User came online:', data.UserId);
-        updateUserStatus(data.UserId, 'online');
+        const userId = data.UserId || data.userId;
+        if (userId) {
+            console.log('User came online:', userId);
+            updateUserStatus(userId, 'online');
+        }
     });
     
     commsSidebarState.signalRConnection.on("UserOffline", function(data) {
-        console.log('User went offline:', data.UserId);
-        updateUserStatus(data.UserId, 'offline');
+        const userId = data.UserId || data.userId;
+        if (userId) {
+            console.log('User went offline:', userId);
+            updateUserStatus(userId, 'offline');
+        }
     });
     
     // Start connection

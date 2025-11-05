@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Certio.Domain.Teams;
 using Certio.Domain.Users;
-using Certio.Domain.Documents;
 using Certio.Domain.Services;
 
 namespace Certio.Domain.Matters;
@@ -102,7 +101,6 @@ public class Matter
     public virtual ICollection<StatusItem> StatusItems { get; set; } = new List<StatusItem>(); // Legacy - use TaskItems instead
     public virtual ICollection<Certio.Domain.Tasks.TaskItem> TaskItems { get; set; } = new List<Certio.Domain.Tasks.TaskItem>();
     public virtual ICollection<MatterAssignment> Assignments { get; set; } = new List<MatterAssignment>();
-    public virtual ICollection<Document> Documents { get; set; } = new List<Document>();
     public virtual ICollection<MatterPermission> Permissions { get; set; } = new List<MatterPermission>();
 }
 

@@ -1,3 +1,4 @@
+@using Certio.Domain.Documents
 @model Certio.Web.ViewModels.DocumentsViewModel
 @{
     ViewData["Title"] = "Documents";
@@ -34,6 +35,9 @@
                 <button class="filter-button">
                     <i class="fas fa-calendar"></i>
                     Date Range
+                </button>
+                <button class="filter-button" id="refreshDocumentsBtn" title="Refresh documents">
+                    <i class="fas fa-sync-alt"></i>
                 </button>
             </div>
         </div>
@@ -113,6 +117,82 @@
     <div class="row">
         <!-- Sidebar - Folders and Storage -->
         <div class="col-lg-3 mb-4">
+            <!-- Document Integration Card -->
+            <div class="card border-0 mb-4">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <h5 class="card-title fw-bold mb-1">Document Integrations</h5>
+                    <p class="text-muted small mb-0">Connect cloud storage</p>
+                </div>
+                <div class="card-body pt-2">
+                    <div id="documentIntegrationsContainer">
+                        <!-- Not Connected State -->
+                        <div id="documentIntegrationsNotConnected" style="display: none;">
+                            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                                <button id="connectGoogleDriveBtn" class="oauth-connect-btn" style="flex: 1; min-width: 120px;">
+                                    <i class="fab fa-google"></i>
+                                    <span style="margin-left: 0.5rem;">Drive</span>
+                                </button>
+                                <button id="connectOneDriveBtn" class="oauth-connect-btn" style="flex: 1; min-width: 120px;">
+                                    <i class="fab fa-windows"></i>
+                                    <span style="margin-left: 0.5rem;">OneDrive</span>
+                                </button>
+                            </div>
+                            <p style="font-size: 0.85em; color: #666; margin: 0.75rem 0 0.25rem 0;">Connect your cloud storage to sync documents</p>
+                        </div>
+                        
+                        <!-- Connected State -->
+                        <div id="documentIntegrationsConnected" style="display: none;">
+                            <div id="googleDriveStatus" style="display: none; margin-bottom: 0.75rem; padding: 0.75rem; background: #f8f9fa; border-radius: 6px;">
+                                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                    <!-- Icon and Provider Name -->
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <i class="fab fa-google" style="color: #4285f4; font-size: 1.2em;"></i>
+                                        <span style="font-size: 0.9em; font-weight: 500;">Google Drive</span>
+                                    </div>
+                                    <!-- Connected Status -->
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                                        <span style="font-size: 0.85em; color: #10b981;">Connected</span>
+                                    </div>
+                                    <!-- Disconnect Button -->
+                                    <button id="disconnectGoogleDriveBtn" class="btn btn-sm btn-outline-danger" style="font-size: 0.75em; padding: 4px 8px; align-self: flex-start;">
+                                        Disconnect
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="oneDriveStatus" style="display: none; margin-bottom: 0.75rem; padding: 0.75rem; background: #f8f9fa; border-radius: 6px;">
+                                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                    <!-- Icon and Provider Name -->
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <i class="fab fa-windows" style="color: #0078d4; font-size: 1.2em;"></i>
+                                        <span style="font-size: 0.9em; font-weight: 500;">OneDrive</span>
+                                    </div>
+                                    <!-- Connected Status -->
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                                        <span style="font-size: 0.85em; color: #10b981;">Connected</span>
+                                    </div>
+                                    <!-- Disconnect Button -->
+                                    <button id="disconnectOneDriveBtn" class="btn btn-sm btn-outline-danger" style="font-size: 0.75em; padding: 4px 8px; align-self: flex-start;">
+                                        Disconnect
+                                    </button>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                                <button id="connectGoogleDriveBtnConnected" class="oauth-connect-btn" style="flex: 1; min-width: 120px; display: none;">
+                                    <i class="fab fa-google"></i>
+                                    <span style="margin-left: 0.5rem;">Drive</span>
+                                </button>
+                                <button id="connectOneDriveBtnConnected" class="oauth-connect-btn" style="flex: 1; min-width: 120px; display: none;">
+                                    <i class="fab fa-windows"></i>
+                                    <span style="margin-left: 0.5rem;">OneDrive</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Folders Card -->
             <div class="card border-0 mb-4">
                 <div class="card-header bg-transparent border-0 pb-0">
@@ -213,7 +293,7 @@
                                 </div>
                                 
                                 <div class="d-flex flex-column align-items-end gap-3">
-                                    <span class="badge @GetStatusClass(doc.Status)">@doc.Status</span>
+                                    <span class="badge @GetStatusClass(doc.Status)">@doc.Status.ToString()</span>
                                     
                                     <div class="d-flex align-items-center gap-1 document-actions">
                                         <button class="btn btn-sm btn-outline-secondary">
@@ -252,7 +332,305 @@
                     }
                 }, { passive: false });
             }
+
+            // Setup document OAuth event listeners and load status
+            setupDocumentOAuthListeners();
+            loadDocumentConnectionStatus();
         });
+
+        // Load document connection status
+        async function loadDocumentConnectionStatus() {
+            try {
+                const orgId = getCurrentOrganizationId();
+                const url = orgId ? `/api/drive-oauth/status?orgId=${orgId}` : '/api/drive-oauth/status';
+                
+                const response = await fetch(url);
+                const result = await response.json();
+                
+                if (result.success) {
+                    updateDocumentStatusUI(result);
+                }
+            } catch (error) {
+                console.error('Error loading document connection status:', error);
+            }
+        }
+
+        // Update document status UI
+        function updateDocumentStatusUI(status) {
+            const notConnectedDiv = document.getElementById('documentIntegrationsNotConnected');
+            const connectedDiv = document.getElementById('documentIntegrationsConnected');
+            const googleStatusDiv = document.getElementById('googleDriveStatus');
+            const oneDriveStatusDiv = document.getElementById('oneDriveStatus');
+            const connectGoogleBtn = document.getElementById('connectGoogleDriveBtnConnected');
+            const connectOneDriveBtn = document.getElementById('connectOneDriveBtnConnected');
+
+            const googleConnected = status.googleDrive?.connected || false;
+            const oneDriveConnected = status.oneDrive?.connected || false;
+
+            if (googleConnected || oneDriveConnected) {
+                // Show connected state
+                if (notConnectedDiv) notConnectedDiv.style.display = 'none';
+                if (connectedDiv) connectedDiv.style.display = 'block';
+
+                // Show Google Drive status if connected
+                if (googleStatusDiv) {
+                    googleStatusDiv.style.display = googleConnected ? 'block' : 'none';
+                }
+                if (connectGoogleBtn) {
+                    connectGoogleBtn.style.display = googleConnected ? 'none' : 'block';
+                }
+
+                // Show OneDrive status if connected
+                if (oneDriveStatusDiv) {
+                    oneDriveStatusDiv.style.display = oneDriveConnected ? 'block' : 'none';
+                }
+                if (connectOneDriveBtn) {
+                    connectOneDriveBtn.style.display = oneDriveConnected ? 'none' : 'block';
+                }
+            } else {
+                // Show not connected state
+                if (notConnectedDiv) notConnectedDiv.style.display = 'block';
+                if (connectedDiv) connectedDiv.style.display = 'none';
+            }
+        }
+
+        // Setup document OAuth event listeners
+        function setupDocumentOAuthListeners() {
+            // Connect buttons (not connected state)
+            const connectGoogleDriveBtn = document.getElementById('connectGoogleDriveBtn');
+            const connectOneDriveBtn = document.getElementById('connectOneDriveBtn');
+
+            if (connectGoogleDriveBtn) {
+                connectGoogleDriveBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    connectDocumentProvider('google');
+                });
+            }
+
+            if (connectOneDriveBtn) {
+                connectOneDriveBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    connectDocumentProvider('onedrive');
+                });
+            }
+
+            // Connect buttons (connected state - for adding additional provider)
+            const connectGoogleDriveBtnConnected = document.getElementById('connectGoogleDriveBtnConnected');
+            const connectOneDriveBtnConnected = document.getElementById('connectOneDriveBtnConnected');
+
+            if (connectGoogleDriveBtnConnected) {
+                connectGoogleDriveBtnConnected.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    connectDocumentProvider('google');
+                });
+            }
+
+            if (connectOneDriveBtnConnected) {
+                connectOneDriveBtnConnected.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    connectDocumentProvider('onedrive');
+                });
+            }
+
+            // Disconnect buttons
+            const disconnectGoogleDriveBtn = document.getElementById('disconnectGoogleDriveBtn');
+            const disconnectOneDriveBtn = document.getElementById('disconnectOneDriveBtn');
+
+            // Refresh documents button (next to Date Range)
+            const refreshDocumentsBtn = document.getElementById('refreshDocumentsBtn');
+            if (refreshDocumentsBtn) {
+                refreshDocumentsBtn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    await refreshDocuments();
+                });
+            }
+
+            if (disconnectGoogleDriveBtn) {
+                disconnectGoogleDriveBtn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (confirm('Are you sure you want to disconnect Google Drive? This will stop syncing documents from Google Drive.')) {
+                        await disconnectDocumentProvider('google');
+                    }
+                });
+            }
+
+            if (disconnectOneDriveBtn) {
+                disconnectOneDriveBtn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (confirm('Are you sure you want to disconnect OneDrive? This will stop syncing documents from OneDrive.')) {
+                        await disconnectDocumentProvider('onedrive');
+                    }
+                });
+            }
+
+            // Listen for OAuth callback messages
+            window.addEventListener('message', function(event) {
+                // Verify origin
+                if (event.origin !== window.location.origin) {
+                    return;
+                }
+
+                if (event.data.type === 'document-oauth-success') {
+                    console.log(`Successfully connected ${event.data.provider} for documents`);
+                    // Reload status to update UI
+                    loadDocumentConnectionStatus();
+                    // Show success message
+                    alert(`${event.data.provider} connected successfully! Your documents will sync automatically. Documents may take a few moments to appear.`);
+                    // Refresh page after delay to show synced documents
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 5000);
+                } else if (event.data.type === 'document-oauth-error') {
+                    const errorMsg = event.data.errorDescription || event.data.error || 'Unknown error occurred';
+                    console.error(`Failed to connect ${event.data.provider}:`, errorMsg);
+                    alert(`Failed to connect ${event.data.provider}: ${errorMsg}`);
+                }
+            });
+        }
+
+        // Disconnect document provider
+        async function disconnectDocumentProvider(provider) {
+            console.log(`Disconnecting document provider: ${provider}`);
+            try {
+                const orgId = getCurrentOrganizationId();
+                const url = `/api/drive-oauth/${provider === 'google' ? 'google' : 'onedrive'}${orgId ? `?orgId=${orgId}` : ''}`;
+                
+                const response = await fetch(url, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    console.log(`Successfully disconnected ${provider}`);
+                    // Reload status to update UI
+                    loadDocumentConnectionStatus();
+                    alert(`${provider === 'google' ? 'Google Drive' : 'OneDrive'} disconnected successfully.`);
+                    // Refresh page to update document list
+                    window.location.reload();
+                } else {
+                    console.error(`Failed to disconnect ${provider}:`, result.error);
+                    alert(`Failed to disconnect ${provider}: ${result.error || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error(`Error disconnecting ${provider}:`, error);
+                alert(`Failed to disconnect ${provider}. Please try again.`);
+            }
+        }
+
+        // Refresh documents - syncs all connected providers and reloads page
+        async function refreshDocuments() {
+            console.log('Refreshing documents...');
+            try {
+                const orgId = getCurrentOrganizationId();
+                const url = `/api/drive-oauth/sync${orgId ? `?orgId=${orgId}` : ''}`;
+                
+                // Disable button and show loading state
+                const refreshBtn = document.getElementById('refreshDocumentsBtn');
+                if (refreshBtn) {
+                    refreshBtn.disabled = true;
+                    const icon = refreshBtn.querySelector('i');
+                    if (icon) {
+                        icon.classList.add('fa-spin');
+                    }
+                }
+                
+                const response = await fetch(url, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Wait a bit for sync to process, then reload
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 3000);
+                } else {
+                    // Re-enable button on error
+                    if (refreshBtn) {
+                        refreshBtn.disabled = false;
+                        const icon = refreshBtn.querySelector('i');
+                        if (icon) {
+                            icon.classList.remove('fa-spin');
+                        }
+                    }
+                    alert(`Failed to start sync: ${result.error || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('Error refreshing documents:', error);
+                const refreshBtn = document.getElementById('refreshDocumentsBtn');
+                if (refreshBtn) {
+                    refreshBtn.disabled = false;
+                    const icon = refreshBtn.querySelector('i');
+                    if (icon) {
+                        icon.classList.remove('fa-spin');
+                    }
+                }
+                alert('Failed to refresh documents. Please try again.');
+            }
+        }
+
+        // Connect document provider (Google Drive or OneDrive)
+        async function connectDocumentProvider(provider) {
+            console.log(`Connecting document provider: ${provider}`);
+            try {
+                // Get orgId from URL path (/Client/{orgId}/...)
+                const orgId = getCurrentOrganizationId();
+                
+                // Build authorize URL with orgId query parameter
+                const authorizeUrl = `/api/drive-oauth/${provider === 'google' ? 'google' : 'onedrive'}/authorize`;
+                const urlWithOrgId = orgId ? `${authorizeUrl}?orgId=${orgId}` : authorizeUrl;
+
+                console.log(`Fetching authorization URL for ${provider} with orgId: ${orgId}...`);
+                const response = await fetch(urlWithOrgId);
+                const result = await response.json();
+
+                console.log(`Authorization response:`, result);
+
+                if (result.success && result.authorizationUrl) {
+                    console.log(`Opening OAuth popup with URL: ${result.authorizationUrl}`);
+                    // Open OAuth popup
+                    const popup = window.open(result.authorizationUrl, 'Document OAuth', 'width=600,height=700');
+
+                    if (!popup) {
+                        alert('Please allow popups for this site to connect your document storage.');
+                        return;
+                    }
+
+                    console.log('OAuth popup opened, waiting for callback...');
+
+                    // Fallback: check if popup closed (in case postMessage doesn't work)
+                    const checkInterval = setInterval(() => {
+                        if (popup.closed) {
+                            clearInterval(checkInterval);
+                            console.log('OAuth popup closed');
+                        }
+                    }, 1000);
+                } else {
+                    console.error('Failed to get authorization URL:', result);
+                    alert(`Failed to get authorization URL: ${result.error || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error(`Error connecting ${provider}:`, error);
+                alert(`Failed to connect ${provider}. Please try again.`);
+            }
+        }
+
+        // Get current organization ID from URL path
+        function getCurrentOrganizationId() {
+            // Try to get from URL path (/Client/{orgId}/...)
+            const pathMatch = window.location.pathname.match(/\/Client\/(\d+)/);
+            if (pathMatch && pathMatch[1]) {
+                return parseInt(pathMatch[1], 10);
+            }
+            return null;
+        }
     </script>
 }
 
@@ -292,13 +670,13 @@
         };
     }
 
-    string GetStatusClass(string status)
+    string GetStatusClass(DocumentStatus status)
     {
         return status switch
         {
-            "Final" or "Published" or "Active" => "bg-success text-white",
-            "Draft" => "bg-primary text-white",
-            "Review" => "bg-warning text-dark",
+            DocumentStatus.Final or DocumentStatus.Published => "bg-success text-white",
+            DocumentStatus.Draft => "bg-primary text-white",
+            DocumentStatus.Review => "bg-warning text-dark",
             _ => "bg-secondary text-white"
         };
     }

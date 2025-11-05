@@ -305,6 +305,17 @@ namespace Certio.Application.Services
                     return false;
                 }
 
+                // Check if user is directly assigned to the task
+                var isDirectlyAssigned = task.TaskAssignments.Any(a => 
+                    a.UserId == userId && 
+                    a.RemovedAt == null);
+                
+                if (isDirectlyAssigned)
+                {
+                    _logger.LogDebug("User {UserId} granted access to task {TaskId} via direct assignment", userId, taskId);
+                    return true;
+                }
+
                 // Also need to check matter access
                 return await CanAccessMatterAsync(userId, task.MatterId);
             }

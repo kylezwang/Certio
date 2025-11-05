@@ -11,6 +11,9 @@ Certio.Tests/
 │   ├── TaskServiceTests.cs        - Task operations tests
 │   ├── SubTaskServiceTests.cs     - SubTask operations tests
 │   └── PermissionServiceTests.cs  - Permission checking tests
+├── Hubs/
+│   ├── ChatHubSecurityTests.cs    - ChatHub authorization security tests
+│   └── NotificationHubSecurityTests.cs - NotificationHub authorization security tests
 └── README.md
 ```
 
@@ -35,8 +38,10 @@ As per PHASE_2_IMPLEMENTATION_SUMMARY.md:
 - **MatterService**: 20-25 tests
 - **TaskService**: 20-25 tests
 - **SubTaskService**: 15-20 tests
+- **ChatHub Security**: 8+ tests (authorization, impersonation prevention)
+- **NotificationHub Security**: 7+ tests (group subscription authorization)
 
-**Total Target**: 65-85 tests
+**Total Target**: 85-105 tests
 
 ## Test Patterns
 
@@ -68,7 +73,24 @@ public async Task CreateMatter_WithoutPermission_ReturnsFailure()
 ✅ Test project created  
 ✅ Dependencies added (xUnit, Moq)  
 ✅ Project references added  
-⏳ Test implementation pending
+✅ SignalR Hub Security Tests implemented
+⏳ Service layer tests pending
 
 **Estimated effort**: 8-10 hours for full coverage
+
+## Security Tests
+
+### ChatHub Security Tests
+Tests verify that:
+- Users cannot join conversations in unauthorized organizations
+- User impersonation is prevented (server-side user ID is always used)
+- Invalid conversation IDs are rejected
+- Channel access is properly validated
+
+### NotificationHub Security Tests
+Tests verify that:
+- Users can only join their own user notification groups
+- Matter group subscriptions require proper access
+- Organization group subscriptions validate membership or firm-based access
+- Auto-join on connection only works for own user group
 

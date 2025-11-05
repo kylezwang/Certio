@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using Certio.Domain.Users;
-using Certio.Domain.Documents;
 using Certio.Domain.Matters;
 
 namespace Certio.Domain.Tasks
@@ -81,7 +80,6 @@ namespace Certio.Domain.Tasks
         public virtual ICollection<SubTaskItem> SubTasks { get; set; } = new List<SubTaskItem>();
         public virtual ICollection<TaskAssignment> TaskAssignments { get; set; } = new List<TaskAssignment>();
         public virtual ICollection<TaskItemComment> Comments { get; set; } = new List<TaskItemComment>();
-        public virtual ICollection<Document> RelatedDocuments { get; set; } = new List<Document>();
         public virtual ICollection<TaskItemDependency> Dependencies { get; set; } = new List<TaskItemDependency>();
         public virtual ICollection<TaskItemDependency> DependentItems { get; set; } = new List<TaskItemDependency>();
     }

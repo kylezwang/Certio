@@ -32,16 +32,46 @@ public class ChatHub : Hub
 
     public async Task JoinConversation(string conversationId)
     {
+        if (!int.TryParse(conversationId, out var conversationIdInt))
+        {
+            await Clients.Caller.SendAsync("Error", "Invalid conversation ID");
+            return;
+        }
+
+        var userId = GetCurrentUserId();
+        if (!userId.HasValue)
+        {
+            await Clients.Caller.SendAsync("Error", "User not authenticated");
+            return;
+        }
+
+        var conversation = await _context.Conversations
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == conversationIdInt);
+
+        if (conversation == null)
+        {
+            await Clients.Caller.SendAsync("Error", "Conversation not found");
+            return;
+        }
+
+        var hasAccess = await _chatService.CanUserAccessConversationAsync(conversationIdInt, userId.Value, conversation.OrganizationId);
+        if (!hasAccess)
+        {
+            await Clients.Caller.SendAsync("Error", "Conversation access denied");
+            return;
+        }
+
         await Groups.AddToGroupAsync(Context.ConnectionId, $"conversation_{conversationId}");
-        
+
         // Update user online status
         await UpdateUserOnlineStatus(true);
-        
+
         // Notify others in the conversation that user joined
         await Clients.Group($"conversation_{conversationId}").SendAsync("UserJoined", new
         {
-            UserId = GetCurrentUserId(),
-            UserName = GetCurrentUserName(),
+            UserId = userId.Value,
+            UserName = await GetCurrentUserNameAsync(),
             Timestamp = DateTime.UtcNow
         });
     }
@@ -65,20 +95,24 @@ public class ChatHub : Hub
         var organizationId = GetCurrentOrganizationId();
         var userId = GetCurrentUserId();
         
-        if (!organizationId.HasValue)
-        {
-            await Clients.Caller.SendAsync("Error", "Organization context not found");
-            return;
-        }
-        
         if (!userId.HasValue)
         {
             await Clients.Caller.SendAsync("Error", "User not authenticated");
             return;
         }
         
+        var conversation = await _context.Conversations
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == conversationId);
+
+        if (conversation == null)
+        {
+            await Clients.Caller.SendAsync("Error", "Channel not found");
+            return;
+        }
+
         // Verify user has access to this channel (includes firm-based access)
-        var hasAccess = await _chatService.CanUserAccessConversationAsync(conversationId, userId.Value, organizationId.Value);
+        var hasAccess = await _chatService.CanUserAccessConversationAsync(conversationId, userId.Value, conversation.OrganizationId);
         if (!hasAccess)
         {
             await Clients.Caller.SendAsync("Error", "Channel not found or access denied");
@@ -92,10 +126,11 @@ public class ChatHub : Hub
         await UpdateUserOnlineStatus(true);
         
         // Notify others in the channel that user joined
+        var userName = GetCurrentUserName() ?? "Unknown User";
         await Clients.Group($"channel_{channelId}").SendAsync("UserJoinedChannel", new
         {
             UserId = userId.Value,
-            UserName = GetCurrentUserName(),
+            UserName = userName,
             ChannelId = channelId,
             Timestamp = DateTime.UtcNow
         });
@@ -107,10 +142,11 @@ public class ChatHub : Hub
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"conversation_{channelId}");
         
         // Notify others in the channel that user left
+        var userName = GetCurrentUserName() ?? "Unknown User";
         await Clients.Group($"channel_{channelId}").SendAsync("UserLeftChannel", new
         {
             UserId = GetCurrentUserId(),
-            UserName = GetCurrentUserName(),
+            UserName = userName,
             ChannelId = channelId,
             Timestamp = DateTime.UtcNow
         });
@@ -120,7 +156,39 @@ public class ChatHub : Hub
     {
         try
         {
-            var message = await _chatService.SendMessageAsync(int.Parse(conversationId), int.Parse(userId), userType, content, messageType);
+            if (!int.TryParse(conversationId, out var conversationIdInt))
+            {
+                await Clients.Caller.SendAsync("Error", "Invalid conversation ID");
+                return;
+            }
+
+            var actualUserId = GetCurrentUserId();
+            if (!actualUserId.HasValue)
+            {
+                await Clients.Caller.SendAsync("Error", "User not authenticated");
+                return;
+            }
+
+            var conversation = await _context.Conversations
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == conversationIdInt);
+
+            if (conversation == null)
+            {
+                await Clients.Caller.SendAsync("Error", "Conversation not found");
+                return;
+            }
+
+            var hasAccess = await _chatService.CanUserAccessConversationAsync(conversationIdInt, actualUserId.Value, conversation.OrganizationId);
+            if (!hasAccess)
+            {
+                await Clients.Caller.SendAsync("Error", "Conversation access denied");
+                return;
+            }
+
+            var resolvedUserType = ResolveUserType(conversation.OrganizationId);
+
+            var message = await _chatService.SendMessageAsync(conversationIdInt, actualUserId.Value, resolvedUserType, content, messageType);
             
             // Send message to all clients in the conversation group
             await Clients.Group($"conversation_{conversationId}").SendAsync("ReceiveMessage", new
@@ -153,35 +221,31 @@ public class ChatHub : Hub
     {
         try
         {
-            
-            if (string.IsNullOrEmpty(userId) || userId == "null" || userId == "undefined")
-            {
-                await Clients.Caller.SendAsync("Error", "User ID is required");
-                return;
-            }
-            
             if (!int.TryParse(channelId, out var conversationId))
             {
                 await Clients.Caller.SendAsync("Error", "Invalid channel ID");
                 return;
             }
             
-            if (!int.TryParse(userId, out var userIdInt))
+            var actualUserId = GetCurrentUserId();
+            if (!actualUserId.HasValue)
             {
-                await Clients.Caller.SendAsync("Error", "Invalid user ID");
+                await Clients.Caller.SendAsync("Error", "User not authenticated");
                 return;
             }
             
-            var organizationId = GetCurrentOrganizationId();
-            
-            if (!organizationId.HasValue)
+            var conversation = await _context.Conversations
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == conversationId);
+
+            if (conversation == null)
             {
-                await Clients.Caller.SendAsync("Error", "Organization context not found");
+                await Clients.Caller.SendAsync("Error", "Channel not found");
                 return;
             }
-            
+
             // Verify user has access to this channel (includes firm-based access)
-            var hasAccess = await _chatService.CanUserAccessConversationAsync(conversationId, userIdInt, organizationId.Value);
+            var hasAccess = await _chatService.CanUserAccessConversationAsync(conversationId, actualUserId.Value, conversation.OrganizationId);
             
             if (!hasAccess)
             {
@@ -189,10 +253,12 @@ public class ChatHub : Hub
                 return;
             }
 
+            var resolvedUserType = ResolveUserType(conversation.OrganizationId);
+
             var message = await _chatService.SendChannelMessageAsync(
                 conversationId, 
-                userIdInt, 
-                userType, 
+                actualUserId.Value, 
+                resolvedUserType, 
                 content, 
                 messageType, 
                 conversationId, // Use conversationId as channelId
@@ -210,7 +276,7 @@ public class ChatHub : Hub
             else
             {
                 // Try to get from current user context
-                var currentUserName = GetCurrentUserName();
+                var currentUserName = await GetCurrentUserNameAsync();
                 
                 if (!string.IsNullOrEmpty(currentUserName))
                 {
@@ -219,7 +285,7 @@ public class ChatHub : Hub
                 else
                 {
                     // Fallback: get from database using userId
-                    var dbUser = await _context.Users.FindAsync(userIdInt);
+                    var dbUser = await _context.Users.FindAsync(actualUserId.Value);
                     if (dbUser != null)
                     {
                         var fullName = $"{dbUser.FirstName} {dbUser.LastName}".Trim();
@@ -704,6 +770,30 @@ public class ChatHub : Hub
             }
         }
         
+        return null;
+    }
+
+    private string ResolveUserType(int organizationId)
+    {
+        var customUser = GetCustomUser();
+        var membership = customUser?.GetOrganizationMembership(organizationId);
+        if (!string.IsNullOrWhiteSpace(membership?.UserType))
+        {
+            return membership!.UserType;
+        }
+
+        // Default to Client to preserve existing behavior when membership is not resolved.
+        return "Client";
+    }
+
+    private User? GetCustomUser()
+    {
+        var httpContext = Context.GetHttpContext();
+        if (httpContext?.Items.TryGetValue("CustomUser", out var customUserObj) == true && customUserObj is User user)
+        {
+            return user;
+        }
+
         return null;
     }
 

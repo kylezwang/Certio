@@ -44,10 +44,6 @@ namespace Certio.Web.Security
 
         public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
         {
-            var _logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<RequirePermissionFilter>>();
-            var _permissionService = context.HttpContext.RequestServices.GetRequiredService<IPermissionService>();
-            var _context = context.HttpContext.RequestServices.GetRequiredService<ApplicationDbContext>();
-            
             _logger.LogInformation("🔒 RequirePermissionFilter executing for permission: {Permission}, Path: {Path}", 
                 _requiredPermission, context.HttpContext.Request.Path);
             

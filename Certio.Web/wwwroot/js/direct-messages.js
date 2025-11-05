@@ -6,6 +6,7 @@ let currentDirectUserName = null;
 let currentDirectOrgId = null;
 let currentDirectOtherUserId = null;
 let currentDirectOtherUserName = null;
+let currentDirectOtherUserEmail = null;
 let directTypingTimeout = null;
 let isDMTyping = false;
 let isDirectMessageMode = false;
@@ -138,11 +139,20 @@ function setupDirectMessageHandlers() {
 }
 
 // Open or create a direct message thread with another user
-async function openDirectThread(otherUserId, otherUserName) {
+async function openDirectThread(otherUserId, otherUserName, otherUserEmail = null) {
     try {
         isDirectMessageMode = true;
         currentDirectOtherUserId = otherUserId;
         currentDirectOtherUserName = otherUserName;
+        currentDirectOtherUserEmail = otherUserEmail;
+        
+        // If email not provided, try to get it from the team member element
+        if (!currentDirectOtherUserEmail) {
+            const teamMemberElement = document.querySelector(`.team-member[data-user-id="${otherUserId}"]`);
+            if (teamMemberElement) {
+                currentDirectOtherUserEmail = teamMemberElement.dataset.userEmail || null;
+            }
+        }
         
         // Update UI to DM mode
         updateUIForDirectMessage(otherUserName);
@@ -615,6 +625,7 @@ function exitDirectMessageMode() {
     currentDirectThreadId = null;
     currentDirectOtherUserId = null;
     currentDirectOtherUserName = null;
+    currentDirectOtherUserEmail = null;
     
     // Reset UI to channel mode
     const messageInput = document.getElementById('messageInput');
@@ -664,6 +675,12 @@ function sendCurrentDirectMessage(message) {
     return false;
 }
 
-// Export exit function
+// Export functions for use in other scripts
 window.exitDirectMessageMode = exitDirectMessageMode;
+window.openDirectThread = openDirectThread;
+
+// Export getter functions for use in Communications.cshtml
+window.getCurrentDirectOtherUserName = () => currentDirectOtherUserName;
+window.getCurrentDirectOtherUserEmail = () => currentDirectOtherUserEmail;
+window.getCurrentDirectOtherUserId = () => currentDirectOtherUserId;
 

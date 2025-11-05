@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Certio.Web.Services
@@ -11,7 +12,8 @@ namespace Certio.Web.Services
         Task<string> GenerateVerificationCodeAsync();
         Task<bool> SendEmailVerificationAsync(string email, string code);
         Task<bool> SendSmsVerificationAsync(string phoneNumber, string code);
-        bool VerifyCode(string inputCode, string storedCode, DateTime expiry);
+        string ProtectCode(string code);
+        bool VerifyProtectedCode(string inputCode, string protectedCode, DateTime expiry);
     }
 
     public class TwoFactorService : ITwoFactorService
@@ -28,10 +30,7 @@ namespace Certio.Web.Services
         /// </summary>
         public async Task<string> GenerateVerificationCodeAsync()
         {
-            var random = new Random();
-            var code = random.Next(100000, 999999).ToString();
-            
-            _logger.LogInformation("Generated verification code: {Code}", code);
+            var code = RandomNumberGenerator.GetInt32(100000, 1000000).ToString("D6");
             return await Task.FromResult(code);
         }
 
@@ -44,12 +43,7 @@ namespace Certio.Web.Services
             try
             {
                 // For development, just log the code
-                _logger.LogInformation("Sending email verification to {Email} with code: {Code}", email, code);
-                
-                // Also output to console for immediate visibility
-                Console.WriteLine($"🔐 2FA CODE FOR {email}: {code}");
-                Console.WriteLine($"📧 Email verification code: {code}");
-                Console.WriteLine($"⏰ Code expires in 10 minutes");
+                _logger.LogInformation("Sending email verification to {Email}", email);
                 
                 // In production, you would:
                 // 1. Create an email template
@@ -77,7 +71,7 @@ namespace Certio.Web.Services
             try
             {
                 // For development, just log the code
-                _logger.LogInformation("Sending SMS verification to {PhoneNumber} with code: {Code}", phoneNumber, code);
+                _logger.LogInformation("Sending SMS verification to {PhoneNumber}", phoneNumber);
                 
                 // In production, you would:
                 // 1. Format phone number properly
@@ -97,12 +91,34 @@ namespace Certio.Web.Services
         }
 
         /// <summary>
-        /// Verify the input code against stored code and expiry
+        /// Protect a verification code using a random salt and SHA-256 hash.
         /// </summary>
-        public bool VerifyCode(string inputCode, string storedCode, DateTime expiry)
+        public string ProtectCode(string code)
         {
-            if (string.IsNullOrEmpty(inputCode) || string.IsNullOrEmpty(storedCode))
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                throw new ArgumentException("Verification code cannot be empty", nameof(code));
+            }
+
+            Span<byte> salt = stackalloc byte[16];
+            RandomNumberGenerator.Fill(salt);
+
+            var normalizedCode = NormalizeCode(code);
+            var saltBytes = salt.ToArray();
+            var hash = ComputeHash(saltBytes, normalizedCode.AsSpan());
+
+            return string.Join('.', Convert.ToBase64String(saltBytes), Convert.ToBase64String(hash));
+        }
+
+        /// <summary>
+        /// Verify the input code against the protected code and expiry
+        /// </summary>
+        public bool VerifyProtectedCode(string inputCode, string protectedCode, DateTime expiry)
+        {
+            if (string.IsNullOrWhiteSpace(inputCode) || string.IsNullOrWhiteSpace(protectedCode))
+            {
                 return false;
+            }
 
             if (DateTime.UtcNow > expiry)
             {
@@ -110,18 +126,58 @@ namespace Certio.Web.Services
                 return false;
             }
 
-            var isValid = inputCode.Trim() == storedCode.Trim();
-            
-            if (isValid)
+            var normalizedCode = NormalizeCode(inputCode);
+            var parts = protectedCode.Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (parts.Length != 2)
             {
-                _logger.LogInformation("Verification code verified successfully");
+                _logger.LogWarning("Invalid protected code format");
+                return false;
             }
-            else
+
+            byte[] salt;
+            byte[] expectedHash;
+            try
+            {
+                salt = Convert.FromBase64String(parts[0]);
+                expectedHash = Convert.FromBase64String(parts[1]);
+            }
+            catch (FormatException ex)
+            {
+                _logger.LogWarning(ex, "Protected code decoding failed");
+                return false;
+            }
+
+            var actualHash = ComputeHash(salt, normalizedCode.AsSpan());
+
+            var isValid = CryptographicOperations.FixedTimeEquals(actualHash, expectedHash);
+            if (!isValid)
             {
                 _logger.LogWarning("Invalid verification code provided");
             }
+            else
+            {
+                _logger.LogInformation("Verification code verified successfully");
+            }
 
             return isValid;
+        }
+
+        private static string NormalizeCode(string code) => code.Trim();
+
+        private static byte[] ComputeHash(ReadOnlySpan<byte> salt, ReadOnlySpan<char> code)
+        {
+            var byteCount = Encoding.UTF8.GetByteCount(code);
+            var buffer = new byte[salt.Length + byteCount];
+            salt.CopyTo(buffer);
+            
+            var bytesWritten = Encoding.UTF8.GetBytes(code, buffer.AsSpan(salt.Length));
+            if (bytesWritten != byteCount)
+            {
+                throw new InvalidOperationException("Unexpected number of bytes written during encoding");
+            }
+
+            using var sha256 = SHA256.Create();
+            return sha256.ComputeHash(buffer);
         }
     }
 }

@@ -161,6 +161,7 @@
                         <div class="team-member @(member.CanDirectMessage ? "dm-user-item" : "dm-user-disabled")" 
                              data-user-id="@member.UserId" 
                              data-user-name="@member.Name"
+                             data-user-email="@(member.Email ?? "")"
                              data-can-dm="@member.CanDirectMessage.ToString().ToLower()"
                              data-org-id="@member.OrganizationId"
                              data-org-name="@member.OrganizationName"
@@ -184,6 +185,7 @@
                         <div class="team-member @(member.CanDirectMessage ? "dm-user-item" : "dm-user-disabled")" 
                              data-user-id="@member.UserId" 
                              data-user-name="@member.Name"
+                             data-user-email="@(member.Email ?? "")"
                              data-can-dm="@member.CanDirectMessage.ToString().ToLower()"
                              data-org-id="@member.OrganizationId"
                              data-org-name="@member.OrganizationName"
@@ -425,6 +427,12 @@
             <div class="message-input-container">
                 <!-- Regular DM Input -->
                 <div id="regularMessageInput" class="message-input-wrapper">
+                    <!-- Email Subject Input (shown when in email mode) -->
+                    <input type="text" class="email-subject-input" id="channelEmailSubjectInput" placeholder="Subject..." style="display: none;" />
+                    
+                    <button class="input-btn" id="emailSwitcherBtn" title="Switch to Email Mode">
+                        <i class="fas fa-envelope"></i>
+                    </button>
                     <button class="input-btn" title="Attach File">
                         <i class="fas fa-paperclip"></i>
                     </button>
@@ -600,6 +608,236 @@
                 sendButton.addEventListener('click', handleSendMessage);
             }
 
+            // Email switcher button functionality
+            const emailSwitcherBtn = document.getElementById('emailSwitcherBtn');
+            let isEmailModeActive = false;
+            
+            if (emailSwitcherBtn) {
+                emailSwitcherBtn.addEventListener('click', async function() {
+                    isEmailModeActive = !isEmailModeActive;
+                    
+                    const switcherIcon = emailSwitcherBtn.querySelector('i');
+                    const sendButtonIcon = sendButton.querySelector('i');
+                    const messageInput = document.getElementById('messageInput');
+                    const emailSubjectInput = document.getElementById('channelEmailSubjectInput');
+                    const channelDescription = document.querySelector('.channel-description');
+                    const channelTitle = document.querySelector('.channel-title');
+                    
+                    // Check if we're in DM mode
+                    const isInDM = typeof isInDirectMessageMode === 'function' && isInDirectMessageMode();
+                    let contactName = null;
+                    let contactEmail = null;
+                    
+                    if (isInDM) {
+                        // Get contact name from channel title (most reliable source)
+                        if (channelTitle) {
+                            contactName = channelTitle.textContent.trim();
+                            // Remove "(You)" suffix if present
+                            contactName = contactName.replace(/\s*\(You\)\s*$/, '').trim();
+                        }
+                        
+                        // If no name from title, try getter function
+                        if (!contactName && typeof window !== 'undefined' && typeof window.getCurrentDirectOtherUserName === 'function') {
+                            contactName = window.getCurrentDirectOtherUserName();
+                        }
+                        
+                        // PRIMARY METHOD: Get email by user ID (most reliable)
+                        let currentUserId = null;
+                        if (typeof window !== 'undefined' && typeof window.getCurrentDirectOtherUserId === 'function') {
+                            currentUserId = window.getCurrentDirectOtherUserId();
+                        }
+                        
+                        if (currentUserId) {
+                            // Try to get email from getter first
+                            if (typeof window !== 'undefined' && typeof window.getCurrentDirectOtherUserEmail === 'function') {
+                                contactEmail = window.getCurrentDirectOtherUserEmail();
+                            }
+                            
+                            // If not found, query DOM by user ID
+                            if (!contactEmail || contactEmail.trim() === '') {
+                                const teamMemberElement = document.querySelector(`.team-member[data-user-id="${currentUserId}"]`);
+                                if (teamMemberElement) {
+                                    const emailAttr = teamMemberElement.getAttribute('data-user-email');
+                                    if (emailAttr && emailAttr.trim() !== '') {
+                                        contactEmail = emailAttr.trim();
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // FALLBACK: If still not found, try by name matching
+                        if ((!contactEmail || contactEmail.trim() === '') && contactName) {
+                            const teamMemberElements = document.querySelectorAll('.team-member');
+                            for (const element of teamMemberElements) {
+                                const elementName = (element.dataset.userName || '').trim();
+                                const elementEmail = element.getAttribute('data-user-email') || '';
+                                
+                                if (elementName === contactName && elementEmail.trim() !== '') {
+                                    contactEmail = elementEmail.trim();
+                                    break;
+                                }
+                            }
+                        }
+                        
+                    }
+                    
+                    // Get channel member emails for channel mode
+                    let channelMemberEmails = [];
+                    if (!isInDM && channelTitle) {
+                        // Fetch actual channel members from API instead of all team members
+                        // This ensures we only show emails of users who have access to the channel
+                        // Try multiple sources for channel ID
+                        let channelId = null;
+                        
+                        // First try: global variable from communications.js (check both window and global scope)
+                        if (typeof window.currentChannelId !== 'undefined' && window.currentChannelId) {
+                            channelId = window.currentChannelId.toString();
+                        } else if (typeof currentChannelId !== 'undefined' && currentChannelId) {
+                            channelId = currentChannelId.toString();
+                        }
+                        
+                        // Second try: active channel item from DOM
+                        if (!channelId) {
+                            const activeChannelItem = document.querySelector('.channel-item.active');
+                            if (activeChannelItem?.dataset.channelId) {
+                                channelId = activeChannelItem.dataset.channelId;
+                            }
+                        }
+                        
+                        // Third try: any channel item (fallback)
+                        if (!channelId) {
+                            const firstChannelItem = document.querySelector('.channel-item');
+                            if (firstChannelItem?.dataset.channelId) {
+                                channelId = firstChannelItem.dataset.channelId;
+                            }
+                        }
+                        
+                        const orgId = document.querySelector('[data-organization-id]')?.dataset.organizationId || currentOrganizationId;
+                        
+                        console.log('Fetching channel members:', { channelId, orgId, isInDM, hasChannelTitle: !!channelTitle });
+                        
+                        if (channelId && orgId) {
+                            try {
+                                const response = await fetch(`/Client/${orgId}/Communications/GetChannelMembers?channelId=${channelId}`);
+                                console.log('GetChannelMembers response status:', response.status);
+                                
+                                if (response.ok) {
+                                    const data = await response.json();
+                                    console.log('GetChannelMembers response data:', data);
+                                    
+                                    if (data.success && data.members) {
+                                        // Extract emails from channel members
+                                        const emails = data.members
+                                            .map(member => member.email)
+                                            .filter(email => email && email.trim() !== '');
+                                        channelMemberEmails = emails;
+                                        console.log(`Loaded ${channelMemberEmails.length} channel member emails for channel ${channelId}:`, channelMemberEmails);
+                                    } else {
+                                        console.warn('GetChannelMembers returned unsuccessful response:', data);
+                                    }
+                                } else {
+                                    const errorText = await response.text();
+                                    console.warn(`GetChannelMembers API returned status ${response.status}:`, errorText);
+                                }
+                            } catch (error) {
+                                console.error('Error fetching channel members:', error);
+                                // Fallback: show empty subtitle
+                                channelMemberEmails = [];
+                            }
+                        } else {
+                            console.warn('Cannot fetch channel members: missing channelId or orgId', { channelId, orgId });
+                        }
+                    }
+                    
+                    if (isEmailModeActive) {
+                        // Switch to email mode
+                        // Switcher button shows paper airplane
+                        switcherIcon.className = 'fas fa-paper-plane';
+                        emailSwitcherBtn.title = 'Switch to Direct Message Mode';
+                        
+                        // Send button shows mail icon
+                        sendButtonIcon.className = 'fas fa-envelope';
+                        sendButton.title = 'Send Email';
+                        
+                        // Show subject input for both DM and channels
+                        if (emailSubjectInput) {
+                            emailSubjectInput.style.display = 'block';
+                            if (!emailSubjectInput.value) {
+                                emailSubjectInput.value = '';
+                            }
+                        }
+                        
+                        if (isInDM) {
+                            // DM mode: Update input placeholder and subtitle
+                            if (messageInput && contactName) {
+                                messageInput.placeholder = `Email ${contactName}`;
+                            }
+                            // Update subtitle to show email if available
+                            if (channelDescription) {
+                                if (contactEmail && contactEmail.trim() !== '') {
+                                    channelDescription.textContent = contactEmail;
+                                } else {
+                                    channelDescription.textContent = 'Direct Message';
+                                }
+                            }
+                        } else {
+                            // Channel mode: Update input placeholder and subtitle
+                            if (messageInput && channelTitle) {
+                                const channelName = channelTitle.textContent.trim();
+                                messageInput.placeholder = `Email #${channelName}`;
+                            }
+                            // Update subtitle to show channel member emails
+                            if (channelDescription) {
+                                if (channelMemberEmails.length > 0) {
+                                    // Show up to 3 emails, or indicate if more
+                                    const displayEmails = channelMemberEmails.slice(0, 3);
+                                    let emailText = displayEmails.join(', ');
+                                    if (channelMemberEmails.length > 3) {
+                                        emailText += ` +${channelMemberEmails.length - 3} more`;
+                                    }
+                                    channelDescription.textContent = emailText;
+                                } else {
+                                    channelDescription.textContent = 'Secure legal communications';
+                                }
+                            }
+                        }
+                    } else {
+                        // Switch to chat mode
+                        // Switcher button shows mail icon
+                        switcherIcon.className = 'fas fa-envelope';
+                        emailSwitcherBtn.title = 'Switch to Email Mode';
+                        
+                        // Send button shows paper airplane
+                        sendButtonIcon.className = 'fas fa-paper-plane';
+                        sendButton.title = 'Send';
+                        
+                        // Hide subject input for both DM and channels
+                        if (emailSubjectInput) {
+                            emailSubjectInput.style.display = 'none';
+                        }
+                        
+                        if (isInDM) {
+                            // DM mode: Revert input placeholder and subtitle
+                            if (messageInput && contactName) {
+                                messageInput.placeholder = `Message ${contactName}`;
+                            }
+                            if (channelDescription) {
+                                channelDescription.textContent = 'Direct Message';
+                            }
+                        } else {
+                            // Channel mode: Revert message placeholder and subtitle
+                            if (messageInput && channelTitle) {
+                                const channelName = channelTitle.textContent.trim();
+                                messageInput.placeholder = `Message #${channelName}`;
+                            }
+                            if (channelDescription) {
+                                channelDescription.textContent = 'Secure legal communications';
+                            }
+                        }
+                    }
+                });
+            }
+
             // Category toggle functionality
             const categoryToggles = document.querySelectorAll('.category-toggle');
             categoryToggles.forEach(toggle => {
@@ -647,7 +885,7 @@
             });
 
             // Channel selection with event delegation
-            document.addEventListener('click', function(event) {
+            document.addEventListener('click', async function(event) {
                 const channelItem = event.target.closest('.channel-item');
                 if (channelItem) {
                     event.preventDefault();
@@ -668,20 +906,72 @@
                     // Update channel title - show just the name without prefix
                     document.querySelector('.channel-title').textContent = channelName;
                     
-                    // Update channel description based on type
-                    const channelDescription = channelType === 'voice' ? 'Voice Channel' : 'Secure legal communications';
-                    document.querySelector('.channel-description').textContent = channelDescription;
+                    // Check if we're in email mode
+                    const channelDescription = document.querySelector('.channel-description');
+                    const messageInput = document.getElementById('messageInput');
+                    const emailSubjectInput = document.getElementById('channelEmailSubjectInput');
+                    
+                    // If in email mode, fetch channel members and update subtitle
+                    if (isEmailModeActive && channelDescription) {
+                        const orgId = document.querySelector('[data-organization-id]')?.dataset.organizationId || currentOrganizationId;
+                        
+                        if (channelId && orgId) {
+                            try {
+                                const response = await fetch(`/Client/${orgId}/Communications/GetChannelMembers?channelId=${channelId}`);
+                                if (response.ok) {
+                                    const data = await response.json();
+                                    if (data.success && data.members) {
+                                        const emails = data.members
+                                            .map(member => member.email)
+                                            .filter(email => email && email.trim() !== '');
+                                        
+                                        if (emails.length > 0) {
+                                            const displayEmails = emails.slice(0, 3);
+                                            let emailText = displayEmails.join(', ');
+                                            if (emails.length > 3) {
+                                                emailText += ` +${emails.length - 3} more`;
+                                            }
+                                            channelDescription.textContent = emailText;
+                                        } else {
+                                            channelDescription.textContent = 'Secure legal communications';
+                                        }
+                                    }
+                                }
+                            } catch (error) {
+                                console.error('Error fetching channel members on channel switch:', error);
+                                channelDescription.textContent = 'Secure legal communications';
+                            }
+                        }
+                        
+                        // Update input placeholder to stay in email mode
+                        if (messageInput) {
+                            messageInput.placeholder = `Email #${channelName}`;
+                        }
+                        
+                        // Keep subject input visible
+                        if (emailSubjectInput) {
+                            emailSubjectInput.style.display = 'block';
+                        }
+                    } else {
+                        // Not in email mode - update channel description based on type
+                        const defaultDescription = channelType === 'voice' ? 'Voice Channel' : 'Secure legal communications';
+                        if (channelDescription) {
+                            channelDescription.textContent = defaultDescription;
+                        }
+                    }
                     
                     // Update channel header icon
                     const headerIcon = document.querySelector('.channel-header-icon');
-                    if (channelType === 'voice') {
-                        headerIcon.className = 'fas fa-volume-up channel-header-icon';
-                    } else if (isMatterChannel) {
-                        headerIcon.className = 'fas fa-folder channel-header-icon';
-                    } else if (isPrivate) {
-                        headerIcon.className = 'fas fa-lock channel-header-icon';
-                    } else {
-                        headerIcon.className = 'fas fa-hashtag channel-header-icon';
+                    if (headerIcon) {
+                        if (channelType === 'voice') {
+                            headerIcon.className = 'fas fa-volume-up channel-header-icon';
+                        } else if (isMatterChannel) {
+                            headerIcon.className = 'fas fa-folder channel-header-icon';
+                        } else if (isPrivate) {
+                            headerIcon.className = 'fas fa-lock channel-header-icon';
+                        } else {
+                            headerIcon.className = 'fas fa-hashtag channel-header-icon';
+                        }
                     }
                     
                     // Call switchChannel if available (from communications.js)
@@ -722,8 +1012,11 @@
                     }
                     
                     // Open direct message thread
+                    // Get email from data attribute
+                    const userEmail = dmUserItem.dataset.userEmail || null;
+                    
                     if (typeof openDirectThread === 'function') {
-                        openDirectThread(userId, userName);
+                        openDirectThread(userId, userName, userEmail);
                     } else {
                         console.error('openDirectThread function not available');
                     }
@@ -985,3 +1278,72 @@
         </div>
     </div>
 </div>
+
+<style>
+    /* Email Subject Input - Styled like Calendar Event modal Title field */
+    .email-subject-input {
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: #111827;
+        margin: 0 0 0.5rem 0;
+        border: none;
+        border-bottom: 1px solid #e5e7eb;
+        background: transparent;
+        padding: 0.5rem 1rem;
+        border-radius: 0;
+        transition: all 0.2s;
+        width: 100%;
+        font-family: inherit;
+        box-sizing: border-box;
+    }
+
+    .email-subject-input:hover {
+        border-bottom-color: #d1d5db;
+    }
+
+    .email-subject-input:focus {
+        outline: none;
+        border-bottom-color: #3d1019;
+        background-color: #fafafa;
+    }
+
+    .email-subject-input::placeholder {
+        color: #a0aec0;
+        font-weight: 400;
+        font-style: italic;
+    }
+
+    .email-subject-input:focus::placeholder {
+        color: #cbd5e0;
+    }
+
+    /* Ensure proper spacing in message input container */
+    .message-input-container {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    /* Position subject input inside message-input-wrapper above textarea */
+    .message-input-wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        position: relative;
+    }
+    
+    /* Subject input appears on its own line above textarea, spanning full width */
+    .message-input-wrapper .email-subject-input {
+        order: -1;
+        width: 100%;
+        flex-basis: 100%;
+        margin: 0 4.25rem;
+        padding: 0.5rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    /* Ensure textarea maintains its flex behavior */
+    .message-input-wrapper .message-input {
+        flex: 1;
+        min-width: 0;
+    }
+</style>

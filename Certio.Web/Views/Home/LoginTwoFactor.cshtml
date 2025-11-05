@@ -1,0 +1,342 @@
+@model Certio.Web.ViewModels.TwoFactorVerificationViewModel
+
+@{
+    ViewData["Title"] = "Notal - Sign In";
+    Layout = null; // Use no layout for the login page
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Katibeh&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+    <style>
+        /* Login Page Specific Styles */
+        .login-container {
+            min-height: 100vh;
+            background: #C7B7A340;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 28rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 0.5rem;
+            padding-top: 3rem;
+        }
+
+        .login-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: #3d1019;
+            font-family: 'Katibeh', sans-serif;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.05rem;
+        }
+
+        .login-subtitle {
+            color: #6b7280;
+            font-size: 1rem;
+        }
+
+        .card-header {
+            text-align: center;
+            padding: 1rem 2rem 1rem 2rem;
+            border-bottom: none;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-description {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .card-body {
+            padding: 1rem 2rem 2rem 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .form-control {
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            background-color: #ffffff !important;
+            color: #374151 !important;
+        }
+
+        .form-control:focus {
+            border-color: #3d1019;
+            box-shadow: 0 0 0 3px rgba(61, 16, 25, 0.1);
+            outline: none;
+        }
+
+        .form-control::placeholder {
+            color: #9ca3af;
+        }
+
+        .form-text {
+            color: #6b7280;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .btn-signin {
+            width: 100%;
+            background: linear-gradient(135deg, #3d1019, #3d1019);
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            color: white;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(61, 16, 25, 0.3);
+        }
+
+        .btn-signin:hover {
+            box-shadow: 0 4px 8px rgba(61, 16, 25, 0.4);
+            color: white;
+        }
+
+        .btn-outline-secondary {
+            width: 100%;
+            background: white;
+            border: 1px solid #3d1019;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            color: #3d1019;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            margin-top: 0.5rem;
+        }
+
+        .btn-outline-secondary:hover {
+            background: #f8fafc;
+            color: #3d1019;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-check {
+            position: absolute;
+            clip: rect(0, 0, 0, 0);
+            pointer-events: none;
+        }
+
+        .btn-check:checked + .btn-outline-primary {
+            background: #3d1019;
+            color: white;
+            border-color: #3d1019;
+        }
+
+        .btn-outline-primary {
+            flex: 1;
+            border: 1px solid #3d1019;
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            font-weight: 500;
+            color: #3d1019;
+            font-size: 0.875rem;
+            background: white;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .btn-outline-primary:hover {
+            background: #f8fafc;
+        }
+
+        .alert {
+            margin-bottom: 1.5rem;
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+        }
+
+        .alert-info {
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e40af;
+        }
+
+        .alert-danger {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+        }
+
+        .signup-link {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+
+        .signup-text {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin: 0;
+        }
+
+        .signup-link-text {
+            color: #3d1019;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .signup-link-text:hover {
+            color: #3d1019;
+            text-decoration: none;
+        }
+
+        .footer-copyright {
+            text-align: center;
+            margin-top: 2rem;
+            color: #9ca3af;
+            font-size: 0.75rem;
+            width: 100%;
+            max-width: 28rem;
+        }
+
+        /* Responsive adjustments */
+        @@media (max-width: 480px) {
+            .login-container {
+                padding: 0.5rem;
+            }
+
+            .login-card {
+                border-radius: 8px;
+            }
+
+            .card-body {
+                padding: 1rem 1.5rem 1.5rem 1.5rem;
+            }
+
+            .card-header {
+                padding: 1rem 1.5rem 1rem 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h1 class="login-title">Notal</h1>
+            </div>
+            
+            <div class="card-header" style="background-color: white;">
+                <h2 class="card-title">Verify your identity</h2>
+                <p class="card-description">We sent a verification code to your email</p>
+            </div>
+            
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(ViewBag.Info as string))
+                {
+                    <div class="alert alert-info" role="status">
+                        @ViewBag.Info
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(ViewBag.Error as string))
+                {
+                    <div class="alert alert-danger" role="alert">
+                        @ViewBag.Error
+                    </div>
+                }
+
+                <form method="post" action="@Url.Action("VerifyLoginTwoFactor", "Home")" autocomplete="off">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="form-group">
+                        <label class="form-label">Verification Method</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="verificationMethod" id="email-method" value="email" checked>
+                            <label class="btn btn-outline-primary" for="email-method">Email</label>
+                            
+                            <input type="radio" class="btn-check" name="verificationMethod" id="sms-method" value="sms">
+                            <label class="btn btn-outline-primary" for="sms-method">SMS</label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="verificationCode" class="form-label">Verification Code</label>
+                        <input type="text"
+                               class="form-control"
+                               id="verificationCode"
+                               name="VerificationCode"
+                               maxlength="6"
+                               minlength="6"
+                               inputmode="numeric"
+                               pattern="[0-9]{6}"
+                               placeholder="Enter 6-digit code"
+                               required />
+                        <small class="form-text text-muted">We sent a verification code to your email</small>
+                    </div>
+
+                    <button type="submit" class="btn btn-signin">
+                        Verify Code
+                    </button>
+                </form>
+
+                <form method="post" action="@Url.Action("ResendLoginTwoFactor", "Home")">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-secondary">
+                        Resend Code
+                    </button>
+                </form>
+
+                <div class="signup-link">
+                    <p class="signup-text">
+                        Already have an account? <a href="@Url.Action("Index", "Home")" class="signup-link-text">Sign in</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer-copyright">
+        <p>© 2024 Notal. All rights reserved.</p>
+    </div>
+</body>
+</html>

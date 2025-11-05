@@ -10,6 +10,9 @@ using Microsoft.EntityFrameworkCore;
 using Certio.Domain.Users;
 using Certio.Domain.Organizations;
 using Certio.Domain.Services;
+using System.Globalization;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Certio.Web.Controllers
 {
@@ -22,6 +25,14 @@ namespace Certio.Web.Controllers
         private readonly IJoinCodeService _joinCodeService;
         private readonly Certio.Web.Services.IChannelManagementService _channelManagementService;
         private readonly IClientContextAccessor _clientContextAccessor;
+        private readonly ILogger<HomeController> _logger;
+
+        private const string TwoFactorUserIdSessionKey = "Auth:TwoFactorUserId";
+        private const string TwoFactorCodeSessionKey = "Auth:TwoFactorCode";
+        private const string TwoFactorExpirySessionKey = "Auth:TwoFactorExpiresAt";
+        private const string TwoFactorRememberMeSessionKey = "Auth:TwoFactorRememberMe";
+        private const string TwoFactorEmailSessionKey = "Auth:TwoFactorEmail";
+        private const string TwoFactorAttemptsSessionKey = "Auth:TwoFactorAttempts";
 
         public HomeController(
             SignInManager<IdentityUser> signInManager, 
@@ -30,7 +41,8 @@ namespace Certio.Web.Controllers
             ApplicationDbContext context,
             IJoinCodeService joinCodeService,
             Certio.Web.Services.IChannelManagementService channelManagementService,
-            IClientContextAccessor clientContextAccessor)
+            IClientContextAccessor clientContextAccessor,
+            ILogger<HomeController>? logger = null)
         {
             _signInManager = signInManager;
             _userManager = userManager;
@@ -39,6 +51,7 @@ namespace Certio.Web.Controllers
             _joinCodeService = joinCodeService;
             _channelManagementService = channelManagementService;
             _clientContextAccessor = clientContextAccessor;
+            _logger = logger ?? NullLogger<HomeController>.Instance;
         }
 
         public IActionResult Index()
@@ -115,41 +128,243 @@ namespace Certio.Web.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(string email, string password, bool remember)
         {
-            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+            var normalizedEmail = email?.Trim();
+            if (string.IsNullOrWhiteSpace(normalizedEmail) || string.IsNullOrWhiteSpace(password))
             {
                 TempData["Error"] = "Please fill in all fields";
                 return View("Index");
             }
 
-            var result = await _signInManager.PasswordSignInAsync(email, password, remember, lockoutOnFailure: false);
-            
-            if (result.Succeeded)
-            {
-                // Set session data for proper incognito isolation
-                try
-                {
-                    var user = await _userManager.FindByEmailAsync(email);
-                    if (user != null)
-                    {
-                        HttpContext.Session.SetString("UserId", user.Id);
-                        HttpContext.Session.SetString("AuthTime", DateTime.UtcNow.ToString("O"));
-                        HttpContext.Session.SetString("UserEmail", email);
-                    }
-                }
-                catch (InvalidOperationException)
-                {
-                    // Session not available, continue without session data
-                }
-                
-                return RedirectToAction("Index", "Matter");
-            }
-            else
+            var user = await _userManager.FindByEmailAsync(normalizedEmail);
+            if (user == null)
             {
                 TempData["Error"] = "Invalid login attempt";
                 return View("Index");
             }
+
+            if (await _userManager.IsLockedOutAsync(user))
+            {
+                TempData["Error"] = "Your account is locked due to multiple failed attempts. Please try again later or contact support.";
+                return View("Index");
+            }
+
+            if (!user.EmailConfirmed)
+            {
+                TempData["Error"] = "You must verify your email before signing in.";
+                return View("Index");
+            }
+
+            var passwordResult = await _signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure: true);
+            if (passwordResult.IsLockedOut)
+            {
+                TempData["Error"] = "Your account is locked due to multiple failed attempts. Please try again later.";
+                return View("Index");
+            }
+
+            if (!passwordResult.Succeeded)
+            {
+                TempData["Error"] = "Invalid login attempt";
+                return View("Index");
+            }
+
+            var code = await _twoFactorService.GenerateVerificationCodeAsync();
+            var protectedCode = _twoFactorService.ProtectCode(code);
+            var expiry = DateTime.UtcNow.AddMinutes(10);
+
+            // Output code to terminal for development
+            Console.WriteLine("==========================================");
+            Console.WriteLine($"2FA Verification Code for {user.Email ?? normalizedEmail}:");
+            Console.WriteLine($"Code: {code}");
+            Console.WriteLine($"Expires: {expiry:yyyy-MM-dd HH:mm:ss} UTC");
+            Console.WriteLine("==========================================");
+            
+            // For now, just log the code instead of sending email
+            _logger.LogInformation("2FA Code generated for {Email}: {Code}", user.Email ?? normalizedEmail, code);
+
+            try
+            {
+                HttpContext.Session.SetString(TwoFactorUserIdSessionKey, user.Id);
+                HttpContext.Session.SetString(TwoFactorCodeSessionKey, protectedCode);
+                HttpContext.Session.SetString(TwoFactorExpirySessionKey, expiry.ToString("O", CultureInfo.InvariantCulture));
+                HttpContext.Session.SetString(TwoFactorRememberMeSessionKey, remember ? "true" : "false");
+                HttpContext.Session.SetString(TwoFactorEmailSessionKey, user.Email ?? normalizedEmail);
+                HttpContext.Session.SetString(TwoFactorAttemptsSessionKey, "0");
+            }
+            catch (InvalidOperationException)
+            {
+                TempData["Error"] = "Session storage is unavailable. Two-factor authentication cannot be completed.";
+                return View("Index");
+            }
+
+            TempData["TwoFactorInfo"] = $"We sent a verification code to {MaskEmail(user.Email ?? normalizedEmail)}";
+            return RedirectToAction(nameof(LoginTwoFactor));
+        }
+
+        [HttpGet]
+        public IActionResult LoginTwoFactor()
+        {
+            var pendingUserId = HttpContext.Session.GetString(TwoFactorUserIdSessionKey);
+            if (string.IsNullOrWhiteSpace(pendingUserId))
+            {
+                TempData["Error"] = "Your verification session expired. Please sign in again.";
+                return RedirectToAction("Index");
+            }
+
+            var email = HttpContext.Session.GetString(TwoFactorEmailSessionKey) ?? string.Empty;
+            var model = new TwoFactorVerificationViewModel
+            {
+                Email = MaskEmail(email),
+                VerificationMethod = "email"
+            };
+
+            ViewBag.Info = TempData.ContainsKey("TwoFactorInfo")
+                ? TempData["TwoFactorInfo"]
+                : "Enter the verification code we sent to your email.";
+
+            if (TempData.ContainsKey("TwoFactorError"))
+            {
+                ViewBag.Error = TempData["TwoFactorError"];
+            }
+
+            return View("LoginTwoFactor", model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> VerifyLoginTwoFactor(TwoFactorVerificationViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["TwoFactorError"] = "Enter the six-digit code we sent to you.";
+                return RedirectToAction(nameof(LoginTwoFactor));
+            }
+
+            var pendingUserId = HttpContext.Session.GetString(TwoFactorUserIdSessionKey);
+            var protectedCode = HttpContext.Session.GetString(TwoFactorCodeSessionKey);
+            var expiryRaw = HttpContext.Session.GetString(TwoFactorExpirySessionKey);
+            var rememberRaw = HttpContext.Session.GetString(TwoFactorRememberMeSessionKey);
+            var email = HttpContext.Session.GetString(TwoFactorEmailSessionKey) ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(pendingUserId) || string.IsNullOrWhiteSpace(protectedCode) || string.IsNullOrWhiteSpace(expiryRaw))
+            {
+                TempData["Error"] = "Your verification session expired. Please sign in again.";
+                ClearTwoFactorSession();
+                return RedirectToAction("Index");
+            }
+
+            if (!DateTime.TryParseExact(expiryRaw, "O", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var expiry))
+            {
+                TempData["Error"] = "Your verification session expired. Please sign in again.";
+                ClearTwoFactorSession();
+                return RedirectToAction("Index");
+            }
+
+            var user = await _userManager.FindByIdAsync(pendingUserId);
+            if (user == null)
+            {
+                TempData["Error"] = "Your verification session expired. Please sign in again.";
+                ClearTwoFactorSession();
+                return RedirectToAction("Index");
+            }
+
+            var isValid = _twoFactorService.VerifyProtectedCode(model.VerificationCode, protectedCode, expiry);
+            if (!isValid)
+            {
+                var attempts = 0;
+                var attemptsRaw = HttpContext.Session.GetString(TwoFactorAttemptsSessionKey);
+                if (!string.IsNullOrEmpty(attemptsRaw) && int.TryParse(attemptsRaw, out var parsedAttempts))
+                {
+                    attempts = parsedAttempts;
+                }
+                attempts++;
+                HttpContext.Session.SetString(TwoFactorAttemptsSessionKey, attempts.ToString(CultureInfo.InvariantCulture));
+
+                if (attempts >= 5)
+                {
+                    await _userManager.AccessFailedAsync(user);
+                    TempData["Error"] = "Too many invalid codes. Your account was locked. Please try again later.";
+                    ClearTwoFactorSession();
+                    return RedirectToAction("Index");
+                }
+
+                TempData["TwoFactorError"] = "Invalid or expired verification code. Please try again.";
+                return RedirectToAction(nameof(LoginTwoFactor));
+            }
+
+            await _userManager.ResetAccessFailedCountAsync(user);
+            if (!user.EmailConfirmed)
+            {
+                user.EmailConfirmed = true;
+                await _userManager.UpdateAsync(user);
+            }
+            if (!await _userManager.GetTwoFactorEnabledAsync(user))
+            {
+                await _userManager.SetTwoFactorEnabledAsync(user, true);
+            }
+
+            var rememberMe = string.Equals(rememberRaw, "true", StringComparison.OrdinalIgnoreCase);
+            await _signInManager.SignInAsync(user, rememberMe);
+
+            try
+                    {
+                        HttpContext.Session.SetString("UserId", user.Id);
+                HttpContext.Session.SetString("AuthTime", DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture));
+                HttpContext.Session.SetString("UserEmail", user.Email ?? email);
+                }
+                catch (InvalidOperationException)
+                {
+                // Session unavailable - continue
+                }
+
+            ClearTwoFactorSession();
+            TempData.Remove("TwoFactorInfo");
+            TempData.Remove("TwoFactorError");
+                
+                return RedirectToAction("Index", "Matter");
+            }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResendLoginTwoFactor()
+        {
+            var pendingUserId = HttpContext.Session.GetString(TwoFactorUserIdSessionKey);
+            if (string.IsNullOrWhiteSpace(pendingUserId))
+            {
+                TempData["Error"] = "Your verification session expired. Please sign in again.";
+                return RedirectToAction("Index");
+            }
+
+            var user = await _userManager.FindByIdAsync(pendingUserId);
+            if (user == null)
+            {
+                TempData["Error"] = "Your verification session expired. Please sign in again.";
+                ClearTwoFactorSession();
+                return RedirectToAction("Index");
+            }
+
+            var code = await _twoFactorService.GenerateVerificationCodeAsync();
+            var protectedCode = _twoFactorService.ProtectCode(code);
+            var expiry = DateTime.UtcNow.AddMinutes(10);
+
+            // Output code to terminal for development
+            Console.WriteLine("==========================================");
+            Console.WriteLine($"2FA Verification Code (RESEND) for {user.Email ?? string.Empty}:");
+            Console.WriteLine($"Code: {code}");
+            Console.WriteLine($"Expires: {expiry:yyyy-MM-dd HH:mm:ss} UTC");
+            Console.WriteLine("==========================================");
+            
+            // For now, just log the code instead of sending email
+            _logger.LogInformation("2FA Code regenerated for {Email}: {Code}", user.Email ?? string.Empty, code);
+
+            HttpContext.Session.SetString(TwoFactorCodeSessionKey, protectedCode);
+            HttpContext.Session.SetString(TwoFactorExpirySessionKey, expiry.ToString("O", CultureInfo.InvariantCulture));
+            HttpContext.Session.SetString(TwoFactorAttemptsSessionKey, "0");
+
+            TempData["TwoFactorInfo"] = $"We sent a new verification code to {MaskEmail(user.Email ?? string.Empty)}.";
+            return RedirectToAction(nameof(LoginTwoFactor));
         }
 
         public IActionResult Register(int? step)
@@ -423,10 +638,10 @@ namespace Certio.Web.Controllers
 
             // Get stored verification data
             var storedEmail = TempData["RegistrationEmail"]?.ToString();
-            var storedCode = TempData["VerificationCode"]?.ToString();
+            var protectedCode = TempData["VerificationCode"]?.ToString();
             var codeExpiryStr = TempData["CodeExpiry"]?.ToString();
 
-            if (string.IsNullOrEmpty(storedEmail) || string.IsNullOrEmpty(storedCode) || string.IsNullOrEmpty(codeExpiryStr))
+            if (string.IsNullOrEmpty(storedEmail) || string.IsNullOrEmpty(protectedCode) || string.IsNullOrEmpty(codeExpiryStr))
             {
                 TempData["Error"] = "Verification session expired. Please start over.";
                 return RedirectToAction("Register");
@@ -435,7 +650,7 @@ namespace Certio.Web.Controllers
             var codeExpiry = DateTime.Parse(codeExpiryStr);
 
             // Verify the code
-            var isValid = _twoFactorService.VerifyCode(verificationCode, storedCode, codeExpiry);
+            var isValid = _twoFactorService.VerifyProtectedCode(verificationCode, protectedCode, codeExpiry);
             if (!isValid)
             {
                 TempData["Error"] = "Invalid or expired verification code. Please try again.";
@@ -452,6 +667,8 @@ namespace Certio.Web.Controllers
             TempData.Keep("OrganizationType");
             TempData.Keep("OrganizationName");
             TempData.Keep("JoinCode");
+            TempData.Remove("VerificationCode");
+            TempData.Remove("CodeExpiry");
 
             return RedirectToAction("Register", new { step = 4 });
         }
@@ -472,11 +689,10 @@ namespace Certio.Web.Controllers
 
             // Generate verification code
             var verificationCode = await _twoFactorService.GenerateVerificationCodeAsync();
-            Console.WriteLine($"🎯 Generated verification code: {verificationCode}");
+            var protectedCode = _twoFactorService.ProtectCode(verificationCode);
             
             // Send verification code via email
             var emailSent = await _twoFactorService.SendEmailVerificationAsync(storedEmail, verificationCode);
-            Console.WriteLine($"📤 Email sent result: {emailSent}");
             
             if (!emailSent)
             {
@@ -485,7 +701,7 @@ namespace Certio.Web.Controllers
             }
 
             // Store verification data
-            TempData["VerificationCode"] = verificationCode;
+            TempData["VerificationCode"] = protectedCode;
             TempData["CodeExpiry"] = DateTime.UtcNow.AddMinutes(10).ToString("O");
             TempData.Keep("RegistrationEmail");
             TempData.Keep("VerificationCode");
@@ -585,7 +801,9 @@ namespace Certio.Web.Controllers
                 { 
                     UserName = storedEmail, 
                     Email = storedEmail,
-                    PhoneNumber = phoneNumber
+                    PhoneNumber = phoneNumber,
+                    EmailConfirmed = true,
+                    TwoFactorEnabled = true
                 };
                 
                 var result = await _userManager.CreateAsync(identityUser, password);
@@ -829,6 +1047,8 @@ namespace Certio.Web.Controllers
                     }
                 }
 
+                await _userManager.SetTwoFactorEnabledAsync(identityUser, true);
+
                 // Sign in the user
                 await _signInManager.SignInAsync(identityUser, isPersistent: false);
 
@@ -884,6 +1104,65 @@ namespace Certio.Web.Controllers
             return colors[random.Next(colors.Length)];
         }
 
+        private void ClearTwoFactorSession()
+        {
+            try
+            {
+                HttpContext.Session.Remove(TwoFactorUserIdSessionKey);
+                HttpContext.Session.Remove(TwoFactorCodeSessionKey);
+                HttpContext.Session.Remove(TwoFactorExpirySessionKey);
+                HttpContext.Session.Remove(TwoFactorRememberMeSessionKey);
+                HttpContext.Session.Remove(TwoFactorEmailSessionKey);
+                HttpContext.Session.Remove(TwoFactorAttemptsSessionKey);
+            }
+            catch (InvalidOperationException)
+            {
+                // Session unavailable; nothing to clear
+            }
+        }
+
+        private static string MaskEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return "your email";
+            }
+
+            var parts = email.Split('@');
+            if (parts.Length != 2)
+            {
+                return email;
+            }
+
+            var local = parts[0];
+            var domain = parts[1];
+
+            string MaskSegment(string segment)
+            {
+                if (string.IsNullOrEmpty(segment))
+                {
+                    return segment;
+                }
+
+                if (segment.Length <= 2)
+                {
+                    return segment[0] + new string('*', Math.Max(1, segment.Length - 1));
+                }
+
+                return segment[0] + new string('*', segment.Length - 2) + segment[^1];
+            }
+
+            var maskedLocal = MaskSegment(local);
+
+            var domainParts = domain.Split('.', 2);
+            var maskedDomainFirst = MaskSegment(domainParts[0]);
+            var maskedDomain = domainParts.Length == 2
+                ? string.Join('.', maskedDomainFirst, domainParts[1])
+                : maskedDomainFirst;
+
+            return string.Join('@', maskedLocal, maskedDomain);
+        }
+
         public IActionResult ForgotPassword()
         {
             return View();
@@ -922,67 +1201,111 @@ namespace Certio.Web.Controllers
         public IActionResult Documents()
         {
             // Sample data - in a real application, this would come from a service/repository
+            var sampleOrgId = Guid.NewGuid();
             var documents = new List<Document>
             {
                 new Document
                 {
-                    Id = 1,
-                    Name = "Morrison Industries - Service Agreement",
-                    Type = "Contract",
-                    FileSize = "2.4 MB",
-                    LastModifiedDate = new DateTime(2024, 1, 15),
-                    Status = "Final",
-                    Visibility = "Private",
+                    OrgId = sampleOrgId,
+                    SourceType = DocumentSourceType.InternalUpload,
+                    Title = "Morrison Industries - Service Agreement",
+                    FileType = "application/pdf",
+                    FileSizeBytes = 2400000,
+                    Status = DocumentStatus.Final,
+                    Category = "Contract",
+                    IsPrivate = true,
+                    CreatedAt = new DateTime(2024, 1, 10, 12, 0, 0, DateTimeKind.Utc),
+                    ModifiedAt = new DateTime(2024, 1, 15, 8, 30, 0, DateTimeKind.Utc),
                     Tags = new List<string> { "Contract", "Client", "Morrison" },
-                    Icon = "FileText"
+                    Metadata = new Dictionary<string, string?> { { "provider", "internal" } },
+                    PreviewUrl = "https://docs.example.com/preview/1",
+                    DownloadUrl = "https://docs.example.com/download/1",
+                    EmbedUrl = "https://docs.example.com/embed/1",
+                    Author = "Rachel Adams"
                 },
                 new Document
                 {
-                    Id = 2,
-                    Name = "Compliance Audit Report Q4 2023",
-                    Type = "Report",
-                    FileSize = "5.1 MB",
-                    LastModifiedDate = new DateTime(2024, 1, 12),
-                    Status = "Published",
-                    Visibility = "Team",
+                    OrgId = sampleOrgId,
+                    SourceType = DocumentSourceType.GoogleDrive,
+                    Title = "Compliance Audit Report Q4 2023",
+                    FileType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    FileSizeBytes = 5100000,
+                    Status = DocumentStatus.Published,
+                    Category = "Compliance",
+                    IsPrivate = false,
+                    CreatedAt = new DateTime(2023, 12, 22, 15, 0, 0, DateTimeKind.Utc),
+                    ModifiedAt = new DateTime(2024, 1, 12, 10, 0, 0, DateTimeKind.Utc),
                     Tags = new List<string> { "Compliance", "Audit", "Q4" },
-                    Icon = "File"
+                    Metadata = new Dictionary<string, string?>
+                    {
+                        { "provider", "google" },
+                        { "driveFolder", "Audits" }
+                    },
+                    PreviewUrl = "https://drive.google.com/preview/abc",
+                    DownloadUrl = "https://drive.google.com/download/abc",
+                    EmbedUrl = "https://drive.google.com/embed/abc",
+                    Author = "Compliance Team"
                 },
                 new Document
                 {
-                    Id = 3,
-                    Name = "Legal Research - AI Regulations",
-                    Type = "Research",
-                    FileSize = "1.8 MB",
-                    LastModifiedDate = new DateTime(2024, 1, 10),
-                    Status = "Draft",
-                    Visibility = "Private",
+                    OrgId = sampleOrgId,
+                    SourceType = DocumentSourceType.InternalUpload,
+                    Title = "Legal Research - AI Regulations",
+                    FileType = "application/pdf",
+                    FileSizeBytes = 1800000,
+                    Status = DocumentStatus.Draft,
+                    Category = "Research",
+                    IsPrivate = true,
+                    CreatedAt = new DateTime(2024, 1, 5, 9, 0, 0, DateTimeKind.Utc),
+                    ModifiedAt = new DateTime(2024, 1, 10, 14, 45, 0, DateTimeKind.Utc),
                     Tags = new List<string> { "Research", "AI", "Regulations" },
-                    Icon = "FileText"
+                    Metadata = new Dictionary<string, string?> { { "provider", "internal" } },
+                    PreviewUrl = "https://docs.example.com/preview/3",
+                    DownloadUrl = "https://docs.example.com/download/3",
+                    EmbedUrl = "https://docs.example.com/embed/3",
+                    Author = "Legal Research Group"
                 },
                 new Document
                 {
-                    Id = 4,
-                    Name = "Client Onboarding Presentation",
-                    Type = "Presentation",
-                    FileSize = "12.3 MB",
-                    LastModifiedDate = new DateTime(2024, 1, 8),
-                    Status = "Review",
-                    Visibility = "Public",
+                    OrgId = sampleOrgId,
+                    SourceType = DocumentSourceType.OneDrive,
+                    Title = "Client Onboarding Presentation",
+                    FileType = "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                    FileSizeBytes = 12300000,
+                    Status = DocumentStatus.Review,
+                    Category = "Presentation",
+                    IsPrivate = false,
+                    CreatedAt = new DateTime(2023, 12, 30, 16, 0, 0, DateTimeKind.Utc),
+                    ModifiedAt = new DateTime(2024, 1, 8, 11, 15, 0, DateTimeKind.Utc),
                     Tags = new List<string> { "Presentation", "Onboarding" },
-                    Icon = "Image"
+                    Metadata = new Dictionary<string, string?>
+                    {
+                        { "provider", "microsoft" },
+                        { "sharepointSite", "ClientSuccess" }
+                    },
+                    PreviewUrl = "https://onedrive.live.com/preview/xyz",
+                    DownloadUrl = "https://onedrive.live.com/download/xyz",
+                    EmbedUrl = "https://onedrive.live.com/embed/xyz",
+                    Author = "Client Success"
                 },
                 new Document
                 {
-                    Id = 5,
-                    Name = "Contract Template Library",
-                    Type = "Templates",
-                    FileSize = "8.7 MB",
-                    LastModifiedDate = new DateTime(2024, 1, 5),
-                    Status = "Active",
-                    Visibility = "Team",
+                    OrgId = sampleOrgId,
+                    SourceType = DocumentSourceType.InternalUpload,
+                    Title = "Contract Template Library",
+                    FileType = "application/zip",
+                    FileSizeBytes = 8700000,
+                    Status = DocumentStatus.Final,
+                    Category = "Templates",
+                    IsPrivate = false,
+                    CreatedAt = new DateTime(2023, 11, 2, 18, 0, 0, DateTimeKind.Utc),
+                    ModifiedAt = new DateTime(2024, 1, 5, 13, 20, 0, DateTimeKind.Utc),
                     Tags = new List<string> { "Templates", "Contracts" },
-                    Icon = "Archive"
+                    Metadata = new Dictionary<string, string?> { { "provider", "internal" } },
+                    PreviewUrl = "https://docs.example.com/preview/5",
+                    DownloadUrl = "https://docs.example.com/download/5",
+                    EmbedUrl = "https://docs.example.com/embed/5",
+                    Author = "Template Working Group"
                 }
             };
 
@@ -1662,7 +1985,8 @@ namespace Certio.Web.Controllers
                     CanDirectMessage = true, // Same org, can DM
                     OrganizationName = uo.Organization?.Name,
                     IsExternalContacts = isExternalContacts,
-                    Color = uo.User?.Color ?? "#3d1019" // Use user's color, default to maroon
+                    Color = uo.User?.Color ?? "#3d1019", // Use user's color, default to maroon
+                    Email = uo.User?.Email
                 };
                 Console.WriteLine($"[DEBUG] Current org member: UserId={member.UserId}, Name={member.Name}, CanDM=true");
                 return member;
@@ -1697,7 +2021,8 @@ namespace Certio.Web.Controllers
                     CanDirectMessage = true, // NOW ALLOWED via relationship
                     OrganizationName = relatedOrgName,
                     IsExternalContacts = isExternalContacts,
-                    Color = uo.User?.Color ?? "#3d1019" // Use user's color, default to maroon
+                    Color = uo.User?.Color ?? "#3d1019", // Use user's color, default to maroon
+                    Email = uo.User?.Email
                 };
                 Console.WriteLine($"[DEBUG] Related org member: UserId={member.UserId}, Name={member.Name}, Org={relatedOrgName}, CanDM=true");
                 teamMembers.Add(member);
@@ -1756,7 +2081,8 @@ namespace Certio.Web.Controllers
                             CanDirectMessage = true,
                             OrganizationName = userOrg.Organization?.Name,
                             IsExternalContacts = isExternalContacts,
-                            Color = user.Color ?? "#3d1019" // Use user's color, default to maroon
+                            Color = user.Color ?? "#3d1019", // Use user's color, default to maroon
+                            Email = user.Email
                         };
                         teamMembers.Add(member);
                     }

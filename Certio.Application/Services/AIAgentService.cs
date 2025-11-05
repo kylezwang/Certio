@@ -22,7 +22,21 @@ public class AIAgentService : IAIAgentService
         
         _httpClient.BaseAddress = new Uri(aiServiceUrl);
         _httpClient.Timeout = TimeSpan.FromSeconds(timeout);
+        if (_httpClient.DefaultRequestHeaders.Contains("User-Agent"))
+        {
+            _httpClient.DefaultRequestHeaders.Remove("User-Agent");
+        }
         _httpClient.DefaultRequestHeaders.Add("User-Agent", "Certio-AIService/1.0");
+
+        var apiKey = _configuration["AIService:ApiKey"];
+        if (!string.IsNullOrWhiteSpace(apiKey))
+        {
+            if (_httpClient.DefaultRequestHeaders.Contains("X-API-Key"))
+            {
+                _httpClient.DefaultRequestHeaders.Remove("X-API-Key");
+            }
+            _httpClient.DefaultRequestHeaders.Add("X-API-Key", apiKey);
+        }
     }
 
     public async Task<ChatSummary> SummarizeConversationAsync(string conversationId, List<ChatMessage> messages)

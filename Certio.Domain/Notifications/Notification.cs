@@ -28,7 +28,7 @@ namespace Certio.Domain.Notifications
         public string Category { get; set; } = ""; // Matter, Document, Service, System, AI
         
     public int? MatterId { get; set; }
-    public int? DocumentId { get; set; }
+    public Guid? DocumentId { get; set; }
     public int? StatusItemId { get; set; }
     public int? ConversationId { get; set; }
     

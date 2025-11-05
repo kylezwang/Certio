@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using Certio.Domain.Users;
 using Certio.Domain.Matters;
@@ -27,7 +28,7 @@ public class AIAgentResult
     
     public int? ConversationId { get; set; }
     public int? MatterId { get; set; }
-    public int? DocumentId { get; set; }
+    public Guid? DocumentId { get; set; }
     
     public bool RequiresReview { get; set; } = false;
     public bool IsApproved { get; set; } = false;
@@ -132,7 +133,7 @@ public class ClarityExplanation
 {
     public int Id { get; set; }
     
-    public int? DocumentId { get; set; }
+    public Guid? DocumentId { get; set; }
     public int? ConversationId { get; set; }
     
     [Required]
