@@ -22,17 +22,20 @@ public sealed class DriveSyncService : IDriveSyncService
     private readonly ILogger<DriveSyncService> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly Func<string, string> _decryptToken;
+    private readonly IDocumentIndexerService _documentIndexerService;
 
     public DriveSyncService(
         ApplicationDbContext dbContext,
         ILogger<DriveSyncService> logger,
         IHttpClientFactory httpClientFactory,
-        Func<string, string> decryptToken)
+        Func<string, string> decryptToken,
+        IDocumentIndexerService documentIndexerService)
     {
         _dbContext = dbContext;
         _logger = logger;
         _httpClientFactory = httpClientFactory;
         _decryptToken = decryptToken;
+        _documentIndexerService = documentIndexerService;
     }
 
     public async Task SyncGoogleDriveAsync(Guid orgId, Guid userId, CancellationToken cancellationToken = default)
@@ -108,7 +111,7 @@ public sealed class DriveSyncService : IDriveSyncService
                     {
                         try
                         {
-                            var metadata = ExtractGoogleDriveMetadata(file, orgId, userId);
+                            var metadata = await ExtractGoogleDriveMetadataAsync(file, orgId, userId, httpClient, cancellationToken);
                             await UpsertMetadataAsync(metadata, cancellationToken);
                             syncedCount++;
                         }
@@ -215,7 +218,7 @@ public sealed class DriveSyncService : IDriveSyncService
         }
     }
 
-    private ProviderFileMetadata ExtractGoogleDriveMetadata(JsonElement item, Guid orgId, Guid userId)
+    private async Task<ProviderFileMetadata> ExtractGoogleDriveMetadataAsync(JsonElement item, Guid orgId, Guid userId, HttpClient httpClient, CancellationToken cancellationToken)
     {
         var id = item.GetProperty("id").GetString() ?? throw new InvalidOperationException("Google Drive item missing id");
         var name = item.GetProperty("name").GetString() ?? "Unknown";
@@ -270,6 +273,44 @@ public sealed class DriveSyncService : IDriveSyncService
             if (parents.Any())
             {
                 metadata["parentIds"] = string.Join(",", parents);
+                // Get the first parent ID to fetch folder name (most files have one parent)
+                var firstParentId = parents.First();
+                if (!string.IsNullOrEmpty(firstParentId) && firstParentId != "root")
+                {
+                    // Fetch the folder name from Google Drive API (only log errors, not success)
+                    try
+                    {
+                        var folderUrl = $"https://www.googleapis.com/drive/v3/files/{firstParentId}?fields=name";
+                        var folderResponse = await httpClient.GetAsync(folderUrl, cancellationToken);
+                        if (folderResponse.IsSuccessStatusCode)
+                        {
+                            var folderContent = await folderResponse.Content.ReadAsStringAsync(cancellationToken);
+                            using var folderDoc = JsonDocument.Parse(folderContent);
+                            if (folderDoc.RootElement.TryGetProperty("name", out var folderNameProp))
+                            {
+                                var folderName = folderNameProp.GetString();
+                                if (!string.IsNullOrWhiteSpace(folderName))
+                                {
+                                    metadata["parentFolderName"] = folderName;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // Only log if there's an actual error (not 404 for deleted folders)
+                            if (folderResponse.StatusCode != System.Net.HttpStatusCode.NotFound)
+                            {
+                                _logger.LogWarning("Failed to fetch folder name for parent ID {ParentId}: {StatusCode}", 
+                                    firstParentId, folderResponse.StatusCode);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Only log actual exceptions, reduce verbosity
+                        _logger.LogDebug(ex, "Error fetching folder name for parent ID {ParentId}", firstParentId);
+                    }
+                }
             }
         }
 
@@ -331,10 +372,32 @@ public sealed class DriveSyncService : IDriveSyncService
             ["ownerName"] = ownerName
         };
 
-        if (item.TryGetProperty("parentReference", out var parentRefProp) && 
-            parentRefProp.TryGetProperty("path", out var pathProp))
+        if (item.TryGetProperty("parentReference", out var parentRefProp))
         {
-            metadata["parentPath"] = pathProp.GetString();
+            if (parentRefProp.TryGetProperty("path", out var pathProp))
+            {
+                metadata["parentPath"] = pathProp.GetString();
+            }
+
+            // Capture driveId if available so we can later fetch items using /drives/{driveId}/items/{itemId}
+            if (parentRefProp.TryGetProperty("driveId", out var driveIdProp))
+            {
+                var driveId = driveIdProp.GetString();
+                if (!string.IsNullOrWhiteSpace(driveId))
+                {
+                    metadata["driveId"] = driveId;
+                }
+            }
+
+            // Capture siteId if available (SharePoint-hosted)
+            if (parentRefProp.TryGetProperty("siteId", out var siteIdProp))
+            {
+                var siteId = siteIdProp.GetString();
+                if (!string.IsNullOrWhiteSpace(siteId))
+                {
+                    metadata["siteId"] = siteId;
+                }
+            }
         }
 
         return new ProviderFileMetadata(
@@ -360,6 +423,13 @@ public sealed class DriveSyncService : IDriveSyncService
     }
 
     public async Task<Guid> UpsertMetadataAsync(ProviderFileMetadata metadata, CancellationToken cancellationToken = default)
+    {
+        const int maxRetries = 3;
+        int retryCount = 0;
+
+        while (retryCount < maxRetries)
+        {
+            try
     {
         var document = await _dbContext.Documents
             .Include(d => d.Versions)
@@ -409,7 +479,14 @@ public sealed class DriveSyncService : IDriveSyncService
             document.DownloadUrl = metadata.DownloadUrl;
             document.ModifiedAt = metadata.ModifiedAt;
             document.Tags = metadata.Tags.ToList();
-            document.Metadata = metadata.Metadata.ToDictionary(k => k.Key, v => v.Value);
+                    
+                    // Merge metadata instead of replacing - preserve folder names and other existing metadata
+                    var existingMetadata = document.Metadata ?? new Dictionary<string, string?>();
+                    foreach (var kvp in metadata.Metadata)
+                    {
+                        existingMetadata[kvp.Key] = kvp.Value;
+                    }
+                    document.Metadata = existingMetadata;
         }
 
         var latestVersionNumber = document.Versions.Count == 0 ? 0 : document.Versions.Max(v => v.VersionNumber);
@@ -434,9 +511,51 @@ public sealed class DriveSyncService : IDriveSyncService
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Upserted metadata for document {DocumentId} ({Title})", document.Id, document.Title);
+        // Only log at debug level to reduce spam during sync
+        _logger.LogDebug("Upserted metadata for document {DocumentId} ({Title})", document.Id, document.Title);
+
+        // Auto-queue document for RAG indexing (fire and forget to not slow down sync)
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                var latestVersion = document.Versions.OrderByDescending(v => v.VersionNumber).FirstOrDefault();
+                await _documentIndexerService.QueueEmbeddingAsync(document.Id, latestVersion?.Id, CancellationToken.None);
+                _logger.LogInformation("Auto-queued document {DocumentId} for RAG indexing", document.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to auto-queue document {DocumentId} for indexing", document.Id);
+            }
+        }, cancellationToken);
 
         return document.Id;
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException ex)
+            {
+                retryCount++;
+                if (retryCount >= maxRetries)
+                {
+                    // Only log at warning level if all retries failed, but don't throw to allow sync to continue
+                    _logger.LogWarning("Failed to upsert metadata after {Retries} retries for file {FileId}: {Error}", 
+                        maxRetries, metadata.ExternalFileId, ex.Message);
+                    return Guid.Empty; // Return empty instead of throwing to allow sync to continue
+                }
+                
+                // Clear the change tracker and retry (silently, no logging to reduce spam)
+                _dbContext.ChangeTracker.Clear();
+                await Task.Delay(50 * retryCount, cancellationToken); // Small delay before retry
+            }
+            catch (Exception ex)
+            {
+                // Log other exceptions but don't break the sync
+                _logger.LogWarning(ex, "Unexpected error upserting metadata for file {FileId}", metadata.ExternalFileId);
+                return Guid.Empty;
+            }
+        }
+
+        // Should never reach here, but just in case
+        return Guid.Empty;
     }
 }
 

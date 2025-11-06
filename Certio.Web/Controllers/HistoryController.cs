@@ -238,6 +238,10 @@ namespace Certio.Web.Controllers
                 "AIGenerated" => "AI Generated",
                 "AIApproved" => "AI Approved",
                 "AIRejected" => "AI Rejected",
+                "DocumentStatusChanged" => "Status Update",
+                "ExternalConnectionConnected" => "Integration Connected",
+                "ExternalConnectionDisconnected" => "Integration Disconnected",
+                "ReindexQueued" => "Reindex Queued",
                 _ => action
             };
         }

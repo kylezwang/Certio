@@ -5,11 +5,15 @@ using Certio.Web.Hubs;
 using Certio.Web.Middleware;
 using Certio.Web.Security;
 using Certio.Web.Services;
+using Certio.Application.Configuration;
 using Certio.Application.Interfaces;
 using Certio.Application.Services.Documents;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.Extensions.Options;
+using Azure;
+using Azure.AI.DocumentIntelligence;
 
 // Set up environment variables for Windows development
 static void SetupEnvironmentVariables()
@@ -428,6 +432,32 @@ builder.Services.AddScoped<Certio.Application.Interfaces.IChannelManagementServi
 builder.Services.AddSingleton<Certio.Web.Services.IUserPresenceService, Certio.Web.Services.UserPresenceService>();
 
 // Unified Document System Services
+builder.Services.Configure<SecureDocumentExtractionOptions>(builder.Configuration.GetSection("DocumentExtraction"));
+
+// Azure Document Intelligence (optional - only if configured)
+builder.Services.AddSingleton<DocumentIntelligenceClient?>(sp =>
+{
+    var options = sp.GetRequiredService<IOptions<SecureDocumentExtractionOptions>>().Value;
+
+    if (string.IsNullOrWhiteSpace(options.Endpoint) || string.IsNullOrWhiteSpace(options.ApiKey))
+    {
+        return null; // Gracefully skip if not configured
+    }
+
+    try
+    {
+        var endpoint = new Uri(options.Endpoint);
+        var credential = new AzureKeyCredential(options.ApiKey);
+        return new DocumentIntelligenceClient(endpoint, credential);
+    }
+    catch (Exception ex)
+    {
+        var logger = sp.GetRequiredService<ILogger<Program>>();
+        logger.LogWarning(ex, "Failed to initialize Azure Document Intelligence client. Document extraction will use fallback methods.");
+        return null;
+    }
+});
+
 builder.Services.AddScoped<IDriveSyncService>(sp =>
 {
     var dbContext = sp.GetRequiredService<ApplicationDbContext>();
@@ -435,13 +465,24 @@ builder.Services.AddScoped<IDriveSyncService>(sp =>
     var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
     var dataProtectionProvider = sp.GetRequiredService<IDataProtectionProvider>();
     var protector = dataProtectionProvider.CreateProtector("DriveOAuthTokens");
+    var documentIndexerService = sp.GetRequiredService<IDocumentIndexerService>();
     
-    // Use explicit lambda to ensure correct overload selection (Unprotect(string) returns string)
-    Func<string, string> decryptFunc = (string encryptedToken) =>
-    {
-        return protector.Unprotect(encryptedToken);
-    };
-    return new DriveSyncService(dbContext, logger, httpClientFactory, decryptFunc);
+    Func<string, string> decryptFunc = encryptedToken => protector.Unprotect(encryptedToken);
+    return new DriveSyncService(dbContext, logger, httpClientFactory, decryptFunc, documentIndexerService);
+});
+
+builder.Services.AddScoped<IDocumentContentService>(sp =>
+{
+    var dbContext = sp.GetRequiredService<ApplicationDbContext>();
+    var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+    var logger = sp.GetRequiredService<ILogger<DocumentContentService>>();
+    var dataProtectionProvider = sp.GetRequiredService<IDataProtectionProvider>();
+    var protector = dataProtectionProvider.CreateProtector("DriveOAuthTokens");
+    var options = sp.GetRequiredService<IOptions<SecureDocumentExtractionOptions>>();
+    var documentIntelligenceClient = sp.GetService<DocumentIntelligenceClient>(); // GetService returns null if not registered
+
+    Func<string, string> decryptFunc = encrypted => protector.Unprotect(encrypted);
+    return new DocumentContentService(dbContext, httpClientFactory, decryptFunc, options, documentIntelligenceClient, logger);
 });
 builder.Services.AddScoped<IDocumentIndexerService, DocumentIndexerService>();
 builder.Services.AddScoped<IVectorStoreService, VectorStoreService>();
@@ -451,6 +492,11 @@ builder.Services.AddScoped<IWebhookHandlerService, WebhookHandlerService>();
 builder.Services.AddScoped<IDocumentEmbedService, DocumentEmbedService>();
 builder.Services.AddSingleton<IEmbeddingJobQueue, EmbeddingJobQueue>();
 builder.Services.AddHostedService<BackgroundEmbeddingWorker>();
+
+// WOPI Services for Office Online Integration
+builder.Services.AddScoped<WopiAccessTokenService>();
+builder.Services.AddHttpClient(); // Register HttpClient factory
+builder.Services.AddSingleton<WopiDiscoveryService>();
 
 // User Sync Services
 builder.Services.AddScoped<Certio.Web.Services.IUserSyncService, Certio.Web.Services.UserSyncService>();
@@ -506,6 +552,9 @@ app.UseChannelInitialization();
 app.UseClientAccessGuard();
 
 app.UseAuthorization();
+
+// Request-level audit logging (after auth/context so user info is available)
+app.UseMiddleware<Certio.Web.Middleware.RequestAuditMiddleware>();
 
 app.MapRazorPages();
 // Enable attribute routing for API controllers

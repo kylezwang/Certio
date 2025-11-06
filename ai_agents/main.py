@@ -1816,6 +1816,7 @@ async def conversational_response(payload: dict, _: str = Depends(authenticate_r
         messages = payload.get("messages", [])
         user_message = payload.get("user_message", "")
         user_type = payload.get("user_type", "Client")
+        document_context = payload.get("document_context", None)
         stream = payload.get("stream", False)  # Support streaming
         
         # Quick analysis for conversation context (no API call)
@@ -1855,6 +1856,25 @@ Be friendly, professional, and concise. Format your response as proper HTML."""
                 "i'm new", "im new", "i am new", "new to notal", "new user"
             ])
             
+            # Build document context section if available
+            doc_context_section = ""
+            if document_context:
+                combined_context = document_context.get("combinedContext", "")
+                doc_count = document_context.get("documentCount", "0")
+                doc_list_json = document_context.get("documentList", "[]")
+                provider_breakdown = document_context.get("providerBreakdown", "")
+                
+                if combined_context:
+                    doc_context_section = f"""
+
+# RELEVANT DOCUMENTS FROM YOUR ORGANIZATION
+You have access to {doc_count} relevant document(s) from: {provider_breakdown}
+
+## Document Content:
+{combined_context[:3000]}  # Limit to 3000 chars for token management
+
+NOTE: When answering questions about documents, reference these specific documents by name. Tell the user which documents contain relevant information."""
+            
             base_system_prompt = f"""You are Notal AI, an advanced legal assistant. Provide a comprehensive response that includes both conversation and analysis.
 
 CONVERSATION CONTEXT:
@@ -1867,7 +1887,7 @@ CONVERSATION CONTEXT:
 RECENT CONVERSATION:
 {_build_conversation_context(messages, 6)}
 
-CURRENT REQUEST: {user_message}"""  # Close the base prompt here
+CURRENT REQUEST: {user_message}{doc_context_section}"""  # Close the base prompt here
 
             # Enhance prompt with RAG context for Certio-specific knowledge
             conversation_context = {
@@ -1993,6 +2013,7 @@ async def conversational_response_stream(payload: dict, _: str = Depends(authent
             messages = payload.get("messages", [])
             user_message = payload.get("user_message", "")
             user_type = payload.get("user_type", "Client")
+            document_context = payload.get("document_context", None)
             
             # Quick analysis for conversation context (no API call)
             conversation_analysis = _quick_conversation_analysis(messages, user_message, user_type)
@@ -2031,6 +2052,25 @@ IMPORTANT: Return ONLY the HTML content with <p> tags and <br> for line breaks. 
                     "i'm new", "im new", "i am new", "new to notal", "new user"
                 ])
                 
+                # Build document context section if available
+                doc_context_section = ""
+                if document_context:
+                    combined_context = document_context.get("combinedContext", "")
+                    doc_count = document_context.get("documentCount", "0")
+                    doc_list_json = document_context.get("documentList", "[]")
+                    provider_breakdown = document_context.get("providerBreakdown", "")
+                    
+                    if combined_context:
+                        doc_context_section = f"""
+
+# RELEVANT DOCUMENTS FROM YOUR ORGANIZATION
+You have access to {doc_count} relevant document(s) from: {provider_breakdown}
+
+## Document Content:
+{combined_context[:3000]}  # Limit to 3000 chars for token management
+
+NOTE: When answering questions about documents, reference these specific documents by name. Tell the user which documents contain relevant information."""
+                
                 base_system_prompt = f"""You are Notal AI, an advanced legal assistant. Provide a comprehensive, helpful response.
 
 CONVERSATION CONTEXT:
@@ -2043,7 +2083,7 @@ CONVERSATION CONTEXT:
 RECENT CONVERSATION:
 {_build_conversation_context(messages, 6)}
 
-CURRENT REQUEST: {user_message}"""
+CURRENT REQUEST: {user_message}{doc_context_section}"""
 
                 # Enhance prompt with RAG context for Certio-specific knowledge
                 conversation_context = {

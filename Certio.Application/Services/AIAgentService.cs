@@ -1,8 +1,14 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text;
+using System.Security.Cryptography;
+using System.Globalization;
 using Microsoft.Extensions.Configuration;
 using Certio.Domain.Services;
+using Certio.Application.Interfaces;
+using Certio.Application.DTOs;
+using Certio.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Certio.Application.Services;
 
@@ -10,11 +16,19 @@ public class AIAgentService : IAIAgentService
 {
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
+    private readonly IRagContextService _ragContextService;
+    private readonly ApplicationDbContext _dbContext;
 
-    public AIAgentService(HttpClient httpClient, IConfiguration configuration)
+    public AIAgentService(
+        HttpClient httpClient, 
+        IConfiguration configuration,
+        IRagContextService ragContextService,
+        ApplicationDbContext dbContext)
     {
         _httpClient = httpClient;
         _configuration = configuration;
+        _ragContextService = ragContextService;
+        _dbContext = dbContext;
         
         // Configure the HTTP client for the Python AI service
         var aiServiceUrl = _configuration["AIService:BaseUrl"] ?? "http://localhost:8000";
@@ -129,7 +143,52 @@ public class AIAgentService : IAIAgentService
     {
         try
         {
-            var request = CreateAIRequest(conversationId, messages, userMessage);
+            // Fetch document context via RAG if conversation has org/user/matter context
+            Dictionary<string, string?>? documentContext = null;
+            if (int.TryParse(conversationId, out var convId))
+            {
+            try
+            {
+                var conversation = await _dbContext.Conversations
+                    .AsNoTracking()
+                    .Include(c => c.Organization)
+                    .Include(c => c.Matter)
+                    .FirstOrDefaultAsync(c => c.Id == convId);
+
+                if (conversation != null)
+                {
+                    var userId = messages.FirstOrDefault(m => !m.IsFromAI)?.UserId;
+                    if (userId.HasValue)
+                    {
+                        // Look up the user's Guid
+                        var user = await _dbContext.Users
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(u => u.Id == userId.Value);
+
+                        if (user != null)
+                        {
+                            var ragRequest = new RagContextRequest(
+                                CreateDeterministicGuid("certio:organization", conversation.OrganizationId),
+                                CreateDeterministicGuid("certio:user", userId.Value),
+                                userMessage,
+                                TopK: 5,
+                                conversation.MatterId.HasValue ? CreateDeterministicGuid("certio:matter", conversation.MatterId.Value) : null,
+                                RestrictToDocumentIds: null);
+
+                            var ragResult = await _ragContextService.BuildContextAsync(ragRequest);
+                            documentContext = ragResult.Context.ToDictionary(k => k.Key, v => v.Value);
+                        }
+                    }
+                }
+            }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to fetch document context: {ex.Message}");
+                    // Continue without document context
+                }
+            }
+
+            var request = CreateAIRequest(conversationId, messages, userMessage, documentContext: documentContext);
             
             var json = JsonSerializer.Serialize(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -154,8 +213,53 @@ public class AIAgentService : IAIAgentService
         StreamReader? reader = null;
         bool connectionFailed = false;
 
-        // Setup request
-        var request = CreateAIRequest(conversationId, messages, userMessage);
+        // Fetch document context via RAG if conversation has org/user/matter context
+        Dictionary<string, string?>? documentContext = null;
+        if (int.TryParse(conversationId, out var convId))
+        {
+            try
+            {
+                var conversation = await _dbContext.Conversations
+                    .AsNoTracking()
+                    .Include(c => c.Organization)
+                    .Include(c => c.Matter)
+                    .FirstOrDefaultAsync(c => c.Id == convId);
+
+                if (conversation != null)
+                {
+                    var userId = messages.FirstOrDefault(m => !m.IsFromAI)?.UserId;
+                    if (userId.HasValue)
+                    {
+                        // Look up the user's Guid
+                        var user = await _dbContext.Users
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(u => u.Id == userId.Value);
+
+                        if (user != null)
+                        {
+                            var ragRequest = new RagContextRequest(
+                                CreateDeterministicGuid("certio:organization", conversation.OrganizationId),
+                                CreateDeterministicGuid("certio:user", userId.Value),
+                                userMessage,
+                                TopK: 5,
+                                conversation.MatterId.HasValue ? CreateDeterministicGuid("certio:matter", conversation.MatterId.Value) : null,
+                                RestrictToDocumentIds: null);
+
+                            var ragResult = await _ragContextService.BuildContextAsync(ragRequest);
+                            documentContext = ragResult.Context.ToDictionary(k => k.Key, v => v.Value);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to fetch document context: {ex.Message}");
+                // Continue without document context
+            }
+        }
+
+        // Setup request with optional document context
+        var request = CreateAIRequest(conversationId, messages, userMessage, documentContext: documentContext);
         var json = JsonSerializer.Serialize(request);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
         var httpRequest = new HttpRequestMessage(HttpMethod.Post, "/agents/conversational-response-stream")
@@ -292,7 +396,7 @@ public class AIAgentService : IAIAgentService
         }
     }
 
-    private object CreateAIRequest(string conversationId, List<ChatMessage> messages, string? userMessage = null, string userType = "Client")
+    private object CreateAIRequest(string conversationId, List<ChatMessage> messages, string? userMessage = null, string userType = "Client", Dictionary<string, string?>? documentContext = null)
     {
         var request = new
         {
@@ -313,7 +417,18 @@ public class AIAgentService : IAIAgentService
             user_type = userType
         };
 
-        return userMessage != null ? new { request.conversation_id, request.messages, request.user_type, user_message = userMessage } : request;
+        if (userMessage != null && documentContext != null)
+        {
+            return new { request.conversation_id, request.messages, request.user_type, user_message = userMessage, document_context = documentContext };
+        }
+        else if (userMessage != null)
+        {
+            return new { request.conversation_id, request.messages, request.user_type, user_message = userMessage };
+        }
+        else
+        {
+            return request;
+        }
     }
 
     private async Task<T?> CallAIServiceAsync<T>(string endpoint, object request) where T : class
@@ -383,5 +498,16 @@ public class AIAgentService : IAIAgentService
         return $"<strong>🤖 AI Assistant Temporarily Unavailable</strong><br><br>" +
                $"{contextHint}Our AI services are being updated. You can continue chatting with your legal team, " +
                "and I'll be back online shortly to provide intelligent assistance!";
+    }
+
+    private static Guid CreateDeterministicGuid(string namespacePrefix, int value)
+    {
+        using var sha256 = SHA256.Create();
+        var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes($"{namespacePrefix}:{value.ToString(CultureInfo.InvariantCulture)}"));
+        Span<byte> guidBytes = stackalloc byte[16];
+        hash.AsSpan(0, 16).CopyTo(guidBytes);
+        guidBytes[6] = (byte)((guidBytes[6] & 0x0F) | 0x40); // Version 4
+        guidBytes[8] = (byte)((guidBytes[8] & 0x3F) | 0x80); // Variant RFC 4122
+        return new Guid(guidBytes);
     }
 }
