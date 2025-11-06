@@ -47,15 +47,27 @@ namespace Certio.Web.Attributes
                     if (user == null)
                         return;
 
-                    // Get entity ID from route parameters or action arguments
+                    // Get entity ID from route parameters or action arguments (supports int or Guid)
                     int entityId = 0;
                     if (context.ActionArguments.ContainsKey(_entityIdParameter))
                     {
                         var idValue = context.ActionArguments[_entityIdParameter];
                         if (idValue is int intId)
+                        {
                             entityId = intId;
+                        }
+                        else if (idValue is Guid guidId)
+                        {
+                            unchecked { entityId = guidId.GetHashCode(); }
+                        }
                         else if (int.TryParse(idValue?.ToString(), out var parsedId))
+                        {
                             entityId = parsedId;
+                        }
+                        else if (Guid.TryParse(idValue?.ToString(), out var parsedGuid))
+                        {
+                            unchecked { entityId = parsedGuid.GetHashCode(); }
+                        }
                     }
 
                     // If no entity ID found, skip logging

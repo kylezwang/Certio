@@ -84,8 +84,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>nklj0wahpu</Fingerprint>
-      <Integrity>91MM0g+X0UQtxTkSbqX0AIvC7U4/0TTABmGr8baACm0=</Integrity>
+      <Fingerprint>4cijaefkuw</Fingerprint>
+      <Integrity>bOpvCuBm8J/hPRvzeUmZMAj4KbnPst2xRhti4Fn+Ozg=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\notifications-sidebar.css'))</OriginalItemSpec>
@@ -125,6 +125,24 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\tasks.css'))</OriginalItemSpec>
+    </StaticWebAsset>
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\wopi-localhost-notice.css'))">
+      <SourceType>Package</SourceType>
+      <SourceId>Certio.Web</SourceId>
+      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
+      <BasePath>_content/Certio.Web</BasePath>
+      <RelativePath>css/wopi-localhost-notice.css</RelativePath>
+      <AssetKind>All</AssetKind>
+      <AssetMode>All</AssetMode>
+      <AssetRole>Primary</AssetRole>
+      <RelatedAsset></RelatedAsset>
+      <AssetTraitName></AssetTraitName>
+      <AssetTraitValue></AssetTraitValue>
+      <Fingerprint>okvgtipvuc</Fingerprint>
+      <Integrity>2Bgz6o2NPeBXP9KOUgTsQgEOxfJ+7DXFHzjXA+BTV4k=</Integrity>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\wopi-localhost-notice.css'))</OriginalItemSpec>
     </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\favicon.ico'))">
       <SourceType>Package</SourceType>

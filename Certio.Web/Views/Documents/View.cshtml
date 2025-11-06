@@ -1,0 +1,207 @@
+@model Certio.Web.ViewModels.DocumentViewViewModel
+@{
+    ViewData["Title"] = Model.Document.Name;
+    Layout = "_ClientLayout";
+}
+
+@section PageStyles {
+    <link rel="stylesheet" href="~/css/wopi-localhost-notice.css" />
+    <style>
+        /* Remove padding from main-content for document viewer page only */
+        .main-content.client-main-content:has(.document-viewer-container) {
+            padding: 0 !important;
+        }
+
+        .document-viewer-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 80px);
+            background: white;
+        }
+
+        .document-viewer-header {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 1rem 1.5rem;
+            background: white;
+            flex-shrink: 0;
+        }
+
+        .document-viewer-iframe-container {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .document-viewer-iframe {
+            border: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+        }
+
+        .document-viewer-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            z-index: 1;
+        }
+    </style>
+}
+
+<div class="document-viewer-container">
+    <div class="document-viewer-header">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <h5 class="fw-semibold text-dark mb-1">@Model.Document.Name</h5>
+                <div class="d-flex flex-wrap align-items-center gap-2 small text-muted">
+                    <span class="badge bg-light text-dark text-uppercase">
+                        @(Model.Document.SourceType == Certio.Domain.Documents.DocumentSourceType.GoogleDrive ? "GOOGLE DRIVE" :
+                          Model.Document.SourceType == Certio.Domain.Documents.DocumentSourceType.OneDrive ? "ONEDRIVE" :
+                          "INTERNAL")
+                    </span>
+                    <span>@Model.Document.Author</span>
+                    <span>•</span>
+                    <span>Updated @Model.Document.ModifiedAt.ToString("M/d/yyyy, h:mm:ss tt")</span>
+                    <span>•</span>
+                    <span>@Model.Document.Status</span>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <a href="@Model.OpenUrl" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">
+                    <i class="fas fa-external-link-alt me-1"></i>
+                    Open in new tab
+                </a>
+                <a href="/Client/@ViewBag.OrganizationId/Documents" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-times"></i>
+                    Close
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="document-viewer-iframe-container">
+        <div id="documentViewerLoading" class="document-viewer-loading">
+            <div class="spinner-border text-primary me-2" role="status" aria-hidden="true"></div>
+            <span>Loading document...</span>
+        </div>
+        
+        <!-- Localhost WOPI Notice -->
+        @if (Model.Document.SourceType == Certio.Domain.Documents.DocumentSourceType.OneDrive && 
+             Context.Request.Host.Host.Contains("localhost"))
+        {
+            <div class="wopi-localhost-notice" id="localhostNotice">
+                <div class="notice-icon">🏠</div>
+                <h3>Development Mode Detected</h3>
+                <p>
+                    OneDrive document <strong>embedding and editing</strong> via WOPI requires a publicly accessible URL that Microsoft's Office Online servers can reach. 
+                    Since you're running on <strong>localhost</strong>, Office Online cannot connect to your WOPI endpoints.
+                </p>
+                <p>
+                    <strong>✨ Full Editing Enabled:</strong> Once deployed, you'll be able to view <em>and edit</em> Word, Excel, and PowerPoint documents directly in the browser!
+                </p>
+                <p>
+                    <strong>Options for Testing:</strong>
+                </p>
+                <ul style="text-align: left; margin: 0 auto; display: inline-block;">
+                    <li>Use the "Open in new tab" button above to edit in OneDrive</li>
+                    <li>Deploy to a public server (Azure, AWS, etc.) to test WOPI with editing</li>
+                    <li>Use a tunnel service (ngrok, Cloudflare Tunnel, VS Code port forwarding)</li>
+                </ul>
+                <div class="help-text">
+                    <strong>Note:</strong> Full WOPI editing (view + save changes) works automatically once deployed to a production environment with a public domain.
+                </div>
+            </div>
+        }
+        
+        <iframe id="documentViewerFrame" 
+                class="document-viewer-iframe" 
+                data-document-id="@Model.Document.Id"
+                data-source-type="@Model.Document.SourceType"
+                data-initial-embed-url="@Model.EmbedUrl"
+                data-is-localhost="@(Context.Request.Host.Host.Contains("localhost"))"
+                allow="clipboard-read; clipboard-write; fullscreen" 
+                allowfullscreen></iframe>
+        <div id="documentViewerError" class="alert alert-warning m-4 d-none" role="alert">
+            <strong>Unable to embed this document.</strong> <span id="errorMessage"></span>
+            @if (!string.IsNullOrWhiteSpace(Model.OpenUrl))
+            {
+                <span>You can still <a href="@Model.OpenUrl" target="_blank" rel="noopener">open it in a new tab</a>.</span>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            const frame = document.getElementById('documentViewerFrame');
+            const loading = document.getElementById('documentViewerLoading');
+            const errorDiv = document.getElementById('documentViewerError');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            if (!frame || !loading) return;
+
+            const documentId = frame.dataset.documentId;
+            const sourceType = frame.dataset.sourceType;
+            const initialEmbedUrl = frame.dataset.initialEmbedUrl;
+
+            // Hide loading indicator
+            const hideLoading = () => {
+                if (loading && !loading.classList.contains('d-none')) {
+                    loading.classList.add('d-none');
+                }
+            };
+
+            // Show error message
+            const showError = (message) => {
+                hideLoading();
+                frame.classList.add('d-none');
+                if (errorDiv && errorMessage) {
+                    errorMessage.textContent = message || 'This document does not have an embeddable URL configured.';
+                    errorDiv.classList.remove('d-none');
+                }
+            };
+
+            try {
+                const isLocalhost = frame.dataset.isLocalhost === 'True';
+                
+                // For OneDrive on localhost, show the notice instead of trying to load
+                if (sourceType === 'OneDrive' && isLocalhost) {
+                    console.log('OneDrive document on localhost - showing development notice');
+                    hideLoading();
+                    // The localhost notice is already visible in the HTML
+                            return;
+                        }
+
+                // For OneDrive documents, use the WOPI URL generated server-side
+                    // For Google Drive and other sources, use the initial embed URL
+                    frame.src = initialEmbedUrl || '';
+
+                if (!frame.src) {
+                    showError('This document does not have an embeddable URL configured.');
+                    return;
+                }
+
+                console.log('Loading document with URL:', frame.src.substring(0, 100) + '...');
+
+                // For Google Docs/Office Online, they might not fire load event reliably
+                if (frame.src.includes('docs.google.com') || frame.src.includes('officeapps.live.com') || frame.src.includes('onedrive.live.com')) {
+                    setTimeout(hideLoading, 3000); // Hide after 3 seconds for external embeds
+                }
+
+                frame.addEventListener('load', hideLoading, { once: true });
+                frame.addEventListener('error', () => {
+                    showError('Failed to load the document viewer.');
+                }, { once: true });
+
+            } catch (error) {
+                console.error('Error loading document:', error);
+                showError('An error occurred while loading the document.');
+            }
+        });
+    </script>
+}
+

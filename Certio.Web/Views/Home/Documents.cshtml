@@ -5,6 +5,72 @@
     Layout = "_ClientLayout";
 }
 
+@section PageStyles {
+    <style>
+        /* Document sidebar cards - use same styling as matter folders */
+        .document-sidebar-card-wrapper {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .document-sidebar-card-wrapper:hover {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .document-sidebar-card-wrapper .matter-folder-card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+            min-height: 120px;
+        }
+
+        .document-sidebar-card-wrapper .matter-folder-card:hover {
+            background-color: #eef1f3;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .document-sidebar-card-wrapper .matter-folder-card .card-body {
+            color: inherit;
+        }
+
+        /* Ensure all text inside card maintains proper color */
+        .document-sidebar-card-wrapper h6,
+        .document-sidebar-card-wrapper p,
+        .document-sidebar-card-wrapper span {
+            color: inherit;
+        }
+
+        /* Document Cards Styling */
+        .document-card {
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        }
+
+        .document-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .document-card .btn-outline-secondary {
+            border-color: #dee2e6;
+            color: #6c757d;
+        }
+
+        .document-card .btn-outline-secondary:hover {
+            background-color: #f8f9fa;
+            border-color: #adb5bd;
+            color: #495057;
+        }
+    </style>
+}
+
 <div class="documents-container" style="max-width: 100%; margin: 0 auto; padding: 0;">
     <!-- Header Section -->
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -115,7 +181,7 @@
     </div>
 
     <div class="row">
-        <!-- Sidebar - Folders and Storage -->
+        <!-- Left Sidebar - Integrations, Folders and Storage -->
         <div class="col-lg-3 mb-4">
             <!-- Document Integration Card -->
             <div class="card border-0 mb-4">
@@ -142,17 +208,15 @@
                         
                         <!-- Connected State -->
                         <div id="documentIntegrationsConnected" style="display: none;">
-                            <div id="googleDriveStatus" style="display: none; margin-bottom: 0.75rem; padding: 0.75rem; background: #f8f9fa; border-radius: 6px;">
+                            <div id="googleDriveStatus" style="display: none; padding: 0.75rem; background: #f8f9fa; border-radius: 6px;">
                                 <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                                     <!-- Icon and Provider Name -->
                                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                                         <i class="fab fa-google" style="color: #4285f4; font-size: 1.2em;"></i>
-                                        <span style="font-size: 0.9em; font-weight: 500;">Google Drive</span>
-                                    </div>
-                                    <!-- Connected Status -->
-                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                        <i class="fas fa-check-circle" style="color: #10b981;"></i>
-                                        <span style="font-size: 0.85em; color: #10b981;">Connected</span>
+                                        <div style="display: flex; flex-direction: column; gap: 0.125rem;">
+                                            <span style="font-size: 0.9em; font-weight: 500;">Google Drive</span>
+                                            <span id="googleDriveEmail" style="font-size: 0.85em; font-weight: 400; color: #666;"></span>
+                                        </div>
                                     </div>
                                     <!-- Disconnect Button -->
                                     <button id="disconnectGoogleDriveBtn" class="btn btn-sm btn-outline-danger" style="font-size: 0.75em; padding: 4px 8px; align-self: flex-start;">
@@ -160,17 +224,15 @@
                                     </button>
                                 </div>
                             </div>
-                            <div id="oneDriveStatus" style="display: none; margin-bottom: 0.75rem; padding: 0.75rem; background: #f8f9fa; border-radius: 6px;">
+                            <div id="oneDriveStatus" style="display: none; padding: 0.75rem; background: #f8f9fa; border-radius: 6px;">
                                 <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                                     <!-- Icon and Provider Name -->
                                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                                         <i class="fab fa-windows" style="color: #0078d4; font-size: 1.2em;"></i>
-                                        <span style="font-size: 0.9em; font-weight: 500;">OneDrive</span>
-                                    </div>
-                                    <!-- Connected Status -->
-                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                        <i class="fas fa-check-circle" style="color: #10b981;"></i>
-                                        <span style="font-size: 0.85em; color: #10b981;">Connected</span>
+                                        <div style="display: flex; flex-direction: column; gap: 0.125rem;">
+                                            <span style="font-size: 0.9em; font-weight: 500;">OneDrive</span>
+                                            <span id="oneDriveEmail" style="font-size: 0.85em; font-weight: 400; color: #666;"></span>
+                                        </div>
                                     </div>
                                     <!-- Disconnect Button -->
                                     <button id="disconnectOneDriveBtn" class="btn btn-sm btn-outline-danger" style="font-size: 0.75em; padding: 4px 8px; align-self: flex-start;">
@@ -250,70 +312,195 @@
             </div>
         </div>
 
-        <!-- Main Content - Documents List -->
+        <!-- Main Content Area - Documents List -->
         <div class="col-lg-9">
-            <div class="documents-list">
+            <div class="d-flex flex-column" id="documentsContainer">
+                <!-- Initial documents from server-side render -->
                 @foreach (var doc in Model.Documents)
                 {
-                    <div class="card border-0 document-card mb-3">
-                        <div class="card-body p-4">
-                            <div class="d-flex align-items-start justify-content-between">
-                                <div class="d-flex align-items-start flex-grow-1">
-                                    <div class="p-3 bg-primary bg-opacity-10 rounded-3 me-4">
-                                        <i class="@GetDocumentIcon(doc.Icon) text-primary fs-5"></i>
-                                    </div>
-                                    
-                                    <div class="flex-grow-1 min-width-0">
-                                        <h5 class="fw-semibold text-dark mb-1 text-truncate">@doc.Name</h5>
-                                        <p class="text-muted small mb-3">@doc.Type</p>
-                                        
-                                        <div class="d-flex flex-wrap gap-2 mb-3">
-                                            @foreach (var tag in doc.Tags)
-                                            {
-                                                <span class="document-tag">@tag</span>
-                                            }
-                                        </div>
-                                        
-                                        <div class="d-flex align-items-center gap-4 text-muted small">
-                                            <div class="d-flex align-items-center">
-                                                <i class="fas fa-user me-1"></i>
-                                                <span>@doc.Author</span>
-                                            </div>
-                                            <div class="d-flex align-items-center">
-                                                <i class="fas fa-calendar me-1"></i>
-                                                <span>Modified @doc.Modified.ToString("yyyy-MM-dd")</span>
-                                            </div>
-                                            <div class="d-flex align-items-center">
-                                                <i class="@GetVisibilityIcon(doc.Visibility) me-1"></i>
-                                                <span>@doc.Visibility</span>
-                                            </div>
-                                            <span>@doc.Size</span>
+                    var provider = GetDocumentProvider(doc);
+                    var openUrl = GetPrimaryOpenUrl(doc);
+                    var modifiedIso = FormatIso8601(doc.Modified);
+                    var fileSize = doc.Metadata != null && doc.Metadata.TryGetValue("size", out var size) ? size : null;
+                    var visibility = doc.Metadata != null && doc.Metadata.TryGetValue("visibility", out var vis) ? vis : "Private";
+                    
+                    // Get document location/folder path
+                    var location = "Root";
+                    if (doc.Metadata != null)
+                    {
+                        // For OneDrive: parentPath format is like "/drive/root:/Folder/Subfolder" or "/drive/root:"
+                        if (doc.Metadata.TryGetValue("parentPath", out var parentPath) && !string.IsNullOrWhiteSpace(parentPath))
+                        {
+                            var path = parentPath.Replace("/drive/root:", "").TrimStart('/');
+                            if (!string.IsNullOrWhiteSpace(path) && path != "root")
+                            {
+                                // Extract folder name from path (last segment)
+                                var pathParts = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+                                if (pathParts.Length > 0)
+                                {
+                                    location = pathParts[pathParts.Length - 1];
+                                }
+                                else
+                                {
+                                    location = path;
+                                }
+                            }
+                        }
+                        // For Google Drive: check for folder name in metadata (populated by sync service)
+                        else if (doc.Metadata.TryGetValue("parentFolderName", out var parentFolderName) && !string.IsNullOrWhiteSpace(parentFolderName))
+                        {
+                            location = parentFolderName;
+                        }
+                        else if (doc.Metadata.TryGetValue("driveFolder", out var driveFolder) && !string.IsNullOrWhiteSpace(driveFolder))
+                        {
+                            location = driveFolder;
+                        }
+                        else if (doc.Metadata.TryGetValue("folderName", out var folderName) && !string.IsNullOrWhiteSpace(folderName))
+                        {
+                            location = folderName;
+                        }
+                    }
+                    
+                    <a href="javascript:void(0);" onclick="navigateToDocument(event, '/Client/@ViewBag.OrganizationId/Documents/@doc.Id');" class="text-decoration-none" style="color: inherit;">
+                        <div class="card document-card border-0 mb-3" style="cursor: pointer;">
+                            <div class="card-body p-4" style="position: relative;">
+                                <!-- Status Badge and Action Icons (Top Right) -->
+                                <div class="position-absolute" style="top: 1rem; right: 1rem;">
+                                    <div class="d-flex flex-column align-items-end gap-2">
+                                        <!-- Status Badge (clickable for Draft/Review) -->
+                                        @{
+                                            var statusBadgeClass = GetStatusClass(doc.Status);
+                                            var isClickable = doc.Status == Certio.Domain.Documents.DocumentStatus.Draft
+                                                || doc.Status == Certio.Domain.Documents.DocumentStatus.Review
+                                                || doc.Status == Certio.Domain.Documents.DocumentStatus.Final
+                                                || doc.Status == Certio.Domain.Documents.DocumentStatus.Published;
+                                        }
+                                        <span class="badge @statusBadgeClass @(isClickable ? "document-status-badge-clickable" : "")" 
+                                               data-document-id="@doc.Id"
+                                               data-current-status="@doc.Status"
+                                               style="font-size: 0.65rem; padding: 0.2rem 0.5rem; line-height: 1.3; @(isClickable ? "cursor: pointer;" : "")">
+                                            @doc.Status.ToString()
+                                        </span>
+                                        <!-- Action Icons -->
+                                        <div class="d-flex gap-2 align-items-center" style="margin-top: 0;">
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center" 
+                                                    title="Download" 
+                                                    style="width: 36px; height: 36px; padding: 0; margin: 0; border: 1px solid; line-height: 1;"
+                                                    onclick="event.stopPropagation(); event.preventDefault(); downloadDocument(@doc.Id);">
+                                                <i class="fas fa-download" style="font-size: 0.875rem; line-height: 1;"></i>
+                                            </button>
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center" 
+                                                    title="Share" 
+                                                    style="width: 36px; height: 36px; padding: 0; margin: 0; border: 1px solid; line-height: 1;"
+                                                    onclick="event.stopPropagation(); event.preventDefault();">
+                                                <i class="fas fa-share-alt" style="font-size: 0.875rem; line-height: 1;"></i>
+                                            </button>
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center" 
+                                                    title="More options" 
+                                                    style="width: 36px; height: 36px; padding: 0; margin: 0; border: 1px solid; line-height: 1;"
+                                                    onclick="event.stopPropagation(); event.preventDefault();">
+                                                <i class="fas fa-ellipsis-h" style="font-size: 0.875rem; line-height: 1;"></i>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
                                 
-                                <div class="d-flex flex-column align-items-end gap-3">
-                                    <span class="badge @GetStatusClass(doc.Status)">@doc.Status.ToString()</span>
-                                    
-                                    <div class="d-flex align-items-center gap-1 document-actions">
-                                        <button class="btn btn-sm btn-outline-secondary">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-secondary">
-                                            <i class="fas fa-download"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-secondary">
-                                            <i class="fas fa-share"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-secondary">
-                                            <i class="fas fa-ellipsis-h"></i>
-                                        </button>
+                                <!-- Document Icon and Content -->
+                                <div class="d-flex align-items-start mb-3">
+                                    @{
+                                        string iconClass = "fas fa-file";
+                                        string iconBgColor = "bg-primary bg-opacity-10";
+                                        string iconTextColor = "text-primary";
+                                        
+                                        if (doc.SourceType == Certio.Domain.Documents.DocumentSourceType.GoogleDrive)
+                                        {
+                                            iconClass = "fab fa-google";
+                                            iconBgColor = "bg-light";
+                                            iconTextColor = "";
+                                            // Google colors: #4285f4 (blue), #34a853 (green), #fbbc04 (yellow), #ea4335 (red)
+                                            // Using a gradient-like approach with the primary blue
+                                        }
+                                        else if (doc.SourceType == Certio.Domain.Documents.DocumentSourceType.OneDrive)
+                                        {
+                                            iconClass = "fab fa-windows";
+                                            iconBgColor = "bg-light";
+                                            iconTextColor = "";
+                                            // Microsoft blue: #0078d4
+                                        }
+                                    }
+                                    <div class="p-3 @iconBgColor rounded-3 me-3 flex-shrink-0">
+                                        @if (doc.SourceType == Certio.Domain.Documents.DocumentSourceType.GoogleDrive)
+                                        {
+                                            <i class="@iconClass" style="font-size: 1.5rem; color: #4285f4;"></i>
+                                        }
+                                        else if (doc.SourceType == Certio.Domain.Documents.DocumentSourceType.OneDrive)
+                                        {
+                                            <i class="@iconClass" style="font-size: 1.5rem; color: #0078d4;"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="@iconClass @iconTextColor" style="font-size: 1.5rem;"></i>
+                                        }
+                                    </div>
+                                    <div class="flex-grow-1 min-width-0">
+                                        <h5 class="fw-bold text-dark mb-1" style="font-size: 1.1rem; line-height: 1.3;">@doc.Name</h5>
+                                        <div class="d-flex align-items-center text-muted small mb-2" style="font-size: 0.85rem;">
+                                            <i class="fas fa-folder me-2" style="font-size: 0.75rem;"></i>
+                                            <span>@location</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Client Name Badge (if exists) -->
+                                @if (doc.Metadata != null && doc.Metadata.TryGetValue("clientName", out var clientName) && !string.IsNullOrWhiteSpace(clientName))
+                                {
+                                    <div class="d-flex flex-wrap gap-2 mb-3">
+                                        <span class="badge bg-secondary" style="font-size: 0.6rem;">@clientName</span>
+                                    </div>
+                                }
+                                
+                                <!-- Metadata -->
+                                <div class="border-top pt-3">
+                                    <div class="d-flex flex-wrap align-items-center gap-3 text-muted small" style="font-size: 0.8rem;">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-user me-2"></i>
+                                            <span>@doc.Author</span>
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-calendar me-2"></i>
+                                            <span>Modified @doc.Modified.ToString("yyyy-MM-dd")</span>
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <i class="@GetVisibilityIcon(visibility) me-2"></i>
+                                            <span>@visibility</span>
+                                        </div>
+                                        @if (!string.IsNullOrWhiteSpace(fileSize))
+                                        {
+                                            <div class="d-flex align-items-center">
+                                                <span>@fileSize</span>
+                                            </div>
+                                        }
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 }
+                <!-- Loading indicator for lazy loading -->
+                <div id="documentsLoadingIndicator" class="text-center py-4" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="text-muted mt-2">Loading more documents...</p>
+                </div>
+                <!-- Empty state -->
+                <div id="documentsEmptyState" class="text-center py-5" style="display: none;">
+                    <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No documents found</p>
+                </div>
             </div>
         </div>
     </div>
@@ -336,6 +523,12 @@
             // Setup document OAuth event listeners and load status
             setupDocumentOAuthListeners();
             loadDocumentConnectionStatus();
+            
+            // Initialize lazy loading for documents
+            initDocumentsLazyLoading();
+
+            // Attach status badge click handlers
+            attachDocumentStatusHandlers();
         });
 
         // Load document connection status
@@ -363,6 +556,8 @@
             const oneDriveStatusDiv = document.getElementById('oneDriveStatus');
             const connectGoogleBtn = document.getElementById('connectGoogleDriveBtnConnected');
             const connectOneDriveBtn = document.getElementById('connectOneDriveBtnConnected');
+            const googleEmailSpan = document.getElementById('googleDriveEmail');
+            const oneDriveEmailSpan = document.getElementById('oneDriveEmail');
 
             const googleConnected = status.googleDrive?.connected || false;
             const oneDriveConnected = status.oneDrive?.connected || false;
@@ -376,6 +571,9 @@
                 if (googleStatusDiv) {
                     googleStatusDiv.style.display = googleConnected ? 'block' : 'none';
                 }
+                if (googleEmailSpan && status.googleDrive?.email) {
+                    googleEmailSpan.textContent = status.googleDrive.email;
+                }
                 if (connectGoogleBtn) {
                     connectGoogleBtn.style.display = googleConnected ? 'none' : 'block';
                 }
@@ -383,6 +581,9 @@
                 // Show OneDrive status if connected
                 if (oneDriveStatusDiv) {
                     oneDriveStatusDiv.style.display = oneDriveConnected ? 'block' : 'none';
+                }
+                if (oneDriveEmailSpan && status.oneDrive?.email) {
+                    oneDriveEmailSpan.textContent = status.oneDrive.email;
                 }
                 if (connectOneDriveBtn) {
                     connectOneDriveBtn.style.display = oneDriveConnected ? 'none' : 'block';
@@ -631,7 +832,1132 @@
             }
             return null;
         }
+
+        // Download document function
+        async function downloadDocument(docId) {
+            try {
+                const orgId = getCurrentOrganizationId();
+                const url = `/api/documents/${docId}/download${orgId ? `?orgId=${orgId}` : ''}`;
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = response.headers.get('Content-Disposition')?.split('filename=')[1]?.replace(/"/g, '') || 'document';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(downloadUrl);
+                    document.body.removeChild(a);
+                } else {
+                    alert('Failed to download document. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error downloading document:', error);
+                alert('Failed to download document. Please try again.');
+            }
+        }
+
+        // Removed inline viewer functions - documents now open in separate page
+        /*
+        function initializeDocumentViewer() {
+            const viewerContainer = document.getElementById('documentViewerShell');
+            const placeholder = document.getElementById('documentViewerPlaceholder');
+            const frame = document.getElementById('documentViewerFrame');
+            const loading = document.getElementById('documentViewerLoading');
+            const error = document.getElementById('documentViewerError');
+            const title = document.getElementById('documentViewerTitle');
+            const providerBadge = document.getElementById('documentViewerProviderBadge');
+            const meta = document.getElementById('documentViewerMeta');
+            const openExternal = document.getElementById('documentViewerOpenExternal');
+            const closeBtn = document.getElementById('documentViewerCloseBtn');
+
+            documentViewerState = {
+                viewerContainer,
+                placeholder,
+                frame,
+                loading,
+                error,
+                title,
+                providerBadge,
+                meta,
+                openExternal,
+                closeBtn,
+                currentCard: null
+            };
+
+            if (!frame) {
+                return;
+            }
+
+            const cards = document.querySelectorAll('.document-card-selectable');
+            if (!cards.length) {
+                return;
+            }
+
+            cards.forEach(card => {
+                card.addEventListener('click', function(event) {
+                    if (event.target.closest('.document-actions')) {
+                        return;
+                    }
+                    openDocumentCard(card);
+                });
+
+                card.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        openDocumentCard(card);
+                    }
+                });
+            });
+
+            const inlineButtons = document.querySelectorAll('.document-action-open');
+            inlineButtons.forEach(button => {
+                button.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const card = button.closest('.document-card-selectable');
+                    if (card) {
+                        openDocumentCard(card);
+                    }
+                });
+            });
+
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function() {
+                    closeDocumentViewer();
+                });
+            }
+
+            // Don't auto-open documents - only open when explicitly clicked
+            // const initialCard = findInitialDocumentCard(cards);
+            // if (initialCard) {
+            //     openDocumentCard(initialCard);
+            // }
+        }
+
+        function findInitialDocumentCard(cards) {
+            const params = new URLSearchParams(window.location.search);
+            const requestedId = params.get('doc');
+            if (requestedId) {
+                const requestedCard = document.querySelector(`.document-card-selectable[data-document-id="${requestedId}"]`);
+                if (requestedCard) {
+                    return requestedCard;
+                }
+            }
+
+            return cards[0] || null;
+        }
+
+        async function openDocumentCard(card) {
+            if (!card) {
+                return;
+            }
+
+            const state = documentViewerState;
+            if (!state.frame) {
+                return;
+            }
+
+            if (state.currentCard === card && card.dataset.documentResolvedSrc) {
+                setDocumentViewerSource(card.dataset.documentResolvedSrc, { skipReload: true });
+                return;
+            }
+
+            document.querySelectorAll('.document-card-selectable.is-active').forEach(c => c.classList.remove('is-active'));
+            card.classList.add('is-active');
+            state.currentCard = card;
+
+            updateDocumentViewerHeader(card);
+
+            // Add active class to container to trigger full-screen layout
+            const container = document.querySelector('.documents-container');
+            if (container) {
+                container.classList.add('document-viewer-active');
+            }
+
+            if (state.placeholder) {
+                state.placeholder.classList.add('d-none');
+            }
+            if (state.viewerContainer) {
+                state.viewerContainer.classList.remove('d-none');
+                state.viewerContainer.removeAttribute('hidden');
+            }
+
+            if (state.error) {
+                state.error.classList.add('d-none');
+            }
+
+            if (state.loading) {
+                state.loading.classList.remove('d-none');
+            }
+
+            if (state.frame) {
+                state.frame.classList.add('d-none');
+            }
+
+            if (card.dataset.documentResolvedSrc) {
+                setDocumentViewerSource(card.dataset.documentResolvedSrc);
+                return;
+            }
+
+            // Try to build embed URL from existing data attributes first
+            const embedUrl = card.dataset.documentEmbedUrl || '';
+            const previewUrl = card.dataset.documentPreviewUrl || '';
+            const downloadUrl = card.dataset.documentDownloadUrl || '';
+            const externalFileId = card.dataset.documentExternalId || '';
+
+            if (embedUrl || previewUrl || downloadUrl || externalFileId) {
+                const resolvedUrl = buildDocumentEmbedUrl({
+                    provider: (card.dataset.documentProvider || '').toLowerCase(),
+                    sourceType: card.dataset.documentSourceType || '',
+                    embedUrl: embedUrl,
+                    fallbackEmbedUrl: embedUrl,
+                    previewUrl: previewUrl,
+                    downloadUrl: downloadUrl,
+                    fileType: card.dataset.documentFileType || '',
+                    externalFileId: externalFileId
+                });
+
+                if (resolvedUrl) {
+                    card.dataset.documentResolvedSrc = resolvedUrl;
+                    setDocumentViewerSource(resolvedUrl);
+                    return;
+                }
+            }
+
+            // Fallback to API call if no direct URL available
+            const docId = card.dataset.documentId;
+            const orgId = card.dataset.documentOrgId;
+
+            if (!docId || !orgId) {
+                displayDocumentViewerError('Missing document identifiers.', card);
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/documents/${docId}/embed?orgId=${encodeURIComponent(orgId)}`, { 
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                // Check if response is actually JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    // Response is HTML (likely an error page), skip API and use fallback
+                    throw new Error('API returned non-JSON response. Using direct URL.');
+                }
+
+                if (!response.ok) {
+                    throw new Error(`Failed to retrieve embed URL (status ${response.status})`);
+                }
+
+                const payload = await response.json();
+                const resolvedUrl = buildDocumentEmbedUrl({
+                    provider: (card.dataset.documentProvider || '').toLowerCase(),
+                    sourceType: card.dataset.documentSourceType || '',
+                    embedUrl: payload.embedUrl || card.dataset.documentEmbedUrl || '',
+                    fallbackEmbedUrl: card.dataset.documentEmbedUrl || '',
+                    previewUrl: card.dataset.documentPreviewUrl || '',
+                    downloadUrl: card.dataset.documentDownloadUrl || '',
+                    fileType: card.dataset.documentFileType || '',
+                    externalFileId: card.dataset.documentExternalId || ''
+                });
+
+                if (!resolvedUrl) {
+                    throw new Error('No embeddable URL is available for this document.');
+                }
+
+                card.dataset.documentResolvedSrc = resolvedUrl;
+                setDocumentViewerSource(resolvedUrl);
+            } catch (error) {
+                console.error('Unable to load document embed', error);
+                // Try fallback using direct URLs from data attributes
+                const fallbackUrl = buildDocumentEmbedUrl({
+                    provider: (card.dataset.documentProvider || '').toLowerCase(),
+                    sourceType: card.dataset.documentSourceType || '',
+                    embedUrl: card.dataset.documentEmbedUrl || '',
+                    fallbackEmbedUrl: card.dataset.documentEmbedUrl || '',
+                    previewUrl: card.dataset.documentPreviewUrl || '',
+                    downloadUrl: card.dataset.documentDownloadUrl || '',
+                    fileType: card.dataset.documentFileType || '',
+                    externalFileId: card.dataset.documentExternalId || ''
+                });
+
+                if (fallbackUrl) {
+                    card.dataset.documentResolvedSrc = fallbackUrl;
+                    setDocumentViewerSource(fallbackUrl);
+                } else {
+                    displayDocumentViewerError(error.message || 'Unable to load document.', card, {
+                        provider: card.dataset.documentProvider || '',
+                        previewUrl: card.dataset.documentPreviewUrl || '',
+                        downloadUrl: card.dataset.documentDownloadUrl || '',
+                        embedUrl: card.dataset.documentEmbedUrl || ''
+                    });
+                }
+            }
+        }
+
+        function updateDocumentViewerHeader(card) {
+            const state = documentViewerState;
+            if (!card) {
+                return;
+            }
+
+            const title = card.dataset.documentTitle || 'Document';
+            if (state.title) {
+                state.title.textContent = title;
+            }
+
+            const provider = (card.dataset.documentProvider || '').toLowerCase();
+            const sourceType = card.dataset.documentSourceType || '';
+            if (state.providerBadge) {
+                state.providerBadge.textContent = formatProviderLabel(provider, sourceType);
+            }
+
+            if (state.meta) {
+                state.meta.textContent = buildDocumentMetaLine(
+                    card.dataset.documentAuthor || '',
+                    card.dataset.documentModified || '',
+                    card.dataset.documentStatus || ''
+                );
+            }
+
+            const openUrl = card.dataset.documentOpenUrl
+                || card.dataset.documentEmbedUrl
+                || card.dataset.documentPreviewUrl
+                || card.dataset.documentDownloadUrl
+                || '';
+
+            if (state.openExternal) {
+                if (openUrl) {
+                    state.openExternal.href = openUrl;
+                    state.openExternal.classList.remove('disabled');
+                    state.openExternal.setAttribute('aria-disabled', 'false');
+                } else {
+                    state.openExternal.removeAttribute('href');
+                    state.openExternal.classList.add('disabled');
+                    state.openExternal.setAttribute('aria-disabled', 'true');
+                }
+            }
+        }
+
+        function setDocumentViewerSource(url, options = {}) {
+            const state = documentViewerState;
+            if (!state.frame) {
+                return;
+            }
+
+            if (!url) {
+                displayDocumentViewerError('No document source provided.', state.currentCard || null);
+                return;
+            }
+
+            if (state.error) {
+                state.error.classList.add('d-none');
+            }
+
+            if (state.loading) {
+                state.loading.classList.remove('d-none');
+            }
+
+            state.frame.classList.add('d-none');
+
+            // Set a timeout to hide loading indicator if iframe doesn't load
+            let loadTimeout = setTimeout(() => {
+                if (state.loading && !state.loading.classList.contains('d-none')) {
+                    console.warn('Document iframe load timeout, hiding loading indicator');
+                    state.loading.classList.add('d-none');
+                    state.frame.classList.remove('d-none');
+                }
+            }, 10000); // 10 second timeout
+
+            const handleLoad = () => {
+                clearTimeout(loadTimeout);
+                if (state.loading) {
+                    state.loading.classList.add('d-none');
+                }
+                state.frame.classList.remove('d-none');
+                state.frame.removeEventListener('load', handleLoad);
+            };
+
+            const handleError = () => {
+                clearTimeout(loadTimeout);
+                if (state.loading) {
+                    state.loading.classList.add('d-none');
+                }
+                state.frame.classList.remove('d-none');
+            };
+
+            state.frame.addEventListener('load', handleLoad, { once: true });
+            state.frame.addEventListener('error', handleError, { once: true });
+
+            if (!options.skipReload || state.frame.src !== url) {
+                state.frame.src = url;
+                // If URL is a Google Docs or Office Online URL, it might not trigger load event properly
+                // Hide loading after a short delay if it's an external embed URL
+                if (url.includes('docs.google.com') || url.includes('officeapps.live.com') || url.includes('onedrive.live.com')) {
+                    setTimeout(() => {
+                        if (state.loading && !state.loading.classList.contains('d-none')) {
+                            state.loading.classList.add('d-none');
+                            state.frame.classList.remove('d-none');
+                        }
+                    }, 2000); // Hide loading after 2 seconds for external embeds
+                }
+            } else {
+                handleLoad();
+            }
+        }
+
+        function closeDocumentViewer() {
+            const state = documentViewerState;
+
+            // Remove active class to restore normal layout
+            const container = document.querySelector('.documents-container');
+            if (container) {
+                container.classList.remove('document-viewer-active');
+            }
+
+            if (state.viewerContainer) {
+                state.viewerContainer.classList.add('d-none');
+                state.viewerContainer.setAttribute('hidden', 'hidden');
+            }
+
+            // Don't show placeholder anymore - it's always hidden
+            // if (state.placeholder) {
+            //     state.placeholder.classList.remove('d-none');
+            // }
+
+            if (state.frame) {
+                state.frame.src = 'about:blank';
+                state.frame.classList.add('d-none');
+            }
+
+            if (state.loading) {
+                state.loading.classList.add('d-none');
+            }
+
+            if (state.error) {
+                state.error.classList.add('d-none');
+            }
+
+            if (state.currentCard) {
+                state.currentCard.classList.remove('is-active');
+                state.currentCard = null;
+            }
+        }
+
+        function displayDocumentViewerError(message, card, links = {}) {
+            const state = documentViewerState;
+
+            if (state.loading) {
+                state.loading.classList.add('d-none');
+            }
+
+            if (state.frame) {
+                state.frame.classList.add('d-none');
+                state.frame.src = 'about:blank';
+            }
+
+            if (!state.error) {
+                return;
+            }
+
+            state.error.classList.remove('d-none');
+
+            const fallback = links.embedUrl
+                || links.previewUrl
+                || links.downloadUrl
+                || (card ? (card.dataset.documentOpenUrl || '') : '');
+
+            let fallbackHtml = '';
+            if (fallback) {
+                fallbackHtml = ` You can still <a href="${fallback}" target="_blank" rel="noopener">open it in a new tab</a>.`;
+                if (state.openExternal) {
+                    state.openExternal.href = fallback;
+                    state.openExternal.classList.remove('disabled');
+                    state.openExternal.setAttribute('aria-disabled', 'false');
+                }
+            } else if (state.openExternal) {
+                state.openExternal.removeAttribute('href');
+                state.openExternal.classList.add('disabled');
+                state.openExternal.setAttribute('aria-disabled', 'true');
+            }
+
+            const safeMessage = message || 'Unable to embed this document.';
+            state.error.innerHTML = `<strong>We couldn't embed this document.</strong> ${safeMessage}${fallbackHtml}`;
+        }
+
+        function buildDocumentEmbedUrl(options) {
+            const {
+                provider,
+                sourceType,
+                embedUrl,
+                fallbackEmbedUrl,
+                previewUrl,
+                downloadUrl,
+                fileType,
+                externalFileId
+            } = options;
+
+            let candidate = embedUrl || fallbackEmbedUrl || previewUrl || '';
+
+            if (!candidate && provider === 'google' && externalFileId) {
+                candidate = `https://docs.google.com/document/d/${externalFileId}/edit`;
+            }
+
+            if (!candidate && downloadUrl) {
+                if (fileType && fileType.toLowerCase().includes('pdf')) {
+                    return `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(downloadUrl)}`;
+                }
+
+                candidate = downloadUrl;
+            }
+
+            if (!candidate) {
+                return null;
+            }
+
+            try {
+                const parsed = new URL(candidate);
+
+                if (provider === 'google' || sourceType === 'GoogleDrive') {
+                    parsed.searchParams.set('rm', 'embedded');
+                    parsed.searchParams.set('embedded', 'true');
+                    return parsed.toString();
+                }
+
+                if (provider === 'microsoft' || provider === 'onedrive' || sourceType === 'OneDrive') {
+                    if (parsed.hostname.includes('onedrive.live.com')) {
+                        const resid = parsed.searchParams.get('resid');
+                        const cid = parsed.searchParams.get('cid');
+                        const authkey = parsed.searchParams.get('authkey');
+                        const action = parsed.searchParams.get('action');
+
+                        if (resid) {
+                            const embedParams = new URLSearchParams();
+                            embedParams.set('resid', resid);
+                            if (cid) {
+                                embedParams.set('cid', cid);
+                            }
+                            if (authkey) {
+                                embedParams.set('authkey', authkey);
+                            }
+                            embedParams.set('action', action || 'edit');
+                            embedParams.set('em', '2');
+                            embedParams.set('wdAllowInteractivity', '1');
+                            embedParams.set('wdDownloadButton', '0');
+                            embedParams.set('wdInConfigurator', '1');
+                            return `https://onedrive.live.com/embed?${embedParams.toString()}`;
+                        }
+                    }
+
+                    if (parsed.hostname.includes('sharepoint.com')) {
+                        parsed.searchParams.set('web', '1');
+                        parsed.searchParams.set('wdAllowInteractivity', '1');
+                        parsed.searchParams.set('action', parsed.searchParams.get('action') || 'edit');
+                        return parsed.toString();
+                    }
+
+                    if (downloadUrl) {
+                        return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(downloadUrl)}`;
+                    }
+                }
+
+                return parsed.toString();
+            } catch (error) {
+                console.warn('Unable to normalize embed URL', candidate, error);
+                return candidate;
+            }
+        }
+
+        function formatProviderLabel(provider, sourceType) {
+            if (!provider && sourceType) {
+                provider = sourceType.toLowerCase();
+            }
+
+            switch (provider) {
+                case 'google':
+                case 'googledrive':
+                    return 'Google Drive';
+                case 'microsoft':
+                case 'onenote':
+                case 'onedrive':
+                case 'sharepoint':
+                    return 'Microsoft OneDrive';
+                case 'internal':
+                    return 'Internal Storage';
+                default:
+                    if (sourceType === 'GoogleDrive') {
+                        return 'Google Drive';
+                    }
+                    if (sourceType === 'OneDrive') {
+                        return 'Microsoft OneDrive';
+                    }
+                    if (!provider) {
+                        return 'Document';
+                    }
+                    return provider.charAt(0).toUpperCase() + provider.slice(1);
+            }
+        }
+
+        function buildDocumentMetaLine(author, modifiedIso, status) {
+            const parts = [];
+
+            if (author) {
+                parts.push(author);
+            }
+
+            const date = parseIsoDate(modifiedIso);
+            if (date) {
+                parts.push(`Updated ${date.toLocaleString()}`);
+            }
+
+            if (status) {
+                parts.push(status);
+            }
+
+            return parts.join(' · ');
+        }
+
+        function parseIsoDate(isoString) {
+            if (!isoString) {
+                return null;
+            }
+
+            const parsed = new Date(isoString);
+            if (Number.isNaN(parsed.valueOf())) {
+                return null;
+            }
+
+            return parsed;
+        }
+        */
+        // Documents lazy loading (similar to email inbox)
+        let documentsPaginationState = {
+            skip: 0,
+            hasMore: true,
+            loading: false,
+            currentSourceType: null
+        };
+
+        function initDocumentsLazyLoading() {
+            // Load initial documents if we have less than 25 rendered
+            const initialDocs = document.querySelectorAll('#documentsContainer > a');
+            if (initialDocs.length > 0) {
+                documentsPaginationState.skip = initialDocs.length;
+            }
+
+            // Set up scroll listener for infinite scroll
+            let scrollTimeout;
+            window.addEventListener('scroll', () => {
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(() => {
+                    if (documentsPaginationState.loading || !documentsPaginationState.hasMore) return;
+                    
+                    // Check if user scrolled near bottom (within 200px)
+                    const scrollPosition = window.innerHeight + window.scrollY;
+                    const documentHeight = document.documentElement.scrollHeight;
+                    
+                    if (scrollPosition >= documentHeight - 200) {
+                        loadMoreDocuments();
+                    }
+                }, 100);
+            });
+        }
+
+        async function loadMoreDocuments() {
+            if (documentsPaginationState.loading || !documentsPaginationState.hasMore) return;
+            
+            documentsPaginationState.loading = true;
+            const loadingIndicator = document.getElementById('documentsLoadingIndicator');
+            const emptyState = document.getElementById('documentsEmptyState');
+            
+            if (loadingIndicator) loadingIndicator.style.display = 'block';
+            if (emptyState) emptyState.style.display = 'none';
+            
+            try {
+                const orgId = getCurrentOrganizationId();
+                if (!orgId) {
+                    throw new Error('Organization ID not found');
+                }
+                
+                const params = new URLSearchParams({
+                    orgId: orgId.toString(),
+                    skip: documentsPaginationState.skip.toString(),
+                    take: '25'
+                });
+                
+                if (documentsPaginationState.currentSourceType) {
+                    params.set('sourceType', documentsPaginationState.currentSourceType);
+                }
+                
+                const response = await fetch(`/api/documents/list?${params.toString()}`);
+                const result = await response.json();
+                
+                if (loadingIndicator) loadingIndicator.style.display = 'none';
+                
+                if (result.success && result.documents && result.documents.length > 0) {
+                    const container = document.getElementById('documentsContainer');
+                    if (container) {
+                        result.documents.forEach(doc => {
+                            container.appendChild(createDocumentCard(doc));
+                        });
+                    }
+                    
+                    documentsPaginationState.skip += result.documents.length;
+                    documentsPaginationState.hasMore = result.hasMore;
+                } else {
+                    documentsPaginationState.hasMore = false;
+                    if (emptyState && documentsPaginationState.skip === 0) {
+                        emptyState.style.display = 'block';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading more documents:', error);
+                if (loadingIndicator) loadingIndicator.style.display = 'none';
+            } finally {
+                documentsPaginationState.loading = false;
+            }
+        }
+
+        function createDocumentCard(doc) {
+            const location = extractLocation(doc.metadata || {});
+            const visibility = doc.metadata?.visibility || 'Private';
+            const fileSize = doc.metadata?.size || null;
+            const sourceType = doc.sourceType || 'InternalUpload';
+            const status = doc.status || 'Draft';
+            const author = doc.author || 'Unknown';
+            const modifiedDate = new Date(doc.modifiedAt || doc.modified);
+            
+            const orgId = getCurrentOrganizationId();
+            const card = document.createElement('div');
+            card.className = 'col-12';
+            
+            const statusClass = getStatusClass(status);
+            const isClickable = isStatusInteractive(status);
+            
+            // Determine icon based on source type
+            let iconClass = 'fas fa-file';
+            let iconBgColor = 'bg-primary bg-opacity-10';
+            let iconStyle = '';
+            
+            if (sourceType === 'GoogleDrive') {
+                iconClass = 'fab fa-google';
+                iconBgColor = 'bg-light';
+                iconStyle = 'font-size: 1.5rem; color: #4285f4;';
+            } else if (sourceType === 'OneDrive') {
+                iconClass = 'fab fa-windows';
+                iconBgColor = 'bg-light';
+                iconStyle = 'font-size: 1.5rem; color: #0078d4;';
+            } else {
+                iconStyle = 'font-size: 1.5rem;';
+            }
+            
+            card.innerHTML = `
+                <a href="javascript:void(0);" onclick="navigateToDocument(event, '/Client/${orgId}/Documents/${doc.id}');" class="text-decoration-none" style="color: inherit;">
+                    <div class="card document-card border-0 mb-3" style="cursor: pointer;">
+                        <div class="card-body p-4" style="position: relative;">
+                            <div class="position-absolute" style="top: 1rem; right: 1rem;">
+                                <div class="d-flex flex-column align-items-end gap-2">
+                                    <span class="badge ${statusClass} ${isClickable ? 'document-status-badge-clickable' : ''}" 
+                                          data-document-id="${doc.id}"
+                                          data-current-status="${status}"
+                                          style="font-size: 0.65rem; padding: 0.2rem 0.5rem; line-height: 1.3; ${isClickable ? 'cursor: pointer;' : ''}">
+                                        ${status}
+                                    </span>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <button type="button" 
+                                            class="btn btn-sm btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center" 
+                                            title="Download" 
+                                            style="width: 36px; height: 36px; padding: 0; margin: 0; border: 1px solid; line-height: 1;"
+                                            onclick="event.stopPropagation(); event.preventDefault(); downloadDocument('${doc.id}');">
+                                        <i class="fas fa-download" style="font-size: 0.875rem; line-height: 1;"></i>
+                                    </button>
+                                    <button type="button" 
+                                            class="btn btn-sm btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center" 
+                                            title="Share" 
+                                            style="width: 36px; height: 36px; padding: 0; margin: 0; border: 1px solid; line-height: 1;"
+                                            onclick="event.stopPropagation(); event.preventDefault();">
+                                        <i class="fas fa-share-alt" style="font-size: 0.875rem; line-height: 1;"></i>
+                                    </button>
+                                    <button type="button" 
+                                            class="btn btn-sm btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center" 
+                                            title="More options" 
+                                            style="width: 36px; height: 36px; padding: 0; margin: 0; border: 1px solid; line-height: 1;"
+                                            onclick="event.stopPropagation(); event.preventDefault();">
+                                        <i class="fas fa-ellipsis-h" style="font-size: 0.875rem; line-height: 1;"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-start mb-3">
+                            <div class="p-3 ${iconBgColor} rounded-3 me-3 flex-shrink-0">
+                                <i class="${iconClass}" style="${iconStyle}"></i>
+                            </div>
+                            <div class="flex-grow-1 min-width-0">
+                                <h5 class="fw-bold text-dark mb-1" style="font-size: 1.1rem; line-height: 1.3;">${escapeHtml(doc.title || doc.name)}</h5>
+                                <div class="d-flex align-items-center text-muted small mb-2" style="font-size: 0.85rem;">
+                                    <i class="fas fa-folder me-2" style="font-size: 0.75rem;"></i>
+                                    <span>${escapeHtml(location)}</span>
+                                </div>
+                            </div>
+                        </div>
+                        ${doc.metadata?.clientName ? `<div class="d-flex flex-wrap gap-2 mb-3"><span class="badge bg-secondary" style="font-size: 0.6rem;">${escapeHtml(doc.metadata.clientName)}</span></div>` : ''}
+                        <div class="border-top pt-3">
+                            <div class="d-flex flex-wrap align-items-center gap-3 text-muted small" style="font-size: 0.8rem;">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-user me-2"></i>
+                                    <span>${escapeHtml(author)}</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-calendar me-2"></i>
+                                    <span>Modified ${modifiedDate.toISOString().split('T')[0]}</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <i class="${getVisibilityIcon(visibility)} me-2"></i>
+                                    <span>${escapeHtml(visibility)}</span>
+                                </div>
+                                ${fileSize ? `<div class="d-flex align-items-center"><span>${escapeHtml(fileSize)}</span></div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            `;
+            
+            attachDocumentStatusHandlers(card);
+            
+            return card;
+        }
+
+        function extractLocation(metadata) {
+            if (!metadata) return 'Root';
+            
+            // For OneDrive: parentPath format is like "/drive/root:/Folder/Subfolder"
+            if (metadata.parentPath) {
+                const path = metadata.parentPath.replace('/drive/root:', '').trimStart('/');
+                if (path && path !== 'root') {
+                    const pathParts = path.split('/').filter(p => p);
+                    if (pathParts.length > 0) {
+                        return pathParts[pathParts.length - 1];
+                    }
+                    return path;
+                }
+            }
+            
+            // For Google Drive: check parentFolderName first
+            if (metadata.parentFolderName) return metadata.parentFolderName;
+            if (metadata.driveFolder) return metadata.driveFolder;
+            if (metadata.folderName) return metadata.folderName;
+            
+            return 'Root';
+        }
+
+        function isStatusInteractive(status) {
+            return status === 'Draft' || status === 'Review' || status === 'Final' || status === 'Published';
+        }
+
+        function getStatusClass(status) {
+            switch (status) {
+                case 'Final':
+                case 'Published':
+                    return 'bg-success text-white';
+                case 'Draft':
+                    return 'bg-primary text-white';
+                case 'Review':
+                    return 'bg-warning text-dark';
+                default:
+                    return 'bg-secondary text-white';
+            }
+        }
+
+        function getVisibilityIcon(visibility) {
+            switch (visibility) {
+                case 'Public':
+                    return 'fas fa-globe';
+                case 'Team':
+                    return 'fas fa-users';
+                case 'Private':
+                    return 'fas fa-lock';
+                default:
+                    return 'fas fa-lock';
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Navigate to document (used by card click)
+        function navigateToDocument(event, url) {
+            // Don't navigate if clicking on badge, buttons, or their children
+            if (event && event.target) {
+                const target = event.target;
+                
+                // Check if clicking on badge
+                if (target.classList && target.classList.contains('badge')) {
+                    return false;
+                }
+                
+                // Check if clicking on button
+                if (target.classList && target.classList.contains('btn')) {
+                    return false;
+                }
+                
+                // Check if clicking on icon inside button
+                if (target.closest('button')) {
+                    return false;
+                }
+                
+                // Check if clicking on icon inside badge
+                if (target.closest('.badge')) {
+                    return false;
+                }
+            }
+            
+            // Check if the event was marked as handled by a child element
+            if (event && event.__handled) {
+                return false;
+            }
+            
+            window.location.href = url;
+            return false;
+        }
+
+        // Cycle document status: Draft -> Review -> Final -> Draft
+        async function cycleDocumentStatus(badgeElement, event) {
+            // Mark event as handled and prevent all propagation
+            if (event) {
+                event.__handled = true;
+                event.stopPropagation();
+                event.preventDefault();
+                event.stopImmediatePropagation();
+            }
+            
+            const documentId = badgeElement.getAttribute('data-document-id');
+            const currentStatus = badgeElement.getAttribute('data-current-status');
+            
+            if (!documentId) {
+                console.error('Document ID not found');
+                return false;
+            }
+            
+            // Determine next status in cycle: Draft -> Review -> Final -> Draft
+            let nextStatus;
+            switch (currentStatus) {
+                case 'Draft':
+                    nextStatus = 'Review';
+                    break;
+                case 'Review':
+                    nextStatus = 'Final';
+                    break;
+                case 'Final':
+                case 'Published':
+                    nextStatus = 'Draft';
+                    break;
+                default:
+                    nextStatus = 'Draft';
+            }
+            
+            // Disable badge during update
+            badgeElement.style.opacity = '0.6';
+            badgeElement.style.pointerEvents = 'none';
+            
+            try {
+                const orgId = getCurrentOrganizationId();
+                const url = `/api/documents/${documentId}/status${orgId ? `?orgId=${orgId}` : ''}`;
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        status: nextStatus // Send as string: "Draft", "Review", "Final", or "Published"
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Update badge appearance
+                    badgeElement.textContent = nextStatus;
+                    badgeElement.setAttribute('data-current-status', nextStatus);
+                    
+                    // Update badge class based on new status
+                    const isClickable = isStatusInteractive(nextStatus);
+                    const updatedClasses = ['badge', getStatusClass(nextStatus)];
+                    if (isClickable) {
+                        updatedClasses.push('document-status-badge-clickable');
+                    }
+                    badgeElement.className = updatedClasses.join(' ');
+                    
+                    // Update clickability styling and handler
+                    badgeElement.style.cursor = isClickable ? 'pointer' : 'default';
+                    badgeElement.removeAttribute('onclick');
+                    if (isClickable) {
+                        attachDocumentStatusHandlers(badgeElement);
+                    }
+                    
+                    // Update badge styling to match Matter Folders
+                    badgeElement.style.fontSize = '0.65rem';
+                    badgeElement.style.padding = '0.2rem 0.5rem';
+                    badgeElement.style.lineHeight = '1.3';
+                    
+                    // Show notification
+                    const statusMessage = nextStatus === 'Final' ? 'Marked as Complete' : `Marked as ${nextStatus}`;
+                    showStatusNotification(statusMessage);
+                    
+                    console.log(`Document ${documentId} status updated to ${nextStatus}`);
+                } else {
+                    console.error('Failed to update document status:', result.error);
+                    showStatusNotification(`Failed to update status: ${result.error || 'Unknown error'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error updating document status:', error);
+                showStatusNotification('An error occurred while updating the document status', 'error');
+            } finally {
+                // Re-enable badge
+                badgeElement.style.opacity = '1';
+                badgeElement.style.pointerEvents = 'auto';
+            }
+            
+            return false;
+        }
+
+        // Show status notification
+        function showStatusNotification(message, type = 'success') {
+            const notificationBar = document.getElementById('statusNotificationBar');
+            const notificationText = document.getElementById('notificationText');
+            
+            notificationText.textContent = message;
+            
+            // Update icon and color based on type
+            const icon = notificationBar.querySelector('.notification-icon');
+            const content = notificationBar.querySelector('.notification-content');
+            
+            if (type === 'error') {
+                icon.className = 'fas fa-exclamation-circle notification-icon';
+                content.style.color = '#dc3545';
+            } else {
+                icon.className = 'fas fa-check-circle notification-icon';
+                content.style.color = '#28a745';
+            }
+            
+            // Show notification
+            notificationBar.classList.add('show');
+            
+            // Auto-hide after 3 seconds
+            setTimeout(() => {
+                notificationBar.classList.remove('show');
+            }, 3000);
+        }
+
+        function attachDocumentStatusHandlers(root = document) {
+            let badges = [];
+
+            if (root && (root instanceof Element || (typeof DocumentFragment !== 'undefined' && root instanceof DocumentFragment))) {
+                if (root.classList && root.classList.contains('document-status-badge-clickable')) {
+                    badges.push(root);
+                }
+                badges = badges.concat(Array.from(root.querySelectorAll('.document-status-badge-clickable')));
+            } else {
+                badges = Array.from(document.querySelectorAll('.document-status-badge-clickable'));
+            }
+
+            badges.forEach(badge => {
+                if (badge.dataset && badge.dataset.statusHandlerAttached === 'true') {
+                    return;
+                }
+
+                if (badge.dataset) {
+                    badge.dataset.statusHandlerAttached = 'true';
+                }
+
+                badge.addEventListener('click', event => {
+                    cycleDocumentStatus(badge, event);
+                });
+            });
+        }
     </script>
+    
+    <!-- Floating Notification Bar -->
+    <div id="statusNotificationBar" class="status-notification-bar">
+        <div class="notification-content">
+            <i class="fas fa-check-circle notification-icon"></i>
+            <span id="notificationText">Status updated</span>
+        </div>
+    </div>
+    
+    <style>
+        .document-status-badge-clickable {
+            position: relative;
+            z-index: 10;
+            pointer-events: auto !important;
+        }
+        
+        .document-status-badge-clickable:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+            transition: all 0.2s ease;
+        }
+        
+        /* Ensure the badge container doesn't capture clicks */
+        .document-card > .card-body > .position-absolute {
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        .document-card > .card-body > .position-absolute > * {
+            pointer-events: auto;
+        }
+        
+        /* Floating Notification Bar */
+        .status-notification-bar {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(150px);
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .status-notification-bar.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .notification-content {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #28a745;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        
+        .notification-icon {
+            font-size: 1.2rem;
+        }
+    </style>
 }
 
 @functions {
@@ -679,6 +2005,42 @@
             DocumentStatus.Review => "bg-warning text-dark",
             _ => "bg-secondary text-white"
         };
+    }
+
+    string GetStatusIcon(DocumentStatus status)
+    {
+        return status switch
+        {
+            DocumentStatus.Final or DocumentStatus.Published => "fas fa-check-circle",
+            DocumentStatus.Draft => "fas fa-file-alt",
+            DocumentStatus.Review => "fas fa-eye",
+            _ => "fas fa-file"
+        };
+    }
+
+    string GetDocumentProvider(Document doc)
+    {
+        if (doc.Metadata != null && doc.Metadata.TryGetValue("provider", out var provider) && !string.IsNullOrWhiteSpace(provider))
+        {
+            return provider!.ToLowerInvariant();
+        }
+
+        return doc.SourceType switch
+        {
+            DocumentSourceType.GoogleDrive => "google",
+            DocumentSourceType.OneDrive => "microsoft",
+            _ => "internal"
+        };
+    }
+
+    string GetPrimaryOpenUrl(Document doc)
+    {
+        return doc.EmbedUrl ?? doc.PreviewUrl ?? doc.DownloadUrl ?? string.Empty;
+    }
+
+    string FormatIso8601(DateTime value)
+    {
+        return value.ToString("O", System.Globalization.CultureInfo.InvariantCulture);
     }
 }
 

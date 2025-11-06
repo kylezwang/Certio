@@ -7,6 +7,10 @@
     <link rel="stylesheet" href="~/css/communications-sidebar.css" />
     <link rel="stylesheet" href="~/css/notifications-sidebar.css" />
     <link rel="stylesheet" href="~/css/communications.css" />
+    @if (IsSectionDefined("PageStyles"))
+    {
+        @RenderSection("PageStyles", required: false)
+    }
 }
 
 <!-- Critical CSS for instant page render - prevents white flash -->
@@ -1750,7 +1754,7 @@
                 </div>
                 <div class="nav-item">
                     <a href="/Client/@ViewBag.OrganizationId/Documents" 
-                       class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Documents" ? "active" : "")">
+                       class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Documents" ? "active" : "")">
                         <i class="fas fa-file-alt"></i>
                         <span>Documents</span>
                     </a>
@@ -1853,7 +1857,7 @@
                         </li>
                         <li>
                             <a asp-controller="Home" asp-action="Documents" 
-                               class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["action"]?.ToString() == "Documents" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")"
+                               class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["controller"]?.ToString() == "Documents" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")"
                                data-bs-dismiss="offcanvas">
                                 <i class="fas fa-file-alt fs-5"></i>
                                 <span class="fw-medium">Documents</span>

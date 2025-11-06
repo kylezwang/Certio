@@ -811,21 +811,70 @@ public class DriveOAuthController : Controller
             var connections = await _dbContext.ExternalConnections
                 .AsNoTracking()
                 .Where(ec => ec.OrgId == documentOrgId && ec.UserId == documentUserId)
-                .Select(ec => new { ec.Provider, ec.CreatedAt, ec.UpdatedAt })
                 .ToListAsync(cancellationToken);
 
             var googleConnection = connections.FirstOrDefault(c => c.Provider == ExternalConnectionProvider.Google);
             var microsoftConnection = connections.FirstOrDefault(c => c.Provider == ExternalConnectionProvider.Microsoft);
 
+            string? googleEmail = null;
+            string? microsoftEmail = null;
+
+            // Fetch email addresses from providers
+            if (googleConnection != null)
+            {
+                try
+                {
+                    var accessToken = DecryptToken(googleConnection.AccessToken);
+                    if (googleConnection.TokenExpiry > DateTime.UtcNow.AddMinutes(5))
+                    {
+                        using var httpClient = _httpClientFactory.CreateClient();
+                        httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+                        var response = await httpClient.GetAsync("https://www.googleapis.com/oauth2/v2/userinfo", cancellationToken);
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var userInfo = await response.Content.ReadFromJsonAsync<GoogleUserInfo>(cancellationToken: cancellationToken);
+                            googleEmail = userInfo?.Email;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to fetch Google Drive user email");
+                }
+            }
+
+            if (microsoftConnection != null)
+            {
+                try
+                {
+                    var accessToken = DecryptToken(microsoftConnection.AccessToken);
+                    if (microsoftConnection.TokenExpiry > DateTime.UtcNow.AddMinutes(5))
+                    {
+                        using var httpClient = _httpClientFactory.CreateClient();
+                        httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+                        var response = await httpClient.GetAsync("https://graph.microsoft.com/v1.0/me", cancellationToken);
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var userInfo = await response.Content.ReadFromJsonAsync<MicrosoftUserInfo>(cancellationToken: cancellationToken);
+                            microsoftEmail = userInfo?.Mail ?? userInfo?.UserPrincipalName;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to fetch OneDrive user email");
+                }
+            }
+
             return Ok(new
             {
                 success = true,
                 googleDrive = googleConnection != null 
-                    ? new { connected = true, connectedAt = (DateTime?)googleConnection.CreatedAt } 
-                    : new { connected = false, connectedAt = (DateTime?)null },
+                    ? new { connected = true, connectedAt = (DateTime?)googleConnection.CreatedAt, email = (string?)googleEmail } 
+                    : new { connected = false, connectedAt = (DateTime?)null, email = (string?)null },
                 oneDrive = microsoftConnection != null 
-                    ? new { connected = true, connectedAt = (DateTime?)microsoftConnection.CreatedAt } 
-                    : new { connected = false, connectedAt = (DateTime?)null }
+                    ? new { connected = true, connectedAt = (DateTime?)microsoftConnection.CreatedAt, email = (string?)microsoftEmail } 
+                    : new { connected = false, connectedAt = (DateTime?)null, email = (string?)null }
             });
         }
         catch (Exception ex)
@@ -833,6 +882,17 @@ public class DriveOAuthController : Controller
             _logger.LogError(ex, "Error getting document connection status");
             return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, error = "Failed to get connection status" });
         }
+    }
+
+    private class GoogleUserInfo
+    {
+        public string? Email { get; set; }
+    }
+
+    private class MicrosoftUserInfo
+    {
+        public string? Mail { get; set; }
+        public string? UserPrincipalName { get; set; }
     }
 
     private IActionResult BuildDocumentOAuthView(bool success, string provider, string? accountDisplay, string? error, string? errorDescription, Guid? orgId)
