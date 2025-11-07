@@ -112,10 +112,20 @@
                         <li><a class="dropdown-item" href="#" onclick="applyFileTypeFilter('all'); return false;">All Files</a></li>
                     </ul>
                 </div>
-                <button class="filter-button">
-                    <i class="fas fa-calendar"></i>
-                    Date Range
-                </button>
+                <div class="dropdown d-inline-block">
+                    <button class="filter-button dropdown-toggle" type="button" id="dateRangeFilterBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-calendar"></i>
+                        <span id="dateRangeFilterLabel">Last 30 Days</span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dateRangeFilterBtn">
+                        <li><a class="dropdown-item" href="#" onclick="applyDateRangeFilter('last-7-days'); return false;">Last 7 Days</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="applyDateRangeFilter('last-30-days'); return false;">Last 30 Days</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="applyDateRangeFilter('last-90-days'); return false;">Last 90 Days</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="applyDateRangeFilter('this-year'); return false;">This Year</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" onclick="applyDateRangeFilter('all-time'); return false;">All Time</a></li>
+                    </ul>
+                </div>
                 <button class="filter-button" id="refreshDocumentsBtn" title="Refresh documents">
                     <i class="fas fa-sync-alt"></i>
                 </button>
@@ -336,7 +346,7 @@
                     var openUrl = GetPrimaryOpenUrl(doc);
                     var modifiedIso = FormatIso8601(doc.Modified);
                     var fileSize = doc.Metadata != null && doc.Metadata.TryGetValue("size", out var size) ? size : null;
-                    var visibility = doc.Metadata != null && doc.Metadata.TryGetValue("visibility", out var vis) ? vis : "Private";
+                    var visibility = doc.Metadata != null && doc.Metadata.TryGetValue("visibility", out var vis) && !string.IsNullOrWhiteSpace(vis) ? vis : "Private";
                     
                     // Get document location/folder path
                     var location = "Root";
@@ -1461,16 +1471,22 @@
             hasMore: true,
             loading: false,
             currentSourceType: null,
-            currentFileTypeFilter: 'google-docs' // Default to Google Docs
+            currentFileTypeFilter: 'google-docs', // Default to Google Docs
+            currentDateRange: 'last-30-days'
         };
         let documentsLazyObserver = null;
 
         function initDocumentsLazyLoading() {
-            // Load initial documents if we have less than 25 rendered
-            const initialDocs = document.querySelectorAll('[data-document-entry="true"]');
-            if (initialDocs.length > 0) {
-                documentsPaginationState.skip = initialDocs.length;
+            // Clear initial server-rendered documents since we want to filter by Google Docs by default
+            const container = document.getElementById('documentsContainer');
+            if (container) {
+                const initialDocs = container.querySelectorAll('[data-document-entry="true"]');
+                initialDocs.forEach(doc => doc.remove());
             }
+            
+            // Reset pagination state for fresh load
+            documentsPaginationState.skip = 0;
+            documentsPaginationState.hasMore = true;
 
             const sentinel = document.getElementById('documentsLazyLoadSentinel');
 
@@ -1506,11 +1522,9 @@
                 });
             }
 
-            // In case the viewport is taller than the content, load more immediately
-            maybeLoadMoreDocuments();
-            
-            // Apply default Google Docs filter on page load
-            applyFileTypeFilter('google-docs', true);
+            // Apply default filters on page load (this will trigger document reload)
+            applyDateRangeFilter('last-30-days', true, true);
+            applyFileTypeFilter('google-docs', false); // false = reload documents with filter
         }
 
         async function loadMoreDocuments() {
@@ -1541,6 +1555,10 @@
                 
                 if (documentsPaginationState.currentFileTypeFilter && documentsPaginationState.currentFileTypeFilter !== 'all') {
                     params.set('fileTypeFilter', documentsPaginationState.currentFileTypeFilter);
+                }
+
+                if (documentsPaginationState.currentDateRange && documentsPaginationState.currentDateRange !== 'all-time') {
+                    params.set('dateRange', documentsPaginationState.currentDateRange);
                 }
                 
                 const response = await fetch(`/api/documents/list?${params.toString()}`);
@@ -1842,6 +1860,42 @@
                 }
                 
                 // Load fresh documents with the filter
+                loadMoreDocuments();
+            }
+        }
+
+        function applyDateRangeFilter(range, skipReload = false, skipEvent = false) {
+            const dateLabel = document.getElementById('dateRangeFilterLabel');
+            const labels = {
+                'last-7-days': 'Last 7 Days',
+                'last-30-days': 'Last 30 Days',
+                'last-90-days': 'Last 90 Days',
+                'this-year': 'This Year',
+                'all-time': 'All Time'
+            };
+
+            if (dateLabel) {
+                dateLabel.textContent = labels[range] || 'Date Range';
+            }
+
+            documentsPaginationState.currentDateRange = range;
+
+            if (!skipEvent) {
+                document.dispatchEvent(new CustomEvent('documents:dateRangeChanged', {
+                    detail: { range }
+                }));
+            }
+
+            if (!skipReload) {
+                documentsPaginationState.skip = 0;
+                documentsPaginationState.hasMore = true;
+
+                const container = document.getElementById('documentsContainer');
+                if (container) {
+                    const allDocs = container.querySelectorAll('[data-document-entry="true"]');
+                    allDocs.forEach(doc => doc.remove());
+                }
+
                 loadMoreDocuments();
             }
         }

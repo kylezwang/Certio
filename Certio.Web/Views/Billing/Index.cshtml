@@ -29,14 +29,32 @@
         </div>
         <div class="col-md-4">
             <div class="filter-buttons">
-                <button class="filter-button">
-                    <i class="fas fa-filter"></i>
-                    Filter
-                </button>
-                <button class="filter-button">
-                    <i class="fas fa-calendar"></i>
-                    Date Range
-                </button>
+                <div class="dropdown d-inline-block me-2">
+                    <button class="filter-button dropdown-toggle" type="button" id="billingFilterBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-filter"></i>
+                        <span id="billingFilterLabel">All Records</span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="billingFilterBtn">
+                        <li><a class="dropdown-item billing-filter-option" href="#" data-filter="all">All Records</a></li>
+                        <li><a class="dropdown-item billing-filter-option" href="#" data-filter="time-entries">Time Entries</a></li>
+                        <li><a class="dropdown-item billing-filter-option" href="#" data-filter="expenses">Expenses</a></li>
+                        <li><a class="dropdown-item billing-filter-option" href="#" data-filter="invoices">Invoices</a></li>
+                        <li><a class="dropdown-item billing-filter-option" href="#" data-filter="trusts">Trust Activity</a></li>
+                    </ul>
+                </div>
+                <div class="dropdown d-inline-block">
+                    <button class="filter-button dropdown-toggle" type="button" id="billingDateFilterBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-calendar"></i>
+                        <span id="billingDateFilterLabel">Last 30 Days</span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="billingDateFilterBtn">
+                        <li><a class="dropdown-item billing-date-option" href="#" data-date-range="last-30-days">Last 30 Days</a></li>
+                        <li><a class="dropdown-item billing-date-option" href="#" data-date-range="last-90-days">Last 90 Days</a></li>
+                        <li><a class="dropdown-item billing-date-option" href="#" data-date-range="this-year">This Year</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item billing-date-option" href="#" data-date-range="all-time">All Time</a></li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>

@@ -2251,6 +2251,9 @@ def _is_simple_message(user_message: str, conversation_analysis: dict) -> bool:
     """Determine if this is a simple message that doesn't need complex processing"""
     message_lower = user_message.lower().strip()
     
+    if not message_lower:
+        return True
+    
     # NEVER treat "get started" queries as simple - they need comprehensive guidance
     getting_started_phrases = [
         "get started", "getting started", "let's get started", "lets get started",
@@ -2262,7 +2265,21 @@ def _is_simple_message(user_message: str, conversation_analysis: dict) -> bool:
     if any(phrase in message_lower for phrase in getting_started_phrases):
         return False  # Always treat as complex for comprehensive response
     
-    # Simple greetings
+    # Treat explicit inquiries or anything with a question mark as complex
+    if "?" in message_lower:
+        return False
+    
+    inquiry_keywords = [
+        "tell me", "tell us", "what", "who", "where", "when", "why", "how",
+        "explain", "describe", "detail", "analyze", "analysis", "review",
+        "document", "contract", "policy", "job", "role", "position",
+        "lab", "notes", "summary", "compare", "difference"
+    ]
+    
+    if any(keyword in message_lower for keyword in inquiry_keywords):
+        return False
+    
+    # Simple greetings / acknowledgements
     simple_greetings = [
         "hello", "hi", "hey", "good morning", "good afternoon", "good evening",
         "how are you", "how are you?", "what's up", "what's up?", "how's it going",
@@ -2274,17 +2291,17 @@ def _is_simple_message(user_message: str, conversation_analysis: dict) -> bool:
     if message_lower in simple_greetings:
         return True
     
-    # Very short messages
-    if len(message_lower) < 10:
+    # Very short acknowledgements (non-inquiries)
+    if len(message_lower) <= 4:
         return True
     
     # Messages that are just punctuation or numbers
-    if all(c in '.,!?;:()[]{}"\'`~@#$%^&*+=|\\/<>' or c.isdigit() or c.isspace() for c in message_lower):
+    if all(c in '.,!?;:()[]{}"\'`~@#$%^&*+=|\/<>' or c.isdigit() or c.isspace() for c in message_lower):
         return True
     
-    # If no legal content detected and message is short
-    if not conversation_analysis.get('has_legal_content', False) and len(message_lower) < 50:
-        return True
+    # Preserve messages that already triggered legal content detection
+    if conversation_analysis.get('has_legal_content', False):
+        return False
     
     return False
 
@@ -2296,6 +2313,24 @@ def _normalize_messages(messages: List[Union[dict, ChatMessage]]) -> List[Dict[s
             normalized.append(msg.model_dump())
         else:
             normalized.append(msg)
+    def _sort_key(item: Dict[str, Any]) -> datetime:
+        created_at = item.get("created_at")
+        if not created_at:
+            return datetime.min.replace(tzinfo=timezone.utc)
+        try:
+            if isinstance(created_at, (int, float)):
+                # Treat numeric timestamps as epoch seconds
+                return datetime.fromtimestamp(float(created_at), tz=timezone.utc)
+            if isinstance(created_at, datetime):
+                return created_at if created_at.tzinfo else created_at.replace(tzinfo=timezone.utc)
+            created_str = str(created_at)
+            if created_str.endswith("Z"):
+                created_str = created_str.replace("Z", "+00:00")
+            return datetime.fromisoformat(created_str)
+        except Exception:
+            return datetime.min.replace(tzinfo=timezone.utc)
+
+    normalized.sort(key=_sort_key)
     return normalized
 
 def _format_messages_for_context(messages: List[Dict[str, Any]], max_messages: Optional[int] = None) -> str:
@@ -2527,7 +2562,7 @@ def _build_document_context_section(document_context: Optional[dict], summary_li
         return ""
 
     section_lines: List[str] = []
-    doc_count = document_context.get("documentCount", "0")
+    doc_count = document_context.get("documentContentDocumentCount") or document_context.get("documentCount") or "0"
     provider_breakdown = document_context.get("providerBreakdown", "unknown")
 
     section_lines.append("# RELEVANT DOCUMENTS FROM YOUR ORGANIZATION")
@@ -2546,26 +2581,78 @@ def _build_document_context_section(document_context: Optional[dict], summary_li
             if contents:
                 section_lines.append("")
                 section_lines.append("## Live Excerpts")
+                doc_groups: Dict[str, Dict[str, Any]] = {}
+
+                def _get_value(data: Dict[str, Any], *keys: str, default: Any = None) -> Any:
+                    for key in keys:
+                        if key in data:
+                            return data[key]
+                    return default
+
+                def _as_bool(value: Any) -> bool:
+                    if isinstance(value, bool):
+                        return value
+                    if value is None:
+                        return False
+                    return str(value).strip().lower() == "true"
+
                 for snippet in contents:
-                    title = snippet.get("title", "Untitled Document")
-                    provider = snippet.get("provider", "unknown")
-                    content_type = snippet.get("contentType", "unknown")
-                    excerpt = snippet.get("excerpt", "")
+                    if not isinstance(snippet, dict):
+                        continue
+
+                    document_id = _get_value(snippet, "documentId", "DocumentId", default=str(len(doc_groups)))
+                    title = _get_value(snippet, "title", "Title", default="Untitled Document")
+                    provider = _get_value(snippet, "provider", "Provider", default="unknown")
+                    content_type = _get_value(snippet, "contentType", "ContentType", default="unknown")
+                    metadata = _get_value(snippet, "metadata", "Metadata", default={}) or {}
+
+                    doc_entry = doc_groups.setdefault(document_id, {
+                        "title": title,
+                        "provider": provider,
+                        "content_type": content_type,
+                        "notes": set(),
+                        "chunks": []
+                    })
+
+                    has_content = _as_bool(_get_value(snippet, "hasContent", "HasContent"))
+                    is_partial = _as_bool(_get_value(snippet, "isPartial", "IsPartial"))
+                    is_truncated = _as_bool(_get_value(snippet, "isTruncated", "IsTruncated"))
+
+                    if not has_content:
+                        doc_entry["notes"].add("content not yet extracted")
+                    if is_partial:
+                        doc_entry["notes"].add("partial extraction")
+                    if is_truncated:
+                        doc_entry["notes"].add("excerpt shortened for prompt")
+
+                    chunk_index = _get_value(snippet, "chunkIndex", "ChunkIndex", default=len(doc_entry["chunks"]))
+                    batch_position = _get_value(metadata, "batchPosition", "batch_position", default=len(doc_entry["chunks"]) + 1)
+                    chunk_source = _get_value(metadata, "chunkSource", "chunk_source", default="vector")
+
+                    raw_excerpt = _get_value(snippet, "excerpt", "Excerpt", default="")
+                    excerpt = (raw_excerpt or "").strip()
                     if excerpt and len(excerpt) > excerpt_limit:
                         excerpt = excerpt[:excerpt_limit].rstrip() + " …"
 
-                    notes = []
-                    if not snippet.get("hasContent", False):
-                        notes.append("content not yet extracted")
-                    if snippet.get("isPartial", False):
-                        notes.append("partial extraction")
-                    if snippet.get("isTruncated", False):
-                        notes.append("excerpt shortened for prompt")
+                    doc_entry["chunks"].append({
+                        "order": int(batch_position) if str(batch_position).isdigit() else len(doc_entry["chunks"]) + 1,
+                        "chunk_index": chunk_index,
+                        "source": str(chunk_source),
+                        "excerpt": excerpt
+                    })
 
-                    section_lines.append(f"Document: {title} (Provider: {provider}, Type: {content_type})")
-                    if notes:
-                        section_lines.append(f"Notes: {', '.join(notes)}")
-                    section_lines.append(f"{excerpt}")
+                for doc in doc_groups.values():
+                    section_lines.append(f"Document: {doc['title']} (Provider: {doc['provider']}, Type: {doc['content_type']})")
+                    if doc["notes"]:
+                        section_lines.append(f"Notes: {', '.join(sorted(doc['notes']))}")
+
+                    ordered_chunks = sorted(doc["chunks"], key=lambda c: c["order"])
+                    for chunk in ordered_chunks:
+                        section_lines.append(f"- Segment {chunk['order']} (chunk {chunk['chunk_index']}, source: {chunk['source']})")
+                        if chunk["excerpt"]:
+                            section_lines.append(f"  {chunk['excerpt']}")
+                        else:
+                            section_lines.append("  [No text extracted]")
                     section_lines.append("")
         except Exception as exc:
             logger.warning("Failed to parse documentContents for prompt enrichment: %s", exc)

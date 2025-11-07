@@ -149,6 +149,10 @@ class IntelligentContextManager:
         recency_factor = 1.0 - (message_index / len(all_messages)) * 0.3
         score += recency_factor * 0.2
         
+        # Ensure the very first user message is preserved for context
+        if message_index == 0 and not is_ai:
+            score += 0.25
+
         # Higher importance for user messages (not AI)
         if not is_ai:
             score += 0.2

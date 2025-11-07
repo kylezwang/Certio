@@ -5,9 +5,14 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Certio.Application.Interfaces;
 using Certio.Application.Services;
+using Certio.Application.Services.Documents;
 using Certio.Domain.Services;
+using Certio.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Moq;
 using Xunit;
 
 namespace Certio.Tests.Services;
@@ -38,7 +43,19 @@ public class AIAgentServiceTests
             })
             .Build();
 
-        var service = new AIAgentService(httpClient, configuration);
+        var ragContextService = new Mock<IRagContextService>();
+        var documentContentService = new Mock<IDocumentContentService>();
+        documentContentService
+            .Setup(s => s.FetchContentAsync(It.IsAny<Certio.Domain.Documents.Document>(), It.IsAny<Guid?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(DocumentContentResult.Empty("not_used"));
+
+        var dbOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+
+        using var dbContext = new ApplicationDbContext(dbOptions);
+
+        var service = new AIAgentService(httpClient, configuration, ragContextService.Object, dbContext, documentContentService.Object);
 
         // Act
         await service.SummarizeConversationAsync("123", new List<ChatMessage>());

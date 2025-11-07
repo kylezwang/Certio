@@ -23,10 +23,22 @@
           "Certio.Tests.dll": {}
         }
       },
+      "Azure.AI.DocumentIntelligence/1.0.0": {
+        "dependencies": {
+          "Azure.Core": "1.44.1",
+          "System.ClientModel": "1.2.1"
+        },
+        "runtime": {
+          "lib/net8.0/Azure.AI.DocumentIntelligence.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.24.61602"
+          }
+        }
+      },
       "Azure.AI.OpenAI/1.0.0-beta.13": {
         "dependencies": {
-          "Azure.Core": "1.38.0",
-          "System.ClientModel": "1.0.0",
+          "Azure.Core": "1.44.1",
+          "System.ClientModel": "1.2.1",
           "System.Text.Json": "9.0.9"
         },
         "runtime": {
@@ -36,10 +48,10 @@
           }
         }
       },
-      "Azure.Core/1.38.0": {
+      "Azure.Core/1.44.1": {
         "dependencies": {
           "Microsoft.Bcl.AsyncInterfaces": "8.0.0",
-          "System.ClientModel": "1.0.0",
+          "System.ClientModel": "1.2.1",
           "System.Diagnostics.DiagnosticSource": "8.0.0",
           "System.Memory.Data": "8.0.0",
           "System.Numerics.Vectors": "4.5.0",
@@ -49,14 +61,14 @@
         },
         "runtime": {
           "lib/net6.0/Azure.Core.dll": {
-            "assemblyVersion": "1.38.0.0",
-            "fileVersion": "1.3800.24.12602"
+            "assemblyVersion": "1.44.1.0",
+            "fileVersion": "1.4400.124.50905"
           }
         }
       },
       "Azure.Identity/1.11.4": {
         "dependencies": {
-          "Azure.Core": "1.38.0",
+          "Azure.Core": "1.44.1",
           "Microsoft.Identity.Client": "4.61.3",
           "Microsoft.Identity.Client.Extensions.Msal": "4.61.3",
           "System.Memory": "4.5.4",
@@ -941,7 +953,7 @@
       },
       "Microsoft.Kiota.Authentication.Azure/1.1.4": {
         "dependencies": {
-          "Azure.Core": "1.38.0",
+          "Azure.Core": "1.44.1",
           "Microsoft.Kiota.Abstractions": "1.8.0",
           "System.Diagnostics.DiagnosticSource": "8.0.0"
         },
@@ -1711,15 +1723,15 @@
         }
       },
       "System.Buffers/4.6.0": {},
-      "System.ClientModel/1.0.0": {
+      "System.ClientModel/1.2.1": {
         "dependencies": {
           "System.Memory.Data": "8.0.0",
           "System.Text.Json": "9.0.9"
         },
         "runtime": {
           "lib/net6.0/System.ClientModel.dll": {
-            "assemblyVersion": "1.0.0.0",
-            "fileVersion": "1.0.24.5302"
+            "assemblyVersion": "1.2.1.0",
+            "fileVersion": "1.200.124.50905"
           }
         }
       },
@@ -2506,6 +2518,7 @@
       "xunit.runner.visualstudio/2.8.2": {},
       "Certio.Application/1.0.0": {
         "dependencies": {
+          "Azure.AI.DocumentIntelligence": "1.0.0",
           "Certio.Domain": "1.0.0",
           "Certio.Infrastructure": "1.0.0",
           "Microsoft.EntityFrameworkCore": "9.0.9",
@@ -2580,6 +2593,13 @@
       "serviceable": false,
       "sha512": ""
     },
+    "Azure.AI.DocumentIntelligence/1.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-RSpMmlRY5vvGy2TrAk4djJTqOsdHUunvhcSoSN+FJtexqZh6RFn+a2ylehIA/N+HV2IK0i+XK4VG3rDa8h2tsA==",
+      "path": "azure.ai.documentintelligence/1.0.0",
+      "hashPath": "azure.ai.documentintelligence.1.0.0.nupkg.sha512"
+    },
     "Azure.AI.OpenAI/1.0.0-beta.13": {
       "type": "package",
       "serviceable": true,
@@ -2587,12 +2607,12 @@
       "path": "azure.ai.openai/1.0.0-beta.13",
       "hashPath": "azure.ai.openai.1.0.0-beta.13.nupkg.sha512"
     },
-    "Azure.Core/1.38.0": {
+    "Azure.Core/1.44.1": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-IuEgCoVA0ef7E4pQtpC3+TkPbzaoQfa77HlfJDmfuaJUCVJmn7fT0izamZiryW5sYUFKizsftIxMkXKbgIcPMQ==",
-      "path": "azure.core/1.38.0",
-      "hashPath": "azure.core.1.38.0.nupkg.sha512"
+      "sha512": "sha512-YyznXLQZCregzHvioip07/BkzjuWNXogJEVz9T5W6TwjNr17ax41YGzYMptlo2G10oLCuVPoyva62y0SIRDixg==",
+      "path": "azure.core/1.44.1",
+      "hashPath": "azure.core.1.44.1.nupkg.sha512"
     },
     "Azure.Identity/1.11.4": {
       "type": "package",
@@ -3525,12 +3545,12 @@
       "path": "system.buffers/4.6.0",
       "hashPath": "system.buffers.4.6.0.nupkg.sha512"
     },
-    "System.ClientModel/1.0.0": {
+    "System.ClientModel/1.2.1": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-I3CVkvxeqFYjIVEP59DnjbeoGNfo/+SZrCLpRz2v/g0gpCHaEMPtWSY0s9k/7jR1rAsLNg2z2u1JRB76tPjnIw==",
-      "path": "system.clientmodel/1.0.0",
-      "hashPath": "system.clientmodel.1.0.0.nupkg.sha512"
+      "sha512": "sha512-s9+M5El+DXdCRRLzxak8uGBKWT8H/eIssGpFtpaMKdJULrQbBDPH/zFbVyHX+NDczhS5EvjHFbBH9/L+0UhmcA==",
+      "path": "system.clientmodel/1.2.1",
+      "hashPath": "system.clientmodel.1.2.1.nupkg.sha512"
     },
     "System.CodeDom/7.0.0": {
       "type": "package",
