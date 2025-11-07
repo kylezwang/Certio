@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Depends, Request, status
 from pydantic import BaseModel
-from typing import List, Dict, Any, Optional, Union
+from typing import List, Dict, Any, Optional, Tuple, Union
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
@@ -208,6 +208,10 @@ context_manager = IntelligentContextManager()
 background_agent_manager = BackgroundAgentManager()
 intelligent_router = IntelligentRouter()
 # CostAnalytics removed - using simplified cost tracking
+
+# Conversation context constraints
+MAX_CONVERSATION_CONTEXT_TOKENS = int(os.getenv("AI_CONVERSATION_TOKEN_BUDGET", "4800"))
+CONVERSATION_RECENT_MESSAGE_WINDOW = max(3, int(os.getenv("AI_CONVERSATION_RECENT_WINDOW", "6")))
 
 # Pydantic models for request/response
 class ChatMessage(BaseModel):
@@ -1857,23 +1861,23 @@ Be friendly, professional, and concise. Format your response as proper HTML."""
             ])
             
             # Build document context section if available
-            doc_context_section = ""
-            if document_context:
-                combined_context = document_context.get("combinedContext", "")
-                doc_count = document_context.get("documentCount", "0")
-                doc_list_json = document_context.get("documentList", "[]")
-                provider_breakdown = document_context.get("providerBreakdown", "")
-                
-                if combined_context:
-                    doc_context_section = f"""
+            doc_context_section = _build_document_context_section(document_context)
+            
+            history_block, context_metadata = await _prepare_conversation_history(
+                messages,
+                user_type,
+                conversation_analysis,
+                token_budget=MAX_CONVERSATION_CONTEXT_TOKENS
+            )
 
-# RELEVANT DOCUMENTS FROM YOUR ORGANIZATION
-You have access to {doc_count} relevant document(s) from: {provider_breakdown}
-
-## Document Content:
-{combined_context[:3000]}  # Limit to 3000 chars for token management
-
-NOTE: When answering questions about documents, reference these specific documents by name. Tell the user which documents contain relevant information."""
+            logger.info(
+                "Context strategy '%s' applied for conversation %s (original≈%s tokens, optimized≈%s tokens, budget=%s)",
+                context_metadata.get("history_strategy"),
+                conversation_id or "unknown",
+                context_metadata.get("original_token_estimate"),
+                context_metadata.get("optimized_token_estimate"),
+                context_metadata.get("token_budget")
+            )
             
             base_system_prompt = f"""You are Notal AI, an advanced legal assistant. Provide a comprehensive response that includes both conversation and analysis.
 
@@ -1884,13 +1888,13 @@ CONVERSATION CONTEXT:
 - Urgency: {conversation_analysis.get('urgency_level', 'Medium')}
 - Conversation Stage: {conversation_analysis.get('conversation_stage', 'Initial')}
 
-RECENT CONVERSATION:
-{_build_conversation_context(messages, 6)}
+OPTIMIZED CONVERSATION HISTORY ({context_metadata.get('history_strategy', 'full')}):
+{history_block}
 
 CURRENT REQUEST: {user_message}{doc_context_section}"""  # Close the base prompt here
 
             # Enhance prompt with RAG context for Certio-specific knowledge
-            conversation_context = {
+            conversation_context_payload = {
                 "user_type": user_type,
                 "message_count": len(messages),
                 "legal_topics": conversation_analysis.get('legal_topics', []),
@@ -1903,9 +1907,9 @@ CURRENT REQUEST: {user_message}{doc_context_section}"""  # Close the base prompt
             # Enhanced RAG system supports user_type parameter for better context
             if RAG_SYSTEM == "enhanced":
                 enhanced_prompt = enhance_agent_prompt("ConversationalAI", base_system_prompt, user_message, 
-                                                      user_type=user_type, conversation_context=conversation_context)
+                                                      user_type=user_type, conversation_context=conversation_context_payload)
             else:
-                enhanced_prompt = enhance_agent_prompt("ConversationalAI", base_system_prompt, user_message, conversation_context)
+                enhanced_prompt = enhance_agent_prompt("ConversationalAI", base_system_prompt, user_message, conversation_context_payload)
             logger.info(f"✅ RAG enhancement completed for conversational response")
             
             # Add the response requirements to the enhanced prompt
@@ -2053,23 +2057,23 @@ IMPORTANT: Return ONLY the HTML content with <p> tags and <br> for line breaks. 
                 ])
                 
                 # Build document context section if available
-                doc_context_section = ""
-                if document_context:
-                    combined_context = document_context.get("combinedContext", "")
-                    doc_count = document_context.get("documentCount", "0")
-                    doc_list_json = document_context.get("documentList", "[]")
-                    provider_breakdown = document_context.get("providerBreakdown", "")
-                    
-                    if combined_context:
-                        doc_context_section = f"""
+                doc_context_section = _build_document_context_section(document_context)
+                
+                history_block, context_metadata = await _prepare_conversation_history(
+                    messages,
+                    user_type,
+                    conversation_analysis,
+                    token_budget=MAX_CONVERSATION_CONTEXT_TOKENS
+                )
 
-# RELEVANT DOCUMENTS FROM YOUR ORGANIZATION
-You have access to {doc_count} relevant document(s) from: {provider_breakdown}
-
-## Document Content:
-{combined_context[:3000]}  # Limit to 3000 chars for token management
-
-NOTE: When answering questions about documents, reference these specific documents by name. Tell the user which documents contain relevant information."""
+                logger.info(
+                    "Streaming context strategy '%s' applied for conversation %s (original≈%s tokens, optimized≈%s tokens, budget=%s)",
+                    context_metadata.get("history_strategy"),
+                    conversation_id or "unknown",
+                    context_metadata.get("original_token_estimate"),
+                    context_metadata.get("optimized_token_estimate"),
+                    context_metadata.get("token_budget")
+                )
                 
                 base_system_prompt = f"""You are Notal AI, an advanced legal assistant. Provide a comprehensive, helpful response.
 
@@ -2080,13 +2084,13 @@ CONVERSATION CONTEXT:
 - Urgency: {conversation_analysis.get('urgency_level', 'Medium')}
 - Conversation Stage: {conversation_analysis.get('conversation_stage', 'Initial')}
 
-RECENT CONVERSATION:
-{_build_conversation_context(messages, 6)}
+OPTIMIZED CONVERSATION HISTORY ({context_metadata.get('history_strategy', 'full')}):
+{history_block}
 
 CURRENT REQUEST: {user_message}{doc_context_section}"""
 
                 # Enhance prompt with RAG context for Certio-specific knowledge
-                conversation_context = {
+                conversation_context_payload = {
                     "user_type": user_type,
                     "message_count": len(messages),
                     "legal_topics": conversation_analysis.get('legal_topics', []),
@@ -2098,9 +2102,9 @@ CURRENT REQUEST: {user_message}{doc_context_section}"""
                 logger.info(f"🔍 Enhancing streaming prompt with RAG for user_type: {user_type}")
                 if RAG_SYSTEM == "enhanced":
                     enhanced_prompt = enhance_agent_prompt("ConversationalAI", base_system_prompt, user_message, 
-                                                          user_type=user_type, conversation_context=conversation_context)
+                                                          user_type=user_type, conversation_context=conversation_context_payload)
                 else:
-                    enhanced_prompt = enhance_agent_prompt("ConversationalAI", base_system_prompt, user_message, conversation_context)
+                    enhanced_prompt = enhance_agent_prompt("ConversationalAI", base_system_prompt, user_message, conversation_context_payload)
                 logger.info(f"✅ RAG enhancement completed for streaming response")
                 
                 # Add the response requirements to the enhanced prompt
@@ -2284,20 +2288,292 @@ def _is_simple_message(user_message: str, conversation_analysis: dict) -> bool:
     
     return False
 
-def _build_conversation_context(messages: List[dict], max_messages: int = 6) -> str:
-    """Build conversation context from recent messages"""
+def _normalize_messages(messages: List[Union[dict, ChatMessage]]) -> List[Dict[str, Any]]:
+    """Normalize conversation messages to dictionaries"""
+    normalized: List[Dict[str, Any]] = []
+    for msg in messages:
+        if isinstance(msg, ChatMessage):
+            normalized.append(msg.model_dump())
+        else:
+            normalized.append(msg)
+    return normalized
+
+def _format_messages_for_context(messages: List[Dict[str, Any]], max_messages: Optional[int] = None) -> str:
+    """Format messages into a readable context block"""
     if not messages:
-        return "No previous conversation"
-    
-    recent_messages = messages[-max_messages:] if len(messages) > max_messages else messages
-    context_parts = []
-    
-    for msg in recent_messages:
-        user_type = msg.get('user_type', 'User')
-        content = msg.get('content', '')
-        context_parts.append(f"{user_type}: {content}")
-    
-    return "\n".join(context_parts)
+        return "No previous conversation."
+
+    selected_messages = messages[-max_messages:] if max_messages else messages
+    context_parts: List[str] = []
+
+    for msg in selected_messages:
+        speaker = msg.get("user_type") or ("AI" if msg.get("is_from_ai") else "User")
+        content = (msg.get("content") or "").strip()
+        if not content:
+            continue
+        context_parts.append(f"{speaker}: {content}")
+
+    return "\n".join(context_parts) if context_parts else "No previous conversation."
+
+def _estimate_token_count_from_text(text: str) -> int:
+    """Rough token estimate assuming ~4 characters per token"""
+    if not text:
+        return 0
+    return max(1, len(text) // 4)
+
+def _conversation_stage_to_complexity(stage: str) -> float:
+    """Convert conversation stage to approximate complexity score"""
+    stage_map = {
+        "Initial": 0.25,
+        "Early": 0.4,
+        "Developing": 0.7,
+        "Advanced": 0.9
+    }
+    return stage_map.get(stage, 0.5)
+
+def _format_summary_for_context(summary: Optional[ConversationSummary]) -> str:
+    """Convert a ConversationSummary into a context string"""
+    if not summary:
+        return "Summary unavailable."
+
+    parts = [
+        f"Summary: {summary.summary}",
+    ]
+
+    if summary.key_points:
+        parts.append("Key Points:")
+        for point in summary.key_points[:5]:
+            parts.append(f"- {point}")
+
+    if summary.suggested_actions:
+        parts.append("Suggested Actions:")
+        for action in summary.suggested_actions[:3]:
+            parts.append(f"- {action}")
+
+    if summary.urgency:
+        parts.append(f"Urgency: {summary.urgency}")
+
+    if summary.sentiment:
+        parts.append(f"Sentiment: {summary.sentiment}")
+
+    return "\n".join(parts)
+
+def _quick_local_summary(messages: List[Dict[str, Any]]) -> ConversationSummary:
+    """Generate a lightweight summary without external API calls"""
+    if not messages:
+        return ConversationSummary(
+            summary="No prior messages available.",
+            key_points=[],
+            sentiment="Neutral",
+            urgency="Low",
+            suggested_actions=[]
+        )
+
+    user_messages = [m for m in messages if not m.get("is_from_ai")]
+    ai_messages = [m for m in messages if m.get("is_from_ai")]
+
+    latest_user = user_messages[-1]["content"] if user_messages else messages[-1].get("content", "")
+    earliest_user = user_messages[0]["content"] if user_messages else latest_user
+
+    summary_parts = []
+    if earliest_user and earliest_user != latest_user:
+        summary_parts.append(f"Initial request: {earliest_user[:280]}")
+    if latest_user:
+        summary_parts.append(f"Most recent user message: {latest_user[:280]}")
+
+    if not summary_parts:
+        summary_parts.append("Conversation contains primarily AI responses.")
+
+    key_points = []
+    for msg in user_messages[-3:]:
+        content = msg.get("content", "")
+        if content:
+            key_points.append(content[:160])
+
+    sentiment = "Neutral"
+    urgency = "Low"
+    lowered = " ".join(m.get("content", "").lower() for m in user_messages[-5:])
+    if any(word in lowered for word in ["urgent", "asap", "immediately", "deadline"]):
+        urgency = "High"
+    elif any(word in lowered for word in ["today", "tomorrow", "soon"]):
+        urgency = "Medium"
+
+    if any(word in lowered for word in ["thank", "great", "awesome"]):
+        sentiment = "Positive"
+    elif any(word in lowered for word in ["upset", "frustrated", "annoyed", "angry"]):
+        sentiment = "Negative"
+
+    return ConversationSummary(
+        summary=" ".join(summary_parts),
+        key_points=key_points,
+        sentiment=sentiment,
+        urgency=urgency,
+        suggested_actions=[]
+    )
+
+async def _prepare_conversation_history(
+    messages: List[Union[dict, ChatMessage]],
+    user_type: str,
+    conversation_analysis: Dict[str, Any],
+    token_budget: Optional[int] = None
+) -> Tuple[str, Dict[str, Any]]:
+    """
+    Build conversation context with intelligent compression and summarization.
+    Implements rolling history strategy to stay within token limits.
+    """
+    if not messages:
+        return "No previous conversation.", {
+            "history_strategy": "empty",
+            "original_token_estimate": 0,
+            "optimized_token_estimate": 0
+        }
+
+    normalized_messages = _normalize_messages(messages)
+    token_budget = token_budget or MAX_CONVERSATION_CONTEXT_TOKENS
+
+    # Initial full context attempt
+    full_context = _format_messages_for_context(normalized_messages)
+    full_token_estimate = _estimate_token_count_from_text(full_context)
+
+    history_metadata: Dict[str, Any] = {
+        "history_strategy": "full",
+        "original_token_estimate": full_token_estimate,
+        "token_budget": token_budget,
+        "message_count": len(normalized_messages),
+        "recent_window": CONVERSATION_RECENT_MESSAGE_WINDOW
+    }
+
+    if full_token_estimate <= token_budget:
+        history_metadata["optimized_token_estimate"] = full_token_estimate
+        history_metadata["compression_applied"] = False
+        return full_context, history_metadata
+
+    # Intelligent compression using context manager
+    stage = conversation_analysis.get("conversation_stage", "Initial")
+    complexity_score = _conversation_stage_to_complexity(stage)
+
+    optimized_context, cm_metadata = context_manager.optimize_context(
+        normalized_messages,
+        user_type=user_type,
+        task_complexity=complexity_score
+    )
+
+    optimized_token_estimate = _estimate_token_count_from_text(optimized_context)
+    history_metadata.update({
+        "history_strategy": "compressed",
+        "compression_applied": True,
+        "compression_metadata": cm_metadata,
+        "optimized_token_estimate": optimized_token_estimate
+    })
+
+    if optimized_token_estimate <= token_budget:
+        return optimized_context, history_metadata
+
+    # Fallback: summarize historical messages and retain most recent window
+    recent_window = min(CONVERSATION_RECENT_MESSAGE_WINDOW, len(normalized_messages))
+    historical_messages = normalized_messages[:-recent_window]
+    recent_messages = normalized_messages[-recent_window:]
+
+    summary_result: Optional[ConversationSummary] = None
+    summary_text = "Summary unavailable."
+
+    if historical_messages:
+        try:
+            summary_result = _quick_local_summary(historical_messages)
+            summary_text = _format_summary_for_context(summary_result)
+        except Exception as exc:
+            logger.warning("Failed to summarize historical conversation: %s", exc, exc_info=exc)
+
+    recent_context = _format_messages_for_context(recent_messages)
+    combined_context = (
+        "CONVERSATION HISTORY SUMMARY:\n"
+        f"{summary_text}\n\n"
+        f"RECENT CONVERSATION (last {recent_window} messages):\n"
+        f"{recent_context}"
+    )
+
+    combined_token_estimate = _estimate_token_count_from_text(combined_context)
+    history_metadata.update({
+        "history_strategy": "summary_recent",
+        "summary_applied": True,
+        "optimized_token_estimate": combined_token_estimate,
+        "historical_message_count": len(historical_messages),
+        "summary": summary_result.model_dump() if summary_result else None
+    })
+
+    if combined_token_estimate <= token_budget:
+        return combined_context, history_metadata
+
+    # Final safeguard: truncate recent conversation to fit budget
+    truncated_recent = recent_context[-(token_budget * 4):]  # Approximate char budget
+    fallback_context = (
+        "CONVERSATION HISTORY SUMMARY (TRUNCATED):\n"
+        f"{summary_text}\n\n"
+        "RECENT CONVERSATION (truncated to fit token budget):\n"
+        f"{truncated_recent}"
+    )
+
+    history_metadata.update({
+        "history_strategy": "summary_recent_truncated",
+        "optimized_token_estimate": _estimate_token_count_from_text(fallback_context),
+        "truncated": True
+    })
+
+    return fallback_context, history_metadata
+
+def _build_document_context_section(document_context: Optional[dict], summary_limit: int = 3000, excerpt_limit: int = 1200) -> str:
+    """Format document context (metadata + live excerpts) for the prompt"""
+    if not document_context:
+        return ""
+
+    section_lines: List[str] = []
+    doc_count = document_context.get("documentCount", "0")
+    provider_breakdown = document_context.get("providerBreakdown", "unknown")
+
+    section_lines.append("# RELEVANT DOCUMENTS FROM YOUR ORGANIZATION")
+    section_lines.append(f"You have access to {doc_count} relevant document(s) from: {provider_breakdown}")
+
+    combined_context = document_context.get("combinedContext", "")
+    if combined_context:
+        section_lines.append("")
+        section_lines.append("## Vector Summary")
+        section_lines.append(combined_context[:summary_limit])
+
+    document_contents_raw = document_context.get("documentContents")
+    if document_contents_raw:
+        try:
+            contents = json.loads(document_contents_raw)
+            if contents:
+                section_lines.append("")
+                section_lines.append("## Live Excerpts")
+                for snippet in contents:
+                    title = snippet.get("title", "Untitled Document")
+                    provider = snippet.get("provider", "unknown")
+                    content_type = snippet.get("contentType", "unknown")
+                    excerpt = snippet.get("excerpt", "")
+                    if excerpt and len(excerpt) > excerpt_limit:
+                        excerpt = excerpt[:excerpt_limit].rstrip() + " …"
+
+                    notes = []
+                    if not snippet.get("hasContent", False):
+                        notes.append("content not yet extracted")
+                    if snippet.get("isPartial", False):
+                        notes.append("partial extraction")
+                    if snippet.get("isTruncated", False):
+                        notes.append("excerpt shortened for prompt")
+
+                    section_lines.append(f"Document: {title} (Provider: {provider}, Type: {content_type})")
+                    if notes:
+                        section_lines.append(f"Notes: {', '.join(notes)}")
+                    section_lines.append(f"{excerpt}")
+                    section_lines.append("")
+        except Exception as exc:
+            logger.warning("Failed to parse documentContents for prompt enrichment: %s", exc)
+
+    section_lines.append("")
+    section_lines.append("NOTE: Reference these documents by name when they are relevant.")
+
+    return "\n".join(line for line in section_lines if line is not None)
 
 async def _analyze_conversation_intelligently(messages: List[dict], user_message: str, user_type: str) -> dict:
     """Perform intelligent analysis of the conversation and user message"""

@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Globalization;
 using Microsoft.Extensions.Configuration;
 using Certio.Domain.Services;
+using Certio.Domain.Documents;
 using Certio.Application.Interfaces;
 using Certio.Application.DTOs;
 using Certio.Infrastructure.Data;
@@ -14,21 +15,27 @@ namespace Certio.Application.Services;
 
 public class AIAgentService : IAIAgentService
 {
+    private const int MaxDocumentContentSnippets = 3;
+    private const int DocumentContentExcerptLimit = 4000;
+
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
     private readonly IRagContextService _ragContextService;
     private readonly ApplicationDbContext _dbContext;
+    private readonly IDocumentContentService _documentContentService;
 
     public AIAgentService(
         HttpClient httpClient, 
         IConfiguration configuration,
         IRagContextService ragContextService,
-        ApplicationDbContext dbContext)
+        ApplicationDbContext dbContext,
+        IDocumentContentService documentContentService)
     {
         _httpClient = httpClient;
         _configuration = configuration;
         _ragContextService = ragContextService;
         _dbContext = dbContext;
+        _documentContentService = documentContentService;
         
         // Configure the HTTP client for the Python AI service
         var aiServiceUrl = _configuration["AIService:BaseUrl"] ?? "http://localhost:8000";
@@ -143,51 +150,7 @@ public class AIAgentService : IAIAgentService
     {
         try
         {
-            // Fetch document context via RAG if conversation has org/user/matter context
-            Dictionary<string, string?>? documentContext = null;
-            if (int.TryParse(conversationId, out var convId))
-            {
-            try
-            {
-                var conversation = await _dbContext.Conversations
-                    .AsNoTracking()
-                    .Include(c => c.Organization)
-                    .Include(c => c.Matter)
-                    .FirstOrDefaultAsync(c => c.Id == convId);
-
-                if (conversation != null)
-                {
-                    var userId = messages.FirstOrDefault(m => !m.IsFromAI)?.UserId;
-                    if (userId.HasValue)
-                    {
-                        // Look up the user's Guid
-                        var user = await _dbContext.Users
-                            .AsNoTracking()
-                            .FirstOrDefaultAsync(u => u.Id == userId.Value);
-
-                        if (user != null)
-                        {
-                            var ragRequest = new RagContextRequest(
-                                CreateDeterministicGuid("certio:organization", conversation.OrganizationId),
-                                CreateDeterministicGuid("certio:user", userId.Value),
-                                userMessage,
-                                TopK: 5,
-                                conversation.MatterId.HasValue ? CreateDeterministicGuid("certio:matter", conversation.MatterId.Value) : null,
-                                RestrictToDocumentIds: null);
-
-                            var ragResult = await _ragContextService.BuildContextAsync(ragRequest);
-                            documentContext = ragResult.Context.ToDictionary(k => k.Key, v => v.Value);
-                        }
-                    }
-                }
-            }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Failed to fetch document context: {ex.Message}");
-                    // Continue without document context
-                }
-            }
-
+            var documentContext = await TryBuildDocumentContextAsync(conversationId, messages, userMessage);
             var request = CreateAIRequest(conversationId, messages, userMessage, documentContext: documentContext);
             
             var json = JsonSerializer.Serialize(request);
@@ -214,49 +177,7 @@ public class AIAgentService : IAIAgentService
         bool connectionFailed = false;
 
         // Fetch document context via RAG if conversation has org/user/matter context
-        Dictionary<string, string?>? documentContext = null;
-        if (int.TryParse(conversationId, out var convId))
-        {
-            try
-            {
-                var conversation = await _dbContext.Conversations
-                    .AsNoTracking()
-                    .Include(c => c.Organization)
-                    .Include(c => c.Matter)
-                    .FirstOrDefaultAsync(c => c.Id == convId);
-
-                if (conversation != null)
-                {
-                    var userId = messages.FirstOrDefault(m => !m.IsFromAI)?.UserId;
-                    if (userId.HasValue)
-                    {
-                        // Look up the user's Guid
-                        var user = await _dbContext.Users
-                            .AsNoTracking()
-                            .FirstOrDefaultAsync(u => u.Id == userId.Value);
-
-                        if (user != null)
-                        {
-                            var ragRequest = new RagContextRequest(
-                                CreateDeterministicGuid("certio:organization", conversation.OrganizationId),
-                                CreateDeterministicGuid("certio:user", userId.Value),
-                                userMessage,
-                                TopK: 5,
-                                conversation.MatterId.HasValue ? CreateDeterministicGuid("certio:matter", conversation.MatterId.Value) : null,
-                                RestrictToDocumentIds: null);
-
-                            var ragResult = await _ragContextService.BuildContextAsync(ragRequest);
-                            documentContext = ragResult.Context.ToDictionary(k => k.Key, v => v.Value);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Failed to fetch document context: {ex.Message}");
-                // Continue without document context
-            }
-        }
+        var documentContext = await TryBuildDocumentContextAsync(conversationId, messages, userMessage);
 
         // Setup request with optional document context
         var request = CreateAIRequest(conversationId, messages, userMessage, documentContext: documentContext);
@@ -431,6 +352,219 @@ public class AIAgentService : IAIAgentService
         }
     }
 
+    private async Task<Dictionary<string, string?>?> TryBuildDocumentContextAsync(string conversationId, List<ChatMessage> messages, string userMessage)
+    {
+        if (!int.TryParse(conversationId, out var convId))
+        {
+            return null;
+        }
+
+        try
+        {
+            var conversation = await _dbContext.Conversations
+                .AsNoTracking()
+                .Include(c => c.Organization)
+                .Include(c => c.Matter)
+                .FirstOrDefaultAsync(c => c.Id == convId);
+
+            if (conversation == null)
+            {
+                return null;
+            }
+
+            var initiatingMessage = messages.FirstOrDefault(m => !m.IsFromAI);
+            if (initiatingMessage?.UserId == null)
+            {
+                return null;
+            }
+
+            var user = await _dbContext.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == initiatingMessage.UserId.Value);
+
+            if (user == null)
+            {
+                return null;
+            }
+
+            var ragRequest = new RagContextRequest(
+                CreateDeterministicGuid("certio:organization", conversation.OrganizationId),
+                CreateDeterministicGuid("certio:user", initiatingMessage.UserId.Value),
+                userMessage,
+                TopK: 5,
+                conversation.MatterId.HasValue ? CreateDeterministicGuid("certio:matter", conversation.MatterId.Value) : null,
+                RestrictToDocumentIds: null);
+
+            var ragResult = await _ragContextService.BuildContextAsync(ragRequest);
+            var context = ragResult.Context.ToDictionary(k => k.Key, v => v.Value);
+
+            await EnrichDocumentContextAsync(context, ragResult);
+            return context;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to fetch document context: {ex.Message}");
+            return null;
+        }
+    }
+
+    private async Task EnrichDocumentContextAsync(Dictionary<string, string?> documentContext, RagContextResult ragResult)
+    {
+        if (ragResult.Vectors.Count == 0)
+        {
+            return;
+        }
+
+        var snippets = await BuildDocumentContentSnippetsAsync(ragResult);
+        if (snippets.Count == 0)
+        {
+            return;
+        }
+
+        documentContext["documentContents"] = JsonSerializer.Serialize(snippets);
+        documentContext["documentContentCount"] = snippets.Count.ToString(CultureInfo.InvariantCulture);
+    }
+
+    private async Task<List<DocumentContentSnippet>> BuildDocumentContentSnippetsAsync(RagContextResult ragResult)
+    {
+        var snippets = new List<DocumentContentSnippet>();
+        var seenDocuments = new HashSet<Guid>();
+        var providerFailures = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var vector in ragResult.Vectors)
+        {
+            if (vector.DocumentId == Guid.Empty || !seenDocuments.Add(vector.DocumentId))
+            {
+                continue;
+            }
+
+            if (snippets.Count >= MaxDocumentContentSnippets)
+            {
+                break;
+            }
+
+            Document? document = vector.Document;
+            if (document == null)
+            {
+                document = await _dbContext.Documents
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(d => d.Id == vector.DocumentId);
+
+                if (document == null)
+                {
+                    continue;
+                }
+            }
+
+            var providerKey = document.SourceType.ToString();
+            var providerNormalized = providerKey.ToLowerInvariant();
+
+            if (providerFailures.Contains(providerNormalized))
+            {
+                continue;
+            }
+
+            try
+            {
+                var contentResult = await _documentContentService.FetchContentAsync(document, vector.VersionId);
+                var snippet = CreateSnippet(document, contentResult);
+                if (snippet != null)
+                {
+                    snippets.Add(snippet);
+                }
+
+                var extractionStatus = TryGetExtractionStatus(contentResult);
+                if (IsAuthenticationFailure(extractionStatus))
+                {
+                    providerFailures.Add(providerNormalized);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to fetch content for document {vector.DocumentId}: {ex.Message}");
+                if (providerNormalized.Contains("google", StringComparison.OrdinalIgnoreCase))
+                {
+                    providerFailures.Add(providerNormalized);
+                }
+            }
+        }
+
+        return snippets;
+    }
+
+    private DocumentContentSnippet? CreateSnippet(Document document, DocumentContentResult contentResult)
+    {
+        var excerpt = ExtractExcerpt(contentResult);
+        if (string.IsNullOrWhiteSpace(excerpt))
+        {
+            return null;
+        }
+
+        var truncated = excerpt.Length > DocumentContentExcerptLimit;
+        if (truncated)
+        {
+            excerpt = excerpt[..DocumentContentExcerptLimit].TrimEnd() + " …";
+        }
+
+        return new DocumentContentSnippet(
+            document.Id,
+            string.IsNullOrWhiteSpace(document.Title) ? "Untitled Document" : document.Title,
+            document.SourceType.ToString(),
+            string.IsNullOrWhiteSpace(document.FileType) ? "unknown" : document.FileType,
+            excerpt,
+            contentResult.HasContent,
+            contentResult.IsPartial,
+            truncated,
+            document.DownloadUrl,
+            contentResult.AdditionalMetadata);
+    }
+
+    private static string ExtractExcerpt(DocumentContentResult contentResult)
+    {
+        if (contentResult.HasContent)
+        {
+            return contentResult.Content;
+        }
+
+        if (contentResult.AdditionalMetadata.TryGetValue("extractionStatus", out var status) &&
+            !string.IsNullOrWhiteSpace(status))
+        {
+            return BuildFriendlyStatusMessage(status);
+        }
+
+        return string.Empty;
+    }
+
+    private static string? TryGetExtractionStatus(DocumentContentResult contentResult) =>
+        contentResult.AdditionalMetadata.TryGetValue("extractionStatus", out var status)
+            ? status
+            : null;
+
+    private static bool IsAuthenticationFailure(string? status)
+    {
+        if (string.IsNullOrWhiteSpace(status))
+        {
+            return false;
+        }
+
+        var normalized = status.ToLowerInvariant();
+        return normalized.Contains("download_failed_401")
+            || normalized.Contains("missing_google_connection")
+            || normalized.Contains("missing_onedrive_connection")
+            || normalized.Contains("unauthorized");
+    }
+    private record DocumentContentSnippet(
+        Guid DocumentId,
+        string Title,
+        string Provider,
+        string ContentType,
+        string Excerpt,
+        bool HasContent,
+        bool IsPartial,
+        bool IsTruncated,
+        string? DownloadUrl,
+        IReadOnlyDictionary<string, string?> Metadata);
+
     private async Task<T?> CallAIServiceAsync<T>(string endpoint, object request) where T : class
     {
         var json = JsonSerializer.Serialize(request);
@@ -444,6 +578,48 @@ public class AIAgentService : IAIAgentService
         {
             PropertyNameCaseInsensitive = true
         });
+    }
+
+    private static string BuildFriendlyStatusMessage(string status)
+    {
+        var normalized = status.ToLowerInvariant();
+
+        if (normalized.Contains("google") && normalized.Contains("401"))
+        {
+            return "Google Drive connection has expired. Ask the user to reconnect Google Drive from Settings, then try again.";
+        }
+
+        if (normalized.Contains("missing_google_connection"))
+        {
+            return "Google Drive is not connected for this user or organization. Connect Google Drive to read this document.";
+        }
+
+        if (normalized.Contains("missing_onedrive_connection"))
+        {
+            return "OneDrive is not connected for this user or organization. Connect OneDrive to read this document.";
+        }
+
+        if (normalized.Contains("file_too_large"))
+        {
+            return "The file is larger than the secure extraction limit, so no text is available.";
+        }
+
+        if (normalized.Contains("unsupported_content_type"))
+        {
+            return "This file type is not supported for secure text extraction.";
+        }
+
+        if (normalized.Contains("azure_document_intelligence_not_configured"))
+        {
+            return "Full text extraction is not enabled yet; only metadata is available for this document.";
+        }
+
+        if (normalized.Contains("analysis_timeout"))
+        {
+            return "Text extraction timed out. Try again later or download the document directly.";
+        }
+
+        return $"Content unavailable ({status}).";
     }
 
     private static ChatSummary CreateDefaultChatSummary()

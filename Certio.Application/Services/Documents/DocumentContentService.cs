@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
@@ -24,7 +26,9 @@ public sealed class DocumentContentService : IDocumentContentService
     private readonly ApplicationDbContext _dbContext;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly Func<string, string> _decryptToken;
-    private readonly SecureDocumentExtractionOptions _options;
+    private readonly Func<string, string> _encryptToken;
+    private readonly SecureDocumentExtractionOptions _extractionOptions;
+    private readonly DocumentIntegrationOptions _integrationOptions;
     private readonly DocumentIntelligenceClient? _documentIntelligenceClient;
     private readonly ILogger<DocumentContentService> _logger;
 
@@ -32,14 +36,18 @@ public sealed class DocumentContentService : IDocumentContentService
         ApplicationDbContext dbContext,
         IHttpClientFactory httpClientFactory,
         Func<string, string> decryptToken,
-        IOptions<SecureDocumentExtractionOptions> options,
+        Func<string, string> encryptToken,
+        IOptions<SecureDocumentExtractionOptions> extractionOptions,
+        IOptions<DocumentIntegrationOptions> integrationOptions,
         DocumentIntelligenceClient? documentIntelligenceClient,
         ILogger<DocumentContentService> logger)
     {
         _dbContext = dbContext;
         _httpClientFactory = httpClientFactory;
         _decryptToken = decryptToken;
-        _options = options.Value;
+        _encryptToken = encryptToken;
+        _extractionOptions = extractionOptions.Value;
+        _integrationOptions = integrationOptions.Value;
         _documentIntelligenceClient = documentIntelligenceClient;
         _logger = logger;
     }
@@ -84,8 +92,8 @@ public sealed class DocumentContentService : IDocumentContentService
 
         try
         {
-            var (data, contentType, downloadMetadata) = await DownloadGoogleDriveAsync(document, connection, cancellationToken).ConfigureAwait(false);
-            return await ExtractContentAsync(data, contentType, "google", downloadMetadata, cancellationToken).ConfigureAwait(false);
+            var (data, contentType, metadata) = await DownloadGoogleDriveAsync(document, connection, cancellationToken).ConfigureAwait(false);
+            return await ExtractContentAsync(data, contentType, "google", metadata, cancellationToken).ConfigureAwait(false);
         }
         catch (InvalidOperationException ex)
         {
@@ -113,37 +121,15 @@ public sealed class DocumentContentService : IDocumentContentService
             return DocumentContentResult.Empty("missing_onedrive_connection");
         }
 
-        var accessToken = _decryptToken(connection.AccessToken);
-        using var httpClient = _httpClientFactory.CreateClient();
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-        httpClient.Timeout = TimeSpan.FromSeconds(30);
-
-        var driveId = GetMetadataValue(document, "driveId");
-        var itemUrl = !string.IsNullOrWhiteSpace(driveId)
-            ? $"https://graph.microsoft.com/v1.0/drives/{driveId}/items/{document.ExternalFileId}/content"
-            : $"https://graph.microsoft.com/v1.0/me/drive/items/{document.ExternalFileId}/content";
-
         try
         {
-            var response = await httpClient.GetAsync(itemUrl, cancellationToken).ConfigureAwait(false);
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-                _logger.LogWarning("OneDrive download failed for document {DocumentId}: {StatusCode} - {Error}", document.Id, response.StatusCode, errorContent);
-                return DocumentContentResult.Empty($"onedrive_download_failed_{(int)response.StatusCode}");
-            }
-
-            var effectiveMime = response.Content.Headers.ContentType?.MediaType ?? document.FileType;
-            var data = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
-            var baseMetadata = new Dictionary<string, string?>
-            {
-                ["provider"] = "microsoft",
-                ["contentType"] = effectiveMime,
-                ["externalFileId"] = document.ExternalFileId,
-                ["driveId"] = driveId
-            };
-
-            return await ExtractContentAsync(data, effectiveMime, "microsoft", baseMetadata, cancellationToken).ConfigureAwait(false);
+            var (data, contentType, metadata) = await DownloadOneDriveAsync(document, connection, cancellationToken).ConfigureAwait(false);
+            return await ExtractContentAsync(data, contentType, "microsoft", metadata, cancellationToken).ConfigureAwait(false);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning("OneDrive content download failed for document {DocumentId}: {Message}", document.Id, ex.Message);
+            return DocumentContentResult.Empty(ex.Message);
         }
         catch (Exception ex)
         {
@@ -154,13 +140,6 @@ public sealed class DocumentContentService : IDocumentContentService
 
     private async Task<(byte[] Data, string ContentType, Dictionary<string, string?> Metadata)> DownloadGoogleDriveAsync(Document document, ExternalConnection connection, CancellationToken cancellationToken)
     {
-        var accessToken = _decryptToken(connection.AccessToken);
-        using var httpClient = _httpClientFactory.CreateClient();
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-        httpClient.DefaultRequestHeaders.Accept.Clear();
-        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
-        httpClient.Timeout = TimeSpan.FromSeconds(30);
-
         var mimeType = GetMetadataValue(document, "mimeType") ?? document.FileType;
         var metadata = new Dictionary<string, string?>
         {
@@ -169,35 +148,277 @@ public sealed class DocumentContentService : IDocumentContentService
             ["externalFileId"] = document.ExternalFileId
         };
 
-        HttpResponseMessage response;
-        string? effectiveMime;
+        for (var attempt = 0; attempt < 2; attempt++)
+        {
+            var accessToken = await EnsureAccessTokenAsync(connection, cancellationToken, attempt > 0).ConfigureAwait(false);
 
-        if (IsGoogleWorkspaceMime(mimeType))
-        {
-            var exportMime = ResolveGoogleExportMime(mimeType!);
-            metadata["exportMimeType"] = exportMime;
-            var exportUrl = $"https://www.googleapis.com/drive/v3/files/{document.ExternalFileId}/export?mimeType={Uri.EscapeDataString(exportMime)}";
-            response = await httpClient.GetAsync(exportUrl, cancellationToken).ConfigureAwait(false);
-            effectiveMime = exportMime;
-        }
-        else
-        {
-            var downloadUrl = $"https://www.googleapis.com/drive/v3/files/{document.ExternalFileId}?alt=media";
-            response = await httpClient.GetAsync(downloadUrl, cancellationToken).ConfigureAwait(false);
-            effectiveMime = response.Content.Headers.ContentType?.MediaType ?? mimeType;
-        }
+            using var httpClient = _httpClientFactory.CreateClient();
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            httpClient.DefaultRequestHeaders.Accept.Clear();
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
+            httpClient.Timeout = TimeSpan.FromSeconds(30);
 
-        if (!response.IsSuccessStatusCode)
-        {
-            var errorContent = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-            _logger.LogWarning("Google Drive download failed for document {DocumentId}: {StatusCode} - {Error}", document.Id, response.StatusCode, errorContent);
+            HttpResponseMessage response;
+            string? effectiveMime;
+
+            if (IsGoogleWorkspaceMime(mimeType))
+            {
+                var exportMime = ResolveGoogleExportMime(mimeType!);
+                metadata["exportMimeType"] = exportMime;
+                var exportUrl = $"https://www.googleapis.com/drive/v3/files/{document.ExternalFileId}/export?mimeType={Uri.EscapeDataString(exportMime)}";
+                response = await httpClient.GetAsync(exportUrl, cancellationToken).ConfigureAwait(false);
+                effectiveMime = exportMime;
+            }
+            else
+            {
+                var downloadUrl = $"https://www.googleapis.com/drive/v3/files/{document.ExternalFileId}?alt=media";
+                response = await httpClient.GetAsync(downloadUrl, cancellationToken).ConfigureAwait(false);
+                effectiveMime = response.Content.Headers.ContentType?.MediaType ?? mimeType;
+            }
+
+            if (response.IsSuccessStatusCode)
+            {
+                var data = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
+                metadata["contentType"] = effectiveMime;
+                return (data, effectiveMime ?? "application/octet-stream", metadata);
+            }
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized && attempt == 0)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                _logger.LogWarning("Google Drive returned unauthorized for document {DocumentId}: {Error}. Attempting token refresh.", document.Id, errorContent);
+                continue;
+            }
+
+            var failureContent = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            _logger.LogWarning("Google Drive download failed for document {DocumentId}: {StatusCode} - {Error}", document.Id, response.StatusCode, failureContent);
             throw new InvalidOperationException($"google_download_failed_{(int)response.StatusCode}");
         }
 
-        var data = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
-        metadata["contentType"] = effectiveMime;
+        throw new InvalidOperationException("google_download_failed_401");
+    }
 
-        return (data, effectiveMime ?? "application/octet-stream", metadata);
+    private async Task<(byte[] Data, string ContentType, Dictionary<string, string?> Metadata)> DownloadOneDriveAsync(Document document, ExternalConnection connection, CancellationToken cancellationToken)
+    {
+        var driveId = GetMetadataValue(document, "driveId");
+        var itemUrl = !string.IsNullOrWhiteSpace(driveId)
+            ? $"https://graph.microsoft.com/v1.0/drives/{driveId}/items/{document.ExternalFileId}/content"
+            : $"https://graph.microsoft.com/v1.0/me/drive/items/{document.ExternalFileId}/content";
+
+        var metadata = new Dictionary<string, string?>
+        {
+            ["provider"] = "microsoft",
+            ["externalFileId"] = document.ExternalFileId,
+            ["driveId"] = driveId
+        };
+
+        for (var attempt = 0; attempt < 2; attempt++)
+        {
+            var accessToken = await EnsureAccessTokenAsync(connection, cancellationToken, attempt > 0).ConfigureAwait(false);
+
+            using var httpClient = _httpClientFactory.CreateClient();
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            httpClient.Timeout = TimeSpan.FromSeconds(30);
+
+            var response = await httpClient.GetAsync(itemUrl, cancellationToken).ConfigureAwait(false);
+            if (response.IsSuccessStatusCode)
+            {
+                var effectiveMime = response.Content.Headers.ContentType?.MediaType ?? document.FileType;
+                var data = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
+                metadata["contentType"] = effectiveMime;
+                return (data, effectiveMime, metadata);
+            }
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized && attempt == 0)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                _logger.LogWarning("OneDrive returned unauthorized for document {DocumentId}: {Error}. Attempting token refresh.", document.Id, errorContent);
+                continue;
+            }
+
+            var failureContent = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            _logger.LogWarning("OneDrive download failed for document {DocumentId}: {StatusCode} - {Error}", document.Id, response.StatusCode, failureContent);
+            throw new InvalidOperationException($"onedrive_download_failed_{(int)response.StatusCode}");
+        }
+
+        throw new InvalidOperationException("onedrive_download_failed_401");
+    }
+
+    private async Task<string> EnsureAccessTokenAsync(ExternalConnection connection, CancellationToken cancellationToken, bool forceRefresh = false)
+    {
+        var safetyWindow = GetSafetyWindow(connection.Provider);
+        var needsRefresh = forceRefresh || connection.TokenExpiry <= DateTime.UtcNow.Add(safetyWindow);
+
+        if (!needsRefresh)
+        {
+            return _decryptToken(connection.AccessToken);
+        }
+
+        return await RefreshAccessTokenAsync(connection, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<string> RefreshAccessTokenAsync(ExternalConnection connection, CancellationToken cancellationToken)
+    {
+        var trackedConnection = await _dbContext.ExternalConnections
+            .FirstOrDefaultAsync(ec => ec.Id == connection.Id, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (trackedConnection == null)
+        {
+            throw new InvalidOperationException("external_connection_not_found");
+        }
+
+        var decryptedRefreshToken = _decryptToken(trackedConnection.RefreshToken);
+
+        TokenRefreshResult refreshedTokens;
+        try
+        {
+            refreshedTokens = trackedConnection.Provider switch
+            {
+                ExternalConnectionProvider.Google => await RefreshGoogleAccessTokenAsync(decryptedRefreshToken, cancellationToken).ConfigureAwait(false),
+                ExternalConnectionProvider.Microsoft => await RefreshMicrosoftAccessTokenAsync(decryptedRefreshToken, trackedConnection.Scopes ?? new List<string>(), cancellationToken).ConfigureAwait(false),
+                _ => throw new InvalidOperationException($"refresh_not_supported_{trackedConnection.Provider}")
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Token refresh failed for provider {Provider} Org {OrgId} User {UserId}", trackedConnection.Provider, trackedConnection.OrgId, trackedConnection.UserId);
+            throw;
+        }
+
+        trackedConnection.AccessToken = _encryptToken(refreshedTokens.AccessToken);
+        if (!string.IsNullOrWhiteSpace(refreshedTokens.RefreshToken))
+        {
+            trackedConnection.RefreshToken = _encryptToken(refreshedTokens.RefreshToken);
+        }
+
+        var expiresInSeconds = Math.Max(refreshedTokens.ExpiresInSeconds, 60);
+        trackedConnection.TokenExpiry = DateTime.UtcNow.AddSeconds(expiresInSeconds);
+        trackedConnection.UpdatedAt = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        connection.AccessToken = trackedConnection.AccessToken;
+        connection.RefreshToken = trackedConnection.RefreshToken;
+        connection.TokenExpiry = trackedConnection.TokenExpiry;
+
+        _logger.LogInformation("Refreshed access token for provider {Provider} Org {OrgId} User {UserId}", trackedConnection.Provider, trackedConnection.OrgId, trackedConnection.UserId);
+
+        return refreshedTokens.AccessToken;
+    }
+
+    private async Task<TokenRefreshResult> RefreshGoogleAccessTokenAsync(string refreshToken, CancellationToken cancellationToken)
+    {
+        var clientId = _integrationOptions.GoogleDrive.ClientId;
+        var clientSecret = _integrationOptions.GoogleDrive.ClientSecret;
+
+        if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(clientSecret))
+        {
+            throw new InvalidOperationException("google_refresh_configuration_missing");
+        }
+
+        var payload = new Dictionary<string, string>
+        {
+            ["refresh_token"] = refreshToken,
+            ["client_id"] = clientId,
+            ["client_secret"] = clientSecret,
+            ["grant_type"] = "refresh_token"
+        };
+
+        return await RefreshTokenAsync("https://oauth2.googleapis.com/token", payload, "google", cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<TokenRefreshResult> RefreshMicrosoftAccessTokenAsync(string refreshToken, IReadOnlyCollection<string> scopes, CancellationToken cancellationToken)
+    {
+        var clientId = _integrationOptions.OneDrive.ClientId;
+        var clientSecret = _integrationOptions.OneDrive.ClientSecret;
+
+        if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(clientSecret))
+        {
+            throw new InvalidOperationException("onedrive_refresh_configuration_missing");
+        }
+
+        var payload = new Dictionary<string, string>
+        {
+            ["refresh_token"] = refreshToken,
+            ["client_id"] = clientId,
+            ["client_secret"] = clientSecret,
+            ["grant_type"] = "refresh_token"
+        };
+
+        if (scopes != null && scopes.Count > 0)
+        {
+            payload["scope"] = string.Join(' ', scopes);
+        }
+
+        return await RefreshTokenAsync("https://login.microsoftonline.com/common/oauth2/v2.0/token", payload, "onedrive", cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<TokenRefreshResult> RefreshTokenAsync(string endpoint, Dictionary<string, string> formValues, string providerKey, CancellationToken cancellationToken)
+    {
+        using var httpClient = _httpClientFactory.CreateClient();
+        using var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
+        {
+            Content = new FormUrlEncodedContent(formValues)
+        };
+
+        using var response = await httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        var content = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogWarning("{Provider} token refresh failed with status {StatusCode}: {Content}", providerKey, response.StatusCode, content);
+            throw new InvalidOperationException($"{providerKey}_refresh_failed_{(int)response.StatusCode}");
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(content);
+            var root = document.RootElement;
+
+            if (!root.TryGetProperty("access_token", out var accessTokenElement))
+            {
+                throw new InvalidOperationException($"{providerKey}_refresh_missing_access_token");
+            }
+
+            var accessToken = accessTokenElement.GetString();
+            if (string.IsNullOrWhiteSpace(accessToken))
+            {
+                throw new InvalidOperationException($"{providerKey}_refresh_missing_access_token");
+            }
+
+            string? refreshToken = null;
+            if (root.TryGetProperty("refresh_token", out var refreshElement))
+            {
+                refreshToken = refreshElement.GetString();
+            }
+
+            var expiresInSeconds = 3600;
+            if (root.TryGetProperty("expires_in", out var expiresElement))
+            {
+                switch (expiresElement.ValueKind)
+                {
+                    case JsonValueKind.Number when expiresElement.TryGetInt32(out var numeric) && numeric > 0:
+                        expiresInSeconds = numeric;
+                        break;
+                    case JsonValueKind.String:
+                        var expiresString = expiresElement.GetString();
+                        if (!string.IsNullOrWhiteSpace(expiresString) && int.TryParse(expiresString, out var parsed) && parsed > 0)
+                        {
+                            expiresInSeconds = parsed;
+                        }
+
+                        break;
+                }
+            }
+
+            return new TokenRefreshResult(accessToken, refreshToken, expiresInSeconds);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogWarning(ex, "{Provider} token refresh returned invalid JSON: {Content}", providerKey, content);
+            throw new InvalidOperationException($"{providerKey}_refresh_parse_error");
+        }
     }
 
     private async Task<ExternalConnection?> ResolveConnectionAsync(Guid orgId, Guid? ownerUserId, ExternalConnectionProvider provider, CancellationToken cancellationToken)
@@ -250,6 +471,7 @@ public sealed class DocumentContentService : IDocumentContentService
             _ => "text/plain"
         };
     }
+
     private async Task<DocumentContentResult> ExtractContentAsync(byte[] data, string contentType, string provider, Dictionary<string, string?> baseMetadata, CancellationToken cancellationToken)
     {
         if (data.Length == 0)
@@ -263,7 +485,7 @@ public sealed class DocumentContentService : IDocumentContentService
             return DocumentContentResult.Empty("unsupported_content_type");
         }
 
-        var limitMb = Math.Max(_options.MaxDocumentSizeMb, 0);
+        var limitMb = Math.Max(_extractionOptions.MaxDocumentSizeMb, 0);
         if (limitMb > 0)
         {
             var maxBytes = (long)limitMb * 1024 * 1024;
@@ -283,7 +505,6 @@ public sealed class DocumentContentService : IDocumentContentService
             return new DocumentContentResult(sanitized, isPartial, baseMetadata);
         }
 
-        // Azure Document Intelligence not configured - return empty result
         if (_documentIntelligenceClient == null)
         {
             _logger.LogDebug("Azure Document Intelligence not configured. Skipping extraction for {ContentType}", contentType);
@@ -292,16 +513,16 @@ public sealed class DocumentContentService : IDocumentContentService
         }
 
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        if (_options.OperationTimeout > TimeSpan.Zero)
+        if (_extractionOptions.OperationTimeout > TimeSpan.Zero)
         {
-            linkedCts.CancelAfter(_options.OperationTimeout);
+            linkedCts.CancelAfter(_extractionOptions.OperationTimeout);
         }
 
         try
         {
             var analyzeOperation = await _documentIntelligenceClient.AnalyzeDocumentAsync(
                 WaitUntil.Completed,
-                _options.ModelId,
+                _extractionOptions.ModelId,
                 BinaryData.FromBytes(data),
                 linkedCts.Token).ConfigureAwait(false);
 
@@ -311,10 +532,9 @@ public sealed class DocumentContentService : IDocumentContentService
 
             baseMetadata["partial"] = isPartial ? "true" : "false";
             baseMetadata["analysisProvider"] = "azure-document-intelligence";
-            baseMetadata["analysisModelId"] = _options.ModelId;
+            baseMetadata["analysisModelId"] = _extractionOptions.ModelId;
             baseMetadata["pageCount"] = result.Pages.Count.ToString();
 
-            // Calculate average confidence from word-level confidences
             var avgConfidence = result.Pages
                 .SelectMany(p => p.Words)
                 .Where(w => w.Confidence > 0f)
@@ -343,7 +563,7 @@ public sealed class DocumentContentService : IDocumentContentService
 
     private bool IsContentTypeAllowed(string contentType)
     {
-        var allowed = _options.AllowedContentTypes ?? Array.Empty<string>();
+        var allowed = _extractionOptions.AllowedContentTypes ?? Array.Empty<string>();
 
         if (allowed.Length == 0)
         {
@@ -361,14 +581,28 @@ public sealed class DocumentContentService : IDocumentContentService
             return string.Empty;
         }
 
-        if (text.Length <= _options.MaxCharacters)
+        if (text.Length <= _extractionOptions.MaxCharacters)
         {
             isPartial = false;
             return text;
         }
 
         isPartial = true;
-        return text[.._options.MaxCharacters];
+        return text[.._extractionOptions.MaxCharacters];
     }
+
+    private TimeSpan GetSafetyWindow(ExternalConnectionProvider provider)
+    {
+        var window = provider switch
+        {
+            ExternalConnectionProvider.Google => _integrationOptions.GoogleDrive.TokenExpirySafetyWindow,
+            ExternalConnectionProvider.Microsoft => _integrationOptions.OneDrive.TokenExpirySafetyWindow,
+            _ => TimeSpan.FromMinutes(5)
+        };
+
+        return window <= TimeSpan.Zero ? TimeSpan.FromMinutes(1) : window;
+    }
+
+    private sealed record TokenRefreshResult(string AccessToken, string? RefreshToken, int ExpiresInSeconds);
 }
 

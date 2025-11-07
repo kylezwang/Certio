@@ -44,7 +44,7 @@ public sealed class DocumentIndexerService : IDocumentIndexerService
     {
         var request = await BuildIndexRequestAsync(documentId, versionId, cancellationToken);
         await _jobQueue.EnqueueAsync(request, cancellationToken);
-        _logger.LogInformation("Queued document {DocumentId} (Version {VersionId}) for embedding", documentId, versionId);
+        _logger.LogDebug("Queued document {DocumentId} (Version {VersionId}) for embedding", documentId, versionId);
     }
 
     public async Task<DocumentIndexRequest> BuildIndexRequestAsync(Guid documentId, Guid? versionId, CancellationToken cancellationToken = default)
@@ -142,7 +142,7 @@ public sealed class DocumentIndexerService : IDocumentIndexerService
         //     "Document embeddings refreshed",
         //     DateTime.UtcNow), cancellationToken);
 
-        _logger.LogInformation("Processed embedding request for document {DocumentId}", request.DocumentId);
+        _logger.LogDebug("Processed embedding request for document {DocumentId}", request.DocumentId);
     }
 
     private static string BuildIndexPayload(Document document, DocumentContentResult extraction)

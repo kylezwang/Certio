@@ -489,6 +489,7 @@ public class DocumentsApiController : ControllerBase
         [FromQuery] int take = 25,
         [FromQuery] string? sourceType = null,
         [FromQuery] string? search = null,
+        [FromQuery] string? fileTypeFilter = null,
         CancellationToken cancellationToken = default)
     {
         try
@@ -516,6 +517,23 @@ public class DocumentsApiController : ControllerBase
                 query = query.Where(d => 
                     d.Title.ToLower().Contains(searchLower) ||
                     (d.Metadata != null && d.Metadata.ContainsKey("ownerName") && d.Metadata["ownerName"] != null && d.Metadata["ownerName"].ToLower().Contains(searchLower)));
+            }
+
+            // File type filter if provided
+            if (!string.IsNullOrWhiteSpace(fileTypeFilter) && fileTypeFilter != "all")
+            {
+                query = fileTypeFilter switch
+                {
+                    "google-docs" => query.Where(d => d.FileType == "application/vnd.google-apps.document"),
+                    "google-sheets" => query.Where(d => d.FileType == "application/vnd.google-apps.spreadsheet"),
+                    "google-slides" => query.Where(d => d.FileType == "application/vnd.google-apps.presentation"),
+                    "pdf" => query.Where(d => d.FileType == "application/pdf"),
+                    "word" => query.Where(d => d.FileType == "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || d.FileType == "application/msword"),
+                    "excel" => query.Where(d => d.FileType == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" || d.FileType == "application/vnd.ms-excel"),
+                    "powerpoint" => query.Where(d => d.FileType == "application/vnd.openxmlformats-officedocument.presentationml.presentation" || d.FileType == "application/vnd.ms-powerpoint"),
+                    "text" => query.Where(d => d.FileType.StartsWith("text/")),
+                    _ => query
+                };
             }
 
             // Order by modified date (newest first)

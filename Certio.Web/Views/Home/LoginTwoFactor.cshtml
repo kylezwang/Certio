@@ -93,19 +93,35 @@
         }
 
         .form-control {
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
+            border: 1px solid rgba(61, 16, 25, 0.08);
+            border-radius: 8px;
             padding: 0.75rem 1rem;
             font-size: 0.875rem;
             transition: all 0.2s ease;
             background-color: #ffffff !important;
             color: #374151 !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
         }
 
         .form-control:focus {
-            border-color: #3d1019;
-            box-shadow: 0 0 0 3px rgba(61, 16, 25, 0.1);
+            border-color: rgba(61, 16, 25, 0.08);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
             outline: none;
+            background-color: #ffffff;
+        }
+
+        .form-control:-webkit-autofill,
+        .form-control:-webkit-autofill:hover,
+        .form-control:-webkit-autofill:focus {
+            -webkit-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18), 0 0 0 30px #ffffff inset !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18) !important;
+            border-color: rgba(61, 16, 25, 0.08) !important;
+            -webkit-text-fill-color: #374151 !important;
+        }
+
+        .form-control:-webkit-autofill:focus {
+            -webkit-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28), 0 0 0 30px #ffffff inset !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28) !important;
         }
 
         .form-control::placeholder {
@@ -138,8 +154,8 @@
 
         .btn-outline-secondary {
             width: 100%;
-            background: white;
-            border: 1px solid #3d1019;
+            background: #ffffff;
+            border: 1px solid rgba(61, 16, 25, 0.08);
             border-radius: 8px;
             padding: 0.75rem 1.5rem;
             font-weight: 600;
@@ -147,11 +163,14 @@
             font-size: 0.875rem;
             transition: all 0.2s ease;
             margin-top: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
         }
 
         .btn-outline-secondary:hover {
             background: #f8fafc;
+            border-color: #3d1019;
             color: #3d1019;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
         }
 
         .btn-group {
@@ -169,23 +188,28 @@
             background: #3d1019;
             color: white;
             border-color: #3d1019;
+            box-shadow: 0 4px 12px rgba(61, 16, 25, 0.35);
         }
 
         .btn-outline-primary {
             flex: 1;
-            border: 1px solid #3d1019;
-            border-radius: 6px;
+            border: 1px solid rgba(61, 16, 25, 0.08);
+            border-radius: 8px;
             padding: 0.75rem 1rem;
-            font-weight: 500;
+            font-weight: 600;
             color: #3d1019;
             font-size: 0.875rem;
-            background: white;
+            background: #ffffff;
             transition: all 0.2s ease;
             cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
         }
 
         .btn-outline-primary:hover {
             background: #f8fafc;
+            border-color: #3d1019;
+            color: #3d1019;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
         }
 
         .alert {
@@ -195,9 +219,10 @@
         }
 
         .alert-info {
-            background-color: #eff6ff;
-            border: 1px solid #bfdbfe;
-            color: #1e40af;
+            background-color: #ffffff;
+            border: 1px solid rgba(61, 16, 25, 0.08);
+            color: #374151;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
         }
 
         .alert-danger {

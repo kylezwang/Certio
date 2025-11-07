@@ -515,17 +515,20 @@ public sealed class DriveSyncService : IDriveSyncService
         _logger.LogDebug("Upserted metadata for document {DocumentId} ({Title})", document.Id, document.Title);
 
         // Auto-queue document for RAG indexing (fire and forget to not slow down sync)
+        // Capture doc ID and version ID here to avoid DbContext threading issues
+        var docIdToQueue = document.Id;
+        var versionToQueue = document.Versions.OrderByDescending(v => v.VersionNumber).FirstOrDefault()?.Id;
+        
         _ = Task.Run(async () =>
         {
             try
             {
-                var latestVersion = document.Versions.OrderByDescending(v => v.VersionNumber).FirstOrDefault();
-                await _documentIndexerService.QueueEmbeddingAsync(document.Id, latestVersion?.Id, CancellationToken.None);
-                _logger.LogInformation("Auto-queued document {DocumentId} for RAG indexing", document.Id);
+                await _documentIndexerService.QueueEmbeddingAsync(docIdToQueue, versionToQueue, CancellationToken.None);
+                _logger.LogDebug("Auto-queued document {DocumentId} for RAG indexing", docIdToQueue);
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to auto-queue document {DocumentId} for indexing", document.Id);
+                _logger.LogWarning(ex, "Failed to auto-queue document {DocumentId} for indexing", docIdToQueue);
             }
         }, cancellationToken);
 
