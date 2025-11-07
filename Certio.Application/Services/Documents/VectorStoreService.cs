@@ -65,7 +65,10 @@ public sealed class VectorStoreService : IVectorStoreService
 
     public async Task<IReadOnlyList<DocumentVector>> SearchAsync(Guid orgId, string query, int topK, Guid? matterId, CancellationToken cancellationToken = default)
     {
-        query = query ?? string.Empty;
+        query ??= string.Empty;
+        var normalizedQuery = NormalizeSearchText(query);
+        var queryTokens = SplitTokens(normalizedQuery);
+
         var baseQuery = _dbContext.DocumentVectors
             .AsNoTracking()
             .Where(v => v.OrgId == orgId);
@@ -88,7 +91,7 @@ public sealed class VectorStoreService : IVectorStoreService
             .Select(v => new
             {
                 Vector = v,
-                Score = ComputeScore(v, query)
+                Score = ComputeScore(v, query, normalizedQuery, queryTokens)
             })
             .Where(x => x.Score > 0)
             .OrderByDescending(x => x.Score)
@@ -137,43 +140,204 @@ public sealed class VectorStoreService : IVectorStoreService
         _logger.LogInformation("Removed {VectorCount} vectors for document {DocumentId}", vectors.Count, documentId);
     }
 
-    private static double ComputeScore(DocumentVector vector, string query)
+    private static double ComputeScore(DocumentVector vector, string query, string normalizedQuery, string[] tokens)
     {
-        if (string.IsNullOrWhiteSpace(query))
+        if (tokens.Length == 0 && string.IsNullOrWhiteSpace(query))
         {
             return 0d;
         }
 
         var score = 0d;
-        if (vector.ContentChunk.Contains(query, StringComparison.OrdinalIgnoreCase))
+
+        if (!string.IsNullOrWhiteSpace(vector.ContentChunk))
         {
-            score += 1.0;
+            var normalizedChunk = NormalizeSearchText(vector.ContentChunk);
+            var chunkMatches = CountTokenMatches(normalizedChunk, tokens);
+            if (chunkMatches > 0)
+            {
+                score += chunkMatches * 0.55;
+            }
+            else if (!string.IsNullOrEmpty(query) && vector.ContentChunk.Contains(query, StringComparison.OrdinalIgnoreCase))
+            {
+                score += 0.4;
+            }
         }
 
-        if (vector.Tags.Values.Any(value => value != null && value.Contains(query, StringComparison.OrdinalIgnoreCase)))
+        if (vector.Tags.Count > 0)
         {
-            score += 0.5;
+            foreach (var value in vector.Tags.Values)
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    continue;
+                }
+
+                var normalizedValue = NormalizeSearchText(value);
+                var tagMatches = CountTokenMatches(normalizedValue, tokens);
+                if (tagMatches > 0)
+                {
+                    score += Math.Min(tagMatches * 0.35, 0.7);
+                    break;
+                }
+            }
         }
 
         if (vector.Document != null)
         {
-            if (!string.IsNullOrWhiteSpace(vector.Document.Title) && vector.Document.Title.Contains(query, StringComparison.OrdinalIgnoreCase))
+            var document = vector.Document;
+
+            if (!string.IsNullOrWhiteSpace(document.Title))
             {
-                score += 1.25;
+                var normalizedTitle = NormalizeSearchText(document.Title);
+                var titleMatches = CountTokenMatches(normalizedTitle, tokens);
+                if (titleMatches > 0)
+                {
+                    score += titleMatches * 0.95;
+                    if (!string.IsNullOrEmpty(normalizedQuery) && normalizedTitle.Equals(normalizedQuery, StringComparison.Ordinal))
+                    {
+                        score += 0.6;
+                    }
+                }
+                else if (!string.IsNullOrEmpty(query) && document.Title.Contains(query, StringComparison.OrdinalIgnoreCase))
+                {
+                    score += 0.6;
+                }
             }
 
-            if (!string.IsNullOrWhiteSpace(vector.Document.Category) && vector.Document.Category.Contains(query, StringComparison.OrdinalIgnoreCase))
+            if (!string.IsNullOrWhiteSpace(document.Category))
             {
-                score += 0.25;
+                var normalizedCategory = NormalizeSearchText(document.Category);
+                var categoryMatches = CountTokenMatches(normalizedCategory, tokens);
+                if (categoryMatches > 0)
+                {
+                    score += 0.2 * categoryMatches;
+                }
             }
 
-            if (vector.Document.Tags.Any(tag => tag.Contains(query, StringComparison.OrdinalIgnoreCase)))
+            if (document.Tags.Count > 0)
             {
-                score += 0.25;
+                foreach (var tag in document.Tags)
+                {
+                    if (string.IsNullOrWhiteSpace(tag))
+                    {
+                        continue;
+                    }
+
+                    var normalizedTag = NormalizeSearchText(tag);
+                    var docTagMatches = CountTokenMatches(normalizedTag, tokens);
+                    if (docTagMatches > 0)
+                    {
+                        score += Math.Min(docTagMatches * 0.25, 0.5);
+                        break;
+                    }
+                }
+            }
+
+            if (document.Metadata.Count > 0)
+            {
+                foreach (var kvp in document.Metadata)
+                {
+                    if (string.IsNullOrWhiteSpace(kvp.Value))
+                    {
+                        continue;
+                    }
+
+                    var normalizedMetadataValue = NormalizeSearchText(kvp.Value);
+                    var metadataMatches = CountTokenMatches(normalizedMetadataValue, tokens);
+                    if (metadataMatches > 0)
+                    {
+                        score += Math.Min(metadataMatches * 0.2, 0.4);
+                        break;
+                    }
+                }
             }
         }
 
         return score;
+    }
+
+    private static string NormalizeSearchText(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return string.Empty;
+        }
+
+        var builder = new StringBuilder(text.Length);
+        var previousSpace = false;
+
+        foreach (var ch in text)
+        {
+            char normalizedChar;
+            if (char.IsLetterOrDigit(ch))
+            {
+                normalizedChar = char.ToLowerInvariant(ch);
+            }
+            else if (char.IsWhiteSpace(ch) || ch == '_' || ch == '-' || ch == '.' || ch == '/' || ch == '\\')
+            {
+                normalizedChar = ' ';
+            }
+            else if (char.IsPunctuation(ch) || char.IsSymbol(ch))
+            {
+                normalizedChar = ' ';
+            }
+            else
+            {
+                normalizedChar = ' ';
+            }
+
+            if (normalizedChar == ' ')
+            {
+                if (previousSpace)
+                {
+                    continue;
+                }
+
+                builder.Append(' ');
+                previousSpace = true;
+            }
+            else
+            {
+                builder.Append(normalizedChar);
+                previousSpace = false;
+            }
+        }
+
+        return builder.ToString().Trim();
+    }
+
+    private static string[] SplitTokens(string normalizedText)
+    {
+        if (string.IsNullOrEmpty(normalizedText))
+        {
+            return Array.Empty<string>();
+        }
+
+        return normalizedText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    }
+
+    private static int CountTokenMatches(string normalizedTarget, string[] tokens)
+    {
+        if (tokens.Length == 0 || string.IsNullOrEmpty(normalizedTarget))
+        {
+            return 0;
+        }
+
+        var matches = 0;
+        foreach (var token in tokens)
+        {
+            if (string.IsNullOrEmpty(token))
+            {
+                continue;
+            }
+
+            if (normalizedTarget.Contains(token, StringComparison.Ordinal))
+            {
+                matches++;
+            }
+        }
+
+        return matches;
     }
 
     private async Task<IReadOnlyList<DocumentVector>> CreateDocumentFallbackAsync(Guid orgId, int topK, Guid? matterId, CancellationToken cancellationToken)

@@ -94,10 +94,24 @@
         </div>
         <div class="col-md-4">
             <div class="filter-buttons">
-                <button class="filter-button">
-                    <i class="fas fa-filter"></i>
-                    Filter
-                </button>
+                <div class="dropdown d-inline-block">
+                    <button class="filter-button dropdown-toggle" type="button" id="fileTypeFilterBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-filter"></i>
+                        <span id="fileTypeFilterLabel">Google Docs</span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="fileTypeFilterBtn">
+                        <li><a class="dropdown-item" href="#" onclick="applyFileTypeFilter('google-docs'); return false;">Google Docs</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="applyFileTypeFilter('google-sheets'); return false;">Google Sheets</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="applyFileTypeFilter('google-slides'); return false;">Google Slides</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="applyFileTypeFilter('pdf'); return false;">PDF</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="applyFileTypeFilter('word'); return false;">Word Documents</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="applyFileTypeFilter('excel'); return false;">Excel Spreadsheets</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="applyFileTypeFilter('powerpoint'); return false;">PowerPoint</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="applyFileTypeFilter('text'); return false;">Text Files</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" onclick="applyFileTypeFilter('all'); return false;">All Files</a></li>
+                    </ul>
+                </div>
                 <button class="filter-button">
                     <i class="fas fa-calendar"></i>
                     Date Range
@@ -361,7 +375,7 @@
                         }
                     }
                     
-                    <a href="javascript:void(0);" onclick="navigateToDocument(event, '/Client/@ViewBag.OrganizationId/Documents/@doc.Id');" class="text-decoration-none" style="color: inherit;">
+                    <a href="javascript:void(0);" onclick="navigateToDocument(event, '/Client/@ViewBag.OrganizationId/Documents/@doc.Id');" class="text-decoration-none" style="color: inherit;" data-document-entry="true">
                         <div class="card document-card border-0 mb-3" style="cursor: pointer;">
                             <div class="card-body p-4" style="position: relative;">
                                 <!-- Status Badge and Action Icons (Top Right) -->
@@ -496,6 +510,7 @@
                     </div>
                     <p class="text-muted mt-2">Loading more documents...</p>
                 </div>
+                <div id="documentsLazyLoadSentinel" style="height: 1px;"></div>
                 <!-- Empty state -->
                 <div id="documentsEmptyState" class="text-center py-5" style="display: none;">
                     <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
@@ -1445,32 +1460,57 @@
             skip: 0,
             hasMore: true,
             loading: false,
-            currentSourceType: null
+            currentSourceType: null,
+            currentFileTypeFilter: 'google-docs' // Default to Google Docs
         };
+        let documentsLazyObserver = null;
 
         function initDocumentsLazyLoading() {
             // Load initial documents if we have less than 25 rendered
-            const initialDocs = document.querySelectorAll('#documentsContainer > a');
+            const initialDocs = document.querySelectorAll('[data-document-entry="true"]');
             if (initialDocs.length > 0) {
                 documentsPaginationState.skip = initialDocs.length;
             }
 
-            // Set up scroll listener for infinite scroll
-            let scrollTimeout;
-            window.addEventListener('scroll', () => {
-                clearTimeout(scrollTimeout);
-                scrollTimeout = setTimeout(() => {
-                    if (documentsPaginationState.loading || !documentsPaginationState.hasMore) return;
-                    
-                    // Check if user scrolled near bottom (within 200px)
-                    const scrollPosition = window.innerHeight + window.scrollY;
-                    const documentHeight = document.documentElement.scrollHeight;
-                    
-                    if (scrollPosition >= documentHeight - 200) {
-                        loadMoreDocuments();
-                    }
-                }, 100);
-            });
+            const sentinel = document.getElementById('documentsLazyLoadSentinel');
+
+            if ('IntersectionObserver' in window && sentinel) {
+                documentsLazyObserver = new IntersectionObserver(entries => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            loadMoreDocuments();
+                        }
+                    });
+                }, {
+                    root: null,
+                    rootMargin: '200px',
+                    threshold: 0
+                });
+
+                documentsLazyObserver.observe(sentinel);
+            } else {
+                // Fallback: traditional scroll listener
+                let scrollTimeout;
+                window.addEventListener('scroll', () => {
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(() => {
+                        if (documentsPaginationState.loading || !documentsPaginationState.hasMore) return;
+
+                        const scrollPosition = window.innerHeight + window.scrollY;
+                        const documentHeight = document.documentElement.scrollHeight;
+
+                        if (scrollPosition >= documentHeight - 200) {
+                            loadMoreDocuments();
+                        }
+                    }, 100);
+                });
+            }
+
+            // In case the viewport is taller than the content, load more immediately
+            maybeLoadMoreDocuments();
+            
+            // Apply default Google Docs filter on page load
+            applyFileTypeFilter('google-docs', true);
         }
 
         async function loadMoreDocuments() {
@@ -1499,8 +1539,20 @@
                     params.set('sourceType', documentsPaginationState.currentSourceType);
                 }
                 
+                if (documentsPaginationState.currentFileTypeFilter && documentsPaginationState.currentFileTypeFilter !== 'all') {
+                    params.set('fileTypeFilter', documentsPaginationState.currentFileTypeFilter);
+                }
+                
                 const response = await fetch(`/api/documents/list?${params.toString()}`);
                 const result = await response.json();
+                
+                console.log('Document list response:', {
+                    documentsReceived: result.documents?.length || 0,
+                    hasMore: result.hasMore,
+                    skip: documentsPaginationState.skip,
+                    total: result.total,
+                    filter: documentsPaginationState.currentFileTypeFilter
+                });
                 
                 if (loadingIndicator) loadingIndicator.style.display = 'none';
                 
@@ -1514,6 +1566,17 @@
                     
                     documentsPaginationState.skip += result.documents.length;
                     documentsPaginationState.hasMore = result.hasMore;
+
+                    console.log('Documents loaded. New state:', {
+                        skip: documentsPaginationState.skip,
+                        hasMore: documentsPaginationState.hasMore,
+                        totalInDOM: document.querySelectorAll('[data-document-entry="true"]').length
+                    });
+
+                    // If there's still room below the fold, keep loading
+                    if (documentsPaginationState.hasMore) {
+                        setTimeout(() => maybeLoadMoreDocuments(), 100);
+                    }
                 } else {
                     documentsPaginationState.hasMore = false;
                     if (emptyState && documentsPaginationState.skip === 0) {
@@ -1525,6 +1588,17 @@
                 if (loadingIndicator) loadingIndicator.style.display = 'none';
             } finally {
                 documentsPaginationState.loading = false;
+            }
+        }
+
+        function maybeLoadMoreDocuments() {
+            if (documentsPaginationState.loading || !documentsPaginationState.hasMore) return;
+
+            const documentHeight = document.documentElement.scrollHeight;
+            const viewportHeight = window.innerHeight;
+
+            if (documentHeight <= viewportHeight + 160) {
+                loadMoreDocuments();
             }
         }
 
@@ -1540,6 +1614,7 @@
             const orgId = getCurrentOrganizationId();
             const card = document.createElement('div');
             card.className = 'col-12';
+            card.setAttribute('data-document-entry', 'true');
             
             const statusClass = getStatusClass(status);
             const isClickable = isStatusInteractive(status);
@@ -1731,6 +1806,44 @@
             
             window.location.href = url;
             return false;
+        }
+
+        function applyFileTypeFilter(filterType, skipReload = false) {
+            const filterLabel = document.getElementById('fileTypeFilterLabel');
+            
+            const filterLabels = {
+                'google-docs': 'Google Docs',
+                'google-sheets': 'Google Sheets',
+                'google-slides': 'Google Slides',
+                'pdf': 'PDF',
+                'word': 'Word Documents',
+                'excel': 'Excel Spreadsheets',
+                'powerpoint': 'PowerPoint',
+                'text': 'Text Files',
+                'all': 'All Files'
+            };
+            
+            if (filterLabel) {
+                filterLabel.textContent = filterLabels[filterType] || 'Filter';
+            }
+            
+            documentsPaginationState.currentFileTypeFilter = filterType;
+            
+            if (!skipReload) {
+                // Reset and reload documents
+                documentsPaginationState.skip = 0;
+                documentsPaginationState.hasMore = true;
+                
+                const container = document.getElementById('documentsContainer');
+                if (container) {
+                    // Remove ALL documents (both server-rendered and dynamic)
+                    const allDocs = container.querySelectorAll('[data-document-entry="true"]');
+                    allDocs.forEach(doc => doc.remove());
+                }
+                
+                // Load fresh documents with the filter
+                loadMoreDocuments();
+            }
         }
 
         // Cycle document status: Draft -> Review -> Final -> Draft
