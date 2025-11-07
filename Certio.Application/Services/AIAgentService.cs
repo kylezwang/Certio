@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using System.Text;
 using System.Security.Cryptography;
 using System.Globalization;
+using System.Linq;
 using Microsoft.Extensions.Configuration;
 using Certio.Domain.Services;
 using Certio.Domain.Documents;
@@ -15,8 +16,10 @@ namespace Certio.Application.Services;
 
 public class AIAgentService : IAIAgentService
 {
-    private const int MaxDocumentContentSnippets = 3;
-    private const int DocumentContentExcerptLimit = 4000;
+    private const int MaxDocumentContentSnippets = 9;
+    private const int MaxChunksPerDocument = 3;
+    private const int DocumentContentExcerptLimit = 2000;
+    private const int DocumentChunkContextPadding = 400;
 
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
@@ -317,12 +320,22 @@ public class AIAgentService : IAIAgentService
         }
     }
 
+    private static List<ChatMessage> OrderMessages(IEnumerable<ChatMessage> messages)
+    {
+        return messages
+            .OrderBy(m => m.CreatedAt)
+            .ThenBy(m => m.Id)
+            .ToList();
+    }
+
     private object CreateAIRequest(string conversationId, List<ChatMessage> messages, string? userMessage = null, string userType = "Client", Dictionary<string, string?>? documentContext = null)
     {
+        var orderedMessages = OrderMessages(messages);
+
         var request = new
         {
             conversation_id = conversationId,
-            messages = messages.Select(m => new
+            messages = orderedMessages.Select(m => new
             {
                 id = m.Id,
                 conversation_id = m.ConversationId,
@@ -354,6 +367,8 @@ public class AIAgentService : IAIAgentService
 
     private async Task<Dictionary<string, string?>?> TryBuildDocumentContextAsync(string conversationId, List<ChatMessage> messages, string userMessage)
     {
+        var orderedMessages = OrderMessages(messages);
+
         if (!int.TryParse(conversationId, out var convId))
         {
             return null;
@@ -372,7 +387,7 @@ public class AIAgentService : IAIAgentService
                 return null;
             }
 
-            var initiatingMessage = messages.FirstOrDefault(m => !m.IsFromAI);
+            var initiatingMessage = orderedMessages.FirstOrDefault(m => !m.IsFromAI);
             if (initiatingMessage?.UserId == null)
             {
                 return null;
@@ -423,24 +438,43 @@ public class AIAgentService : IAIAgentService
 
         documentContext["documentContents"] = JsonSerializer.Serialize(snippets);
         documentContext["documentContentCount"] = snippets.Count.ToString(CultureInfo.InvariantCulture);
+        var documentUniqueCount = snippets.Select(s => s.DocumentId).Distinct().Count();
+        documentContext["documentContentDocumentCount"] = documentUniqueCount.ToString(CultureInfo.InvariantCulture);
     }
 
     private async Task<List<DocumentContentSnippet>> BuildDocumentContentSnippetsAsync(RagContextResult ragResult)
     {
         var snippets = new List<DocumentContentSnippet>();
-        var seenDocuments = new HashSet<Guid>();
+
+        if (ragResult.Vectors.Count == 0)
+        {
+            return snippets;
+        }
+
         var providerFailures = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var documentChunkCounts = new Dictionary<Guid, int>();
+        var contentCache = new Dictionary<Guid, DocumentContentResult>();
 
         foreach (var vector in ragResult.Vectors)
         {
-            if (vector.DocumentId == Guid.Empty || !seenDocuments.Add(vector.DocumentId))
+            if (snippets.Count >= MaxDocumentContentSnippets)
+            {
+                break;
+            }
+
+            if (vector.DocumentId == Guid.Empty)
             {
                 continue;
             }
 
-            if (snippets.Count >= MaxDocumentContentSnippets)
+            var documentId = vector.DocumentId;
+            var chunkCountForDocument = documentChunkCounts.TryGetValue(documentId, out var processedChunks)
+                ? processedChunks
+                : 0;
+
+            if (chunkCountForDocument >= MaxChunksPerDocument)
             {
-                break;
+                continue;
             }
 
             Document? document = vector.Document;
@@ -448,7 +482,7 @@ public class AIAgentService : IAIAgentService
             {
                 document = await _dbContext.Documents
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(d => d.Id == vector.DocumentId);
+                    .FirstOrDefaultAsync(d => d.Id == documentId);
 
                 if (document == null)
                 {
@@ -464,75 +498,212 @@ public class AIAgentService : IAIAgentService
                 continue;
             }
 
+            DocumentContentResult? contentResult;
             try
             {
-                var contentResult = await _documentContentService.FetchContentAsync(document, vector.VersionId);
-                var snippet = CreateSnippet(document, contentResult);
-                if (snippet != null)
-                {
-                    snippets.Add(snippet);
-                }
-
-                var extractionStatus = TryGetExtractionStatus(contentResult);
-                if (IsAuthenticationFailure(extractionStatus))
-                {
-                    providerFailures.Add(providerNormalized);
-                }
+                contentResult = await GetOrFetchContentResultAsync(document, vector.VersionId, contentCache);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Failed to fetch content for document {vector.DocumentId}: {ex.Message}");
-                if (providerNormalized.Contains("google", StringComparison.OrdinalIgnoreCase))
-                {
-                    providerFailures.Add(providerNormalized);
-                }
+                providerFailures.Add(providerNormalized);
+                continue;
+            }
+
+            var excerpt = BuildExcerptForVector(vector, contentResult);
+            var metadata = BuildSnippetMetadata(vector, contentResult, chunkCountForDocument);
+            var hasContent = !string.IsNullOrWhiteSpace(excerpt);
+
+            if (!hasContent && metadata.TryGetValue("extractionStatus", out var status) && !string.IsNullOrWhiteSpace(status))
+            {
+                excerpt = BuildFriendlyStatusMessage(status);
+            }
+
+            var sanitizedExcerpt = SanitizeExcerpt(excerpt, out var truncated);
+            var finalHasContent = !string.IsNullOrWhiteSpace(sanitizedExcerpt);
+
+            var snippet = new DocumentContentSnippet(
+                document.Id,
+                string.IsNullOrWhiteSpace(document.Title) ? "Untitled Document" : document.Title,
+                providerKey,
+                string.IsNullOrWhiteSpace(document.FileType) ? "unknown" : document.FileType,
+                sanitizedExcerpt,
+                finalHasContent,
+                contentResult?.IsPartial ?? false,
+                truncated,
+                document.DownloadUrl,
+                metadata,
+                vector.ChunkIndex);
+
+            snippets.Add(snippet);
+            documentChunkCounts[documentId] = chunkCountForDocument + 1;
+
+            var extractionStatus = contentResult != null ? TryGetExtractionStatus(contentResult) : null;
+            if (IsAuthenticationFailure(extractionStatus))
+            {
+                providerFailures.Add(providerNormalized);
             }
         }
 
         return snippets;
     }
 
-    private DocumentContentSnippet? CreateSnippet(Document document, DocumentContentResult contentResult)
+    private async Task<DocumentContentResult> GetOrFetchContentResultAsync(
+        Document document,
+        Guid? versionId,
+        Dictionary<Guid, DocumentContentResult> cache)
     {
-        var excerpt = ExtractExcerpt(contentResult);
-        if (string.IsNullOrWhiteSpace(excerpt))
+        if (cache.TryGetValue(document.Id, out var cached))
         {
-            return null;
+            return cached;
         }
 
-        var truncated = excerpt.Length > DocumentContentExcerptLimit;
-        if (truncated)
-        {
-            excerpt = excerpt[..DocumentContentExcerptLimit].TrimEnd() + " …";
-        }
-
-        return new DocumentContentSnippet(
-            document.Id,
-            string.IsNullOrWhiteSpace(document.Title) ? "Untitled Document" : document.Title,
-            document.SourceType.ToString(),
-            string.IsNullOrWhiteSpace(document.FileType) ? "unknown" : document.FileType,
-            excerpt,
-            contentResult.HasContent,
-            contentResult.IsPartial,
-            truncated,
-            document.DownloadUrl,
-            contentResult.AdditionalMetadata);
+        var result = await _documentContentService.FetchContentAsync(document, versionId);
+        cache[document.Id] = result;
+        return result;
     }
 
-    private static string ExtractExcerpt(DocumentContentResult contentResult)
+    private static string BuildExcerptForVector(DocumentVector vector, DocumentContentResult? contentResult)
     {
-        if (contentResult.HasContent)
+        var rawChunk = vector.ContentChunk;
+        if (!string.IsNullOrWhiteSpace(rawChunk))
         {
-            return contentResult.Content;
+            return ExpandChunkWithContext(rawChunk, contentResult?.Content);
         }
 
-        if (contentResult.AdditionalMetadata.TryGetValue("extractionStatus", out var status) &&
-            !string.IsNullOrWhiteSpace(status))
+        if (contentResult != null && contentResult.HasContent)
         {
-            return BuildFriendlyStatusMessage(status);
+            return ExtractSequentialSegment(contentResult.Content, vector.ChunkIndex);
         }
 
         return string.Empty;
+    }
+
+    private static string ExpandChunkWithContext(string chunk, string? fullContent)
+    {
+        if (string.IsNullOrWhiteSpace(fullContent))
+        {
+            return NormalizeWhitespace(chunk);
+        }
+
+        var matchIndex = fullContent.IndexOf(chunk, StringComparison.OrdinalIgnoreCase);
+        if (matchIndex < 0)
+        {
+            return NormalizeWhitespace(chunk);
+        }
+
+        var start = Math.Max(0, matchIndex - DocumentChunkContextPadding);
+        var availableLength = fullContent.Length - start;
+        var desiredLength = Math.Min(DocumentContentExcerptLimit + DocumentChunkContextPadding, availableLength);
+        var excerpt = fullContent.Substring(start, desiredLength);
+        return NormalizeWhitespace(excerpt);
+    }
+
+    private static string ExtractSequentialSegment(string content, int chunkIndex)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            return string.Empty;
+        }
+
+        var normalized = NormalizeWhitespace(content);
+        var start = Math.Max(0, chunkIndex * DocumentContentExcerptLimit);
+        if (start >= normalized.Length)
+        {
+            start = Math.Max(0, normalized.Length - DocumentContentExcerptLimit);
+        }
+
+        var length = Math.Min(DocumentContentExcerptLimit, normalized.Length - start);
+        return length > 0 ? normalized.Substring(start, length) : normalized;
+    }
+
+    private static Dictionary<string, string?> BuildSnippetMetadata(
+        DocumentVector vector,
+        DocumentContentResult? contentResult,
+        int batchPosition)
+    {
+        var metadata = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["chunkIndex"] = vector.ChunkIndex.ToString(CultureInfo.InvariantCulture),
+            ["batchPosition"] = (batchPosition + 1).ToString(CultureInfo.InvariantCulture),
+            ["vectorId"] = vector.Id.ToString(),
+            ["usedVectorChunk"] = (!string.IsNullOrWhiteSpace(vector.ContentChunk)).ToString().ToLowerInvariant()
+        };
+
+        if (vector.Tags.TryGetValue("fallback", out var fallbackValue) && !string.IsNullOrWhiteSpace(fallbackValue))
+        {
+            metadata["chunkSource"] = fallbackValue;
+        }
+        else
+        {
+            metadata["chunkSource"] = "vector";
+        }
+
+        foreach (var tag in vector.Tags)
+        {
+            metadata.TryAdd($"tag:{tag.Key}", tag.Value);
+        }
+
+        if (contentResult != null)
+        {
+            foreach (var kvp in contentResult.AdditionalMetadata)
+            {
+                metadata.TryAdd(kvp.Key, kvp.Value);
+            }
+        }
+
+        return metadata;
+    }
+
+    private static string SanitizeExcerpt(string excerpt, out bool truncated)
+    {
+        truncated = false;
+
+        if (string.IsNullOrWhiteSpace(excerpt))
+        {
+            return string.Empty;
+        }
+
+        var normalized = NormalizeWhitespace(excerpt);
+        if (normalized.Length <= DocumentContentExcerptLimit)
+        {
+            return normalized;
+        }
+
+        truncated = true;
+        return normalized[..DocumentContentExcerptLimit].TrimEnd() + " …";
+    }
+
+    private static string NormalizeWhitespace(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return string.Empty;
+        }
+
+        var builder = new StringBuilder(text.Length);
+        var previousWhitespace = false;
+
+        foreach (var ch in text)
+        {
+            if (char.IsWhiteSpace(ch))
+            {
+                if (previousWhitespace)
+                {
+                    continue;
+                }
+
+                builder.Append(' ');
+                previousWhitespace = true;
+            }
+            else
+            {
+                builder.Append(ch);
+                previousWhitespace = false;
+            }
+        }
+
+        return builder.ToString().Trim();
     }
 
     private static string? TryGetExtractionStatus(DocumentContentResult contentResult) =>
@@ -563,7 +734,8 @@ public class AIAgentService : IAIAgentService
         bool IsPartial,
         bool IsTruncated,
         string? DownloadUrl,
-        IReadOnlyDictionary<string, string?> Metadata);
+        IReadOnlyDictionary<string, string?> Metadata,
+        int ChunkIndex);
 
     private async Task<T?> CallAIServiceAsync<T>(string endpoint, object request) where T : class
     {

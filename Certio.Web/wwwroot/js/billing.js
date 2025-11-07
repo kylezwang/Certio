@@ -2,6 +2,24 @@
 (function() {
     'use strict';
 
+    const billingFilterLabels = {
+        'all': 'All Records',
+        'time-entries': 'Time Entries',
+        'expenses': 'Expenses',
+        'invoices': 'Invoices',
+        'trusts': 'Trust Activity'
+    };
+
+    const billingDateLabels = {
+        'last-30-days': 'Last 30 Days',
+        'last-90-days': 'Last 90 Days',
+        'this-year': 'This Year',
+        'all-time': 'All Time'
+    };
+
+    let currentBillingFilter = 'all';
+    let currentBillingDateRange = 'last-30-days';
+
     // Track which tabs have been loaded
     const loadedTabs = new Set();
 
@@ -10,6 +28,7 @@
         initializeTabs();
         handleInitialHash();
         initializeNewTimeEntryButton();
+        initializeFilters();
         
         // Hide right sidebar on page load
         if (typeof window.hideBothSidebars === 'function') {
@@ -230,6 +249,44 @@
             .split('-')
             .map(word => word.charAt(0).toUpperCase() + word.slice(1))
             .join(' ');
+    }
+
+    function initializeFilters() {
+        const filterLabel = document.getElementById('billingFilterLabel');
+        const dateLabel = document.getElementById('billingDateFilterLabel');
+
+        if (!filterLabel || !dateLabel) {
+            return;
+        }
+
+        document.querySelectorAll('.billing-filter-option').forEach(option => {
+            option.addEventListener('click', function(e) {
+                e.preventDefault();
+                const filter = this.dataset.filter || 'all';
+                currentBillingFilter = filter;
+                filterLabel.textContent = billingFilterLabels[filter] || 'Filter';
+
+                document.dispatchEvent(new CustomEvent('billing:filterChanged', {
+                    detail: { filter }
+                }));
+            });
+        });
+
+        document.querySelectorAll('.billing-date-option').forEach(option => {
+            option.addEventListener('click', function(e) {
+                e.preventDefault();
+                const range = this.dataset.dateRange || 'last-30-days';
+                currentBillingDateRange = range;
+                dateLabel.textContent = billingDateLabels[range] || 'Date Range';
+
+                document.dispatchEvent(new CustomEvent('billing:dateRangeChanged', {
+                    detail: { range }
+                }));
+            });
+        });
+
+        filterLabel.textContent = billingFilterLabels[currentBillingFilter];
+        dateLabel.textContent = billingDateLabels[currentBillingDateRange];
     }
 
     function initializeNewTimeEntryButton() {

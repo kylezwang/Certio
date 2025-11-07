@@ -257,6 +257,18 @@ if (!string.IsNullOrWhiteSpace(oneDriveRedirectUri))
     builder.Configuration["DocumentIntegration:OneDrive:RedirectUri"] = oneDriveRedirectUri;
 }
 
+var documentIntelligenceEndpoint = Environment.GetEnvironmentVariable("AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT");
+if (!string.IsNullOrWhiteSpace(documentIntelligenceEndpoint))
+{
+    builder.Configuration["DocumentExtraction:Endpoint"] = documentIntelligenceEndpoint;
+}
+
+var documentIntelligenceApiKey = Environment.GetEnvironmentVariable("AZURE_DOCUMENT_INTELLIGENCE_API_KEY");
+if (!string.IsNullOrWhiteSpace(documentIntelligenceApiKey))
+{
+    builder.Configuration["DocumentExtraction:ApiKey"] = documentIntelligenceApiKey;
+}
+
 // Add HTTP Context Accessor for audit interceptor
 builder.Services.AddHttpContextAccessor();
 
@@ -439,21 +451,50 @@ builder.Services.Configure<DocumentIntegrationOptions>(builder.Configuration.Get
 builder.Services.AddSingleton<DocumentIntelligenceClient?>(sp =>
 {
     var options = sp.GetRequiredService<IOptions<SecureDocumentExtractionOptions>>().Value;
+    var logger = sp.GetRequiredService<ILogger<Program>>();
 
-    if (string.IsNullOrWhiteSpace(options.Endpoint) || string.IsNullOrWhiteSpace(options.ApiKey))
+    static bool IsUnset(string? candidate)
     {
+        if (string.IsNullOrWhiteSpace(candidate))
+        {
+            return true;
+        }
+
+        var trimmed = candidate.Trim().Trim('\"', '\'');
+
+        if (trimmed.Length == 0)
+        {
+            return true;
+        }
+
+        if ((trimmed.StartsWith("${", StringComparison.Ordinal) && trimmed.EndsWith("}", StringComparison.Ordinal)) ||
+            (trimmed.StartsWith("%", StringComparison.Ordinal) && trimmed.EndsWith("%", StringComparison.Ordinal)))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    if (IsUnset(options.Endpoint) || IsUnset(options.ApiKey))
+    {
+        logger.LogInformation("Azure Document Intelligence configuration missing or unresolved environment variables. Document extraction will use fallback methods.");
         return null; // Gracefully skip if not configured
+    }
+
+    if (!Uri.TryCreate(options.Endpoint, UriKind.Absolute, out var endpoint))
+    {
+        logger.LogWarning("Azure Document Intelligence endpoint '{Endpoint}' is not a valid absolute URI. Document extraction will use fallback methods.", options.Endpoint);
+        return null;
     }
 
     try
     {
-        var endpoint = new Uri(options.Endpoint);
         var credential = new AzureKeyCredential(options.ApiKey);
         return new DocumentIntelligenceClient(endpoint, credential);
     }
     catch (Exception ex)
     {
-        var logger = sp.GetRequiredService<ILogger<Program>>();
         logger.LogWarning(ex, "Failed to initialize Azure Document Intelligence client. Document extraction will use fallback methods.");
         return null;
     }

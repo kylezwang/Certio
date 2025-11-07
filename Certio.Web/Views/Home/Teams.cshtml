@@ -29,14 +29,30 @@
         </div>
         <div class="col-md-4">
             <div class="filter-buttons">
-                <button class="filter-button">
-                    <i class="fas fa-filter"></i>
-                    Filter
-                </button>
-                <button class="filter-button">
-                    <i class="fas fa-calendar"></i>
-                    Date Range
-                </button>
+                <div class="dropdown d-inline-block me-2">
+                    <button class="filter-button dropdown-toggle" type="button" id="teamsFilterBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-filter"></i>
+                        <span id="teamsFilterLabel">All Team Members</span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="teamsFilterBtn">
+                        <li><a class="dropdown-item teams-filter-option" href="#" data-filter="all">All Team Members</a></li>
+                        <li><a class="dropdown-item teams-filter-option" href="#" data-filter="client">Client Team</a></li>
+                        <li><a class="dropdown-item teams-filter-option" href="#" data-filter="legal">Legal Team</a></li>
+                        <li><a class="dropdown-item teams-filter-option" href="#" data-filter="external">External Team</a></li>
+                    </ul>
+                </div>
+                <div class="dropdown d-inline-block">
+                    <button class="filter-button dropdown-toggle" type="button" id="teamsDateFilterBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-calendar"></i>
+                        <span id="teamsDateFilterLabel">All Time</span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="teamsDateFilterBtn">
+                        <li><a class="dropdown-item teams-date-option" href="#" data-date-range="all-time">All Time</a></li>
+                        <li><a class="dropdown-item teams-date-option" href="#" data-date-range="last-30-days">Last 30 Days</a></li>
+                        <li><a class="dropdown-item teams-date-option" href="#" data-date-range="last-90-days">Last 90 Days</a></li>
+                        <li><a class="dropdown-item teams-date-option" href="#" data-date-range="this-year">This Year</a></li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
@@ -145,7 +161,7 @@
                     <div class="row g-4">
                         @foreach (var member in teamMembers)
                         {
-                            <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 team-member-card" data-name="@member.Name.ToLower()" data-role="@member.Role.ToLower()">
+                            <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 team-member-card" data-name="@member.Name.ToLower()" data-role="@member.Role.ToLower()" data-team="@member.Team.ToString().ToLower()">
                                 <div class="card h-100 border-0  hover-shadow transition-smooth cursor-pointer">
                                     <div class="card-body d-flex flex-column align-items-center text-center p-4">
                                         <!-- Avatar -->
@@ -220,9 +236,78 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.getElementById('searchInput');
-            const teamMemberCards = document.querySelectorAll('.team-member-card');
-            const teamSections = document.querySelectorAll('.team-section');
+            const searchInput = document.getElementById('teamSearchInput');
+            const teamMemberCards = Array.from(document.querySelectorAll('.team-member-card'));
+            const teamSections = Array.from(document.querySelectorAll('.team-section'));
+            const teamFilterLabel = document.getElementById('teamsFilterLabel');
+            const teamDateFilterLabel = document.getElementById('teamsDateFilterLabel');
+
+            const teamFilterLabels = {
+                'all': 'All Team Members',
+                'client': 'Client Team',
+                'legal': 'Legal Team',
+                'external': 'External Team'
+            };
+
+            const teamDateLabels = {
+                'all-time': 'All Time',
+                'last-30-days': 'Last 30 Days',
+                'last-90-days': 'Last 90 Days',
+                'this-year': 'This Year'
+            };
+
+            let currentTeamFilter = 'all';
+            let currentTeamDateRange = 'all-time';
+            let currentTeamSearchTerm = '';
+
+            function updateTeamVisibility() {
+                teamSections.forEach(section => {
+                    const cards = Array.from(section.querySelectorAll('.team-member-card'));
+                    let visibleCount = 0;
+
+                    cards.forEach(card => {
+                        const team = (card.dataset.team || '').toLowerCase();
+                        const name = card.dataset.name || '';
+                        const role = card.dataset.role || '';
+
+                        const matchesTeam = currentTeamFilter === 'all' || team === currentTeamFilter;
+                        const matchesSearch = !currentTeamSearchTerm || name.includes(currentTeamSearchTerm) || role.includes(currentTeamSearchTerm);
+
+                        const shouldShow = matchesTeam && matchesSearch;
+                        card.style.display = shouldShow ? '' : 'none';
+                        if (shouldShow) {
+                            visibleCount++;
+                        }
+                    });
+
+                    section.style.display = visibleCount > 0 ? '' : 'none';
+                });
+            }
+
+            function applyTeamFilter(filter) {
+                currentTeamFilter = filter;
+                if (teamFilterLabel) {
+                    teamFilterLabel.textContent = teamFilterLabels[filter] || 'Filter';
+                }
+                updateTeamVisibility();
+
+                document.dispatchEvent(new CustomEvent('teams:filterChanged', {
+                    detail: { filter }
+                }));
+            }
+
+            function applyTeamDateRange(range, skipEvent = false) {
+                currentTeamDateRange = range;
+                if (teamDateFilterLabel) {
+                    teamDateFilterLabel.textContent = teamDateLabels[range] || 'Date Range';
+                }
+
+                if (!skipEvent) {
+                    document.dispatchEvent(new CustomEvent('teams:dateRangeChanged', {
+                        detail: { range }
+                    }));
+                }
+            }
 
             // Horizontal scroll on mouse wheel for matters container
             const mattersContainer = document.querySelector('.matters-scroll-container');
@@ -238,30 +323,24 @@
             // Search functionality
             if (searchInput) {
                 searchInput.addEventListener('input', function() {
-                    const searchTerm = this.value.toLowerCase();
-                    
-                    teamMemberCards.forEach(card => {
-                        const name = card.dataset.name || '';
-                        const role = card.dataset.role || '';
-                        
-                        if (name.includes(searchTerm) || role.includes(searchTerm)) {
-                            card.style.display = 'block';
-                        } else {
-                            card.style.display = 'none';
-                        }
-                    });
-
-                    // Hide team sections that have no visible members
-                    teamSections.forEach(section => {
-                        const visibleMembers = section.querySelectorAll('.team-member-card[style*="display: block"], .team-member-card:not([style*="display: none"])');
-                        if (visibleMembers.length === 0) {
-                            section.style.display = 'none';
-                        } else {
-                            section.style.display = 'block';
-                        }
-                    });
+                    currentTeamSearchTerm = this.value.toLowerCase();
+                    updateTeamVisibility();
                 });
             }
+
+            document.querySelectorAll('.teams-filter-option').forEach(option => {
+                option.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    applyTeamFilter(this.dataset.filter || 'all');
+                });
+            });
+
+            document.querySelectorAll('.teams-date-option').forEach(option => {
+                option.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    applyTeamDateRange(this.dataset.dateRange || 'all-time');
+                });
+            });
 
             // Add hover effects
             teamMemberCards.forEach(card => {
@@ -273,6 +352,10 @@
                     this.classList.remove('shadow-lg');
                 });
             });
+
+            // Initialize filters
+            applyTeamFilter('all');
+            applyTeamDateRange('all-time', true);
         });
     </script>
 }

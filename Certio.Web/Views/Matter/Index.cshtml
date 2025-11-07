@@ -22,19 +22,36 @@
         <div class="col-md-8">
             <div class="search-container">
                 <i class="fas fa-search"></i>
-                <input type="text" class="form-control" placeholder="Search matters..." />
+                <input type="text" class="form-control" id="matterSearchInput" placeholder="Search matters..." />
             </div>
         </div>
         <div class="col-md-4">
             <div class="filter-buttons">
-                <button class="filter-button">
-                    <i class="fas fa-filter"></i>
-                    Filter
-                </button>
-                <button class="filter-button">
-                    <i class="fas fa-calendar"></i>
-                    Date Range
-                </button>
+                <div class="dropdown d-inline-block me-2">
+                    <button class="filter-button dropdown-toggle" type="button" id="mattersFilterBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-filter"></i>
+                        <span id="mattersFilterLabel">All Matters</span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="mattersFilterBtn">
+                        <li><a class="dropdown-item matters-filter-option" href="#" data-filter="all">All Matters</a></li>
+                        <li><a class="dropdown-item matters-filter-option" href="#" data-filter="planning">Planned</a></li>
+                        <li><a class="dropdown-item matters-filter-option" href="#" data-filter="in-progress">In Progress</a></li>
+                        <li><a class="dropdown-item matters-filter-option" href="#" data-filter="review">In Review</a></li>
+                        <li><a class="dropdown-item matters-filter-option" href="#" data-filter="completed">Completed</a></li>
+                    </ul>
+                </div>
+                <div class="dropdown d-inline-block">
+                    <button class="filter-button dropdown-toggle" type="button" id="mattersDateFilterBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-calendar"></i>
+                        <span id="mattersDateFilterLabel">All Time</span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="mattersDateFilterBtn">
+                        <li><a class="dropdown-item matters-date-option" href="#" data-date-range="all-time">All Time</a></li>
+                        <li><a class="dropdown-item matters-date-option" href="#" data-date-range="last-30-days">Last 30 Days</a></li>
+                        <li><a class="dropdown-item matters-date-option" href="#" data-date-range="last-90-days">Last 90 Days</a></li>
+                        <li><a class="dropdown-item matters-date-option" href="#" data-date-range="this-year">This Year</a></li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
@@ -42,7 +59,7 @@
     <!-- Stats Cards -->
     <div class="row mb-3">
         <div class="col-md-3 mb-3">
-            <div class="card h-100 border-0 stats-filter-card" data-filter-status="Planning" style="cursor: pointer;">
+            <div class="card h-100 border-0 stats-filter-card" data-filter-status="planning" style="cursor: pointer;">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center">
                         <div class="p-3 rounded-3 me-3" style="background-color: #6b72801C !important;">
@@ -58,7 +75,7 @@
         </div>
         
         <div class="col-md-3 mb-3">
-            <div class="card h-100 border-0 stats-filter-card" data-filter-status="In Progress" style="cursor: pointer;">
+            <div class="card h-100 border-0 stats-filter-card" data-filter-status="in-progress" style="cursor: pointer;">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center">
                         <div class="p-3 icon-bg-primary rounded-3 me-3">
@@ -74,7 +91,7 @@
         </div>
         
         <div class="col-md-3 mb-3">
-            <div class="card h-100 border-0 stats-filter-card" data-filter-status="Review" style="cursor: pointer;">
+            <div class="card h-100 border-0 stats-filter-card" data-filter-status="review" style="cursor: pointer;">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center">
                         <div class="p-3 bg-warning bg-opacity-10 rounded-3 me-3">
@@ -90,7 +107,7 @@
         </div>
         
         <div class="col-md-3 mb-3">
-            <div class="card h-100 border-0 stats-filter-card" data-filter-status="Completed" style="cursor: pointer;">
+            <div class="card h-100 border-0 stats-filter-card" data-filter-status="completed" style="cursor: pointer;">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center">
                         <div class="p-3 bg-success bg-opacity-10 rounded-3 me-3">
@@ -110,7 +127,7 @@
     <div class="row" id="matters-grid">
         @foreach (var matter in Model.Matters)
         {
-            <div class="col-lg-6 mb-3 matter-card-wrapper" data-matter-status="@matter.Status">
+            <div class="col-lg-6 mb-3 matter-card-wrapper" data-matter-status="@matter.Status?.ToLowerInvariant().Replace(" ", "-")" data-matter-title="@matter.Title?.ToLowerInvariant()">
                 <a href="/Client/@ViewBag.OrganizationId/Matter/Details/@matter.Id" class="text-decoration-none" style="color: inherit;">
                     <div class="card h-100 border-0 matter-card" style="padding-top: 0.5rem; position: relative;">
                     <div class="card-header bg-transparent border-0 pb-0">
@@ -135,8 +152,8 @@
                     <div class="card-body pt-2">
                         <!-- Status and PracticeArea -->
                         <div class="d-flex align-items-baseline gap-2 mb-2 flex-wrap">
-                            <i class="@GetStatusIcon(matter.Status)" style="font-size: 0.85rem;"></i>
-                            <span class="badge @GetStatusClass(matter.Status)" style="font-size: 0.6rem;">@matter.Status</span>
+                            <i class="@GetStatusIcon(matter.Status ?? string.Empty)" style="font-size: 0.85rem;"></i>
+                            <span class="badge @GetStatusClass(matter.Status ?? string.Empty)" style="font-size: 0.6rem;">@(!string.IsNullOrWhiteSpace(matter.Status) ? matter.Status : "Unknown")</span>
                             <span class="badge bg-secondary" style="font-size: 0.6rem;">@matter.PracticeArea</span>
                         </div>
 
@@ -220,6 +237,105 @@
         var parts = name.Split(' ');
         return parts.Length >= 2 ? $"{parts[0][0]}{parts[1][0]}" : name.Substring(0, Math.Min(2, name.Length));
     }
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('matterSearchInput');
+            const matterCards = Array.from(document.querySelectorAll('.matter-card-wrapper'));
+            const statusLabel = document.getElementById('mattersFilterLabel');
+            const dateLabel = document.getElementById('mattersDateFilterLabel');
+            const statsCards = document.querySelectorAll('.stats-filter-card');
+
+            const statusLabels = {
+                'all': 'All Matters',
+                'planning': 'Planned',
+                'in-progress': 'In Progress',
+                'review': 'In Review',
+                'completed': 'Completed'
+            };
+
+            const dateLabels = {
+                'all-time': 'All Time',
+                'last-30-days': 'Last 30 Days',
+                'last-90-days': 'Last 90 Days',
+                'this-year': 'This Year'
+            };
+
+            let currentStatusFilter = 'all';
+            let currentDateRange = 'all-time';
+            let currentSearchTerm = '';
+
+            function updateMatterVisibility() {
+                matterCards.forEach(card => {
+                    const status = (card.dataset.matterStatus || '').toLowerCase();
+                    const title = card.dataset.matterTitle || '';
+
+                    const matchesStatus = currentStatusFilter === 'all' || status === currentStatusFilter;
+                    const matchesSearch = !currentSearchTerm || title.includes(currentSearchTerm);
+
+                    const shouldShow = matchesStatus && matchesSearch;
+                    card.style.display = shouldShow ? '' : 'none';
+                });
+            }
+
+            function applyMattersStatusFilter(filter) {
+                currentStatusFilter = filter;
+                if (statusLabel) {
+                    statusLabel.textContent = statusLabels[filter] || 'Filter';
+                }
+                updateMatterVisibility();
+
+                document.dispatchEvent(new CustomEvent('matters:statusFilterChanged', {
+                    detail: { filter }
+                }));
+            }
+
+            function applyMattersDateRange(range, skipEvent = false) {
+                currentDateRange = range;
+                if (dateLabel) {
+                    dateLabel.textContent = dateLabels[range] || 'Date Range';
+                }
+
+                if (!skipEvent) {
+                    document.dispatchEvent(new CustomEvent('matters:dateRangeChanged', {
+                        detail: { range }
+                    }));
+                }
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    currentSearchTerm = this.value.toLowerCase();
+                    updateMatterVisibility();
+                });
+            }
+
+            document.querySelectorAll('.matters-filter-option').forEach(option => {
+                option.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    applyMattersStatusFilter(this.dataset.filter || 'all');
+                });
+            });
+
+            document.querySelectorAll('.matters-date-option').forEach(option => {
+                option.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    applyMattersDateRange(this.dataset.dateRange || 'all-time');
+                });
+            });
+
+            statsCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    applyMattersStatusFilter(this.dataset.filterStatus || 'all');
+                });
+            });
+
+            applyMattersStatusFilter('all');
+            applyMattersDateRange('all-time', true);
+        });
+    </script>
 }
 
 <style>
@@ -316,117 +432,3 @@
         display: none;
     }
 </style>
-
-<script>
-    // State to track active filter
-    let activeFilter = null;
-
-    // Function to handle filter clicks
-    function setupFilterCards() {
-        document.querySelectorAll('.stats-filter-card').forEach(card => {
-            card.addEventListener('click', function() {
-                const filterStatus = this.dataset.filterStatus;
-                
-                // If clicking the same filter, deactivate it
-                if (activeFilter === filterStatus) {
-                    activeFilter = null;
-                    this.classList.remove('active-filter');
-                    showAllMatters();
-                } else {
-                    // Remove active class from all filter cards
-                    document.querySelectorAll('.stats-filter-card').forEach(c => {
-                        c.classList.remove('active-filter');
-                    });
-                    
-                    // Set new active filter
-                    activeFilter = filterStatus;
-                    this.classList.add('active-filter');
-                    filterMatters(filterStatus);
-                }
-            });
-        });
-    }
-
-    // Function to filter matters by status
-    function filterMatters(status) {
-        document.querySelectorAll('.matter-card-wrapper').forEach(wrapper => {
-            const matterStatus = wrapper.dataset.matterStatus;
-            if (matterStatus === status) {
-                wrapper.classList.remove('filtered-out');
-            } else {
-                wrapper.classList.add('filtered-out');
-            }
-        });
-    }
-
-    // Function to show all matters
-    function showAllMatters() {
-        document.querySelectorAll('.matter-card-wrapper').forEach(wrapper => {
-            wrapper.classList.remove('filtered-out');
-        });
-    }
-
-    // Function to adjust assignee avatars based on available width
-    function adjustAssigneeAvatars() {
-        document.querySelectorAll('.assignees-container').forEach(container => {
-            const wrapper = container.querySelector('.assignees-wrapper');
-            const avatars = wrapper.querySelectorAll('.assignee-avatar[data-assignee-index]');
-            const overflowAvatar = wrapper.querySelector('.assignee-overflow');
-            const overflowCount = overflowAvatar.querySelector('.overflow-count');
-            const totalAssignees = parseInt(container.dataset.totalAssignees);
-            
-            if (avatars.length === 0) return;
-
-            // Reset all avatars to visible
-            avatars.forEach(avatar => avatar.style.display = 'flex');
-            overflowAvatar.style.display = 'none';
-
-            // Get available width (subtract Team label and some padding)
-            const containerWidth = container.offsetWidth;
-            const teamLabelWidth = container.querySelector('.text-muted').offsetWidth + 8; // +8 for margin
-            const availableWidth = containerWidth - teamLabelWidth - 40; // -40 for overflow avatar space
-
-            // Avatar width: 28px + 4px margin (me-1)
-            const avatarWidth = 32;
-            const overflowWidth = 40; // Slightly more space for "+X" text
-
-            // Calculate how many avatars can fit
-            let visibleCount = Math.floor((availableWidth - overflowWidth) / avatarWidth);
-            
-            // Ensure we show at least 2 avatars if there are that many
-            visibleCount = Math.max(2, Math.min(visibleCount, avatars.length));
-
-            // If all avatars fit, show them all
-            if (visibleCount >= avatars.length) {
-                visibleCount = avatars.length;
-            } else {
-                // Show the overflow indicator
-                const hiddenCount = totalAssignees - visibleCount;
-                if (hiddenCount > 0) {
-                    overflowCount.textContent = `+${hiddenCount}`;
-                    overflowAvatar.style.display = 'flex';
-                }
-            }
-
-            // Hide avatars that don't fit
-            avatars.forEach((avatar, index) => {
-                if (index >= visibleCount) {
-                    avatar.style.display = 'none';
-                }
-            });
-        });
-    }
-
-    // Run on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        setupFilterCards();
-        adjustAssigneeAvatars();
-    });
-
-    // Run on window resize with debounce
-    let resizeTimer;
-    window.addEventListener('resize', () => {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(adjustAssigneeAvatars, 150);
-    });
-</script>

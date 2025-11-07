@@ -29,14 +29,30 @@
         </div>
         <div class="col-md-4">
             <div class="filter-buttons">
-                <button class="filter-button">
-                    <i class="fas fa-filter"></i>
-                    Filter
-                </button>
-                <button class="filter-button">
-                    <i class="fas fa-calendar"></i>
-                    Date Range
-                </button>
+                <div class="dropdown d-inline-block me-2">
+                    <button class="filter-button dropdown-toggle" type="button" id="clientsFilterBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-filter"></i>
+                        <span id="clientsFilterLabel">All Clients</span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="clientsFilterBtn">
+                        <li><a class="dropdown-item clients-filter-option" href="#" data-filter="all">All Clients</a></li>
+                        <li><a class="dropdown-item clients-filter-option" href="#" data-filter="active">Active Clients</a></li>
+                        <li><a class="dropdown-item clients-filter-option" href="#" data-filter="pending">Pending Invitations</a></li>
+                        <li><a class="dropdown-item clients-filter-option" href="#" data-filter="external">External Guests</a></li>
+                    </ul>
+                </div>
+                <div class="dropdown d-inline-block">
+                    <button class="filter-button dropdown-toggle" type="button" id="clientsDateFilterBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-calendar"></i>
+                        <span id="clientsDateFilterLabel">All Time</span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="clientsDateFilterBtn">
+                        <li><a class="dropdown-item clients-date-option" href="#" data-date-range="all-time">All Time</a></li>
+                        <li><a class="dropdown-item clients-date-option" href="#" data-date-range="last-30-days">Last 30 Days</a></li>
+                        <li><a class="dropdown-item clients-date-option" href="#" data-date-range="last-90-days">Last 90 Days</a></li>
+                        <li><a class="dropdown-item clients-date-option" href="#" data-date-range="this-year">This Year</a></li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
@@ -60,6 +76,7 @@
                         var ownerHasMembership = client.OwnerHasMembership ?? false;
                         var hasRegisteredUsers = orgUsers.Count > 0;
                         var isConfirmed = ownerHasMembership || hasRegisteredUsers;
+                        var clientStatus = isExternalGuests ? "external" : (isConfirmed ? "active" : "pending");
                         var iconColor = isExternalGuests ? "#aaaaaa" : (isConfirmed ? "#69848C" : "#aaaaaa");
                         var iconClass = isExternalGuests ? "external-guests-icon" : (isConfirmed ? "" : "pending-client-icon");
                     }
@@ -83,7 +100,8 @@
                                 
                                 <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 client-card team-member-card" 
                                      data-name="@(userName.ToString().ToLower())" 
-                                     data-org="@(orgName.ToString().ToLower())">
+                                     data-org="@(orgName.ToString().ToLower())"
+                                     data-status="@clientStatus">
                                     <a href="/Client/@orgId/Dashboard" class="text-decoration-none">
                                         <div class="card h-100 border-0 hover-shadow transition-smooth cursor-pointer">
                                             <div class="card-body d-flex flex-column align-items-center text-center p-4">
@@ -127,7 +145,8 @@
                             var ownerColor = (client.OwnerDisplayColor ?? "#69848C").ToString();
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 client-card team-member-card" 
                                  data-name="@(clientName.ToString().ToLower())" 
-                                 data-org="@(orgName.ToString().ToLower())">
+                                 data-org="@(orgName.ToString().ToLower())"
+                                 data-status="@clientStatus">
                                 <a href="/Client/@orgId/Dashboard" class="text-decoration-none">
                                     <div class="card h-100 border-0 hover-shadow transition-smooth cursor-pointer">
                                         <div class="card-body d-flex flex-column align-items-center text-center p-4">
@@ -300,7 +319,77 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             const searchInput = document.getElementById('clientSearchInput');
-            const clientCards = document.querySelectorAll('.client-card');
+            const clientCards = Array.from(document.querySelectorAll('.client-card'));
+            const clientSections = Array.from(document.querySelectorAll('.client-section'));
+            const clientFilterLabel = document.getElementById('clientsFilterLabel');
+            const clientDateFilterLabel = document.getElementById('clientsDateFilterLabel');
+
+            const clientFilterLabels = {
+                'all': 'All Clients',
+                'active': 'Active Clients',
+                'pending': 'Pending Invitations',
+                'external': 'External Guests'
+            };
+
+            const clientDateLabels = {
+                'all-time': 'All Time',
+                'last-30-days': 'Last 30 Days',
+                'last-90-days': 'Last 90 Days',
+                'this-year': 'This Year'
+            };
+
+            let currentClientStatusFilter = 'all';
+            let currentClientDateRange = 'all-time';
+            let currentClientSearchTerm = '';
+
+            function updateClientVisibility() {
+                clientSections.forEach(section => {
+                    const cards = Array.from(section.querySelectorAll('.client-card'));
+                    let visibleCount = 0;
+
+                    cards.forEach(card => {
+                        const status = (card.dataset.status || '').toLowerCase();
+                        const name = card.dataset.name || '';
+                        const org = card.dataset.org || '';
+
+                        const matchesStatus = currentClientStatusFilter === 'all' || status === currentClientStatusFilter;
+                        const matchesSearch = !currentClientSearchTerm || name.includes(currentClientSearchTerm) || org.includes(currentClientSearchTerm);
+
+                        const shouldShow = matchesStatus && matchesSearch;
+                        card.style.display = shouldShow ? '' : 'none';
+                        if (shouldShow) {
+                            visibleCount++;
+                        }
+                    });
+
+                    section.style.display = visibleCount > 0 ? '' : 'none';
+                });
+            }
+
+            function applyClientsStatusFilter(filter) {
+                currentClientStatusFilter = filter;
+                if (clientFilterLabel) {
+                    clientFilterLabel.textContent = clientFilterLabels[filter] || 'Filter';
+                }
+                updateClientVisibility();
+
+                document.dispatchEvent(new CustomEvent('clients:statusFilterChanged', {
+                    detail: { filter }
+                }));
+            }
+
+            function applyClientsDateRange(range, skipEvent = false) {
+                currentClientDateRange = range;
+                if (clientDateFilterLabel) {
+                    clientDateFilterLabel.textContent = clientDateLabels[range] || 'Date Range';
+                }
+
+                if (!skipEvent) {
+                    document.dispatchEvent(new CustomEvent('clients:dateRangeChanged', {
+                        detail: { range }
+                    }));
+                }
+            }
 
             // Track when client cards are clicked
             clientCards.forEach(card => {
@@ -320,20 +409,24 @@
             // Search functionality
             if (searchInput) {
                 searchInput.addEventListener('input', function() {
-                    const searchTerm = this.value.toLowerCase();
-                    
-                    clientCards.forEach(card => {
-                        const name = card.dataset.name || '';
-                        const org = card.dataset.org || '';
-                        
-                        if (name.includes(searchTerm) || org.includes(searchTerm)) {
-                            card.style.display = 'block';
-                        } else {
-                            card.style.display = 'none';
-                        }
-                    });
+                    currentClientSearchTerm = this.value.toLowerCase();
+                    updateClientVisibility();
                 });
             }
+
+            document.querySelectorAll('.clients-filter-option').forEach(option => {
+                option.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    applyClientsStatusFilter(this.dataset.filter || 'all');
+                });
+            });
+
+            document.querySelectorAll('.clients-date-option').forEach(option => {
+                option.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    applyClientsDateRange(this.dataset.dateRange || 'all-time');
+                });
+            });
 
             // Add hover effects
             clientCards.forEach(card => {
@@ -348,6 +441,10 @@
                     });
                 }
             });
+
+            // Initialize filters
+            applyClientsStatusFilter('all');
+            applyClientsDateRange('all-time', true);
 
             // Apply client-side sorting based on last opened
             const clientsContainer = document.getElementById('clientsContainer');
