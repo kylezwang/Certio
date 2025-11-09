@@ -14,6 +14,9 @@ using System.Text;
 using Certio.Domain.Documents;
 using Certio.Application.Services.Documents;
 using Certio.Web.Attributes;
+using System.Net.Http.Headers;
+using System.Text.Json;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace Certio.Web.Controllers
 {
@@ -27,6 +30,8 @@ namespace Certio.Web.Controllers
         private readonly IDocumentEmbedService _embedService;
         private readonly WopiAccessTokenService _wopiTokenService;
         private readonly WopiDiscoveryService _wopiDiscoveryService;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IDataProtectionProvider _dataProtectionProvider;
 
         public DocumentsController(
             ApplicationDbContext db,
@@ -35,7 +40,9 @@ namespace Certio.Web.Controllers
             IOrganizationService organizationService,
             IDocumentEmbedService embedService,
             WopiAccessTokenService wopiTokenService,
-            WopiDiscoveryService wopiDiscoveryService)
+            WopiDiscoveryService wopiDiscoveryService,
+            IHttpClientFactory httpClientFactory,
+            IDataProtectionProvider dataProtectionProvider)
         {
             _db = db;
             _configuration = configuration;
@@ -44,6 +51,8 @@ namespace Certio.Web.Controllers
             _embedService = embedService;
             _wopiTokenService = wopiTokenService;
             _wopiDiscoveryService = wopiDiscoveryService;
+            _httpClientFactory = httpClientFactory;
+            _dataProtectionProvider = dataProtectionProvider;
         }
 
         // GET /Client/{orgId}/Documents
@@ -93,20 +102,13 @@ namespace Certio.Web.Controllers
             var folders = new List<Certio.Domain.Documents.FolderInfo>
             {
                 new Certio.Domain.Documents.FolderInfo { Name = "All Documents", Count = documentCount, Icon = "FileText" },
-                new Certio.Domain.Documents.FolderInfo { Name = "OneDrive", Count = oneDriveCount, Icon = "File" },
-                new Certio.Domain.Documents.FolderInfo { Name = "Google Drive", Count = googleDriveCount, Icon = "File" },
+                new Certio.Domain.Documents.FolderInfo { Name = "OneDrive", Count = oneDriveCount, Icon = "OneDrive" },
+                new Certio.Domain.Documents.FolderInfo { Name = "Google Drive", Count = googleDriveCount, Icon = "GoogleDrive" },
                 new Certio.Domain.Documents.FolderInfo { Name = "Internal", Count = internalCount, Icon = "FileText" }
             };
 
-            var totalSize = documents.Count > 0 ? documents.Sum(d => d.FileSizeBytes) : 0;
-            var storage = new Certio.Domain.Documents.StorageInfo
-            {
-                UsedGB = totalSize / (1024.0 * 1024.0 * 1024.0),
-                TotalGB = 500,
-                DocumentCount = documents.Count,
-                SharedCount = documents.Count(d => !d.IsPrivate),
-                RecentCount = documents.Count(d => d.ModifiedAt > DateTime.UtcNow.AddDays(-7))
-            };
+            // Fetch storage from connected Google Drive and OneDrive
+            var storage = await GetStorageInfoAsync(documentOrgId, documentUserId);
 
             // ALWAYS prioritize real documents over sample data
             // Only show sample data if explicitly enabled AND no real documents exist
@@ -636,6 +638,150 @@ namespace Certio.Web.Controllers
                 DocumentSourceType.OneDrive => "microsoft",
                 _ => "internal"
             };
+        }
+
+        private async Task<Certio.Domain.Documents.StorageInfo> GetStorageInfoAsync(Guid orgId, Guid userId)
+        {
+            double usedGB = 0;
+            double totalGB = 0;
+
+            // Get Google Drive connection
+            var googleConnection = await _db.ExternalConnections
+                .AsNoTracking()
+                .FirstOrDefaultAsync(ec => ec.OrgId == orgId && ec.UserId == userId && ec.Provider == ExternalConnectionProvider.Google);
+
+            // Get OneDrive connection
+            var oneDriveConnection = await _db.ExternalConnections
+                .AsNoTracking()
+                .FirstOrDefaultAsync(ec => ec.OrgId == orgId && ec.UserId == userId && ec.Provider == ExternalConnectionProvider.Microsoft);
+
+            // Fetch Google Drive storage quota if connected
+            if (googleConnection != null && googleConnection.TokenExpiry > DateTime.UtcNow.AddMinutes(5))
+            {
+                try
+                {
+                    var googleStorage = await GetGoogleDriveStorageAsync(googleConnection.AccessToken);
+                    if (googleStorage.HasValue)
+                    {
+                        usedGB += googleStorage.Value.UsedGB;
+                        totalGB += googleStorage.Value.TotalGB;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log but don't fail - continue with other storage sources
+                    Console.WriteLine($"Error fetching Google Drive storage: {ex.Message}");
+                }
+            }
+
+            // Fetch OneDrive storage quota if connected
+            if (oneDriveConnection != null && oneDriveConnection.TokenExpiry > DateTime.UtcNow.AddMinutes(5))
+            {
+                try
+                {
+                    var oneDriveStorage = await GetOneDriveStorageAsync(oneDriveConnection.AccessToken);
+                    if (oneDriveStorage.HasValue)
+                    {
+                        usedGB += oneDriveStorage.Value.UsedGB;
+                        totalGB += oneDriveStorage.Value.TotalGB;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log but don't fail - continue with other storage sources
+                    Console.WriteLine($"Error fetching OneDrive storage: {ex.Message}");
+                }
+            }
+
+            // Get document counts
+            var allDocuments = await _db.Documents
+                .Where(d => d.OrgId == orgId && d.DeletedAt == null)
+                .ToListAsync();
+
+            return new Certio.Domain.Documents.StorageInfo
+            {
+                UsedGB = usedGB,
+                TotalGB = totalGB > 0 ? totalGB : 500, // Default to 500 GB if no connections
+                DocumentCount = allDocuments.Count,
+                SharedCount = allDocuments.Count(d => !d.IsPrivate),
+                RecentCount = allDocuments.Count(d => d.ModifiedAt > DateTime.UtcNow.AddDays(-7))
+            };
+        }
+
+        private async Task<(double UsedGB, double TotalGB)?> GetGoogleDriveStorageAsync(string encryptedToken)
+        {
+            try
+            {
+                var protector = _dataProtectionProvider.CreateProtector("DriveOAuthTokens");
+                var accessToken = protector.Unprotect(encryptedToken);
+
+                using var httpClient = _httpClientFactory.CreateClient();
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+                var response = await httpClient.GetAsync("https://www.googleapis.com/drive/v3/about?fields=storageQuota");
+                if (!response.IsSuccessStatusCode)
+                {
+                    return null;
+                }
+
+                var content = await response.Content.ReadAsStringAsync();
+                using var jsonDoc = JsonDocument.Parse(content);
+                var root = jsonDoc.RootElement;
+
+                if (!root.TryGetProperty("storageQuota", out var storageQuota))
+                {
+                    return null;
+                }
+
+                var limit = storageQuota.TryGetProperty("limit", out var limitProp) && limitProp.ValueKind == JsonValueKind.String
+                    ? long.TryParse(limitProp.GetString(), out var parsedLimit) ? parsedLimit : 0
+                    : 0;
+                var usage = storageQuota.TryGetProperty("usage", out var usageProp) && usageProp.ValueKind == JsonValueKind.String
+                    ? long.TryParse(usageProp.GetString(), out var parsedUsage) ? parsedUsage : 0
+                    : 0;
+
+                return (usage / (1024.0 * 1024.0 * 1024.0), limit / (1024.0 * 1024.0 * 1024.0));
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private async Task<(double UsedGB, double TotalGB)?> GetOneDriveStorageAsync(string encryptedToken)
+        {
+            try
+            {
+                var protector = _dataProtectionProvider.CreateProtector("DriveOAuthTokens");
+                var accessToken = protector.Unprotect(encryptedToken);
+
+                using var httpClient = _httpClientFactory.CreateClient();
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+                var response = await httpClient.GetAsync("https://graph.microsoft.com/v1.0/me/drive?$select=quota");
+                if (!response.IsSuccessStatusCode)
+                {
+                    return null;
+                }
+
+                var content = await response.Content.ReadAsStringAsync();
+                using var jsonDoc = JsonDocument.Parse(content);
+                var root = jsonDoc.RootElement;
+
+                if (!root.TryGetProperty("quota", out var quota))
+                {
+                    return null;
+                }
+
+                var total = quota.TryGetProperty("total", out var totalProp) ? totalProp.GetInt64() : 0;
+                var used = quota.TryGetProperty("used", out var usedProp) ? usedProp.GetInt64() : 0;
+
+                return (used / (1024.0 * 1024.0 * 1024.0), total / (1024.0 * 1024.0 * 1024.0));
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private static Guid CreateDeterministicGuid(string namespacePrefix, int value)

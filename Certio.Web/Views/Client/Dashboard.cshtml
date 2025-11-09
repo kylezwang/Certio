@@ -11,6 +11,9 @@
     <!-- AI Chat Section -->
     <div class="card mb-4 mt-3 border-0 ai-chat-card gd-card" id="aiChatCard">
         <div class="card-body p-0 ai-chat-card-body">
+            <button class="btn btn-link text-muted p-0 ai-close-btn" id="aiCloseBtn" title="Close conversation" style="display: none;">
+                <i class="fas fa-times"></i>
+            </button>
             <button class="btn btn-link text-muted p-0 ai-fullscreen-btn" id="aiFullscreenBtn" title="Toggle fullscreen">
                 <i class="fas fa-expand"></i>
             </button>
@@ -387,10 +390,31 @@
         border: none;
         cursor: pointer;
         z-index: 10;
-        transition: color 0.2s ease;
+        transition: color 0.2s ease, right 0.2s ease;
     }
 
     .ai-fullscreen-btn:hover {
+        color: #495057 !important;
+    }
+
+    .ai-fullscreen-btn.has-close-btn {
+        right: 3.5rem;
+    }
+
+    .ai-close-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 1.25rem;
+        color: #6c757d !important;
+        background: none;
+        border: none;
+        cursor: pointer;
+        z-index: 10;
+        transition: color 0.2s ease;
+    }
+
+    .ai-close-btn:hover {
         color: #495057 !important;
     }
 
@@ -792,6 +816,7 @@
             await loadDashboardUpcomingDeadlines();
             initializeAiFullscreen();
             initializeAiChatActivation();
+            initializeAiClose();
             await loadDashboardConversations();
         });
 
@@ -976,12 +1001,62 @@
             });
         }
 
+        function initializeAiClose() {
+            const closeBtn = document.getElementById('aiCloseBtn');
+            if (!closeBtn) return;
+
+            closeBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                resetDashboardChatCard();
+            });
+        }
+
+        function resetDashboardChatCard() {
+            const aiCard = document.getElementById('aiChatCard');
+            const closeBtn = document.getElementById('aiCloseBtn');
+            const fullscreenBtn = document.getElementById('aiFullscreenBtn');
+            const landingView = document.getElementById('dashboardLandingView');
+            const conversationView = document.getElementById('dashboardConversationView');
+            const conversationsList = document.getElementById('conversationsList');
+            
+            // Reset conversation state
+            dashboardCurrentConversationId = null;
+            localStorage.removeItem('dashboardSelectedConversation');
+            
+            // Remove active class from all conversation items
+            if (conversationsList) {
+                conversationsList.querySelectorAll('.conversation-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+            }
+            
+            // Hide conversation view, show landing view
+            if (conversationView) conversationView.style.display = 'none';
+            if (landingView) landingView.style.display = 'block';
+            
+            // Hide close button and adjust fullscreen button position
+            if (closeBtn) closeBtn.style.display = 'none';
+            if (fullscreenBtn) fullscreenBtn.classList.remove('has-close-btn');
+            
+            // Remove activated class only if not in fullscreen mode
+            if (aiCard && !aiCard.classList.contains('fullscreen')) {
+                aiCard.classList.remove('activated');
+            }
+        }
+
         // Dashboard conversation state
         let dashboardCurrentConversationId = null;
 
         // Load conversation messages for dashboard
         async function loadDashboardConversation(conversationId) {
             dashboardCurrentConversationId = conversationId;
+            
+            // Show close button and adjust fullscreen button position
+            const closeBtn = document.getElementById('aiCloseBtn');
+            const fullscreenBtn = document.getElementById('aiFullscreenBtn');
+            if (closeBtn) closeBtn.style.display = 'block';
+            if (fullscreenBtn) fullscreenBtn.classList.add('has-close-btn');
             
             // Show conversation view, hide landing view
             const landingView = document.getElementById('dashboardLandingView');
