@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Certio.Application.DTOs;
 using Certio.Application.Interfaces;
 using Certio.Domain.Documents;
+using Certio.Domain.Matters;
 using Certio.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -767,6 +768,346 @@ public class DocumentsApiController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Move document to Matter folder in OAuth Drive
+    /// Creates Matter folder if it doesn't exist, then moves the document
+    /// </summary>
+    [HttpPost("{documentId:guid}/move-to-matter")]
+    public async Task<IActionResult> MoveToMatter(
+        Guid documentId,
+        [FromBody] MoveToMatterRequest request,
+        [FromQuery] int? orgId = null,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var documentOrgId = orgId.HasValue 
+                ? CreateDeterministicGuid("certio:organization", orgId.Value)
+                : (Guid?)null;
+
+            var document = await _dbContext.Documents
+                .FirstOrDefaultAsync(d => d.Id == documentId && 
+                    (documentOrgId == null || d.OrgId == documentOrgId) && 
+                    d.DeletedAt == null, cancellationToken);
+
+            if (document == null)
+            {
+                return NotFound(new { success = false, error = "Document not found" });
+            }
+
+            // Only allow OAuth documents (Google Drive or OneDrive)
+            if (document.SourceType != DocumentSourceType.GoogleDrive && document.SourceType != DocumentSourceType.OneDrive)
+            {
+                return BadRequest(new { success = false, error = "Only OAuth documents (Google Drive or OneDrive) can be moved to Matter folders" });
+            }
+
+            if (string.IsNullOrWhiteSpace(document.ExternalFileId))
+            {
+                return BadRequest(new { success = false, error = "Document does not have an external file ID" });
+            }
+
+            // Get Matter information
+            var matter = await _dbContext.Matters
+                .AsNoTracking()
+                .FirstOrDefaultAsync(m => m.Id == request.MatterId && !m.IsDeleted, cancellationToken);
+
+            if (matter == null)
+            {
+                return NotFound(new { success = false, error = "Matter not found" });
+            }
+
+            // Verify Matter belongs to the same organization as the document
+            var matterOrgId = CreateDeterministicGuid("certio:organization", matter.OrganizationId);
+            if (matterOrgId != document.OrgId)
+            {
+                return BadRequest(new { success = false, error = "Matter does not belong to the same organization as the document" });
+            }
+
+            // Get OAuth connection
+            var connection = await _dbContext.ExternalConnections
+                .AsNoTracking()
+                .Where(ec => ec.OrgId == document.OrgId && 
+                    (document.SourceType == DocumentSourceType.GoogleDrive ? ec.Provider == ExternalConnectionProvider.Google : ec.Provider == ExternalConnectionProvider.Microsoft))
+                .OrderByDescending(ec => ec.CreatedAt)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (connection == null || connection.TokenExpiry <= DateTime.UtcNow.AddMinutes(5))
+            {
+                return BadRequest(new { success = false, error = "OAuth connection not found or expired" });
+            }
+
+            var accessToken = DecryptToken(connection.AccessToken);
+            string? matterFolderId = null;
+
+            using var httpClient = _httpClientFactory.CreateClient();
+            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+
+            // Create or find Matter folder
+            if (document.SourceType == DocumentSourceType.GoogleDrive)
+            {
+                matterFolderId = await GetOrCreateGoogleDriveMatterFolderAsync(httpClient, matter.Title, cancellationToken);
+            }
+            else if (document.SourceType == DocumentSourceType.OneDrive)
+            {
+                matterFolderId = await GetOrCreateOneDriveMatterFolderAsync(httpClient, matter.Title, cancellationToken);
+            }
+
+            if (string.IsNullOrWhiteSpace(matterFolderId))
+            {
+                return StatusCode(500, new { success = false, error = "Failed to create or find Matter folder" });
+            }
+
+            // Move document to Matter folder
+            bool moveSuccess = false;
+            if (document.SourceType == DocumentSourceType.GoogleDrive)
+            {
+                moveSuccess = await MoveGoogleDriveFileAsync(httpClient, document.ExternalFileId, matterFolderId, cancellationToken);
+            }
+            else if (document.SourceType == DocumentSourceType.OneDrive)
+            {
+                moveSuccess = await MoveOneDriveFileAsync(httpClient, document.ExternalFileId, matterFolderId, cancellationToken);
+            }
+
+            if (!moveSuccess)
+            {
+                return StatusCode(500, new { success = false, error = "Failed to move document to Matter folder" });
+            }
+
+            // Update document MatterId and metadata
+            document.MatterId = CreateDeterministicGuid("certio:matter", request.MatterId);
+            document.ModifiedAt = DateTime.UtcNow;
+            
+            if (document.Metadata == null)
+            {
+                document.Metadata = new Dictionary<string, string?>();
+            }
+            
+            if (document.SourceType == DocumentSourceType.GoogleDrive)
+            {
+                document.Metadata["parentIds"] = matterFolderId;
+                document.Metadata["parentFolderName"] = matter.Title;
+            }
+            else if (document.SourceType == DocumentSourceType.OneDrive)
+            {
+                document.Metadata["parentFolderId"] = matterFolderId;
+                document.Metadata["parentFolderName"] = matter.Title;
+            }
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            // Audit log
+            try
+            {
+                int currentUserId = HttpContext.Items.TryGetValue("CustomUserId", out var customUserId) && customUserId is int u ? u : (int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var c) ? c : 0);
+                var documentUserId = CreateDeterministicGuid("certio:user", currentUserId);
+                await _documentAuditService.LogAsync(
+                    new DocumentAuditEvent(
+                        document.OrgId,
+                        document.MatterId,
+                        document.Id,
+                        null,
+                        documentUserId,
+                        "MoveToMatter",
+                        $"Document moved to Matter '{matter.Title}'",
+                        DateTime.UtcNow,
+                        currentUserId),
+                    cancellationToken);
+            }
+            catch { }
+
+            return Ok(new
+            {
+                success = true,
+                documentId = document.Id,
+                matterId = request.MatterId,
+                matterTitle = matter.Title,
+                folderId = matterFolderId
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error moving document {DocumentId} to Matter {MatterId}", documentId, request.MatterId);
+            return StatusCode(500, new { success = false, error = "Failed to move document to Matter folder" });
+        }
+    }
+
+    private async Task<string?> GetOrCreateGoogleDriveMatterFolderAsync(HttpClient httpClient, string matterTitle, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Search for existing folder with Matter title
+            var searchQuery = $"name='{matterTitle.Replace("'", "''")}' and mimeType='application/vnd.google-apps.folder' and trashed=false";
+            var searchUrl = $"https://www.googleapis.com/drive/v3/files?q={Uri.EscapeDataString(searchQuery)}&fields=files(id,name)";
+            
+            var searchResponse = await httpClient.GetAsync(searchUrl, cancellationToken);
+            if (searchResponse.IsSuccessStatusCode)
+            {
+                var searchContent = await searchResponse.Content.ReadAsStringAsync(cancellationToken);
+                using var searchDoc = System.Text.Json.JsonDocument.Parse(searchContent);
+                if (searchDoc.RootElement.TryGetProperty("files", out var files) && files.GetArrayLength() > 0)
+                {
+                    return files[0].GetProperty("id").GetString();
+                }
+            }
+
+            // Create new folder if not found
+            var folderMetadata = new
+            {
+                name = matterTitle,
+                mimeType = "application/vnd.google-apps.folder"
+            };
+
+            var jsonContent = System.Text.Json.JsonSerializer.Serialize(folderMetadata);
+            var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+            
+            var createResponse = await httpClient.PostAsync("https://www.googleapis.com/drive/v3/files?fields=id,name", content, cancellationToken);
+            if (createResponse.IsSuccessStatusCode)
+            {
+                var createContent = await createResponse.Content.ReadAsStringAsync(cancellationToken);
+                using var createDoc = System.Text.Json.JsonDocument.Parse(createContent);
+                if (createDoc.RootElement.TryGetProperty("id", out var idProp))
+                {
+                    return idProp.GetString();
+                }
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting or creating Google Drive Matter folder: {MatterTitle}", matterTitle);
+            return null;
+        }
+    }
+
+    private async Task<string?> GetOrCreateOneDriveMatterFolderAsync(HttpClient httpClient, string matterTitle, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Search for existing folder in root
+            var searchUrl = $"https://graph.microsoft.com/v1.0/me/drive/root/children?$filter=name eq '{Uri.EscapeDataString(matterTitle)}' and folder ne null";
+            
+            var searchResponse = await httpClient.GetAsync(searchUrl, cancellationToken);
+            if (searchResponse.IsSuccessStatusCode)
+            {
+                var searchContent = await searchResponse.Content.ReadAsStringAsync(cancellationToken);
+                using var searchDoc = System.Text.Json.JsonDocument.Parse(searchContent);
+                if (searchDoc.RootElement.TryGetProperty("value", out var items) && items.GetArrayLength() > 0)
+                {
+                    return items[0].GetProperty("id").GetString();
+                }
+            }
+
+            // Create new folder if not found
+            var folderMetadata = new Dictionary<string, object?>
+            {
+                ["name"] = matterTitle,
+                ["folder"] = new { },
+                ["@microsoft.graph.conflictBehavior"] = "rename"
+            };
+
+            var jsonContent = System.Text.Json.JsonSerializer.Serialize(folderMetadata);
+            var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+            
+            var createResponse = await httpClient.PostAsync("https://graph.microsoft.com/v1.0/me/drive/root/children", content, cancellationToken);
+            if (createResponse.IsSuccessStatusCode)
+            {
+                var createContent = await createResponse.Content.ReadAsStringAsync(cancellationToken);
+                using var createDoc = System.Text.Json.JsonDocument.Parse(createContent);
+                if (createDoc.RootElement.TryGetProperty("id", out var idProp))
+                {
+                    return idProp.GetString();
+                }
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting or creating OneDrive Matter folder: {MatterTitle}", matterTitle);
+            return null;
+        }
+    }
+
+    private async Task<bool> MoveGoogleDriveFileAsync(HttpClient httpClient, string fileId, string targetFolderId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Get current parents
+            var fileUrl = $"https://www.googleapis.com/drive/v3/files/{fileId}?fields=parents";
+            var fileResponse = await httpClient.GetAsync(fileUrl, cancellationToken);
+            
+            if (!fileResponse.IsSuccessStatusCode)
+            {
+                return false;
+            }
+
+            var fileContent = await fileResponse.Content.ReadAsStringAsync(cancellationToken);
+            using var fileDoc = System.Text.Json.JsonDocument.Parse(fileContent);
+            
+            var previousParents = new List<string>();
+            if (fileDoc.RootElement.TryGetProperty("parents", out var parentsProp) && parentsProp.ValueKind == System.Text.Json.JsonValueKind.Array)
+            {
+                foreach (var parent in parentsProp.EnumerateArray())
+                {
+                    var parentId = parent.GetString();
+                    if (!string.IsNullOrWhiteSpace(parentId))
+                    {
+                        previousParents.Add(parentId);
+                    }
+                }
+            }
+
+            // Move file by updating parents (remove old, add new)
+            var updateMetadata = new
+            {
+                addParents = targetFolderId,
+                removeParents = previousParents.Any() ? string.Join(",", previousParents) : null
+            };
+
+            var jsonContent = System.Text.Json.JsonSerializer.Serialize(updateMetadata);
+            var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+            
+            var updateUrl = $"https://www.googleapis.com/drive/v3/files/{fileId}?fields=id,parents";
+            var updateResponse = await httpClient.PatchAsync(updateUrl, content, cancellationToken);
+            
+            return updateResponse.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error moving Google Drive file {FileId} to folder {FolderId}", fileId, targetFolderId);
+            return false;
+        }
+    }
+
+    private async Task<bool> MoveOneDriveFileAsync(HttpClient httpClient, string fileId, string targetFolderId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Move file using PATCH to update parentReference
+            var moveUrl = $"https://graph.microsoft.com/v1.0/me/drive/items/{fileId}";
+            var moveMetadata = new
+            {
+                parentReference = new
+                {
+                    id = targetFolderId
+                }
+            };
+
+            var jsonContent = System.Text.Json.JsonSerializer.Serialize(moveMetadata);
+            var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+            
+            var moveResponse = await httpClient.PatchAsync(moveUrl, content, cancellationToken);
+            
+            return moveResponse.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error moving OneDrive file {FileId} to folder {FolderId}", fileId, targetFolderId);
+            return false;
+        }
+    }
+
     private static Guid CreateDeterministicGuid(string namespacePrefix, int value)
     {
         using var sha256 = SHA256.Create();
@@ -777,6 +1118,13 @@ public class DocumentsApiController : ControllerBase
         guidBytes[8] = (byte)((guidBytes[8] & 0x3F) | 0x80); // Variant RFC 4122
         return new Guid(guidBytes);
     }
+}
+
+public class MoveToMatterRequest
+{
+    [Required]
+    [JsonPropertyName("matterId")]
+    public int MatterId { get; set; }
 }
 
 public class UpdateDocumentStatusRequest

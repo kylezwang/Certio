@@ -170,7 +170,7 @@
                                 _ => "bg-secondary text-white"
                             };
                             
-                            <a href="/Client/@ViewBag.OrganizationId/Matter/@matter.Id" class="text-decoration-none" style="flex: 0 0 14rem;">
+                            <a href="/Client/@ViewBag.OrganizationId/Matter/@matter.Id" class="text-decoration-none matter-folder-dropzone" style="flex: 0 0 14rem;" data-matter-id="@matter.Id" data-matter-title="@matter.Title" ondrop="handleDocumentDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="return handleMatterFolderClick(event)">
                                 <div class="card matter-folder-card border-0 h-100">
                                     <div class="card-body">
                                         <div class="matter-folder-content">
@@ -288,11 +288,26 @@
                 <div class="card-body pt-2">
                     @foreach (var folder in Model.Folders)
                     {
-                        <div class="d-flex align-items-center justify-content-between p-3 rounded-3 folder-item">
+                        <div class="d-flex align-items-center justify-content-between rounded-3 folder-item" style="padding: 0.5rem 0;">
                             <div class="d-flex align-items-center">
-                                <div class="p-2 bg-primary bg-opacity-10 rounded-2 me-3">
-                                    <i class="@GetFolderIcon(folder.Icon) text-primary"></i>
-                                </div>
+                                @if (folder.Name == "Google Drive")
+                                {
+                                    <div class="p-2 bg-light rounded-2 me-3 d-flex align-items-center justify-content-center" style="width: 2.5rem; height: 2.5rem; min-width: 2.5rem;">
+                                        <i class="fab fa-google" style="font-size: 1.25rem; color: #4285f4;"></i>
+                                    </div>
+                                }
+                                else if (folder.Name == "OneDrive")
+                                {
+                                    <div class="p-2 bg-light rounded-2 me-3 d-flex align-items-center justify-content-center" style="width: 2.5rem; height: 2.5rem; min-width: 2.5rem;">
+                                        <i class="fab fa-windows" style="font-size: 1.25rem; color: #0078d4;"></i>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="p-2 bg-primary bg-opacity-10 rounded-2 me-3 d-flex align-items-center justify-content-center" style="width: 2.5rem; height: 2.5rem; min-width: 2.5rem;">
+                                        <i class="@GetFolderIcon(folder.Icon) text-primary"></i>
+                                    </div>
+                                }
                                 <span class="fw-medium text-dark">@folder.Name</span>
                             </div>
                             <span class="badge bg-secondary">@folder.Count</span>
@@ -310,7 +325,7 @@
                     <div class="mb-3">
                         <div class="d-flex justify-content-between text-sm mb-2">
                             <span class="text-muted">Used</span>
-                            <span class="fw-medium">@Model.Storage.UsedGB GB of @Model.Storage.TotalGB GB</span>
+                            <span class="fw-medium">@Math.Round(Model.Storage.UsedGB, 2) GB of @Model.Storage.TotalGB GB</span>
                         </div>
                         <div class="progress storage-progress">
                             <div class="progress-bar" 
@@ -386,7 +401,13 @@
                     }
                     
                     <a href="javascript:void(0);" onclick="navigateToDocument(event, '/Client/@ViewBag.OrganizationId/Documents/@doc.Id');" class="text-decoration-none" style="color: inherit;" data-document-entry="true">
-                        <div class="card document-card border-0 mb-3" style="cursor: pointer;">
+                        <div class="card document-card border-0 mb-3 @(doc.SourceType == Certio.Domain.Documents.DocumentSourceType.GoogleDrive || doc.SourceType == Certio.Domain.Documents.DocumentSourceType.OneDrive ? "draggable-document" : "")" 
+                             style="cursor: pointer;"
+                             draggable="@(doc.SourceType == Certio.Domain.Documents.DocumentSourceType.GoogleDrive || doc.SourceType == Certio.Domain.Documents.DocumentSourceType.OneDrive ? "true" : "false")"
+                             ondragstart="handleDragStart(event)"
+                             ondragend="handleDragEnd(event)"
+                             data-document-id="@doc.Id"
+                             data-document-source-type="@doc.SourceType.ToString()">
                             <div class="card-body p-4" style="position: relative;">
                                 <!-- Status Badge and Action Icons (Top Right) -->
                                 <div class="position-absolute" style="top: 1rem; right: 1rem;">
@@ -1654,9 +1675,19 @@
                 iconStyle = 'font-size: 1.5rem;';
             }
             
+            const isDraggable = sourceType === 'GoogleDrive' || sourceType === 'OneDrive';
+            const draggableClass = isDraggable ? 'draggable-document' : '';
+            const draggableAttr = isDraggable ? 'true' : 'false';
+            
             card.innerHTML = `
                 <a href="javascript:void(0);" onclick="navigateToDocument(event, '/Client/${orgId}/Documents/${doc.id}');" class="text-decoration-none" style="color: inherit;">
-                    <div class="card document-card border-0 mb-3" style="cursor: pointer;">
+                    <div class="card document-card border-0 mb-3 ${draggableClass}" 
+                         style="cursor: pointer;"
+                         draggable="${draggableAttr}"
+                         ondragstart="handleDragStart(event)"
+                         ondragend="handleDragEnd(event)"
+                         data-document-id="${doc.id}"
+                         data-document-source-type="${sourceType}">
                         <div class="card-body p-4" style="position: relative;">
                             <div class="position-absolute" style="top: 1rem; right: 1rem;">
                                 <div class="d-flex flex-column align-items-end gap-2">
@@ -2055,6 +2086,162 @@
                 });
             });
         }
+
+        // Drag and Drop handlers for moving documents to Matter folders
+        let draggedDocumentId = null;
+        let draggedDocumentElement = null;
+
+        function handleDragStart(event) {
+            const card = event.currentTarget;
+            const documentId = card.getAttribute('data-document-id');
+            const sourceType = card.getAttribute('data-document-source-type');
+            
+            // Only allow dragging OAuth documents
+            if (sourceType !== 'GoogleDrive' && sourceType !== 'OneDrive') {
+                event.preventDefault();
+                return false;
+            }
+            
+            draggedDocumentId = documentId;
+            draggedDocumentElement = card;
+            
+            // Add visual feedback
+            card.style.opacity = '0.5';
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', documentId);
+            
+            // Add dragging class to body for global styles
+            document.body.classList.add('document-dragging');
+        }
+
+        function handleDragEnd(event) {
+            const card = event.currentTarget;
+            card.style.opacity = '1';
+            
+            // Remove dragging class
+            document.body.classList.remove('document-dragging');
+            
+            // Remove drop zone highlights
+            document.querySelectorAll('.matter-folder-dropzone').forEach(dropzone => {
+                dropzone.classList.remove('drag-over');
+            });
+            
+            draggedDocumentId = null;
+            draggedDocumentElement = null;
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            event.dataTransfer.dropEffect = 'move';
+            
+            const dropzone = event.currentTarget.closest('.matter-folder-dropzone');
+            if (dropzone) {
+                dropzone.classList.add('drag-over');
+            }
+        }
+
+        function handleDragLeave(event) {
+            const dropzone = event.currentTarget.closest('.matter-folder-dropzone');
+            if (dropzone) {
+                // Only remove highlight if we're actually leaving the dropzone
+                const relatedTarget = event.relatedTarget;
+                if (!dropzone.contains(relatedTarget)) {
+                    dropzone.classList.remove('drag-over');
+                }
+            }
+        }
+
+        async function handleDocumentDrop(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const dropzone = event.currentTarget.closest('.matter-folder-dropzone');
+            if (!dropzone) return;
+            
+            dropzone.classList.remove('drag-over');
+            
+            const matterId = dropzone.getAttribute('data-matter-id');
+            const matterTitle = dropzone.getAttribute('data-matter-title');
+            
+            if (!draggedDocumentId || !matterId) {
+                return;
+            }
+            
+            const orgId = getCurrentOrganizationId();
+            if (!orgId) {
+                showNotification('Error: Organization ID not found', 'error');
+                return;
+            }
+            
+            try {
+                // Show loading state
+                if (draggedDocumentElement) {
+                    draggedDocumentElement.style.opacity = '0.5';
+                    draggedDocumentElement.style.pointerEvents = 'none';
+                }
+                
+                const response = await fetch(`/api/documents/${draggedDocumentId}/move-to-matter?orgId=${orgId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        matterId: parseInt(matterId)
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification(`Document moved to "${matterTitle}"`, 'success');
+                    
+                    // Optionally reload the page or update the UI
+                    // For now, just refresh after a short delay
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    showNotification(result.error || 'Failed to move document', 'error');
+                    if (draggedDocumentElement) {
+                        draggedDocumentElement.style.opacity = '1';
+                        draggedDocumentElement.style.pointerEvents = 'auto';
+                    }
+                }
+            } catch (error) {
+                console.error('Error moving document:', error);
+                showNotification('Error moving document. Please try again.', 'error');
+                if (draggedDocumentElement) {
+                    draggedDocumentElement.style.opacity = '1';
+                    draggedDocumentElement.style.pointerEvents = 'auto';
+                }
+            }
+        }
+
+        function showNotification(message, type) {
+            const notificationBar = document.getElementById('statusNotificationBar');
+            const notificationText = document.getElementById('notificationText');
+            
+            if (notificationBar && notificationText) {
+                notificationText.textContent = message;
+                notificationBar.className = `status-notification-bar ${type === 'error' ? 'error' : ''}`;
+                notificationBar.style.transform = 'translateX(-50%) translateY(0)';
+                
+                setTimeout(() => {
+                    notificationBar.style.transform = 'translateX(-50%) translateY(150px)';
+                }, 3000);
+            }
+        }
+
+        function handleMatterFolderClick(event) {
+            // Prevent navigation if we're in the middle of a drag operation
+            if (draggedDocumentId) {
+                event.preventDefault();
+                return false;
+            }
+            return true;
+        }
     </script>
     
     <!-- Floating Notification Bar -->
@@ -2086,6 +2273,37 @@
         
         .document-card > .card-body > .position-absolute > * {
             pointer-events: auto;
+        }
+        
+        /* Drag and Drop Styles */
+        .draggable-document {
+            cursor: grab;
+        }
+        
+        .draggable-document:active {
+            cursor: grabbing;
+        }
+        
+        .matter-folder-dropzone {
+            transition: all 0.2s ease;
+        }
+        
+        .matter-folder-dropzone.drag-over {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        }
+        
+        .matter-folder-dropzone.drag-over .matter-folder-card {
+            border: 2px solid #007bff !important;
+            background-color: rgba(0, 123, 255, 0.05);
+        }
+        
+        body.document-dragging .matter-folder-dropzone {
+            cursor: copy;
+        }
+        
+        body.document-dragging .matter-folder-dropzone:hover {
+            transform: scale(1.02);
         }
         
         /* Floating Notification Bar */
