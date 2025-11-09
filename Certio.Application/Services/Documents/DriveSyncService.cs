@@ -12,6 +12,7 @@ using Certio.Application.Interfaces;
 using Certio.Domain.Documents;
 using Certio.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Certio.Application.Services.Documents;
@@ -23,19 +24,22 @@ public sealed class DriveSyncService : IDriveSyncService
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly Func<string, string> _decryptToken;
     private readonly IDocumentIndexerService _documentIndexerService;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
 
     public DriveSyncService(
         ApplicationDbContext dbContext,
         ILogger<DriveSyncService> logger,
         IHttpClientFactory httpClientFactory,
         Func<string, string> decryptToken,
-        IDocumentIndexerService documentIndexerService)
+        IDocumentIndexerService documentIndexerService,
+        IServiceScopeFactory serviceScopeFactory)
     {
         _dbContext = dbContext;
         _logger = logger;
         _httpClientFactory = httpClientFactory;
         _decryptToken = decryptToken;
         _documentIndexerService = documentIndexerService;
+        _serviceScopeFactory = serviceScopeFactory;
     }
 
     public async Task SyncGoogleDriveAsync(Guid orgId, Guid userId, CancellationToken cancellationToken = default)
@@ -519,11 +523,14 @@ public sealed class DriveSyncService : IDriveSyncService
         var docIdToQueue = document.Id;
         var versionToQueue = document.Versions.OrderByDescending(v => v.VersionNumber).FirstOrDefault()?.Id;
         
+        // Use a new service scope to avoid DbContext concurrency issues
         _ = Task.Run(async () =>
         {
+            using var scope = _serviceScopeFactory.CreateScope();
             try
             {
-                await _documentIndexerService.QueueEmbeddingAsync(docIdToQueue, versionToQueue, CancellationToken.None);
+                var indexerService = scope.ServiceProvider.GetRequiredService<IDocumentIndexerService>();
+                await indexerService.QueueEmbeddingAsync(docIdToQueue, versionToQueue, CancellationToken.None);
                 _logger.LogDebug("Auto-queued document {DocumentId} for RAG indexing", docIdToQueue);
             }
             catch (Exception ex)

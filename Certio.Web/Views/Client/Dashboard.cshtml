@@ -23,23 +23,96 @@
                 </div>
                 <!-- Main Chat Content -->
                 <div class="col-12 ai-chat-main-content" id="aiChatMainContent">
-                    <div class="p-4">
-            <div class="text-center mb-3">
-                <img src="~/images/Notal_Banner_Logo_Large_Text.png" alt="Notal AI" style="height: 45px; object-fit: contain;" />
-            </div>
-            <h2 class="text-center mb-4 fs-2 fw-semibold text-dark">What can I help with?</h2>
-            
+                    <!-- Default Landing View (shown when no conversation selected) -->
+                    <div class="p-4 dashboard-landing-view" id="dashboardLandingView">
+                        <div class="text-center mb-3">
+                            <img src="~/images/Notal_Banner_Logo_Large_Text.png" alt="Notal AI" style="height: 45px; object-fit: contain;" />
+                        </div>
+                        <h2 class="text-center mb-4 fs-2 fw-semibold text-dark">What can I help with?</h2>
+                        
                         <div class="search-container-large" id="searchContainer">
-                <i class="fas fa-plus"></i>
-                <input type="text" class="form-control form-control-lg" placeholder="Ask anything" />
-                <div class="search-actions">
-                    <button class="btn btn-link text-muted">
-                        <i class="fas fa-microphone"></i>
-                    </button>
-                    <button class="btn btn-link text-muted">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
+                            <i class="fas fa-plus"></i>
+                            <input type="text" class="form-control form-control-lg" id="dashboardSearchInput" placeholder="Ask anything" />
+                            <div class="search-actions">
+                                <button class="btn btn-link text-muted">
+                                    <i class="fas fa-microphone"></i>
+                                </button>
+                                <button class="btn btn-link text-muted" id="dashboardSendBtn">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
                             </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Conversation View (shown when conversation is selected) -->
+                    <div class="dashboard-conversation-view" id="dashboardConversationView" style="display: none;">
+                        <!-- Messages Container -->
+                        <div class="dashboard-chat-messages" id="dashboardChatMessages">
+                            <!-- Notal AI Conversation Header -->
+                            <div class="notal-conversation-header" id="dashboardNotalHeader" style="display: none;">
+                                <div class="ai-message-bubble">
+                                    <div class="message-content">
+                                        <div class="message-header">
+                                            <img src="/images/Notal_Banner_Logo.png" alt="Notal AI" class="ai-message-logo" />
+                                            <span class="timestamp">Just now</span>
+                                        </div>
+                                        <div class="message-text">
+                                            Hi! I'm Notal, your AI legal assistant. How can I help you today?
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Messages will be loaded here -->
+                        </div>
+                        
+                        <!-- Chat Input -->
+                        <div class="dashboard-chat-input">
+                            <div class="input-container">
+                                <!-- Attachment Preview (hidden by default) -->
+                                <div class="attachment-preview" id="dashboardAttachmentPreview" style="display: none;">
+                                    <i class="fas fa-paperclip attachment-preview-icon"></i>
+                                    <div class="attachment-preview-info">
+                                        <div class="attachment-preview-name" id="dashboardAttachmentName">Document.pdf</div>
+                                        <div class="attachment-preview-size" id="dashboardAttachmentSize">2.4 MB</div>
+                                    </div>
+                                    <button class="attachment-preview-remove" id="dashboardRemoveAttachment" title="Remove attachment">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- Main Input Row -->
+                                <div class="message-input-wrapper">
+                                    <textarea class="message-input" 
+                                              id="dashboardMessageInput" 
+                                              placeholder="Message Notal..." 
+                                              rows="1"
+                                              maxlength="2000"></textarea>
+                                    <button class="send-button" id="dashboardSendButton" title="Send message">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- Action Buttons Row -->
+                                <div class="input-actions-row">
+                                    <button class="input-action-btn" id="dashboardAttachFileBtn" title="Attach file">
+                                        <i class="fas fa-paperclip"></i>
+                                    </button>
+                                    <button class="input-action-btn" id="dashboardEmojiBtn" title="Add emoji">
+                                        <i class="fas fa-smile"></i>
+                                    </button>
+                                    <button class="input-action-btn" id="dashboardMicBtn" title="Voice message">
+                                        <i class="fas fa-microphone"></i>
+                                    </button>
+                                    <div class="input-action-btn-group">
+                                        <button class="input-action-btn" id="dashboardCodeBtn" title="Character Count">
+                                            <i class="fas fa-code"></i>
+                                        </button>
+                                        <div class="char-counter" id="dashboardCharCounter">0 / 2000</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Hidden file input for attachments -->
+                            <input type="file" id="dashboardFileInput" style="display: none;" accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg">
                         </div>
                     </div>
                 </div>
@@ -642,6 +715,55 @@
         padding: 0 !important;
     }
 
+    /* Dashboard Chat Styles */
+    .dashboard-conversation-view {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 0;
+    }
+
+    .dashboard-chat-messages {
+        flex: 1;
+        padding: 1rem;
+        overflow-y: auto;
+        background-color: #ffffff;
+        scroll-behavior: smooth;
+        min-height: 0;
+    }
+
+    .dashboard-chat-messages::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .dashboard-chat-messages::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .dashboard-chat-messages::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 3px;
+    }
+
+    .dashboard-chat-messages::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 0, 0, 0.35);
+    }
+
+    .dashboard-chat-input {
+        padding: 1rem;
+        border-top: 1px solid #e5e7eb;
+        background-color: #ffffff;
+    }
+
+    /* Ensure conversation view takes full height when activated */
+    .ai-chat-card.activated .dashboard-conversation-view {
+        height: 100%;
+    }
+
+    .ai-chat-card.fullscreen .dashboard-conversation-view {
+        height: 100%;
+    }
+
 </style>
 
 @section Scripts {
@@ -772,8 +894,8 @@
                             aiCard.classList.add('activated');
                         }
                         
-                        // You can add navigation logic here if needed
-                        // e.g., window.location.href = `/Client/${orgId}/Chat/Conversation/${conversationId}`;
+                        // Load conversation messages and show conversation view
+                        loadDashboardConversation(conversationId);
                     });
                 });
 
@@ -796,6 +918,9 @@
                         if (aiCard && !aiCard.classList.contains('fullscreen')) {
                             aiCard.classList.add('activated');
                         }
+                        
+                        // Load conversation messages
+                        loadDashboardConversation(savedConversationId);
                     }
                 }
 
@@ -850,6 +975,532 @@
                 }
             });
         }
+
+        // Dashboard conversation state
+        let dashboardCurrentConversationId = null;
+
+        // Load conversation messages for dashboard
+        async function loadDashboardConversation(conversationId) {
+            dashboardCurrentConversationId = conversationId;
+            
+            // Show conversation view, hide landing view
+            const landingView = document.getElementById('dashboardLandingView');
+            const conversationView = document.getElementById('dashboardConversationView');
+            
+            if (landingView) landingView.style.display = 'none';
+            if (conversationView) {
+                conversationView.style.display = 'flex';
+                // Ensure it takes full height
+                conversationView.style.height = '100%';
+            }
+            
+            // Show conversation header
+            const notalHeader = document.getElementById('dashboardNotalHeader');
+            if (notalHeader) notalHeader.style.display = 'block';
+            
+            // Load messages
+            await loadDashboardConversationMessages(conversationId);
+            
+            // Initialize dashboard chat input handlers
+            initializeDashboardChatInput();
+        }
+
+        // Load messages for a conversation
+        async function loadDashboardConversationMessages(conversationId) {
+            const chatMessages = document.getElementById('dashboardChatMessages');
+            if (!chatMessages) return;
+            
+            try {
+                const orgId = @ViewBag.OrganizationId;
+                if (!orgId) {
+                    console.error('Organization ID not found');
+                    return;
+                }
+                
+                const response = await fetch(`/Client/${orgId}/Chat/GetMessages/${conversationId}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const messages = await response.json();
+                
+                // Clear existing messages (except header)
+                const messagesToRemove = chatMessages.querySelectorAll('.ai-message-bubble:not(.notal-conversation-header .ai-message-bubble), .user-message-bubble');
+                messagesToRemove.forEach(msg => msg.remove());
+                
+                // Display messages
+                messages.forEach(message => {
+                    addDashboardMessageToChat(message);
+                });
+                
+                // Scroll to bottom
+                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'instant' });
+                
+            } catch (error) {
+                console.error('Error loading messages:', error);
+                chatMessages.innerHTML += '<div class="text-danger p-2">Failed to load messages</div>';
+            }
+        }
+
+        // Add message to dashboard chat
+        function addDashboardMessageToChat(message) {
+            const chatMessages = document.getElementById('dashboardChatMessages');
+            if (!chatMessages) return;
+            
+            const messageDiv = document.createElement('div');
+            const isAI = message.isFromAI || false;
+            messageDiv.className = isAI ? 'ai-message-bubble' : 'user-message-bubble';
+            
+            const timestamp = new Date(message.createdAt || Date.now()).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            
+            // Use content directly as HTML (like sidebar does) - AI returns HTML-formatted content
+            let formattedContent = message.content || '';
+            
+            if (isAI) {
+                messageDiv.innerHTML = `
+                    <div class="message-content">
+                        <div class="message-header">
+                            <img src="/images/Notal_Banner_Logo.png" alt="Notal AI" class="ai-message-logo" />
+                            <span class="timestamp">${timestamp}</span>
+                        </div>
+                        <div class="message-text">${formattedContent}</div>
+                    </div>
+                `;
+            } else {
+                // For user messages, escape HTML for security
+                formattedContent = formattedContent
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/\\n/g, '\n')
+                    .replace(/\n/g, '<br>');
+                
+                messageDiv.innerHTML = `
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="timestamp">${timestamp}</span>
+                        </div>
+                        <div class="message-text">${formattedContent}</div>
+                    </div>
+                `;
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'instant' });
+        }
+
+        // Initialize dashboard chat input handlers
+        function initializeDashboardChatInput() {
+            const messageInput = document.getElementById('dashboardMessageInput');
+            const sendButton = document.getElementById('dashboardSendButton');
+            
+            if (!messageInput || !sendButton) return;
+            
+            // Check if already initialized to avoid duplicate listeners
+            if (messageInput.dataset.initialized === 'true') return;
+            messageInput.dataset.initialized = 'true';
+            
+            // Send message handler
+            const sendMessage = async () => {
+                const input = document.getElementById('dashboardMessageInput');
+                const message = input.value.trim();
+                
+                if (!message || !dashboardCurrentConversationId) return;
+                
+                // Clear input
+                input.value = '';
+                updateDashboardCharCounter();
+                
+                // Add user message immediately
+                addDashboardMessageToChat({
+                    content: message,
+                    isFromAI: false,
+                    createdAt: new Date().toISOString()
+                });
+                
+                // Show intelligent AI thinking indicator
+                showDashboardAIThinkingIndicator(message);
+                
+                // Send to server
+                try {
+                    const orgId = @ViewBag.OrganizationId;
+                    const response = await fetch(`/Client/${orgId}/Chat/SendMessage`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `conversationId=${dashboardCurrentConversationId}&content=${encodeURIComponent(message)}&messageType=Text`
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Generate streaming AI response
+                        await generateDashboardAIResponse(message);
+                    } else {
+                        console.error('Failed to send message:', data.error);
+                        hideDashboardAIThinkingIndicator();
+                    }
+                } catch (error) {
+                    console.error('Error sending message:', error);
+                    hideDashboardAIThinkingIndicator();
+                }
+            };
+            
+            // Event listeners
+            sendButton.addEventListener('click', sendMessage);
+            messageInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            // Character counter
+            messageInput.addEventListener('input', updateDashboardCharCounter);
+            
+            // Auto-resize textarea
+            messageInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            });
+        }
+
+        // Update character counter
+        function updateDashboardCharCounter() {
+            const input = document.getElementById('dashboardMessageInput');
+            const counter = document.getElementById('dashboardCharCounter');
+            if (input && counter) {
+                const length = input.value.length;
+                counter.textContent = `${length} / 2000`;
+            }
+        }
+
+        // Show intelligent AI thinking indicator (dashboard version)
+        function showDashboardAIThinkingIndicator(userMessage) {
+            const chatMessages = document.getElementById('dashboardChatMessages');
+            if (!chatMessages) return;
+            
+            // Determine thinking message based on user input
+            let thinkingMessage = "AI is thinking...";
+            const messageLower = userMessage.toLowerCase();
+            
+            if (messageLower.includes("document review") || messageLower.includes("review")) {
+                thinkingMessage = "Analyzing document requirements...";
+            } else if (messageLower.includes("contract") || messageLower.includes("agreement")) {
+                thinkingMessage = "Reviewing contract details...";
+            } else if (messageLower.includes("hello") || messageLower.includes("hi")) {
+                thinkingMessage = "Preparing personalized greeting...";
+            } else if (messageLower.includes("help") || messageLower.includes("assistance")) {
+                thinkingMessage = "Identifying best assistance approach...";
+            } else if (messageLower.includes("legal") || messageLower.includes("law")) {
+                thinkingMessage = "Processing legal inquiry...";
+            } else if (messageLower.includes("question") || messageLower.includes("?")) {
+                thinkingMessage = "Formulating detailed response...";
+            }
+            
+            const thinkingDiv = document.createElement('div');
+            thinkingDiv.id = 'dashboard-ai-thinking-indicator';
+            thinkingDiv.className = 'message ai-message';
+            thinkingDiv.innerHTML = `
+                <div class="message-header">
+                    <img src="/images/Notal_Banner_Logo.png" alt="Notal AI" class="ai-message-logo" />
+                    <span class="timestamp">${new Date().toLocaleTimeString()}</span>
+                </div>
+                <div class="message-content">
+                    <div class="ai-thinking">
+                        <div class="thinking-spinner">
+                            <div class="spinner-border spinner-border-sm" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                        </div>
+                        <span class="thinking-text" id="dashboardThinkingText">${thinkingMessage}</span>
+                    </div>
+                </div>
+            `;
+            
+            chatMessages.appendChild(thinkingDiv);
+            chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'instant' });
+            
+            // Apply wave animation to thinking text
+            const thinkingTextElement = thinkingDiv.querySelector('#dashboardThinkingText');
+            if (thinkingTextElement) {
+                const text = thinkingTextElement.textContent;
+                thinkingTextElement.innerHTML = text.split('').map((char, index) => {
+                    const delay = index * 0.05; // 50ms delay between each character
+                    return `<span style="animation-delay: ${delay}s;">${char === ' ' ? '&nbsp;' : char}</span>`;
+                }).join('');
+            }
+        }
+
+        // Hide AI thinking indicator (dashboard version)
+        function hideDashboardAIThinkingIndicator() {
+            const thinkingDiv = document.getElementById('dashboard-ai-thinking-indicator');
+            if (thinkingDiv) {
+                thinkingDiv.remove();
+            }
+        }
+
+        // Create streaming AI message placeholder (dashboard version)
+        function createDashboardStreamingAIMessagePlaceholder() {
+            const chatMessages = document.getElementById('dashboardChatMessages');
+            if (!chatMessages) return null;
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ai-message ai-message-bubble streaming';
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    <div class="message-header">
+                        <img src="/images/Notal_Banner_Logo.png" alt="Notal AI" class="ai-message-logo" />
+                        <span class="timestamp">${new Date().toLocaleTimeString()}</span>
+                    </div>
+                    <div class="message-text"></div>
+                </div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            return messageDiv;
+        }
+
+        // Generate AI response with streaming (dashboard version)
+        async function generateDashboardAIResponse(userMessage) {
+            try {
+                const orgId = @ViewBag.OrganizationId;
+                if (!orgId) {
+                    console.error('Organization ID not found');
+                    return;
+                }
+                
+                // Keep "AI is thinking..." visible until first chunk arrives
+                let aiMessageDiv = null;
+                let messageTextDiv = null;
+                let isFirstChunk = true;
+                
+                let fullContent = '';
+                
+                // Track if user has manually scrolled up
+                let userHasScrolledUp = false;
+                let lastScrollHeight = 0;
+                
+                const chatMessages = document.getElementById('dashboardChatMessages');
+                
+                // Detect manual scroll by user
+                const handleScroll = () => {
+                    if (!chatMessages) return;
+                    
+                    const isAtBottom = chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight < 50;
+                    
+                    // If user scrolls back to bottom, re-enable auto-scroll
+                    if (isAtBottom) {
+                        userHasScrolledUp = false;
+                    } 
+                    // If scroll position changed and we're not at bottom, user scrolled up
+                    else if (chatMessages.scrollHeight === lastScrollHeight) {
+                        userHasScrolledUp = true;
+                    }
+                    
+                    lastScrollHeight = chatMessages.scrollHeight;
+                };
+                
+                // Add scroll listener
+                if (chatMessages) {
+                    chatMessages.addEventListener('scroll', handleScroll);
+                }
+                
+                const response = await fetch(`/Client/${orgId}/Chat/GenerateAIResponseStream`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        conversationId: parseInt(dashboardCurrentConversationId),
+                        userMessage: userMessage
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                // Handle Server-Sent Events stream
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                
+                while (true) {
+                    const { done, value } = await reader.read();
+                    
+                    if (done) {
+                        break;
+                    }
+                    
+                    // Decode the chunk and add to buffer
+                    buffer += decoder.decode(value, { stream: true });
+                    
+                    // Process complete SSE messages (separated by \n\n)
+                    const messages = buffer.split('\n\n');
+                    buffer = messages.pop() || ''; // Keep incomplete message in buffer
+                    
+                    for (const message of messages) {
+                        if (message.startsWith('data: ')) {
+                            const jsonData = message.substring(6);
+                            
+                            try {
+                                const eventData = JSON.parse(jsonData);
+                                
+                                // Add delay between chunks for smooth visual streaming (30ms per chunk)
+                                await new Promise(resolve => setTimeout(resolve, 30));
+                                
+                                if (eventData.error) {
+                                    // Error occurred
+                                    hideDashboardAIThinkingIndicator();
+                                    if (messageTextDiv) {
+                                        messageTextDiv.innerHTML = eventData.content || 'An error occurred while generating the response.';
+                                    }
+                                    // Remove streaming class
+                                    if (aiMessageDiv) {
+                                        aiMessageDiv.classList.remove('streaming');
+                                    }
+                                    if (chatMessages) {
+                                        chatMessages.removeEventListener('scroll', handleScroll);
+                                    }
+                                    return;
+                                }
+                                
+                                if (eventData.done) {
+                                    // Stream complete - remove streaming class
+                                    hideDashboardAIThinkingIndicator();
+                                    if (aiMessageDiv) {
+                                        aiMessageDiv.classList.remove('streaming');
+                                    }
+                                    if (messageTextDiv) {
+                                        // Use content directly as HTML (like sidebar does) - AI returns HTML-formatted content
+                                        messageTextDiv.innerHTML = fullContent || 'No response generated.';
+                                    }
+                                    
+                                    // Remove scroll listener
+                                    if (chatMessages) {
+                                        chatMessages.removeEventListener('scroll', handleScroll);
+                                    }
+                                    
+                                    return;
+                                }
+                                
+                                if (eventData.content) {
+                                    // On first chunk: hide thinking indicator and create streaming placeholder
+                                    if (isFirstChunk) {
+                                        hideDashboardAIThinkingIndicator();
+                                        aiMessageDiv = createDashboardStreamingAIMessagePlaceholder();
+                                        messageTextDiv = aiMessageDiv.querySelector('.message-text');
+                                        
+                                        // Initialize empty message text
+                                        messageTextDiv.textContent = '';
+                                        
+                                        isFirstChunk = false;
+                                    }
+                                    
+                                    try {
+                                        // Append chunk to full content
+                                        fullContent += eventData.content;
+                                        
+                                        // During streaming: keep HTML structure, only remove incomplete tags (like sidebar)
+                                        let displayText = fullContent
+                                            .replace(/<[^>]*$/g, '')  // Remove incomplete tag at the end (e.g., "<p" or "<stro")
+                                            .trim();
+                                        
+                                        // Update using innerHTML to preserve HTML formatting during streaming (like sidebar)
+                                        const tempDiv = document.createElement('div');
+                                        tempDiv.innerHTML = displayText;
+                                        
+                                        // Clear messageTextDiv and rebuild with formatted content
+                                        messageTextDiv.innerHTML = '';
+                                        while (tempDiv.firstChild) {
+                                            messageTextDiv.appendChild(tempDiv.firstChild);
+                                        }
+                                        
+                                        // Auto-scroll only if user hasn't manually scrolled up
+                                        if (chatMessages && !userHasScrolledUp) {
+                                            chatMessages.scrollTop = chatMessages.scrollHeight;
+                                            lastScrollHeight = chatMessages.scrollHeight;
+                                        }
+                                    } catch (domError) {
+                                        console.error('Error in DOM update:', domError);
+                                    }
+                                }
+                            } catch (e) {
+                                console.error('Error parsing SSE:', e);
+                            }
+                        }
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error generating streaming AI response:', error);
+                hideDashboardAIThinkingIndicator();
+                
+                // Show error message in chat
+                const chatMessages = document.getElementById('dashboardChatMessages');
+                if (chatMessages) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'ai-message-bubble error-message';
+                    errorDiv.innerHTML = `
+                        <div class="message-content">
+                            <div class="message-header">
+                                <img src="/images/Notal_Banner_Logo.png" alt="Notal AI" class="ai-message-logo" />
+                                <span class="timestamp">${new Date().toLocaleTimeString()}</span>
+                            </div>
+                            <div class="message-text">
+                                I apologize, but I'm having trouble generating a response right now. Please try again in a moment.
+                            </div>
+                        </div>
+                    `;
+                    chatMessages.appendChild(errorDiv);
+                    chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+                }
+            }
+        }
+
+        // Handle search input send (for landing view)
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchSendBtn = document.getElementById('dashboardSendBtn');
+            const searchInput = document.getElementById('dashboardSearchInput');
+            
+            if (searchSendBtn && searchInput) {
+                searchSendBtn.addEventListener('click', async function() {
+                    const message = searchInput.value.trim();
+                    if (!message) return;
+                    
+                    // Check if we have a conversation selected
+                    const savedConversationId = localStorage.getItem('dashboardSelectedConversation');
+                    
+                    if (savedConversationId) {
+                        // Use existing conversation
+                        dashboardCurrentConversationId = savedConversationId;
+                        loadDashboardConversation(savedConversationId);
+                        
+                        // Wait a bit for view to switch, then send message
+                        setTimeout(() => {
+                            const dashboardInput = document.getElementById('dashboardMessageInput');
+                            if (dashboardInput) {
+                                dashboardInput.value = message;
+                                document.getElementById('dashboardSendButton').click();
+                            }
+                        }, 100);
+                    } else {
+                        // Create new conversation (you may want to implement this)
+                        console.log('Creating new conversation from search input');
+                    }
+                });
+                
+                searchInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        searchSendBtn.click();
+                    }
+                });
+            }
+        });
 
         async function loadDashboardUpcomingDeadlines() {
             const deadlinesList = document.getElementById('dashboardUpcomingDeadlinesList');

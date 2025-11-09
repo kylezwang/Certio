@@ -508,9 +508,10 @@ builder.Services.AddScoped<IDriveSyncService>(sp =>
     var dataProtectionProvider = sp.GetRequiredService<IDataProtectionProvider>();
     var protector = dataProtectionProvider.CreateProtector("DriveOAuthTokens");
     var documentIndexerService = sp.GetRequiredService<IDocumentIndexerService>();
+    var serviceScopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
     
     Func<string, string> decryptFunc = encryptedToken => protector.Unprotect(encryptedToken);
-    return new DriveSyncService(dbContext, logger, httpClientFactory, decryptFunc, documentIndexerService);
+    return new DriveSyncService(dbContext, logger, httpClientFactory, decryptFunc, documentIndexerService, serviceScopeFactory);
 });
 
 builder.Services.AddScoped<IDocumentContentService>(sp =>

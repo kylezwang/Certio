@@ -65,7 +65,9 @@ namespace Certio.Web.Controllers
             [FromQuery] DateTime? start,
             [FromQuery] DateTime? end,
             [FromQuery] string? userIds,
-            [FromQuery] string? activityTypes)
+            [FromQuery] string? activityTypes,
+            [FromQuery] int skip = 0,
+            [FromQuery] int take = 100)
         {
             var (user, _) = GetUserContext();
             if (user == null)
@@ -190,7 +192,7 @@ namespace Certio.Web.Controllers
                 }
 
                 // Format activities for the frontend
-                var activities = auditLogs.Select(log => new
+                var allActivities = auditLogs.Select(log => new
                 {
                     id = log.Id,
                     timestamp = log.Timestamp,
@@ -212,7 +214,18 @@ namespace Certio.Web.Controllers
                     details = FormatDetails(log)
                 }).OrderByDescending(a => a.timestamp).ToList();
 
-                return Json(new { success = true, activities });
+                // Get total count before pagination
+                var totalCount = allActivities.Count;
+
+                // Apply pagination
+                var activities = allActivities.Skip(skip).Take(take).ToList();
+
+                return Json(new { 
+                    success = true, 
+                    activities,
+                    totalCount,
+                    hasMore = skip + take < totalCount
+                });
             }
             catch (Exception ex)
             {

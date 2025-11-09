@@ -31,7 +31,8 @@ namespace Certio.Web.Middleware
                 var customUser = context.Items["CustomUser"] as Certio.Domain.Users.User;
                 if (customUser == null)
                 {
-                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    // Redirect to login page with session expired notification
+                    context.Response.Redirect("/Home/Index?sessionExpired=true");
                     return;
                 }
 

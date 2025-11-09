@@ -85,15 +85,15 @@
     </div>
 
     <!-- Search and Filters -->
-    <div class="row mb-4">
-        <div class="col-md-8">
+    <div class="row mb-4 g-2">
+        <div class="col-md-6 col-lg-7">
             <div class="search-container">
                 <i class="fas fa-search"></i>
                 <input type="text" class="form-control" placeholder="Search documents..." />
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="filter-buttons">
+        <div class="col-md-6 col-lg-5">
+            <div class="filter-buttons d-flex justify-content-end" style="flex-wrap: nowrap; gap: 0.375rem;">
                 <div class="dropdown d-inline-block">
                     <button class="filter-button dropdown-toggle" type="button" id="fileTypeFilterBtn" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-filter"></i>
@@ -265,11 +265,11 @@
                                 </div>
                             </div>
                             <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.5rem;">
-                                <button id="connectGoogleDriveBtnConnected" class="oauth-connect-btn" style="flex: 1; min-width: 120px; display: none;">
+                                <button id="connectGoogleDriveBtnConnected" class="oauth-connect-btn" style="flex: 1; min-width: 120px; display: none; white-space: nowrap;">
                                     <i class="fab fa-google"></i>
                                     <span style="margin-left: 0.5rem;">Drive</span>
                                 </button>
-                                <button id="connectOneDriveBtnConnected" class="oauth-connect-btn" style="flex: 1; min-width: 120px; display: none;">
+                                <button id="connectOneDriveBtnConnected" class="oauth-connect-btn" style="flex: 1; min-width: 120px; display: none; white-space: nowrap;">
                                     <i class="fab fa-windows"></i>
                                     <span style="margin-left: 0.5rem;">OneDrive</span>
                                 </button>
