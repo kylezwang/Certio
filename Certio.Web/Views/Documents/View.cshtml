@@ -21,8 +21,59 @@
 
         .document-viewer-header {
             border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            padding: 1rem 1.5rem;
+            padding: 1rem 1.5rem 0.5rem;
             background: white;
+            flex-shrink: 0;
+        }
+
+        .document-viewer-header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .document-viewer-header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .document-viewer-logo {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .document-viewer-logo i {
+            font-size: 1.5rem;
+        }
+
+        .document-viewer-title-section {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .document-viewer-title-section h5 {
+            margin: 0;
+        }
+
+        .document-viewer-title-section .small {
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .document-viewer-header-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
             flex-shrink: 0;
         }
 
@@ -54,23 +105,45 @@
 
 <div class="document-viewer-container">
     <div class="document-viewer-header">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-            <div>
-                <h5 class="fw-semibold text-dark mb-1">@Model.Document.Name</h5>
-                <div class="d-flex flex-wrap align-items-center gap-2 small text-muted">
-                    <span class="badge bg-light text-dark text-uppercase">
-                        @(Model.Document.SourceType == Certio.Domain.Documents.DocumentSourceType.GoogleDrive ? "GOOGLE DRIVE" :
-                          Model.Document.SourceType == Certio.Domain.Documents.DocumentSourceType.OneDrive ? "ONEDRIVE" :
-                          "INTERNAL")
-                    </span>
-                    <span>@Model.Document.Author</span>
-                    <span>•</span>
-                    <span>Updated @Model.Document.ModifiedAt.ToString("M/d/yyyy, h:mm:ss tt")</span>
-                    <span>•</span>
-                    <span>@Model.Document.Status</span>
+        <div class="document-viewer-header-content">
+            <div class="document-viewer-header-left">
+                @{
+                    string logoIconClass = "fas fa-file";
+                    string logoColor = "";
+                    
+                    if (Model.Document.SourceType == Certio.Domain.Documents.DocumentSourceType.GoogleDrive)
+                    {
+                        logoIconClass = "fab fa-google";
+                        logoColor = "#4285f4";
+                    }
+                    else if (Model.Document.SourceType == Certio.Domain.Documents.DocumentSourceType.OneDrive)
+                    {
+                        logoIconClass = "fab fa-windows";
+                        logoColor = "#0078d4";
+                    }
+                }
+                <div class="document-viewer-logo">
+                    @if (!string.IsNullOrEmpty(logoColor))
+                    {
+                        <i class="@logoIconClass" style="color: @logoColor;"></i>
+                    }
+                    else
+                    {
+                        <i class="@logoIconClass text-primary"></i>
+                    }
+                </div>
+                <div class="document-viewer-title-section">
+                    <h5 class="fw-semibold text-dark">@Model.Document.Name</h5>
+                    <div class="d-flex flex-wrap align-items-center small text-muted" style="margin-top: 0.15rem;">
+                        <span class="me-2">@Model.Document.Author</span>
+                        <span class="me-2">•</span>
+                        <span class="me-2">Updated @Model.Document.ModifiedAt.ToString("M/d/yyyy, h:mm:ss tt")</span>
+                        <span class="me-2">•</span>
+                        <span>@Model.Document.Status</span>
+                    </div>
                 </div>
             </div>
-            <div class="d-flex align-items-center gap-2">
+            <div class="document-viewer-header-right">
                 <a href="@Model.OpenUrl" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">
                     <i class="fas fa-external-link-alt me-1"></i>
                     Open in new tab

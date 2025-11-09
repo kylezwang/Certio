@@ -21,14 +21,15 @@ public sealed class BackgroundEmbeddingWorker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        using var scope = _serviceProvider.CreateScope();
-        var queue = scope.ServiceProvider.GetRequiredService<IEmbeddingJobQueue>();
-        var indexer = scope.ServiceProvider.GetRequiredService<IDocumentIndexerService>();
-
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
+                // Create a new scope for each job to ensure proper DbContext isolation
+                using var scope = _serviceProvider.CreateScope();
+                var queue = scope.ServiceProvider.GetRequiredService<IEmbeddingJobQueue>();
+                var indexer = scope.ServiceProvider.GetRequiredService<IDocumentIndexerService>();
+                
                 var request = await queue.DequeueAsync(stoppingToken);
                 await indexer.ProcessIndexRequestAsync(request, stoppingToken);
             }
