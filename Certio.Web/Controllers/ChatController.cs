@@ -6,6 +6,8 @@ using Certio.Web.Security;
 using Certio.Web.Services;
 using System.Security.Claims;
 using Certio.Domain.Services;
+using Certio.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Certio.Web.Controllers;
 
@@ -16,15 +18,18 @@ public class ChatController : Controller
     private readonly IChatService _chatService;
     private readonly IOrganizationContextService _orgContextService;
     private readonly ILogger<ChatController> _logger;
+    private readonly ApplicationDbContext _context;
 
     public ChatController(
         IChatService chatService,
         IOrganizationContextService orgContextService,
-        ILogger<ChatController> logger)
+        ILogger<ChatController> logger,
+        ApplicationDbContext context)
     {
         _chatService = chatService;
         _orgContextService = orgContextService;
         _logger = logger;
+        _context = context;
     }
 
     [HttpGet("")]
@@ -122,6 +127,87 @@ public class ChatController : Controller
     {
         var messages = await _chatService.GetConversationMessagesAsync(id);
         return Json(messages);
+    }
+
+    [HttpPost("channel/{channelId}/read")]
+    [Authorize(Policy = "OrgMember")]
+    public async Task<IActionResult> MarkChannelAsRead(int orgId, int channelId)
+    {
+        try
+        {
+            // Input validation
+            if (!InputValidator.IsValidId(channelId) || !InputValidator.IsValidId(orgId))
+            {
+                _logger.LogWarning("Invalid channel or org ID in MarkChannelAsRead: channel={ChannelId}, org={OrgId}", channelId, orgId);
+                return Json(new { success = false, error = "Invalid parameters" });
+            }
+
+            // Get current user
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                _logger.LogWarning("CustomUser not found in HttpContext for MarkChannelAsRead");
+                return Json(new { success = false, error = "User not authenticated" });
+            }
+
+            var userId = customUser.Id;
+
+            // Validate user has access to the organization
+            var canAccess = await _orgContextService.ValidateUserInOrganizationAsync(userId, orgId);
+            if (!canAccess)
+            {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to mark channel {ChannelId} as read in unauthorized org {OrgId}", 
+                    userId, channelId, orgId);
+                return Json(new { success = false, error = "Access denied" });
+            }
+
+            // Mark all unread messages in this channel as read for this user
+            // The unread count logic works by finding the last message the user sent that is marked as read,
+            // then counting messages from other users after that time.
+            // So we create a "read receipt" by marking the latest message the user sent as read,
+            // or if the user hasn't sent any messages, we create a system read receipt message.
+            
+            var latestUserMessage = await _context.ChatMessages
+                .Where(m => m.ConversationId == channelId && m.UserId == userId)
+                .OrderByDescending(m => m.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            if (latestUserMessage != null)
+            {
+                // Mark the user's latest message as read (this acts as a read receipt)
+                latestUserMessage.IsRead = true;
+            }
+            else
+            {
+                // If user hasn't sent any messages, create a system read receipt message
+                // This ensures the unread count logic works correctly
+                var readReceipt = new ChatMessage
+                {
+                    ConversationId = channelId,
+                    UserId = userId,
+                    Content = "", // Empty content for read receipt
+                    Sender = "System",
+                    MessageType = "System",
+                    SenderType = "System",
+                    IsFromUser = false,
+                    IsRead = true, // Mark as read immediately
+                    CreatedAt = DateTime.UtcNow
+                };
+                
+                _context.ChatMessages.Add(readReceipt);
+            }
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("User {UserId} marked channel {ChannelId} as read", userId, channelId);
+
+            return Json(new { success = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error marking channel {ChannelId} as read", channelId);
+            return Json(new { success = false, error = "An error occurred" });
+        }
     }
 
     [HttpGet("channel/{channelId}/messages")]

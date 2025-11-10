@@ -268,6 +268,9 @@ async function loadChannelMessages(channelId, loadOlder = false) {
         } else {
             // Initial load - display all messages
             displayMessages(messages);
+            
+            // Mark channel as read after initial load (not for pagination)
+            await markChannelAsRead(channelId);
         }
         
         // Update oldest message ID for pagination
@@ -751,6 +754,39 @@ function createReactionsHTML(reactions) {
     } catch (err) {
         console.error('Error parsing reactions:', err);
         return '';
+    }
+}
+
+// Mark channel as read
+async function markChannelAsRead(channelId) {
+    try {
+        if (!communicationsOrganizationId) {
+            console.warn('Organization ID not set, cannot mark channel as read');
+            return;
+        }
+        
+        const response = await fetch(`/Client/${communicationsOrganizationId}/Chat/channel/${channelId}/read`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        if (response.ok) {
+            console.log('Marked channel as read:', channelId);
+            // Clear the red badge from the channel item in the sidebar
+            const channelItem = document.querySelector(`.channel-item[data-channel-id="${channelId}"]`);
+            if (channelItem) {
+                const badge = channelItem.querySelector('.unread-badge');
+                if (badge) {
+                    badge.remove();
+                }
+            }
+        } else {
+            console.error('Failed to mark channel as read:', response.status);
+        }
+    } catch (error) {
+        console.error('Error marking channel as read:', error);
     }
 }
 

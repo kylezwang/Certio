@@ -693,15 +693,34 @@ namespace Certio.Web.Controllers
                 }
             }
 
-            // Get document counts
+            // Get document counts and calculate internal storage
             var allDocuments = await _db.Documents
                 .Where(d => d.OrgId == orgId && d.DeletedAt == null)
                 .ToListAsync();
 
+            // Calculate internal document storage (sum of FileSizeBytes for InternalUpload documents)
+            // Do this in database query for efficiency
+            var internalStorageBytes = await _db.Documents
+                .Where(d => d.OrgId == orgId && 
+                           d.DeletedAt == null && 
+                           d.SourceType == Certio.Domain.Documents.DocumentSourceType.InternalUpload)
+                .SumAsync(d => (long?)d.FileSizeBytes) ?? 0;
+            
+            var internalStorageGB = internalStorageBytes / (1024.0 * 1024.0 * 1024.0);
+            usedGB += internalStorageGB;
+
+            // If no cloud storage connections, use 500 GB default, otherwise add internal storage to total
+            if (totalGB == 0)
+            {
+                totalGB = 500; // Default to 500 GB if no connections
+            }
+            // Note: Internal storage is included in usedGB but doesn't add to totalGB
+            // The totalGB represents cloud storage quota, internal storage is additional
+
             return new Certio.Domain.Documents.StorageInfo
             {
                 UsedGB = usedGB,
-                TotalGB = totalGB > 0 ? totalGB : 500, // Default to 500 GB if no connections
+                TotalGB = totalGB,
                 DocumentCount = allDocuments.Count,
                 SharedCount = allDocuments.Count(d => !d.IsPrivate),
                 RecentCount = allDocuments.Count(d => d.ModifiedAt > DateTime.UtcNow.AddDays(-7))

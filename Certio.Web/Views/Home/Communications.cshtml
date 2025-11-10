@@ -681,11 +681,11 @@
                         
                     }
                     
-                    // Get channel member emails for channel mode
-                    let channelMemberEmails = [];
+                    // Get channel member names for channel mode
+                    let channelMemberNames = [];
                     if (!isInDM && channelTitle) {
                         // Fetch actual channel members from API instead of all team members
-                        // This ensures we only show emails of users who have access to the channel
+                        // This ensures we only show names of users who have access to the channel
                         // Try multiple sources for channel ID
                         let channelId = null;
                         
@@ -726,12 +726,12 @@
                                     console.log('GetChannelMembers response data:', data);
                                     
                                     if (data.success && data.members) {
-                                        // Extract emails from channel members
-                                        const emails = data.members
-                                            .map(member => member.email)
-                                            .filter(email => email && email.trim() !== '');
-                                        channelMemberEmails = emails;
-                                        console.log(`Loaded ${channelMemberEmails.length} channel member emails for channel ${channelId}:`, channelMemberEmails);
+                                        // Extract names from channel members
+                                        const names = data.members
+                                            .map(member => member.name)
+                                            .filter(name => name && name.trim() !== '');
+                                        channelMemberNames = names;
+                                        console.log(`Loaded ${channelMemberNames.length} channel member names for channel ${channelId}:`, channelMemberNames);
                                     } else {
                                         console.warn('GetChannelMembers returned unsuccessful response:', data);
                                     }
@@ -742,7 +742,7 @@
                             } catch (error) {
                                 console.error('Error fetching channel members:', error);
                                 // Fallback: show empty subtitle
-                                channelMemberEmails = [];
+                                channelMemberNames = [];
                             }
                         } else {
                             console.warn('Cannot fetch channel members: missing channelId or orgId', { channelId, orgId });
@@ -786,16 +786,16 @@
                                 const channelName = channelTitle.textContent.trim();
                                 messageInput.placeholder = `Email #${channelName}`;
                             }
-                            // Update subtitle to show channel member emails
+                            // Update subtitle to show channel member names
                             if (channelDescription) {
-                                if (channelMemberEmails.length > 0) {
-                                    // Show up to 3 emails, or indicate if more
-                                    const displayEmails = channelMemberEmails.slice(0, 3);
-                                    let emailText = displayEmails.join(', ');
-                                    if (channelMemberEmails.length > 3) {
-                                        emailText += ` +${channelMemberEmails.length - 3} more`;
+                                if (channelMemberNames.length > 0) {
+                                    // Show up to 3 names, or indicate if more
+                                    const displayNames = channelMemberNames.slice(0, 3);
+                                    let namesText = displayNames.join(', ');
+                                    if (channelMemberNames.length > 3) {
+                                        namesText += ` +${channelMemberNames.length - 3} more`;
                                     }
-                                    channelDescription.textContent = emailText;
+                                    channelDescription.textContent = namesText;
                                 } else {
                                     channelDescription.textContent = 'Secure legal communications';
                                 }
@@ -921,17 +921,17 @@
                                 if (response.ok) {
                                     const data = await response.json();
                                     if (data.success && data.members) {
-                                        const emails = data.members
-                                            .map(member => member.email)
-                                            .filter(email => email && email.trim() !== '');
+                                        const names = data.members
+                                            .map(member => member.name)
+                                            .filter(name => name && name.trim() !== '');
                                         
-                                        if (emails.length > 0) {
-                                            const displayEmails = emails.slice(0, 3);
-                                            let emailText = displayEmails.join(', ');
-                                            if (emails.length > 3) {
-                                                emailText += ` +${emails.length - 3} more`;
+                                        if (names.length > 0) {
+                                            const displayNames = names.slice(0, 3);
+                                            let namesText = displayNames.join(', ');
+                                            if (names.length > 3) {
+                                                namesText += ` +${names.length - 3} more`;
                                             }
-                                            channelDescription.textContent = emailText;
+                                            channelDescription.textContent = namesText;
                                         } else {
                                             channelDescription.textContent = 'Secure legal communications';
                                         }

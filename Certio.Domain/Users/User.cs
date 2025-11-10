@@ -55,6 +55,15 @@ namespace Certio.Domain.Users
         [StringLength(7)]
         public string Color { get; set; } = "#007bff";
         
+        [StringLength(100)]
+        public string? TimeZone { get; set; } = "America/New_York";
+        
+        [StringLength(10)]
+        public string? Language { get; set; } = "en";
+        
+        [StringLength(20)]
+        public string? Theme { get; set; } = "light";
+        
         public bool IsActive { get; set; } = true;
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

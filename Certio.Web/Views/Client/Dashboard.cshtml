@@ -20,6 +20,32 @@
             <div class="row g-0 h-100">
                 <!-- Conversations Column -->
                 <div class="col-md-3 conversations-column" id="conversationsColumn">
+                    <!-- Sticky Header with Search and New Note -->
+                    <div class="conversations-header">
+                        <!-- Search Bar Container with New Note -->
+                        <div class="conversations-search-container">
+                            <i class="fas fa-search conversations-search-icon"></i>
+                            <input type="text" class="conversations-search-input" placeholder="Search Notes" id="conversationsSearchInput" />
+                            <button class="conversations-filter-btn" title="Filter">
+                                <i class="fas fa-filter"></i>
+                            </button>
+                            <!-- New Note Button -->
+                            <div class="conversations-new-note-container">
+                                <a href="#" id="newNoteBtn" class="text-decoration-none" style="display: block;">
+                                    <div class="card border-0 conversations-new-note-btn">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="fas fa-plus" style="color: #3d1019; font-size: 0.875rem;"></i>
+                                            <div style="min-width: 0; flex: 1; margin-top: 0;">
+                                                <h6 class="mb-0 fw-bold text-dark" style="font-size: 0.875rem;">
+                                                    New Note
+                                                </h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                     <div class="conversations-list" id="conversationsList">
                         <div class="conversations-loading">Loading conversations...</div>
                     </div>
@@ -386,15 +412,26 @@
         right: 1rem;
         font-size: 1.25rem;
         color: #6c757d !important;
-        background: none;
-        border: none;
+        background: white !important;
+        border: none !important;
+        border-radius: 50% !important;
+        width: 2rem;
+        height: 2rem;
+        padding: 0 !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         cursor: pointer;
         z-index: 10;
-        transition: color 0.2s ease, right 0.2s ease;
+        transition: color 0.2s ease, right 0.2s ease, background-color 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        text-decoration: none !important;
     }
 
     .ai-fullscreen-btn:hover {
         color: #495057 !important;
+        background-color: #f3f4f6 !important;
+        text-decoration: none !important;
     }
 
     .ai-fullscreen-btn.has-close-btn {
@@ -407,15 +444,26 @@
         right: 1rem;
         font-size: 1.25rem;
         color: #6c757d !important;
-        background: none;
-        border: none;
+        background: white !important;
+        border: none !important;
+        border-radius: 50% !important;
+        width: 2rem;
+        height: 2rem;
+        padding: 0 !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         cursor: pointer;
         z-index: 10;
-        transition: color 0.2s ease;
+        transition: color 0.2s ease, background-color 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        text-decoration: none !important;
     }
 
     .ai-close-btn:hover {
         color: #495057 !important;
+        background-color: #f3f4f6 !important;
+        text-decoration: none !important;
     }
 
     .ai-chat-card.fullscreen {
@@ -479,11 +527,13 @@
         visibility: visible;
         opacity: 1;
         transform: translateX(0);
-        overflow-y: auto;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
     }
 
     .ai-chat-card.activated .conversations-column .conversations-list {
-        padding: 1rem;
+        padding: 0.75rem;
     }
 
     /* Always show in fullscreen mode */
@@ -492,7 +542,9 @@
         visibility: visible !important;
         opacity: 1 !important;
         transform: translateX(0) !important;
-        overflow-y: auto !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
     }
 
     .ai-chat-card.fullscreen .conversations-column .conversations-list {
@@ -536,32 +588,140 @@
         width: 100% !important;
     }
 
-    .conversations-column::-webkit-scrollbar {
+    /* Scrollbar styling for conversations list only */
+    .conversations-list::-webkit-scrollbar {
         width: 6px;
     }
 
-    .conversations-column::-webkit-scrollbar-track {
+    .conversations-list::-webkit-scrollbar-track {
         background: transparent; /* Remove track background */
     }
 
-    .conversations-column::-webkit-scrollbar-thumb {
+    .conversations-list::-webkit-scrollbar-thumb {
         background: #ececec; /* Use the lighter gray color for the scrollbar */
         border-radius: 3px;
         border: 1px solid rgba(0, 0, 0, 0.05); /* Very subtle border for definition */
     }
 
-    .conversations-column::-webkit-scrollbar-thumb:hover {
+    .conversations-list::-webkit-scrollbar-thumb:hover {
         background: #d5d5d5; /* Slightly darker on hover for feedback */
     }
 
-    /* Firefox scrollbar styling */
-    .conversations-column {
-        scrollbar-width: thin;
-        scrollbar-color: #ececec transparent;
+    /* Conversations Header - Sticky container for search and new note */
+    .conversations-header {
+        flex-shrink: 0;
+        z-index: 10;
+        background: #ffffff;
+        border-top-left-radius: 12px;
     }
 
+    /* Conversations Search Bar - Match Communications Sidebar Styling */
+    .conversations-search-container {
+        position: relative;
+        padding: 1rem 0.75rem;
+        background: #ffffff;
+        border-bottom: 1px solid rgba(11, 54, 94, 0.1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+        border-top-left-radius: 12px;
+    }
+
+    .conversations-search-icon {
+        position: absolute;
+        left: 1.75rem;
+        top: 1.75rem;
+        color: #6b7280;
+        font-size: 0.875rem;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .conversations-filter-btn {
+        position: absolute;
+        right: 1.5rem;
+        top: 1.35rem;
+        background: none;
+        border: none;
+        color: #6b7280;
+        font-size: 0.875rem;
+        cursor: pointer;
+        padding: 0.375rem;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+    }
+
+    .conversations-filter-btn:hover {
+        background: rgba(0, 0, 0, 0.05);
+        color: #374151;
+    }
+
+    .conversations-filter-btn:focus {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    .conversations-search-input {
+        width: 100%;
+        padding: 0.5rem 2.5rem 0.5rem 2.5rem;
+        border: transparent;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        color: #1f2937;
+        background: #f9fafb;
+        transition: all 0.2s ease;
+        outline: none;
+        box-sizing: border-box;
+        margin-bottom: 0.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
+
+    .conversations-search-input:focus {
+        background: #ffffff;
+        border-color: #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        outline: none !important;
+    }
+
+    .conversations-search-input::placeholder {
+        color: #9ca3af;
+    }
+
+    /* New Note Button - Match View All Clients & Contacts Styling */
+    .conversations-new-note-container {
+        padding-top: 0.5rem;
+        padding-bottom: 0;
+    }
+
+    .conversations-new-note-btn {
+        background-color: #f8f9fa;
+        padding: 0.75rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .conversations-new-note-btn:hover {
+        background-color: #e9ecef;
+    }
+
+    .conversations-new-note-btn:focus,
+    #newNoteBtn,
+    #newNoteBtn:focus {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    /* Firefox scrollbar styling for conversations list */
     .conversations-list {
+        flex: 1;
+        overflow-y: auto;
         padding: 1rem;
+        min-height: 0;
+        scrollbar-width: thin;
+        scrollbar-color: #ececec transparent;
     }
 
     .conversations-loading {
@@ -817,6 +977,7 @@
             initializeAiFullscreen();
             initializeAiChatActivation();
             initializeAiClose();
+            initializeNewNoteButton();
             await loadDashboardConversations();
         });
 
@@ -853,6 +1014,152 @@
                         aiCard.classList.add('activated');
                     }
                 });
+            }
+        }
+
+        // Dashboard conversation context menu
+        function showDashboardConversationContextMenu(event, conversationItem) {
+            // Remove existing context menu if any
+            const existingMenu = document.getElementById('conversationContextMenu');
+            if (existingMenu) {
+                existingMenu.remove();
+            }
+
+            const conversationId = conversationItem.dataset.conversationId;
+            const conversationTitle = conversationItem.querySelector('.conversation-title')?.textContent || 'Untitled Note';
+
+            // Create context menu
+            const contextMenu = document.createElement('div');
+            contextMenu.id = 'conversationContextMenu';
+            contextMenu.className = 'conversation-context-menu';
+            contextMenu.innerHTML = `
+                <div class="context-menu-item" onclick="renameDashboardConversation('${conversationId}', '${conversationTitle.replace(/'/g, "\\'")}')">
+                    <i class="fas fa-edit"></i> Rename Note
+                </div>
+                <div class="context-menu-item delete-item" onclick="deleteDashboardConversation('${conversationId}')">
+                    <i class="fas fa-trash"></i> Delete Note
+                </div>
+            `;
+
+            // Position the menu
+            contextMenu.style.left = event.pageX + 'px';
+            contextMenu.style.top = event.pageY + 'px';
+
+            document.body.appendChild(contextMenu);
+        }
+
+        // Dashboard rename conversation
+        function renameDashboardConversation(conversationId, currentTitle) {
+            const newTitle = prompt('Enter new note name:', currentTitle);
+            if (newTitle && newTitle.trim() !== '' && newTitle !== currentTitle) {
+                const orgId = @ViewBag.OrganizationId;
+                if (!orgId) {
+                    console.error('Organization ID not found');
+                    return;
+                }
+                
+                fetch(`/Client/${orgId}/Chat/RenameConversation`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        conversationId: parseInt(conversationId),
+                        newTitle: newTitle.trim()
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update the conversation title in the UI
+                        const conversationElement = document.querySelector(`.conversation-item[data-conversation-id="${conversationId}"] .conversation-title`);
+                        if (conversationElement) {
+                            conversationElement.textContent = newTitle.trim();
+                        }
+                        // Also update in sidebar if it exists
+                        const sidebarElement = document.querySelector(`.conversation-tab[data-conversation-id="${conversationId}"] .tab-title`);
+                        if (sidebarElement) {
+                            sidebarElement.textContent = newTitle.trim();
+                        }
+                    } else {
+                        alert('Failed to rename note: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error renaming conversation:', error);
+                    alert('Failed to rename note');
+                });
+            }
+            
+            // Remove context menu
+            const contextMenu = document.getElementById('conversationContextMenu');
+            if (contextMenu) {
+                contextMenu.remove();
+            }
+        }
+
+        // Dashboard delete conversation
+        function deleteDashboardConversation(conversationId) {
+            if (!confirm('Are you sure you want to delete this note? This action cannot be undone.')) {
+                return;
+            }
+            
+            const orgId = @ViewBag.OrganizationId;
+            if (!orgId) {
+                console.error('Organization ID not found');
+                return;
+            }
+            
+            const convId = parseInt(conversationId);
+            const convIdStr = String(conversationId);
+            
+            fetch(`/Client/${orgId}/Chat/DeleteConversation`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    conversationId: convId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove the conversation from the dashboard UI
+                    const conversationElement = document.querySelector(`.conversation-item[data-conversation-id="${convIdStr}"]`);
+                    if (conversationElement) {
+                        conversationElement.remove();
+                    }
+                    
+                    // Also remove from sidebar if it exists
+                    const sidebarElement = document.querySelector(`.conversation-tab[data-conversation-id="${convIdStr}"]`);
+                    if (sidebarElement) {
+                        sidebarElement.remove();
+                    }
+                    
+                    // If this was the active conversation, reset the dashboard chat card
+                    if (window.dashboardCurrentConversationId === convIdStr || window.dashboardCurrentConversationId === convId) {
+                        resetDashboardChatCard(true); // Keep conversations column visible
+                    }
+                    
+                    // Remove from localStorage if it was saved
+                    const savedConversationId = localStorage.getItem('dashboardSelectedConversation');
+                    if (savedConversationId === convIdStr || savedConversationId === String(convId)) {
+                        localStorage.removeItem('dashboardSelectedConversation');
+                    }
+                } else {
+                    alert('Failed to delete note: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting conversation:', error);
+                alert('Failed to delete note');
+            });
+            
+            // Remove context menu
+            const contextMenu = document.getElementById('conversationContextMenu');
+            if (contextMenu) {
+                contextMenu.remove();
             }
         }
 
@@ -921,6 +1228,13 @@
                         
                         // Load conversation messages and show conversation view
                         loadDashboardConversation(conversationId);
+                    });
+                    
+                    // Add right-click context menu handler
+                    item.addEventListener('contextmenu', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        showDashboardConversationContextMenu(e, this);
                     });
                 });
 
@@ -1012,7 +1326,23 @@
             });
         }
 
-        function resetDashboardChatCard() {
+        function initializeNewNoteButton() {
+            const newNoteBtn = document.getElementById('newNoteBtn');
+            if (!newNoteBtn) return;
+
+            newNoteBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const aiCard = document.getElementById('aiChatCard');
+                // Ensure card is activated to show conversations column
+                if (aiCard && !aiCard.classList.contains('fullscreen')) {
+                    aiCard.classList.add('activated');
+                }
+                resetDashboardChatCard(true); // Keep conversations column visible
+            });
+        }
+
+        function resetDashboardChatCard(keepActivated = false) {
             const aiCard = document.getElementById('aiChatCard');
             const closeBtn = document.getElementById('aiCloseBtn');
             const fullscreenBtn = document.getElementById('aiFullscreenBtn');
@@ -1021,7 +1351,7 @@
             const conversationsList = document.getElementById('conversationsList');
             
             // Reset conversation state
-            dashboardCurrentConversationId = null;
+            window.dashboardCurrentConversationId = null;
             localStorage.removeItem('dashboardSelectedConversation');
             
             // Remove active class from all conversation items
@@ -1039,18 +1369,18 @@
             if (closeBtn) closeBtn.style.display = 'none';
             if (fullscreenBtn) fullscreenBtn.classList.remove('has-close-btn');
             
-            // Remove activated class only if not in fullscreen mode
-            if (aiCard && !aiCard.classList.contains('fullscreen')) {
+            // Remove activated class only if not in fullscreen mode and not keeping activated
+            if (aiCard && !aiCard.classList.contains('fullscreen') && !keepActivated) {
                 aiCard.classList.remove('activated');
             }
         }
 
         // Dashboard conversation state
-        let dashboardCurrentConversationId = null;
+        window.dashboardCurrentConversationId = null;
 
         // Load conversation messages for dashboard
         async function loadDashboardConversation(conversationId) {
-            dashboardCurrentConversationId = conversationId;
+            window.dashboardCurrentConversationId = conversationId;
             
             // Show close button and adjust fullscreen button position
             const closeBtn = document.getElementById('aiCloseBtn');
@@ -1181,7 +1511,7 @@
                 const input = document.getElementById('dashboardMessageInput');
                 const message = input.value.trim();
                 
-                if (!message || !dashboardCurrentConversationId) return;
+                if (!message || !window.dashboardCurrentConversationId) return;
                 
                 // Clear input
                 input.value = '';
@@ -1205,7 +1535,7 @@
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
                         },
-                        body: `conversationId=${dashboardCurrentConversationId}&content=${encodeURIComponent(message)}&messageType=Text`
+                        body: `conversationId=${window.dashboardCurrentConversationId}&content=${encodeURIComponent(message)}&messageType=Text`
                     });
                     
                     const data = await response.json();
@@ -1389,7 +1719,7 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        conversationId: parseInt(dashboardCurrentConversationId),
+                        conversationId: parseInt(window.dashboardCurrentConversationId),
                         userMessage: userMessage
                     })
                 });
@@ -1551,7 +1881,7 @@
                     
                     if (savedConversationId) {
                         // Use existing conversation
-                        dashboardCurrentConversationId = savedConversationId;
+                        window.dashboardCurrentConversationId = savedConversationId;
                         loadDashboardConversation(savedConversationId);
                         
                         // Wait a bit for view to switch, then send message

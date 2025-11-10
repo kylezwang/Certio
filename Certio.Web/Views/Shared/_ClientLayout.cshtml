@@ -1354,8 +1354,8 @@
                                     min-width: 90px;
                                     margin-left: 0.75rem;
                                 ">
-                                    <i class="fas fa-redo" style="font-size: 0.75rem;"></i>
-                                    Reset
+                                    <i class="fas fa-download" style="font-size: 0.75rem;"></i>
+                                    Export
                                 </button>
                             </div>
                             
@@ -1624,7 +1624,7 @@
                                             GK
                                         </div>
                                         <div class="flex-grow-1">
-                                            <p class="mb-0 fw-semibold" style="font-size: 0.875rem;">Gerald King</p>
+                                            <p class="mb-0 fw-semibold" style="font-size: 0.875rem;">Gerald Google</p>
                                             <p class="mb-0 text-muted" style="font-size: 0.75rem;">King Services Partnership</p>
                                         </div>
                                     </div>
@@ -1701,7 +1701,7 @@
                                         <i class="fas fa-file-pdf text-danger"></i>
                                     </div>
                                     <div>
-                                        <h6 class="mb-1 fw-semibold">Project_Spec_v3.pdf</h6>
+                                        <h6 class="mb-1 fw-semibold">Notice_of_Claim.pdf</h6>
                                         <p class="text-muted small mb-0">2h ago</p>
                                     </div>
                                 </div>
@@ -1710,7 +1710,7 @@
                                         <i class="fas fa-file-alt text-primary"></i>
                                     </div>
                                     <div>
-                                        <h6 class="mb-1 fw-semibold">Design_System.fig</h6>
+                                        <h6 class="mb-1 fw-semibold">Full_Carnegie.doc</h6>
                                         <p class="text-muted small mb-0">4h ago</p>
                                     </div>
                                 </div>
@@ -1897,7 +1897,7 @@
     {
     <div id="floatingTimerOverlay" style="
         position: fixed;
-        z-index: 9999;
+        z-index: 1000;
         display: flex;
         align-items: flex-start;
         gap: 0.5rem;
@@ -1919,7 +1919,7 @@
             max-width: 260px;
         ">
             <!-- Timer Display and Controls -->
-            <div style="display: flex; align-items: center; gap: 0.5rem; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; justify-content: space-between; min-width: 0; width: 100%;">
                 <div id="timerDisplay" style="
                     font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
                     font-size: 1.33rem;
@@ -1931,21 +1931,23 @@
                 ">
                     00:00:00
                 </div>
-                <div style="display: flex; gap: 0.375rem; flex-wrap: nowrap; flex-shrink: 0;">
+                <div style="display: flex; gap: 0.25rem; flex-wrap: nowrap; flex-shrink: 1; min-width: 0; max-width: calc(100% - 90px);">
                     <button id="timerStartBtn" class="timer-btn timer-start-btn" style="
                         background: #c7b7a3;
                         color: white;
                         border: none;
                         border-radius: 6px;
-                        padding: 0.3rem 0.625rem;
-                        font-size: 0.8rem;
+                        padding: 0.3rem 0.5rem;
+                        font-size: 0.75rem;
                         font-weight: 600;
                         cursor: pointer !important;
                         display: flex;
                         align-items: center;
-                        gap: 0.25rem;
+                        gap: 0.2rem;
                         transition: all 0.2s ease;
                         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+                        white-space: nowrap;
+                        flex-shrink: 0;
                     ">
                         <i class="fas fa-play" style="font-size: 0.65rem;"></i>
                         Start
@@ -1955,14 +1957,16 @@
                         color: white;
                         border: none;
                         border-radius: 6px;
-                        padding: 0.3rem 0.625rem;
-                        font-size: 0.8rem;
+                        padding: 0.3rem 0.5rem;
+                        font-size: 0.75rem;
                         font-weight: 600;
                         cursor: pointer !important;
                         display: none;
                         align-items: center;
-                        gap: 0.25rem;
+                        gap: 0.2rem;
                         transition: all 0.2s ease;
+                        white-space: nowrap;
+                        flex-shrink: 0;
                     ">
                         <i class="fas fa-stop" style="font-size: 0.65rem;"></i>
                         Stop
@@ -1973,16 +1977,18 @@
                         border: none;
                         border-radius: 6px;
                         padding: 0.3rem 0.5rem;
-                        font-size: 0.8rem;
+                        font-size: 0.75rem;
                         font-weight: 600;
                         cursor: pointer !important;
                         display: flex;
                         align-items: center;
-                        gap: 0.25rem;
+                        gap: 0.2rem;
                         transition: all 0.2s ease;
+                        white-space: nowrap;
+                        flex-shrink: 0;
                     ">
-                        <i class="fas fa-redo" style="font-size: 0.65rem;"></i>
-                        Reset
+                        <i class="fas fa-download" style="font-size: 0.65rem;"></i>
+                        Export
                     </button>
                 </div>
             </div>
@@ -2067,7 +2073,10 @@
     <!-- Notifications Sidebar -->
     <div class="notifications-sidebar-panel" id="notificationsSidebarPanel">
         <div class="notifications-sidebar-header">
-            <h3 class="notifications-sidebar-title">Notifications</h3>
+            <h3 class="notifications-sidebar-title">
+                <i class="fa-solid fa-bell me-2"></i>
+                Notifications
+            </h3>
             <button class="notifications-close-btn" id="notificationsCloseBtn" title="Close Notifications">
                 <i class="fas fa-times"></i>
             </button>
@@ -2115,7 +2124,7 @@
                                 <i class="fas fa-file-pdf text-danger"></i>
                             </div>
                             <div>
-                                <h6 class="mb-1">Project_Spec_v3.pdf</h6>
+                                <h6 class="mb-1">Notice_of_Claim.pdf</h6>
                                 <p class="text-muted small mb-0">2h ago</p>
                             </div>
                         </div>
@@ -2124,7 +2133,7 @@
                                 <i class="fas fa-file-alt text-primary"></i>
                             </div>
                             <div>
-                                <h6 class="mb-1">Design_System.fig</h6>
+                                <h6 class="mb-1">Full_Carnegie.doc</h6>
                                 <p class="text-muted small mb-0">4h ago</p>
                             </div>
                         </div>
@@ -2139,7 +2148,10 @@
         <!-- Channels List View -->
         <div class="comms-channels-view" id="commsChannelsView">
             <div class="comms-channels-header">
-                <h3 class="comms-channels-title">Communications</h3>
+                <h3 class="comms-channels-title">
+                    <i class="fas fa-comments me-2"></i>
+                    Communications
+                </h3>
                 <button class="comms-close-btn" id="commsCloseBtn" title="Close Communications">
                     <i class="fas fa-times"></i>
                 </button>
@@ -2851,6 +2863,49 @@
             saveTimerState();
         }
         
+        function exportTimer() {
+            // Get timer data
+            const hours = Math.floor(timerSeconds / 3600);
+            const minutes = Math.floor((timerSeconds % 3600) / 60);
+            const seconds = timerSeconds % 60;
+            const formattedTime = String(hours).padStart(2, '0') + ':' + 
+                                  String(minutes).padStart(2, '0') + ':' + 
+                                  String(seconds).padStart(2, '0');
+            
+            // Get matter information
+            const timerMatterTitle = document.getElementById('timerMatterTitle');
+            const matterTitle = timerMatterTitle ? timerMatterTitle.textContent.trim() : 'No Matter Selected';
+            
+            // Get current date/time
+            const now = new Date();
+            const dateStr = now.toLocaleDateString();
+            const timeStr = now.toLocaleTimeString();
+            
+            // Create CSV content
+            const headers = ['Date', 'Time', 'Matter', 'Duration (HH:MM:SS)', 'Duration (Seconds)'];
+            const rows = [[
+                dateStr,
+                timeStr,
+                matterTitle,
+                formattedTime,
+                timerSeconds.toString()
+            ]];
+            
+            const csvContent = [
+                headers.join(','),
+                ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+            ].join('\n');
+            
+            // Download CSV
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `timer-session-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
         // Session Manager Integration for Billing Page - MUST BE BEFORE restoreTimerState()
         const isBillingPage = window.location.pathname.includes('/Billing');
         const sessionManagerCard = document.getElementById('sessionManagerCard');
@@ -2903,16 +2958,11 @@
                 if (sessionStopBtn) sessionStopBtn.style.display = 'none';
             };
             
-            // Override resetTimer to also reset session manager
-            const originalResetTimer = resetTimer;
-            resetTimer = function() {
-                originalStopTimer();
-                timerSeconds = 0;
-                timerStartTime = null;
-                updateTimerDisplay();
+            // Override exportTimer to also sync session manager
+            const originalExportTimer = exportTimer;
+            exportTimer = function() {
+                originalExportTimer();
                 syncSessionTimer();
-                saveTimerState();
-                if (timerCard) timerCard.style.boxShadow = '0 2px 12px rgba(0, 0, 0, 0.35)';
             };
             
             // Connect session buttons to timer functions
@@ -2923,7 +2973,7 @@
                 sessionStopBtn.addEventListener('click', stopTimer);
             }
             if (sessionResetBtn) {
-                sessionResetBtn.addEventListener('click', resetTimer);
+                sessionResetBtn.addEventListener('click', exportTimer);
             }
             
             // Initialize collapsible section for Recent Sessions
@@ -3004,7 +3054,7 @@
         
         if (timerStartBtn) timerStartBtn.addEventListener('click', startTimer);
         if (timerStopBtn) timerStopBtn.addEventListener('click', stopTimer);
-        if (timerResetBtn) timerResetBtn.addEventListener('click', resetTimer);
+        if (timerResetBtn) timerResetBtn.addEventListener('click', exportTimer);
         
         // Update timer matter card based on current page
         function updateTimerMatterCard() {

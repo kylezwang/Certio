@@ -269,6 +269,49 @@ if (!string.IsNullOrWhiteSpace(documentIntelligenceApiKey))
     builder.Configuration["DocumentExtraction:ApiKey"] = documentIntelligenceApiKey;
 }
 
+// Map TwoFactorEmail/SMTP environment variables
+var sendGridApiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
+if (!string.IsNullOrWhiteSpace(sendGridApiKey))
+{
+    builder.Configuration["Security:TwoFactorEmail:SendGridApiKey"] = sendGridApiKey;
+}
+
+var smtpHost = Environment.GetEnvironmentVariable("SMTP_HOST");
+if (!string.IsNullOrWhiteSpace(smtpHost))
+{
+    builder.Configuration["Security:TwoFactorEmail:SmtpHost"] = smtpHost;
+}
+
+var smtpPort = Environment.GetEnvironmentVariable("SMTP_PORT");
+if (!string.IsNullOrWhiteSpace(smtpPort))
+{
+    builder.Configuration["Security:TwoFactorEmail:SmtpPort"] = smtpPort;
+}
+
+var smtpSecure = Environment.GetEnvironmentVariable("SMTP_SECURE");
+if (!string.IsNullOrWhiteSpace(smtpSecure))
+{
+    builder.Configuration["Security:TwoFactorEmail:SmtpSecure"] = smtpSecure;
+}
+
+var smtpUser = Environment.GetEnvironmentVariable("SMTP_USER");
+if (!string.IsNullOrWhiteSpace(smtpUser))
+{
+    builder.Configuration["Security:TwoFactorEmail:SmtpUser"] = smtpUser;
+}
+
+var smtpPassword = Environment.GetEnvironmentVariable("SMTP_PASSWORD");
+if (!string.IsNullOrWhiteSpace(smtpPassword))
+{
+    builder.Configuration["Security:TwoFactorEmail:SmtpPassword"] = smtpPassword;
+}
+
+var smtpFromEmail = Environment.GetEnvironmentVariable("SMTP_FROM_EMAIL");
+if (!string.IsNullOrWhiteSpace(smtpFromEmail))
+{
+    builder.Configuration["Security:TwoFactorEmail:SmtpFromEmail"] = smtpFromEmail;
+}
+
 // Add HTTP Context Accessor for audit interceptor
 builder.Services.AddHttpContextAccessor();
 

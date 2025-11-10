@@ -16,5 +16,10 @@ public interface IEmailSendingService
     /// Format Direct Message content for email
     /// </summary>
     Task<(string subject, string body)> FormatDirectMessageAsEmailAsync(DirectMessage directMessage, CancellationToken ct = default);
+
+    /// <summary>
+    /// Send a system email (e.g., verification codes, notifications)
+    /// </summary>
+    Task<bool> SendSystemEmailAsync(string toEmail, string subject, string bodyHtml, CancellationToken ct = default);
 }
 

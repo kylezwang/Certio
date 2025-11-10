@@ -207,30 +207,26 @@
         <div class="modal-dialog" style="margin-bottom: 1.5rem;">
             <div class="task-details-content">
                 <!-- Modal Header -->
-                <div class="task-details-header">
-                    <div class="task-details-header-right">
+                <div class="task-details-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem;">
+                    <div class="task-details-header-left" style="display: flex; align-items: center; gap: 0.5rem; flex: 1;">
+                        <i class="fa-solid fa-key" style="color: #3d1019; font-size: 1.25rem;"></i>
+                        <h2 class="task-title" style="cursor: default; margin: 0; font-size: 1.25rem; font-weight: 600; color: #3d1019;">Join Code Generated</h2>
+                    </div>
+                    <div class="task-details-header-right" style="margin-left: auto;">
                         <button type="button" class="btn-close" id="closeJoinCodeModal" aria-label="Close"></button>
                     </div>
                 </div>
 
-                <!-- Title Section -->
-                <div class="task-details-title-section">
-                    <div class="task-title-container">
-                        <i class="fa-solid fa-key task-title-icon" style="color: #3d1019;"></i>
-                        <h2 class="task-title" style="cursor: default;">Join Code Generated</h2>
-                    </div>
-                </div>
-
                 <!-- Success Message -->
-                    @if (TempData["Success"] != null)
-                    {
+                @if (TempData["Success"] != null)
+                {
                     <div class="task-details-body" style="padding: 0 1.5rem 1rem;">
                         <div class="alert alert-success" style="margin-bottom: 1rem; border-radius: 8px;">
                             <i class="fas fa-check-circle me-2"></i>
                             @TempData["Success"]
                         </div>
-                        </div>
-                    }
+                    </div>
+                }
 
                 <!-- Main Content Area -->
                 <div class="task-details-body">
@@ -244,11 +240,16 @@
                                 </h6>
                             </div>
                             <div class="task-section-content">
-                                <div class="input-group" style="margin-bottom: 0.75rem;">
-                                    <input type="text" class="form-control form-control-lg" id="joinCodeValue" readonly value="@TempData["JoinCode"]" style="font-size: 1.25rem; font-weight: 600; letter-spacing: 0.1em; font-family: monospace; background-color: #f8f9fa;">
-                                    <button class="btn btn-outline-secondary" type="button" id="copyJoinCodeBtn" style="border-radius: 0.5rem;">
-                                        <i class="fas fa-copy"></i>
-                                    </button>
+                                <div style="position: relative; margin-bottom: 0.75rem;">
+                                    <input type="text" class="form-control form-control-lg" id="joinCodeValue" readonly value="@TempData["JoinCode"]" style="font-size: 1.25rem; font-weight: 600; letter-spacing: 0.1em; font-family: monospace; background-color: #f8f9fa; padding-right: 5.5rem;">
+                                    <div style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 0.5rem;">
+                                        <button class="join-code-action-btn" type="button" id="copyJoinCodeBtn" title="Copy">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                        <button class="join-code-action-btn" type="button" id="notalizeJoinCodeBtn" title="Notalize">
+                                            <img src="/images/Notal_Logo.png" alt="Notalize" style="width: 18px; height: 18px; object-fit: contain;" />
+                                        </button>
+                                    </div>
                                 </div>
                                 <small class="text-muted d-block mb-4" style="font-size: 0.875rem;">
                                     Share this code with the client via email, also handled through Communications hub. It expires in 7 days.
@@ -266,13 +267,13 @@
                             <div class="task-section-content">
                                 <div style="font-size: 0.875rem; color: #4a5568;">
                                     <p style="margin-bottom: 0.5rem;">
-                                        <strong>1.</strong> Copy the join code above.
+                                        <strong>1.</strong> Click Notalize <em>(recommended)</em>, <strong>or</strong> Copy the join code above.
                                     </p>
                                     <p style="margin-bottom: 0.5rem;">
-                                        <strong>2.</strong> Share it with the client representative via Communications hub handled through email.
+                                        <strong>2.</strong> Share it with the client via email mode in the Communications hub.
                                     </p>
                                     <p style="margin-bottom: 0;">
-                                        <strong>3.</strong> The client will use this code to join the organization and will be pending until use.
+                                        <strong>3.</strong> The client will use this code to join the organization and will be pending until usage.
                                     </p>
                                 </div>
                             </div>
@@ -497,27 +498,34 @@
                     document.body.style.overflow = 'hidden';
                     
                     const copyBtn = document.getElementById('copyJoinCodeBtn');
+                    const notalizeBtn = document.getElementById('notalizeJoinCodeBtn');
                     const input = document.getElementById('joinCodeValue');
                     const closeBtn = document.getElementById('closeJoinCodeModal');
                     const doneBtn = document.getElementById('doneJoinCodeBtn');
+                    const clientOrgId = @(TempData["NewClientOrgId"] ?? 0);
                     
                     // Copy functionality
                     if (copyBtn && input) {
-                        copyBtn.addEventListener('click', async () => {
+                        copyBtn.addEventListener('click', async (e) => {
+                            e.stopPropagation();
                             try {
                                 await navigator.clipboard.writeText(input.value);
                                 const originalHtml = copyBtn.innerHTML;
                                 copyBtn.innerHTML = '<i class="fas fa-check"></i>';
-                                copyBtn.classList.add('btn-success');
-                                copyBtn.classList.remove('btn-outline-secondary');
                                 setTimeout(() => {
                                     copyBtn.innerHTML = originalHtml;
-                                    copyBtn.classList.remove('btn-success');
-                                    copyBtn.classList.add('btn-outline-secondary');
                                 }, 1500);
                             } catch (err) {
                                 console.error('Failed to copy:', err);
                             }
+                        });
+                    }
+                    
+                    // Notalize functionality
+                    if (notalizeBtn && input && clientOrgId) {
+                        notalizeBtn.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            await notalizeJoinCode(input.value, clientOrgId);
                         });
                     }
                     
@@ -577,8 +585,8 @@
                         return;
                     }
 
-                    // Disable button during request
-                    const notalizeBtn = document.getElementById('notalizeViewJoinCodeBtn');
+                    // Disable button during request (check both button IDs)
+                    const notalizeBtn = document.getElementById('notalizeViewJoinCodeBtn') || document.getElementById('notalizeJoinCodeBtn');
                     if (notalizeBtn) {
                         notalizeBtn.style.opacity = '0.5';
                         notalizeBtn.style.pointerEvents = 'none';
@@ -617,7 +625,7 @@
                 } catch (error) {
                     console.error('Error notalizing join code:', error);
                     alert('Failed to notalize join code. Please try again.');
-                    const notalizeBtn = document.getElementById('notalizeViewJoinCodeBtn');
+                    const notalizeBtn = document.getElementById('notalizeViewJoinCodeBtn') || document.getElementById('notalizeJoinCodeBtn');
                     if (notalizeBtn) {
                         notalizeBtn.style.opacity = '';
                         notalizeBtn.style.pointerEvents = '';

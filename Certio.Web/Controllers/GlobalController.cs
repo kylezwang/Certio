@@ -34,8 +34,8 @@ namespace Certio.Web.Controllers
                 },
                 RecentFiles = new List<RecentFile>
                 {
-                    new RecentFile { Name = "Project_Spec_v3.pdf", ModifiedDate = DateTime.Now.AddHours(-2), TimeAgo = "2h ago" },
-                    new RecentFile { Name = "Design_System.fig", ModifiedDate = DateTime.Now.AddHours(-4), TimeAgo = "4h ago" }
+                    new RecentFile { Name = "Notice_of_Claim.pdf", ModifiedDate = DateTime.Now.AddHours(-2), TimeAgo = "2h ago" },
+                    new RecentFile { Name = "Full_Carnegie.doc", ModifiedDate = DateTime.Now.AddHours(-4), TimeAgo = "4h ago" }
                 },
                 NextSuggestions = new List<NextSuggestion>
                 {

@@ -1,0 +1,246 @@
+@{
+    ViewData["Title"] = "Verify Account Changes";
+    Layout = "_ClientLayout";
+}
+
+<style>
+    .verification-container {
+        max-width: 500px;
+        margin: 4rem auto;
+        padding: 2rem;
+    }
+
+    .verification-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+    }
+
+    .verification-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .verification-title {
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
+
+    .verification-description {
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+    .verification-code-inputs {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        margin: 2rem 0;
+    }
+
+    .verification-code-input {
+        width: 3rem;
+        height: 3.5rem;
+        text-align: center;
+        font-size: 1.5rem;
+        font-weight: 600;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .verification-code-input:focus {
+        outline: none;
+        border-color: #3d1019;
+        box-shadow: 0 0 0 3px rgba(61, 16, 25, 0.1);
+    }
+
+    .verification-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .btn-verify {
+        background: #3d1019;
+        color: white;
+        font-weight: 600;
+        padding: 0.75rem;
+        border-radius: 8px;
+        border: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-verify:hover {
+        background: #2d0c13;
+        color: white !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(61, 16, 25, 0.3);
+    }
+    
+    .btn-verify:hover,
+    .btn-verify:hover i {
+        color: white !important;
+    }
+
+    .btn-resend {
+        background: transparent;
+        color: #6b7280;
+        font-weight: 500;
+        padding: 0.75rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .btn-resend:hover {
+        background: #f9fafb;
+        color: #3d1019;
+        border-color: #3d1019;
+    }
+
+    .alert {
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+
+    .alert-danger {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #dc2626;
+    }
+
+    .alert-success {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        color: #16a34a;
+    }
+</style>
+
+<div class="verification-container">
+    <div class="verification-card">
+        <div class="verification-header">
+            <h1 class="verification-title">Verify Your Changes</h1>
+            <p class="verification-description">
+                We've sent a 6-digit verification code to @ViewBag.Email. Please enter it below to confirm your changes.
+            </p>
+        </div>
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                @TempData["Error"]
+            </div>
+        }
+
+        @if (TempData["Info"] != null)
+        {
+            <div class="alert alert-success" role="alert">
+                <i class="fas fa-info-circle me-2"></i>
+                @TempData["Info"]
+            </div>
+        }
+
+        <form id="verificationForm" method="post" action="/Client/@ViewBag.OrganizationId/AccountSettings/VerifyChanges">
+            @Html.AntiForgeryToken()
+            
+            <div class="verification-code-inputs">
+                <input type="text" class="verification-code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" id="digit1" required autofocus>
+                <input type="text" class="verification-code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" id="digit2" required>
+                <input type="text" class="verification-code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" id="digit3" required>
+                <input type="text" class="verification-code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" id="digit4" required>
+                <input type="text" class="verification-code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" id="digit5" required>
+                <input type="text" class="verification-code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" id="digit6" required>
+            </div>
+
+            <input type="hidden" name="code" id="codeInput">
+
+            <div class="verification-actions">
+                <button type="submit" class="btn btn-verify">
+                    <i class="fas fa-check me-2"></i>
+                    Verify and Save
+                </button>
+            </div>
+        </form>
+
+        <form method="post" action="/Client/@ViewBag.OrganizationId/AccountSettings/ResendVerificationCode">
+            @Html.AntiForgeryToken()
+            <div class="verification-actions mt-2">
+                <button type="submit" class="btn btn-resend">
+                    <i class="fas fa-redo me-2"></i>
+                    Resend Code
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Auto-advance and handle verification code inputs
+    document.addEventListener('DOMContentLoaded', function() {
+        const inputs = document.querySelectorAll('.verification-code-input');
+        const form = document.getElementById('verificationForm');
+        const codeInput = document.getElementById('codeInput');
+
+        inputs.forEach((input, index) => {
+            // Only allow numbers
+            input.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^0-9]/g, '');
+                
+                // Auto-advance to next input
+                if (this.value.length === 1 && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+
+                // Auto-submit if all filled
+                const allFilled = Array.from(inputs).every(inp => inp.value.length === 1);
+                if (allFilled) {
+                    submitForm();
+                }
+            });
+
+            // Handle backspace
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Backspace' && this.value === '' && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+
+            // Handle paste
+            input.addEventListener('paste', function(e) {
+                e.preventDefault();
+                const pastedData = e.clipboardData.getData('text').replace(/[^0-9]/g, '');
+                
+                for (let i = 0; i < pastedData.length && index + i < inputs.length; i++) {
+                    inputs[index + i].value = pastedData[i];
+                }
+
+                // Focus last filled input or submit
+                const lastIndex = Math.min(index + pastedData.length, inputs.length) - 1;
+                inputs[lastIndex].focus();
+
+                if (pastedData.length >= 6) {
+                    submitForm();
+                }
+            });
+        });
+
+        function submitForm() {
+            const code = Array.from(inputs).map(inp => inp.value).join('');
+            codeInput.value = code;
+            form.submit();
+        }
+
+        // Handle form submission
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            submitForm();
+        });
+    });
+</script>
+
