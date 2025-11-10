@@ -2,10 +2,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Certio.Application.Interfaces;
 using Certio.Infrastructure.Data;
+using Certio.Web.Services;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Linq;
+using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
@@ -16,9 +18,16 @@ namespace Certio.Web.Controllers.Api;
 [Route("api/email-webhook")]
 public class EmailWebhookController : ControllerBase
 {
+    private static readonly JsonSerializerOptions WebhookSerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = false
+    };
+
     private readonly ApplicationDbContext _context;
     private readonly IEmailService _emailService;
     private readonly IEmailToDmService _emailToDmService;
+    private readonly ICacheService _cacheService;
     private readonly IConfiguration _configuration;
     private readonly ILogger<EmailWebhookController> _logger;
     private readonly IWebHostEnvironment _environment;
@@ -27,6 +36,7 @@ public class EmailWebhookController : ControllerBase
         ApplicationDbContext context,
         IEmailService emailService,
         IEmailToDmService emailToDmService,
+        ICacheService cacheService,
         IConfiguration configuration,
         ILogger<EmailWebhookController> logger,
         IWebHostEnvironment? environment = null)
@@ -34,6 +44,7 @@ public class EmailWebhookController : ControllerBase
         _context = context;
         _emailService = emailService;
         _emailToDmService = emailToDmService;
+        _cacheService = cacheService;
         _configuration = configuration;
         _logger = logger;
         _environment = environment ?? new NoopWebHostEnvironment();
@@ -43,8 +54,14 @@ public class EmailWebhookController : ControllerBase
     /// Handle Gmail webhook notifications (Pub/Sub)
     /// </summary>
     [HttpPost("gmail")]
-    public async Task<IActionResult> GmailWebhook([FromBody] object payload)
+    public async Task<IActionResult> GmailWebhook([FromBody] object payload, CancellationToken cancellationToken)
     {
+        var validationResult = await ValidateEmailWebhookAsync("gmail", payload, cancellationToken);
+        if (validationResult != null)
+        {
+            return validationResult;
+        }
+
         try
         {
             // Validate shared secret - REQUIRED in production
@@ -76,17 +93,17 @@ public class EmailWebhookController : ControllerBase
 
             // Gmail webhooks come via Google Cloud Pub/Sub
             // The payload contains message data with email notification
-            var payloadJson = System.Text.Json.JsonSerializer.Serialize(payload);
+            var payloadJson = JsonSerializer.Serialize(payload);
             _logger.LogInformation("Received Gmail webhook: {Payload}", payloadJson);
 
             // Parse Pub/Sub message
-            var messageData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(payloadJson);
+            var messageData = JsonSerializer.Deserialize<Dictionary<string, object>>(payloadJson);
             if (messageData == null || !messageData.ContainsKey("message"))
             {
                 return BadRequest(new { error = "Invalid webhook payload" });
             }
 
-            var message = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(
+            var message = JsonSerializer.Deserialize<Dictionary<string, object>>(
                 messageData["message"].ToString()!);
             
             if (message == null || !message.ContainsKey("data"))
@@ -96,7 +113,7 @@ public class EmailWebhookController : ControllerBase
 
             if (!string.IsNullOrWhiteSpace(expectedToken) && message.TryGetValue("attributes", out var attributesObj))
             {
-                var attributes = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(attributesObj.ToString()!);
+                var attributes = JsonSerializer.Deserialize<Dictionary<string, object>>(attributesObj.ToString()!);
                 if (attributes == null || !attributes.TryGetValue("token", out var attributeToken) || !IsSecureMatch(expectedToken, attributeToken?.ToString() ?? string.Empty))
                 {
                     _logger.LogWarning("Gmail webhook attribute token mismatch");
@@ -128,7 +145,7 @@ public class EmailWebhookController : ControllerBase
             }
 
             // Sync emails for this account (this will also convert to DMs)
-            await _emailService.SyncEmailsAsync(emailAccount.Id);
+            await _emailService.SyncEmailsAsync(emailAccount.Id, cancellationToken);
 
             return Ok();
         }
@@ -145,6 +162,12 @@ public class EmailWebhookController : ControllerBase
     [HttpPost("outlook")]
     public async Task<IActionResult> OutlookWebhook([FromBody] object payload, [FromHeader(Name = "X-NotificationId")] string? notificationId = null, CancellationToken ct = default)
     {
+        var validationResult = await ValidateEmailWebhookAsync("outlook", payload, ct);
+        if (validationResult != null)
+        {
+            return validationResult;
+        }
+
         try
         {
             var payloadJson = System.Text.Json.JsonSerializer.Serialize(payload);
@@ -279,6 +302,95 @@ public class EmailWebhookController : ControllerBase
         public string ContentRootPath { get; set; } = string.Empty;
         public IFileProvider WebRootFileProvider { get; set; } = new NullFileProvider();
         public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
+    }
+
+    private async Task<IActionResult?> ValidateEmailWebhookAsync(string providerKey, object payload, CancellationToken ct)
+    {
+        var secret = _configuration["EmailIntegration:WebhookSecret"];
+        if (string.IsNullOrWhiteSpace(secret))
+        {
+            _logger.LogError("Email webhook secret is not configured.");
+            return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Webhook secret is not configured." });
+        }
+
+        var providedSecret = Request.Headers["X-Webhook-Secret"].FirstOrDefault();
+        if (!IsSecretValid(secret, providedSecret))
+        {
+            _logger.LogWarning("Email webhook rejected due to invalid secret.");
+            return Unauthorized();
+        }
+
+        var nonce = Request.Headers["X-Webhook-Nonce"].FirstOrDefault();
+        var timestampHeader = Request.Headers["X-Webhook-Timestamp"].FirstOrDefault();
+        var signatureHeader = Request.Headers["X-Webhook-Signature"].FirstOrDefault();
+
+        if (string.IsNullOrWhiteSpace(nonce) || string.IsNullOrWhiteSpace(timestampHeader) || string.IsNullOrWhiteSpace(signatureHeader))
+        {
+            _logger.LogWarning("Email webhook missing security headers (nonce/timestamp/signature).");
+            return Unauthorized();
+        }
+
+        if (!DateTimeOffset.TryParse(timestampHeader, out var timestamp) ||
+            Math.Abs((DateTimeOffset.UtcNow - timestamp).TotalMinutes) > 5)
+        {
+            _logger.LogWarning("Email webhook timestamp invalid or expired. Timestamp={Timestamp}", timestampHeader);
+            return Unauthorized();
+        }
+
+        var cacheKey = $"webhook:email:{providerKey}:{nonce}";
+        if (await _cacheService.ExistsAsync(cacheKey))
+        {
+            _logger.LogWarning("Email webhook replay detected for provider {ProviderKey} with nonce {Nonce}", providerKey, nonce);
+            return Unauthorized();
+        }
+
+        var canonicalPayload = JsonSerializer.Serialize(payload, WebhookSerializerOptions);
+        var expectedSignature = ComputeSignature(secret, nonce, timestampHeader, canonicalPayload);
+
+        if (!IsSignatureMatch(signatureHeader, expectedSignature))
+        {
+            _logger.LogWarning("Email webhook signature validation failed for provider {ProviderKey}.", providerKey);
+            return Unauthorized();
+        }
+
+        await _cacheService.SetAsync(cacheKey, "1", TimeSpan.FromMinutes(10));
+        return null;
+    }
+
+    private static bool IsSecretValid(string secret, string? providedSecret)
+    {
+        if (string.IsNullOrWhiteSpace(providedSecret))
+        {
+            return false;
+        }
+
+        var expectedBytes = Encoding.UTF8.GetBytes(secret);
+        var providedBytes = Encoding.UTF8.GetBytes(providedSecret);
+        return CryptographicOperations.FixedTimeEquals(expectedBytes, providedBytes);
+    }
+
+    private static bool IsSignatureMatch(string providedSignature, string expectedSignature)
+    {
+        if (string.IsNullOrWhiteSpace(providedSignature))
+        {
+            return false;
+        }
+
+        var cleaned = providedSignature.StartsWith("sha256=", StringComparison.OrdinalIgnoreCase)
+            ? providedSignature.Substring("sha256=".Length)
+            : providedSignature;
+
+        var providedBytes = Encoding.UTF8.GetBytes(cleaned);
+        var expectedBytes = Encoding.UTF8.GetBytes(expectedSignature);
+        return CryptographicOperations.FixedTimeEquals(providedBytes, expectedBytes);
+    }
+
+    private static string ComputeSignature(string secret, string nonce, string timestamp, string payload)
+    {
+        var message = $"{nonce}.{timestamp}.{payload}";
+        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
+        var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(message));
+        return Convert.ToHexString(hash).ToLowerInvariant();
     }
 }
 

@@ -11,6 +11,7 @@ using Certio.Application.DTOs;
 using Certio.Application.Interfaces;
 using Certio.Domain.Documents;
 using Certio.Infrastructure.Data;
+using Certio.Web.Security;
 using Certio.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
@@ -23,7 +24,7 @@ namespace Certio.Web.Controllers.Api;
 
 [ApiController]
 [Route("api/drive-oauth")]
-[Authorize]
+[Authorize(Policy = "OrgMember")]
 public class DriveOAuthController : Controller
 {
     private static readonly string[] DefaultGoogleScopes =
@@ -48,6 +49,7 @@ public class DriveOAuthController : Controller
     private readonly IClientContextAccessor _clientContextAccessor;
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly ILogger<DriveOAuthController> _logger;
+    private readonly AuthorizationHelper _authorizationHelper;
 
     public DriveOAuthController(
         ApplicationDbContext dbContext,
@@ -58,7 +60,8 @@ public class DriveOAuthController : Controller
         IDriveSyncService driveSyncService,
         IClientContextAccessor clientContextAccessor,
         IServiceScopeFactory serviceScopeFactory,
-        ILogger<DriveOAuthController> logger)
+        ILogger<DriveOAuthController> logger,
+        AuthorizationHelper authorizationHelper)
     {
         _dbContext = dbContext;
         _configuration = configuration;
@@ -69,6 +72,7 @@ public class DriveOAuthController : Controller
         _clientContextAccessor = clientContextAccessor;
         _serviceScopeFactory = serviceScopeFactory;
         _logger = logger;
+        _authorizationHelper = authorizationHelper;
     }
 
     [HttpGet("google/authorize")]
@@ -102,6 +106,10 @@ public class DriveOAuthController : Controller
 
             return Ok(new { success = true, authorizationUrl });
         }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to generate Google Drive authorization URL");
@@ -109,6 +117,7 @@ public class DriveOAuthController : Controller
         }
     }
 
+    [AllowAnonymous] // OAuth callback comes from external redirect, not user's authenticated session
     [HttpGet("google/callback")]
     public async Task<IActionResult> GoogleCallback([FromQuery] string? code, [FromQuery] string? state, [FromQuery] string? error, [FromQuery(Name = "error_description")] string? errorDescription, CancellationToken cancellationToken)
     {
@@ -243,6 +252,10 @@ public class DriveOAuthController : Controller
 
             return Ok(new { success = true, authorizationUrl });
         }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to generate Microsoft authorization URL");
@@ -250,6 +263,7 @@ public class DriveOAuthController : Controller
         }
     }
 
+    [AllowAnonymous] // OAuth callback comes from external redirect, not user's authenticated session
     [HttpGet("onedrive/callback")]
     public async Task<IActionResult> OneDriveCallback([FromQuery] string? code, [FromQuery] string? state, [FromQuery] string? error, [FromQuery(Name = "error_description")] string? errorDescription, CancellationToken cancellationToken)
     {
@@ -386,6 +400,24 @@ public class DriveOAuthController : Controller
 
         if (resolvedOrgId.HasValue && resolvedOrgId.Value > 0)
         {
+            var currentUserId = GetCurrentUserId();
+            List<int> accessibleOrganizations;
+            try
+            {
+                accessibleOrganizations = _authorizationHelper.GetAccessibleOrganizationIdsAsync(currentUserId).GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to resolve accessible organizations for user {UserId}", currentUserId);
+                throw;
+            }
+
+            if (!accessibleOrganizations.Contains(resolvedOrgId.Value))
+            {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to access drive OAuth for unauthorized organization {OrgId}", currentUserId, resolvedOrgId.Value);
+                throw new UnauthorizedAccessException("User is not authorized for the requested organization.");
+            }
+
             return CreateDeterministicGuid("certio:organization", resolvedOrgId.Value);
         }
 
@@ -713,6 +745,10 @@ public class DriveOAuthController : Controller
 
             return Ok(new { success = true });
         }
+        catch (UnauthorizedAccessException)
+        {
+            return NotFound(new { success = false, error = "Organization not found" });
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error disconnecting Google Drive");
@@ -760,6 +796,10 @@ public class DriveOAuthController : Controller
 
             return Ok(new { success = true });
         }
+        catch (UnauthorizedAccessException)
+        {
+            return NotFound(new { success = false, error = "Organization not found" });
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error disconnecting OneDrive");
@@ -789,6 +829,10 @@ public class DriveOAuthController : Controller
             }
 
             return Ok(new { success = true, message = "Sync started" });
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return NotFound(new { success = false, error = "Organization not found" });
         }
         catch (Exception ex)
         {
@@ -876,6 +920,10 @@ public class DriveOAuthController : Controller
                     ? new { connected = true, connectedAt = (DateTime?)microsoftConnection.CreatedAt, email = (string?)microsoftEmail } 
                     : new { connected = false, connectedAt = (DateTime?)null, email = (string?)null }
             });
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return NotFound(new { success = false, error = "Organization not found" });
         }
         catch (Exception ex)
         {

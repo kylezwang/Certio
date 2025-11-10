@@ -891,6 +891,28 @@
                 };
             }
 
+            // Auto-adjust end date when start date changes
+            const startInput = document.getElementById('eventStartInput');
+            const endInput = document.getElementById('eventEndInput');
+            if (startInput && endInput) {
+                startInput.addEventListener('change', function() {
+                    if (!this.value) return;
+                    
+                    const isAllDay = document.getElementById('eventAllDayCheck').checked;
+                    const startValue = this.value;
+                    
+                    if (isAllDay) {
+                        // For all-day events, end date is same as start date
+                        endInput.value = startValue;
+                    } else {
+                        // For timed events, add 1 hour to start time
+                        const startDate = new Date(startValue);
+                        const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // Add 1 hour
+                        endInput.value = toLocalISOString(endDate).slice(0, 16);
+                    }
+                });
+            }
+
             // Color picker - use onclick to prevent duplicates
             const colorOptions = document.querySelectorAll('.color-option');
             colorOptions.forEach(option => {

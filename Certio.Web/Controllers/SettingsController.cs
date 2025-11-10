@@ -30,6 +30,10 @@ namespace Certio.Web.Controllers
             ViewBag.OrganizationName = orgResult.Success ? orgResult.Data!.Name : "Organization";
             ViewBag.OrganizationType = orgResult.Success ? orgResult.Data!.Type : Certio.Domain.Organizations.OrganizationType.Client;
 
+            // Get full organization details from database context
+            var orgDetailsResult = await _organizationService.GetOrganizationAsync(orgId, customUser.Id);
+            ViewBag.OrganizationDetails = orgDetailsResult.Success ? orgDetailsResult.Data : null;
+
             return View();
         }
 

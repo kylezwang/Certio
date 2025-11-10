@@ -2296,7 +2296,7 @@ def _is_simple_message(user_message: str, conversation_analysis: dict) -> bool:
         return True
     
     # Messages that are just punctuation or numbers
-    if all(c in '.,!?;:()[]{}"\'`~@#$%^&*+=|\/<>' or c.isdigit() or c.isspace() for c in message_lower):
+    if all(c in r'.,!?;:()[]{}"\'`~@#$%^&*+=|\\/<>' or c.isdigit() or c.isspace() for c in message_lower):
         return True
     
     # Preserve messages that already triggered legal content detection

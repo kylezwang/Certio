@@ -14,6 +14,7 @@ using Certio.Application.Interfaces;
 using Certio.Domain.Documents;
 using Certio.Domain.Matters;
 using Certio.Infrastructure.Data;
+using Certio.Web.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -33,6 +34,7 @@ public class DocumentsApiController : ControllerBase
     private readonly IRagContextService _ragContextService;
     private readonly IDocumentIndexerService _documentIndexerService;
     private readonly IDocumentAuditService _documentAuditService;
+    private readonly AuthorizationHelper _authorizationHelper;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IConfiguration _configuration;
     private readonly ILogger<DocumentsApiController> _logger;
@@ -45,7 +47,8 @@ public class DocumentsApiController : ControllerBase
         IDocumentAuditService documentAuditService,
         IHttpClientFactory httpClientFactory,
         IConfiguration configuration,
-        ILogger<DocumentsApiController> logger)
+        ILogger<DocumentsApiController> logger,
+        AuthorizationHelper authorizationHelper)
     {
         _dbContext = dbContext;
         _vectorStoreService = vectorStoreService;
@@ -55,6 +58,7 @@ public class DocumentsApiController : ControllerBase
         _httpClientFactory = httpClientFactory;
         _configuration = configuration;
         _logger = logger;
+        _authorizationHelper = authorizationHelper;
     }
 
     [HttpPost("search")]
@@ -301,12 +305,15 @@ public class DocumentsApiController : ControllerBase
     /// Get a fresh embed URL for OneDrive/Office documents
     /// This endpoint fetches a current download URL from Microsoft Graph since download URLs expire
     /// </summary>
-    [AllowAnonymous] // Bypass class-level OrgMember policy since route doesn't have orgId
     [HttpGet("{documentId:guid}/embed-url")]
-    public async Task<IActionResult> GetEmbedUrl(Guid documentId, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetEmbedUrl(Guid documentId, [FromQuery] int? orgId, CancellationToken cancellationToken)
     {
-        // Manual authentication check since we're using AllowAnonymous
-        if (!User.Identity?.IsAuthenticated ?? true)
+        int currentUserId;
+        try
+        {
+            currentUserId = GetCurrentUserId();
+        }
+        catch (UnauthorizedAccessException)
         {
             return Unauthorized();
         }
@@ -317,6 +324,27 @@ public class DocumentsApiController : ControllerBase
 
         if (document == null)
         {
+            return NotFound();
+        }
+
+        if (orgId.HasValue)
+        {
+            var expectedOrgGuid = CreateDeterministicGuid("certio:organization", orgId.Value);
+            if (document.OrgId != expectedOrgGuid)
+            {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to access document {DocumentId} with mismatched orgId {OrgId}", currentUserId, documentId, orgId.Value);
+                return NotFound();
+            }
+        }
+
+        var accessibleOrganizations = await _authorizationHelper.GetAccessibleOrganizationIdsAsync(currentUserId);
+        var hasOrganizationAccess = accessibleOrganizations
+            .Select(id => CreateDeterministicGuid("certio:organization", id))
+            .Contains(document.OrgId);
+
+        if (!hasOrganizationAccess)
+        {
+            _logger.LogWarning("SECURITY: User {UserId} attempted to fetch embed URL for document {DocumentId} without organization access", currentUserId, documentId);
             return NotFound();
         }
 
@@ -379,7 +407,6 @@ public class DocumentsApiController : ControllerBase
                             // Audit: embed URL fetched (non-blocking)
                             try
                             {
-                                int currentUserId = HttpContext.Items.TryGetValue("CustomUserId", out var customUserId) && customUserId is int u ? u : (int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var c) ? c : 0);
                                 var documentUserIdAudit = CreateDeterministicGuid("certio:user", currentUserId);
                                 await _documentAuditService.LogAsync(
                                     new DocumentAuditEvent(
@@ -434,7 +461,6 @@ public class DocumentsApiController : ControllerBase
         // Audit: fallback embed URL (non-blocking)
         try
         {
-            int currentUserId = HttpContext.Items.TryGetValue("CustomUserId", out var customUserId) && customUserId is int u ? u : (int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var c) ? c : 0);
             var documentUserIdAudit = CreateDeterministicGuid("certio:user", currentUserId);
             await _documentAuditService.LogAsync(
                 new DocumentAuditEvent(
@@ -477,6 +503,22 @@ public class DocumentsApiController : ControllerBase
         using var srDecrypt = new System.IO.StreamReader(csDecrypt);
 
         return srDecrypt.ReadToEnd();
+    }
+
+    private int GetCurrentUserId()
+    {
+        if (HttpContext.Items.TryGetValue("CustomUserId", out var customUserId) && customUserId is int value)
+        {
+            return value;
+        }
+
+        var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!string.IsNullOrEmpty(claim) && int.TryParse(claim, out var fromClaim))
+        {
+            return fromClaim;
+        }
+
+        throw new UnauthorizedAccessException("User ID not found in context or claims");
     }
 
     /// <summary>

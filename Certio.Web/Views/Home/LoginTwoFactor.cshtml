@@ -28,6 +28,8 @@
             align-items: center;
             justify-content: center;
             padding: 1rem;
+            margin: 0;
+            box-sizing: border-box;
         }
 
         .login-card {
@@ -37,6 +39,8 @@
             border-radius: 12px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             border: 1px solid #e5e7eb;
+            margin: 0 auto;
+            box-sizing: border-box;
         }
 
         .login-header {
@@ -103,11 +107,30 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
         }
 
+        /* Remove all focus outlines globally */
+        button:focus, 
+        input:focus, 
+        select:focus, 
+        textarea:focus,
+        .btn:focus,
+        .btn-outline-primary:focus,
+        .btn-check:focus + label,
+        label:focus {
+            outline: none !important;
+        }
+        
         .form-control:focus {
             border-color: rgba(61, 16, 25, 0.08);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
-            outline: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28) !important;
+            outline: none !important;
             background-color: #ffffff;
+        }
+        
+        /* Subtle shadow for buttons on focus */
+        .btn:focus:not(:disabled),
+        .btn-outline-primary:focus {
+            box-shadow: 0 0 0 3px rgba(61, 16, 25, 0.1) !important;
+            outline: none !important;
         }
 
         .form-control:-webkit-autofill,

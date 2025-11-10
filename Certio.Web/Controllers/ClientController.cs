@@ -18,6 +18,7 @@ namespace Certio.Web.Controllers
         private readonly ApplicationDbContext _db;
         private readonly IJoinCodeService _joinCodeService;
         private readonly IConfiguration _configuration;
+        private readonly IEmailSendingService _emailSendingService;
         private readonly IFirmRelationshipCacheService _firmRelationshipCache;
         private readonly Certio.Web.Services.IChannelManagementService _channelManagementService;
         private readonly IMatterService _matterService;
@@ -30,6 +31,7 @@ namespace Certio.Web.Controllers
             ApplicationDbContext db, 
             IJoinCodeService joinCodeService, 
             IConfiguration configuration,
+            IEmailSendingService emailSendingService,
             IFirmRelationshipCacheService firmRelationshipCache,
             Certio.Web.Services.IChannelManagementService channelManagementService,
             IMatterService matterService,
@@ -41,6 +43,7 @@ namespace Certio.Web.Controllers
             _db = db;
             _joinCodeService = joinCodeService;
             _configuration = configuration;
+            _emailSendingService = emailSendingService;
             _firmRelationshipCache = firmRelationshipCache;
             _channelManagementService = channelManagementService;
             _matterService = matterService;
@@ -344,8 +347,8 @@ namespace Certio.Web.Controllers
                 },
                 RecentFiles = new List<RecentFile>
                 {
-                    new RecentFile { Name = "Project_Spec_v3.pdf", ModifiedDate = DateTime.Now.AddHours(-2), TimeAgo = "2h ago" },
-                    new RecentFile { Name = "Design_System.fig", ModifiedDate = DateTime.Now.AddHours(-4), TimeAgo = "4h ago" }
+                    new RecentFile { Name = "Notice_of_Claim.pdf", ModifiedDate = DateTime.Now.AddHours(-2), TimeAgo = "2h ago" },
+                    new RecentFile { Name = "Full_Carnegie.doc", ModifiedDate = DateTime.Now.AddHours(-4), TimeAgo = "4h ago" }
                 },
                 NextSuggestions = new List<NextSuggestion>
                 {
@@ -836,11 +839,321 @@ namespace Certio.Web.Controllers
         [HttpGet("/Client/{orgId:int}/AccountSettings")]
         public async Task<IActionResult> AccountSettings(int orgId)
         {
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            
+            // Get user data
+            var user = await _db.Users.FindAsync(customUser.Id);
+            if (user == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            
             ViewBag.OrganizationId = orgId;
+            ViewBag.User = user;
             var org = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync();
             ViewBag.OrganizationName = org?.Name ?? "Client";
             ViewBag.OrganizationType = org?.Type ?? Certio.Domain.Organizations.OrganizationType.Client;
             return View("~/Views/Settings/AccountSettings.cshtml");
+        }
+        
+        // POST /Client/{orgId}/AccountSettings/Save
+        [Authorize(Policy = "OrgMember")]
+        [HttpPost("/Client/{orgId:int}/AccountSettings/Save")]
+        public async Task<IActionResult> SaveAccountSettings(int orgId, [FromBody] AccountSettingsUpdateRequest request)
+        {
+            try
+            {
+                var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+                if (customUser == null)
+                {
+                    return Json(new { success = false, error = "User not authenticated" });
+                }
+                
+                // Get user from database (just to verify they exist and get their email)
+                var user = await _db.Users.FindAsync(customUser.Id);
+                if (user == null)
+                {
+                    return Json(new { success = false, error = "User not found" });
+                }
+                
+                // Send 2FA verification code via email
+                var verificationCode = GenerateVerificationCode();
+                var codeExpiry = DateTime.UtcNow.AddMinutes(10);
+                
+                // Output code to terminal for development
+                Console.WriteLine("==========================================");
+                Console.WriteLine($"Account Settings Verification Code for {user.Email}:");
+                Console.WriteLine($"Code: {verificationCode}");
+                Console.WriteLine($"Expires: {codeExpiry:yyyy-MM-dd HH:mm:ss} UTC");
+                Console.WriteLine("==========================================");
+                
+                // Store code in session temporarily
+                HttpContext.Session.SetString($"AccountSettingsVerificationCode_{customUser.Id}", verificationCode);
+                HttpContext.Session.SetString($"AccountSettingsVerificationExpiry_{customUser.Id}", codeExpiry.ToString("O", System.Globalization.CultureInfo.InvariantCulture));
+                HttpContext.Session.SetString($"AccountSettingsPendingChanges_{customUser.Id}", System.Text.Json.JsonSerializer.Serialize(request));
+                
+                // Send verification email via SendGrid
+                await SendVerificationEmail(user.Email, verificationCode, user.FirstName);
+                
+                // Redirect to verification page
+                return Json(new { 
+                    success = true, 
+                    requiresVerification = true,
+                    redirectUrl = $"/Client/{orgId}/AccountSettings/Verify"
+                });
+            }
+            catch (Exception)
+            {
+                return Json(new { success = false, error = "Failed to save settings" });
+            }
+        }
+        
+        // GET /Client/{orgId}/AccountSettings/Verify
+        [Authorize(Policy = "OrgMember")]
+        [HttpGet("/Client/{orgId:int}/AccountSettings/Verify")]
+        public IActionResult VerifyAccountChanges(int orgId)
+        {
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            
+            // Check if there's a pending verification
+            var pendingChangesJson = HttpContext.Session.GetString($"AccountSettingsPendingChanges_{customUser.Id}");
+            if (string.IsNullOrEmpty(pendingChangesJson))
+            {
+                TempData["Error"] = "No pending changes to verify";
+                return RedirectToAction("AccountSettings", new { orgId });
+            }
+            
+            var user = _db.Users.Find(customUser.Id);
+            ViewBag.Email = user?.Email ?? "";
+            ViewBag.OrganizationId = orgId;
+            
+            return View("~/Views/Settings/VerifyAccountChanges.cshtml");
+        }
+        
+        // POST /Client/{orgId}/AccountSettings/VerifyChanges
+        [Authorize(Policy = "OrgMember")]
+        [HttpPost("/Client/{orgId:int}/AccountSettings/VerifyChanges")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> VerifyChanges(int orgId, string code)
+        {
+            try
+            {
+                var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+                if (customUser == null)
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+                
+                // Verify code
+                var storedCode = HttpContext.Session.GetString($"AccountSettingsVerificationCode_{customUser.Id}");
+                var expiryString = HttpContext.Session.GetString($"AccountSettingsVerificationExpiry_{customUser.Id}");
+                var pendingChangesJson = HttpContext.Session.GetString($"AccountSettingsPendingChanges_{customUser.Id}");
+                
+                if (string.IsNullOrEmpty(storedCode) || string.IsNullOrEmpty(expiryString) || string.IsNullOrEmpty(pendingChangesJson))
+                {
+                    TempData["Error"] = "Verification code expired or not found. Please try again.";
+                    return RedirectToAction("AccountSettings", new { orgId });
+                }
+                
+                if (storedCode != code)
+                {
+                    TempData["Error"] = "Invalid verification code. Please try again.";
+                    return RedirectToAction("VerifyAccountChanges", new { orgId });
+                }
+                
+                if (!DateTime.TryParseExact(expiryString, "O", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.RoundtripKind, out var expiry))
+                {
+                    TempData["Error"] = "Verification session expired. Please try again.";
+                    return RedirectToAction("AccountSettings", new { orgId });
+                }
+                
+                if (DateTime.UtcNow > expiry)
+                {
+                    TempData["Error"] = "Verification code expired. Please try again.";
+                    return RedirectToAction("AccountSettings", new { orgId });
+                }
+                
+                // Deserialize pending changes
+                var pendingChanges = System.Text.Json.JsonSerializer.Deserialize<AccountSettingsUpdateRequest>(pendingChangesJson);
+                if (pendingChanges == null)
+                {
+                    TempData["Error"] = "No pending changes found. Please try again.";
+                    return RedirectToAction("AccountSettings", new { orgId });
+                }
+                
+                // Get user from database
+                var user = await _db.Users.FindAsync(customUser.Id);
+                if (user == null)
+                {
+                    TempData["Error"] = "User not found.";
+                    return RedirectToAction("AccountSettings", new { orgId });
+                }
+                
+                // Track changes for audit log
+                var changes = new List<string>();
+                if (user.FirstName != pendingChanges.FirstName && !string.IsNullOrEmpty(pendingChanges.FirstName))
+                {
+                    changes.Add($"FirstName: '{user.FirstName}' → '{pendingChanges.FirstName}'");
+                    user.FirstName = pendingChanges.FirstName.Trim();
+                }
+                if (user.LastName != pendingChanges.LastName && !string.IsNullOrEmpty(pendingChanges.LastName))
+                {
+                    changes.Add($"LastName: '{user.LastName}' → '{pendingChanges.LastName}'");
+                    user.LastName = pendingChanges.LastName.Trim();
+                }
+                if (user.Email != pendingChanges.Email && !string.IsNullOrEmpty(pendingChanges.Email))
+                {
+                    changes.Add($"Email: '{user.Email}' → '{pendingChanges.Email}'");
+                    user.Email = pendingChanges.Email.Trim();
+                }
+                if (user.PhoneNumber != pendingChanges.PhoneNumber)
+                {
+                    changes.Add($"PhoneNumber: '{user.PhoneNumber}' → '{pendingChanges.PhoneNumber}'");
+                    user.PhoneNumber = pendingChanges.PhoneNumber?.Trim();
+                }
+                if (user.TimeZone != pendingChanges.TimeZone && !string.IsNullOrEmpty(pendingChanges.TimeZone))
+                {
+                    changes.Add($"TimeZone: '{user.TimeZone}' → '{pendingChanges.TimeZone}'");
+                    user.TimeZone = pendingChanges.TimeZone.Trim();
+                }
+                if (user.Language != pendingChanges.Language && !string.IsNullOrEmpty(pendingChanges.Language))
+                {
+                    changes.Add($"Language: '{user.Language}' → '{pendingChanges.Language}'");
+                    user.Language = pendingChanges.Language.Trim();
+                }
+                
+                user.LastModifiedDate = DateTime.UtcNow;
+                await _db.SaveChangesAsync();
+                
+                // Create audit log entry
+                var auditLog = new Certio.Domain.Audit.AuditLog
+                {
+                    UserId = customUser.Id,
+                    Action = "AccountSettingsUpdate",
+                    EntityType = "User",
+                    EntityId = customUser.Id,
+                    Description = string.Join(", ", changes),
+                    IPAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                    UserAgent = HttpContext.Request.Headers["User-Agent"].ToString(),
+                    Timestamp = DateTime.UtcNow,
+                    OrganizationId = orgId,
+                    Result = Certio.Domain.Audit.AuditResults.Success
+                };
+                _db.AuditLogs.Add(auditLog);
+                await _db.SaveChangesAsync();
+                
+                // Clear session
+                HttpContext.Session.Remove($"AccountSettingsVerificationCode_{customUser.Id}");
+                HttpContext.Session.Remove($"AccountSettingsVerificationExpiry_{customUser.Id}");
+                HttpContext.Session.Remove($"AccountSettingsPendingChanges_{customUser.Id}");
+                
+                TempData["Success"] = "Your account settings have been updated successfully!";
+                return RedirectToAction("AccountSettings", new { orgId });
+            }
+            catch (Exception)
+            {
+                TempData["Error"] = "Failed to save settings. Please try again.";
+                return RedirectToAction("AccountSettings", new { orgId });
+            }
+        }
+        
+        // POST /Client/{orgId}/AccountSettings/ResendVerificationCode
+        [Authorize(Policy = "OrgMember")]
+        [HttpPost("/Client/{orgId:int}/AccountSettings/ResendVerificationCode")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResendAccountSettingsVerificationCode(int orgId)
+        {
+            try
+            {
+                var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+                if (customUser == null)
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+                
+                // Check if there's a pending verification
+                var pendingChangesJson = HttpContext.Session.GetString($"AccountSettingsPendingChanges_{customUser.Id}");
+                if (string.IsNullOrEmpty(pendingChangesJson))
+                {
+                    TempData["Error"] = "No pending changes to verify";
+                    return RedirectToAction("AccountSettings", new { orgId });
+                }
+                
+                var user = await _db.Users.FindAsync(customUser.Id);
+                if (user == null)
+                {
+                    TempData["Error"] = "User not found";
+                    return RedirectToAction("AccountSettings", new { orgId });
+                }
+                
+                // Generate new code
+                var verificationCode = GenerateVerificationCode();
+                var codeExpiry = DateTime.UtcNow.AddMinutes(10);
+                
+                // Output code to terminal for development
+                Console.WriteLine("==========================================");
+                Console.WriteLine($"Account Settings Verification Code (RESEND) for {user.Email}:");
+                Console.WriteLine($"Code: {verificationCode}");
+                Console.WriteLine($"Expires: {codeExpiry:yyyy-MM-dd HH:mm:ss} UTC");
+                Console.WriteLine("==========================================");
+                
+                // Update session
+                HttpContext.Session.SetString($"AccountSettingsVerificationCode_{customUser.Id}", verificationCode);
+                HttpContext.Session.SetString($"AccountSettingsVerificationExpiry_{customUser.Id}", codeExpiry.ToString("O", System.Globalization.CultureInfo.InvariantCulture));
+                
+                // Send verification email
+                await SendVerificationEmail(user.Email, verificationCode, user.FirstName);
+                
+                TempData["Info"] = "A new verification code has been sent to your email.";
+                return RedirectToAction("VerifyAccountChanges", new { orgId });
+            }
+            catch (Exception)
+            {
+                TempData["Error"] = "Failed to resend code. Please try again.";
+                return RedirectToAction("AccountSettings", new { orgId });
+            }
+        }
+        
+        private string GenerateVerificationCode()
+        {
+            var random = new Random();
+            return random.Next(100000, 999999).ToString();
+        }
+        
+        private async Task SendVerificationEmail(string email, string code, string firstName)
+        {
+            try
+            {
+                var subject = "Verify Your Account Changes";
+                var htmlContent = $@"
+                    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                        <h2 style='color: #3d1019;'>Verify Your Account Changes</h2>
+                        <p>Hi {firstName},</p>
+                        <p>You requested to update your account settings. Please use the following verification code:</p>
+                        <div style='background: #f8f9fa; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;'>
+                            {code}
+                        </div>
+                        <p style='color: #6b7280;'>This code will expire in 10 minutes.</p>
+                        <p style='color: #6b7280;'>If you didn't request this change, please check your History for audit logs.</p>
+                        <hr style='border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;'>
+                        <p style='color: #9ca3af; font-size: 12px;'>© 2024 Notal. All rights reserved.</p>
+                    </div>
+                ";
+                
+                await _emailSendingService.SendSystemEmailAsync(email, subject, htmlContent);
+            }
+            catch (Exception)
+            {
+                // Log error but don't fail the request
+            }
         }
 
         // GET /Client/{orgId}/AddPeople
@@ -1482,6 +1795,17 @@ namespace Certio.Web.Controllers
             guidBytes[8] = (byte)((guidBytes[8] & 0x3F) | 0x80); // Variant RFC 4122
             return new Guid(guidBytes);
         }
+    }
+    
+    // Request models for account settings
+    public class AccountSettingsUpdateRequest
+    {
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string? Email { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string? TimeZone { get; set; }
+        public string? Language { get; set; }
     }
 }
 

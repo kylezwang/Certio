@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using Certio.Application.Interfaces;
 
 namespace Certio.Web.Services
 {
@@ -19,10 +20,12 @@ namespace Certio.Web.Services
     public class TwoFactorService : ITwoFactorService
     {
         private readonly ILogger<TwoFactorService> _logger;
+        private readonly IEmailSendingService _emailSendingService;
 
-        public TwoFactorService(ILogger<TwoFactorService> logger)
+        public TwoFactorService(ILogger<TwoFactorService> logger, IEmailSendingService emailSendingService)
         {
             _logger = logger;
+            _emailSendingService = emailSendingService;
         }
 
         /// <summary>
@@ -36,24 +39,21 @@ namespace Certio.Web.Services
 
         /// <summary>
         /// Send verification code via email
-        /// In production, integrate with SendGrid, AWS SES, etc.
         /// </summary>
         public async Task<bool> SendEmailVerificationAsync(string email, string code)
         {
             try
             {
-                // For development, just log the code
-                _logger.LogInformation("Sending email verification to {Email}", email);
-                
-                // In production, you would:
-                // 1. Create an email template
-                // 2. Send via email service (SendGrid, AWS SES, etc.)
-                // 3. Handle delivery failures
-                
-                // Simulate email sending delay
-                await Task.Delay(100);
-                
-                return true;
+                var subject = "Your Notal verification code";
+                var htmlBody = BuildVerificationEmailBody(code);
+
+                var sent = await _emailSendingService.SendSystemEmailAsync(email, subject, htmlBody);
+                if (!sent)
+                {
+                    _logger.LogWarning("Failed to deliver verification email to {Email}", email);
+                }
+
+                return sent;
             }
             catch (Exception ex)
             {
@@ -178,6 +178,27 @@ namespace Certio.Web.Services
 
             using var sha256 = SHA256.Create();
             return sha256.ComputeHash(buffer);
+        }
+
+        private static string BuildVerificationEmailBody(string code)
+        {
+            var sanitizedCode = NormalizeCode(code);
+            return $@"
+<html>
+  <body style=""font-family: Arial, sans-serif; color: #1f1f1f;"">
+    <div style=""max-width: 480px; margin: 0 auto; padding: 24px;"">
+      <h2 style=""color: #3d1019; margin-bottom: 16px;"">Verify your identity</h2>
+      <p style=""margin-bottom: 16px;"">
+        Use the verification code below to continue signing in to Notal.
+      </p>
+      <div style=""font-size: 28px; font-weight: 700; letter-spacing: 6px; color: #3d1019; margin: 24px 0;"">
+        {sanitizedCode}
+      </div>
+      <p style=""margin-bottom: 8px;"">For security, this code expires in 10 minutes.</p>
+      <p style=""margin-bottom: 0;"">If you did not request this code, please review your History to see your audit logs immediately.</p>
+    </div>
+  </body>
+</html>";
         }
     }
 }

@@ -174,15 +174,13 @@ namespace Certio.Web.Controllers
             var protectedCode = _twoFactorService.ProtectCode(code);
             var expiry = DateTime.UtcNow.AddMinutes(10);
 
-            // Output code to terminal for development
-            Console.WriteLine("==========================================");
-            Console.WriteLine($"2FA Verification Code for {user.Email ?? normalizedEmail}:");
-            Console.WriteLine($"Code: {code}");
-            Console.WriteLine($"Expires: {expiry:yyyy-MM-dd HH:mm:ss} UTC");
-            Console.WriteLine("==========================================");
-            
-            // For now, just log the code instead of sending email
-            _logger.LogInformation("2FA Code generated for {Email}: {Code}", user.Email ?? normalizedEmail, code);
+            var recipientEmail = user.Email ?? normalizedEmail;
+            var emailSent = await _twoFactorService.SendEmailVerificationAsync(recipientEmail, code);
+            if (!emailSent)
+            {
+                TempData["Error"] = "We couldn't deliver your verification code. Please try again or contact support.";
+                return View("Index");
+            }
 
             try
             {

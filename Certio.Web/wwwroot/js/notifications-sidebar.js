@@ -435,6 +435,10 @@
                             } else if (typeof window.selectCommsChannel === 'function') {
                                 window.selectCommsChannel(channelId, channelName, 'channel', '#');
                             }
+                            // Reload recent messages after opening channel to refresh badge
+                            setTimeout(() => {
+                                loadRecentMessages();
+                            }, 500);
                         } else if (type === 'dm' && threadId && channelName) {
                             // Navigate to DM thread - use channelName (other user's name) and find their ID
                             // First try to find user ID from team members list
@@ -444,6 +448,10 @@
                                 // Fallback: find user by name from team members
                                 findAndOpenDMThread(threadId, channelName, senderId);
                             }
+                            // Reload recent messages after opening DM to refresh badge
+                            setTimeout(() => {
+                                loadRecentMessages();
+                            }, 500);
                         }
                     }, 300);
                 }

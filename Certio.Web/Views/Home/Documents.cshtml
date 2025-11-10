@@ -138,7 +138,7 @@
         <div class="col-12">
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <div class="d-flex align-items-center">
-                    <h5 class="fw-bold mb-0 me-2">Matter Folders</h5>
+                    <h5 class="fw-bold mb-0 me-2">Folders</h5>
                     <i class="fas fa-chevron-down" style="color: rgba(11, 54, 94, 0.8);"></i>
                 </div>
                 <div class="search-container" style="max-width: 300px;">
@@ -407,7 +407,8 @@
                              ondragstart="handleDragStart(event)"
                              ondragend="handleDragEnd(event)"
                              data-document-id="@doc.Id"
-                             data-document-source-type="@doc.SourceType.ToString()">
+                             data-document-source-type="@doc.SourceType.ToString()"
+                             data-document-org-id="@ViewBag.OrganizationId">
                             <div class="card-body p-4" style="position: relative;">
                                 <!-- Status Badge and Action Icons (Top Right) -->
                                 <div class="position-absolute" style="top: 1rem; right: 1rem;">
@@ -443,10 +444,10 @@
                                                 <i class="fas fa-share-alt" style="font-size: 0.875rem; line-height: 1;"></i>
                                             </button>
                                             <button type="button" 
-                                                    class="btn btn-sm btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center" 
-                                                    title="More options" 
+                                                    class="btn btn-sm btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center document-hide-btn" 
+                                                    title="Hide document" 
                                                     style="width: 36px; height: 36px; padding: 0; margin: 0; border: 1px solid; line-height: 1;"
-                                                    onclick="event.stopPropagation(); event.preventDefault();">
+                                                    onclick="hideDocumentCard(event);">
                                                 <i class="fas fa-ellipsis-h" style="font-size: 0.875rem; line-height: 1;"></i>
                                             </button>
                                         </div>
@@ -575,6 +576,9 @@
 
             // Attach status badge click handlers
             attachDocumentStatusHandlers();
+
+            // Restore hidden documents from localStorage
+            restoreHiddenDocuments();
         });
 
         // Load document connection status
@@ -726,14 +730,10 @@
 
                 if (event.data.type === 'document-oauth-success') {
                     console.log(`Successfully connected ${event.data.provider} for documents`);
-                    // Reload status to update UI
+                    // Reload status to update UI immediately (no page reload needed)
                     loadDocumentConnectionStatus();
                     // Show success message
                     alert(`${event.data.provider} connected successfully! Your documents will sync automatically. Documents may take a few moments to appear.`);
-                    // Refresh page after delay to show synced documents
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 5000);
                 } else if (event.data.type === 'document-oauth-error') {
                     const errorMsg = event.data.errorDescription || event.data.error || 'Unknown error occurred';
                     console.error(`Failed to connect ${event.data.provider}:`, errorMsg);
@@ -1687,7 +1687,8 @@
                          ondragstart="handleDragStart(event)"
                          ondragend="handleDragEnd(event)"
                          data-document-id="${doc.id}"
-                         data-document-source-type="${sourceType}">
+                         data-document-source-type="${sourceType}"
+                         data-document-org-id="${orgId}">
                         <div class="card-body p-4" style="position: relative;">
                             <div class="position-absolute" style="top: 1rem; right: 1rem;">
                                 <div class="d-flex flex-column align-items-end gap-2">
@@ -1713,10 +1714,10 @@
                                         <i class="fas fa-share-alt" style="font-size: 0.875rem; line-height: 1;"></i>
                                     </button>
                                     <button type="button" 
-                                            class="btn btn-sm btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center" 
-                                            title="More options" 
+                                            class="btn btn-sm btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center document-hide-btn" 
+                                            title="Hide document" 
                                             style="width: 36px; height: 36px; padding: 0; margin: 0; border: 1px solid; line-height: 1;"
-                                            onclick="event.stopPropagation(); event.preventDefault();">
+                                            onclick="hideDocumentCard(event);">
                                         <i class="fas fa-ellipsis-h" style="font-size: 0.875rem; line-height: 1;"></i>
                                     </button>
                                 </div>
@@ -1757,6 +1758,14 @@
             `;
             
             attachDocumentStatusHandlers(card);
+            
+            // Check if this document should be hidden based on localStorage
+            if (orgId && doc.id) {
+                const hiddenDocs = getHiddenDocuments(orgId);
+                if (hiddenDocs.includes(doc.id.toString())) {
+                    card.style.display = 'none';
+                }
+            }
             
             return card;
         }
@@ -2241,6 +2250,95 @@
                 return false;
             }
             return true;
+        }
+
+        // Hide document card
+        function hideDocumentCard(event) {
+            event.stopPropagation();
+            event.preventDefault();
+            
+            // Find the closest document card (the <a> element with data-document-entry)
+            const documentCard = event.target.closest('[data-document-entry="true"]');
+            
+            if (documentCard) {
+                // Get document ID and organization ID
+                const documentId = documentCard.getAttribute('data-document-id');
+                const orgId = getCurrentOrganizationId();
+                
+                // Save to localStorage if we have both IDs
+                if (documentId && orgId) {
+                    saveHiddenDocument(orgId, documentId);
+                }
+                
+                // Add fade-out animation
+                documentCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                documentCard.style.opacity = '0';
+                documentCard.style.transform = 'scale(0.95)';
+                
+                // Remove after animation completes
+                setTimeout(() => {
+                    documentCard.remove();
+                    
+                    // Check if there are no more documents and show empty state
+                    const container = document.getElementById('documentsContainer');
+                    const remainingDocs = container?.querySelectorAll('[data-document-entry="true"]');
+                    if (remainingDocs && remainingDocs.length === 0) {
+                        const emptyState = document.getElementById('documentsEmptyState');
+                        if (emptyState) {
+                            emptyState.style.display = 'block';
+                        }
+                    }
+                }, 300);
+            }
+        }
+
+        // Save hidden document ID to localStorage
+        function saveHiddenDocument(orgId, documentId) {
+            try {
+                const key = `hiddenDocuments_${orgId}`;
+                const hiddenDocs = getHiddenDocuments(orgId);
+                
+                // Add document ID if not already in the list
+                if (!hiddenDocs.includes(documentId.toString())) {
+                    hiddenDocs.push(documentId.toString());
+                    localStorage.setItem(key, JSON.stringify(hiddenDocs));
+                }
+            } catch (error) {
+                console.error('Error saving hidden document to localStorage:', error);
+            }
+        }
+
+        // Get hidden document IDs from localStorage
+        function getHiddenDocuments(orgId) {
+            try {
+                const key = `hiddenDocuments_${orgId}`;
+                const stored = localStorage.getItem(key);
+                return stored ? JSON.parse(stored) : [];
+            } catch (error) {
+                console.error('Error reading hidden documents from localStorage:', error);
+                return [];
+            }
+        }
+
+        // Restore hidden documents on page load
+        function restoreHiddenDocuments() {
+            try {
+                const orgId = getCurrentOrganizationId();
+                if (!orgId) return;
+                
+                const hiddenDocs = getHiddenDocuments(orgId);
+                if (hiddenDocs.length === 0) return;
+                
+                // Hide all documents that are in the hidden list
+                hiddenDocs.forEach(documentId => {
+                    const documentCard = document.querySelector(`[data-document-entry="true"][data-document-id="${documentId}"]`);
+                    if (documentCard) {
+                        documentCard.style.display = 'none';
+                    }
+                });
+            } catch (error) {
+                console.error('Error restoring hidden documents:', error);
+            }
         }
     </script>
     

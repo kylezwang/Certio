@@ -1,9 +1,12 @@
+@using Certio.Application.DTOs
 @{
     ViewData["Title"] = "Firm Settings";
     ViewData["BodyClass"] = "settings-page";
     Layout = "_ClientLayout";
     var isLawFirm = ViewBag.OrganizationType != null && ViewBag.OrganizationType.ToString() == "LawFirm";
     var organizationId = ViewBag.OrganizationId ?? ViewContext.HttpContext.Items["CurrentOrganizationId"];
+    var org = ViewBag.OrganizationDetails as OrganizationDto;
+    var orgName = org?.Name ?? ViewBag.OrganizationName ?? "Organization";
 }
 
 <!-- Organization ID for JavaScript access -->
@@ -13,7 +16,7 @@
     <!-- Header -->
     <div class="settings-header">
         <div>
-            <h1 class="settings-title">Firm Settings</h1>
+            <h1 class="settings-title">@(isLawFirm ? "Firm Settings" : "Organization Settings")</h1>
             <p class="settings-subtitle">
                 Manage your organization and application preferences
             </p>
@@ -79,29 +82,36 @@
                         </div>
                         <div class="settings-section-content">
                             <div class="row">
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-12 mb-3">
                                     <label for="orgName" class="form-label">Organization Name</label>
-                                    <input type="text" class="form-control" id="orgName" value="Acme Legal Group">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="subdomain" class="form-label">Subdomain</label>
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" id="subdomain" value="acme-legal">
-                                        <span class="input-group-text">.legaltech.com</span>
-                                    </div>
+                                    <input type="text" class="form-control" id="orgName" value="@orgName" readonly>
                                 </div>
                             </div>
+                            @if (!string.IsNullOrWhiteSpace(org?.Description))
+                            {
+                                <div class="row">
+                                    <div class="col-md-12 mb-3">
+                                        <label for="orgDescription" class="form-label">Description</label>
+                                        <textarea class="form-control" id="orgDescription" rows="3" readonly>@org.Description</textarea>
+                                    </div>
+                                </div>
+                            }
                             <hr class="settings-divider">
-                            <div class="settings-row">
-                                <div class="settings-row-content">
+                            <div class="mb-3">
                                     <label class="settings-row-label">Organization Logo</label>
                                     <p class="settings-row-description">Upload your company logo</p>
-                                </div>
-                                <div class="d-flex align-items-center gap-3">
+                                <div class="d-flex align-items-center gap-3 mt-3">
                                     <div class="org-logo-placeholder">
-                                        <i class="fas fa-building"></i>
+                                        @if (isLawFirm)
+                                        {
+                                            <i class="fa-solid fa-building-columns"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="fas fa-building"></i>
+                                        }
                                     </div>
-                                    <button class="btn btn-outline-secondary btn-sm">Upload Logo</button>
+                                    <button class="btn btn-outline-secondary btn-sm org-logo-upload-btn" style="border: 1px solid rgba(61, 16, 25, 0.08); border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.875rem; background-color: #ffffff; color: #374151; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18); transition: all 0.2s ease;">Upload Logo</button>
                                 </div>
                             </div>
                         </div>
@@ -478,6 +488,100 @@
                 <div id="integrations-content" class="settings-tab-content">
                     <div class="settings-section">
                         <div class="settings-section-header">
+                            <h3>Cloud Storage</h3>
+                            <p>Connect your cloud storage to sync documents</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <!-- Google Drive -->
+                            <div class="settings-row" id="googleDriveRow">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">
+                                        <i class="fab fa-google me-2" style="color: #4285f4;"></i>
+                                        Google Drive
+                                    </label>
+                                    <p class="settings-row-description" id="googleDriveEmail"></p>
+                                </div>
+                                <div id="googleDriveActions">
+                                    <button id="connectGoogleDriveSettingsBtn" class="oauth-connect-btn" style="min-width: 120px; padding: 0.5rem 1.5rem;">
+                                        <i class="fab fa-google"></i>
+                                        <span style="margin-left: 0.5rem;">Connect</span>
+                                    </button>
+                                    <button id="disconnectGoogleDriveSettingsBtn" class="btn btn-outline-danger btn-sm" style="display: none;">
+                                        Disconnect
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- OneDrive -->
+                            <div class="settings-row" id="oneDriveRow">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">
+                                        <i class="fab fa-windows me-2" style="color: #0078d4;"></i>
+                                        Microsoft OneDrive
+                                    </label>
+                                    <p class="settings-row-description" id="oneDriveEmail"></p>
+                                </div>
+                                <div id="oneDriveActions">
+                                    <button id="connectOneDriveSettingsBtn" class="oauth-connect-btn" style="min-width: 120px; padding: 0.5rem 1.5rem;">
+                                        <i class="fab fa-windows"></i>
+                                        <span style="margin-left: 0.5rem;">Connect</span>
+                                    </button>
+                                    <button id="disconnectOneDriveSettingsBtn" class="btn btn-outline-danger btn-sm" style="display: none;">
+                                        Disconnect
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Email Integration</h3>
+                            <p>Connect your email accounts</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <!-- Gmail -->
+                            <div class="settings-row" id="gmailRow">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">
+                                        <i class="fab fa-google me-2" style="color: #4285f4;"></i>
+                                        Gmail
+                                    </label>
+                                    <p class="settings-row-description" id="gmailEmail"></p>
+                                </div>
+                                <div id="gmailActions">
+                                    <button id="connectGmailSettingsBtn" class="oauth-connect-btn" style="min-width: 120px; padding: 0.5rem 1.5rem;">
+                                        <i class="fab fa-google"></i>
+                                        <span style="margin-left: 0.5rem;">Connect</span>
+                                    </button>
+                                    <button id="disconnectGmailSettingsBtn" class="btn btn-outline-danger btn-sm" style="display: none;">
+                                        Disconnect
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Outlook -->
+                            <div class="settings-row" id="outlookRow">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">
+                                        <i class="fab fa-windows me-2" style="color: #0078d4;"></i>
+                                        Outlook
+                                    </label>
+                                    <p class="settings-row-description" id="outlookEmail"></p>
+                                </div>
+                                <div id="outlookActions">
+                                    <button id="connectOutlookSettingsBtn" class="oauth-connect-btn" style="min-width: 120px; padding: 0.5rem 1.5rem;">
+                                        <i class="fab fa-windows"></i>
+                                        <span style="margin-left: 0.5rem;">Connect</span>
+                                    </button>
+                                    <button id="disconnectOutlookSettingsBtn" class="btn btn-outline-danger btn-sm" style="display: none;">
+                                        Disconnect
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
                             <h3>Calendar Integration</h3>
                             <p>Connect your calendar applications</p>
                         </div>
@@ -499,32 +603,6 @@
 
                     <div class="settings-section">
                         <div class="settings-section-header">
-                            <h3>Cloud Storage</h3>
-                        </div>
-                        <div class="settings-section-content">
-                            <div class="settings-row">
-                                <div class="settings-row-content">
-                                    <label class="settings-row-label">Google Drive</label>
-                                </div>
-                                <span class="badge bg-secondary">Coming Soon</span>
-                            </div>
-                            <div class="settings-row">
-                                <div class="settings-row-content">
-                                    <label class="settings-row-label">Microsoft OneDrive</label>
-                                </div>
-                                <span class="badge bg-secondary">Coming Soon</span>
-                            </div>
-                            <div class="settings-row">
-                                <div class="settings-row-content">
-                                    <label class="settings-row-label">Box</label>
-                                </div>
-                                <span class="badge bg-secondary">Coming Soon</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="settings-section">
-                        <div class="settings-section-header">
                             <h3>E-Signature</h3>
                         </div>
                         <div class="settings-section-content">
@@ -537,26 +615,6 @@
                             <div class="settings-row">
                                 <div class="settings-row-content">
                                     <label class="settings-row-label">Adobe Sign</label>
-                                </div>
-                                <span class="badge bg-secondary">Coming Soon</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="settings-section">
-                        <div class="settings-section-header">
-                            <h3>Email Integration</h3>
-                        </div>
-                        <div class="settings-section-content">
-                            <div class="settings-row">
-                                <div class="settings-row-content">
-                                    <label class="settings-row-label">Gmail</label>
-                                </div>
-                                <span class="badge bg-secondary">Coming Soon</span>
-                            </div>
-                            <div class="settings-row">
-                                <div class="settings-row-content">
-                                    <label class="settings-row-label">Outlook</label>
                                 </div>
                                 <span class="badge bg-secondary">Coming Soon</span>
                             </div>
@@ -669,8 +727,8 @@
                         <div class="settings-section-content">
                             <div class="settings-row">
                                 <div class="settings-row-content">
-                                    <label class="settings-row-label">Professional Plan</label>
-                                    <p class="settings-row-description">$99/month • 10 users included</p>
+                                    <label class="settings-row-label">Notal Plan</label>
+                                    <p class="settings-row-description">$50/month per seat</p>
                                 </div>
                                 <button class="btn btn-outline-secondary btn-sm">Change Plan</button>
                             </div>
@@ -714,7 +772,7 @@
                             <div class="settings-row">
                                 <div class="settings-row-content">
                                     <label class="settings-row-label">Invoices</label>
-                                    <p class="settings-row-description">Download billing history</p>
+                                    <p class="settings-row-description">Download this month's billing history</p>
                                 </div>
                                 <button class="btn btn-outline-secondary btn-sm">
                                     <i class="fas fa-download me-2"></i>
@@ -783,8 +841,11 @@
 
                     <div class="settings-section">
                         <div class="settings-section-header">
-                            <h3>AI Model Selection</h3>
-                            <p>Choose AI capabilities for your organization</p>
+                            <h3>Azure AI Model Selection</h3>
+                            <p>Choose the sophistication level of Azure model you would like to use for your organization</p>
+                            <ul style="list-style: none; padding-left: 0; margin-bottom: 0;">
+                                <li><em>Note:</em> The more sophisticated the model, the more expensive it will be to use and we may need to rotate your subscription cycle early for heavy use of premium models.</li>
+                            </ul>
                         </div>
                         <div class="settings-section-content">
                             <div class="settings-row">
@@ -895,6 +956,16 @@
     </div>
 </div>
 
+@section PageStyles {
+    <style>
+        .org-logo-upload-btn:hover {
+            background-color: #f9fafb !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28) !important;
+            border-color: rgba(61, 16, 25, 0.08) !important;
+        }
+    </style>
+}
+
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -938,6 +1009,13 @@
 
             // Listen for hash changes
             window.addEventListener('hashchange', handleHashChange);
+
+            // Integration buttons - Load connection status
+            loadIntegrationStatus();
+            setupIntegrationListeners();
+
+            // Listen for OAuth callback messages
+            window.addEventListener('message', handleOAuthMessage);
 
             // Join Code Template functionality
             const joinCodeTemplate = document.getElementById('joinCodeTemplate');
@@ -1023,6 +1101,207 @@ Thanks,
                     setTimeout(() => {
                         joinCodeTemplateStatus.style.display = 'none';
                     }, 3000);
+                }
+            }
+
+            // Integration functionality
+            let emailAccountStatus = null; // Store email account status for disconnect
+
+            function getCurrentOrganizationId() {
+                const orgIdElement = document.querySelector('[data-organization-id]');
+                return orgIdElement ? parseInt(orgIdElement.getAttribute('data-organization-id')) : null;
+            }
+
+            async function loadIntegrationStatus() {
+                const orgId = getCurrentOrganizationId();
+                if (!orgId) return;
+
+                try {
+                    // Load document integration status (Drive/OneDrive)
+                    const docResponse = await fetch(`/api/drive-oauth/status?orgId=${orgId}`);
+                    if (docResponse.ok) {
+                        const docStatus = await docResponse.json();
+                        if (docStatus.success) {
+                            updateDocumentIntegrationUI(docStatus);
+                        }
+                    }
+
+                    // Load email integration status (Gmail/Outlook)
+                    const emailResponse = await fetch(`/api/email-oauth/status`);
+                    if (emailResponse.ok) {
+                        const emailStatus = await emailResponse.json();
+                        if (emailStatus.success) {
+                            emailAccountStatus = emailStatus.connected ? emailStatus.emailAccount : null;
+                            updateEmailIntegrationUI(emailStatus);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading integration status:', error);
+                }
+            }
+
+            function updateDocumentIntegrationUI(status) {
+                // Google Drive
+                const googleConnected = status.googleDrive?.connected || false;
+                const googleEmail = status.googleDrive?.email || '';
+                
+                document.getElementById('connectGoogleDriveSettingsBtn').style.display = googleConnected ? 'none' : 'flex';
+                document.getElementById('disconnectGoogleDriveSettingsBtn').style.display = googleConnected ? 'block' : 'none';
+                document.getElementById('googleDriveEmail').textContent = googleConnected && googleEmail ? googleEmail : '';
+
+                // OneDrive
+                const onedriveConnected = status.oneDrive?.connected || false;
+                const onedriveEmail = status.oneDrive?.email || '';
+                
+                document.getElementById('connectOneDriveSettingsBtn').style.display = onedriveConnected ? 'none' : 'flex';
+                document.getElementById('disconnectOneDriveSettingsBtn').style.display = onedriveConnected ? 'block' : 'none';
+                document.getElementById('oneDriveEmail').textContent = onedriveConnected && onedriveEmail ? onedriveEmail : '';
+            }
+
+            function updateEmailIntegrationUI(status) {
+                // Check if email account is connected
+                const emailConnected = status.connected || false;
+                const emailAccount = status.emailAccount;
+                
+                if (emailConnected && emailAccount) {
+                    const provider = emailAccount.provider || '';
+                    const emailAddress = emailAccount.emailAddress || '';
+                    
+                    // Update Gmail UI
+                    if (provider === 'Gmail') {
+                        document.getElementById('connectGmailSettingsBtn').style.display = 'none';
+                        document.getElementById('disconnectGmailSettingsBtn').style.display = 'block';
+                        document.getElementById('gmailEmail').textContent = emailAddress;
+                    } else {
+                        // Gmail not connected
+                        document.getElementById('connectGmailSettingsBtn').style.display = 'flex';
+                        document.getElementById('disconnectGmailSettingsBtn').style.display = 'none';
+                        document.getElementById('gmailEmail').textContent = '';
+                    }
+                    
+                    // Update Outlook UI
+                    if (provider === 'Outlook') {
+                        document.getElementById('connectOutlookSettingsBtn').style.display = 'none';
+                        document.getElementById('disconnectOutlookSettingsBtn').style.display = 'block';
+                        document.getElementById('outlookEmail').textContent = emailAddress;
+                    } else {
+                        // Outlook not connected
+                        document.getElementById('connectOutlookSettingsBtn').style.display = 'flex';
+                        document.getElementById('disconnectOutlookSettingsBtn').style.display = 'none';
+                        document.getElementById('outlookEmail').textContent = '';
+                    }
+                } else {
+                    // No email account connected - show connect buttons for both
+                    document.getElementById('connectGmailSettingsBtn').style.display = 'flex';
+                    document.getElementById('disconnectGmailSettingsBtn').style.display = 'none';
+                    document.getElementById('gmailEmail').textContent = '';
+                    
+                    document.getElementById('connectOutlookSettingsBtn').style.display = 'flex';
+                    document.getElementById('disconnectOutlookSettingsBtn').style.display = 'none';
+                    document.getElementById('outlookEmail').textContent = '';
+                }
+            }
+
+            function setupIntegrationListeners() {
+                // Google Drive
+                document.getElementById('connectGoogleDriveSettingsBtn')?.addEventListener('click', () => connectProvider('google', 'document'));
+                document.getElementById('disconnectGoogleDriveSettingsBtn')?.addEventListener('click', () => disconnectProvider('google', 'document'));
+
+                // OneDrive
+                document.getElementById('connectOneDriveSettingsBtn')?.addEventListener('click', () => connectProvider('onedrive', 'document'));
+                document.getElementById('disconnectOneDriveSettingsBtn')?.addEventListener('click', () => disconnectProvider('onedrive', 'document'));
+
+                // Gmail
+                document.getElementById('connectGmailSettingsBtn')?.addEventListener('click', () => connectProvider('gmail', 'email'));
+                document.getElementById('disconnectGmailSettingsBtn')?.addEventListener('click', () => disconnectProvider('gmail', 'email'));
+
+                // Outlook
+                document.getElementById('connectOutlookSettingsBtn')?.addEventListener('click', () => connectProvider('outlook', 'email'));
+                document.getElementById('disconnectOutlookSettingsBtn')?.addEventListener('click', () => disconnectProvider('outlook', 'email'));
+            }
+
+            async function connectProvider(provider, type) {
+                const orgId = getCurrentOrganizationId();
+                if (!orgId) {
+                    alert('Organization ID not found');
+                    return;
+                }
+
+                try {
+                    let authorizeUrl;
+                    if (type === 'document') {
+                        authorizeUrl = `/api/drive-oauth/${provider === 'google' ? 'google' : 'onedrive'}/authorize?orgId=${orgId}`;
+                    } else if (type === 'email') {
+                        authorizeUrl = `/api/email-oauth/${provider}/authorize?orgId=${orgId}`;
+                    }
+
+                    const response = await fetch(authorizeUrl);
+                    const result = await response.json();
+
+                    if (result.success && result.authorizationUrl) {
+                        const width = 600;
+                        const height = 700;
+                        const left = (screen.width / 2) - (width / 2);
+                        const top = (screen.height / 2) - (height / 2);
+                        
+                        window.open(
+                            result.authorizationUrl,
+                            'oauth_window',
+                            `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no,scrollbars=yes,resizable=yes`
+                        );
+                    } else {
+                        alert(result.message || 'Failed to get authorization URL');
+                    }
+                } catch (error) {
+                    console.error('Error connecting provider:', error);
+                    alert('Failed to connect. Please try again.');
+                }
+            }
+
+            async function disconnectProvider(provider, type) {
+                if (!confirm(`Are you sure you want to disconnect ${provider}?`)) {
+                    return;
+                }
+
+                const orgId = getCurrentOrganizationId();
+                if (!orgId) return;
+
+                try {
+                    let disconnectUrl;
+                    if (type === 'document') {
+                        disconnectUrl = `/api/documents/disconnect?provider=${provider}&orgId=${orgId}`;
+                    } else if (type === 'email') {
+                        // For email, we need the accountId from emailAccountStatus
+                        if (!emailAccountStatus || !emailAccountStatus.id) {
+                            alert('Email account not found. Please refresh the page.');
+                            return;
+                        }
+                        disconnectUrl = `/api/email-oauth/${emailAccountStatus.id}`;
+                    }
+
+                    const response = await fetch(disconnectUrl, { 
+                        method: type === 'email' ? 'DELETE' : 'POST' 
+                    });
+                    const result = await response.json();
+
+                    if (result.success) {
+                        if (type === 'email') {
+                            emailAccountStatus = null; // Clear stored status
+                        }
+                        loadIntegrationStatus();
+                    } else {
+                        alert(result.message || 'Failed to disconnect');
+                    }
+                } catch (error) {
+                    console.error('Error disconnecting provider:', error);
+                    alert('Failed to disconnect. Please try again.');
+                }
+            }
+
+            function handleOAuthMessage(event) {
+                if (event.data.type === 'document-oauth-success' || event.data.type === 'email-oauth-success') {
+                    console.log(`OAuth success: ${event.data.provider}`);
+                    loadIntegrationStatus();
                 }
             }
         });

@@ -1,19 +1,45 @@
+@using Certio.Domain.Users
 @{
     ViewData["Title"] = "Account Settings";
     ViewData["BodyClass"] = "settings-page";
     Layout = "_ClientLayout";
+    var user = ViewBag.User as User;
+    var fullName = $"{user?.FirstName ?? ""} {user?.LastName ?? ""}".Trim();
+    var initials = $"{user?.FirstName?.Substring(0, 1) ?? ""}{user?.LastName?.Substring(0, 1) ?? ""}".ToUpper();
 }
 
 <div class="settings-container">
-    <!-- Header -->
-    <div class="settings-header">
+    <!-- Header with Save Button -->
+    <div class="settings-header" style="display: flex; justify-content: space-between; align-items: center;">
         <div>
             <h1 class="settings-title">Account Settings</h1>
             <p class="settings-subtitle">
                 Manage your account, notifications, and preferences
             </p>
         </div>
+                        <button id="saveAccountSettingsBtn" class="btn btn-success" style="display: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-weight: 700;">
+            <i class="fas fa-check me-2" style="font-weight: 900;"></i>
+            Save Changes
+        </button>
     </div>
+    
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert" style="margin: 0 0 1rem 0; border-radius: 8px; display: flex; align-items: center;">
+            <i class="fas fa-check-circle me-2"></i>
+            <span style="flex: 1;">@TempData["Success"]</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="margin-left: auto; align-self: center;"></button>
+        </div>
+    }
+    
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="margin: 0 0 1rem 0; border-radius: 8px; display: flex; align-items: center;">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <span style="flex: 1;">@TempData["Error"]</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="margin-left: auto; align-self: center;"></button>
+        </div>
+    }
 
     <div class="settings-layout">
         <!-- Navigation Sidebar -->
@@ -55,8 +81,8 @@
                         <div class="settings-section-content">
                             <div class="profile-avatar-section">
                                 <div class="profile-avatar">
-                                    <div class="avatar-placeholder">
-                                        <span>JD</span>
+                                    <div class="avatar-placeholder" style="background: linear-gradient(135deg, #a32b43, #3d1019); color: white; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 600; border: 3px solid white; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);">
+                                        <span>@initials</span>
                                     </div>
                                 </div>
                                 <div class="avatar-actions">
@@ -67,40 +93,38 @@
                             <hr class="settings-divider">
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label for="fullName" class="form-label">Full Name</label>
-                                    <input type="text" class="form-control" id="fullName" value="John Doe">
+                                    <label for="firstName" class="form-label">First Name</label>
+                                    <input type="text" class="form-control settings-input" id="firstName" value="@user?.FirstName" data-original="@user?.FirstName">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="lastName" class="form-label">Last Name</label>
+                                    <input type="text" class="form-control settings-input" id="lastName" value="@user?.LastName" data-original="@user?.LastName">
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="email" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="email" value="john.doe@company.com">
+                                    <input type="email" class="form-control settings-input" id="email" value="@user?.Email" data-original="@user?.Email">
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="phone" class="form-label">Phone</label>
-                                    <input type="tel" class="form-control" id="phone" value="+1 (555) 123-4567">
+                                    <input type="tel" class="form-control settings-input" id="phone" value="@user?.PhoneNumber" data-original="@user?.PhoneNumber">
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="timezone" class="form-label">Timezone</label>
-                                    <select class="form-select" id="timezone">
-                                        <option value="est" selected>Eastern Time (EST)</option>
-                                        <option value="cst">Central Time (CST)</option>
-                                        <option value="mst">Mountain Time (MST)</option>
-                                        <option value="pst">Pacific Time (PST)</option>
+                                    <select class="form-select settings-input" id="timezone" data-original="@user?.TimeZone">
+                                        <!-- Populated by JavaScript -->
                                     </select>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="language" class="form-label">Language</label>
-                                    <select class="form-select" id="language">
-                                        <option value="en" selected>English</option>
-                                        <option value="es">Spanish</option>
-                                        <option value="fr">French</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="theme" class="form-label">Theme</label>
-                                    <select class="form-select" id="theme">
-                                        <option value="light" selected>Light</option>
-                                        <option value="dark">Dark</option>
-                                        <option value="system">System</option>
+                                    <select class="form-select settings-input" id="language" data-original="@user?.Language">
+                                        @{
+                                            var userLang = user?.Language ?? "en";
+                                        }
+                                        <option value="en" selected="@(userLang == "en")">English</option>
+                                        <option value="es" selected="@(userLang == "es")">Spanish</option>
+                                        <option value="fr" selected="@(userLang == "fr")">French</option>
+                                        <option value="de" selected="@(userLang == "de")">German</option>
+                                        <option value="zh" selected="@(userLang == "zh")">Chinese</option>
                                     </select>
                                 </div>
                             </div>
@@ -559,18 +583,28 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Populate timezone dropdown with comprehensive list
+            populateTimezones();
+            
+            // Detect user's timezone and suggest it
+            detectAndSuggestTimezone();
+            
+            // Change detection for all settings inputs
+            initializeChangeDetection();
+            
+            // Save button functionality
+            initializeSaveButton();
+            
             // Tab switching functionality
             const navItems = document.querySelectorAll('.settings-nav-item');
             const tabContents = document.querySelectorAll('.settings-tab-content');
 
             function switchToTab(tabId) {
-                    // Remove active class from all nav items and tab contents
-                    navItems.forEach(nav => nav.classList.remove('active'));
-                    tabContents.forEach(content => content.classList.remove('active'));
-                    
-                // Find and activate the corresponding nav item and content
+                navItems.forEach(nav => nav.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
                 const navItem = document.querySelector(`.settings-nav-item[data-tab="${tabId}"]`);
-                    const targetContent = document.getElementById(tabId + '-content');
+                const targetContent = document.getElementById(tabId + '-content');
                 
                 if (navItem) navItem.classList.add('active');
                 if (targetContent) targetContent.classList.add('active');
@@ -581,38 +615,28 @@
                     e.preventDefault();
                     const tabId = this.getAttribute('data-tab');
                     switchToTab(tabId);
-                    // Update URL hash
                     window.location.hash = tabId;
                 });
             });
 
-            // Handle initial hash or hash changes
             function handleHashChange() {
-                const hash = window.location.hash.substring(1); // Remove the '#'
+                const hash = window.location.hash.substring(1);
                 if (hash && document.getElementById(hash + '-content')) {
                     switchToTab(hash);
                 }
             }
 
-            // Check hash on load
             handleHashChange();
-
-            // Listen for hash changes
             window.addEventListener('hashchange', handleHashChange);
 
             // Dark Mode Toggle
             const darkModeSwitch = document.getElementById('darkModeSwitch');
-            
-            // Check for saved dark mode preference
             const isDarkMode = localStorage.getItem('darkMode') === 'true';
             if (isDarkMode) {
                 document.body.classList.add('dark-mode');
-                if (darkModeSwitch) {
-                    darkModeSwitch.checked = true;
-                }
+                if (darkModeSwitch) darkModeSwitch.checked = true;
             }
             
-            // Handle dark mode toggle
             if (darkModeSwitch) {
                 darkModeSwitch.addEventListener('change', function() {
                     if (this.checked) {
@@ -625,6 +649,135 @@
                 });
             }
         });
+        
+        function populateTimezones() {
+            const timezones = [
+                { value: 'America/New_York', label: 'Eastern Time (ET)' },
+                { value: 'America/Chicago', label: 'Central Time (CT)' },
+                { value: 'America/Denver', label: 'Mountain Time (MT)' },
+                { value: 'America/Los_Angeles', label: 'Pacific Time (PT)' },
+                { value: 'America/Anchorage', label: 'Alaska Time (AKT)' },
+                { value: 'Pacific/Honolulu', label: 'Hawaii Time (HST)' },
+                { value: 'America/Phoenix', label: 'Arizona Time (MST)' },
+                { value: 'America/Toronto', label: 'Toronto' },
+                { value: 'America/Vancouver', label: 'Vancouver' },
+                { value: 'Europe/London', label: 'London (GMT)' },
+                { value: 'Europe/Paris', label: 'Paris (CET)' },
+                { value: 'Europe/Berlin', label: 'Berlin (CET)' },
+                { value: 'Europe/Madrid', label: 'Madrid (CET)' },
+                { value: 'Europe/Rome', label: 'Rome (CET)' },
+                { value: 'Asia/Tokyo', label: 'Tokyo (JST)' },
+                { value: 'Asia/Shanghai', label: 'Shanghai (CST)' },
+                { value: 'Asia/Hong_Kong', label: 'Hong Kong (HKT)' },
+                { value: 'Asia/Singapore', label: 'Singapore (SGT)' },
+                { value: 'Asia/Dubai', label: 'Dubai (GST)' },
+                { value: 'Australia/Sydney', label: 'Sydney (AEDT)' },
+                { value: 'Pacific/Auckland', label: 'Auckland (NZDT)' }
+            ];
+            
+            const timezoneSelect = document.getElementById('timezone');
+            const currentTimezone = timezoneSelect.dataset.original || 'America/New_York';
+            
+            timezoneSelect.innerHTML = timezones.map(tz => 
+                `<option value="${tz.value}" ${tz.value === currentTimezone ? 'selected' : ''}>${tz.label}</option>`
+            ).join('');
+        }
+        
+        function detectAndSuggestTimezone() {
+            try {
+                const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                const timezoneSelect = document.getElementById('timezone');
+                const currentTimezone = timezoneSelect.value;
+                
+                // If detected timezone differs from saved, optionally suggest it
+                if (detectedTimezone && detectedTimezone !== currentTimezone) {
+                    console.log(`Detected timezone: ${detectedTimezone}, Saved: ${currentTimezone}`);
+                }
+            } catch (e) {
+                console.error('Could not detect timezone:', e);
+            }
+        }
+        
+        function initializeChangeDetection() {
+            const inputs = document.querySelectorAll('.settings-input');
+            const saveBtn = document.getElementById('saveAccountSettingsBtn');
+            
+            inputs.forEach(input => {
+                input.addEventListener('input', checkForChanges);
+                input.addEventListener('change', checkForChanges);
+            });
+            
+            function checkForChanges() {
+                let hasChanges = false;
+                inputs.forEach(input => {
+                    const originalValue = input.dataset.original || '';
+                    const currentValue = input.value || '';
+                    if (originalValue !== currentValue) {
+                        hasChanges = true;
+                    }
+                });
+                
+                if (hasChanges) {
+                    saveBtn.style.display = 'block';
+                } else {
+                    saveBtn.style.display = 'none';
+                }
+            }
+        }
+        
+        function initializeSaveButton() {
+            const saveBtn = document.getElementById('saveAccountSettingsBtn');
+            
+            saveBtn.addEventListener('click', async function() {
+                const orgId = @ViewBag.OrganizationId;
+                
+                // Gather all form data
+                const formData = {
+                    firstName: document.getElementById('firstName').value,
+                    lastName: document.getElementById('lastName').value,
+                    email: document.getElementById('email').value,
+                    phoneNumber: document.getElementById('phone').value,
+                    timeZone: document.getElementById('timezone').value,
+                    language: document.getElementById('language').value
+                };
+                
+                // Disable button and show loading
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+                
+                try {
+                    const response = await fetch(`/Client/${orgId}/AccountSettings/Save`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success && result.requiresVerification) {
+                        // Redirect to verification page
+                        window.location.href = result.redirectUrl;
+                    } else if (result.success) {
+                        // Direct save without verification (shouldn't happen with current logic)
+                        updateOriginalValues();
+                        showSuccessMessage();
+                    } else {
+                        alert('Failed to save: ' + (result.error || 'Unknown error'));
+                        saveBtn.innerHTML = '<i class="fas fa-check me-2"></i>Save Changes';
+                    }
+                } catch (error) {
+                    console.error('Error saving settings:', error);
+                    alert('Failed to save settings. Please try again.');
+                    saveBtn.innerHTML = '<i class="fas fa-check me-2"></i>Save Changes';
+                } finally {
+                    saveBtn.disabled = false;
+                }
+            });
+        }
+        
     </script>
 }
+
 

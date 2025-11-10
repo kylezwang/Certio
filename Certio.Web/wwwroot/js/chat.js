@@ -2644,10 +2644,10 @@ function showConversationContextMenu(event, conversationItem) {
     contextMenu.className = 'conversation-context-menu';
     contextMenu.innerHTML = `
         <div class="context-menu-item" onclick="renameConversation('${conversationId}', '${conversationTitle}')">
-            <i class="fas fa-edit"></i> Rename Chat
+            <i class="fas fa-edit"></i> Rename Note
         </div>
         <div class="context-menu-item delete-item" onclick="deleteConversation('${conversationId}')">
-            <i class="fas fa-trash"></i> Delete Chat
+            <i class="fas fa-trash"></i> Delete Note
         </div>
     `;
 
@@ -2658,11 +2658,11 @@ function showConversationContextMenu(event, conversationItem) {
     document.body.appendChild(contextMenu);
 }
 
-// Update delete conversation to work with tabs
+// Update delete conversation to work with tabs and dashboard
 function deleteConversation(conversationId) {
     console.log('deleteConversation called with ID:', conversationId, 'type:', typeof conversationId);
     
-    if (!confirm('Are you sure you want to delete this conversation? This action cannot be undone.')) {
+    if (!confirm('Are you sure you want to delete this note? This action cannot be undone.')) {
         return;
     }
     
@@ -2673,6 +2673,7 @@ function deleteConversation(conversationId) {
     }
     
     const convId = parseInt(conversationId);
+    const convIdStr = String(conversationId);
     console.log('Deleting conversation:', convId, 'for org:', orgId);
     
     fetch(`/Client/${orgId}/Chat/DeleteConversation`, {
@@ -2691,14 +2692,19 @@ function deleteConversation(conversationId) {
         .then(data => {
             console.log('Delete response data:', data);
             if (data.success) {
-                // Remove the conversation from the UI
-                const conversationElement = document.querySelector(`[data-conversation-id="${conversationId}"]`);
+                // Remove the conversation from the UI - check both sidebar and dashboard
+                // Try sidebar first (.conversation-tab)
+                let conversationElement = document.querySelector(`.conversation-tab[data-conversation-id="${convIdStr}"]`);
+                if (!conversationElement) {
+                    // Try dashboard (.conversation-item)
+                    conversationElement = document.querySelector(`.conversation-item[data-conversation-id="${convIdStr}"]`);
+                }
                 if (conversationElement) {
                     conversationElement.remove();
                 }
                 
-                // If this was the active conversation, clear the chat area
-                if (currentConversationId === conversationId) {
+                // Check if this was the active conversation in sidebar
+                if (currentConversationId === convIdStr || currentConversationId === convId) {
                     currentConversationId = null;
                     clearSelectedConversation(); // Clear the saved selection
                     
@@ -2710,7 +2716,10 @@ function deleteConversation(conversationId) {
                         messages.forEach(msg => msg.remove());
                     }
                     
-                    document.getElementById('chatHeader').textContent = 'AI Assistant';
+                    const chatHeader = document.getElementById('chatHeader');
+                    if (chatHeader) {
+                        chatHeader.textContent = 'AI Assistant';
+                    }
                     
                     // Show welcome message and hide conversation header
                     const welcomeMessage = document.getElementById('welcomeMessage');
@@ -2729,13 +2738,28 @@ function deleteConversation(conversationId) {
                         chatContent.classList.add('landing-mode');
                     }
                 }
+                
+                // Check if this was the active conversation in dashboard
+                const dashboardCurrentConversationId = window.dashboardCurrentConversationId;
+                if (dashboardCurrentConversationId === convIdStr || dashboardCurrentConversationId === convId) {
+                    // Reset dashboard chat card
+                    if (typeof resetDashboardChatCard === 'function') {
+                        resetDashboardChatCard(true); // Keep conversations column visible
+                    }
+                }
+                
+                // Remove from localStorage if it was saved
+                const savedConversationId = localStorage.getItem('dashboardSelectedConversation');
+                if (savedConversationId === convIdStr || savedConversationId === String(convId)) {
+                    localStorage.removeItem('dashboardSelectedConversation');
+                }
             } else {
-                alert('Failed to delete conversation: ' + (data.error || 'Unknown error'));
+                alert('Failed to delete note: ' + (data.error || 'Unknown error'));
             }
         })
         .catch(error => {
             console.error('Error deleting conversation:', error);
-            alert('Failed to delete conversation');
+            alert('Failed to delete note');
         });
     
     // Remove context menu
@@ -2745,9 +2769,9 @@ function deleteConversation(conversationId) {
     }
 }
 
-// Update rename conversation to work with tabs
+// Update rename conversation to work with tabs and dashboard
 function renameConversation(conversationId, currentTitle) {
-    const newTitle = prompt('Enter new chat name:', currentTitle);
+    const newTitle = prompt('Enter new note name:', currentTitle);
     if (newTitle && newTitle.trim() !== '' && newTitle !== currentTitle) {
         const orgId = getCurrentOrganizationId();
         if (!orgId) {
@@ -2768,18 +2792,25 @@ function renameConversation(conversationId, currentTitle) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Update the conversation title in the UI
-                const conversationElement = document.querySelector(`[data-conversation-id="${conversationId}"] .tab-title`);
+                // Update the conversation title in the UI - check both sidebar and dashboard
+                // Try sidebar first (.tab-title)
+                let conversationElement = document.querySelector(`[data-conversation-id="${conversationId}"] .tab-title`);
                 if (conversationElement) {
                     conversationElement.textContent = newTitle.trim();
+                } else {
+                    // Try dashboard (.conversation-title)
+                    conversationElement = document.querySelector(`[data-conversation-id="${conversationId}"] .conversation-title`);
+                if (conversationElement) {
+                    conversationElement.textContent = newTitle.trim();
+                    }
                 }
             } else {
-                alert('Failed to rename conversation: ' + (data.error || 'Unknown error'));
+                alert('Failed to rename note: ' + (data.error || 'Unknown error'));
             }
         })
         .catch(error => {
             console.error('Error renaming conversation:', error);
-            alert('Failed to rename conversation');
+            alert('Failed to rename note');
         });
     }
     

@@ -44,17 +44,17 @@
             
             <!-- Hours Column -->
             <div class="billing-hours-column">
-                <button class="column-header-btn" style="text-align: left;">Hours</button>
+                <button class="column-header-btn" style="text-align: right;">Hours</button>
             </div>
             
             <!-- Amount Column -->
             <div class="billing-amount-column">
-                <button class="column-header-btn" style="text-align: left;">Amount</button>
+                <button class="column-header-btn" style="text-align: right;">Amount</button>
             </div>
             
             <!-- Status Column -->
             <div class="billing-status-column">
-                <button class="column-header-btn" style="text-align: left;">Status</button>
+                <button class="column-header-btn" style="text-align: center;">Status</button>
             </div>
             
             <!-- Actions Column -->
@@ -351,18 +351,20 @@
     .billing-hours-column {
         font-size: 0.875rem;
         color: #1e293b;
+        text-align: right;
     }
 
     .billing-amount-column {
         font-size: 0.875rem;
         color: #1e293b;
         font-weight: 500;
+        text-align: right;
     }
 
     .billing-status-column {
-        text-align: left;
+        text-align: center;
         display: flex;
-        justify-content: flex-start;
+        justify-content: center;
     }
 
     .billing-status-badge {
