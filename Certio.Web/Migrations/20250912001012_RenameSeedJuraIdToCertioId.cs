@@ -10,19 +10,35 @@ namespace Certio.Web.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
-                name: "SeedJuraId",
-                table: "Conversations",
-                newName: "CertioId");
+            // Check if column exists before renaming (idempotent migration)
+            var sql = @"
+                IF EXISTS (
+                    SELECT 1 FROM sys.columns 
+                    WHERE object_id = OBJECT_ID('Conversations') 
+                    AND name = 'SeedJuraId'
+                )
+                BEGIN
+                    EXEC sp_rename 'Conversations.SeedJuraId', 'CertioId', 'COLUMN';
+                END
+            ";
+            migrationBuilder.Sql(sql);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
-                name: "CertioId",
-                table: "Conversations",
-                newName: "SeedJuraId");
+            // Check if column exists before renaming (idempotent migration)
+            var sql = @"
+                IF EXISTS (
+                    SELECT 1 FROM sys.columns 
+                    WHERE object_id = OBJECT_ID('Conversations') 
+                    AND name = 'CertioId'
+                )
+                BEGIN
+                    EXEC sp_rename 'Conversations.CertioId', 'SeedJuraId', 'COLUMN';
+                END
+            ";
+            migrationBuilder.Sql(sql);
         }
     }
 }

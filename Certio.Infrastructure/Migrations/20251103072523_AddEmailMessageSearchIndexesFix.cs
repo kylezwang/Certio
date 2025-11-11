@@ -10,20 +10,23 @@ namespace Certio.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateIndex(
-                name: "IX_EmailMessages_Subject",
-                table: "EmailMessages",
-                column: "Subject");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_EmailMessages_FromEmail",
-                table: "EmailMessages",
-                column: "FromEmail");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_EmailMessages_FromName",
-                table: "EmailMessages",
-                column: "FromName");
+            // Create indexes only if they don't already exist (idempotent migration)
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_EmailMessages_Subject' AND object_id = OBJECT_ID('EmailMessages'))
+                BEGIN
+                    CREATE INDEX [IX_EmailMessages_Subject] ON [EmailMessages] ([Subject]);
+                END
+                
+                IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_EmailMessages_FromEmail' AND object_id = OBJECT_ID('EmailMessages'))
+                BEGIN
+                    CREATE INDEX [IX_EmailMessages_FromEmail] ON [EmailMessages] ([FromEmail]);
+                END
+                
+                IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_EmailMessages_FromName' AND object_id = OBJECT_ID('EmailMessages'))
+                BEGIN
+                    CREATE INDEX [IX_EmailMessages_FromName] ON [EmailMessages] ([FromName]);
+                END
+            ");
         }
 
         /// <inheritdoc />

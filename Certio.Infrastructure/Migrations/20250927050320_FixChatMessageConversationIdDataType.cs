@@ -42,6 +42,15 @@ namespace Certio.Infrastructure.Migrations
                 name: "ConversationId1",
                 table: "ChatMessages");
 
+            // Clear UserId values that are GUIDs (can't convert to int)
+            // Set them to NULL since they're incompatible with int UserId
+            migrationBuilder.Sql(@"
+                UPDATE ChatMessages 
+                SET UserId = NULL 
+                WHERE UserId IS NOT NULL 
+                AND (UserId LIKE '%-%-%-%-%' OR LEN(UserId) > 10 OR ISNUMERIC(UserId) = 0)
+            ");
+
             migrationBuilder.AlterColumn<int>(
                 name: "UserId",
                 table: "ChatMessages",
@@ -50,6 +59,15 @@ namespace Certio.Infrastructure.Migrations
                 oldClrType: typeof(string),
                 oldType: "nvarchar(max)",
                 oldNullable: true);
+
+            // Clear ConversationId values that are GUIDs (can't convert to int)
+            // Delete rows with GUID ConversationIds since ConversationId is required
+            migrationBuilder.Sql(@"
+                DELETE FROM ChatMessages 
+                WHERE ConversationId LIKE '%-%-%-%-%' 
+                OR LEN(ConversationId) > 10 
+                OR ISNUMERIC(ConversationId) = 0
+            ");
 
             migrationBuilder.AlterColumn<int>(
                 name: "ConversationId",
