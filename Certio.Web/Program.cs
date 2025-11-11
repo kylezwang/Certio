@@ -474,6 +474,7 @@ builder.Services.AddHostedService<Certio.Web.Services.EmailSyncService>();
 
 // Register cache service
 builder.Services.AddSingleton<Certio.Web.Services.ICacheService, Certio.Web.Services.RedisCacheService>();
+builder.Services.AddSingleton<Certio.Web.Services.ITwoFactorSessionStore, Certio.Web.Services.DistributedTwoFactorSessionStore>();
 
 // mvc/razor/controllers + signalr
 builder.Services.AddRazorPages();
