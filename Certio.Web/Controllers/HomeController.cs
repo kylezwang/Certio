@@ -1090,7 +1090,7 @@ namespace Certio.Web.Controllers
                     // Session not available, continue without session data
                 }
 
-                TempData["Success"] = "Account created successfully! Welcome to Certio.";
+                TempData["Success"] = "Account created successfully! Welcome to Notal.";
                 
                 // Determine redirect URL based on organization type
                 if (organizationId > 0)

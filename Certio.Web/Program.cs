@@ -438,21 +438,32 @@ builder.Services.AddSession(options =>
 // 1. In-memory cache for hot data (fast, but not distributed)
 builder.Services.AddMemoryCache();
 
-// 2. Redis distributed cache for shared data across instances
-var redisConnection = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379";
-try
+// 2. Distributed cache selection
+// Use Redis ONLY when an explicit connection string is provided.
+// Otherwise use in-memory distributed cache to avoid timeouts in production.
+var redisConnection = builder.Configuration.GetConnectionString("Redis");
+var useRedis = (builder.Configuration["Caching:UseRedis"] ?? Environment.GetEnvironmentVariable("USE_REDIS")) == "true";
+
+if (!string.IsNullOrWhiteSpace(redisConnection) && (useRedis || redisConnection.Contains(".redis.cache.windows.net", StringComparison.OrdinalIgnoreCase)))
 {
-    builder.Services.AddStackExchangeRedisCache(options =>
+    try
     {
-        options.Configuration = redisConnection;
-        options.InstanceName = "Certio_";
-    });
-    Console.WriteLine($"✅ Redis cache configured: {redisConnection}");
+        builder.Services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = redisConnection;
+            options.InstanceName = "Certio_";
+        });
+        Console.WriteLine($"✅ Redis cache configured: {redisConnection}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"⚠️ Redis not available, using in-memory cache only: {ex.Message}");
+        builder.Services.AddDistributedMemoryCache();
+    }
 }
-catch (Exception ex)
+else
 {
-    Console.WriteLine($"⚠️ Redis not available, using in-memory cache only: {ex.Message}");
-    // Fallback to memory cache if Redis is not available
+    Console.WriteLine("ℹ️ Redis connection string not provided or USE_REDIS!=true. Using in-memory distributed cache.");
     builder.Services.AddDistributedMemoryCache();
 }
 
