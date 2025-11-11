@@ -152,9 +152,9 @@ public class BriefingMessageService : IBriefingMessageService
     {
         return priority switch
         {
-            "high" => "🔴",
-            "medium" => "🟡",
-            _ => "🟢"
+            "high" => "▸",
+            "medium" => "▸",
+            _ => "▸"
         };
     }
 
@@ -448,33 +448,33 @@ public class BriefingMessageService : IBriefingMessageService
         var greeting = GetGreeting();
         var firstName = (user.FirstName ?? user.Email.Split('@')[0]);
 
-        return $@"# {greeting}, {firstName}! 👋
+        return $@"# {greeting}, {firstName}!
 
 Here's your daily briefing for **{DateTime.Now:dddd, MMMM d}**:
 
-## 📊 Your Dashboard
-- **{stats.PendingTasks}** pending tasks ({stats.DueToday} due today)
-- **{stats.ActiveMatters}** active matters
-- **{stats.UnreadMessages}** unread messages
-- **{stats.RecentDocuments}** new documents (last 7 days)
+## Your Dashboard
+• **{stats.PendingTasks}** pending tasks ({stats.DueToday} due today)
+• **{stats.ActiveMatters}** active matters
+• **{stats.UnreadMessages}** unread messages
+• **{stats.RecentDocuments}** new documents (last 7 days)
 
-{(stats.DueToday > 0 ? $"⚡ You have **{stats.DueToday} task{(stats.DueToday > 1 ? "s" : "")}** due today - let's tackle them!" : "✨ No tasks due today - great time to get ahead!")}
+{(stats.DueToday > 0 ? $"▸ You have **{stats.DueToday} task{(stats.DueToday > 1 ? "s" : "")}** due today - let's tackle them!" : "✓ No tasks due today - great time to get ahead!")}
 
-💡 Click below for Notable Suggestions to optimize your workflow.";
+▸ Click below for Notable Suggestions to optimize your workflow.";
     }
 
     private string GenerateSuggestionsContent(User user, List<NotableSuggestion> suggestions)
     {
         if (!suggestions.Any())
         {
-            return "✅ Everything looks good! No urgent suggestions at this time.";
+            return "✓ Everything looks good! No urgent suggestions at this time.";
         }
 
-        var content = $"## 💡 Notable Suggestions\n\nBased on your recent activity, here are {suggestions.Count} actionable insight{(suggestions.Count > 1 ? "s" : "")}:\n\n";
+        var content = $"## Notable Suggestions\n\nBased on your recent activity, here are {suggestions.Count} actionable insight{(suggestions.Count > 1 ? "s" : "")}:\n\n";
 
         foreach (var suggestion in suggestions)
         {
-            var icon = suggestion.Priority == "high" ? "🔴" : suggestion.Priority == "medium" ? "🟡" : "🟢";
+            var icon = suggestion.Priority == "high" ? "▸" : suggestion.Priority == "medium" ? "▸" : "▸";
             content += $"{icon} **{suggestion.Title}**\n";
             content += $"   {suggestion.Description}\n";
             if (!string.IsNullOrEmpty(suggestion.ActionUrl))
