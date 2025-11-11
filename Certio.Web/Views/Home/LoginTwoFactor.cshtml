@@ -338,6 +338,7 @@
 
                 <form method="post" action="@Url.Action("VerifyLoginTwoFactor", "Home")" autocomplete="off">
                     @Html.AntiForgeryToken()
+                    <input type="hidden" name="Token" value="@Model.Token" />
                     
                     <div class="form-group">
                         <label class="form-label">Verification Method</label>
@@ -362,7 +363,7 @@
                                pattern="[0-9]{6}"
                                placeholder="Enter 6-digit code"
                                required />
-                        <small class="form-text text-muted">We sent a verification code to your email</small>
+                        <small class="form-text text-muted">We sent a verification code to @Model.Email</small>
                     </div>
 
                     <button type="submit" class="btn btn-signin">
@@ -372,6 +373,7 @@
 
                 <form method="post" action="@Url.Action("ResendLoginTwoFactor", "Home")">
                     @Html.AntiForgeryToken()
+                    <input type="hidden" name="token" value="@Model.Token" />
                     <button type="submit" class="btn btn-outline-secondary">
                         Resend Code
                     </button>

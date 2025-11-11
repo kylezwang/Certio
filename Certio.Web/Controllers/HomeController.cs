@@ -27,13 +27,7 @@ namespace Certio.Web.Controllers
         private readonly Certio.Web.Services.IChannelManagementService _channelManagementService;
         private readonly IClientContextAccessor _clientContextAccessor;
         private readonly ILogger<HomeController> _logger;
-
-        private const string TwoFactorUserIdSessionKey = "Auth:TwoFactorUserId";
-        private const string TwoFactorCodeSessionKey = "Auth:TwoFactorCode";
-        private const string TwoFactorExpirySessionKey = "Auth:TwoFactorExpiresAt";
-        private const string TwoFactorRememberMeSessionKey = "Auth:TwoFactorRememberMe";
-        private const string TwoFactorEmailSessionKey = "Auth:TwoFactorEmail";
-        private const string TwoFactorAttemptsSessionKey = "Auth:TwoFactorAttempts";
+        private readonly ITwoFactorSessionStore _twoFactorSessionStore;
 
         public HomeController(
             SignInManager<IdentityUser> signInManager, 
@@ -44,6 +38,7 @@ namespace Certio.Web.Controllers
             IJoinCodeService joinCodeService,
             Certio.Web.Services.IChannelManagementService channelManagementService,
             IClientContextAccessor clientContextAccessor,
+            ITwoFactorSessionStore twoFactorSessionStore,
             ILogger<HomeController>? logger = null)
         {
             _signInManager = signInManager;
@@ -54,6 +49,7 @@ namespace Certio.Web.Controllers
             _joinCodeService = joinCodeService;
             _channelManagementService = channelManagementService;
             _clientContextAccessor = clientContextAccessor;
+            _twoFactorSessionStore = twoFactorSessionStore;
             _logger = logger ?? NullLogger<HomeController>.Instance;
         }
 
@@ -175,7 +171,7 @@ namespace Certio.Web.Controllers
 
             var code = await _twoFactorService.GenerateVerificationCodeAsync();
             var protectedCode = _twoFactorService.ProtectCode(code);
-            var expiry = DateTime.UtcNow.AddMinutes(10);
+            var expiry = DateTimeOffset.UtcNow.AddMinutes(10);
 
             var recipientEmail = user.Email ?? normalizedEmail;
             var emailSent = await _twoFactorService.SendEmailVerificationAsync(recipientEmail, code);
@@ -187,38 +183,47 @@ namespace Certio.Web.Controllers
 
             try
             {
-                HttpContext.Session.SetString(TwoFactorUserIdSessionKey, user.Id);
-                HttpContext.Session.SetString(TwoFactorCodeSessionKey, protectedCode);
-                HttpContext.Session.SetString(TwoFactorExpirySessionKey, expiry.ToString("O", CultureInfo.InvariantCulture));
-                HttpContext.Session.SetString(TwoFactorRememberMeSessionKey, remember ? "true" : "false");
-                HttpContext.Session.SetString(TwoFactorEmailSessionKey, user.Email ?? normalizedEmail);
-                HttpContext.Session.SetString(TwoFactorAttemptsSessionKey, "0");
+                var state = new TwoFactorLoginState(
+                    UserId: user.Id,
+                    Email: recipientEmail,
+                    ProtectedCode: protectedCode,
+                    ExpiresAtUtc: expiry,
+                    RememberMe: remember,
+                    VerificationMethod: "email");
+
+                var token = await _twoFactorSessionStore.CreateAsync(state, HttpContext.RequestAborted);
+                TempData["TwoFactorInfo"] = $"We sent a verification code to {MaskEmail(recipientEmail)}";
+                return RedirectToAction(nameof(LoginTwoFactor), new { token });
             }
-            catch (InvalidOperationException)
+            catch (Exception ex)
             {
-                TempData["Error"] = "Session storage is unavailable. Two-factor authentication cannot be completed.";
+                _logger.LogError(ex, "Failed to create two-factor session for user {UserId}", user.Id);
+                TempData["Error"] = "Two-factor authentication is temporarily unavailable. Please try again.";
                 return View("Index");
             }
-
-            TempData["TwoFactorInfo"] = $"We sent a verification code to {MaskEmail(user.Email ?? normalizedEmail)}";
-            return RedirectToAction(nameof(LoginTwoFactor));
         }
 
         [HttpGet]
-        public IActionResult LoginTwoFactor()
+        public async Task<IActionResult> LoginTwoFactor(string token)
         {
-            var pendingUserId = HttpContext.Session.GetString(TwoFactorUserIdSessionKey);
-            if (string.IsNullOrWhiteSpace(pendingUserId))
+            if (string.IsNullOrWhiteSpace(token))
             {
                 TempData["Error"] = "Your verification session expired. Please sign in again.";
                 return RedirectToAction("Index");
             }
 
-            var email = HttpContext.Session.GetString(TwoFactorEmailSessionKey) ?? string.Empty;
+            var state = await _twoFactorSessionStore.GetAsync(token, HttpContext.RequestAborted);
+            if (state is null)
+            {
+                TempData["Error"] = "Your verification session expired. Please sign in again.";
+                return RedirectToAction("Index");
+            }
+
             var model = new TwoFactorVerificationViewModel
             {
-                Email = MaskEmail(email),
-                VerificationMethod = "email"
+                Email = MaskEmail(state.Email),
+                VerificationMethod = state.VerificationMethod,
+                Token = token
             };
 
             ViewBag.Info = TempData.ContainsKey("TwoFactorInfo")
@@ -240,59 +245,75 @@ namespace Certio.Web.Controllers
             if (!ModelState.IsValid)
             {
                 TempData["TwoFactorError"] = "Enter the six-digit code we sent to you.";
-                return RedirectToAction(nameof(LoginTwoFactor));
+                return RedirectToAction(nameof(LoginTwoFactor), new { token = model.Token });
             }
 
-            var pendingUserId = HttpContext.Session.GetString(TwoFactorUserIdSessionKey);
-            var protectedCode = HttpContext.Session.GetString(TwoFactorCodeSessionKey);
-            var expiryRaw = HttpContext.Session.GetString(TwoFactorExpirySessionKey);
-            var rememberRaw = HttpContext.Session.GetString(TwoFactorRememberMeSessionKey);
-            var email = HttpContext.Session.GetString(TwoFactorEmailSessionKey) ?? string.Empty;
-
-            if (string.IsNullOrWhiteSpace(pendingUserId) || string.IsNullOrWhiteSpace(protectedCode) || string.IsNullOrWhiteSpace(expiryRaw))
+            if (string.IsNullOrWhiteSpace(model.Token))
             {
                 TempData["Error"] = "Your verification session expired. Please sign in again.";
-                ClearTwoFactorSession();
                 return RedirectToAction("Index");
             }
 
-            if (!DateTime.TryParseExact(expiryRaw, "O", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var expiry))
+            TwoFactorLoginState? state;
+            try
             {
-                TempData["Error"] = "Your verification session expired. Please sign in again.";
-                ClearTwoFactorSession();
+                state = await _twoFactorSessionStore.GetAsync(model.Token, HttpContext.RequestAborted);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to read two-factor state for token {Token}", model.Token);
+                TempData["Error"] = "Two-factor verification is currently unavailable. Please sign in again.";
                 return RedirectToAction("Index");
             }
 
-            var user = await _userManager.FindByIdAsync(pendingUserId);
+            if (state is null)
+            {
+                TempData["Error"] = "Your verification session expired. Please sign in again.";
+                return RedirectToAction("Index");
+            }
+
+            if (state.IsExpired())
+            {
+                await _twoFactorSessionStore.RemoveAsync(model.Token, HttpContext.RequestAborted);
+                TempData["Error"] = "Your verification session expired. Please sign in again.";
+                return RedirectToAction("Index");
+            }
+
+            var user = await _userManager.FindByIdAsync(state.UserId);
             if (user == null)
             {
+                await _twoFactorSessionStore.RemoveAsync(model.Token, HttpContext.RequestAborted);
                 TempData["Error"] = "Your verification session expired. Please sign in again.";
-                ClearTwoFactorSession();
                 return RedirectToAction("Index");
             }
 
-            var isValid = _twoFactorService.VerifyProtectedCode(model.VerificationCode, protectedCode, expiry);
+            var isValid = _twoFactorService.VerifyProtectedCode(
+                model.VerificationCode,
+                state.ProtectedCode,
+                state.ExpiresAtUtc.UtcDateTime);
             if (!isValid)
             {
-                var attempts = 0;
-                var attemptsRaw = HttpContext.Session.GetString(TwoFactorAttemptsSessionKey);
-                if (!string.IsNullOrEmpty(attemptsRaw) && int.TryParse(attemptsRaw, out var parsedAttempts))
-                {
-                    attempts = parsedAttempts;
-                }
-                attempts++;
-                HttpContext.Session.SetString(TwoFactorAttemptsSessionKey, attempts.ToString(CultureInfo.InvariantCulture));
-
+                var attempts = state.Attempts + 1;
                 if (attempts >= 5)
                 {
                     await _userManager.AccessFailedAsync(user);
+                    await _twoFactorSessionStore.RemoveAsync(model.Token, HttpContext.RequestAborted);
                     TempData["Error"] = "Too many invalid codes. Your account was locked. Please try again later.";
-                    ClearTwoFactorSession();
                     return RedirectToAction("Index");
                 }
 
+                try
+                {
+                    var updatedState = state with { Attempts = attempts };
+                    await _twoFactorSessionStore.UpdateAsync(model.Token, updatedState, HttpContext.RequestAborted);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to update attempt count for user {UserId}", state.UserId);
+                }
+
                 TempData["TwoFactorError"] = "Invalid or expired verification code. Please try again.";
-                return RedirectToAction(nameof(LoginTwoFactor));
+                return RedirectToAction(nameof(LoginTwoFactor), new { token = model.Token });
             }
 
             await _userManager.ResetAccessFailedCountAsync(user);
@@ -306,21 +327,21 @@ namespace Certio.Web.Controllers
                 await _userManager.SetTwoFactorEnabledAsync(user, true);
             }
 
-            var rememberMe = string.Equals(rememberRaw, "true", StringComparison.OrdinalIgnoreCase);
+            var rememberMe = state.RememberMe;
             await _signInManager.SignInAsync(user, rememberMe);
 
             try
                     {
                         HttpContext.Session.SetString("UserId", user.Id);
                 HttpContext.Session.SetString("AuthTime", DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture));
-                HttpContext.Session.SetString("UserEmail", user.Email ?? email);
+                HttpContext.Session.SetString("UserEmail", user.Email ?? state.Email);
                 }
                 catch (InvalidOperationException)
                 {
                 // Session unavailable - continue
                 }
 
-            ClearTwoFactorSession();
+            await _twoFactorSessionStore.RemoveAsync(model.Token, HttpContext.RequestAborted);
             TempData.Remove("TwoFactorInfo");
             TempData.Remove("TwoFactorError");
 
@@ -354,43 +375,71 @@ namespace Certio.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ResendLoginTwoFactor()
+        public async Task<IActionResult> ResendLoginTwoFactor(string token)
         {
-            var pendingUserId = HttpContext.Session.GetString(TwoFactorUserIdSessionKey);
-            if (string.IsNullOrWhiteSpace(pendingUserId))
+            if (string.IsNullOrWhiteSpace(token))
             {
                 TempData["Error"] = "Your verification session expired. Please sign in again.";
                 return RedirectToAction("Index");
             }
 
-            var user = await _userManager.FindByIdAsync(pendingUserId);
-            if (user == null)
+            TwoFactorLoginState? state;
+            try
+            {
+                state = await _twoFactorSessionStore.GetAsync(token, HttpContext.RequestAborted);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve two-factor state for resend token {Token}", token);
+                TempData["Error"] = "Two-factor verification is currently unavailable. Please sign in again.";
+                return RedirectToAction("Index");
+            }
+
+            if (state is null)
             {
                 TempData["Error"] = "Your verification session expired. Please sign in again.";
-                ClearTwoFactorSession();
+                return RedirectToAction("Index");
+            }
+
+            var user = await _userManager.FindByIdAsync(state.UserId);
+            if (user == null)
+            {
+                await _twoFactorSessionStore.RemoveAsync(token, HttpContext.RequestAborted);
+                TempData["Error"] = "Your verification session expired. Please sign in again.";
                 return RedirectToAction("Index");
             }
 
             var code = await _twoFactorService.GenerateVerificationCodeAsync();
             var protectedCode = _twoFactorService.ProtectCode(code);
-            var expiry = DateTime.UtcNow.AddMinutes(10);
+            var expiry = DateTimeOffset.UtcNow.AddMinutes(10);
 
-            // Output code to terminal for development
-            Console.WriteLine("==========================================");
-            Console.WriteLine($"2FA Verification Code (RESEND) for {user.Email ?? string.Empty}:");
-            Console.WriteLine($"Code: {code}");
-            Console.WriteLine($"Expires: {expiry:yyyy-MM-dd HH:mm:ss} UTC");
-            Console.WriteLine("==========================================");
-            
-            // For now, just log the code instead of sending email
-            _logger.LogInformation("2FA Code regenerated for {Email}: {Code}", user.Email ?? string.Empty, code);
+            var emailSent = await _twoFactorService.SendEmailVerificationAsync(state.Email, code);
+            if (!emailSent)
+            {
+                TempData["TwoFactorError"] = "We couldn't deliver your verification code. Please try again.";
+                return RedirectToAction(nameof(LoginTwoFactor), new { token });
+            }
 
-            HttpContext.Session.SetString(TwoFactorCodeSessionKey, protectedCode);
-            HttpContext.Session.SetString(TwoFactorExpirySessionKey, expiry.ToString("O", CultureInfo.InvariantCulture));
-            HttpContext.Session.SetString(TwoFactorAttemptsSessionKey, "0");
+            try
+            {
+                var updatedState = state with
+                {
+                    ProtectedCode = protectedCode,
+                    ExpiresAtUtc = expiry,
+                    Attempts = 0
+                };
 
-            TempData["TwoFactorInfo"] = $"We sent a new verification code to {MaskEmail(user.Email ?? string.Empty)}.";
-            return RedirectToAction(nameof(LoginTwoFactor));
+                await _twoFactorSessionStore.UpdateAsync(token, updatedState, HttpContext.RequestAborted);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to update two-factor session for user {UserId}", state.UserId);
+                TempData["Error"] = "We couldn't resend your verification code. Please sign in again.";
+                return RedirectToAction("Index");
+            }
+
+            TempData["TwoFactorInfo"] = $"We sent a new verification code to {MaskEmail(state.Email)}.";
+            return RedirectToAction(nameof(LoginTwoFactor), new { token });
         }
 
         public IActionResult Register(int? step)
@@ -1128,23 +1177,6 @@ namespace Certio.Web.Controllers
             
             var random = new Random();
             return colors[random.Next(colors.Length)];
-        }
-
-        private void ClearTwoFactorSession()
-        {
-            try
-            {
-                HttpContext.Session.Remove(TwoFactorUserIdSessionKey);
-                HttpContext.Session.Remove(TwoFactorCodeSessionKey);
-                HttpContext.Session.Remove(TwoFactorExpirySessionKey);
-                HttpContext.Session.Remove(TwoFactorRememberMeSessionKey);
-                HttpContext.Session.Remove(TwoFactorEmailSessionKey);
-                HttpContext.Session.Remove(TwoFactorAttemptsSessionKey);
-            }
-            catch (InvalidOperationException)
-            {
-                // Session unavailable; nothing to clear
-            }
         }
 
         private static string MaskEmail(string email)

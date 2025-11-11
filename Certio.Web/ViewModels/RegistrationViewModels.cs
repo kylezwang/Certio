@@ -20,6 +20,9 @@ namespace Certio.Web.ViewModels
         [Required(ErrorMessage = "Verification code is required")]
         [StringLength(6, MinimumLength = 6, ErrorMessage = "Verification code must be 6 digits")]
         public string VerificationCode { get; set; } = "";
+
+        [Required]
+        public string Token { get; set; } = "";
         
         public string Email { get; set; } = "";
         public string PhoneNumber { get; set; } = "";

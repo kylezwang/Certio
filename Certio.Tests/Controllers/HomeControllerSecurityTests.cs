@@ -16,6 +16,7 @@ using Xunit;
 using System.Security.Claims;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Certio.Tests.Controllers;
 
@@ -43,7 +44,7 @@ public class HomeControllerSecurityTests : IDisposable
             EmailConfirmed = true
         };
 
-        var controllerSetup = CreateController(twoFactorServiceMockSetup: out var twoFactorServiceMock, userManagerMockSetup: out var userManagerMock, signInManagerMockSetup: out var signInManagerMock);
+        var controllerSetup = CreateController(out var twoFactorServiceMock, out var twoFactorSessionStoreMock, out var userManagerMock, out var signInManagerMock);
         var controller = controllerSetup.Controller;
         var httpContext = controllerSetup.HttpContext;
 
@@ -57,19 +58,27 @@ public class HomeControllerSecurityTests : IDisposable
         twoFactorServiceMock.Setup(s => s.SendEmailVerificationAsync(user.Email!, "123456"))
             .ReturnsAsync(true);
 
+        TwoFactorLoginState? capturedState = null;
+        twoFactorSessionStoreMock.Setup(s => s.CreateAsync(It.IsAny<TwoFactorLoginState>(), It.IsAny<CancellationToken>()))
+            .Callback<TwoFactorLoginState, CancellationToken>((state, _) => capturedState = state)
+            .ReturnsAsync("token-123");
+
         // Act
         var result = await controller.Login(user.Email!, "CorrectHorseBatteryStaple", remember: true);
 
         // Assert
         var redirect = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(HomeController.LoginTwoFactor), redirect.ActionName);
+        Assert.Equal("token-123", redirect.RouteValues?["token"]);
 
-        Assert.Equal(user.Id, httpContext.Session.GetString("Auth:TwoFactorUserId"));
-        Assert.Equal("protected-123456", httpContext.Session.GetString("Auth:TwoFactorCode"));
-        Assert.Equal(user.Email, httpContext.Session.GetString("Auth:TwoFactorEmail"));
-        Assert.Equal("0", httpContext.Session.GetString("Auth:TwoFactorAttempts"));
+        Assert.NotNull(capturedState);
+        Assert.Equal(user.Id, capturedState!.UserId);
+        Assert.Equal(user.Email, capturedState.Email);
+        Assert.Equal("protected-123456", capturedState.ProtectedCode);
+        Assert.True(capturedState.RememberMe);
 
         twoFactorServiceMock.Verify(s => s.SendEmailVerificationAsync(user.Email!, "123456"), Times.Once);
+        twoFactorSessionStoreMock.Verify(s => s.CreateAsync(It.IsAny<TwoFactorLoginState>(), It.IsAny<CancellationToken>()), Times.Once);
         signInManagerMock.Verify(m => m.SignInAsync(It.IsAny<IdentityUser>(), It.IsAny<bool>(), null), Times.Never);
     }
 
@@ -85,19 +94,27 @@ public class HomeControllerSecurityTests : IDisposable
             EmailConfirmed = false
         };
 
-        var controllerSetup = CreateController(twoFactorServiceMockSetup: out var twoFactorServiceMock, userManagerMockSetup: out var userManagerMock, signInManagerMockSetup: out var signInManagerMock);
+        var controllerSetup = CreateController(out var twoFactorServiceMock, out var twoFactorSessionStoreMock, out var userManagerMock, out var signInManagerMock);
         var controller = controllerSetup.Controller;
         var httpContext = controllerSetup.HttpContext;
 
-        var expiry = DateTime.UtcNow.AddMinutes(10);
-        httpContext.Session.SetString("Auth:TwoFactorUserId", user.Id);
-        httpContext.Session.SetString("Auth:TwoFactorCode", "protected-123456");
-        httpContext.Session.SetString("Auth:TwoFactorExpiresAt", expiry.ToString("O"));
-        httpContext.Session.SetString("Auth:TwoFactorRememberMe", "true");
-        httpContext.Session.SetString("Auth:TwoFactorEmail", user.Email!);
-        httpContext.Session.SetString("Auth:TwoFactorAttempts", "0");
+        var expiry = DateTimeOffset.UtcNow.AddMinutes(10);
 
-        twoFactorServiceMock.Setup(s => s.VerifyProtectedCode("123456", "protected-123456", expiry))
+        var state = new TwoFactorLoginState(
+            user.Id,
+            user.Email!,
+            "protected-123456",
+            expiry,
+            true,
+            "email",
+            0);
+
+        twoFactorSessionStoreMock.Setup(s => s.GetAsync("token-123", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(state);
+        twoFactorSessionStoreMock.Setup(s => s.RemoveAsync("token-123", It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        twoFactorServiceMock.Setup(s => s.VerifyProtectedCode("123456", "protected-123456", expiry.UtcDateTime))
             .Returns(true);
 
         userManagerMock.Setup(m => m.FindByIdAsync(user.Id)).ReturnsAsync(user);
@@ -105,7 +122,7 @@ public class HomeControllerSecurityTests : IDisposable
         userManagerMock.Setup(m => m.SetTwoFactorEnabledAsync(user, true)).ReturnsAsync(IdentityResult.Success);
         userManagerMock.Setup(m => m.UpdateAsync(user)).ReturnsAsync(IdentityResult.Success);
 
-        var model = new TwoFactorVerificationViewModel { VerificationCode = "123456" };
+        var model = new TwoFactorVerificationViewModel { VerificationCode = "123456", Token = "token-123" };
 
         // Act
         var result = await controller.VerifyLoginTwoFactor(model);
@@ -115,7 +132,6 @@ public class HomeControllerSecurityTests : IDisposable
         Assert.Equal("Index", redirect.ActionName);
         Assert.Equal("Matter", redirect.ControllerName);
 
-        Assert.Null(httpContext.Session.GetString("Auth:TwoFactorUserId"));
         Assert.NotNull(httpContext.Session.GetString("UserId"));
         Assert.Equal(user.Id, httpContext.Session.GetString("UserId"));
         Assert.Equal(user.Email, httpContext.Session.GetString("UserEmail"));
@@ -123,6 +139,7 @@ public class HomeControllerSecurityTests : IDisposable
         signInManagerMock.Verify(m => m.SignInAsync(user, true, null), Times.Once);
         userManagerMock.Verify(m => m.SetTwoFactorEnabledAsync(user, true), Times.Once);
         userManagerMock.Verify(m => m.UpdateAsync(user), Times.Once);
+        twoFactorSessionStoreMock.Verify(s => s.RemoveAsync("token-123", It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -137,20 +154,33 @@ public class HomeControllerSecurityTests : IDisposable
             EmailConfirmed = true
         };
 
-        var controllerSetup = CreateController(twoFactorServiceMockSetup: out var twoFactorServiceMock, userManagerMockSetup: out var userManagerMock, signInManagerMockSetup: out _);
+        var controllerSetup = CreateController(out var twoFactorServiceMock, out var twoFactorSessionStoreMock, out var userManagerMock, out _);
         var controller = controllerSetup.Controller;
         var httpContext = controllerSetup.HttpContext;
 
-        var expiry = DateTime.UtcNow.AddMinutes(10);
-        httpContext.Session.SetString("Auth:TwoFactorUserId", user.Id);
-        httpContext.Session.SetString("Auth:TwoFactorCode", "protected-123456");
-        httpContext.Session.SetString("Auth:TwoFactorExpiresAt", expiry.ToString("O"));
-        httpContext.Session.SetString("Auth:TwoFactorAttempts", "0");
+        var expiry = DateTimeOffset.UtcNow.AddMinutes(10);
+
+        var state = new TwoFactorLoginState(
+            user.Id,
+            user.Email!,
+            "protected-123456",
+            expiry,
+            false,
+            "email",
+            0);
+
+        twoFactorSessionStoreMock.Setup(s => s.GetAsync("token-123", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(state);
+
+        TwoFactorLoginState? capturedUpdate = null;
+        twoFactorSessionStoreMock.Setup(s => s.UpdateAsync("token-123", It.IsAny<TwoFactorLoginState>(), It.IsAny<CancellationToken>()))
+            .Callback<string, TwoFactorLoginState, CancellationToken>((_, updated, _) => capturedUpdate = updated)
+            .Returns(Task.CompletedTask);
 
         userManagerMock.Setup(m => m.FindByIdAsync(user.Id)).ReturnsAsync(user);
-        twoFactorServiceMock.Setup(s => s.VerifyProtectedCode("111111", "protected-123456", expiry)).Returns(false);
+        twoFactorServiceMock.Setup(s => s.VerifyProtectedCode("111111", "protected-123456", expiry.UtcDateTime)).Returns(false);
 
-        var model = new TwoFactorVerificationViewModel { VerificationCode = "111111" };
+        var model = new TwoFactorVerificationViewModel { VerificationCode = "111111", Token = "token-123" };
 
         // Act
         var result = await controller.VerifyLoginTwoFactor(model);
@@ -158,11 +188,14 @@ public class HomeControllerSecurityTests : IDisposable
         // Assert
         var redirect = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(HomeController.LoginTwoFactor), redirect.ActionName);
-        Assert.Equal("1", httpContext.Session.GetString("Auth:TwoFactorAttempts"));
+        Assert.Equal("token-123", redirect.RouteValues?["token"]);
+        Assert.NotNull(capturedUpdate);
+        Assert.Equal(1, capturedUpdate!.Attempts);
         userManagerMock.Verify(m => m.AccessFailedAsync(It.IsAny<IdentityUser>()), Times.Never);
+        twoFactorSessionStoreMock.Verify(s => s.UpdateAsync("token-123", It.IsAny<TwoFactorLoginState>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
-    private ControllerSetup CreateController(out Mock<ITwoFactorService> twoFactorServiceMockSetup, out Mock<UserManager<IdentityUser>> userManagerMockSetup, out Mock<SignInManager<IdentityUser>> signInManagerMockSetup)
+    private ControllerSetup CreateController(out Mock<ITwoFactorService> twoFactorServiceMockSetup, out Mock<ITwoFactorSessionStore> twoFactorSessionStoreMockSetup, out Mock<UserManager<IdentityUser>> userManagerMockSetup, out Mock<SignInManager<IdentityUser>> signInManagerMockSetup)
     {
         var userStore = new Mock<IUserStore<IdentityUser>>();
         var identityOptions = Options.Create(new IdentityOptions());
@@ -207,6 +240,7 @@ public class HomeControllerSecurityTests : IDisposable
 
         var twoFactorServiceMock = new Mock<ITwoFactorService>();
         var briefingServiceMock = new Mock<Certio.Web.Services.IBriefingMessageService>();
+        var twoFactorSessionStoreMock = new Mock<ITwoFactorSessionStore>();
 
         var joinCodeService = new Mock<IJoinCodeService>();
         var channelManagementService = new Mock<IChannelManagementService>();
@@ -220,7 +254,8 @@ public class HomeControllerSecurityTests : IDisposable
             _context,
             joinCodeService.Object,
             channelManagementService.Object,
-            clientContextAccessor.Object);
+            clientContextAccessor.Object,
+            twoFactorSessionStoreMock.Object);
 
         var httpContext = CreateHttpContextWithSession();
         contextAccessor.Setup(a => a.HttpContext).Returns(httpContext);
@@ -229,6 +264,7 @@ public class HomeControllerSecurityTests : IDisposable
         controller.TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>());
 
         twoFactorServiceMockSetup = twoFactorServiceMock;
+        twoFactorSessionStoreMockSetup = twoFactorSessionStoreMock;
         userManagerMockSetup = userManagerMock;
         signInManagerMockSetup = signInManagerMock;
 
