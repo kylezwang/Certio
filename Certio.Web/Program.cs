@@ -97,32 +97,77 @@ static void ValidateProductionConfiguration(IConfiguration configuration, IWebHo
 SetupEnvironmentVariables();
 
 // Smart database selection - use local SQL Server by default for reliability
-static async Task<string> GetConnectionStringAsync(IConfiguration configuration)
+static async Task<string> GetConnectionStringAsync(IConfiguration configuration, IWebHostEnvironment environment)
 {
     // Check if user explicitly wants to use Azure SQL
     var useAzureSql = Environment.GetEnvironmentVariable("USE_AZURE_SQL");
-    if (useAzureSql == "true" && await HasInternetConnectivityAsync())
+    if (useAzureSql == "true")
     {
-        Console.WriteLine("🌐 Using Azure SQL Database (explicitly requested)");
-        return configuration.GetConnectionString("DefaultConnection") ?? 
-               throw new InvalidOperationException("Azure SQL connection string not found");
-    }
-    else
-    {
-        Console.WriteLine("📱 Using local SQL Server (default)");
-        // Start local SQL Server if not running
-        await EnsureLocalSqlServerRunningAsync();
-        var localPassword = Environment.GetEnvironmentVariable("SQL_PASSWORD");
-        if (string.IsNullOrEmpty(localPassword))
+        // In production, trust the connection string is correct and skip connectivity check
+        if (environment.IsProduction())
         {
-            throw new InvalidOperationException("SQL_PASSWORD environment variable is required for local development");
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new InvalidOperationException("Azure SQL connection string (DefaultConnection) not found in production. Check your Azure App Service connection strings.");
+            }
+            
+            // If connection string contains ${DB_PASSWORD} placeholder, replace it with actual password
+            var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
+            if (!string.IsNullOrWhiteSpace(dbPassword) && connectionString.Contains("${DB_PASSWORD}"))
+            {
+                connectionString = connectionString.Replace("${DB_PASSWORD}", dbPassword);
+                Console.WriteLine("🔧 Replaced ${DB_PASSWORD} placeholder in connection string");
+            }
+            
+            Console.WriteLine("🌐 Using Azure SQL Database (production)");
+            return connectionString;
         }
         
-        return $"Server=localhost,1433;Database=CertioLocal;User Id=sa;Password={localPassword};TrustServerCertificate=true;";
+        // In development, optionally check connectivity but don't fail if check fails
+        if (await HasInternetConnectivityAsync())
+        {
+            var devConnectionString = configuration.GetConnectionString("DefaultConnection");
+            if (string.IsNullOrWhiteSpace(devConnectionString))
+            {
+                throw new InvalidOperationException("Azure SQL connection string not found");
+            }
+            
+            // Replace password placeholder if needed
+            var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
+            if (!string.IsNullOrWhiteSpace(dbPassword) && devConnectionString.Contains("${DB_PASSWORD}"))
+            {
+                devConnectionString = devConnectionString.Replace("${DB_PASSWORD}", dbPassword);
+            }
+            
+            Console.WriteLine("🌐 Using Azure SQL Database (explicitly requested)");
+            return devConnectionString;
+        }
+        else
+        {
+            Console.WriteLine("⚠️ Azure SQL connectivity check failed, falling back to local SQL Server");
+        }
     }
+    
+    // Fall back to local SQL Server (development only)
+    if (environment.IsProduction())
+    {
+        throw new InvalidOperationException("USE_AZURE_SQL must be set to 'true' in production. Local SQL Server is not available in Azure.");
+    }
+    
+    Console.WriteLine("📱 Using local SQL Server (default)");
+    // Start local SQL Server if not running
+    await EnsureLocalSqlServerRunningAsync();
+    var localPassword = Environment.GetEnvironmentVariable("SQL_PASSWORD");
+    if (string.IsNullOrEmpty(localPassword))
+    {
+        throw new InvalidOperationException("SQL_PASSWORD environment variable is required for local development");
+    }
+    
+    return $"Server=localhost,1433;Database=CertioLocal;User Id=sa;Password={localPassword};TrustServerCertificate=true;";
 }
 
-// Check if Azure SQL database is actually accessible
+// Check if Azure SQL database is actually accessible (development only)
 static async Task<bool> HasInternetConnectivityAsync()
 {
     try
@@ -138,15 +183,17 @@ static async Task<bool> HasInternetConnectivityAsync()
             return false;
         }
         
-        // Now try to connect to Azure SQL with a very short timeout
+        // Try to get connection string from configuration or environment
         var azureConnectionString = Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTION_STRING");
         if (string.IsNullOrEmpty(azureConnectionString))
         {
-            return false;
+            // If not in env var, try to get from DefaultConnection (for development)
+            return false; // Skip connectivity check if connection string not explicitly provided
         }
         
+        // Try to connect to Azure SQL with a very short timeout
         using var connection = new Microsoft.Data.SqlClient.SqlConnection(azureConnectionString);
-        
+        connection.ConnectionTimeout = 3;
         await connection.OpenAsync();
         return true;
     }
@@ -361,8 +408,11 @@ builder.Services.AddHttpContextAccessor();
 // Register audit interceptor as singleton
 builder.Services.AddSingleton<Certio.Infrastructure.Interceptors.AuditInterceptor>();
 
+// Validate production configuration before proceeding
+ValidateProductionConfiguration(builder.Configuration, builder.Environment);
+
 // Smart database selection based on internet connectivity
-var connectionString = await GetConnectionStringAsync(builder.Configuration);
+var connectionString = await GetConnectionStringAsync(builder.Configuration, builder.Environment);
 builder.Services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
 {
     var interceptor = serviceProvider.GetRequiredService<Certio.Infrastructure.Interceptors.AuditInterceptor>();
