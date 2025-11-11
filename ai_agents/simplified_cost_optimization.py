@@ -161,8 +161,15 @@ class SimplifiedModelSelector:
 class TaskComplexityAnalyzer:
     """Enhanced task complexity analyzer for better model selection"""
     
-    def analyze_task(self, prompt: str, context_length: int = 0, user_type: str = "Client") -> TaskComplexity:
-        """Analyze task complexity with improved logic"""
+    def analyze_task(self, prompt: str, context_length: int = 0, user_type: str = "Client", force_mini: bool = False) -> TaskComplexity:
+        """Analyze task complexity with improved logic
+        
+        Args:
+            prompt: The user's prompt text
+            context_length: Length of conversation context
+            user_type: Type of user (Client, Lawyer, etc.)
+            force_mini: If True, force complexity score < 0.5 to use gpt-4o-mini
+        """
         
         # Enhanced complexity indicators
         complexity_indicators = {
@@ -214,6 +221,11 @@ class TaskComplexityAnalyzer:
         # Base complexity from indicators
         total_indicators = reasoning_count + creativity_count + analysis_count + legal_count + technical_count
         complexity_score = min(total_indicators / 8.0, 1.0)  # Normalize to 0-1
+        
+        # Force mini mode: cap complexity at 0.4 to ensure gpt-4o-mini is used
+        if force_mini and complexity_score >= 0.5:
+            logger.info(f"Force mini mode enabled: reducing complexity score from {complexity_score} to 0.4")
+            complexity_score = 0.4
         
         # Adjust based on prompt length
         if len(prompt) > 500:
@@ -355,6 +367,6 @@ usage_tracker = UsageTracker()
 cache_manager = IntelligentCacheManager()
 task_analyzer = TaskComplexityAnalyzer()
 
-def analyze_task(prompt: str, context_length: int = 0, user_type: str = "Client") -> TaskComplexity:
+def analyze_task(prompt: str, context_length: int = 0, user_type: str = "Client", force_mini: bool = False) -> TaskComplexity:
     """Convenience function for task analysis"""
-    return task_analyzer.analyze_task(prompt, context_length, user_type)
+    return task_analyzer.analyze_task(prompt, context_length, user_type, force_mini)

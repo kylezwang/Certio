@@ -55,6 +55,7 @@ namespace Certio.Web.Controllers
             ViewBag.CurrentUserName = $"{user.FirstName} {user.LastName}";
             ViewBag.CurrentUserInitials = $"{user.FirstName[0]}{user.LastName[0]}".ToUpper();
             ViewBag.CurrentUserEmail = user.Email ?? "";
+            ViewBag.UserTimeZone = user.TimeZone ?? "America/New_York"; // Pass user's selected timezone
 
             // Get organization name
             var org = await _context.Organizations
@@ -538,6 +539,7 @@ namespace Certio.Web.Controllers
             ViewBag.CurrentUserName = $"{user.FirstName} {user.LastName}";
             ViewBag.CurrentUserInitials = $"{user.FirstName[0]}{user.LastName[0]}".ToUpper();
             ViewBag.CurrentUserEmail = user.Email ?? "";
+            ViewBag.UserTimeZone = user.TimeZone ?? "America/New_York"; // Pass user's selected timezone
 
             return PartialView("~/Views/Matter/_MatterCalendar.cshtml");
         }

@@ -20,16 +20,16 @@
     </div>
 
     <!-- Search and Filters -->
-    <div class="row mb-4">
-        <div class="col-md-8">
+    <div class="row mb-4 g-2">
+        <div class="col-md-6 col-lg-7">
             <div class="search-container">
                 <i class="fas fa-search"></i>
-                <input type="text" class="form-control" placeholder="Search by name or role..." />
+                <input type="text" class="form-control" id="teamSearchInput" placeholder="Search by name or role..." />
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="filter-buttons">
-                <div class="dropdown d-inline-block me-2">
+        <div class="col-md-6 col-lg-5">
+            <div class="filter-buttons d-flex justify-content-end" style="flex-wrap: nowrap; gap: 0.375rem;">
+                <div class="dropdown d-inline-block">
                     <button class="filter-button dropdown-toggle" type="button" id="teamsFilterBtn" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-filter"></i>
                         <span id="teamsFilterLabel">All Team Members</span>
@@ -94,8 +94,8 @@
                                 _ => "bg-secondary text-white"
                             };
                             
-                            <a href="/Client/@ViewBag.OrganizationId/Matter/@matter.Id" class="text-decoration-none" style="flex: 0 0 14rem;">
-                                <div class="card matter-folder-card border-0 h-100">
+                            <div class="position-relative" style="flex: 0 0 14rem;" data-matter-id="@matter.Id" data-matter-title="@matter.Title" onclick="handleMatterFolderFilter(event, @matter.Id)">
+                                <div class="card matter-folder-card border-0 h-100" style="cursor: pointer;">
                                     <div class="card-body">
                                         <div class="matter-folder-content">
                                             <div class="me-3">
@@ -108,13 +108,13 @@
                                                     <span class="badge @statusBadgeClass" style="font-size: 0.65rem; padding: 0.2rem 0.5rem; line-height: 1.3;">@matter.Status</span>
                                                 </div>
                                             </div>
-                                            <div class="ms-2">
+                                            <div class="ms-2 matter-folder-menu-btn" onclick="event.stopPropagation(); window.location.href='/Client/@ViewBag.OrganizationId/Matter/Details/@matter.Id';" style="cursor: pointer; z-index: 10; position: relative;">
                                                 <i class="fas fa-ellipsis-v text-muted"></i>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </a>
+                            </div>
                         }
                     }
                     else
@@ -356,11 +356,78 @@
             // Initialize filters
             applyTeamFilter('all');
             applyTeamDateRange('all-time', true);
+            
+            // Filter by matter
+            let currentMatterFilter = null;
+            
+            function handleMatterFolderFilter(event, matterId) {
+                // Don't filter if clicking on the menu button (three dots)
+                if (event.target.closest('.matter-folder-menu-btn')) {
+                    return;
+                }
+                
+                event.preventDefault();
+                event.stopPropagation();
+                
+                // Toggle filter: if already filtering by this matter, clear filter
+                if (currentMatterFilter === matterId) {
+                    currentMatterFilter = null;
+                    // Remove active state from all matter folders
+                    document.querySelectorAll('.matter-folder-card').forEach(card => {
+                        card.classList.remove('active');
+                    });
+                } else {
+                    currentMatterFilter = matterId;
+                    // Add active state to clicked folder
+                    const clickedCard = event.currentTarget.querySelector('.matter-folder-card');
+                    document.querySelectorAll('.matter-folder-card').forEach(card => {
+                        card.classList.remove('active');
+                    });
+                    if (clickedCard) {
+                        clickedCard.classList.add('active');
+                    }
+                }
+                
+                // Filter team members by matter
+                filterTeamMembersByMatter(currentMatterFilter);
+            }
+            
+            function filterTeamMembersByMatter(matterId) {
+                const teamMemberCards = Array.from(document.querySelectorAll('.team-member-card'));
+                const teamSections = Array.from(document.querySelectorAll('.team-section'));
+                
+                teamSections.forEach(section => {
+                    const cards = Array.from(section.querySelectorAll('.team-member-card'));
+                    let visibleCount = 0;
+                    
+                    cards.forEach(card => {
+                        const cardMatterIds = card.dataset.matterIds ? card.dataset.matterIds.split(',').map(id => parseInt(id.trim())) : [];
+                        
+                        if (!matterId) {
+                            // Show all team members
+                            card.style.display = '';
+                            visibleCount++;
+                        } else if (cardMatterIds.includes(matterId)) {
+                            card.style.display = '';
+                            visibleCount++;
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                    
+                    section.style.display = visibleCount > 0 ? '' : 'none';
+                });
+            }
         });
     </script>
 }
 
 <style>
+    .matter-folder-card.active {
+        background-color: #f0f4f8 !important;
+        border: 2px solid #3d1019 !important;
+    }
+    
     .hover-shadow {
         transition: box-shadow 0.2s ease-in-out;
     }

@@ -52,7 +52,7 @@ public class EmailWebhookControllerTests : IDisposable
         var controller = CreateController(configuration);
 
         // Act
-        var result = await controller.GmailWebhook(new { });
+        var result = await controller.GmailWebhook(new { }, CancellationToken.None);
 
         // Assert
         Assert.IsType<UnauthorizedResult>(result);
@@ -102,7 +102,7 @@ public class EmailWebhookControllerTests : IDisposable
         };
 
         // Act
-        var result = await controller.GmailWebhook(payload);
+        var result = await controller.GmailWebhook(payload, CancellationToken.None);
 
         // Assert
         Assert.IsType<OkResult>(result);
@@ -189,12 +189,18 @@ public class EmailWebhookControllerTests : IDisposable
 
     private EmailWebhookController CreateController(IConfiguration configuration, Action<HttpContext>? httpContextSetup = null)
     {
+        var cacheServiceMock = new Mock<Certio.Web.Services.ICacheService>();
+        var environmentMock = new Mock<Microsoft.AspNetCore.Hosting.IWebHostEnvironment>();
+        environmentMock.Setup(e => e.EnvironmentName).Returns("Development");
+        
         var controller = new EmailWebhookController(
             _context,
             _emailServiceMock.Object,
             _emailToDmServiceMock.Object,
+            cacheServiceMock.Object,
             configuration,
-            _loggerMock.Object);
+            _loggerMock.Object,
+            environmentMock.Object);
 
         var httpContext = new DefaultHttpContext();
         httpContextSetup?.Invoke(httpContext);

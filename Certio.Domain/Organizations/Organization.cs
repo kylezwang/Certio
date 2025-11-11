@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Certio.Domain.Users;
 using Certio.Domain.Teams;
+using System.Text.Json;
 
 namespace Certio.Domain.Organizations
 {
@@ -66,6 +67,64 @@ namespace Certio.Domain.Organizations
         {
             return UserOrganizations.FirstOrDefault(uo => uo.UserId == userId && uo.IsActive);
         }
+
+        // AI Model Tier helpers
+        public AIModelTier GetAIModelTier()
+        {
+            if (string.IsNullOrWhiteSpace(Settings))
+                return AIModelTier.Auto; // Default to Auto
+
+            try
+            {
+                var settings = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(Settings);
+                if (settings != null && settings.TryGetValue("AIModelTier", out var tierElement))
+                {
+                    if (tierElement.ValueKind == JsonValueKind.String)
+                    {
+                        var tierStr = tierElement.GetString();
+                        if (Enum.TryParse<AIModelTier>(tierStr, true, out var tier))
+                            return tier;
+                    }
+                    else if (tierElement.ValueKind == JsonValueKind.Number)
+                    {
+                        var tierInt = tierElement.GetInt32();
+                        if (Enum.IsDefined(typeof(AIModelTier), tierInt))
+                            return (AIModelTier)tierInt;
+                    }
+                }
+            }
+            catch
+            {
+                // If parsing fails, return default
+            }
+
+            return AIModelTier.Auto;
+        }
+
+        public void SetAIModelTier(AIModelTier tier)
+        {
+            Dictionary<string, object> settings;
+            
+            if (string.IsNullOrWhiteSpace(Settings))
+            {
+                settings = new Dictionary<string, object>();
+            }
+            else
+            {
+                try
+                {
+                    settings = JsonSerializer.Deserialize<Dictionary<string, object>>(Settings) 
+                        ?? new Dictionary<string, object>();
+                }
+                catch
+                {
+                    settings = new Dictionary<string, object>();
+                }
+            }
+
+            settings["AIModelTier"] = tier.ToString();
+            Settings = JsonSerializer.Serialize(settings);
+        }
     }
     
     public enum OrganizationType
@@ -74,5 +133,13 @@ namespace Certio.Domain.Organizations
         LawFirm,      // Law firm organization
         Government,   // Government agency
         NonProfit     // Non-profit organization
+    }
+
+    public enum AIModelTier
+    {
+        Auto = 0,      // Dynamic selection based on complexity (current behavior)
+        Basic = 1,     // gpt-4o-mini
+        Advanced = 2,  // gpt-4o
+        Premium = 3    // gpt-5
     }
 }

@@ -6,6 +6,9 @@ using System.Security.Claims;
 using Certio.Domain.Services;
 using Certio.Web.Security;
 using Certio.Domain.Users;
+using Certio.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Certio.Web.Controllers.Api;
 
@@ -16,10 +19,14 @@ namespace Certio.Web.Controllers.Api;
 public class ChatApiController : Controller
 {
     private readonly IChatService _chatService;
+    private readonly ApplicationDbContext _context;
+    private readonly ILogger<ChatApiController> _logger;
 
-    public ChatApiController(IChatService chatService)
+    public ChatApiController(IChatService chatService, ApplicationDbContext context, ILogger<ChatApiController> logger)
     {
         _chatService = chatService;
+        _context = context;
+        _logger = logger;
     }
 
     [HttpGet("channel/{channelId}/messages")]
@@ -27,6 +34,31 @@ public class ChatApiController : Controller
     {
         try
         {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new { success = false, error = "User not authenticated" });
+            }
+
+            // Get conversation to determine organization
+            var conversation = await _context.Conversations
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == channelId);
+            
+            if (conversation == null)
+            {
+                return NotFound(new { success = false, error = "Channel not found." });
+            }
+
+            // Security: Verify user has access to this channel
+            var hasAccess = await _chatService.CanUserAccessConversationAsync(channelId, userId, conversation.OrganizationId);
+            if (!hasAccess)
+            {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to access channel {ChannelId} without permission in org {OrgId}", 
+                    userId, channelId, conversation.OrganizationId);
+                return Forbid();
+            }
+
             var messages = await _chatService.GetChannelMessagesAsync(channelId);
             
             // Transform to match expected format
@@ -76,7 +108,8 @@ public class ChatApiController : Controller
         }
         catch (Exception ex)
         {
-            return Json(new { success = false, error = ex.Message });
+            _logger.LogError(ex, "Error retrieving channel messages for channel {ChannelId}", channelId);
+            return Json(new { success = false, error = "An error occurred while retrieving messages." });
         }
     }
 }

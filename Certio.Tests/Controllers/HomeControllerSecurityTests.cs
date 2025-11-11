@@ -206,6 +206,7 @@ public class HomeControllerSecurityTests : IDisposable
             confirmation.Object);
 
         var twoFactorServiceMock = new Mock<ITwoFactorService>();
+        var briefingServiceMock = new Mock<Certio.Web.Services.IBriefingMessageService>();
 
         var joinCodeService = new Mock<IJoinCodeService>();
         var channelManagementService = new Mock<IChannelManagementService>();
@@ -215,6 +216,7 @@ public class HomeControllerSecurityTests : IDisposable
             signInManagerMock.Object,
             userManagerMock.Object,
             twoFactorServiceMock.Object,
+            briefingServiceMock.Object,
             _context,
             joinCodeService.Object,
             channelManagementService.Object,

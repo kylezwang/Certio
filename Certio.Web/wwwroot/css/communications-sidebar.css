@@ -1019,3 +1019,23 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
 }
 
+/* Inbox Card in Right Sidebar - Match Communications page styling */
+.comms-inbox-card {
+    transition: all 0.2s ease;
+}
+
+.comms-inbox-card:hover {
+    background: #f3f4f6 !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.comms-inbox-card .member-avatar {
+    transition: all 0.2s ease;
+}
+
+.comms-inbox-card:hover .member-avatar {
+    background: #6d2932 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+

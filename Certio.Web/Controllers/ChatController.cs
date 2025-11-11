@@ -52,7 +52,8 @@ public class ChatController : Controller
         }
         catch (Exception ex)
         {
-            return Json(new { success = false, error = ex.Message });
+            _logger.LogError(ex, "Error creating conversation in org {OrgId}", orgId);
+            return Json(new { success = false, error = "An error occurred while creating the conversation." });
         }
     }
 
@@ -68,15 +69,35 @@ public class ChatController : Controller
         }
         catch (Exception ex)
         {
-            return Json(new { success = false, error = ex.Message });
+            _logger.LogError(ex, "Error getting AI conversations for user in org {OrgId}", orgId);
+            return Json(new { success = false, error = "An error occurred while retrieving conversations." });
         }
     }
 
     [HttpGet("Conversation/{id}")]
     public async Task<IActionResult> Conversation(int orgId, int id)
     {
+        try
+        {
+            var userId = GetCurrentUserId();
+            
+            // Security: Verify user has access to this conversation
+            var hasAccess = await _chatService.CanUserAccessConversationAsync(id, userId, orgId);
+            if (!hasAccess)
+            {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to access unauthorized conversation {ConversationId} in org {OrgId}", 
+                    userId, id, orgId);
+                return Forbid();
+            }
+            
         var messages = await _chatService.GetConversationMessagesAsync(id);
         return View(messages);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading conversation {ConversationId}", id);
+            return StatusCode(500, "An error occurred while loading the conversation.");
+        }
     }
 
     [HttpPost("CreateConversation")]
@@ -99,34 +120,89 @@ public class ChatController : Controller
         }
         catch (Exception ex)
         {
-            return Json(new { success = false, error = ex.Message });
+            _logger.LogError(ex, "Error creating conversation in org {OrgId}", orgId);
+            return Json(new { success = false, error = "An error occurred while creating the conversation." });
         }
     }
 
     [HttpPost("SendMessage")]
     public async Task<IActionResult> SendMessage(int orgId, int conversationId, string content, string messageType = "Text")
     {
+        try
+    {
         var userId = GetCurrentUserId();
         var userType = GetCurrentUserType();
+            
+            // Security: Verify user has access to this conversation
+            var hasAccess = await _chatService.CanUserAccessConversationAsync(conversationId, userId, orgId);
+            if (!hasAccess)
+            {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to send message to unauthorized conversation {ConversationId} in org {OrgId}", 
+                    userId, conversationId, orgId);
+                return Json(new { success = false, error = "Access denied." });
+            }
         
         await _chatService.SendMessageAsync(conversationId, userId, userType, content, messageType);
         return Json(new { success = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending message to conversation {ConversationId}", conversationId);
+            return Json(new { success = false, error = "An error occurred while sending the message." });
+        }
     }
 
     [HttpPost("RequestClarity")]
     public async Task<IActionResult> RequestClarity(int orgId, [FromBody] ClarityRequest request)
     {
+        try
+        {
+            var userId = GetCurrentUserId();
         var userType = GetCurrentUserType();
+            
+            // Security: Verify user has access to this conversation
+            var hasAccess = await _chatService.CanUserAccessConversationAsync(request.ConversationId, userId, orgId);
+            if (!hasAccess)
+            {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to request clarity for unauthorized conversation {ConversationId} in org {OrgId}", 
+                    userId, request.ConversationId, orgId);
+                return Json(new { success = false, error = "Access denied." });
+            }
         
         var clarity = await _chatService.RequestClarityAsync(request.ConversationId, request.Text, userType);
         return Json(clarity);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error requesting clarity for conversation {ConversationId}", request.ConversationId);
+            return Json(new { success = false, error = "An error occurred while processing your request." });
+        }
     }
 
     [HttpGet("GetMessages/{id}")]
     public async Task<IActionResult> GetMessages(int orgId, int id)
     {
+        try
+        {
+            var userId = GetCurrentUserId();
+            
+            // Security: Verify user has access to this conversation
+            var hasAccess = await _chatService.CanUserAccessConversationAsync(id, userId, orgId);
+            if (!hasAccess)
+            {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to get messages from unauthorized conversation {ConversationId} in org {OrgId}", 
+                    userId, id, orgId);
+                return Json(new { success = false, error = "Access denied." });
+            }
+            
         var messages = await _chatService.GetConversationMessagesAsync(id);
         return Json(messages);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving messages for conversation {ConversationId}", id);
+            return Json(new { success = false, error = "An error occurred while retrieving messages." });
+        }
     }
 
     [HttpPost("channel/{channelId}/read")]
@@ -152,11 +228,11 @@ public class ChatController : Controller
 
             var userId = customUser.Id;
 
-            // Validate user has access to the organization
-            var canAccess = await _orgContextService.ValidateUserInOrganizationAsync(userId, orgId);
+            // Security: Verify user has access to this channel (uses CanUserAccessConversationAsync which handles channels properly)
+            var canAccess = await _chatService.CanUserAccessConversationAsync(channelId, userId, orgId);
             if (!canAccess)
             {
-                _logger.LogWarning("SECURITY: User {UserId} attempted to mark channel {ChannelId} as read in unauthorized org {OrgId}", 
+                _logger.LogWarning("SECURITY: User {UserId} attempted to mark channel {ChannelId} as read without permission in org {OrgId}", 
                     userId, channelId, orgId);
                 return Json(new { success = false, error = "Access denied" });
             }
@@ -231,11 +307,11 @@ public class ChatController : Controller
                 return Json(new { success = false, error = "User not authenticated" });
             }
 
-            // Validate user has access to the organization
-            var canAccess = await _orgContextService.ValidateUserInOrganizationAsync(customUser.Id, orgId);
+            // Security: Verify user has access to this channel (uses CanUserAccessConversationAsync which handles channels properly)
+            var canAccess = await _chatService.CanUserAccessConversationAsync(channelId, customUser.Id, orgId);
             if (!canAccess)
             {
-                _logger.LogWarning("SECURITY: User {UserId} attempted to access channel {ChannelId} in unauthorized org {OrgId}", 
+                _logger.LogWarning("SECURITY: User {UserId} attempted to access channel {ChannelId} without permission in org {OrgId}", 
                     customUser.Id, channelId, orgId);
                 return Json(new { success = false, error = "Access denied" });
             }
@@ -273,11 +349,29 @@ public class ChatController : Controller
     [HttpPost("GetSuggestions")]
     public async Task<IActionResult> GetSuggestions(int orgId, [FromBody] SuggestionRequest request)
     {
-        var messages = await _chatService.GetConversationMessagesAsync(request.ConversationId);
+        try
+        {
+            var userId = GetCurrentUserId();
         var userType = GetCurrentUserType();
         
+            // Security: Verify user has access to this conversation
+            var hasAccess = await _chatService.CanUserAccessConversationAsync(request.ConversationId, userId, orgId);
+            if (!hasAccess)
+            {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to get suggestions for unauthorized conversation {ConversationId} in org {OrgId}", 
+                    userId, request.ConversationId, orgId);
+                return Json(new { success = false, error = "Access denied." });
+            }
+            
+            var messages = await _chatService.GetConversationMessagesAsync(request.ConversationId);
         var suggestions = await _chatService.GetReplySuggestionsAsync(request.ConversationId, messages, userType);
         return Json(suggestions);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting suggestions for conversation {ConversationId}", request.ConversationId);
+            return Json(new { success = false, error = "An error occurred while generating suggestions." });
+        }
     }
 
     [HttpPost("GenerateAIResponse")]
@@ -285,12 +379,24 @@ public class ChatController : Controller
     {
         try
         {
+            var userId = GetCurrentUserId();
+            
+            // Security: Verify user has access to this conversation
+            var hasAccess = await _chatService.CanUserAccessConversationAsync(request.ConversationId, userId, orgId);
+            if (!hasAccess)
+            {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to generate AI response for unauthorized conversation {ConversationId} in org {OrgId}", 
+                    userId, request.ConversationId, orgId);
+                return Json(new { success = false, error = "Access denied." });
+            }
+            
             var aiMessage = await _chatService.GenerateAIResponseAsync(request.ConversationId, request.UserMessage);
             return Json(new { success = true, message = aiMessage });
         }
         catch (Exception ex)
         {
-            return Json(new { success = false, error = ex.Message });
+            _logger.LogError(ex, "Error generating AI response for conversation {ConversationId}", request.ConversationId);
+            return Json(new { success = false, error = "An error occurred while generating the AI response." });
         }
     }
 
@@ -304,6 +410,20 @@ public class ChatController : Controller
 
         try
         {
+            var userId = GetCurrentUserId();
+            
+            // Security: Verify user has access to this conversation before streaming
+            var hasAccess = await _chatService.CanUserAccessConversationAsync(request.ConversationId, userId, orgId);
+            if (!hasAccess)
+            {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to stream AI response for unauthorized conversation {ConversationId} in org {OrgId}", 
+                    userId, request.ConversationId, orgId);
+                var errorData = $"data: {System.Text.Json.JsonSerializer.Serialize(new { content = "Access denied.", done = true, error = true })}\n\n";
+                await Response.WriteAsync(errorData);
+                await Response.Body.FlushAsync();
+                return;
+            }
+            
             await foreach (var chunk in _chatService.GenerateAIResponseStreamAsync(request.ConversationId, request.UserMessage))
             {
                 var data = $"data: {System.Text.Json.JsonSerializer.Serialize(new { content = chunk, done = false })}\n\n";
@@ -325,17 +445,61 @@ public class ChatController : Controller
         }
     }
 
+    [HttpPost("GenerateDashboardCardStream")]
+    public async Task GenerateDashboardCardStream(int orgId, [FromBody] DashboardCardRequest request)
+    {
+        Response.Headers["Content-Type"] = "text/event-stream";
+        Response.Headers["Cache-Control"] = "no-cache";
+        Response.Headers["Connection"] = "keep-alive";
+        Response.Headers["X-Accel-Buffering"] = "no";
+
+        try
+        {
+            var userType = GetCurrentUserType();
+            await foreach (var chunk in _chatService.GenerateDashboardCardStreamAsync(request.UserMessage, userType, orgId))
+            {
+                var data = $"data: {System.Text.Json.JsonSerializer.Serialize(new { content = chunk, done = false })}\n\n";
+                await Response.WriteAsync(data);
+                await Response.Body.FlushAsync();
+            }
+            
+            // Send completion signal
+            var doneData = $"data: {System.Text.Json.JsonSerializer.Serialize(new { content = "", done = true })}\n\n";
+            await Response.WriteAsync(doneData);
+            await Response.Body.FlushAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error streaming dashboard card response");
+            var errorData = $"data: {System.Text.Json.JsonSerializer.Serialize(new { content = "An error occurred while generating the response.", done = true, error = true })}\n\n";
+            await Response.WriteAsync(errorData);
+            await Response.Body.FlushAsync();
+        }
+    }
+
     [HttpGet("GetAIInsights/{conversationId}")]
     public async Task<IActionResult> GetAIInsights(int orgId, int conversationId)
     {
         try
         {
+            var userId = GetCurrentUserId();
+            
+            // Security: Verify user has access to this conversation
+            var hasAccess = await _chatService.CanUserAccessConversationAsync(conversationId, userId, orgId);
+            if (!hasAccess)
+            {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to get AI insights for unauthorized conversation {ConversationId} in org {OrgId}", 
+                    userId, conversationId, orgId);
+                return Json(new { success = false, error = "Access denied." });
+            }
+            
             var insights = await _chatService.GetAIInsightsAsync(conversationId);
             return Json(new { success = true, insights = insights });
         }
         catch (Exception ex)
         {
-            return Json(new { success = false, error = ex.Message });
+            _logger.LogError(ex, "Error getting AI insights for conversation {ConversationId}", conversationId);
+            return Json(new { success = false, error = "An error occurred while retrieving insights." });
         }
     }
 
@@ -344,12 +508,24 @@ public class ChatController : Controller
     {
         try
         {
+            var userId = GetCurrentUserId();
+            
+            // Security: Verify user has access to this conversation
+            var hasAccess = await _chatService.CanUserAccessConversationAsync(conversationId, userId, orgId);
+            if (!hasAccess)
+            {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to get conversation summary for unauthorized conversation {ConversationId} in org {OrgId}", 
+                    userId, conversationId, orgId);
+                return Json(new { success = false, error = "Access denied." });
+            }
+            
             var summary = await _chatService.GetConversationSummaryAsync(conversationId);
             return Json(new { success = true, summary = summary });
         }
         catch (Exception ex)
         {
-            return Json(new { success = false, error = ex.Message });
+            _logger.LogError(ex, "Error getting conversation summary for conversation {ConversationId}", conversationId);
+            return Json(new { success = false, error = "An error occurred while retrieving the summary." });
         }
     }
 
@@ -358,12 +534,24 @@ public class ChatController : Controller
     {
         try
         {
+            var userId = GetCurrentUserId();
+            
+            // Security: Verify user has access to this conversation
+            var hasAccess = await _chatService.CanUserAccessConversationAsync(conversationId, userId, orgId);
+            if (!hasAccess)
+            {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to get client goals for unauthorized conversation {ConversationId} in org {OrgId}", 
+                    userId, conversationId, orgId);
+                return Json(new { success = false, error = "Access denied." });
+            }
+            
             var goals = await _chatService.GetClientGoalsAsync(conversationId);
             return Json(new { success = true, goals = goals });
         }
         catch (Exception ex)
         {
-            return Json(new { success = false, error = ex.Message });
+            _logger.LogError(ex, "Error getting client goals for conversation {ConversationId}", conversationId);
+            return Json(new { success = false, error = "An error occurred while retrieving goals." });
         }
     }
 
@@ -372,12 +560,24 @@ public class ChatController : Controller
     {
         try
         {
+            var userId = GetCurrentUserId();
+            
+            // Security: Verify user has access to this conversation
+            var hasAccess = await _chatService.CanUserAccessConversationAsync(conversationId, userId, orgId);
+            if (!hasAccess)
+            {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to get reply suggestion for unauthorized conversation {ConversationId} in org {OrgId}", 
+                    userId, conversationId, orgId);
+                return Json(new { success = false, error = "Access denied." });
+            }
+            
             var suggestion = await _chatService.GetLatestReplySuggestionAsync(conversationId);
             return Json(new { success = true, suggestion = suggestion });
         }
         catch (Exception ex)
         {
-            return Json(new { success = false, error = ex.Message });
+            _logger.LogError(ex, "Error getting reply suggestion for conversation {ConversationId}", conversationId);
+            return Json(new { success = false, error = "An error occurred while retrieving the suggestion." });
         }
     }
 
@@ -386,12 +586,24 @@ public class ChatController : Controller
     {
         try
         {
+            var userId = GetCurrentUserId();
+            
+            // Security: Verify user has access to this conversation
+            var hasAccess = await _chatService.CanUserAccessConversationAsync(request.ConversationId, userId, orgId);
+            if (!hasAccess)
+            {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to rename unauthorized conversation {ConversationId} in org {OrgId}", 
+                    userId, request.ConversationId, orgId);
+                return Json(new { success = false, error = "Access denied." });
+            }
+            
             var success = await _chatService.RenameConversationAsync(request.ConversationId, orgId, request.NewTitle);
             return Json(new { success = success, error = success ? null : "Failed to rename conversation" });
         }
         catch (Exception ex)
         {
-            return Json(new { success = false, error = ex.Message });
+            _logger.LogError(ex, "Error renaming conversation {ConversationId}", request.ConversationId);
+            return Json(new { success = false, error = "An error occurred while renaming the conversation." });
         }
     }
 
@@ -483,6 +695,11 @@ public class SuggestionRequest
 public class AIResponseRequest
 {
     public int ConversationId { get; set; }
+    public string UserMessage { get; set; } = "";
+}
+
+public class DashboardCardRequest
+{
     public string UserMessage { get; set; } = "";
 }
 

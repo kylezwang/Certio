@@ -12,6 +12,10 @@ public interface IAIAgentService
     Task<ReplySuggestion> SuggestReplyAsync(string conversationId, List<ChatMessage> messages, string userType);
     Task<ClarityExplanation> ExplainLegalLanguageAsync(string text, string userType);
     Task<string> GenerateConversationalResponseAsync(string conversationId, List<ChatMessage> messages, string userMessage);
-    IAsyncEnumerable<string> GenerateConversationalResponseStreamAsync(string conversationId, List<ChatMessage> messages, string userMessage);
+    IAsyncEnumerable<string> GenerateConversationalResponseStreamAsync(
+        string conversationId, 
+        List<ChatMessage> messages, 
+        string userMessage, 
+        Certio.Domain.Organizations.AIModelTier? aiModelTier = null);
     Task<Dictionary<string, object>> ProcessConversationIntelligentlyAsync(string conversationId, List<ChatMessage> messages, string userType = "Client");
 }

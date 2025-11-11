@@ -21,6 +21,7 @@ namespace Certio.Web.Controllers
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly ITwoFactorService _twoFactorService;
+        private readonly IBriefingMessageService _briefingMessageService;
         private readonly ApplicationDbContext _context;
         private readonly IJoinCodeService _joinCodeService;
         private readonly Certio.Web.Services.IChannelManagementService _channelManagementService;
@@ -38,6 +39,7 @@ namespace Certio.Web.Controllers
             SignInManager<IdentityUser> signInManager, 
             UserManager<IdentityUser> userManager,
             ITwoFactorService twoFactorService,
+            IBriefingMessageService briefingMessageService,
             ApplicationDbContext context,
             IJoinCodeService joinCodeService,
             Certio.Web.Services.IChannelManagementService channelManagementService,
@@ -47,6 +49,7 @@ namespace Certio.Web.Controllers
             _signInManager = signInManager;
             _userManager = userManager;
             _twoFactorService = twoFactorService;
+            _briefingMessageService = briefingMessageService;
             _context = context;
             _joinCodeService = joinCodeService;
             _channelManagementService = channelManagementService;
@@ -320,6 +323,31 @@ namespace Certio.Web.Controllers
             ClearTwoFactorSession();
             TempData.Remove("TwoFactorInfo");
             TempData.Remove("TwoFactorError");
+
+            // Queue daily briefing for dashboard - fire and forget, non-blocking
+            try
+            {
+                var customUser = await _context.Users
+                    .Include(u => u.UserOrganizations)
+                    .FirstOrDefaultAsync(u => u.Email == user.Email);
+                
+                if (customUser != null && customUser.UserOrganizations.Any())
+                {
+                    var primaryOrg = customUser.UserOrganizations.FirstOrDefault(uo => uo.IsActive);
+                    if (primaryOrg != null)
+                    {
+                        // Queue briefing generation (will be picked up by dashboard)
+                        HttpContext.Session.SetString("QueueBriefing", "true");
+                        HttpContext.Session.SetInt32("BriefingUserId", customUser.Id);
+                        HttpContext.Session.SetInt32("BriefingOrgId", primaryOrg.OrganizationId);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error queueing login briefing for user {UserId}", user.Email);
+                // Continue with login - briefing is non-critical
+            }
                 
                 return RedirectToAction("Index", "Matter");
             }

@@ -113,6 +113,26 @@ function setupCommsSidebarEventListeners() {
         sendBtn.addEventListener('click', sendCommsMessage);
     }
     
+    // Inbox card click listener - Navigate to Communications page and open inbox
+    const inboxCard = document.getElementById('commsInboxCard');
+    if (inboxCard) {
+        inboxCard.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Inbox card clicked in sidebar - navigating to Communications with inbox open');
+            
+            // Get organization ID for proper routing
+            const orgId = getCurrentOrgId();
+            if (orgId) {
+                window.location.href = `/Client/${orgId}/Communications?openInbox=true`;
+            } else {
+                console.error('Could not determine organization ID for Communications navigation');
+                // Fallback: try to navigate to HomeController Communications action
+                window.location.href = '/Communications?openInbox=true';
+            }
+        });
+    }
+    
     // Message input (Enter to send)
     const messageInput = document.getElementById('commsMessageInput');
     if (messageInput) {

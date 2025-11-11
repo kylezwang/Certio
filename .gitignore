@@ -1,11 +1,15 @@
 /ai_agents
 
 # Environment files
+*.env
 .env
 .env.local
 .env.development
 .env.production
+appsettings.Development.json
 appsettings.Production.json
+appsettings.json
+secrets.json
 
 # Sensitive config files
 # *.secrets.json

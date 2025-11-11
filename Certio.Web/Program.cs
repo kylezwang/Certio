@@ -50,6 +50,49 @@ static void SetupEnvironmentVariables()
     }
 }
 
+// Validate critical production configuration
+static void ValidateProductionConfiguration(IConfiguration configuration, IWebHostEnvironment environment)
+{
+    if (!environment.IsProduction())
+        return;
+
+    var errors = new List<string>();
+
+    // Email webhook secrets are REQUIRED in production
+    var gmailSecret = configuration["EmailIntegration:GmailVerificationToken"];
+    var webhookSecret = configuration["EmailIntegration:WebhookSecret"];
+    
+    if (string.IsNullOrWhiteSpace(gmailSecret))
+    {
+        errors.Add("EmailIntegration:GmailVerificationToken is required in production");
+    }
+    
+    if (string.IsNullOrWhiteSpace(webhookSecret))
+    {
+        errors.Add("EmailIntegration:WebhookSecret is required in production");
+    }
+
+    // USE_AZURE_SQL must be explicitly set in production
+    var useAzureSql = Environment.GetEnvironmentVariable("USE_AZURE_SQL");
+    if (useAzureSql != "true")
+    {
+        errors.Add("USE_AZURE_SQL environment variable must be set to 'true' in production");
+    }
+
+    if (errors.Any())
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine("\n🚨 PRODUCTION CONFIGURATION ERRORS:");
+        foreach (var error in errors)
+        {
+            Console.WriteLine($"   ❌ {error}");
+        }
+        Console.ResetColor();
+        Console.WriteLine("\nApplication cannot start in production without required configuration.\n");
+        throw new InvalidOperationException($"Production configuration validation failed: {string.Join("; ", errors)}");
+    }
+}
+
 // Initialize environment variables
 SetupEnvironmentVariables();
 
@@ -323,7 +366,13 @@ var connectionString = await GetConnectionStringAsync(builder.Configuration);
 builder.Services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
 {
     var interceptor = serviceProvider.GetRequiredService<Certio.Infrastructure.Interceptors.AuditInterceptor>();
-    options.UseSqlServer(connectionString)
+    options.UseSqlServer(connectionString, sqlServerOptions =>
+    {
+        sqlServerOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(30),
+            errorNumbersToAdd: null);
+    })
            .AddInterceptors(interceptor);
 });
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -429,6 +478,7 @@ builder.Services.AddScoped<IFirmAccessAuditService, FirmAccessAuditService>();
 // PHASE 1 SECURITY SERVICES
 builder.Services.AddScoped<Certio.Application.Interfaces.IAuditService, Certio.Application.Services.AuditService>();
 builder.Services.AddScoped<Certio.Application.Interfaces.INotificationService, Certio.Web.Services.NotificationService>();
+builder.Services.AddScoped<Certio.Web.Services.IBriefingMessageService, Certio.Web.Services.BriefingMessageService>();
 builder.Services.AddScoped<Certio.Web.Security.AuthorizationHelper>();
 
 // PHASE 2 SERVICE LAYER
