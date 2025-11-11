@@ -1,0 +1,487 @@
+/* Communications Email Inbox Modal Styles */
+
+/* Modal Container */
+#emailInboxModal.task-details-modal {
+    position: fixed;
+    top: 7vh;
+    left: 20vw; /* Match client-main-content-wrapper default position */
+    bottom: 0 !important;
+    right: 320px; /* Default chat panel width */
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    pointer-events: auto;
+    border-radius: 20px 20px 0 0;
+    transition: left 0.3s ease, right 0.3s ease; /* Smooth transition when sidebars toggle */
+}
+
+/* Modal Dialog */
+#emailInboxModal.task-details-modal .modal-dialog {
+    width: 85rem;
+    max-width: 90%;
+    margin: 0;
+    max-height: 90%;
+    border-radius: 20px !important;
+    pointer-events: auto;
+    position: relative;
+    z-index: 1001;
+    background-color: white;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Modal Body */
+#emailInboxModal .task-details-body {
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 1.5rem 2rem 2rem;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* Custom Scrollbar for Modal Body */
+#emailInboxModal .task-details-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+#emailInboxModal .task-details-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#emailInboxModal .task-details-body::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+#emailInboxModal .task-details-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.35);
+}
+
+/* Firefox scrollbar for Modal Body */
+#emailInboxModal .task-details-body {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+/* Modal Header - Match BillingTimeEntries style */
+#emailInboxModal .inbox-header {
+    display: grid;
+    grid-template-columns: 0.75fr 1fr 0.75fr;
+    align-items: center;
+    padding: 1rem 1.5rem 0 1.5rem;
+    flex-shrink: 0;
+    position: relative;
+}
+
+#emailInboxModal .inbox-header-search {
+    grid-column: 2;
+    justify-self: center;
+    width: 100%;
+    max-width: 525px;
+}
+
+#emailInboxModal .inbox-title {
+    grid-column: 1;
+    justify-self: start;
+}
+
+#emailInboxModal .inbox-actions {
+    grid-column: 3;
+    justify-self: end;
+}
+
+#emailInboxModal .inbox-header-search .search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+#emailInboxModal .inbox-header-search .search-container i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6b7280;
+    z-index: 10;
+    pointer-events: none;
+}
+
+#emailInboxModal .inbox-header-search .search-container input {
+    width: 100%;
+    height: 2.5rem;
+    line-height: 1.25;
+    border-radius: 24px;
+    padding: 0.75rem 2.5rem 0.75rem 3rem;
+    background-color: #f9fafb;
+    font-size: 1rem;
+    text-align: center;
+    border: transparent;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+    transition: all 0.2s ease;
+}
+
+#emailInboxModal .inbox-header-search .search-container input:focus {
+    outline: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    background-color: white;
+}
+
+#emailInboxModal .inbox-header-search .search-container input::placeholder {
+    color: #9ca3af;
+}
+
+#emailInboxModal .inbox-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#emailInboxModal .inbox-title i {
+    font-size: 1.2rem;
+    color: #232b39;
+}
+
+#emailInboxModal .inbox-title span {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-right: 1rem;
+    color: #232b39;
+}
+
+#emailInboxModal .inbox-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+#emailInboxModal .action-btn {
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #4a5568;
+    transition: background-color 0.2s;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#emailInboxModal .action-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Column Header Buttons - Match History/Billing exactly */
+#emailInboxModal .column-header-btn {
+    padding: 0.375rem 0.15rem 0.375rem 0.5rem;
+    border: none;
+    background: white;
+    color: #2d3748;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+#emailInboxModal .column-header-btn:hover {
+    background-color: #f3f4f6;
+    color: #1e293b;
+}
+
+/* Base Billing Card Item Styling - Match History/Billing exactly */
+#emailInboxModal .billing-card-item {
+    display: grid;
+    grid-template-columns: 0.5fr 0.5fr 1.5fr 4fr 1.2fr 0.5fr;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.875rem 1rem;
+    background: white;
+    border: 1px solid #eeeeee;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Email List Items */
+#emailInboxModal .billing-card-item.email-list-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+    background-color: #fafafa;
+    border-color: #cbd5e1;
+}
+
+#emailInboxModal .billing-card-item.email-list-item.unread {
+    background-color: white;
+    border: 1px solid #eeeeee
+}
+
+#emailInboxModal .billing-card-item.email-list-item.unread:hover {
+    background-color: #fafafa;
+    border-color: #cbd5e1;
+}
+
+/* Header Card Styling - Match History/Billing exactly */
+#emailInboxModal .billing-card-item.billing-column-header-card {
+    display: grid !important;
+    grid-template-columns: 0.5fr 0.5fr 1.5fr 4fr 1.2fr 0.5fr !important;
+    cursor: default;
+    background: white !important;
+    border-color: #e2e8f0 !important;
+}
+
+#emailInboxModal .billing-card-item.billing-column-header-card:hover {
+    transform: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    background-color: white !important;
+}
+
+/* Email List Container */
+#emailInboxModal #inboxEmailList {
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1;
+    min-height: 0;
+}
+
+/* Custom Scrollbar for Email List */
+#emailInboxModal #inboxEmailList::-webkit-scrollbar {
+    width: 6px;
+}
+
+#emailInboxModal #inboxEmailList::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#emailInboxModal #inboxEmailList::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+#emailInboxModal #inboxEmailList::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.35);
+}
+
+/* Firefox scrollbar for Email List */
+#emailInboxModal #inboxEmailList {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+/* Email Column Styles */
+#emailInboxModal .email-checkbox-column {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#emailInboxModal .email-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    margin: 0;
+    flex-shrink: 0;
+}
+
+#emailInboxModal .email-star-column {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#emailInboxModal .email-star {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+    cursor: pointer;
+    transition: color 0.15s;
+}
+
+#emailInboxModal .email-star:hover {
+    color: #f59e0b;
+}
+
+#emailInboxModal .email-star.starred {
+    color: #f59e0b;
+}
+
+#emailInboxModal .email-star.starred i {
+    font-weight: 900;
+}
+
+#emailInboxModal .email-notalize-column {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#emailInboxModal .email-notalize {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 50%;
+    background-color: transparent;
+}
+
+#emailInboxModal .email-notalize:hover {
+    background-color: rgba(0, 0, 0, 0.08);
+    opacity: 1;
+}
+
+#emailInboxModal .email-notalize img {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    transition: opacity 0.15s;
+}
+
+#emailInboxModal .email-sender-column {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1f2937;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#emailInboxModal .billing-card-item.email-list-item.unread .email-sender-column {
+    font-weight: 700;
+}
+
+#emailInboxModal .email-subject-column {
+    font-size: 0.875rem;
+    min-width: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+#emailInboxModal .email-subject {
+    font-weight: 600;
+    color: #374151;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#emailInboxModal .billing-card-item.email-list-item.unread .email-subject {
+    font-weight: 700;
+    color: #1f2937;
+}
+
+#emailInboxModal .email-preview {
+    color: #6b7280;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.8125rem;
+}
+
+#emailInboxModal .email-provider-badge {
+    display: inline-block;
+    font-size: 0.7em;
+    color: #007bff;
+    background: #e7f3ff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    width: 2.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+    text-decoration: none;
+}
+
+#emailInboxModal .email-provider-badge:hover {
+    background: #007bff;
+    color: white;
+}
+
+#emailInboxModal .email-attachment-icon {
+    color: #9ca3af;
+    font-size: 0.875rem;
+    margin-left: 0.5rem;
+}
+
+#emailInboxModal .email-date-column {
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 500;
+    text-align: right;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1200px) {
+    #emailInboxModal.task-details-modal .modal-dialog {
+        width: 85%;
+    }
+    
+    #emailInboxModal .email-sender-column {
+        min-width: 120px;
+        max-width: 150px;
+    }
+}
+
+@media (max-width: 768px) {
+    #emailInboxModal.task-details-modal {
+        left: 0;
+        right: 0;
+    }
+    
+    #emailInboxModal.task-details-modal .modal-dialog {
+        width: 95%;
+    }
+    
+    #emailInboxModal .billing-card-item.email-list-item,
+    #emailInboxModal .billing-card-item.billing-column-header-card {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    
+    .email-preview::before {
+        display: none;
+    }
+}
+
+/* Adjust for hidden sidebar */
+.sidebar-hidden #emailInboxModal.task-details-modal {
+    left: calc(6vw + 1rem) !important; /* Move back to just after global navbar + space */
+}
+
+/* Adjust for hidden chat panel */
+.chat-hidden #emailInboxModal.task-details-modal {
+    right: 1rem !important; /* Same leftover padding as sidebar toggle */
+}
+
+/* Adjust for both sidebars hidden */
+.sidebar-hidden.chat-hidden #emailInboxModal.task-details-modal {
+    left: calc(6vw + 1rem) !important;
+    right: 1rem !important;
+}
+
+/* Adjust for global dashboard layout */
+.client-main-content-wrapper.global-dashboard-layout ~ #emailInboxModal.task-details-modal,
+body:has(.client-main-content-wrapper.global-dashboard-layout) #emailInboxModal.task-details-modal {
+    left: 23vw; /* Match global dashboard layout */
+}
+
+.sidebar-hidden .client-main-content-wrapper.global-dashboard-layout ~ #emailInboxModal.task-details-modal,
+.sidebar-hidden body:has(.client-main-content-wrapper.global-dashboard-layout) #emailInboxModal.task-details-modal {
+    left: calc(6vw + 1rem) !important;
+}
+
