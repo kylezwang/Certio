@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Options;
 using Azure;
 using Azure.AI.DocumentIntelligence;
+using System.Text.RegularExpressions;
 
 // Set up environment variables for Windows development
 static void SetupEnvironmentVariables()
@@ -192,8 +193,23 @@ static async Task<bool> HasInternetConnectivityAsync()
         }
         
         // Try to connect to Azure SQL with a very short timeout
-        using var connection = new Microsoft.Data.SqlClient.SqlConnection(azureConnectionString);
-        connection.ConnectionTimeout = 3;
+        // Add Connection Timeout=3 to the connection string if not already present
+        var testConnectionString = azureConnectionString;
+        if (!testConnectionString.Contains("Connection Timeout", StringComparison.OrdinalIgnoreCase))
+        {
+            testConnectionString += ";Connection Timeout=3";
+        }
+        else
+        {
+            // Replace existing timeout with shorter one for test
+            testConnectionString = Regex.Replace(
+                testConnectionString, 
+                @"Connection\s+Timeout\s*=\s*\d+", 
+                "Connection Timeout=3", 
+                RegexOptions.IgnoreCase);
+        }
+        
+        using var connection = new Microsoft.Data.SqlClient.SqlConnection(testConnectionString);
         await connection.OpenAsync();
         return true;
     }
