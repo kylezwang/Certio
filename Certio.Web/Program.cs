@@ -120,8 +120,21 @@ static async Task<string> GetConnectionStringAsync(IConfiguration configuration,
                 connectionString = connectionString.Replace("${DB_PASSWORD}", dbPassword);
                 Console.WriteLine("🔧 Replaced ${DB_PASSWORD} placeholder in connection string");
             }
+            else if (connectionString.Contains("${DB_PASSWORD}"))
+            {
+                Console.WriteLine("❌ ERROR: DB_PASSWORD environment variable is not set but connection string contains ${DB_PASSWORD}");
+                throw new InvalidOperationException("DB_PASSWORD environment variable is required when connection string contains ${DB_PASSWORD} placeholder");
+            }
             
-            Console.WriteLine("🌐 Using Azure SQL Database (production)");
+            // Log connection string (mask password for security)
+            var maskedConnectionString = System.Text.RegularExpressions.Regex.Replace(
+                connectionString, 
+                @"Password=([^;]+)", 
+                "Password=***MASKED***", 
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            Console.WriteLine($"🌐 Using Azure SQL Database (production)");
+            Console.WriteLine($"📋 Connection string (masked): {maskedConnectionString}");
+            
             return connectionString;
         }
         
