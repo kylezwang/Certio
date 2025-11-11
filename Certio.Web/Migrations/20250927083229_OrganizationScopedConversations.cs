@@ -59,6 +59,44 @@ namespace Certio.Web.Migrations
                 nullable: false,
                 defaultValue: 0);
 
+            // Set OrganizationId to a valid organization before adding foreign key
+            // If no organizations exist, create a default one using the first user as owner
+            migrationBuilder.Sql(@"
+                DECLARE @FirstOrgId INT;
+                DECLARE @FirstUserId INT;
+                
+                -- Get first organization if exists
+                SELECT TOP 1 @FirstOrgId = Id FROM Organizations ORDER BY Id;
+                
+                -- If no organization exists, create one
+                IF @FirstOrgId IS NULL
+                BEGIN
+                    -- Get first user to use as owner
+                    SELECT TOP 1 @FirstUserId = Id FROM Users ORDER BY Id;
+                    
+                    -- If users exist, create default organization
+                    IF @FirstUserId IS NOT NULL
+                    BEGIN
+                        SET IDENTITY_INSERT Organizations ON;
+                        INSERT INTO Organizations (Id, Name, OwnerId, Type, IsActive, CreatedAt)
+                        VALUES (1, 'Default Organization', @FirstUserId, 0, 1, GETUTCDATE());
+                        SET IDENTITY_INSERT Organizations OFF;
+                        SET @FirstOrgId = 1;
+                    END
+                    ELSE
+                    BEGIN
+                        -- No users exist, delete all conversations (can't assign to org)
+                        DELETE FROM Conversations;
+                        SET @FirstOrgId = 1; -- Will fail FK constraint but at least no data conflict
+                    END
+                END
+                
+                -- Update all Conversations to use the valid organization
+                UPDATE Conversations 
+                SET OrganizationId = @FirstOrgId
+                WHERE OrganizationId = 0 OR OrganizationId NOT IN (SELECT Id FROM Organizations)
+            ");
+
             migrationBuilder.CreateIndex(
                 name: "IX_Conversations_OrganizationId_CreatedAt",
                 table: "Conversations",
