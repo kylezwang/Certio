@@ -195,7 +195,7 @@ namespace Certio.Web.Services
         {sanitizedCode}
       </div>
       <p style=""margin-bottom: 8px;"">For security, this code expires in 10 minutes.</p>
-      <p style=""margin-bottom: 0;"">If you did not request this code, please review your History to see your audit logs immediately.</p>
+      <p style=""margin-bottom: 0;"">If you did not request this code, please ignore this message.</p>
     </div>
   </body>
 </html>";

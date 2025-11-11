@@ -104,23 +104,33 @@ public class RedisCacheService : ICacheService
 
         try
         {
-            // Serialize once so we can inspect payload size before pushing to Redis
-            var serializedData = JsonSerializer.Serialize(value, JsonOptions);
-            var payloadSize = serializedData.Length;
+            // Always set in memory cache first (L1) - this never fails
+            _memoryCache.Set(key, value, memoryCacheDuration);
+
+            // Try to serialize for Redis, but catch OutOfMemoryException early
+            string serializedData;
+            int payloadSize;
+            
+            try
+            {
+                serializedData = JsonSerializer.Serialize(value, JsonOptions);
+                payloadSize = serializedData.Length;
+            }
+            catch (OutOfMemoryException)
+            {
+                _logger.LogWarning(
+                    "Skipping Redis cache set for key {Key} due to OutOfMemoryException during serialization (payload too large)",
+                    key);
+                return; // Exit early, L1 cache already set
+            }
 
             if (payloadSize > MaxDistributedCachePayloadBytes)
             {
                 _logger.LogWarning(
                     "Skipping Redis cache set for key {Key} because payload size {PayloadSize} bytes exceeds safety limit {Limit} bytes",
                     key, payloadSize, MaxDistributedCachePayloadBytes);
-
-                // Still warm the in-memory cache for the configured duration
-                _memoryCache.Set(key, value, memoryCacheDuration);
-                return;
+                return; // Exit early, L1 cache already set
             }
-
-            // Set in memory cache (L1)
-            _memoryCache.Set(key, value, memoryCacheDuration);
 
             // Set in distributed cache (L2 - Redis)
             var options = new DistributedCacheEntryOptions
@@ -129,6 +139,11 @@ public class RedisCacheService : ICacheService
             };
 
             await _distributedCache.SetStringAsync(key, serializedData, options);
+        }
+        catch (OutOfMemoryException)
+        {
+            _logger.LogWarning("OutOfMemoryException setting cache for key: {Key} - L1 cache still available", key);
+            // L1 cache is already set, so we're good
         }
         catch (Exception ex)
         {

@@ -851,11 +851,49 @@
                             <div class="settings-row">
                                 <div class="settings-row-content">
                                     <label class="settings-row-label">AI model tier</label>
+                                    <p class="settings-row-description">
+                                        <strong>Auto:</strong> Dynamically selects the best model based on task complexity<br>
+                                        <strong>Basic:</strong> Always uses gpt-4o-mini (fastest, most cost-effective)<br>
+                                        <strong>Advanced:</strong> Always uses gpt-4o (balanced performance)<br>
+                                        <strong>Premium:</strong> Always uses gpt-5 (highest quality)
+                                    </p>
                                 </div>
-                                <select class="form-select" style="width: 200px;">
-                                    <option value="basic">Basic</option>
-                                    <option value="advanced" selected>Advanced</option>
-                                    <option value="premium">Premium</option>
+                                @{
+                                    var currentTier = ViewBag.AIModelTier?.ToString() ?? "Auto";
+                                }
+                                <select class="form-select" id="aiModelTier" style="width: 200px;" data-original="@currentTier">
+                                    @if (currentTier == "Auto")
+                                    {
+                                        <option value="Auto" selected>Auto</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="Auto">Auto</option>
+                                    }
+                                    @if (currentTier == "Basic")
+                                    {
+                                        <option value="Basic" selected>Basic</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="Basic">Basic</option>
+                                    }
+                                    @if (currentTier == "Advanced")
+                                    {
+                                        <option value="Advanced" selected>Advanced</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="Advanced">Advanced</option>
+                                    }
+                                    @if (currentTier == "Premium")
+                                    {
+                                        <option value="Premium" selected>Premium</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="Premium">Premium</option>
+                                    }
                                 </select>
                             </div>
                         </div>
@@ -1026,6 +1064,54 @@
             // Get organization ID from page
             const orgIdElement = document.querySelector('[data-organization-id]');
             const orgId = orgIdElement ? parseInt(orgIdElement.getAttribute('data-organization-id')) : null;
+            
+            // AI Model Tier functionality
+            const aiModelTierSelect = document.getElementById('aiModelTier');
+            if (aiModelTierSelect && orgId) {
+                const originalTier = aiModelTierSelect.getAttribute('data-original');
+                
+                aiModelTierSelect.addEventListener('change', async function() {
+                    const selectedTier = this.value;
+                    
+                    // Only save if changed
+                    if (selectedTier === originalTier) return;
+                    
+                    try {
+                        const response = await fetch(`/Client/${orgId}/Settings/UpdateAIModelTier`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ tier: selectedTier })
+                        });
+                        
+                        const result = await response.json();
+                        if (result.success) {
+                            // Update original value
+                            aiModelTierSelect.setAttribute('data-original', selectedTier);
+                            // Show success message briefly
+                            const successMsg = document.createElement('div');
+                            successMsg.className = 'alert alert-success alert-dismissible fade show mt-2';
+                            successMsg.style.position = 'fixed';
+                            successMsg.style.top = '20px';
+                            successMsg.style.right = '20px';
+                            successMsg.style.zIndex = '9999';
+                            successMsg.innerHTML = '<i class="fas fa-check-circle me-2"></i>AI model tier updated successfully<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                            document.body.appendChild(successMsg);
+                            setTimeout(() => successMsg.remove(), 3000);
+                        } else {
+                            // Revert selection on error
+                            this.value = originalTier;
+                            alert(result.error || 'Failed to update AI model tier');
+                        }
+                    } catch (error) {
+                        console.error('Error saving AI model tier:', error);
+                        // Revert selection on error
+                        this.value = originalTier;
+                        alert('Failed to update AI model tier. Please try again.');
+                    }
+                });
+            }
             
             if (joinCodeTemplate && saveJoinCodeTemplate && orgId) {
                 // Load template on page load

@@ -1117,6 +1117,15 @@ namespace Certio.Web.Controllers
 
                 foreach (var channel in channels)
                 {
+                    // Security: Verify user has access to this channel before including messages
+                    var hasAccess = await _chatService.CanUserAccessConversationAsync(channel.Id, customUser.Id, orgId);
+                    if (!hasAccess)
+                    {
+                        _logger.LogWarning("SECURITY: User {UserId} attempted to access recent messages for unauthorized channel {ChannelId} in org {OrgId}", 
+                            customUser.Id, channel.Id, orgId);
+                        continue;
+                    }
+
                     var messages = await _chatService.GetChannelMessagesAsync(channel.Id);
                     // Get latest message that is NOT from current user
                     var latestMessage = messages

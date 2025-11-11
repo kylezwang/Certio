@@ -133,7 +133,7 @@ public class EmailSendingService : IEmailSendingService
                 // Fall back to REST API
                 var apiKey = _configuration["Security:TwoFactorEmail:SendGridApiKey"];
                 var fromEmail = _configuration["Security:TwoFactorEmail:FromEmail"];
-                var fromName = _configuration["Security:TwoFactorEmail:FromName"] ?? "Certio";
+                var fromName = _configuration["Security:TwoFactorEmail:FromName"] ?? "Notal";
 
                 if (string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(fromEmail))
                 {
@@ -250,15 +250,15 @@ public class EmailSendingService : IEmailSendingService
                 catch (Exception ex)
                 {
                     _logger.LogWarning(ex, "Failed to parse SMTP_FROM_EMAIL: {Email}, using fallback", smtpFromEmail);
-                    var fallbackEmail = _configuration["Security:TwoFactorEmail:FromEmail"] ?? "no-reply@certio.app";
-                    var fallbackName = _configuration["Security:TwoFactorEmail:FromName"] ?? "Certio";
+                    var fallbackEmail = _configuration["Security:TwoFactorEmail:FromEmail"] ?? "kyle@notal.com";
+                    var fallbackName = _configuration["Security:TwoFactorEmail:FromName"] ?? "Notal";
                     fromAddress = new MailboxAddress(fallbackName, fallbackEmail);
                 }
             }
             else
             {
-                var fallbackEmail = _configuration["Security:TwoFactorEmail:FromEmail"] ?? "no-reply@certio.app";
-                var fallbackName = _configuration["Security:TwoFactorEmail:FromName"] ?? "Certio";
+                var fallbackEmail = _configuration["Security:TwoFactorEmail:FromEmail"] ?? "kyle@notal.com";
+                var fallbackName = _configuration["Security:TwoFactorEmail:FromName"] ?? "Notal";
                 fromAddress = new MailboxAddress(fallbackName, fallbackEmail);
             }
 
@@ -269,19 +269,30 @@ public class EmailSendingService : IEmailSendingService
                 return false;
             }
 
-            // SMTP DISABLED - Logging email content to console instead
-            Console.WriteLine("=".PadRight(80, '='));
-            Console.WriteLine("EMAIL (SMTP DISABLED - Logging to console)");
-            Console.WriteLine("=".PadRight(80, '='));
-            Console.WriteLine($"From: {fromAddress}");
-            Console.WriteLine($"To: {toEmail}");
-            Console.WriteLine($"Subject: {subject}");
-            Console.WriteLine($"Body (HTML):");
-            Console.WriteLine(bodyHtml);
-            Console.WriteLine("=".PadRight(80, '='));
-            Console.WriteLine();
+            // Build and send email via SMTP
+            var message = new MimeMessage();
+            message.From.Add(fromAddress);
+            message.To.Add(new MailboxAddress(string.Empty, toEmail));
+            message.Subject = subject;
 
-            _logger.LogInformation("SMTP disabled - Email logged to console instead of sending. To: {Email}, Subject: {Subject}", toEmail, subject);
+            var bodyBuilder = new BodyBuilder { HtmlBody = bodyHtml };
+            message.Body = bodyBuilder.ToMessageBody();
+
+            using var client = new SmtpClient();
+            
+            // Connect to SMTP server
+            await client.ConnectAsync(smtpHost, smtpPort, useSsl ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls, ct);
+            
+            // Authenticate
+            await client.AuthenticateAsync(smtpUser, smtpPassword, ct);
+            
+            // Send message
+            await client.SendAsync(message, ct);
+            
+            // Disconnect
+            await client.DisconnectAsync(true, ct);
+
+            _logger.LogInformation("System email sent via SMTP to {Email}", toEmail);
             return true;
         }
         catch (Exception ex)

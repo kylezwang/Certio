@@ -285,6 +285,17 @@
                 if (statusLabel) {
                     statusLabel.textContent = statusLabels[filter] || 'Filter';
                 }
+                
+                // Update active state on filter cards
+                statsCards.forEach(card => {
+                    const cardStatus = card.dataset.filterStatus || 'all';
+                    if (cardStatus === filter) {
+                        card.classList.add('active-filter');
+                    } else {
+                        card.classList.remove('active-filter');
+                    }
+                });
+                
                 updateMatterVisibility();
 
                 document.dispatchEvent(new CustomEvent('matters:statusFilterChanged', {
@@ -328,7 +339,13 @@
 
             statsCards.forEach(card => {
                 card.addEventListener('click', function() {
-                    applyMattersStatusFilter(this.dataset.filterStatus || 'all');
+                    const filterStatus = this.dataset.filterStatus || 'all';
+                    // Toggle: if already filtering by this status, clear filter (set to 'all')
+                    if (currentStatusFilter === filterStatus) {
+                        applyMattersStatusFilter('all');
+                    } else {
+                        applyMattersStatusFilter(filterStatus);
+                    }
                 });
             });
 

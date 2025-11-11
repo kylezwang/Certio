@@ -101,78 +101,85 @@ public class DirectMessageService : IDirectMessageService
             return MapToThreadDto(existingThread);
         }
 
-        // Create new thread with transaction to ensure atomicity
-        using var transaction = await _context.Database.BeginTransactionAsync(ct);
-        try
+        var executionStrategy = _context.Database.CreateExecutionStrategy();
+
+        return await executionStrategy.ExecuteAsync(async () =>
         {
-            var newThread = new DirectThread
+            // Create new thread with transaction to ensure atomicity
+            await using var transaction = await _context.Database.BeginTransactionAsync(ct);
+
+            try
             {
-                Id = Guid.NewGuid(),
-                OrganizationId = threadOrgId, // Use the determined org ID
-                UserAId = userAId,
-                UserBId = userBId,
-                CreatedAt = DateTime.UtcNow
-            };
+                var newThread = new DirectThread
+                {
+                    Id = Guid.NewGuid(),
+                    OrganizationId = threadOrgId, // Use the determined org ID
+                    UserAId = userAId,
+                    UserBId = userBId,
+                    CreatedAt = DateTime.UtcNow
+                };
 
-            _logger.LogInformation("Creating new DM thread for users {UserA} and {UserB} in org {OrgId}",
-                userAId, userBId, threadOrgId);
+                _logger.LogInformation("Creating new DM thread for users {UserA} and {UserB} in org {OrgId}",
+                    userAId, userBId, threadOrgId);
 
-            _context.DirectThreads.Add(newThread);
+                _context.DirectThreads.Add(newThread);
 
-            // Create participant records for both users
-            var participantA = new DirectParticipant
-            {
-                Id = Guid.NewGuid(),
-                ThreadId = newThread.Id,
-                UserId = userAId
-            };
-
-            _context.DirectParticipants.Add(participantA);
-
-            // Only add participantB if it's different from participantA (not self-messaging)
-            if (userAId != userBId)
-            {
-                var participantB = new DirectParticipant
+                // Create participant records for both users
+                var participantA = new DirectParticipant
                 {
                     Id = Guid.NewGuid(),
                     ThreadId = newThread.Id,
-                    UserId = userBId
+                    UserId = userAId
                 };
-                _context.DirectParticipants.Add(participantB);
+
+                _context.DirectParticipants.Add(participantA);
+
+                // Only add participantB if it's different from participantA (not self-messaging)
+                if (userAId != userBId)
+                {
+                    var participantB = new DirectParticipant
+                    {
+                        Id = Guid.NewGuid(),
+                        ThreadId = newThread.Id,
+                        UserId = userBId
+                    };
+                    _context.DirectParticipants.Add(participantB);
+                }
+
+                await _context.SaveChangesAsync(ct);
+                await transaction.CommitAsync(ct);
+
+                // Cache the thread members
+                await CacheThreadMembersAsync(newThread.Id, userAId, userBId);
+
+                _logger.LogInformation("Created DM thread {ThreadId} between users {UserA} and {UserB} in org {OrgId}",
+                    newThread.Id, userAId, userBId, orgId);
+
+                return MapToThreadDto(newThread);
             }
-
-            await _context.SaveChangesAsync(ct);
-            await transaction.CommitAsync(ct);
-
-            // Cache the thread members
-            await CacheThreadMembersAsync(newThread.Id, userAId, userBId);
-
-            _logger.LogInformation("Created DM thread {ThreadId} between users {UserA} and {UserB} in org {OrgId}",
-                newThread.Id, userAId, userBId, orgId);
-
-            return MapToThreadDto(newThread);
-        }
-        catch (DbUpdateException ex) when (ex.InnerException?.Message?.Contains("unique", StringComparison.OrdinalIgnoreCase) == true)
-        {
-            // Race condition: thread was created concurrently, fetch it
-            await transaction.RollbackAsync(ct);
-            var thread = await _context.DirectThreads
-                .Where(dt => dt.OrganizationId == orgId && dt.UserAId == userAId && dt.UserBId == userBId && !dt.IsDeleted)
-                .FirstOrDefaultAsync(ct);
-
-            if (thread != null)
+            catch (DbUpdateException ex) when (ex.InnerException?.Message?.Contains("unique", StringComparison.OrdinalIgnoreCase) == true)
             {
-                _logger.LogInformation("DM thread already exists (race condition), returning existing {ThreadId}", thread.Id);
-                return MapToThreadDto(thread);
-            }
+                await transaction.RollbackAsync(ct);
 
-            throw;
-        }
-        catch
-        {
-            await transaction.RollbackAsync(ct);
-            throw;
-        }
+                // Race condition: thread was created concurrently, fetch it
+                var thread = await _context.DirectThreads
+                    .Where(dt => dt.OrganizationId == threadOrgId && dt.UserAId == userAId && dt.UserBId == userBId && !dt.IsDeleted)
+                    .FirstOrDefaultAsync(ct);
+
+                if (thread != null)
+                {
+                    _logger.LogInformation("DM thread already exists (race condition), returning existing {ThreadId}", thread.Id);
+                    return MapToThreadDto(thread);
+                }
+
+                throw;
+            }
+            catch
+            {
+                await transaction.RollbackAsync(ct);
+                throw;
+            }
+        });
     }
 
     public async Task<IReadOnlyList<ThreadListItemDto>> ListThreadsAsync(int orgId, int currentUserId, int take = 30, string? cursor = null, CancellationToken ct = default)

@@ -270,69 +270,41 @@
             </div>
         </div>
 
-        <!-- Daily Briefing -->
+        <!-- Daily Briefing - AI Streaming -->
         <div class="col-md-4 mb-4">
             <div class="card border-0 h-100 daily-briefing-card gd-card">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center mb-3">
                         <i class="fa-solid fa-chart-pie text-muted me-2" style="font-size: 0.9em;"></i>
-                        <h5 class="card-title fw-bold mb-0">Daily Briefing</h5>
+                        <h5 class="card-title fw-bold mb-0">Daily Briefing <span class="text-muted fw-normal" style="font-size: 0.75rem;">(Beta)</span></h5>
                     </div>
                     
-                    <div class="briefing-item mb-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="fw-semibold">Today</span>
+                    <div id="dailyBriefingContent" class="briefing-content">
+                        <div class="briefing-loading">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <span class="ms-2 text-muted small">Generating briefing...</span>
                         </div>
-                        <span class="text-primary fw-bold">@Model.FilingsDueToday filings due</span>
-                        <div class="text-muted small">@Model.FilingsDueDescription</div>
-                    </div>
-                    
-                    <div class="briefing-item mb-3">
-                        <div class="text-primary fw-bold">@Model.ClientCallsToday client call</div>
-                        <div class="text-muted small">@Model.ClientCallsDescription</div>
-                    </div>
-                    
-                    <div class="briefing-item">
-                        <div class="text-primary fw-bold">@Model.OverdueInvoices overdue invoice</div>
-                        <div class="text-muted small">@Model.OverdueInvoicesDescription</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Next Suggestions -->
+        <!-- Notal Suggestions - AI Streaming -->
         <div class="col-md-4 mb-4">
             <div class="card border-0 h-100 gd-card">
                 <div class="card-body p-4">
-                    <h5 class="card-title fw-bold mb-3"><img src="~/images/Notal_Banner_Logo_Large_Text.png" alt="Notal AI" style="height: 1.3rem; object-fit: contain; display: inline-block; margin-right: 0.25rem; margin-bottom: 0.2rem;" />Suggestions</h5>
+                    <h5 class="card-title fw-bold mb-3"><img src="~/images/Notal_Banner_Logo_Large_Text.png" alt="Notal AI" style="height: 1.3rem; object-fit: contain; display: inline-block; margin-right: 0.25rem; margin-bottom: 0.2rem;" />Suggestions <span class="text-muted fw-normal" style="font-size: 0.75rem;">(Beta)</span></h5>
                     
-                    @if (Model.NextSuggestions.Any())
-                    {
-                        @foreach (var suggestion in Model.NextSuggestions.Take(3))
-                        {
-                            <div class="suggestion-item mb-3">
-                                <div class="fw-semibold">@suggestion.Title</div>
-                                <div class="text-muted small">@suggestion.Description</div>
+                    <div id="notalSuggestionsContent" class="suggestions-content">
+                        <div class="briefing-loading">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
                             </div>
-                        }
-                    }
-                    else
-                    {
-                        <div class="suggestion-item mb-3">
-                            <div class="fw-semibold">Matter Z inactive 12 days</div>
-                            <div class="text-muted small">→ follow up</div>
+                            <span class="ms-2 text-muted small">Generating suggestions...</span>
                         </div>
-                        
-                        <div class="suggestion-item mb-3">
-                            <div class="fw-semibold">3 overdue invoices</div>
-                            <div class="text-muted small">→ send reminders</div>
-                        </div>
-                        
-                        <div class="suggestion-item">
-                            <div class="fw-semibold">Paralegal C overloaded</div>
-                            <div class="text-muted small">→ consider reassigning</div>
-                        </div>
-                    }
+                    </div>
                 </div>
             </div>
         </div>
@@ -879,6 +851,36 @@
         padding: 0.5rem 0;
     }
 
+    .briefing-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .briefing-content, .suggestions-content {
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    .briefing-content p, .suggestions-content p {
+        margin-bottom: 0.75rem;
+    }
+
+    .briefing-content strong, .suggestions-content strong {
+        color: #2563eb;
+        font-weight: 600;
+    }
+
+    .briefing-content ul, .suggestions-content ul {
+        margin: 0.5rem 0;
+        padding-left: 1.25rem;
+    }
+
+    .briefing-content li, .suggestions-content li {
+        margin-bottom: 0.5rem;
+    }
+
     /* Suggestion styles */
     .suggestion-item {
         padding: 0.5rem 0;
@@ -979,6 +981,7 @@
             initializeAiClose();
             initializeNewNoteButton();
             await loadDashboardConversations();
+            await streamDashboardBriefingCards();
         });
 
         function initializeAiChatActivation() {
@@ -1893,8 +1896,44 @@
                             }
                         }, 100);
                     } else {
-                        // Create new conversation (you may want to implement this)
-                        console.log('Creating new conversation from search input');
+                        // Create new conversation
+                        try {
+                            const orgId = @ViewBag.OrganizationId;
+                            const response = await fetch(`/Client/${orgId}/Chat/CreateConversation`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                },
+                                body: `title=New Chat&description=${encodeURIComponent(message)}`
+                            });
+                            
+                            const data = await response.json();
+                            
+                            if (data.success && data.conversationId) {
+                                // Set as current conversation
+                                window.dashboardCurrentConversationId = data.conversationId;
+                                localStorage.setItem('dashboardSelectedConversation', data.conversationId);
+                                
+                                // Load the conversation and send the message
+                                await loadDashboardConversation(data.conversationId);
+                                
+                                // Wait for view to switch, then send message
+                                setTimeout(() => {
+                                    const dashboardInput = document.getElementById('dashboardMessageInput');
+                                    if (dashboardInput) {
+                                        dashboardInput.value = message;
+                                        document.getElementById('dashboardSendButton').click();
+                                    }
+                                }, 200);
+                                
+                                // Reload conversations list
+                                loadDashboardConversations();
+                            } else {
+                                console.error('Failed to create conversation:', data.error);
+                            }
+                        } catch (error) {
+                            console.error('Error creating conversation:', error);
+                        }
                     }
                 });
                 
@@ -1906,6 +1945,166 @@
                 });
             }
         });
+
+        // Stream AI-powered briefing and suggestions (once per session)
+        async function streamDashboardBriefingCards() {
+            // Check if already shown this session
+            const briefingShown = sessionStorage.getItem('briefingCardsShown');
+            if (briefingShown === 'true') {
+                // Load cached content if available
+                const cachedBriefing = sessionStorage.getItem('briefingContent');
+                const cachedSuggestions = sessionStorage.getItem('suggestionsContent');
+                
+                if (cachedBriefing) {
+                    document.getElementById('dailyBriefingContent').innerHTML = cachedBriefing;
+                }
+                if (cachedSuggestions) {
+                    document.getElementById('notalSuggestionsContent').innerHTML = cachedSuggestions;
+                }
+                return;
+            }
+
+            try {
+                const orgId = @ViewBag.OrganizationId;
+                if (!orgId) return;
+
+                // Stream Daily Briefing
+                await streamBriefingCard('daily-briefing', 
+                    'dailyBriefingContent',
+                    `Generate a concise daily briefing for today. Include:
+                    - Number of filings due today with case names
+                    - Scheduled client calls with times and names
+                    - Any overdue items (invoices, tasks, deadlines)
+                    Format as brief bullet points. Be specific and actionable. Example format:
+                    Today
+                    2 filings due
+                    Smith v. Jones, ABC Corp
+                    
+                    1 client call
+                    4:30 PM with Johnson
+                    
+                    1 overdue invoice
+                    follow-up needed`
+                );
+
+                // Wait a moment before streaming suggestions
+                await new Promise(resolve => setTimeout(resolve, 800));
+
+                // Stream Notal Suggestions
+                await streamBriefingCard('notal-suggestions',
+                    'notalSuggestionsContent',
+                    `Generate 3-4 actionable suggestions based on current workload. Include:
+                    - Inactive matters needing follow-up
+                    - Overdue invoices or billings
+                    - Resource allocation issues (overloaded team members)
+                    Format as brief items with action arrows. Example format:
+                    Matter Z inactive 12 days
+                    → follow up
+                    
+                    3 overdue invoices
+                    → send reminders
+                    
+                    Paralegal C overloaded
+                    → consider reassigning`
+                );
+
+                // Mark as shown for this session
+                sessionStorage.setItem('briefingCardsShown', 'true');
+            } catch (error) {
+                console.error('Error streaming briefing cards:', error);
+            }
+        }
+
+        // Stream individual briefing card with AI (using C# backend like chat sidebar)
+        async function streamBriefingCard(cardType, contentElementId, promptTemplate) {
+            const contentElement = document.getElementById(contentElementId);
+            if (!contentElement) return;
+
+            try {
+                const orgId = @ViewBag.OrganizationId;
+                const response = await fetch(`/Client/${orgId}/Chat/GenerateDashboardCardStream`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userMessage: promptTemplate
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                // Clear loading state
+                contentElement.innerHTML = '';
+
+                // Handle SSE streaming (same format as chat sidebar)
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let fullContent = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    
+                    if (done) break;
+                    
+                    buffer += decoder.decode(value, { stream: true });
+                    const messages = buffer.split('\n\n');
+                    buffer = messages.pop() || '';
+                    
+                    for (const message of messages) {
+                        if (message.startsWith('data: ')) {
+                            const jsonData = message.substring(6);
+                            
+                            try {
+                                const eventData = JSON.parse(jsonData);
+                                
+                                if (eventData.error) {
+                                    contentElement.innerHTML = '<p class="text-muted small">Unable to generate content</p>';
+                                    return;
+                                }
+                                
+                                if (eventData.done) {
+                                    // Cache the final content for session persistence
+                                    sessionStorage.setItem(contentElementId === 'dailyBriefingContent' ? 'briefingContent' : 'suggestionsContent', fullContent);
+                                    return;
+                                }
+                                
+                                if (eventData.content) {
+                                    fullContent += eventData.content;
+                                    
+                                    // Update display with streaming content (remove incomplete HTML tags)
+                                    let displayText = fullContent
+                                        .replace(/<[^>]*$/g, '')  // Remove incomplete tags
+                                        .trim();
+                                    
+                                    // Use the same formatting function as AI chat sidebar for consistency
+                                    // formatIntelligentResponse handles markdown conversion and HTML detection
+                                    if (typeof formatIntelligentResponse === 'function') {
+                                        displayText = formatIntelligentResponse(displayText);
+                                    } else {
+                                        // Fallback to basic markdown if function not available
+                                        displayText = displayText
+                                            .replace(/\n/g, '<br>')
+                                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                            .replace(/→/g, '→');
+                                    }
+                                    
+                                    contentElement.innerHTML = displayText;
+                                }
+                            } catch (e) {
+                                console.error('Error parsing SSE:', e);
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error(`Error streaming ${cardType}:`, error);
+                contentElement.innerHTML = '<p class="text-muted small">Unable to load content</p>';
+            }
+        }
 
         async function loadDashboardUpcomingDeadlines() {
             const deadlinesList = document.getElementById('dashboardUpcomingDeadlinesList');

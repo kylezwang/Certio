@@ -393,11 +393,91 @@
         let currentDate = new Date();
         const orgId = @ViewBag.OrganizationId;
         const currentUserId = @ViewBag.CurrentUserId;
+        const userTimeZone = '@ViewBag.UserTimeZone'; // User's selected timezone
         let allEvents = [];
         let allMatters = [];
         let allUsers = [];
         let currentEventId = null; // For edit mode
         let eventAttendees = []; // Track attendees for new/edited event
+
+        // Timezone Helper Functions
+        // Converts a datetime-local input value to UTC ISO string in user's timezone
+        function convertLocalInputToUTC(dateTimeLocalValue) {
+            if (!dateTimeLocalValue) return null;
+            
+            // Parse the datetime-local value (format: YYYY-MM-DDTHH:mm)
+            const [datePart, timePart] = dateTimeLocalValue.split('T');
+            const [year, month, day] = datePart.split('-').map(Number);
+            const [hour, minute] = timePart.split(':').map(Number);
+            
+            // Create a date string in the user's timezone
+            const dateInUserTz = new Date(Date.UTC(year, month - 1, day, hour, minute));
+            
+            // Get the timezone offset for the user's timezone at this date
+            const offsetMinutes = getTimezoneOffset(dateInUserTz, userTimeZone);
+            
+            // Adjust for the timezone offset to get true UTC
+            const utcDate = new Date(dateInUserTz.getTime() - (offsetMinutes * 60000));
+            
+            return utcDate.toISOString();
+        }
+        
+        // Converts a UTC ISO string to datetime-local format in user's timezone
+        function convertUTCToLocalInput(utcISOString) {
+            if (!utcISOString) return '';
+            
+            const utcDate = new Date(utcISOString);
+            
+            // Get the timezone offset for the user's timezone
+            const offsetMinutes = getTimezoneOffset(utcDate, userTimeZone);
+            
+            // Apply the offset to convert to user's timezone
+            const localDate = new Date(utcDate.getTime() + (offsetMinutes * 60000));
+            
+            // Format as YYYY-MM-DDTHH:mm for datetime-local input
+            const year = localDate.getUTCFullYear();
+            const month = String(localDate.getUTCMonth() + 1).padStart(2, '0');
+            const day = String(localDate.getUTCDate()).padStart(2, '0');
+            const hours = String(localDate.getUTCHours()).padStart(2, '0');
+            const minutes = String(localDate.getUTCMinutes()).padStart(2, '0');
+            
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+        
+        // Get timezone offset in minutes for a specific timezone
+        function getTimezoneOffset(date, timeZone) {
+            try {
+                // Format the date in the target timezone
+                const tzDate = new Date(date.toLocaleString('en-US', { timeZone }));
+                // Get the difference in minutes
+                return (date.getTime() - tzDate.getTime()) / 60000;
+            } catch (e) {
+                console.error('Error calculating timezone offset:', e);
+                // Fallback to local timezone
+                return -date.getTimezoneOffset();
+            }
+        }
+        
+        // Format date for display in user's timezone
+        function formatDateInUserTz(utcISOString, includeTime = true) {
+            if (!utcISOString) return '';
+            
+            const date = new Date(utcISOString);
+            const options = {
+                timeZone: userTimeZone,
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            };
+            
+            if (includeTime) {
+                options.hour = 'numeric';
+                options.minute = '2-digit';
+                options.hour12 = true;
+            }
+            
+            return date.toLocaleString('en-US', options);
+        }
 
         // Initialize calendar on page load
         document.addEventListener('DOMContentLoaded', async function() {
@@ -963,22 +1043,22 @@
                         });
                         updateEventColorIndicator(selectedColor);
                         
-                        // Set dates
-                        const startDate = new Date(event.startDateTime);
-                        const endDate = new Date(event.endDateTime);
+                        // Set dates - convert from UTC to user's timezone
                         const startInput = document.getElementById('eventStartInput');
                         const endInput = document.getElementById('eventEndInput');
                         
                         if (event.isAllDayEvent) {
                             startInput.type = 'date';
                             endInput.type = 'date';
-                            startInput.value = startDate.toISOString().split('T')[0];
-                            endInput.value = endDate.toISOString().split('T')[0];
+                            // For all-day events, use the date as-is without timezone conversion
+                            startInput.value = event.startDateTime.split('T')[0];
+                            endInput.value = event.endDateTime.split('T')[0];
                         } else {
                             startInput.type = 'datetime-local';
                             endInput.type = 'datetime-local';
-                            startInput.value = toLocalISOString(startDate).slice(0, 16);
-                            endInput.value = toLocalISOString(endDate).slice(0, 16);
+                            // Convert UTC to user's timezone for datetime-local inputs
+                            startInput.value = convertUTCToLocalInput(event.startDateTime);
+                            endInput.value = convertUTCToLocalInput(event.endDateTime);
                         }
                         
                         // Load attendees - map from server format to client format
@@ -1017,13 +1097,14 @@
                 document.querySelector('.color-option[data-color="blue"]')?.classList.add('selected');
                 updateEventColorIndicator('blue');
                 
-                // Set default date/time to now
+                // Set default date/time to now in user's timezone
                 const now = new Date();
                 const startInput = document.getElementById('eventStartInput');
                 const endInput = document.getElementById('eventEndInput');
-                startInput.value = toLocalISOString(now).slice(0, 16);
+                // Convert current time to user's timezone format
+                startInput.value = convertUTCToLocalInput(now.toISOString());
                 const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
-                endInput.value = toLocalISOString(oneHourLater).slice(0, 16);
+                endInput.value = convertUTCToLocalInput(oneHourLater.toISOString());
                 
                 // Add current user as default attendee
                 const currentUser = allUsers.find(u => u.id === currentUserId);
@@ -1091,8 +1172,8 @@
                 matterId: matterId,
                 location: location,
                 isAllDayEvent: isAllDayEvent,
-                startDateTime: new Date(startInput.value).toISOString(),
-                endDateTime: new Date(endInput.value).toISOString(),
+                startDateTime: convertLocalInputToUTC(startInput.value),
+                endDateTime: convertLocalInputToUTC(endInput.value),
                 attendeeUserIds: eventAttendees.map(a => a.userId)
             };
             

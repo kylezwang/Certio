@@ -172,7 +172,11 @@ public class AIAgentService : IAIAgentService
         }
     }
 
-    public async IAsyncEnumerable<string> GenerateConversationalResponseStreamAsync(string conversationId, List<ChatMessage> messages, string userMessage)
+    public async IAsyncEnumerable<string> GenerateConversationalResponseStreamAsync(
+        string conversationId, 
+        List<ChatMessage> messages, 
+        string userMessage, 
+        Certio.Domain.Organizations.AIModelTier? aiModelTier = null)
     {
         HttpResponseMessage? response = null;
         Stream? stream = null;
@@ -182,8 +186,8 @@ public class AIAgentService : IAIAgentService
         // Fetch document context via RAG if conversation has org/user/matter context
         var documentContext = await TryBuildDocumentContextAsync(conversationId, messages, userMessage);
 
-        // Setup request with optional document context
-        var request = CreateAIRequest(conversationId, messages, userMessage, documentContext: documentContext);
+        // Setup request with optional document context and AI model tier
+        var request = CreateAIRequest(conversationId, messages, userMessage, documentContext: documentContext, aiModelTier: aiModelTier);
         var json = JsonSerializer.Serialize(request);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
         var httpRequest = new HttpRequestMessage(HttpMethod.Post, "/agents/conversational-response-stream")
@@ -328,7 +332,13 @@ public class AIAgentService : IAIAgentService
             .ToList();
     }
 
-    private object CreateAIRequest(string conversationId, List<ChatMessage> messages, string? userMessage = null, string userType = "Client", Dictionary<string, string?>? documentContext = null)
+    private object CreateAIRequest(
+        string conversationId, 
+        List<ChatMessage> messages, 
+        string? userMessage = null, 
+        string userType = "Client", 
+        Dictionary<string, string?>? documentContext = null,
+        Certio.Domain.Organizations.AIModelTier? aiModelTier = null)
     {
         var orderedMessages = OrderMessages(messages);
 
@@ -348,16 +358,17 @@ public class AIAgentService : IAIAgentService
                 created_at = m.CreatedAt.ToString("O"),
                 is_read = m.IsRead
             }).ToList(),
-            user_type = userType
+            user_type = userType,
+            ai_model_tier = aiModelTier?.ToString() ?? "Auto"
         };
 
         if (userMessage != null && documentContext != null)
         {
-            return new { request.conversation_id, request.messages, request.user_type, user_message = userMessage, document_context = documentContext };
+            return new { request.conversation_id, request.messages, request.user_type, request.ai_model_tier, user_message = userMessage, document_context = documentContext };
         }
         else if (userMessage != null)
         {
-            return new { request.conversation_id, request.messages, request.user_type, user_message = userMessage };
+            return new { request.conversation_id, request.messages, request.user_type, request.ai_model_tier, user_message = userMessage };
         }
         else
         {

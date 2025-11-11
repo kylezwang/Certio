@@ -2018,12 +2018,31 @@ async def conversational_response_stream(payload: dict, _: str = Depends(authent
             user_message = payload.get("user_message", "")
             user_type = payload.get("user_type", "Client")
             document_context = payload.get("document_context", None)
+            ai_model_tier = payload.get("ai_model_tier", "Auto")  # Get tier preference
+            
+            # Check if this is a dashboard card request (conversation_id starts with "dashboard-")
+            is_dashboard_card = conversation_id.startswith("dashboard-")
             
             # Quick analysis for conversation context (no API call)
             conversation_analysis = _quick_conversation_analysis(messages, user_message, user_type)
             
             # Check if this is a simple greeting or short message
             is_simple_message = _is_simple_message(user_message, conversation_analysis)
+            
+            # Determine model selection based on tier preference
+            force_model_type = None
+            if is_dashboard_card:
+                # Always use mini for dashboard cards to reduce costs
+                force_model_type = ModelType.GPT_4O_MINI
+                logger.info("Dashboard card detected - forcing gpt-4o-mini for cost optimization")
+            elif ai_model_tier == "Basic":
+                force_model_type = ModelType.GPT_4O_MINI
+            elif ai_model_tier == "Advanced":
+                force_model_type = ModelType.GPT_4O
+            elif ai_model_tier == "Premium":
+                # For Premium tier, use gpt-5 (or fallback to gpt-4o if not available)
+                force_model_type = ModelType.GPT_4O  # Will override with gpt-5 name below
+            # else: Auto - use dynamic selection
             
             if is_simple_message:
                 # Simple response for greetings and short messages - enhanced with RAG
@@ -2041,8 +2060,14 @@ IMPORTANT: Return ONLY the HTML content with <p> tags and <br> for line breaks. 
                 else:
                     system_prompt = enhance_agent_prompt("ConversationalAI", base_simple_prompt, user_message, simple_context)
                 
-                # Use GPT-4o-mini for simple responses
-                selected_model = get_model_name(ModelType.GPT_4O_MINI)
+                # Use GPT-4o-mini for simple responses (unless tier forces different model)
+                if force_model_type:
+                    selected_model = get_model_name(force_model_type)
+                    if ai_model_tier == "Premium":
+                        # For Premium tier, use gpt-5
+                        selected_model = os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT5", "gpt-5") if os.getenv("AZURE_OPENAI_ENDPOINT") else "gpt-5"
+                else:
+                    selected_model = get_model_name(ModelType.GPT_4O_MINI)
                 max_tokens = 200
                 temperature = 0.3
             else:
@@ -2121,27 +2146,47 @@ CRITICAL: Return ONLY the HTML content. Do NOT wrap your response in ```html cod
 
 Respond as an intelligent legal assistant:"""
                 
-                # Use GPT-4o for complex responses
-                # Increase max_tokens for onboarding queries to ensure complete responses
-                selected_model = get_model_name(ModelType.GPT_4O)
+                # Determine model based on tier preference or dynamic selection
+                optimal_model_type = None
+                estimated_cost = 0.0
+                
+                if force_model_type:
+                    # Tier preference overrides dynamic selection
+                    optimal_model_type = force_model_type
+                    if ai_model_tier == "Premium":
+                        # For Premium tier, use gpt-5
+                        selected_model = os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT5", "gpt-5") if os.getenv("AZURE_OPENAI_ENDPOINT") else "gpt-5"
+                        estimated_cost = 0.01  # Higher cost estimate for premium model
+                    else:
+                        selected_model = get_model_name(optimal_model_type)
+                        estimated_cost = 0.003 if optimal_model_type == ModelType.GPT_4O else 0.0003
+                else:
+                    # Auto mode: Use dynamic selection based on complexity
+                    # Analyze task complexity for cost optimization
+                    context_length = len(messages) if messages else 0
+                    # Force mini for dashboard cards by passing force_mini=True
+                    task_complexity = task_analyzer.analyze_task(user_message, context_length, user_type, force_mini=is_dashboard_card)
+                    optimal_model_type, estimated_cost = model_selector.select_optimal_model(task_complexity)
+                    if optimal_model_type:
+                        selected_model = get_model_name(optimal_model_type)
+                    else:
+                        selected_model = get_model_name(ModelType.GPT_4O)
+                
+                # Set max_tokens and temperature for complex responses
                 max_tokens = 3000 if is_onboarding_query else 1500
                 temperature = 0.7
             
-            # Analyze task complexity for cost optimization
-            context_length = len(messages) if messages else 0
-            task_complexity = task_analyzer.analyze_task(user_message, context_length, user_type)
-            
-            # Override model selection for simple messages
+            # For simple messages, set optimal_model_type if not already set
             if is_simple_message:
-                optimal_model_type = ModelType.GPT_4O_MINI
-                estimated_cost = 0.0003
-            else:
-                optimal_model_type, estimated_cost = model_selector.select_optimal_model(task_complexity)
-                if optimal_model_type:
-                    selected_model = get_model_name(optimal_model_type)
+                if not force_model_type:
+                    optimal_model_type = ModelType.GPT_4O_MINI
+                    estimated_cost = 0.0003
+                elif force_model_type and optimal_model_type is None:
+                    optimal_model_type = force_model_type
             
             # Log cost optimization decision
-            logger.info(f"Streaming response - Selected model: {selected_model} (estimated cost: ${estimated_cost:.4f}) for complexity: {task_complexity.complexity_score:.2f}")
+            tier_info = f" (tier: {ai_model_tier})" if ai_model_tier != "Auto" else ""
+            logger.info(f"Streaming response - Selected model: {selected_model}{tier_info} (estimated cost: ${estimated_cost:.4f})")
             
             # Wait for rate limiter before making request
             await rate_limiter.wait_if_needed()
@@ -2157,8 +2202,11 @@ Respond as an intelligent legal assistant:"""
                 stream=True  # Enable streaming
             )
             
-            # Track usage for cost optimization
-            usage_tracker.record_model_selection(optimal_model_type, task_complexity, estimated_cost)
+            # Track usage for cost optimization (only if we have optimal_model_type)
+            if optimal_model_type:
+                context_length = len(messages) if messages else 0
+                task_complexity = task_analyzer.analyze_task(user_message, context_length, user_type)
+                usage_tracker.record_model_selection(optimal_model_type, task_complexity, estimated_cost)
             
             # Stream chunks to client
             full_content = ""

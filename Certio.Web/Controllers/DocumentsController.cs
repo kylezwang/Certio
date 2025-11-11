@@ -103,8 +103,7 @@ namespace Certio.Web.Controllers
             {
                 new Certio.Domain.Documents.FolderInfo { Name = "All Documents", Count = documentCount, Icon = "FileText" },
                 new Certio.Domain.Documents.FolderInfo { Name = "OneDrive", Count = oneDriveCount, Icon = "OneDrive" },
-                new Certio.Domain.Documents.FolderInfo { Name = "Google Drive", Count = googleDriveCount, Icon = "GoogleDrive" },
-                new Certio.Domain.Documents.FolderInfo { Name = "Internal", Count = internalCount, Icon = "FileText" }
+                new Certio.Domain.Documents.FolderInfo { Name = "Google Drive", Count = googleDriveCount, Icon = "GoogleDrive" }
             };
 
             // Fetch storage from connected Google Drive and OneDrive
@@ -698,24 +697,22 @@ namespace Certio.Web.Controllers
                 .Where(d => d.OrgId == orgId && d.DeletedAt == null)
                 .ToListAsync();
 
-            // Calculate internal document storage (sum of FileSizeBytes for InternalUpload documents)
-            // Do this in database query for efficiency
-            var internalStorageBytes = await _db.Documents
-                .Where(d => d.OrgId == orgId && 
-                           d.DeletedAt == null && 
-                           d.SourceType == Certio.Domain.Documents.DocumentSourceType.InternalUpload)
-                .SumAsync(d => (long?)d.FileSizeBytes) ?? 0;
+            // Only show storage for OAuth-connected services (Google Drive and OneDrive)
+            // Internal storage is not included in the storage progress bar
+            // Check if connections exist (regardless of token expiry) to determine if we should show progress bar
+            // If we have connections but couldn't fetch storage (API failure or expired token), still show progress bar
+            bool hasConnection = googleConnection != null || oneDriveConnection != null;
             
-            var internalStorageGB = internalStorageBytes / (1024.0 * 1024.0 * 1024.0);
-            usedGB += internalStorageGB;
-
-            // If no cloud storage connections, use 500 GB default, otherwise add internal storage to total
-            if (totalGB == 0)
+            if (!hasConnection)
             {
-                totalGB = 500; // Default to 500 GB if no connections
+                totalGB = 0; // No connections, so no storage to display
             }
-            // Note: Internal storage is included in usedGB but doesn't add to totalGB
-            // The totalGB represents cloud storage quota, internal storage is additional
+            else if (hasConnection && totalGB == 0)
+            {
+                // We have a connection but storage fetch failed or token expired - use a default to show progress bar
+                // This handles cases where API calls fail, tokens expired, or storage quota is unavailable
+                totalGB = 15; // Default 15GB (typical free tier) - user will see 0/X until API succeeds
+            }
 
             return new Certio.Domain.Documents.StorageInfo
             {

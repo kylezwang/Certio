@@ -135,6 +135,27 @@ public class ChatService : IChatService
 
     public async Task<ChatMessage> SendMessageAsync(int conversationId, int? userId, string userType, string content, string messageType = "Text")
     {
+        // Defense-in-depth: Verify conversation exists and user has access
+        var conversation = await _context.Conversations
+            .FirstOrDefaultAsync(c => c.Id == conversationId);
+        
+        if (conversation == null)
+        {
+            _logger.LogWarning("SECURITY: Attempted to send message to non-existent conversation {ConversationId}", conversationId);
+            throw new ArgumentException("Conversation not found");
+        }
+
+        if (userId.HasValue)
+        {
+            var hasAccess = await CanUserAccessConversationAsync(conversationId, userId.Value, conversation.OrganizationId);
+            if (!hasAccess)
+            {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to send message to unauthorized conversation {ConversationId} in org {OrgId}", 
+                    userId.Value, conversationId, conversation.OrganizationId);
+                throw new UnauthorizedOperationException(userId.Value, "send a message to", "Conversation", "Access denied");
+            }
+        }
+
         var message = new ChatMessage
         {
             ConversationId = conversationId,
@@ -149,12 +170,7 @@ public class ChatService : IChatService
         _context.ChatMessages.Add(message);
 
         // Update conversation last message time
-        var conversation = await _context.Conversations
-            .FirstOrDefaultAsync(c => c.Id == conversationId);
-        if (conversation != null)
-        {
             conversation.LastMessageAt = DateTime.UtcNow;
-        }
 
         await _context.SaveChangesAsync();
 
@@ -169,6 +185,27 @@ public class ChatService : IChatService
 
     public async Task<ChatMessage> SendChannelMessageAsync(int conversationId, int? userId, string userType, string content, string messageType = "Text", int? channelId = null, int? replyToMessageId = null)
     {
+        // Defense-in-depth: Verify conversation exists and user has access
+        var conversation = await _context.Conversations
+            .FirstOrDefaultAsync(c => c.Id == conversationId);
+        
+        if (conversation == null)
+        {
+            _logger.LogWarning("SECURITY: Attempted to send channel message to non-existent conversation {ConversationId}", conversationId);
+            throw new ArgumentException("Channel not found");
+        }
+
+        if (userId.HasValue)
+        {
+            var hasAccess = await CanUserAccessConversationAsync(conversationId, userId.Value, conversation.OrganizationId);
+            if (!hasAccess)
+            {
+                _logger.LogWarning("SECURITY: User {UserId} attempted to send channel message to unauthorized conversation {ConversationId} in org {OrgId}", 
+                    userId.Value, conversationId, conversation.OrganizationId);
+                throw new UnauthorizedOperationException(userId.Value, "send a message to", "Channel", "Access denied");
+            }
+        }
+
         var message = new ChatMessage
         {
             ConversationId = conversationId,
@@ -186,12 +223,7 @@ public class ChatService : IChatService
         _context.ChatMessages.Add(message);
 
         // Update conversation last message time
-        var conversation = await _context.Conversations
-            .FirstOrDefaultAsync(c => c.Id == conversationId);
-        if (conversation != null)
-        {
             conversation.LastMessageAt = DateTime.UtcNow;
-        }
 
         await _context.SaveChangesAsync();
         
@@ -608,6 +640,21 @@ public class ChatService : IChatService
         // Get conversation history
         var messages = await GetConversationMessagesAsync(conversationId);
         
+        // Get organization ID from conversation to retrieve AI tier preference
+        var conversation = await _context.Conversations
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == conversationId);
+        
+        var aiModelTier = Certio.Domain.Organizations.AIModelTier.Auto; // Default to Auto
+        if (conversation != null)
+        {
+            var org = await _context.Organizations.FindAsync(new object[] { conversation.OrganizationId });
+            if (org != null)
+            {
+                aiModelTier = org.GetAIModelTier();
+            }
+        }
+        
         // Determine user type from conversation context
         var userType = DetermineUserType(messages, userMessage);
         
@@ -615,7 +662,7 @@ public class ChatService : IChatService
         var fullResponse = new System.Text.StringBuilder();
         
         await foreach (var chunk in _aiAgentService.GenerateConversationalResponseStreamAsync(
-            conversationId.ToString(), messages, userMessage))
+            conversationId.ToString(), messages, userMessage, aiModelTier: aiModelTier))
         {
             fullResponse.Append(chunk);
             yield return chunk;
@@ -638,6 +685,33 @@ public class ChatService : IChatService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error saving streaming AI response for conversation {ConversationId}", conversationId);
+        }
+    }
+
+    public async IAsyncEnumerable<string> GenerateDashboardCardStreamAsync(string userMessage, string userType, int? organizationId = null)
+    {
+        // Generate streaming response for dashboard cards without conversation context
+        // Use empty conversation history since this is a standalone prompt
+        var emptyMessages = new List<ChatMessage>();
+        
+        // Get organization's AI tier preference
+        var aiModelTier = Certio.Domain.Organizations.AIModelTier.Auto; // Default to Auto
+        if (organizationId.HasValue)
+        {
+            var org = await _context.Organizations.FindAsync(new object[] { organizationId.Value });
+            if (org != null)
+            {
+                aiModelTier = org.GetAIModelTier();
+            }
+        }
+        
+        // Use a unique identifier for dashboard cards (not a real conversation ID)
+        var dashboardCardId = $"dashboard-{DateTime.UtcNow:yyyyMMddHHmmss}";
+        
+        await foreach (var chunk in _aiAgentService.GenerateConversationalResponseStreamAsync(
+            dashboardCardId, emptyMessages, userMessage, aiModelTier: aiModelTier))
+        {
+            yield return chunk;
         }
     }
 

@@ -807,7 +807,16 @@
         <div class="view-resizer" id="inboxPlannerResizer" data-left-view="inboxView" data-right-view="plannerView"></div>
         
         <!-- Planner View -->
-        <div class="view-container d-none" id="plannerView">
+        <div class="view-container d-none" id="plannerView" style="position: relative;">
+            <!-- Development Overlay for Planner View -->
+            @{
+                ViewData["targetSelector"] = "#plannerView";
+                ViewData["fullScreen"] = false;
+                ViewData["verticalMargin"] = "1rem";
+                ViewData["borderRadius"] = "0.5rem";
+            }
+            @await Html.PartialAsync("_DevelopmentOverlay")
+            
             <div class="planner-container">
                 <!-- Calendar Navigation Header -->
                 <div class="calendar-header">
@@ -826,7 +835,6 @@
                         </button>
                     </div>
                     <div class="calendar-nav-right">
-                        <div class="premium-badge">PREMIUM</div>
                         <button class="calendar-selector">
                             <span>1 calendar</span>
                             <i class="bi bi-gear"></i>

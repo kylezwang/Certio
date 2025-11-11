@@ -1898,6 +1898,22 @@ if (typeof document !== 'undefined') {
                 }
             }
         });
+        
+        // Check if URL has openInbox parameter and open inbox automatically
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('openInbox') === 'true') {
+            // Wait a bit for email integration to be fully initialized
+            setTimeout(() => {
+                console.log('Opening inbox from URL parameter');
+                if (typeof openInbox === 'function') {
+                    openInbox();
+                }
+                // Remove the parameter from URL without reloading
+                const url = new URL(window.location);
+                url.searchParams.delete('openInbox');
+                window.history.replaceState({}, '', url);
+            }, 500);
+        }
     });
 }
 

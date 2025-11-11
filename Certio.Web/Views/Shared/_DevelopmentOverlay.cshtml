@@ -1,0 +1,145 @@
+@*
+    Development Overlay Component
+    Usage: @await Html.PartialAsync("_DevelopmentOverlay", new { targetSelector = "#myElement", fullScreen = false })
+*@
+
+@{
+    var targetSelector = ViewData["targetSelector"] as string ?? "";
+    var fullScreen = ViewData["fullScreen"] as bool? ?? false;
+    var verticalMargin = ViewData["verticalMargin"] as string ?? "0";
+    var borderRadius = ViewData["borderRadius"] as string ?? "0";
+    var overlayId = $"dev-overlay-{Guid.NewGuid():N}";
+}
+
+<style>
+    .dev-overlay {
+        position: absolute;
+        top: @verticalMargin;
+        left: 0;
+        right: 0;
+        bottom: @verticalMargin;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(3px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        cursor: pointer;
+        transition: opacity 0.3s ease;
+        border-radius: @borderRadius;
+    }
+
+    .dev-overlay.fullscreen {
+        position: fixed;
+        z-index: 100000 !important;
+        top: 0;
+        left: 6vw;
+        bottom: 0;
+    }
+
+    .dev-overlay-content {
+        text-align: center;
+        color: white;
+        pointer-events: none;
+        user-select: none;
+    }
+
+    .dev-overlay-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        animation: pulse 2s ease-in-out infinite;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    }
+
+    .dev-overlay-text {
+        font-size: 1.25rem;
+        font-weight: 600;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8), 0 1px 3px rgba(0, 0, 0, 0.5);
+        margin-bottom: 0.5rem;
+    }
+
+    .dev-overlay-hint {
+        font-size: 0.875rem;
+        opacity: 0.9;
+        text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8), 0 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 0.7;
+            transform: scale(1.05);
+        }
+    }
+
+    .dev-overlay:hover .dev-overlay-icon {
+        animation: none;
+        transform: scale(1.1);
+    }
+
+    .dev-overlay.hiding {
+        opacity: 0;
+        pointer-events: none;
+    }
+</style>
+
+<div class="dev-overlay @(fullScreen ? "fullscreen" : "")" id="@overlayId" data-target="@targetSelector">
+    <div class="dev-overlay-content">
+        <div class="dev-overlay-icon">
+            <i class="fas fa-hourglass"></i>
+        </div>
+        <div class="dev-overlay-text">Development in Progress</div>
+        <div class="dev-overlay-hint">Click anywhere to proceed</div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const overlay = document.getElementById('@overlayId');
+        const targetSelector = '@targetSelector';
+        const isFullScreen = @Json.Serialize(fullScreen);
+        
+        if (overlay) {
+            // For fullscreen, append to body to ensure it covers everything
+            if (isFullScreen) {
+                document.body.appendChild(overlay);
+            }
+            // Position overlay over target element if not fullscreen
+            else if (targetSelector) {
+                const targetElement = document.querySelector(targetSelector);
+                if (targetElement) {
+                    // Ensure target has position relative/absolute
+                    const targetPosition = window.getComputedStyle(targetElement).position;
+                    if (targetPosition === 'static') {
+                        targetElement.style.position = 'relative';
+                    }
+                    // Move overlay to target
+                    targetElement.appendChild(overlay);
+                }
+            }
+            
+            // Click to dismiss
+            overlay.addEventListener('click', function(e) {
+                // Store dismissal in sessionStorage so it persists during session
+                const storageKey = 'dev-overlay-dismissed-' + ('@overlayId');
+                sessionStorage.setItem(storageKey, 'true');
+                
+                // Animate out
+                overlay.classList.add('hiding');
+                setTimeout(function() {
+                    overlay.remove();
+                }, 300);
+            });
+            
+            // Check if already dismissed this session
+            const storageKey = 'dev-overlay-dismissed-' + ('@overlayId');
+            if (sessionStorage.getItem(storageKey) === 'true') {
+                overlay.remove();
+            }
+        }
+    })();
+</script>
+
