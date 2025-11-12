@@ -1,7 +1,8 @@
-/ai_agents/venv
-/ai_agents/__pycache__
-/ai_agents/*.pyc
-/ai_agents/.env
+ai_agents/venv/
+ai_agents/__pycache__/
+ai_agents/*.pyc
+ai_agents/.env
+ai_agents/**/__pycache__/
 
 # Environment files
 *.env
