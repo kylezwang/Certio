@@ -595,6 +595,9 @@
             // Save button functionality
             initializeSaveButton();
             
+            // Initialize MFA toggle
+            initializeMfaToggle();
+            
             // Tab switching functionality
             const navItems = document.querySelectorAll('.settings-nav-item');
             const tabContents = document.querySelectorAll('.settings-tab-content');
@@ -723,6 +726,88 @@
                     saveBtn.style.display = 'none';
                 }
             }
+        }
+        
+        async function initializeMfaToggle() {
+            const mfaCheckbox = document.getElementById('twoFactorEnabled');
+            if (!mfaCheckbox) return;
+            
+            try {
+                // Load current MFA status
+                const response = await fetch('/api/settings/mfa/status');
+                const result = await response.json();
+                
+                if (result.success) {
+                    mfaCheckbox.checked = result.enabled;
+                } else {
+                    console.error('Failed to load MFA status:', result.error);
+                    // Default to enabled (secure default)
+                    mfaCheckbox.checked = true;
+                }
+            } catch (error) {
+                console.error('Error loading MFA status:', error);
+                // Default to enabled (secure default)
+                mfaCheckbox.checked = true;
+            }
+            
+            // Handle toggle changes
+            mfaCheckbox.addEventListener('change', async function() {
+                const isEnabled = this.checked;
+                const originalState = !isEnabled; // Store original state for rollback
+                
+                // Disable checkbox during API call
+                this.disabled = true;
+                
+                try {
+                    const response = await fetch('/api/settings/mfa/toggle', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ enabled: isEnabled })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Show success message
+                        const message = isEnabled 
+                            ? 'Two-factor authentication has been enabled'
+                            : 'Two-factor authentication has been disabled';
+                        
+                        // Create a temporary success message
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                        alertDiv.style.cssText = 'margin: 1rem 0; border-radius: 8px;';
+                        alertDiv.innerHTML = `
+                            <i class="fas fa-check-circle me-2"></i>
+                            <span>${message}</span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        `;
+                        
+                        const securityContent = document.getElementById('security-content');
+                        if (securityContent) {
+                            securityContent.insertBefore(alertDiv, securityContent.firstChild);
+                            
+                            // Auto-dismiss after 3 seconds
+                            setTimeout(() => {
+                                alertDiv.remove();
+                            }, 3000);
+                        }
+                    } else {
+                        // Rollback checkbox state on error
+                        this.checked = originalState;
+                        alert('Failed to update MFA setting: ' + (result.error || 'Unknown error'));
+                    }
+                } catch (error) {
+                    // Rollback checkbox state on error
+                    this.checked = originalState;
+                    console.error('Error toggling MFA:', error);
+                    alert('Failed to update MFA setting. Please try again.');
+                } finally {
+                    this.disabled = false;
+                }
+            });
         }
         
         function initializeSaveButton() {

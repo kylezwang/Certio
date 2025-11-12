@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Certio.Application.Interfaces;
 using Certio.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Certio.Web.Controllers
 {
@@ -11,11 +13,16 @@ namespace Certio.Web.Controllers
     {
         private readonly IOrganizationService _organizationService;
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public SettingsController(IOrganizationService organizationService, ApplicationDbContext context)
+        public SettingsController(
+            IOrganizationService organizationService, 
+            ApplicationDbContext context,
+            UserManager<IdentityUser> userManager)
         {
             _organizationService = organizationService;
             _context = context;
+            _userManager = userManager;
         }
 
         [HttpGet("/Client/{orgId:int}/Settings")]
@@ -138,10 +145,68 @@ namespace Certio.Web.Controllers
         {
             return View();
         }
+
+        /// <summary>
+        /// Get current MFA status for the authenticated user
+        /// </summary>
+        [HttpGet("/api/settings/mfa/status")]
+        [Authorize] // User-scoped, only requires authentication
+        public async Task<IActionResult> GetMfaStatus()
+        {
+            try
+            {
+                var identityUser = await _userManager.GetUserAsync(User);
+                if (identityUser == null)
+                {
+                    return Json(new { success = false, error = "User not found" });
+                }
+
+                var isEnabled = await _userManager.GetTwoFactorEnabledAsync(identityUser);
+                return Json(new { success = true, enabled = isEnabled });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Toggle MFA on/off for the authenticated user
+        /// </summary>
+        [HttpPost("/api/settings/mfa/toggle")]
+        [Authorize] // User-scoped, only requires authentication
+        public async Task<IActionResult> ToggleMfa([FromBody] ToggleMfaRequest request)
+        {
+            try
+            {
+                var identityUser = await _userManager.GetUserAsync(User);
+                if (identityUser == null)
+                {
+                    return Json(new { success = false, error = "User not found" });
+                }
+
+                var result = await _userManager.SetTwoFactorEnabledAsync(identityUser, request.Enabled);
+                if (!result.Succeeded)
+                {
+                    return Json(new { success = false, error = string.Join(", ", result.Errors.Select(e => e.Description)) });
+                }
+
+                return Json(new { success = true, enabled = request.Enabled });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
     }
 
     public class UpdateAIModelTierRequest
     {
         public string Tier { get; set; } = "";
+    }
+
+    public class ToggleMfaRequest
+    {
+        public bool Enabled { get; set; }
     }
 }
