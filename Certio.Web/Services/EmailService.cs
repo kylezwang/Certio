@@ -43,7 +43,7 @@ public class EmailService : IEmailService
         _cacheService = cacheService;
     }
 
-    public string GetGmailAuthUrl(string redirectUri)
+    public string GetGmailAuthUrl(string redirectUri, string? state = null)
     {
         var clientId = _configuration["EmailIntegration:Gmail:ClientId"];
         if (string.IsNullOrEmpty(clientId))
@@ -65,10 +65,15 @@ public class EmailService : IEmailService
             $"access_type=offline&" +
             $"prompt=consent";
 
+        if (!string.IsNullOrEmpty(state))
+        {
+            authUrl += $"&state={Uri.EscapeDataString(state)}";
+        }
+
         return authUrl;
     }
 
-    public string GetOutlookAuthUrl(string redirectUri)
+    public string GetOutlookAuthUrl(string redirectUri, string? state = null)
     {
         var clientId = _configuration["EmailIntegration:Outlook:ClientId"];
         if (string.IsNullOrEmpty(clientId))
@@ -88,6 +93,11 @@ public class EmailService : IEmailService
             $"response_type=code&" +
             $"scope={Uri.EscapeDataString(string.Join(" ", scopes))}&" +
             $"response_mode=query";
+
+        if (!string.IsNullOrEmpty(state))
+        {
+            authUrl += $"&state={Uri.EscapeDataString(state)}";
+        }
 
         return authUrl;
     }
