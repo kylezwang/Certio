@@ -11,6 +11,8 @@ using Certio.Domain.Services;
 using System.Security.Cryptography;
 using System.Text;
 using Certio.Web.Services;
+using Microsoft.AspNetCore.DataProtection;
+using System.Text.Json;
 
 namespace Certio.Web.Controllers.Api;
 
@@ -24,19 +26,22 @@ public class EmailOAuthController : Controller
     private readonly IConfiguration _configuration;
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly ICacheService _cacheService;
+    private readonly IDataProtectionProvider _dataProtectionProvider;
 
     public EmailOAuthController(
         IEmailService emailService,
         ILogger<EmailOAuthController> logger,
         IConfiguration configuration,
         IServiceScopeFactory serviceScopeFactory,
-        ICacheService cacheService)
+        ICacheService cacheService,
+        IDataProtectionProvider dataProtectionProvider)
     {
         _emailService = emailService;
         _logger = logger;
         _configuration = configuration;
         _serviceScopeFactory = serviceScopeFactory;
         _cacheService = cacheService;
+        _dataProtectionProvider = dataProtectionProvider;
     }
 
     /// <summary>
@@ -79,7 +84,11 @@ public class EmailOAuthController : Controller
             
             _logger.LogInformation("Generating Gmail OAuth URL with redirect URI: {RedirectUri}", validatedUri.ToString());
             
-            var authUrl = _emailService.GetGmailAuthUrl(validatedUri.ToString());
+            var userId = GetCurrentUserId();
+            var state = BuildState(userId, "gmail", validatedUri.ToString());
+            var protectedState = ProtectState(state);
+            
+            var authUrl = _emailService.GetGmailAuthUrl(validatedUri.ToString(), protectedState);
             return Ok(new { success = true, authorizationUrl = authUrl });
         }
         catch (Exception ex)
@@ -92,6 +101,7 @@ public class EmailOAuthController : Controller
     /// <summary>
     /// Handle Gmail OAuth callback
     /// </summary>
+    [AllowAnonymous] // OAuth callback comes from external redirect
     [HttpGet("gmail/callback")]
     public async Task<IActionResult> GmailCallback([FromQuery] string? code, [FromQuery] string? error, [FromQuery] string? error_description, [FromQuery] string? state = null)
     {
@@ -110,20 +120,25 @@ public class EmailOAuthController : Controller
                 return BuildOAuthCallbackView(success: false, provider: "Gmail", error: "missing_code", errorDescription: "Authorization code is required");
             }
 
-            var userId = GetCurrentUserId();
-            
-            // Build the same redirect URI that was used in the authorization URL
-            var redirectUri = _configuration["EmailIntegration:Gmail:RedirectUri"];
-            if (string.IsNullOrEmpty(redirectUri) || redirectUri.Contains("${"))
+            if (string.IsNullOrEmpty(state))
             {
-                var scheme = Request.Scheme;
-                var host = Request.Host.Value;
-                if (string.IsNullOrEmpty(host))
-                {
-                    host = "localhost:5092";
-                }
-                redirectUri = $"{scheme}://{host}/api/email-oauth/gmail/callback";
+                _logger.LogWarning("Gmail OAuth callback missing state parameter");
+                return BuildOAuthCallbackView(success: false, provider: "Gmail", error: "missing_state", errorDescription: "State parameter is required");
             }
+
+            EmailOAuthState statePayload;
+            try
+            {
+                statePayload = UnprotectState(state);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to unprotect Gmail OAuth state");
+                return BuildOAuthCallbackView(success: false, provider: "Gmail", error: "invalid_state", errorDescription: "Unable to validate authorization state");
+            }
+
+            var userId = statePayload.UserId;
+            var redirectUri = statePayload.RedirectUri;
             
             var emailAccount = await _emailService.ConnectGmailAccountAsync(userId, code, redirectUri);
             
@@ -186,7 +201,11 @@ public class EmailOAuthController : Controller
             
             _logger.LogInformation("Generating Outlook OAuth URL with redirect URI: {RedirectUri}", validatedUri.ToString());
             
-            var authUrl = _emailService.GetOutlookAuthUrl(validatedUri.ToString());
+            var userId = GetCurrentUserId();
+            var state = BuildState(userId, "outlook", validatedUri.ToString());
+            var protectedState = ProtectState(state);
+            
+            var authUrl = _emailService.GetOutlookAuthUrl(validatedUri.ToString(), protectedState);
             return Ok(new { success = true, authorizationUrl = authUrl });
         }
         catch (Exception ex)
@@ -199,6 +218,7 @@ public class EmailOAuthController : Controller
     /// <summary>
     /// Handle Outlook OAuth callback
     /// </summary>
+    [AllowAnonymous] // OAuth callback comes from external redirect
     [HttpGet("outlook/callback")]
     public async Task<IActionResult> OutlookCallback([FromQuery] string? code, [FromQuery] string? error, [FromQuery] string? error_description, [FromQuery] string? state = null)
     {
@@ -217,20 +237,25 @@ public class EmailOAuthController : Controller
                 return BuildOAuthCallbackView(success: false, provider: "Outlook", error: "missing_code", errorDescription: "Authorization code is required");
             }
 
-            var userId = GetCurrentUserId();
-            
-            // Build the same redirect URI that was used in the authorization URL
-            var redirectUri = _configuration["EmailIntegration:Outlook:RedirectUri"];
-            if (string.IsNullOrEmpty(redirectUri) || redirectUri.Contains("${"))
+            if (string.IsNullOrEmpty(state))
             {
-                var scheme = Request.Scheme;
-                var host = Request.Host.Value;
-                if (string.IsNullOrEmpty(host))
-                {
-                    host = "localhost:5092";
-                }
-                redirectUri = $"{scheme}://{host}/api/email-oauth/outlook/callback";
+                _logger.LogWarning("Outlook OAuth callback missing state parameter");
+                return BuildOAuthCallbackView(success: false, provider: "Outlook", error: "missing_state", errorDescription: "State parameter is required");
             }
+
+            EmailOAuthState statePayload;
+            try
+            {
+                statePayload = UnprotectState(state);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to unprotect Outlook OAuth state");
+                return BuildOAuthCallbackView(success: false, provider: "Outlook", error: "invalid_state", errorDescription: "Unable to validate authorization state");
+            }
+
+            var userId = statePayload.UserId;
+            var redirectUri = statePayload.RedirectUri;
             
             var emailAccount = await _emailService.ConnectOutlookAccountAsync(userId, code, redirectUri);
             
@@ -697,6 +722,44 @@ public class EmailOAuthController : Controller
             .Replace("[", "[[]")
             .Replace("%", "[%]")
             .Replace("_", "[_]");
+    }
+
+    private EmailOAuthState BuildState(int userId, string provider, string redirectUri)
+    {
+        return new EmailOAuthState
+        {
+            UserId = userId,
+            Provider = provider,
+            RedirectUri = redirectUri,
+            IssuedAtUtc = DateTime.UtcNow
+        };
+    }
+
+    private string ProtectState(EmailOAuthState state)
+    {
+        var protector = _dataProtectionProvider.CreateProtector("EmailOAuthState");
+        var json = JsonSerializer.Serialize(state);
+        return protector.Protect(json);
+    }
+
+    private EmailOAuthState UnprotectState(string protectedState)
+    {
+        var protector = _dataProtectionProvider.CreateProtector("EmailOAuthState");
+        var json = protector.Unprotect(protectedState);
+        var state = JsonSerializer.Deserialize<EmailOAuthState>(json);
+        if (state == null)
+        {
+            throw new InvalidOperationException("Failed to deserialize OAuth state");
+        }
+        return state;
+    }
+
+    private sealed class EmailOAuthState
+    {
+        public int UserId { get; init; }
+        public string Provider { get; init; } = string.Empty;
+        public string RedirectUri { get; init; } = string.Empty;
+        public DateTime IssuedAtUtc { get; init; }
     }
 }
 

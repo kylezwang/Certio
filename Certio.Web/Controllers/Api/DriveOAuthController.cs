@@ -85,8 +85,9 @@ public class DriveOAuthController : Controller
 
             var clientId = GetRequiredConfigurationValue("DocumentIntegration:GoogleDrive:ClientId", "Google Drive client ID is not configured");
             var scopes = ResolveScopes("DocumentIntegration:GoogleDrive:Scopes", DefaultGoogleScopes);
+            var currentUserId = GetCurrentUserId();
 
-            var statePayload = BuildStatePayload(documentOrgId, provider: "google", authorizationRedirectUri);
+            var statePayload = BuildStatePayload(documentOrgId, currentUserId, provider: "google", authorizationRedirectUri);
             var protectedState = ProtectState(statePayload);
 
             var query = new Dictionary<string, string>
@@ -155,7 +156,7 @@ public class DriveOAuthController : Controller
             var clientId = GetRequiredConfigurationValue("DocumentIntegration:GoogleDrive:ClientId", "Google Drive client ID is not configured");
             var clientSecret = GetRequiredConfigurationValue("DocumentIntegration:GoogleDrive:ClientSecret", "Google Drive client secret is not configured");
             var scopes = ResolveScopes("DocumentIntegration:GoogleDrive:Scopes", DefaultGoogleScopes);
-            var documentUserId = GetDocumentUserId();
+            var documentUserId = CreateDeterministicGuid("certio:user", statePayload.UserId);
 
             var tokenResponse = await ExchangeCodeForTokensAsync(
                 tokenEndpoint: "https://oauth2.googleapis.com/token",
@@ -179,7 +180,6 @@ public class DriveOAuthController : Controller
                 scopes,
                 cancellationToken);
 
-            var currentUserIdInt = GetCurrentUserId(); // Get actual int user ID for audit log
             await _documentAuditService.LogAsync(
                 new DocumentAuditEvent(
                     statePayload.OrgId,
@@ -190,7 +190,7 @@ public class DriveOAuthController : Controller
                     "ExternalConnectionConnected",
                     "Connected Google Drive for unified document system",
                     DateTime.UtcNow,
-                    currentUserIdInt), // Pass actual int user ID
+                    statePayload.UserId), // Use userId from state
                 cancellationToken);
 
             // Trigger sync in background with proper error handling using a new scope
@@ -232,8 +232,9 @@ public class DriveOAuthController : Controller
 
             var clientId = GetRequiredConfigurationValue("DocumentIntegration:OneDrive:ClientId", "Microsoft client ID is not configured");
             var scopes = ResolveScopes("DocumentIntegration:OneDrive:Scopes", DefaultMicrosoftScopes);
+            var currentUserId = GetCurrentUserId();
 
-            var statePayload = BuildStatePayload(documentOrgId, provider: "microsoft", authorizationRedirectUri);
+            var statePayload = BuildStatePayload(documentOrgId, currentUserId, provider: "microsoft", authorizationRedirectUri);
             var protectedState = ProtectState(statePayload);
 
             var query = new Dictionary<string, string>
@@ -301,7 +302,7 @@ public class DriveOAuthController : Controller
             var clientId = GetRequiredConfigurationValue("DocumentIntegration:OneDrive:ClientId", "Microsoft client ID is not configured");
             var clientSecret = GetRequiredConfigurationValue("DocumentIntegration:OneDrive:ClientSecret", "Microsoft client secret is not configured");
             var scopes = ResolveScopes("DocumentIntegration:OneDrive:Scopes", DefaultMicrosoftScopes);
-            var documentUserId = GetDocumentUserId();
+            var documentUserId = CreateDeterministicGuid("certio:user", statePayload.UserId);
 
             var tokenResponse = await ExchangeCodeForTokensAsync(
                 tokenEndpoint: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
@@ -326,7 +327,6 @@ public class DriveOAuthController : Controller
                 scopes,
                 cancellationToken);
 
-            var currentUserIdInt = GetCurrentUserId(); // Get actual int user ID for audit log
             await _documentAuditService.LogAsync(
                 new DocumentAuditEvent(
                     statePayload.OrgId,
@@ -337,7 +337,7 @@ public class DriveOAuthController : Controller
                     "ExternalConnectionConnected",
                     "Connected Microsoft OneDrive for unified document system",
                     DateTime.UtcNow,
-                    currentUserIdInt), // Pass actual int user ID
+                    statePayload.UserId), // Use userId from state
                 cancellationToken);
 
             // Trigger sync in background with proper error handling using a new scope
@@ -517,11 +517,12 @@ public class DriveOAuthController : Controller
         return builder.ToString();
     }
 
-    private OAuthStatePayload BuildStatePayload(Guid orgId, string provider, string redirectUri)
+    private OAuthStatePayload BuildStatePayload(Guid orgId, int userId, string provider, string redirectUri)
     {
         return new OAuthStatePayload
         {
             OrgId = orgId,
+            UserId = userId,
             Provider = provider,
             RedirectUri = redirectUri,
             IssuedAtUtc = DateTime.UtcNow
@@ -961,6 +962,7 @@ public class DriveOAuthController : Controller
     private sealed class OAuthStatePayload
     {
         public Guid OrgId { get; init; }
+        public int UserId { get; init; }
         public string Provider { get; init; } = string.Empty;
         public string RedirectUri { get; init; } = string.Empty;
         public DateTime IssuedAtUtc { get; init; }

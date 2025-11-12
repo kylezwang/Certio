@@ -45,11 +45,11 @@ public interface IEmailService
     /// <summary>
     /// Get OAuth authorization URL for Gmail
     /// </summary>
-    string GetGmailAuthUrl(string redirectUri);
+    string GetGmailAuthUrl(string redirectUri, string? state = null);
     
     /// <summary>
     /// Get OAuth authorization URL for Outlook
     /// </summary>
-    string GetOutlookAuthUrl(string redirectUri);
+    string GetOutlookAuthUrl(string redirectUri, string? state = null);
 }
 
