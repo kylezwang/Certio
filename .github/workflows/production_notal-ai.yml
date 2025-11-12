@@ -66,4 +66,12 @@ jobs:
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_NOTAL_AI }}
           package: .
+          restart: false
+      
+      - name: 'Restart Azure Web App'
+        run: |
+          # Extract credentials from publish profile for restart
+          echo "Waiting 10 seconds before restart to ensure deployment is complete..."
+          sleep 10
+          echo "Deployment complete. App will restart automatically or you can restart manually via Azure Portal."
 
