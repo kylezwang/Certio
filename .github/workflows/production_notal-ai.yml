@@ -34,7 +34,7 @@ jobs:
       - name: Zip artifact for deployment
         run: |
           cd ai_agents
-          zip -r ../release.zip . -x "venv/*" -x "__pycache__/*" -x "*.pyc" -x ".env" -x "tests/*"
+          zip -r ../release.zip . -x "venv/*" -x "__pycache__/*" -x "*.pyc" -x ".env" -x "tests/*" -x "requirements.txt"
 
       - name: Upload artifact for deployment jobs
         uses: actions/upload-artifact@v4
