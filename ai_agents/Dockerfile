@@ -1,0 +1,31 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Copy requirements and install dependencies
+COPY requirements-minimal.txt .
+RUN pip install --no-cache-dir -r requirements-minimal.txt
+
+# Copy application code
+COPY main.py .
+COPY simplified_cost_optimization.py .
+COPY context_manager.py .
+COPY background_agents.py .
+COPY intelligent_routing.py .
+COPY certio_training_pipeline.py .
+COPY certio_rag_system_enhanced.py .
+COPY certio_rag_system_fallback.py .
+COPY certio_rag_system.py .
+COPY certio_knowledge_base.py .
+COPY certio_onboarding_knowledge.py .
+COPY cost_analytics.py .
+
+# Copy training data if exists
+COPY training_data/ ./training_data/
+
+# Expose port
+EXPOSE 8000
+
+# Run the application
+CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+

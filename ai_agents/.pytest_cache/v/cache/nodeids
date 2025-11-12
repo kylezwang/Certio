@@ -1,0 +1,4 @@
+[
+  "tests/test_authentication.py::test_request_with_valid_api_key_succeeds",
+  "tests/test_authentication.py::test_request_without_api_key_is_rejected"
+]
