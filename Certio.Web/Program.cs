@@ -116,7 +116,7 @@ static async Task<string> GetConnectionStringAsync(IConfiguration configuration,
             // If connection string contains ${DB_PASSWORD} placeholder, replace it with actual password
             var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
             if (!string.IsNullOrWhiteSpace(dbPassword) && connectionString.Contains("${DB_PASSWORD}"))
-            {
+    {
                 connectionString = connectionString.Replace("${DB_PASSWORD}", dbPassword);
                 Console.WriteLine("🔧 Replaced ${DB_PASSWORD} placeholder in connection string");
             }
@@ -144,7 +144,7 @@ static async Task<string> GetConnectionStringAsync(IConfiguration configuration,
             var devConnectionString = configuration.GetConnectionString("DefaultConnection");
             if (string.IsNullOrWhiteSpace(devConnectionString))
             {
-                throw new InvalidOperationException("Azure SQL connection string not found");
+               throw new InvalidOperationException("Azure SQL connection string not found");
             }
             
             // Replace password placeholder if needed
@@ -156,9 +156,9 @@ static async Task<string> GetConnectionStringAsync(IConfiguration configuration,
             
             Console.WriteLine("🌐 Using Azure SQL Database (explicitly requested)");
             return devConnectionString;
-        }
-        else
-        {
+    }
+    else
+    {
             Console.WriteLine("⚠️ Azure SQL connectivity check failed, falling back to local SQL Server");
         }
     }
@@ -169,16 +169,16 @@ static async Task<string> GetConnectionStringAsync(IConfiguration configuration,
         throw new InvalidOperationException("USE_AZURE_SQL must be set to 'true' in production. Local SQL Server is not available in Azure.");
     }
     
-    Console.WriteLine("📱 Using local SQL Server (default)");
-    // Start local SQL Server if not running
-    await EnsureLocalSqlServerRunningAsync();
-    var localPassword = Environment.GetEnvironmentVariable("SQL_PASSWORD");
-    if (string.IsNullOrEmpty(localPassword))
-    {
-        throw new InvalidOperationException("SQL_PASSWORD environment variable is required for local development");
-    }
-    
-    return $"Server=localhost,1433;Database=CertioLocal;User Id=sa;Password={localPassword};TrustServerCertificate=true;";
+        Console.WriteLine("📱 Using local SQL Server (default)");
+        // Start local SQL Server if not running
+        await EnsureLocalSqlServerRunningAsync();
+        var localPassword = Environment.GetEnvironmentVariable("SQL_PASSWORD");
+        if (string.IsNullOrEmpty(localPassword))
+        {
+            throw new InvalidOperationException("SQL_PASSWORD environment variable is required for local development");
+        }
+        
+        return $"Server=localhost,1433;Database=CertioLocal;User Id=sa;Password={localPassword};TrustServerCertificate=true;";
 }
 
 // Check if Azure SQL database is actually accessible (development only)
