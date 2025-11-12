@@ -169,6 +169,22 @@ namespace Certio.Web.Controllers
                 return View("Index");
             }
 
+            // Check if user has 2FA enabled
+            var customUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail);
+            
+            // If 2FA is disabled, sign in directly
+            if (customUser != null && !customUser.Enable2FA)
+            {
+                await _signInManager.SignInAsync(user, remember);
+                
+                // Update last login date
+                customUser.LastLoginDate = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+                
+                return RedirectToAction("SelectOrganization");
+            }
+
+            // 2FA is enabled - proceed with verification flow
             var code = await _twoFactorService.GenerateVerificationCodeAsync();
             var protectedCode = _twoFactorService.ProtectCode(code);
             var expiry = DateTimeOffset.UtcNow.AddMinutes(10);
