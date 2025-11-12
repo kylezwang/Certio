@@ -2004,8 +2004,25 @@ Respond as an intelligent legal assistant:"""
                 return response_content
         
     except Exception as e:
-        logger.error(f"Error in conversational_response: {str(e)}")
-        return "I apologize, but I'm experiencing technical difficulties right now. Please try again in a moment, or contact our support team if the issue persists. I'm here to help with your legal questions and concerns."
+        import traceback
+        error_trace = traceback.format_exc()
+        logger.error(f"Error in conversational_response: {str(e)}\n{error_trace}")
+        
+        # Check for common error types and provide more specific messages
+        error_str = str(e).lower()
+        if "api key" in error_str or "authentication" in error_str or "401" in error_str or "403" in error_str:
+            logger.error("Azure OpenAI authentication failed - check AZURE_OPENAI_API_KEY and AZURE_OPENAI_ENDPOINT")
+            return "I apologize, but I'm experiencing authentication issues with the AI service. Please contact support."
+        elif "quota" in error_str or "429" in error_str:
+            logger.error("Azure OpenAI quota/rate limit exceeded")
+            return "I apologize, but the AI service is currently experiencing high demand. Please try again in a moment."
+        elif "endpoint" in error_str or "connection" in error_str:
+            logger.error("Azure OpenAI endpoint connection failed - check AZURE_OPENAI_ENDPOINT")
+            return "I apologize, but I'm unable to connect to the AI service. Please contact support."
+        else:
+            # Generic error - log full traceback for debugging
+            logger.error(f"Unexpected error in conversational_response: {error_trace}")
+            return "I apologize, but I'm experiencing technical difficulties right now. Please try again in a moment, or contact our support team if the issue persists. I'm here to help with your legal questions and concerns."
 
 @app.post("/agents/conversational-response-stream")
 async def conversational_response_stream(payload: dict, _: str = Depends(authenticate_request)):
@@ -2229,8 +2246,24 @@ Respond as an intelligent legal assistant:"""
                 yield f"data: {json.dumps({'content': '', 'done': True})}\n\n"
                 
         except Exception as e:
-            logger.error(f"Error in streaming response: {str(e)}")
-            error_message = "I apologize, but I'm experiencing technical difficulties right now. Please try again in a moment."
+            import traceback
+            error_trace = traceback.format_exc()
+            logger.error(f"Error in streaming response: {str(e)}\n{error_trace}")
+            
+            # Check for common error types
+            error_str = str(e).lower()
+            if "api key" in error_str or "authentication" in error_str or "401" in error_str or "403" in error_str:
+                logger.error("Azure OpenAI authentication failed - check AZURE_OPENAI_API_KEY and AZURE_OPENAI_ENDPOINT")
+                error_message = "I apologize, but I'm experiencing authentication issues with the AI service. Please contact support."
+            elif "quota" in error_str or "429" in error_str:
+                logger.error("Azure OpenAI quota/rate limit exceeded")
+                error_message = "I apologize, but the AI service is currently experiencing high demand. Please try again in a moment."
+            elif "endpoint" in error_str or "connection" in error_str:
+                logger.error("Azure OpenAI endpoint connection failed - check AZURE_OPENAI_ENDPOINT")
+                error_message = "I apologize, but I'm unable to connect to the AI service. Please contact support."
+            else:
+                logger.error(f"Unexpected error in streaming response: {error_trace}")
+                error_message = "I apologize, but I'm experiencing technical difficulties right now. Please try again in a moment."
             yield f"data: {json.dumps({'content': error_message, 'done': True, 'error': True})}\n\n"
     
     return StreamingResponse(

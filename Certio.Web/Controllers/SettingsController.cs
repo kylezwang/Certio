@@ -185,17 +185,27 @@ namespace Certio.Web.Controllers
                     return Json(new { success = false, error = "User not found" });
                 }
 
+                // Note: Disabling 2FA doesn't require an authenticator to be configured
+                // Enabling 2FA might require setup, but we'll let Identity handle that
                 var result = await _userManager.SetTwoFactorEnabledAsync(identityUser, request.Enabled);
                 if (!result.Succeeded)
                 {
-                    return Json(new { success = false, error = string.Join(", ", result.Errors.Select(e => e.Description)) });
+                    var errorMessages = result.Errors.Select(e => e.Description);
+                    var errorText = string.Join(", ", errorMessages);
+                    
+                    // Log the error for debugging
+                    System.Diagnostics.Debug.WriteLine($"MFA toggle failed: {errorText}");
+                    
+                    return Json(new { success = false, error = errorText });
                 }
 
                 return Json(new { success = true, enabled = request.Enabled });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, error = ex.Message });
+                // Log the full exception for debugging
+                System.Diagnostics.Debug.WriteLine($"MFA toggle exception: {ex}");
+                return Json(new { success = false, error = $"An error occurred: {ex.Message}" });
             }
         }
     }
