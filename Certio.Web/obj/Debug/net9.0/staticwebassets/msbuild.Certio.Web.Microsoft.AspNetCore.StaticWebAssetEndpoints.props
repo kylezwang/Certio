@@ -63,14 +63,14 @@
     <StaticWebAssetEndpoint Include="_content/Certio.Web/css/site.css">
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\site.css'))</AssetFile>
       <Selectors><![CDATA[[]]]></Selectors>
-      <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-qaI5LmljcZoFBbfh9vTj7\u002BfVBZWvh1qpHr2v46Ea49w="}]]]></EndpointProperties>
-      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"121938"},{"Name":"Content-Type","Value":"text/css"},{"Name":"ETag","Value":"\u0022qaI5LmljcZoFBbfh9vTj7\u002BfVBZWvh1qpHr2v46Ea49w=\u0022"},{"Name":"Last-Modified","Value":"Tue, 11 Nov 2025 12:21:37 GMT"}]]]></ResponseHeaders>
+      <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-2k8qwU8o5haYpOgZ4a7jxSvv1UKUgzw10YSGkSncir8="}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"128302"},{"Name":"Content-Type","Value":"text/css"},{"Name":"ETag","Value":"\u00222k8qwU8o5haYpOgZ4a7jxSvv1UKUgzw10YSGkSncir8=\u0022"},{"Name":"Last-Modified","Value":"Wed, 12 Nov 2025 21:26:07 GMT"}]]]></ResponseHeaders>
     </StaticWebAssetEndpoint>
-    <StaticWebAssetEndpoint Include="_content/Certio.Web/css/site.p4oulajcms.css">
+    <StaticWebAssetEndpoint Include="_content/Certio.Web/css/site.qn1bvxfxw7.css">
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\site.css'))</AssetFile>
       <Selectors><![CDATA[[]]]></Selectors>
-      <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"p4oulajcms"},{"Name":"integrity","Value":"sha256-qaI5LmljcZoFBbfh9vTj7\u002BfVBZWvh1qpHr2v46Ea49w="},{"Name":"label","Value":"_content/Certio.Web/css/site.css"}]]]></EndpointProperties>
-      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"121938"},{"Name":"Content-Type","Value":"text/css"},{"Name":"ETag","Value":"\u0022qaI5LmljcZoFBbfh9vTj7\u002BfVBZWvh1qpHr2v46Ea49w=\u0022"},{"Name":"Last-Modified","Value":"Tue, 11 Nov 2025 12:21:37 GMT"}]]]></ResponseHeaders>
+      <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"qn1bvxfxw7"},{"Name":"integrity","Value":"sha256-2k8qwU8o5haYpOgZ4a7jxSvv1UKUgzw10YSGkSncir8="},{"Name":"label","Value":"_content/Certio.Web/css/site.css"}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"128302"},{"Name":"Content-Type","Value":"text/css"},{"Name":"ETag","Value":"\u00222k8qwU8o5haYpOgZ4a7jxSvv1UKUgzw10YSGkSncir8=\u0022"},{"Name":"Last-Modified","Value":"Wed, 12 Nov 2025 21:26:07 GMT"}]]]></ResponseHeaders>
     </StaticWebAssetEndpoint>
     <StaticWebAssetEndpoint Include="_content/Certio.Web/css/tasks.css">
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\tasks.css'))</AssetFile>

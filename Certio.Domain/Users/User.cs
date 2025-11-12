@@ -66,6 +66,8 @@ namespace Certio.Domain.Users
         
         public bool IsActive { get; set; } = true;
         
+        public bool Enable2FA { get; set; } = false;
+        
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? LastModifiedDate { get; set; }
         public DateTime? LastLoginDate { get; set; }
