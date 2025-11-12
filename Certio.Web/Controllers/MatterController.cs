@@ -383,7 +383,6 @@ namespace Certio.Web.Controllers
 
         // GET: Matter/Create
         [RequirePermission(Permission.CreateMatters)]
-        [HttpGet]
         [HttpGet("/Client/{organizationId:int}/Matter/Create")]
         public async Task<IActionResult> Create(int? organizationId = null)
         {
@@ -413,7 +412,6 @@ namespace Certio.Web.Controllers
         }
 
         // POST: Matter/Create
-        [HttpPost]
         [HttpPost("/Client/{organizationId:int}/Matter/Create")]
         [ValidateAntiForgeryToken]
         [RequirePermission(Permission.CreateMatters)]
