@@ -318,6 +318,8 @@ if (!string.IsNullOrWhiteSpace(gmailClientSecret))
 var gmailRedirectUri = Environment.GetEnvironmentVariable("GMAIL_REDIRECT_URI");
 if (!string.IsNullOrWhiteSpace(gmailRedirectUri))
 {
+    // Trim any leading/trailing whitespace and remove leading = if present (Azure App Service quirk)
+    gmailRedirectUri = gmailRedirectUri.Trim().TrimStart('=');
     builder.Configuration["EmailIntegration:Gmail:RedirectUri"] = gmailRedirectUri;
 }
 
@@ -336,6 +338,8 @@ if (!string.IsNullOrWhiteSpace(outlookClientSecret))
 var outlookRedirectUri = Environment.GetEnvironmentVariable("OUTLOOK_REDIRECT_URI");
 if (!string.IsNullOrWhiteSpace(outlookRedirectUri))
 {
+    // Trim any leading/trailing whitespace and remove leading = if present (Azure App Service quirk)
+    outlookRedirectUri = outlookRedirectUri.Trim().TrimStart('=');
     builder.Configuration["EmailIntegration:Outlook:RedirectUri"] = outlookRedirectUri;
 }
 
@@ -355,6 +359,8 @@ if (!string.IsNullOrWhiteSpace(googleDriveClientSecret))
 var googleDriveRedirectUri = Environment.GetEnvironmentVariable("GOOGLE_DRIVE_REDIRECT_URI");
 if (!string.IsNullOrWhiteSpace(googleDriveRedirectUri))
 {
+    // Trim any leading/trailing whitespace and remove leading = if present (Azure App Service quirk)
+    googleDriveRedirectUri = googleDriveRedirectUri.Trim().TrimStart('=');
     builder.Configuration["DocumentIntegration:GoogleDrive:RedirectUri"] = googleDriveRedirectUri;
 }
 
