@@ -755,6 +755,22 @@
                 const isEnabled = this.checked;
                 const originalState = !isEnabled; // Store original state for rollback
                 
+                // If disabling MFA, show confirmation dialog
+                if (!isEnabled) {
+                    const confirmed = confirm(
+                        'Are you sure you want to disable two-factor authentication?\n\n' +
+                        'Disabling 2FA will reduce the security of your account. ' +
+                        'We recommend keeping it enabled to protect your account from unauthorized access.\n\n' +
+                        'Do you want to continue?'
+                    );
+                    
+                    if (!confirmed) {
+                        // User cancelled - revert checkbox
+                        this.checked = originalState;
+                        return;
+                    }
+                }
+                
                 // Disable checkbox during API call
                 this.disabled = true;
                 
