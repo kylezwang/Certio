@@ -734,19 +734,24 @@
             
             try {
                 // Load current MFA status
-                const response = await fetch('/api/settings/mfa/status');
+                const response = await fetch('/api/account-security/mfa/status', {
+                    credentials: 'same-origin'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
                 const result = await response.json();
                 
                 if (result.success) {
                     mfaCheckbox.checked = result.enabled;
                 } else {
                     console.error('Failed to load MFA status:', result.error);
-                    // Default to enabled (secure default)
                     mfaCheckbox.checked = true;
                 }
             } catch (error) {
                 console.error('Error loading MFA status:', error);
-                // Default to enabled (secure default)
                 mfaCheckbox.checked = true;
             }
             
@@ -775,14 +780,29 @@
                 this.disabled = true;
                 
                 try {
-                    const response = await fetch('/api/settings/mfa/toggle', {
+                    const response = await fetch('/api/account-security/mfa/toggle', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
                         },
+                        credentials: 'same-origin',
                         body: JSON.stringify({ enabled: isEnabled })
                     });
                     
+                    if (!response.ok) {
+                        // Attempt to extract error details if available
+                        let errorDetail = `HTTP ${response.status}`;
+                        try {
+                            const result = await response.json();
+                            if (result?.error) {
+                                errorDetail = result.error;
+                            }
+                        } catch {
+                            // ignore JSON parse error, keep default detail
+                        }
+                        throw new Error(errorDetail);
+                    }
+
                     const result = await response.json();
                     
                     if (result.success) {
@@ -811,15 +831,14 @@
                             }, 3000);
                         }
                     } else {
-                        // Rollback checkbox state on error
-                        this.checked = originalState;
-                        alert('Failed to update MFA setting: ' + (result.error || 'Unknown error'));
+                        throw new Error(result.error || 'Unknown error');
                     }
                 } catch (error) {
                     // Rollback checkbox state on error
                     this.checked = originalState;
                     console.error('Error toggling MFA:', error);
-                    alert('Failed to update MFA setting. Please try again.');
+                    const message = error instanceof Error ? error.message : 'Unknown error';
+                    alert('Failed to update MFA setting: ' + message);
                 } finally {
                     this.disabled = false;
                 }
