@@ -170,18 +170,52 @@ namespace Certio.Web.Controllers
             }
 
             // Check if user has 2FA enabled
-            var customUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail);
+            var customUser = await _context.Users
+                .Include(u => u.UserOrganizations)
+                .FirstOrDefaultAsync(u => u.Email == normalizedEmail);
             
             // If 2FA is disabled, sign in directly
             if (customUser != null && !customUser.Enable2FA)
             {
                 await _signInManager.SignInAsync(user, remember);
                 
-                // Update last login date
+                // Update last login date and session
                 customUser.LastLoginDate = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
                 
-                return RedirectToAction("SelectOrganization");
+                // Set session data
+                try
+                {
+                    HttpContext.Session.SetString("UserId", user.Id);
+                    HttpContext.Session.SetString("AuthTime", DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture));
+                    HttpContext.Session.SetString("UserEmail", user.Email ?? normalizedEmail);
+                }
+                catch (InvalidOperationException)
+                {
+                    // Session unavailable - continue
+                }
+                
+                // Queue daily briefing for dashboard - fire and forget, non-blocking
+                try
+                {
+                    if (customUser.UserOrganizations.Any())
+                    {
+                        var primaryOrg = customUser.UserOrganizations.FirstOrDefault(uo => uo.IsActive);
+                        if (primaryOrg != null)
+                        {
+                            HttpContext.Session.SetString("QueueBriefing", "true");
+                            HttpContext.Session.SetInt32("BriefingUserId", customUser.Id);
+                            HttpContext.Session.SetInt32("BriefingOrgId", primaryOrg.OrganizationId);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error queueing login briefing for user {UserId}", user.Email);
+                    // Continue with login - briefing is non-critical
+                }
+                
+                return RedirectToAction("Index", "Matter");
             }
 
             // 2FA is enabled - proceed with verification flow
