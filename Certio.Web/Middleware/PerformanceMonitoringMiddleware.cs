@@ -19,6 +19,12 @@ public class PerformanceMonitoringMiddleware
         var requestPath = context.Request.Path.Value ?? "unknown";
         var requestMethod = context.Request.Method;
 
+        // Always log Matter/Create requests for debugging
+        if (requestPath.Contains("/Matter/Create", StringComparison.OrdinalIgnoreCase))
+        {
+            _logger.LogWarning("🔍 Matter/Create REQUEST DETECTED: {Method} {Path}", requestMethod, requestPath);
+        }
+
         try
         {
             await _next(context);

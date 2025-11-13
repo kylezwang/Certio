@@ -381,34 +381,39 @@ namespace Certio.Web.Controllers
             return View(viewModel);
         }
 
+        // TEST: Simple endpoint to verify routing works
+        [HttpGet("/Client/{orgId:int}/Matter/Create/Test")]
+        public IActionResult CreateTest(int orgId)
+        {
+            _logger.LogWarning("✅ TEST ENDPOINT HIT: /Client/{OrgId}/Matter/Create/Test", orgId);
+            return Content($"Test endpoint works! OrgId: {orgId}");
+        }
+
         // GET: Matter/Create
         [RequirePermission(Permission.CreateMatters)]
-        [HttpGet("/Client/{organizationId:int}/Matter/Create")]
-        public async Task<IActionResult> Create(int? organizationId = null)
+        [HttpGet("/Client/{orgId:int}/Matter/Create")]
+        public async Task<IActionResult> Create(int orgId)
         {
-            _logger.LogInformation("Matter/Create GET - Route organizationId: {RouteOrgId}, Request Path: {Path}", 
-                organizationId, HttpContext.Request.Path);
+            _logger.LogInformation("Matter/Create GET - Route orgId: {RouteOrgId}, Request Path: {Path}", 
+                orgId, HttpContext.Request.Path);
             
-            if (organizationId.HasValue)
-            {
-                HttpContext.Items["CurrentOrganizationId"] = organizationId.Value;
-            }
+            HttpContext.Items["CurrentOrganizationId"] = orgId;
 
-            var (user, orgId) = GetUserContext();
-            _logger.LogInformation("Matter/Create GET - User: {UserId}, Resolved OrgId: {OrgId}", 
-                user?.Id, orgId);
+            var (user, resolvedOrgId) = GetUserContext();
+            _logger.LogInformation("Matter/Create GET - User: {UserId}, Route OrgId: {RouteOrgId}, Resolved OrgId: {ResolvedOrgId}", 
+                user?.Id, orgId, resolvedOrgId);
             
-            if (user == null || orgId == 0)
+            if (user == null || resolvedOrgId == 0)
             {
-                _logger.LogWarning("Matter/Create GET - Redirecting to Home/Index because user={UserId}, orgId={OrgId}", 
-                    user?.Id, orgId);
+                _logger.LogWarning("Matter/Create GET - Redirecting to Home/Index because user={UserId}, resolvedOrgId={ResolvedOrgId}", 
+                    user?.Id, resolvedOrgId);
                 TempData["ErrorMessage"] = "We couldn't determine which organization to use for the new matter. Please select an organization and try again.";
                 return RedirectToAction("Index", "Home");
             }
 
-            if (organizationId.HasValue && organizationId.Value != orgId)
+            if (orgId != resolvedOrgId)
             {
-                _logger.LogDebug("Route organization {RouteOrgId} differed from resolved context {ContextOrgId}. Using context organization.", organizationId.Value, orgId);
+                _logger.LogDebug("Route organization {RouteOrgId} differed from resolved context {ContextOrgId}. Using route organization.", orgId, resolvedOrgId);
             }
 
             ViewBag.OrganizationId = orgId;
@@ -420,26 +425,23 @@ namespace Certio.Web.Controllers
         }
 
         // POST: Matter/Create
-        [HttpPost("/Client/{organizationId:int}/Matter/Create")]
+        [HttpPost("/Client/{orgId:int}/Matter/Create")]
         [ValidateAntiForgeryToken]
         [RequirePermission(Permission.CreateMatters)]
-        public async Task<IActionResult> Create(int? organizationId, MatterFormViewModel model, string action)
+        public async Task<IActionResult> Create(int orgId, MatterFormViewModel model, string action)
         {
-            if (organizationId.HasValue)
-            {
-                HttpContext.Items["CurrentOrganizationId"] = organizationId.Value;
-            }
+            HttpContext.Items["CurrentOrganizationId"] = orgId;
 
-            var (user, orgId) = GetUserContext();
-            if (user == null || orgId == 0)
+            var (user, resolvedOrgId) = GetUserContext();
+            if (user == null || resolvedOrgId == 0)
             {
                 TempData["ErrorMessage"] = "Your session no longer has an active organization. Please select an organization and try again.";
                 return RedirectToAction("Index", "Home");
             }
 
-            if (organizationId.HasValue && organizationId.Value != orgId)
+            if (orgId != resolvedOrgId)
             {
-                _logger.LogDebug("Route organization {RouteOrgId} differed from resolved context {ContextOrgId} for matter creation POST. Using context organization.", organizationId.Value, orgId);
+                _logger.LogDebug("Route organization {RouteOrgId} differed from resolved context {ContextOrgId} for matter creation POST. Using route organization.", orgId, resolvedOrgId);
             }
 
             ViewBag.OrganizationId = orgId;
