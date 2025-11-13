@@ -147,6 +147,10 @@
                 </div>
             </div>
             <div class="matters-scroll-container" style="overflow-x: auto; overflow-y: hidden; margin: 0 -0.75rem; padding: 0.75rem 0.75rem 0 0.75rem;">
+                @{
+                    var matterCount = Model.Matters?.Count() ?? 0;
+                    var placeholderCount = Math.Max(0, 6 - matterCount);
+                }
                 <div class="d-flex" style="min-width: min-content; gap: 1rem;">
                     @if (Model.Matters != null && Model.Matters.Any())
                     {
@@ -192,6 +196,7 @@
                                 </div>
                             </div>
                         }
+                        
                     }
                     else
                     {
@@ -199,10 +204,6 @@
                             <p class="text-muted">No matters available</p>
                         </div>
                     }
-                    
-                    @* Add invisible placeholder cards to fill up to 6 total cards for proper proportions *@
-                    var matterCount = Model.Matters != null && Model.Matters.Any() ? Model.Matters.Count() : 0;
-                    var placeholderCount = Math.Max(0, 6 - matterCount);
                     @for (int i = 0; i < placeholderCount; i++)
                     {
                         <div class="matter-folder-placeholder" style="flex: 0 0 14rem; pointer-events: none;">
