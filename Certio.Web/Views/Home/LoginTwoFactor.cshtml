@@ -53,12 +53,15 @@
         }
 
         .login-title {
-            font-size: 3.5rem;
-            font-weight: 700;
-            color: #3d1019;
-            font-family: 'Katibeh', sans-serif;
             margin-bottom: 0.5rem;
-            letter-spacing: 0.05rem;
+        }
+
+        .login-title img {
+            display: block;
+            width: 100%;
+            max-width: 240px;
+            height: auto;
+            margin: 0 auto;
         }
 
         .login-subtitle {
@@ -306,6 +309,10 @@
             .card-header {
                 padding: 1rem 1.5rem 1rem 1.5rem;
             }
+
+            .login-title img {
+                max-width: 180px;
+            }
         }
     </style>
 </head>
@@ -313,7 +320,9 @@
     <div class="login-container">
         <div class="login-card">
             <div class="login-header">
-                <h1 class="login-title">Notal</h1>
+                <h1 class="login-title">
+                    <img src="~/images/Notal_Banner_Logo_Large_Text.png" alt="Notal" />
+                </h1>
             </div>
             
             <div class="card-header" style="background-color: white;">
