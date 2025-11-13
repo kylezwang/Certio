@@ -386,14 +386,22 @@ namespace Certio.Web.Controllers
         [HttpGet("/Client/{organizationId:int}/Matter/Create")]
         public async Task<IActionResult> Create(int? organizationId = null)
         {
+            _logger.LogInformation("Matter/Create GET - Route organizationId: {RouteOrgId}, Request Path: {Path}", 
+                organizationId, HttpContext.Request.Path);
+            
             if (organizationId.HasValue)
             {
                 HttpContext.Items["CurrentOrganizationId"] = organizationId.Value;
             }
 
             var (user, orgId) = GetUserContext();
+            _logger.LogInformation("Matter/Create GET - User: {UserId}, Resolved OrgId: {OrgId}", 
+                user?.Id, orgId);
+            
             if (user == null || orgId == 0)
             {
+                _logger.LogWarning("Matter/Create GET - Redirecting to Home/Index because user={UserId}, orgId={OrgId}", 
+                    user?.Id, orgId);
                 TempData["ErrorMessage"] = "We couldn't determine which organization to use for the new matter. Please select an organization and try again.";
                 return RedirectToAction("Index", "Home");
             }
