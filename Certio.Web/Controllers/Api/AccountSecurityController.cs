@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Certio.Infrastructure.Data;
 using System.Linq;
 
 namespace Certio.Web.Controllers.Api;
@@ -11,40 +13,60 @@ namespace Certio.Web.Controllers.Api;
 public class AccountSecurityController : ControllerBase
 {
     private readonly UserManager<IdentityUser> _userManager;
+    private readonly ApplicationDbContext _context;
 
-    public AccountSecurityController(UserManager<IdentityUser> userManager)
+    public AccountSecurityController(
+        UserManager<IdentityUser> userManager,
+        ApplicationDbContext context)
     {
         _userManager = userManager;
+        _context = context;
     }
 
     [HttpGet("mfa/status")]
     public async Task<IActionResult> GetMfaStatus()
     {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
+        var identityUser = await _userManager.GetUserAsync(User);
+        if (identityUser == null)
         {
             return Unauthorized(new { success = false, error = "User not authenticated" });
         }
 
-        var enabled = await _userManager.GetTwoFactorEnabledAsync(user);
-        return Ok(new { success = true, enabled });
+        // Get our custom User entity
+        var customUser = await _context.Users
+            .FirstOrDefaultAsync(u => u.Email == identityUser.Email);
+        
+        if (customUser == null)
+        {
+            return Unauthorized(new { success = false, error = "User not found" });
+        }
+
+        return Ok(new { success = true, enabled = customUser.Enable2FA });
     }
 
     [HttpPost("mfa/toggle")]
     public async Task<IActionResult> ToggleMfa([FromBody] ToggleMfaRequest request)
     {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
+        var identityUser = await _userManager.GetUserAsync(User);
+        if (identityUser == null)
         {
             return Unauthorized(new { success = false, error = "User not authenticated" });
         }
 
-        var result = await _userManager.SetTwoFactorEnabledAsync(user, request.Enabled);
-        if (!result.Succeeded)
+        // Get our custom User entity
+        var customUser = await _context.Users
+            .FirstOrDefaultAsync(u => u.Email == identityUser.Email);
+        
+        if (customUser == null)
         {
-            var error = string.Join(", ", result.Errors.Select(e => e.Description));
-            return BadRequest(new { success = false, error });
+            return Unauthorized(new { success = false, error = "User not found" });
         }
+
+        // Update Enable2FA field
+        customUser.Enable2FA = request.Enabled;
+        customUser.LastModifiedDate = DateTime.UtcNow;
+        
+        await _context.SaveChangesAsync();
 
         return Ok(new { success = true, enabled = request.Enabled });
     }
