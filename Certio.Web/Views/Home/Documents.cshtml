@@ -194,10 +194,8 @@
                         }
                         
                         @* Add invisible placeholder cards to fill up to 6 total cards for proper proportions *@
-                        @{
-                            var matterCount = Model.Matters != null ? Model.Matters.Count() : 0;
-                            var placeholderCount = Math.Max(0, 6 - matterCount);
-                        }
+                        var matterCount = Model.Matters.Count();
+                        var placeholderCount = Math.Max(0, 6 - matterCount);
                         @for (int i = 0; i < placeholderCount; i++)
                         {
                             <div class="matter-folder-placeholder" style="flex: 0 0 14rem; pointer-events: none;">
