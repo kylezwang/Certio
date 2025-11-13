@@ -1049,7 +1049,7 @@ namespace Certio.Web.Controllers
                     await _context.SaveChangesAsync();
                     organizationId = org.Id;
                     userType = Certio.Domain.Users.UserTypes.LawFirm;
-                    organizationRole = Certio.Domain.Users.OrganizationRoles.Owner;
+                    organizationRole = Certio.Domain.Users.OrganizationRoles.ManagingPartner; // Law firm creator is Managing Partner
                 }
                 else
                 {

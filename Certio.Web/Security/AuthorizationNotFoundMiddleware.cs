@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Policy;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Certio.Web.Security
 {
@@ -10,11 +12,14 @@ namespace Certio.Web.Security
 
         public async Task HandleAsync(RequestDelegate next, HttpContext context, AuthorizationPolicy policy, PolicyAuthorizationResult authorizeResult)
         {
+            var path = context.Request.Path.Value ?? string.Empty;
+            
             if (!authorizeResult.Succeeded)
             {
-                var path = context.Request.Path.Value ?? string.Empty;
                 if (path.StartsWith("/Client/", StringComparison.OrdinalIgnoreCase))
                 {
+                    var logger = context.RequestServices.GetRequiredService<ILogger<AuthorizationNotFoundMiddleware>>();
+                    logger.LogError("🚨🚨🚨 AuthorizationNotFoundMiddleware: Authorization FAILED for path: {Path}, Returning 404", path);
                     context.Response.StatusCode = StatusCodes.Status404NotFound;
                     return;
                 }
