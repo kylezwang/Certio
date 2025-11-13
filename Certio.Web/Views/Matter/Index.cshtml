@@ -11,9 +11,7 @@
             <h1 class="display-6 fw-bold text-dark mb-2">Matters</h1>
             <p class="lead text-muted">Manage and track your legal matters</p>
         </div>
-        <a asp-controller="Matter"
-           asp-action="Create"
-           asp-route-organizationId="@ViewBag.OrganizationId"
+        <a href="/Client/@ViewBag.OrganizationId/Matter/Create" 
            class="btn btn-primary d-flex align-items-center gap-2">
             <i class="fas fa-plus"></i>
             New Matter
