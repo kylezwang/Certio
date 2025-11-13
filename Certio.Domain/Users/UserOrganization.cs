@@ -62,6 +62,7 @@ namespace Certio.Domain.Users
         public const string Legal = "Legal";
         
         // Law Firm roles
+        public const string ManagingPartner = "ManagingPartner";
         public const string Partner = "Partner";
         public const string Associate = "Associate";
         public const string Paralegal = "Paralegal";

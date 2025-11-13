@@ -45,6 +45,8 @@ namespace Certio.Web.Controllers
             // Check if this is a LawFirm organization - if so, aggregate matters from all accessible clients
             var currentOrg = await _context.Organizations
                 .FirstOrDefaultAsync(o => o.Id == orgId);
+
+            SetViewContext(user, orgId, currentOrg?.Name);
             
             List<MatterDto> allMatters;
             
@@ -89,7 +91,6 @@ namespace Certio.Web.Controllers
                         InReviewMattersCount = 0,
                         TeamMembersCount = 0
                     };
-                    ViewBag.OrganizationId = orgId;
                     return View(emptyViewModel);
                 }
                 
@@ -138,8 +139,6 @@ namespace Certio.Web.Controllers
                     .CountAsync()
             };
 
-            ViewBag.OrganizationId = orgId;
-            
             // Add Status and PracticeArea options for dropdowns
             ViewBag.Statuses = new List<string>
             {
@@ -326,11 +325,8 @@ namespace Certio.Web.Controllers
                     .ToList()
             };
 
-            // Always use the matter's actual organization ID for API calls
-            // This ensures calendar, tasks, and communications tabs work correctly for cross-org matters
-            ViewBag.OrganizationId = dto.OrganizationId;
             ViewBag.RouteOrganizationId = orgId; // Keep route org for navigation/breadcrumbs if needed
-            
+                        
             // Add Status and PracticeArea options for dropdowns
             ViewBag.Statuses = new List<string>
             {
@@ -374,9 +370,10 @@ namespace Certio.Web.Controllers
                 .FirstOrDefaultAsync(o => o.Id == displayOrgId);
             if (displayOrg != null)
             {
-                ViewBag.OrganizationName = displayOrg.Name;
                 ViewBag.OrganizationType = displayOrg.Type;
             }
+
+            SetViewContext(user, dto.OrganizationId, displayOrg?.Name);
             
             return View(viewModel);
         }
@@ -416,7 +413,7 @@ namespace Certio.Web.Controllers
                 _logger.LogDebug("Route organization {RouteOrgId} differed from resolved context {ContextOrgId}. Using route organization.", orgId, resolvedOrgId);
             }
 
-            ViewBag.OrganizationId = orgId;
+            SetViewContext(user, orgId);
 
             var viewModel = new MatterFormViewModel();
             await PopulateOrgMembersData(viewModel);
@@ -444,7 +441,7 @@ namespace Certio.Web.Controllers
                 _logger.LogDebug("Route organization {RouteOrgId} differed from resolved context {ContextOrgId} for matter creation POST. Using route organization.", orgId, resolvedOrgId);
             }
 
-            ViewBag.OrganizationId = orgId;
+            SetViewContext(user, orgId);
             
             // Debug logging for assignments
             _logger.LogInformation($"Matter/Create POST - Step: {model.Step}, Action: {action}");
@@ -1004,7 +1001,8 @@ namespace Certio.Web.Controllers
             }
 
             var dto = result.Data!;
-            ViewBag.OrganizationId = dto.OrganizationId;
+
+            SetViewContext(user, dto.OrganizationId);
 
             var viewModel = new MatterFormViewModel
             {
@@ -1058,7 +1056,7 @@ namespace Certio.Web.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            ViewBag.OrganizationId = orgId;
+            SetViewContext(user, orgId);
 
             // Validate input
             if (!InputValidator.IsValidString(model.Title, InputValidator.MAX_TITLE_LENGTH, required: true))
@@ -1201,7 +1199,7 @@ namespace Certio.Web.Controllers
                 CreatedAt = dto.CreatedAt
             };
 
-            ViewBag.OrganizationId = dto.OrganizationId;
+            SetViewContext(user, dto.OrganizationId);
             return View(matter);
         }
 
@@ -1247,6 +1245,17 @@ namespace Certio.Web.Controllers
         // ============================================================
         // HELPER METHODS
         // ============================================================
+
+        private void SetViewContext(User? user, int organizationId, string? organizationName = null)
+        {
+            ViewBag.OrganizationId = organizationId;
+            ViewBag.CurrentUserId = user?.Id;
+            ViewBag.CurrentUserName = user != null
+                ? $"{user.FirstName} {user.LastName}".Trim()
+                : null;
+
+            ViewBag.OrganizationName = string.IsNullOrWhiteSpace(organizationName) ? null : organizationName;
+        }
 
         /// <summary>
         /// Extracts current user and organization context from HttpContext

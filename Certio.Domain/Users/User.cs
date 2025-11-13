@@ -66,7 +66,7 @@ namespace Certio.Domain.Users
         
         public bool IsActive { get; set; } = true;
         
-        public bool Enable2FA { get; set; } = false;
+        public bool Enable2FA { get; set; } = true;
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? LastModifiedDate { get; set; }
@@ -296,6 +296,7 @@ namespace Certio.Domain.Users
                 },
                 UserTypes.LawFirm => membership.Role switch
                 {
+                    OrganizationRoles.ManagingPartner => PermissionSets.ManagingPartner,
                     OrganizationRoles.Partner => PermissionSets.Partner,
                     OrganizationRoles.Associate => PermissionSets.Associate,
                     OrganizationRoles.Paralegal => PermissionSets.Paralegal,
@@ -468,6 +469,18 @@ public static class PermissionSets
         Permission.InviteUsers, Permission.RemoveUsers,
         Permission.ViewMessages, Permission.SendMessages, Permission.ManageThreads,
         Permission.ViewAuditLogs
+    };
+
+    // Managing Partner - Full access to firm and client matters (firm leadership)
+    public static readonly List<Permission> ManagingPartner = new()
+    {
+        Permission.ViewDocuments, Permission.DownloadDocuments, Permission.UploadDocuments,
+        Permission.DeleteDocuments, Permission.CommentOnDocuments,
+        Permission.ViewMatters, Permission.CreateMatters, Permission.EditMatters,
+        Permission.DeleteMatters, Permission.ManageMatterSettings,
+        Permission.InviteUsers, Permission.RemoveUsers, Permission.ManageUserPermissions,
+        Permission.ViewMessages, Permission.SendMessages, Permission.DeleteMessages,
+        Permission.ManageThreads, Permission.ViewAuditLogs
     };
 
     // Partner - Full access to firm and client matters
