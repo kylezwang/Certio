@@ -156,6 +156,18 @@
       <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"xza496t45g"},{"Name":"integrity","Value":"sha256-U55TzkyxEV\u002Brt/3RNoqrbyQAD2Zn8Ts2yBGleV/2608="},{"Name":"label","Value":"_content/Certio.Web/images/Notal_Banner_Logo_Large_Text.png"}]]]></EndpointProperties>
       <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"997475"},{"Name":"Content-Type","Value":"image/png"},{"Name":"ETag","Value":"\u0022U55TzkyxEV\u002Brt/3RNoqrbyQAD2Zn8Ts2yBGleV/2608=\u0022"},{"Name":"Last-Modified","Value":"Sun, 26 Oct 2025 06:45:58 GMT"}]]]></ResponseHeaders>
     </StaticWebAssetEndpoint>
+    <StaticWebAssetEndpoint Include="_content/Certio.Web/images/Notal_Banner_Logo_Large_Text_Center.png">
+      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\images\Notal_Banner_Logo_Large_Text_Center.png'))</AssetFile>
+      <Selectors><![CDATA[[]]]></Selectors>
+      <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-tXjLTzEAphdX9ubduRN5Etp8MQU4kyqkJDmFProU7g8="}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=3600, must-revalidate"},{"Name":"Content-Length","Value":"525262"},{"Name":"Content-Type","Value":"image/png"},{"Name":"ETag","Value":"\u0022tXjLTzEAphdX9ubduRN5Etp8MQU4kyqkJDmFProU7g8=\u0022"},{"Name":"Last-Modified","Value":"Thu, 13 Nov 2025 18:54:00 GMT"}]]]></ResponseHeaders>
+    </StaticWebAssetEndpoint>
+    <StaticWebAssetEndpoint Include="_content/Certio.Web/images/Notal_Banner_Logo_Large_Text_Center.til7wgvr8z.png">
+      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\images\Notal_Banner_Logo_Large_Text_Center.png'))</AssetFile>
+      <Selectors><![CDATA[[]]]></Selectors>
+      <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"til7wgvr8z"},{"Name":"integrity","Value":"sha256-tXjLTzEAphdX9ubduRN5Etp8MQU4kyqkJDmFProU7g8="},{"Name":"label","Value":"_content/Certio.Web/images/Notal_Banner_Logo_Large_Text_Center.png"}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"525262"},{"Name":"Content-Type","Value":"image/png"},{"Name":"ETag","Value":"\u0022tXjLTzEAphdX9ubduRN5Etp8MQU4kyqkJDmFProU7g8=\u0022"},{"Name":"Last-Modified","Value":"Thu, 13 Nov 2025 18:54:00 GMT"}]]]></ResponseHeaders>
+    </StaticWebAssetEndpoint>
     <StaticWebAssetEndpoint Include="_content/Certio.Web/images/Notal_Logo.59mfebdvdm.png">
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\images\Notal_Logo.png'))</AssetFile>
       <Selectors><![CDATA[[]]]></Selectors>

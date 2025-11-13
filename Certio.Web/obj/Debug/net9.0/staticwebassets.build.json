@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "C9S7WAJH+7EhOncK9aLWn+2Ri4h59rYLImU9vErOgnY=",
+  "Hash": "EvcIKngu8FuJOctzi8ehKhU1NKAAJha1Q3dQId4cUW4=",
   "Source": "Certio.Web",
   "BasePath": "_content/Certio.Web",
   "Mode": "Default",
@@ -3228,6 +3228,27 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\images\\Certio-No-Logo-Transparent.png"
+    },
+    {
+      "Identity": "C:\\Projects\\Certio\\Certio.Web\\wwwroot\\images\\Notal_Banner_Logo_Large_Text_Center.png",
+      "SourceId": "Certio.Web",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Projects\\Certio\\Certio.Web\\wwwroot\\",
+      "BasePath": "_content/Certio.Web",
+      "RelativePath": "images/Notal_Banner_Logo_Large_Text_Center#[.{fingerprint}]?.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "til7wgvr8z",
+      "Integrity": "tXjLTzEAphdX9ubduRN5Etp8MQU4kyqkJDmFProU7g8=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\images\\Notal_Banner_Logo_Large_Text_Center.png"
     },
     {
       "Identity": "C:\\Projects\\Certio\\Certio.Web\\wwwroot\\images\\Notal_Banner_Logo_Large_Text.png",
@@ -17606,6 +17627,88 @@
         {
           "Name": "integrity",
           "Value": "sha256-BenrvD3CkPDeuwWJ85yF0pKxzBuqOw6kxeI+YPkCm+k="
+        }
+      ]
+    },
+    {
+      "Route": "images/Notal_Banner_Logo_Large_Text_Center.png",
+      "AssetFile": "C:\\Projects\\Certio\\Certio.Web\\wwwroot\\images\\Notal_Banner_Logo_Large_Text_Center.png",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "525262"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/png"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"tXjLTzEAphdX9ubduRN5Etp8MQU4kyqkJDmFProU7g8=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 13 Nov 2025 18:54:00 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-tXjLTzEAphdX9ubduRN5Etp8MQU4kyqkJDmFProU7g8="
+        }
+      ]
+    },
+    {
+      "Route": "images/Notal_Banner_Logo_Large_Text_Center.til7wgvr8z.png",
+      "AssetFile": "C:\\Projects\\Certio\\Certio.Web\\wwwroot\\images\\Notal_Banner_Logo_Large_Text_Center.png",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "525262"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/png"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"tXjLTzEAphdX9ubduRN5Etp8MQU4kyqkJDmFProU7g8=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 13 Nov 2025 18:54:00 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "til7wgvr8z"
+        },
+        {
+          "Name": "label",
+          "Value": "images/Notal_Banner_Logo_Large_Text_Center.png"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-tXjLTzEAphdX9ubduRN5Etp8MQU4kyqkJDmFProU7g8="
         }
       ]
     },

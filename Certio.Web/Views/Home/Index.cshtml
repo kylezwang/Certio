@@ -57,6 +57,8 @@
 
         .login-title img {
             display: block;
+            width: 100%;
+            max-width: 160px;
             height: auto;
             margin: 0 auto;
         }
@@ -402,18 +404,6 @@
     <script>
         // Add some interactive functionality
         document.addEventListener('DOMContentLoaded', function() {
-            // Match logo width to subtitle text width
-            function matchLogoWidth() {
-                const subtitle = document.querySelector('.login-subtitle');
-                const logoImg = document.querySelector('.login-title img');
-                if (subtitle && logoImg) {
-                    const subtitleWidth = subtitle.offsetWidth;
-                    logoImg.style.width = subtitleWidth + 'px';
-                }
-            }
-            matchLogoWidth();
-            window.addEventListener('resize', matchLogoWidth);
-            
             // Show session expired notification if present
             const sessionExpiredNotification = document.getElementById('sessionExpiredNotification');
             if (sessionExpiredNotification) {
