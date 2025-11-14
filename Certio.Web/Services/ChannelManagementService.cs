@@ -6,6 +6,7 @@ using Certio.Application.Interfaces;
 using Certio.Web.ViewModels;
 using Microsoft.Extensions.Logging;
 using Certio.Domain.Organizations;
+using Certio.Domain.Users;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -115,35 +116,53 @@ public class ChannelManagementService : Certio.Web.Services.IChannelManagementSe
 
     public async Task<List<CommunicationsTeamMember>> GetOrganizationTeamMembersAsync(int organizationId, int currentUserId)
     {
+        var organization = await _context.Organizations
+            .AsNoTracking()
+            .FirstOrDefaultAsync(o => o.Id == organizationId);
+
+        var isLawFirm = organization?.Type == OrganizationType.LawFirm;
+
         // Get direct organization members
-        var directMembers = await _context.UserOrganizations
+        var directMemberData = await _context.UserOrganizations
             .Where(uo => uo.OrganizationId == organizationId &&
                          uo.IsActive &&
                          uo.User != null &&
                          uo.User.IsActive &&
                          !uo.User.IsDeleted)
-            .Select(uo => new CommunicationsTeamMember
+            .Select(uo => new TeamMemberProjection
             {
                 UserId = uo.UserId,
-                Name = $"{uo.User!.FirstName} {uo.User.LastName}".Trim(),
+                FirstName = uo.User!.FirstName,
+                LastName = uo.User.LastName,
                 Role = uo.Role ?? "Member",
-                Status = "offline", // Will be updated by SignalR
-                Avatar = string.Concat(
-                        string.IsNullOrEmpty(uo.User!.FirstName) ? "?" : uo.User.FirstName.Substring(0, 1),
-                        string.IsNullOrEmpty(uo.User.LastName) ? string.Empty : uo.User.LastName.Substring(0, 1))
-                    .ToUpper(),
-                Activity = "Offline",
-                RoleIcon = "",
-                RoleColor = "",
+                UserType = uo.UserType,
                 OrganizationId = organizationId,
                 OrganizationName = uo.Organization != null ? uo.Organization.Name : null,
                 IsExternalContacts = uo.Organization != null && uo.Organization.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase),
-                Color = uo.User.Color ?? "#3d1019",
-                Email = uo.User.Email
+                Email = uo.User.Email,
+                StoredColor = uo.User.Color
             })
             .ToListAsync();
 
-        // Determine accessible client organizations via relationships the user participates in
+        var directMembers = directMemberData
+            .Select(MapToTeamMember)
+            .ToList();
+
+        var relationshipMembers = isLawFirm
+            ? await GetClientRelationshipMembersAsync(organizationId, currentUserId)
+            : await GetLawFirmRelationshipMembersAsync(organizationId);
+
+        var allMembers = directMembers
+            .Concat(relationshipMembers)
+            .GroupBy(m => m.UserId)
+            .Select(g => g.First())
+            .ToList();
+
+        return allMembers;
+    }
+
+    private async Task<List<CommunicationsTeamMember>> GetClientRelationshipMembersAsync(int organizationId, int currentUserId)
+    {
         var relationshipCandidates = await _context.OrganizationRelationships
             .Include(or => or.TargetOrganization)
             .Where(or => or.SourceOrganizationId == organizationId &&
@@ -172,10 +191,6 @@ public class ChannelManagementService : Certio.Web.Services.IChannelManagementSe
                 .Select(uo => uo.OrganizationId)
                 .ToListAsync();
 
-            // Check which client organizations are confirmed
-            // A client is confirmed if:
-            // 1. The owner has joined (has membership), OR
-            // 2. There are registered users (any active UserOrganizations entries)
             var clientOrgUsers = await _context.UserOrganizations
                 .Where(uo => uo.IsActive && targetOrgIdList.Contains(uo.OrganizationId))
                 .Select(uo => new { uo.OrganizationId, uo.UserId })
@@ -210,8 +225,6 @@ public class ChannelManagementService : Certio.Web.Services.IChannelManagementSe
                 var targetOrg = candidate.TargetOrganization;
                 if (targetOrg == null) continue;
 
-                // If confirmed, include ALL users from this organization
-                // Otherwise, use the existing assignment/permission logic
                 if (confirmedOrgIds.Contains(targetOrg.Id))
                 {
                     accessibleClientOrgIds.Add(candidate.TargetOrganizationId);
@@ -225,45 +238,185 @@ public class ChannelManagementService : Certio.Web.Services.IChannelManagementSe
             }
         }
 
-        var relationshipMembers = new List<CommunicationsTeamMember>();
-
-        if (accessibleClientOrgIds.Count > 0)
+        if (accessibleClientOrgIds.Count == 0)
         {
-            relationshipMembers = await _context.UserOrganizations
-                .Where(uo => accessibleClientOrgIds.Contains(uo.OrganizationId) &&
-                             uo.IsActive &&
-                             uo.User != null &&
-                             uo.User.IsActive &&
-                             !uo.User.IsDeleted)
-                .Select(uo => new CommunicationsTeamMember
-                {
-                    UserId = uo.UserId,
-                    Name = $"{uo.User!.FirstName} {uo.User.LastName}".Trim(),
-                    Role = uo.Role ?? "Member",
-                    Status = "offline", // Will be updated by SignalR
-                    Avatar = string.Concat(
-                            string.IsNullOrEmpty(uo.User!.FirstName) ? "?" : uo.User.FirstName.Substring(0, 1),
-                            string.IsNullOrEmpty(uo.User.LastName) ? string.Empty : uo.User.LastName.Substring(0, 1))
-                        .ToUpper(),
-                    Activity = "Offline",
-                    RoleIcon = "",
-                    RoleColor = "",
-                    OrganizationId = uo.OrganizationId,
-                    OrganizationName = uo.Organization != null ? uo.Organization.Name : null,
-                    IsExternalContacts = uo.Organization != null && uo.Organization.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase),
-                    Color = uo.User.Color ?? "#3d1019",
-                    Email = uo.User.Email
-                })
-                .ToListAsync();
+            return new List<CommunicationsTeamMember>();
         }
 
-        var allMembers = directMembers
-            .Concat(relationshipMembers)
-            .GroupBy(m => m.UserId)
-            .Select(g => g.First())
-            .ToList();
+        var relationshipMemberData = await _context.UserOrganizations
+            .Where(uo => accessibleClientOrgIds.Contains(uo.OrganizationId) &&
+                         uo.IsActive &&
+                         uo.User != null &&
+                         uo.User.IsActive &&
+                         !uo.User.IsDeleted)
+            .Select(uo => new TeamMemberProjection
+            {
+                UserId = uo.UserId,
+                FirstName = uo.User!.FirstName,
+                LastName = uo.User.LastName,
+                Role = uo.Role ?? "Member",
+                UserType = uo.UserType,
+                OrganizationId = uo.OrganizationId,
+                OrganizationName = uo.Organization != null ? uo.Organization.Name : null,
+                IsExternalContacts = uo.Organization != null && uo.Organization.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase),
+                Email = uo.User.Email,
+                StoredColor = uo.User.Color
+            })
+            .ToListAsync();
 
-        return allMembers;
+        return relationshipMemberData.Select(MapToTeamMember).ToList();
+    }
+
+    private async Task<List<CommunicationsTeamMember>> GetLawFirmRelationshipMembersAsync(int organizationId)
+    {
+        var lawFirmRelationships = await _context.OrganizationRelationships
+            .Where(or => or.TargetOrganizationId == organizationId &&
+                         or.IsActive &&
+                         !or.IsDeleted &&
+                         or.RelationshipType == RelationshipTypes.LawFirmClient &&
+                         (!or.ExpiresAt.HasValue || or.ExpiresAt.Value > DateTime.UtcNow))
+            .Select(or => new { or.Id, or.SourceOrganizationId })
+            .ToListAsync();
+
+        if (!lawFirmRelationships.Any())
+        {
+            return new List<CommunicationsTeamMember>();
+        }
+
+        var relationshipIds = lawFirmRelationships.Select(r => r.Id).ToList();
+        var lawFirmOrgIds = lawFirmRelationships.Select(r => r.SourceOrganizationId).Distinct().ToList();
+
+        var assignedLawFirmUserIds = await _context.OrganizationRelationshipAssignedUsers
+            .Where(a => relationshipIds.Contains(a.RelationshipId))
+            .Select(a => a.UserId)
+            .ToListAsync();
+
+        var lawFirmMembersQuery = _context.UserOrganizations
+            .Where(uo => lawFirmOrgIds.Contains(uo.OrganizationId) &&
+                         uo.IsActive &&
+                         uo.User != null &&
+                         uo.User.IsActive &&
+                         !uo.User.IsDeleted);
+
+        if (assignedLawFirmUserIds.Any())
+        {
+            var assignedSet = assignedLawFirmUserIds.ToHashSet();
+            lawFirmMembersQuery = lawFirmMembersQuery.Where(uo => assignedSet.Contains(uo.UserId));
+        }
+
+        var lawFirmMemberData = await lawFirmMembersQuery
+            .Select(uo => new TeamMemberProjection
+            {
+                UserId = uo.UserId,
+                FirstName = uo.User!.FirstName,
+                LastName = uo.User.LastName,
+                Role = uo.Role ?? "Member",
+                UserType = uo.UserType,
+                OrganizationId = uo.OrganizationId,
+                OrganizationName = uo.Organization != null ? uo.Organization.Name : null,
+                IsExternalContacts = false,
+                Email = uo.User.Email,
+                StoredColor = uo.User.Color
+            })
+            .ToListAsync();
+
+        // If there were no explicit assignments, ensure at least one contact per law firm (e.g., owners)
+        if (!assignedLawFirmUserIds.Any())
+        {
+            var groupedByOrg = lawFirmMemberData
+                .GroupBy(m => m.OrganizationId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            var ensuredMembers = new List<TeamMemberProjection>();
+
+            foreach (var orgId in lawFirmOrgIds)
+            {
+                if (groupedByOrg.TryGetValue(orgId, out var members) && members.Any())
+                {
+                    ensuredMembers.AddRange(members);
+                }
+            }
+
+            lawFirmMemberData = ensuredMembers;
+        }
+
+        return lawFirmMemberData.Select(MapToTeamMember).ToList();
+    }
+
+    private static CommunicationsTeamMember MapToTeamMember(TeamMemberProjection data)
+    {
+        var name = $"{data.FirstName} {data.LastName}".Trim();
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            name = data.Email ?? "Member";
+        }
+
+        return new CommunicationsTeamMember
+        {
+            UserId = data.UserId,
+            OrganizationId = data.OrganizationId,
+            OrganizationName = data.OrganizationName,
+            Name = name,
+            Role = string.IsNullOrWhiteSpace(data.Role) ? "Member" : data.Role,
+            Status = "offline",
+            Avatar = BuildInitials(data.FirstName, data.LastName),
+            Activity = "Offline",
+            RoleIcon = "",
+            RoleColor = "",
+            CanDirectMessage = true,
+            IsExternalContacts = data.IsExternalContacts,
+            Color = ResolveAvatarColor(data.StoredColor, data.UserType),
+            Email = data.Email
+        };
+    }
+
+    private static string BuildInitials(string? firstName, string? lastName)
+    {
+        var firstInitial = !string.IsNullOrWhiteSpace(firstName) ? char.ToUpperInvariant(firstName.Trim()[0]) : '?';
+        var lastInitial = !string.IsNullOrWhiteSpace(lastName) ? char.ToUpperInvariant(lastName.Trim()[0]) : ' ';
+        return $"{firstInitial}{(lastInitial == ' ' ? string.Empty : lastInitial.ToString())}";
+    }
+
+    private static string ResolveAvatarColor(string? storedColor, string userType)
+    {
+        if (!string.IsNullOrWhiteSpace(storedColor))
+        {
+            var normalized = storedColor.Trim();
+            if (ApprovedAvatarColors.Contains(normalized))
+            {
+                return normalized;
+            }
+        }
+
+        return userType switch
+        {
+            UserTypes.External => "#aaaaaa",
+            UserTypes.Client => "#69848C",
+            UserTypes.Certio => "#69848C",
+            UserTypes.LawFirm => "#69848C",
+            _ => "#69848C"
+        };
+    }
+
+    private static readonly HashSet<string> ApprovedAvatarColors = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "#3d1019",
+        "#69848C",
+        "#aaaaaa"
+    };
+
+    private sealed class TeamMemberProjection
+    {
+        public int UserId { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string Role { get; set; } = "Member";
+        public string UserType { get; set; } = UserTypes.Client;
+        public int OrganizationId { get; set; }
+        public string? OrganizationName { get; set; }
+        public bool IsExternalContacts { get; set; }
+        public string? Email { get; set; }
+        public string? StoredColor { get; set; }
     }
 
     public async Task<List<int>> GetOnlineUserIdsAsync(int organizationId)

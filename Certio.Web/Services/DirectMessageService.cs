@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System;
+using System.Collections.Generic;
 using Certio.Application.DTOs;
 using Certio.Application.Interfaces;
 using Certio.Domain.Services;
@@ -197,9 +198,25 @@ public class DirectMessageService : IDirectMessageService
             cursorTime = parsed;
         }
 
+        // Determine all organization IDs that should surface threads for this context
+        var allowedOrgIds = new HashSet<int> { orgId };
+
+        var relatedOrgIds = await _context.OrganizationRelationships
+            .Where(or => or.IsActive &&
+                         !or.IsDeleted &&
+                         (!or.ExpiresAt.HasValue || or.ExpiresAt.Value > DateTime.UtcNow) &&
+                         (or.SourceOrganizationId == orgId || or.TargetOrganizationId == orgId))
+            .Select(or => or.SourceOrganizationId == orgId ? or.TargetOrganizationId : or.SourceOrganizationId)
+            .ToListAsync(ct);
+
+        foreach (var relatedOrgId in relatedOrgIds)
+        {
+            allowedOrgIds.Add(relatedOrgId);
+        }
+
         // Get threads where user is a participant
         var threadsQuery = _context.DirectThreads
-            .Where(dt => dt.OrganizationId == orgId && 
+            .Where(dt => allowedOrgIds.Contains(dt.OrganizationId) &&
                         (dt.UserAId == currentUserId || dt.UserBId == currentUserId) &&
                         !dt.IsDeleted)
             .Include(dt => dt.UserA)
