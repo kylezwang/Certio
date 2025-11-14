@@ -374,7 +374,13 @@ namespace Certio.Web.Controllers
                 return false;
             }
 
-            return value.Contains("/api", StringComparison.OrdinalIgnoreCase);
+            // Check for any path-like patterns (e.g., /Client/1/History, /api/something)
+            return value.Contains("/Client/", StringComparison.OrdinalIgnoreCase) ||
+                   value.Contains("/api/", StringComparison.OrdinalIgnoreCase) ||
+                   value.Contains("/History/", StringComparison.OrdinalIgnoreCase) ||
+                   value.Contains("/Calendar/", StringComparison.OrdinalIgnoreCase) ||
+                   value.Contains("/Chat/", StringComparison.OrdinalIgnoreCase) ||
+                   (value.StartsWith("/") && value.Contains("/", StringComparison.Ordinal) && value.Length > 3);
         }
 
         private string ExtractFriendlyResourceName(string? rawPath)
@@ -386,19 +392,44 @@ namespace Certio.Web.Controllers
 
             var path = rawPath;
 
+            // Extract path from full URL if needed
             if (Uri.TryCreate(rawPath, UriKind.Absolute, out var uri))
             {
                 path = uri.AbsolutePath;
             }
 
+            // Remove query string
             var questionIndex = path.IndexOf('?', StringComparison.Ordinal);
             if (questionIndex >= 0)
             {
                 path = path[..questionIndex];
             }
 
+            // Known path mappings for common endpoints
+            var knownPaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "History/Actions", "activity history" },
+                { "History/Users", "user list" },
+                { "History/Matters", "matters list" },
+                { "History/Activities", "activity history" },
+                { "Calendar/Events", "calendar events" },
+                { "Chat/GetAIConversations", "AI conversations" },
+                { "communications/recent-messages", "recent messages" },
+                { "Client/List", "client list" },
+            };
+
+            // Check for known path patterns
+            foreach (var (pattern, friendly) in knownPaths)
+            {
+                if (path.Contains(pattern, StringComparison.OrdinalIgnoreCase))
+                {
+                    return friendly;
+                }
+            }
+
             path = path.Trim('/');
 
+            // Remove /api/ prefix if present
             if (path.StartsWith("api/", StringComparison.OrdinalIgnoreCase))
             {
                 path = path[4..];
@@ -406,32 +437,53 @@ namespace Certio.Web.Controllers
 
             if (string.IsNullOrWhiteSpace(path))
             {
-                return "data";
+                return "page";
             }
 
             var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
             if (segments.Length == 0)
             {
-                return "data";
+                return "page";
             }
 
+            // Find the last non-numeric segment
             var candidate = segments[^1];
             if (int.TryParse(candidate, out _) && segments.Length > 1)
             {
                 candidate = segments[^2];
             }
 
+            // Clean up the candidate
             candidate = candidate.Replace("-", " ").Replace("_", " ").Trim();
 
             if (string.IsNullOrWhiteSpace(candidate))
             {
-                return "data";
+                return "page";
             }
 
+            // Handle common resource names
+            var resourceMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "History", "activity history" },
+                { "Calendar", "calendar" },
+                { "Dashboard", "dashboard" },
+                { "Documents", "documents" },
+                { "Matters", "matters" },
+                { "Tasks", "tasks" },
+                { "Client", "client page" },
+                { "Chat", "messages" },
+            };
+
+            if (resourceMap.TryGetValue(candidate, out var mapped))
+            {
+                return mapped;
+            }
+
+            // Otherwise, convert to title case
             var textInfo = CultureInfo.InvariantCulture.TextInfo;
             var friendly = textInfo.ToTitleCase(candidate.ToLowerInvariant());
 
-            return string.IsNullOrWhiteSpace(friendly) ? "data" : friendly;
+            return string.IsNullOrWhiteSpace(friendly) ? "page" : friendly;
         }
 
         // GET: /Client/{orgId}/Users - Get org users for filter
