@@ -29,6 +29,10 @@ namespace Certio.Web.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
+            ViewBag.CurrentUserId = customUser.Id;
+            ViewBag.CurrentUserName = $"{customUser.FirstName} {customUser.LastName}".Trim();
+            ViewBag.UserTimeZone = string.IsNullOrWhiteSpace(customUser.TimeZone) ? "America/New_York" : customUser.TimeZone;
+
             // Get organization info to determine the type
             var orgResult = await _organizationService.GetOrganizationBasicInfoAsync(orgId, customUser.Id);
             

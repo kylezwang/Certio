@@ -66,6 +66,10 @@ namespace Certio.Web.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
+            ViewBag.CurrentUserId = customUser.Id;
+            ViewBag.CurrentUserName = $"{customUser.FirstName} {customUser.LastName}".Trim();
+            ViewBag.UserTimeZone = string.IsNullOrWhiteSpace(customUser.TimeZone) ? "America/New_York" : customUser.TimeZone;
+
             ViewBag.OrganizationId = orgId;
             var org = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync();
             ViewBag.OrganizationName = org?.Name ?? "Client";
