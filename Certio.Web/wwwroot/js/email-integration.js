@@ -1152,12 +1152,12 @@ function createEmailListItem(email) {
         </div>
         <div class="email-notalize-column">
             <div class="email-notalize">
-                <img src="/images/Notal_Logo.png" alt="Notalize" style="width: 18px; height: 18px; object-fit: contain;" />
+                <img src="/images/Notal_Logo.png" alt="Notalize" style="width: 22px; height: 22px; object-fit: contain;" />
             </div>
         </div>
     `;
     
-    // Click handler to open DM thread
+    // Click handler to open email in provider (Gmail/Outlook) - same as Gmail badge
     item.addEventListener('click', (e) => {
         // Don't trigger if clicking checkbox, star, notalize button, or provider badge
         if (e.target.classList.contains('email-checkbox') || 
@@ -1167,10 +1167,14 @@ function createEmailListItem(email) {
             return;
         }
         
-        // Close modal and open thread
-        closeInboxModal();
-        const orgId = document.querySelector('[data-organization-id]')?.dataset.organizationId;
-        loadInboxThread(email.threadId, orgId);
+        // Open email in provider (same functionality as Gmail badge)
+        const provider = email.provider;
+        const threadId = email.threadId || '';
+        const externalId = email.externalEmailId || '';
+        
+        if (provider && (threadId || externalId)) {
+            openEmailInProvider(provider, threadId, externalId);
+        }
     });
     
     // Provider badge click handler to open in Gmail/Outlook
