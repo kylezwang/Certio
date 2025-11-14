@@ -1,9 +1,12 @@
+using System;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Certio.Application.Interfaces;
 using Certio.Domain.Users;
 using Certio.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Certio.Domain.Audit;
+using System.Globalization;
 
 namespace Certio.Web.Controllers
 {
@@ -46,6 +49,7 @@ namespace Certio.Web.Controllers
             ViewBag.CurrentUserName = $"{user.FirstName} {user.LastName}";
             ViewBag.CurrentUserInitials = $"{user.FirstName[0]}{user.LastName[0]}".ToUpper();
             ViewBag.CurrentUserEmail = user.Email ?? "";
+            ViewBag.UserTimeZone = string.IsNullOrWhiteSpace(user.TimeZone) ? "UTC" : user.TimeZone;
 
             // Get organization name
             var org = await _context.Organizations
@@ -192,26 +196,32 @@ namespace Certio.Web.Controllers
                 }
 
                 // Format activities for the frontend
-                var allActivities = auditLogs.Select(log => new
+                var allActivities = auditLogs.Select(log =>
                 {
-                    id = log.Id,
-                    timestamp = log.Timestamp,
-                    userId = log.UserId ?? (log.IsAIAction ? 0 : (int?)null),
-                    userName = log.IsAIAction ? "Notal AI" : (log.UserName ?? "Unknown"),
-                    userInitials = log.IsAIAction ? "AI" : GetInitialsFromName(log.UserName ?? "Unknown"),
-                    actionType = FormatActionType(log.Action),
-                    action = log.Description ?? log.Action,
-                    description = log.Description ?? FormatDescription(log),
-                    matterId = log.MatterId,
-                    matterTitle = log.MatterId.HasValue && matterTitles.ContainsKey(log.MatterId.Value) 
-                        ? matterTitles[log.MatterId.Value] 
-                        : null,
-                    entityType = log.EntityType,
-                    entityId = log.EntityId,
-                    result = log.Result,
-                    ipAddress = log.IPAddress,
-                    userAgent = log.UserAgent,
-                    details = FormatDetails(log)
+                    var friendlyDescription = SanitizeDescription(log);
+                    var timestampUtc = EnsureUtc(log.Timestamp);
+
+                    return new
+                    {
+                        id = log.Id,
+                        timestamp = timestampUtc,
+                        userId = log.UserId ?? (log.IsAIAction ? 0 : (int?)null),
+                        userName = log.IsAIAction ? "Notal AI" : (log.UserName ?? "Unknown"),
+                        userInitials = log.IsAIAction ? "AI" : GetInitialsFromName(log.UserName ?? "Unknown"),
+                        actionType = FormatActionType(log.Action),
+                        action = friendlyDescription,
+                        description = friendlyDescription,
+                        matterId = log.MatterId,
+                        matterTitle = log.MatterId.HasValue && matterTitles.ContainsKey(log.MatterId.Value)
+                            ? matterTitles[log.MatterId.Value]
+                            : null,
+                        entityType = log.EntityType,
+                        entityId = log.EntityId,
+                        result = log.Result,
+                        ipAddress = log.IPAddress,
+                        userAgent = log.UserAgent,
+                        details = FormatDetails(log)
+                    };
                 }).OrderByDescending(a => a.timestamp).ToList();
 
                 // Get total count before pagination
@@ -299,6 +309,129 @@ namespace Certio.Web.Controllers
                 return $"{parts[0][0]}{parts[1][0]}".ToUpper();
             
             return parts[0].Length >= 2 ? parts[0].Substring(0, 2).ToUpper() : parts[0].ToUpper();
+        }
+
+        private static DateTime EnsureUtc(DateTime timestamp)
+        {
+            return timestamp.Kind switch
+            {
+                DateTimeKind.Utc => timestamp,
+                DateTimeKind.Local => timestamp.ToUniversalTime(),
+                _ => DateTime.SpecifyKind(timestamp, DateTimeKind.Utc)
+            };
+        }
+
+        private string SanitizeDescription(AuditLog log)
+        {
+            var baseDescription = !string.IsNullOrWhiteSpace(log.Description)
+                ? log.Description
+                : FormatDescription(log);
+
+            if (string.IsNullOrWhiteSpace(baseDescription))
+            {
+                return "Activity";
+            }
+
+            var requestPath = log.RequestUrl ?? string.Empty;
+
+            if (ContainsApiPath(baseDescription) || ContainsApiPath(requestPath))
+            {
+                return BuildFriendlyApiDescription(log);
+            }
+
+            return baseDescription;
+        }
+
+        private string BuildFriendlyApiDescription(AuditLog log)
+        {
+            var resourceName = ExtractFriendlyResourceName(log.RequestUrl ?? log.Description);
+            var verb = log.HttpMethod?.ToUpperInvariant() switch
+            {
+                "POST" => "Updated",
+                "PUT" => "Updated",
+                "PATCH" => "Updated",
+                "DELETE" => "Deleted",
+                _ => log.Action switch
+                {
+                    AuditActions.Create => "Created",
+                    AuditActions.Update => "Updated",
+                    AuditActions.Delete => "Deleted",
+                    AuditActions.SoftDelete => "Deleted",
+                    AuditActions.Export => "Exported",
+                    AuditActions.Login => "Signed in to",
+                    AuditActions.Logout => "Signed out of",
+                    _ => "Viewed"
+                }
+            };
+
+            return $"{verb} {resourceName}".Trim();
+        }
+
+        private static bool ContainsApiPath(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            return value.Contains("/api", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private string ExtractFriendlyResourceName(string? rawPath)
+        {
+            if (string.IsNullOrWhiteSpace(rawPath))
+            {
+                return "data";
+            }
+
+            var path = rawPath;
+
+            if (Uri.TryCreate(rawPath, UriKind.Absolute, out var uri))
+            {
+                path = uri.AbsolutePath;
+            }
+
+            var questionIndex = path.IndexOf('?', StringComparison.Ordinal);
+            if (questionIndex >= 0)
+            {
+                path = path[..questionIndex];
+            }
+
+            path = path.Trim('/');
+
+            if (path.StartsWith("api/", StringComparison.OrdinalIgnoreCase))
+            {
+                path = path[4..];
+            }
+
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return "data";
+            }
+
+            var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            if (segments.Length == 0)
+            {
+                return "data";
+            }
+
+            var candidate = segments[^1];
+            if (int.TryParse(candidate, out _) && segments.Length > 1)
+            {
+                candidate = segments[^2];
+            }
+
+            candidate = candidate.Replace("-", " ").Replace("_", " ").Trim();
+
+            if (string.IsNullOrWhiteSpace(candidate))
+            {
+                return "data";
+            }
+
+            var textInfo = CultureInfo.InvariantCulture.TextInfo;
+            var friendly = textInfo.ToTitleCase(candidate.ToLowerInvariant());
+
+            return string.IsNullOrWhiteSpace(friendly) ? "data" : friendly;
         }
 
         // GET: /Client/{orgId}/Users - Get org users for filter
