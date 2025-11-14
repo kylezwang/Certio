@@ -442,27 +442,23 @@
         const currentUserId = parseInt('@ViewBag.CurrentUserId');
         const currentUserName = '@ViewBag.CurrentUserName';
         const currentUserInitials = '@ViewBag.CurrentUserInitials';
-        const userTimeZone = '@ViewBag.UserTimeZone'; // User's selected timezone
+        const userTimeZone = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.UserTimeZone ?? "UTC"));
         
         // Timezone Helper Functions
         // Converts a datetime-local input value to UTC ISO string in user's timezone
         function convertLocalInputToUTC(dateTimeLocalValue) {
             if (!dateTimeLocalValue) return null;
-            
-            // Parse the datetime-local value (format: YYYY-MM-DDTHH:mm)
+
             const [datePart, timePart] = dateTimeLocalValue.split('T');
+            if (!datePart || !timePart) return null;
+
             const [year, month, day] = datePart.split('-').map(Number);
             const [hour, minute] = timePart.split(':').map(Number);
-            
-            // Create a date string in the user's timezone
-            const dateInUserTz = new Date(Date.UTC(year, month - 1, day, hour, minute));
-            
-            // Get the timezone offset for the user's timezone at this date
-            const offsetMinutes = getTimezoneOffset(dateInUserTz, userTimeZone);
-            
-            // Adjust for the timezone offset to get true UTC
-            const utcDate = new Date(dateInUserTz.getTime() - (offsetMinutes * 60000));
-            
+
+            const assumedUtc = new Date(Date.UTC(year, month - 1, day, hour, minute || 0));
+            const offsetMinutes = getTimezoneOffset(assumedUtc, userTimeZone);
+            const utcDate = new Date(assumedUtc.getTime() - offsetMinutes * 60000);
+
             return utcDate.toISOString();
         }
         
@@ -471,14 +467,10 @@
             if (!utcISOString) return '';
             
             const utcDate = new Date(utcISOString);
-            
-            // Get the timezone offset for the user's timezone
+
             const offsetMinutes = getTimezoneOffset(utcDate, userTimeZone);
-            
-            // Apply the offset to convert to user's timezone
-            const localDate = new Date(utcDate.getTime() + (offsetMinutes * 60000));
-            
-            // Format as YYYY-MM-DDTHH:mm for datetime-local input
+            const localDate = new Date(utcDate.getTime() + offsetMinutes * 60000);
+
             const year = localDate.getUTCFullYear();
             const month = String(localDate.getUTCMonth() + 1).padStart(2, '0');
             const day = String(localDate.getUTCDate()).padStart(2, '0');
@@ -491,13 +483,35 @@
         // Get timezone offset in minutes for a specific timezone
         function getTimezoneOffset(date, timeZone) {
             try {
-                // Format the date in the target timezone
-                const tzDate = new Date(date.toLocaleString('en-US', { timeZone }));
-                // Get the difference in minutes
-                return (date.getTime() - tzDate.getTime()) / 60000;
+                const formatter = new Intl.DateTimeFormat('en-US', {
+                    timeZone,
+                    hour12: false,
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+
+                const parts = formatter.formatToParts(date);
+                const data = {};
+                for (const { type, value } of parts) {
+                    data[type] = value;
+                }
+
+                const utcEstimate = Date.UTC(
+                    Number(data.year),
+                    Number(data.month) - 1,
+                    Number(data.day),
+                    Number(data.hour),
+                    Number(data.minute),
+                    Number(data.second ?? '0')
+                );
+
+                return (utcEstimate - date.getTime()) / 60000;
             } catch (e) {
                 console.error('Error calculating timezone offset:', e);
-                // Fallback to local timezone
                 return -date.getTimezoneOffset();
             }
         }
@@ -819,7 +833,13 @@
                 // Timed event - dot style
                 eventEl.classList.add('event-dot', event.color);
                 const startTime = new Date(event.startDateTime);
-                const timeStr = startTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                const timeFormatter = new Intl.DateTimeFormat('en-US', {
+                    timeZone: userTimeZone,
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+                const timeStr = timeFormatter.format(startTime);
                 eventEl.textContent = `${timeStr} ${event.title}`;
             }
             

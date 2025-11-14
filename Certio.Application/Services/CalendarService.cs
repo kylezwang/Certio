@@ -65,8 +65,11 @@ namespace Certio.Application.Services
                     }
                 }
 
+                var normalizedStart = NormalizeToUtc(createDto.StartDateTime);
+                var normalizedEnd = NormalizeToUtc(createDto.EndDateTime);
+
                 // Validate dates
-                if (createDto.EndDateTime <= createDto.StartDateTime)
+                if (normalizedEnd <= normalizedStart)
                 {
                     throw new ValidationException("EndDateTime", "End date/time must be after start date/time");
                 }
@@ -79,8 +82,8 @@ namespace Certio.Application.Services
                     Title = createDto.Title,
                     Description = createDto.Description,
                     Location = createDto.Location,
-                    StartDateTime = createDto.StartDateTime,
-                    EndDateTime = createDto.EndDateTime,
+                    StartDateTime = normalizedStart,
+                    EndDateTime = normalizedEnd,
                     IsAllDayEvent = createDto.IsAllDayEvent,
                     EventType = createDto.EventType,
                     Color = createDto.Color,
@@ -183,6 +186,9 @@ namespace Certio.Application.Services
                     throw new ResourceNotFoundException("CalendarEvent", eventId);
                 }
 
+                calendarEvent.StartDateTime = NormalizeToUtc(calendarEvent.StartDateTime);
+                calendarEvent.EndDateTime = NormalizeToUtc(calendarEvent.EndDateTime);
+
                 // Validate access
                 var canAccess = await CanAccessEventAsync(userId, calendarEvent);
                 if (!canAccess)
@@ -210,10 +216,10 @@ namespace Certio.Application.Services
                     calendarEvent.Location = updateDto.Location;
 
                 if (updateDto.StartDateTime.HasValue)
-                    calendarEvent.StartDateTime = updateDto.StartDateTime.Value;
+                    calendarEvent.StartDateTime = NormalizeToUtc(updateDto.StartDateTime.Value);
 
                 if (updateDto.EndDateTime.HasValue)
-                    calendarEvent.EndDateTime = updateDto.EndDateTime.Value;
+                    calendarEvent.EndDateTime = NormalizeToUtc(updateDto.EndDateTime.Value);
 
                 if (updateDto.IsAllDayEvent.HasValue)
                     calendarEvent.IsAllDayEvent = updateDto.IsAllDayEvent.Value;
@@ -742,12 +748,12 @@ namespace Certio.Application.Services
                 Title = calendarEvent.Title,
                 Description = calendarEvent.Description,
                 Location = calendarEvent.Location,
-                StartDateTime = calendarEvent.StartDateTime,
-                EndDateTime = calendarEvent.EndDateTime,
+                StartDateTime = NormalizeToUtc(calendarEvent.StartDateTime),
+                EndDateTime = NormalizeToUtc(calendarEvent.EndDateTime),
                 IsAllDayEvent = calendarEvent.IsAllDayEvent,
                 EventType = calendarEvent.EventType,
                 Color = calendarEvent.Color,
-                CreatedAt = calendarEvent.CreatedAt,
+                CreatedAt = NormalizeToUtc(calendarEvent.CreatedAt),
                 CreatedById = calendarEvent.CreatedById,
                 CreatedBy = calendarEvent.CreatedBy != null ? new UserSummaryDto
                 {
@@ -756,7 +762,7 @@ namespace Certio.Application.Services
                     LastName = calendarEvent.CreatedBy.LastName,
                     Email = calendarEvent.CreatedBy.Email ?? ""
                 } : null,
-                ModifiedAt = calendarEvent.ModifiedAt,
+                ModifiedAt = NormalizeToUtc(calendarEvent.ModifiedAt),
                 ModifiedById = calendarEvent.ModifiedById,
                 ModifiedBy = calendarEvent.ModifiedBy != null ? new UserSummaryDto
                 {
@@ -773,8 +779,8 @@ namespace Certio.Application.Services
                     AttendeeType = a.AttendeeType,
                     ResponseStatus = a.ResponseStatus,
                     IsNotifyRecipient = a.IsNotifyRecipient,
-                    AddedAt = a.AddedAt,
-                    ResponseAt = a.ResponseAt,
+                    AddedAt = NormalizeToUtc(a.AddedAt),
+                    ResponseAt = NormalizeToUtc(a.ResponseAt),
                     User = a.User != null ? new UserSummaryDto
                     {
                         Id = a.User.Id,
@@ -784,6 +790,21 @@ namespace Certio.Application.Services
                     } : null
                 }).ToList()
             };
+        }
+
+        private static DateTime NormalizeToUtc(DateTime value)
+        {
+            return value.Kind switch
+            {
+                DateTimeKind.Utc => value,
+                DateTimeKind.Local => value.ToUniversalTime(),
+                _ => DateTime.SpecifyKind(value, DateTimeKind.Utc)
+            };
+        }
+
+        private static DateTime? NormalizeToUtc(DateTime? value)
+        {
+            return value.HasValue ? NormalizeToUtc(value.Value) : null;
         }
     }
 }
