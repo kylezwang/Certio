@@ -419,11 +419,11 @@ namespace Certio.Web.Controllers
             };
 
             // Check for known path patterns
-            foreach (var (pattern, friendly) in knownPaths)
+            foreach (var (pattern, friendlyValue) in knownPaths)
             {
                 if (path.Contains(pattern, StringComparison.OrdinalIgnoreCase))
                 {
-                    return friendly;
+                    return friendlyValue;
                 }
             }
 
@@ -481,9 +481,9 @@ namespace Certio.Web.Controllers
 
             // Otherwise, convert to title case
             var textInfo = CultureInfo.InvariantCulture.TextInfo;
-            var friendly = textInfo.ToTitleCase(candidate.ToLowerInvariant());
+            var friendlyName = textInfo.ToTitleCase(candidate.ToLowerInvariant());
 
-            return string.IsNullOrWhiteSpace(friendly) ? "page" : friendly;
+            return string.IsNullOrWhiteSpace(friendlyName) ? "page" : friendlyName;
         }
 
         // GET: /Client/{orgId}/Users - Get org users for filter
