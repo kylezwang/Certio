@@ -428,12 +428,12 @@ public class EmailOAuthController : Controller
                 }
             }
 
-            // Get synced emails for ALL of the user's email accounts (active or inactive)
-            // This ensures historical emails from previous connections remain visible
+            // Get synced emails for the user's active email account
             // Direct DbContext access is used here for performance (simple query, no business logic)
             // Service layer is used for email sync operations (complex business logic in IEmailService)
             using var scope = HttpContext.RequestServices.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var syncVersion = emailAccount.LastSyncAt?.Ticks ?? 0L;
             
             // FIXED: Cache user account IDs (queried every time, rarely changes)
             var accountIdsCacheKey = $"user_email_accounts:{userId}";
@@ -443,7 +443,7 @@ public class EmailOAuthController : Controller
             {
                 _logger.LogDebug("Cache miss for user account IDs - loading from database for user {UserId}", userId);
                 userAccountIds = await context.EmailAccounts
-                    .Where(ea => ea.UserId == userId)
+                    .Where(ea => ea.UserId == userId && ea.IsActive)
                     .Select(ea => ea.Id)
                     .OrderBy(id => id) // Sort for consistent cache key
                     .ToListAsync();
@@ -516,6 +516,7 @@ public class EmailOAuthController : Controller
             {
                 var keyBuilder = new StringBuilder(prefix);
                 keyBuilder.Append($":{userId}");
+                keyBuilder.Append($":sync:{syncVersion}");
                 
                 // Include account IDs in cache key (sorted for consistency)
                 var accountIdsStr = string.Join(",", userAccountIds.OrderBy(id => id));
@@ -679,7 +680,7 @@ public class EmailOAuthController : Controller
             
             // Count unread DMs originating from any of the user's connected email accounts
             var userAccountIds = await context.EmailAccounts
-                .Where(ea => ea.UserId == GetCurrentUserId())
+                .Where(ea => ea.UserId == userId && ea.IsActive)
                 .Select(ea => ea.Id)
                 .ToListAsync();
 
