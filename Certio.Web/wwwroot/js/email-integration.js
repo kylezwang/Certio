@@ -1167,12 +1167,30 @@ function createEmailListItem(email) {
             return;
         }
         
-        // Open email in provider (same functionality as Gmail badge)
-        const provider = email.provider;
-        const threadId = email.threadId || '';
-        const externalId = email.externalEmailId || '';
+        // Get provider info from email object or fallback to provider badge data attributes
+        let provider = email.provider;
+        let threadId = email.threadId || '';
+        let externalId = email.externalEmailId || '';
         
+        // Fallback: try to get from provider badge if not in email object
+        if (!provider || (!threadId && !externalId)) {
+            const providerBadge = item.querySelector('.email-provider-badge');
+            if (providerBadge) {
+                provider = provider || providerBadge.dataset.provider;
+                threadId = threadId || providerBadge.dataset.threadId || '';
+                externalId = externalId || providerBadge.dataset.externalId || '';
+            }
+        }
+        
+        // Fallback: try to get from item dataset
+        if (!threadId && !externalId) {
+            threadId = item.dataset.threadId || '';
+        }
+        
+        // Open email in provider if we have the required info
         if (provider && (threadId || externalId)) {
+            e.preventDefault();
+            e.stopPropagation();
             openEmailInProvider(provider, threadId, externalId);
         }
     });
