@@ -571,6 +571,7 @@
         // History state
         const orgId = @ViewBag.OrganizationId;
         const currentUserId = @ViewBag.CurrentUserId;
+        const userTimeZone = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.UserTimeZone ?? "UTC"));
         let allActivities = [];
         let allUsers = [];
         let startDate = null;
@@ -1091,24 +1092,73 @@
         window.showHistoryDetail = showHistoryDetail;
 
         // Format timestamp - matching email inbox format (time on top, date on bottom)
+        function normalizeTimestamp(value) {
+            if (!value) return null;
+            
+            if (value instanceof Date) {
+                return value;
+            }
+            
+            if (typeof value === 'number') {
+                const numericDate = new Date(value);
+                return isNaN(numericDate.getTime()) ? null : numericDate;
+            }
+            
+            if (typeof value !== 'string') {
+                return null;
+            }
+            
+            const trimmed = value.trim();
+            if (!trimmed) return null;
+            
+            const hasZone = /([zZ]|[+-]\d{2}:?\d{2})$/.test(trimmed);
+            const candidate = hasZone ? trimmed : `${trimmed}Z`;
+            const date = new Date(candidate);
+            return isNaN(date.getTime()) ? null : date;
+        }
+
         function formatTimestamp(timestamp) {
-            const date = new Date(timestamp);
+            const date = normalizeTimestamp(timestamp);
+            if (!date) {
+                return `<div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.3; padding-left: 0.5rem;">
+                    <div style="font-size: 0.875rem;">--</div>
+                    <div style="font-size: 0.75rem; color: #9ca3af;">--</div>
+                </div>`;
+            }
             
-            // Format time (e.g., "4:30 PM")
-            const time = date.toLocaleTimeString('en-US', { 
-                hour: 'numeric', 
-                minute: '2-digit',
-                hour12: true 
-            });
+            let timeFormatter;
+            let dateFormatter;
             
-            // Format date (e.g., "11/3/2025")
-            const dateStr = date.toLocaleDateString('en-US', { 
-                month: 'numeric', 
-                day: 'numeric',
-                year: 'numeric'
-            });
+            try {
+                timeFormatter = new Intl.DateTimeFormat('en-US', { 
+                    hour: 'numeric', 
+                    minute: '2-digit',
+                    hour12: true,
+                    timeZone: userTimeZone 
+                });
+                dateFormatter = new Intl.DateTimeFormat('en-US', { 
+                    month: 'numeric', 
+                    day: 'numeric',
+                    year: 'numeric',
+                    timeZone: userTimeZone
+                });
+            } catch (error) {
+                console.warn('Invalid timezone provided, falling back to browser default.', error);
+                timeFormatter = new Intl.DateTimeFormat('en-US', { 
+                    hour: 'numeric', 
+                    minute: '2-digit',
+                    hour12: true
+                });
+                dateFormatter = new Intl.DateTimeFormat('en-US', { 
+                    month: 'numeric', 
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+            }
             
-            // Return HTML with time on top and date on bottom
+            const time = timeFormatter.format(date);
+            const dateStr = dateFormatter.format(date);
+            
             return `<div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.3; padding-left: 0.5rem;">
                 <div style="font-size: 0.875rem;">${time}</div>
                 <div style="font-size: 0.75rem; color: #9ca3af;">${dateStr}</div>
@@ -1169,14 +1219,33 @@
             }
             
             // Create CSV content
+            let exportFormatter;
+            try {
+                exportFormatter = new Intl.DateTimeFormat('en-US', {
+                    dateStyle: 'short',
+                    timeStyle: 'short',
+                    timeZone: userTimeZone
+                });
+            } catch (error) {
+                console.warn('Invalid timezone provided, falling back to browser default for export.', error);
+                exportFormatter = new Intl.DateTimeFormat('en-US', {
+                    dateStyle: 'short',
+                    timeStyle: 'short'
+                });
+            }
+
             const headers = ['Timestamp', 'User', 'Action Type', 'Action', 'Details'];
-            const rows = allActivities.map(activity => [
-                new Date(activity.timestamp).toLocaleString(),
-                activity.userName,
-                activity.actionType,
-                activity.action,
-                activity.details || ''
-            ]);
+            const rows = allActivities.map(activity => {
+                const date = normalizeTimestamp(activity.timestamp);
+                const formattedTimestamp = date ? exportFormatter.format(date) : '';
+                return [
+                    formattedTimestamp,
+                    activity.userName,
+                    activity.actionType,
+                    activity.action,
+                    activity.details || ''
+                ];
+            });
             
             const csvContent = [
                 headers.join(','),
