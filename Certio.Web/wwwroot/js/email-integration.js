@@ -1091,6 +1091,12 @@ function createEmailListItem(email) {
     item.className = `billing-card-item email-list-item ${!email.isRead ? 'unread' : ''}`;
     item.dataset.threadId = email.threadId;
     item.dataset.messageId = email.id;
+    if (email.provider) {
+        item.dataset.provider = email.provider;
+    }
+    if (email.externalEmailId) {
+        item.dataset.externalId = email.externalEmailId;
+    }
     
     const fromInfo = email.fromName || email.fromEmail;
     const subject = email.subject || '(No subject)';
@@ -1157,7 +1163,7 @@ function createEmailListItem(email) {
         </div>
     `;
     
-    // Click handler to open email in provider (Gmail/Outlook) - same as Gmail badge
+    // Click handler to open provider (matches badge behavior)
     item.addEventListener('click', (e) => {
         // Don't trigger if clicking checkbox, star, notalize button, or provider badge
         if (e.target.classList.contains('email-checkbox') || 
@@ -1167,32 +1173,19 @@ function createEmailListItem(email) {
             return;
         }
         
-        // Get provider info from email object or fallback to provider badge data attributes
-        let provider = email.provider;
-        let threadId = email.threadId || '';
-        let externalId = email.externalEmailId || '';
-        
-        // Fallback: try to get from provider badge if not in email object
-        if (!provider || (!threadId && !externalId)) {
-            const providerBadge = item.querySelector('.email-provider-badge');
-            if (providerBadge) {
-                provider = provider || providerBadge.dataset.provider;
-                threadId = threadId || providerBadge.dataset.threadId || '';
-                externalId = externalId || providerBadge.dataset.externalId || '';
-            }
-        }
-        
-        // Fallback: try to get from item dataset
-        if (!threadId && !externalId) {
-            threadId = item.dataset.threadId || '';
-        }
-        
-        // Open email in provider if we have the required info
-        if (provider && (threadId || externalId)) {
-            e.preventDefault();
-            e.stopPropagation();
+        const provider = email.provider || item.dataset.provider;
+        const threadId = email.threadId || item.dataset.threadId;
+        const externalId = email.externalEmailId || item.dataset.externalId;
+
+        if (provider) {
             openEmailInProvider(provider, threadId, externalId);
+            return;
         }
+
+        // Fallback to original behavior if provider link unavailable
+        closeInboxModal();
+        const orgId = document.querySelector('[data-organization-id]')?.dataset.organizationId;
+        loadInboxThread(email.threadId, orgId);
     });
     
     // Provider badge click handler to open in Gmail/Outlook
