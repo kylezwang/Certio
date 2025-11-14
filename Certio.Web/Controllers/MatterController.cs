@@ -1255,6 +1255,7 @@ namespace Certio.Web.Controllers
                 : null;
 
             ViewBag.OrganizationName = string.IsNullOrWhiteSpace(organizationName) ? null : organizationName;
+            ViewBag.UserTimeZone = user?.TimeZone ?? "America/New_York";
         }
 
         /// <summary>
