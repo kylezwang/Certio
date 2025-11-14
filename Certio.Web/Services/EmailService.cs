@@ -184,6 +184,7 @@ public class EmailService : IEmailService
         }
         
         await _context.SaveChangesAsync(ct);
+        await InvalidateUserEmailAccountCacheAsync(userId);
 
         _logger.LogInformation("Connected Gmail account {Email} for user {UserId}", userEmail, userId);
 
@@ -292,6 +293,7 @@ public class EmailService : IEmailService
         }
         
         await _context.SaveChangesAsync(ct);
+        await InvalidateUserEmailAccountCacheAsync(userId);
 
         _logger.LogInformation("Connected Outlook account {Email} for user {UserId}", userEmail, userId);
 
@@ -345,6 +347,8 @@ public class EmailService : IEmailService
             emailAccount.IsActive = false;
             await _context.SaveChangesAsync(ct);
 
+            await InvalidateUserEmailAccountCacheAsync(userId);
+
             // Clear cache for this email account
             var cacheKey = $"email_ids:{emailAccount.Id}";
             await _cacheService.RemoveAsync(cacheKey);
@@ -352,6 +356,12 @@ public class EmailService : IEmailService
 
             _logger.LogInformation("Disconnected email account {AccountId} for user {UserId}", emailAccount.Id, userId);
         }
+    }
+
+    private async Task InvalidateUserEmailAccountCacheAsync(int userId)
+    {
+        var cacheKey = $"user_email_accounts:{userId}";
+        await _cacheService.RemoveAsync(cacheKey);
     }
 
     public async Task SyncEmailsAsync(int emailAccountId, CancellationToken ct = default)
