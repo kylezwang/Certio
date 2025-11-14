@@ -158,6 +158,19 @@ public class ChannelManagementService : Certio.Web.Services.IChannelManagementSe
             .Select(g => g.First())
             .ToList();
 
+        var existingUserIds = allMembers.Select(m => m.UserId).ToHashSet();
+        var relatedOrgIds = await GetRelatedOrganizationIdsAsync(organizationId);
+        var allowedOrgIds = new HashSet<int>(relatedOrgIds) { organizationId };
+
+        var threadContacts = await GetDirectThreadContactsAsync(allowedOrgIds, organizationId, currentUserId);
+        foreach (var contact in threadContacts)
+        {
+            if (existingUserIds.Add(contact.UserId))
+            {
+                allMembers.Add(contact);
+            }
+        }
+
         return allMembers;
     }
 
@@ -341,6 +354,92 @@ public class ChannelManagementService : Certio.Web.Services.IChannelManagementSe
         }
 
         return lawFirmMemberData.Select(MapToTeamMember).ToList();
+    }
+
+    private async Task<List<int>> GetRelatedOrganizationIdsAsync(int organizationId)
+    {
+        return await _context.OrganizationRelationships
+            .Where(or => or.IsActive &&
+                         !or.IsDeleted &&
+                         (!or.ExpiresAt.HasValue || or.ExpiresAt.Value > DateTime.UtcNow) &&
+                         (or.SourceOrganizationId == organizationId || or.TargetOrganizationId == organizationId))
+            .Select(or => or.SourceOrganizationId == organizationId ? or.TargetOrganizationId : or.SourceOrganizationId)
+            .Distinct()
+            .ToListAsync();
+    }
+
+    private async Task<List<CommunicationsTeamMember>> GetDirectThreadContactsAsync(
+        HashSet<int> allowedOrganizationIds,
+        int currentOrganizationId,
+        int currentUserId)
+    {
+        var threads = await _context.DirectThreads
+            .Where(dt => !dt.IsDeleted &&
+                         allowedOrganizationIds.Contains(dt.OrganizationId) &&
+                         (dt.UserAId == currentUserId || dt.UserBId == currentUserId))
+            .Include(dt => dt.UserA)
+            .Include(dt => dt.UserB)
+            .ToListAsync();
+
+        if (threads.Count == 0)
+        {
+            return new List<CommunicationsTeamMember>();
+        }
+
+        var contactUserIds = threads
+            .Select(dt => dt.UserAId == currentUserId ? dt.UserBId : dt.UserAId)
+            .Where(id => id != currentUserId)
+            .Distinct()
+            .ToList();
+
+        if (contactUserIds.Count == 0)
+        {
+            return new List<CommunicationsTeamMember>();
+        }
+
+        var users = await _context.Users
+            .Where(u => contactUserIds.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id);
+
+        var memberships = await _context.UserOrganizations
+            .Include(uo => uo.Organization)
+            .Where(uo => contactUserIds.Contains(uo.UserId) && uo.IsActive)
+            .ToListAsync();
+
+        var results = new List<CommunicationsTeamMember>();
+
+        foreach (var userId in contactUserIds)
+        {
+            if (!users.TryGetValue(userId, out var user))
+            {
+                continue;
+            }
+
+            var membership = memberships
+                .Where(uo => uo.UserId == userId)
+                .OrderByDescending(uo => allowedOrganizationIds.Contains(uo.OrganizationId))
+                .ThenByDescending(uo => uo.OrganizationId == currentOrganizationId)
+                .FirstOrDefault();
+
+            var projection = new TeamMemberProjection
+            {
+                UserId = userId,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Role = membership?.Role ?? "Member",
+                UserType = membership?.UserType ?? UserTypes.Client,
+                OrganizationId = membership?.OrganizationId ?? currentOrganizationId,
+                OrganizationName = membership?.Organization?.Name,
+                IsExternalContacts = membership?.Organization != null &&
+                    membership.Organization.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase),
+                Email = user.Email,
+                StoredColor = user.Color
+            };
+
+            results.Add(MapToTeamMember(projection));
+        }
+
+        return results;
     }
 
     private static CommunicationsTeamMember MapToTeamMember(TeamMemberProjection data)
