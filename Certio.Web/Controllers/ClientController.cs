@@ -312,6 +312,8 @@ namespace Certio.Web.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
+            SetClientLayoutContext(customUser, orgId);
+
             // Authorization is handled by the [Authorize(Policy = "OrgMember")] attribute
 
             // Use organization service to get organization info
@@ -371,6 +373,8 @@ namespace Certio.Web.Controllers
             {
                 return RedirectToAction("Index", "Home");
             }
+
+            SetClientLayoutContext(customUser, orgId);
 
             // Get organization info for ViewBag (view-specific, legitimate DB access)
             var currentOrg = await _db.Organizations
@@ -500,6 +504,8 @@ namespace Certio.Web.Controllers
             {
                 return RedirectToAction("Index", "Home");
             }
+
+            SetClientLayoutContext(customUser, orgId);
 
             ViewBag.OrganizationId = orgId;
             
@@ -652,6 +658,8 @@ namespace Certio.Web.Controllers
             {
                 return RedirectToAction("Index", "Home");
             }
+
+            SetClientLayoutContext(customUser, orgId);
 
             ViewBag.OrganizationId = orgId;
             
@@ -845,6 +853,8 @@ namespace Certio.Web.Controllers
                 return RedirectToAction("Index", "Home");
             }
             
+            SetClientLayoutContext(customUser, orgId);
+
             // Get user data
             var user = await _db.Users.FindAsync(customUser.Id);
             if (user == null)
@@ -1725,6 +1735,18 @@ namespace Certio.Web.Controllers
 
             // Redirect to show success with join code
             return RedirectToAction("Clients", new { orgId });
+        }
+
+        private void SetClientLayoutContext(Certio.Domain.Users.User user, int organizationId)
+        {
+            ViewBag.CurrentUserId = user.Id;
+            ViewBag.CurrentUserName = $"{user.FirstName} {user.LastName}".Trim();
+            ViewBag.UserTimeZone = string.IsNullOrWhiteSpace(user.TimeZone) ? "America/New_York" : user.TimeZone;
+
+            if (ViewBag.OrganizationId == null)
+            {
+                ViewBag.OrganizationId = organizationId;
+            }
         }
 
         private async Task<List<ExternalUserDto>> GetExternalUsersAsync(int lawFirmOrgId, CancellationToken ct)
