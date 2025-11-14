@@ -968,10 +968,7 @@ namespace Certio.Web.Controllers
                         existingCustomUser.PhoneNumber = phoneNumber;
                         existingCustomUser.IsActive = true;
                         // Don't update CreatedAt - preserve original creation date
-                        if (string.IsNullOrEmpty(existingCustomUser.Color))
-                        {
-                            existingCustomUser.Color = GetRandomColor();
-                        }
+                        // Color will be set based on organization type below
                         _context.Users.Update(existingCustomUser);
                         await _context.SaveChangesAsync();
                         customUser = existingCustomUser;
@@ -986,8 +983,8 @@ namespace Certio.Web.Controllers
                             Email = storedEmail,
                             PhoneNumber = phoneNumber,
                             IsActive = true,
-                            CreatedAt = DateTime.UtcNow,
-                            Color = GetRandomColor()
+                            CreatedAt = DateTime.UtcNow
+                            // Color will be set based on organization type below
                         };
 
                         _context.Users.Add(customUser);
@@ -1105,6 +1102,14 @@ namespace Certio.Web.Controllers
                     await _context.SaveChangesAsync();
                 }
 
+                // Set user color based on organization type (only if not already set)
+                if (string.IsNullOrEmpty(customUser.Color))
+                {
+                    customUser.Color = GetColorForUserType(userType);
+                    _context.Users.Update(customUser);
+                    await _context.SaveChangesAsync();
+                }
+
                 // If joined via code, consume code and handle external user migration
                 if (validJoin != null)
                 {
@@ -1215,18 +1220,17 @@ namespace Certio.Web.Controllers
         }
 
         /// <summary>
-        /// Get a random color for the user avatar
+        /// Get color for user avatar based on organization type
         /// </summary>
-        private string GetRandomColor()
+        private static string GetColorForUserType(string userType)
         {
-            var colors = new[]
+            return userType switch
             {
-                "#007bff", "#28a745", "#dc3545", "#ffc107", "#17a2b8",
-                "#6f42c1", "#e83e8c", "#fd7e14", "#20c997", "#6c757d"
+                Certio.Domain.Users.UserTypes.LawFirm => "#3d1019",
+                Certio.Domain.Users.UserTypes.Client => "#69848C",
+                Certio.Domain.Users.UserTypes.External => "#aaaaaa",
+                _ => "#69848C" // Default to client color
             };
-            
-            var random = new Random();
-            return colors[random.Next(colors.Length)];
         }
 
         private static string MaskEmail(string email)
