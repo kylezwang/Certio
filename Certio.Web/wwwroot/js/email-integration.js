@@ -1177,9 +1177,11 @@ function createEmailListItem(email) {
         const threadId = email.threadId || item.dataset.threadId;
         const externalId = email.externalEmailId || item.dataset.externalId;
 
-        if (provider) {
-            openEmailInProvider(provider, threadId, externalId);
+    if (provider) {
+        const opened = openEmailInProvider(provider, threadId, externalId);
+        if (opened) {
             return;
+        }
         }
 
         // Fallback to original behavior if provider link unavailable
@@ -1678,35 +1680,33 @@ function updateDirectMessagesOnlineCount() {
 
 // Open email in Gmail or Outlook
 function openEmailInProvider(provider, threadId, externalId) {
-    if (!provider) return;
+    if (!provider) return false;
     
+    const normalized = provider.toLowerCase();
     let url = '';
     
-    if (provider === 'Gmail') {
-        // Use thread ID if available (shows entire conversation), otherwise use message ID
+    if (normalized === 'gmail' || normalized === 'google') {
         const id = threadId || externalId;
         if (id) {
-            // Gmail URL format: https://mail.google.com/mail/u/0/#inbox/<threadId>
-            // or https://mail.google.com/mail/u/0/#all/<messageId>
             if (threadId) {
                 url = `https://mail.google.com/mail/u/0/#inbox/${encodeURIComponent(threadId)}`;
             } else {
                 url = `https://mail.google.com/mail/u/0/#all/${encodeURIComponent(externalId)}`;
             }
         }
-    } else if (provider === 'Outlook') {
-        // Outlook URL format: https://outlook.live.com/mail/0/#/view/<messageId>
-        // or https://outlook.office.com/mail/0/#/view/<messageId>
+    } else if (normalized === 'outlook' || normalized === 'microsoft') {
         const id = externalId || threadId;
         if (id) {
-            // Try to use the Outlook web URL
             url = `https://outlook.live.com/mail/0/#/view/${encodeURIComponent(id)}`;
         }
     }
     
     if (url) {
         window.open(url, '_blank', 'noopener,noreferrer');
+        return true;
     }
+    
+    return false;
 }
 
 // Format email date
