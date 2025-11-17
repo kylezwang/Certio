@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -578,6 +579,29 @@ namespace Certio.Web.Controllers
                 })
                 .ToList();
 
+            // Get pending join codes for this organization
+            var pendingJoinCodesData = await _db.OrganizationJoinCodes
+                .Include(jc => jc.CreatedBy)
+                .Where(jc => jc.OrganizationId == orgId && 
+                           jc.IsActive && 
+                           jc.UsesRemaining > 0 &&
+                           jc.ExpiresAt > DateTime.UtcNow)
+                .OrderByDescending(jc => jc.CreatedAt)
+                .ToListAsync();
+
+            var pendingJoinCodes = pendingJoinCodesData
+                .Select(jc => new PendingInvitation
+                {
+                    JoinCode = jc.Code,
+                    InvitedRole = jc.InvitedRole ?? "Member",
+                    InvitedUserType = jc.InvitedUserType ?? "Client",
+                    CreatedAt = jc.CreatedAt,
+                    ExpiresAt = jc.ExpiresAt,
+                    CreatedByName = jc.CreatedBy != null ? $"{jc.CreatedBy.FirstName} {jc.CreatedBy.LastName}".Trim() : "Unknown",
+                    Email = jc.TeamName ?? string.Empty // Email stored in TeamName field
+                })
+                .ToList();
+
             // If no real data, fallback to empty model (no placeholders)
             var model = new TeamsViewModel
             {
@@ -585,7 +609,8 @@ namespace Certio.Web.Controllers
                 ClientTeamCount = teamMembers.Count(m => m.Team == TeamType.Client),
                 LegalTeamCount = teamMembers.Count(m => m.Team == TeamType.Legal),
                 ExternalTeamCount = teamMembers.Count(m => m.Team == TeamType.External),
-                TotalMembersCount = teamMembers.Count
+                TotalMembersCount = teamMembers.Count,
+                PendingInvitations = pendingJoinCodes
             };
 
             // Fetch real matters from all accessible organizations (including relationships)
@@ -1187,6 +1212,8 @@ namespace Certio.Web.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
+            SetClientLayoutContext(customUser, orgId);
+
             var model = await PrepareAddPeopleViewModel(orgId, customUser);
             
             ViewBag.OrganizationId = orgId;
@@ -1216,6 +1243,8 @@ namespace Certio.Web.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
+            SetClientLayoutContext(customUser, orgId);
+
                 ViewBag.OrganizationId = orgId;
             ViewBag.OrganizationName = org.Name;
             ViewBag.OrganizationType = org.Type;
@@ -1230,6 +1259,12 @@ namespace Certio.Web.Controllers
                 model.SelectionType = null;
                 ModelState.Clear();
                 return View("~/Views/Home/AddPeople.cshtml", model);
+            }
+
+            // Law firm user in their own org (simple single page form) - process immediately
+            if (model.IsLawFirmUser && !model.IsClientOrganization && !string.IsNullOrEmpty(model.SelectionType))
+            {
+                return await ProcessAddPeopleSubmission(orgId, model, customUser, ct);
             }
 
             // Client users or step 1 selection
@@ -1335,6 +1370,7 @@ namespace Certio.Web.Controllers
             var org = await _db.Organizations.FirstOrDefaultAsync(o => o.Id == orgId, ct);
             ViewBag.OrganizationName = org?.Name ?? "Client";
             ViewBag.OrganizationType = org?.Type ?? Certio.Domain.Organizations.OrganizationType.Client;
+            SetClientLayoutContext(customUser, orgId);
 
             // Client context -> Internal Team -> Assign existing law firm members
             if (model.IsClientOrganization && model.SelectionType == "InternalTeam")
@@ -1404,6 +1440,44 @@ namespace Certio.Web.Controllers
                 return View("~/Views/Home/AddPeople.cshtml", model);
             }
 
+            var inviteeEmailNormalized = model.Email.Trim().ToLowerInvariant();
+            var existingUser = await _db.Users
+                .Include(u => u.UserOrganizations)
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == inviteeEmailNormalized, ct);
+
+            if (existingUser != null)
+            {
+                // Already member of this organization
+                if (existingUser.UserOrganizations.Any(uo => uo.OrganizationId == orgId && uo.IsActive))
+                {
+                    ModelState.AddModelError("Email", "This email already belongs to a member of this organization.");
+                    return View("~/Views/Home/AddPeople.cshtml", model);
+                }
+
+                // Prevent inviting existing clients of the law firm into the law firm org again
+                if (model.IsLawFirmUser && !model.IsClientOrganization)
+                {
+                    var relatedClientOrgIds = await _db.OrganizationRelationships
+                        .Where(or => or.SourceOrganizationId == orgId && or.IsActive)
+                        .Select(or => or.TargetOrganizationId)
+                        .ToListAsync(ct);
+
+                    if (relatedClientOrgIds.Count > 0)
+                    {
+                        var isExistingClient = existingUser.UserOrganizations.Any(uo =>
+                            relatedClientOrgIds.Contains(uo.OrganizationId) &&
+                            uo.IsActive &&
+                            string.Equals(uo.UserType, UserTypes.Client, StringComparison.OrdinalIgnoreCase));
+
+                        if (isExistingClient)
+                        {
+                            ModelState.AddModelError("Email", "This contact is already a client of your firm. Manage their access through their client organization instead of generating a new join code.");
+                            return View("~/Views/Home/AddPeople.cshtml", model);
+                        }
+                    }
+                }
+            }
+
             // Determine UserType and Role based on selection
             string invitedUserType;
             string invitedRole;
@@ -1453,14 +1527,30 @@ namespace Certio.Web.Controllers
                 ttl: TimeSpan.FromDays(7),
                 ct: ct);
 
-            ViewBag.JoinCode = join.Code;
-            TempData["Success"] = "Join code generated successfully.";
-            
-            // Reset model for new invitation
-            model = await PrepareAddPeopleViewModel(orgId, customUser);
-            model.Step = 1;
-            
-            return View("~/Views/Home/AddPeople.cshtml", model);
+            var inviteeEmail = model.Email?.Trim();
+            var inviteeName = inviteeEmail;
+            var lawFirmOrgIdForNotalize = model.IsLawFirmUser && model.IsClientOrganization && model.LawFirmOrganizationId.HasValue
+                ? model.LawFirmOrganizationId.Value
+                : orgId;
+
+            // Store email in TeamName field for pending invitations display
+            if (!string.IsNullOrWhiteSpace(inviteeEmail))
+            {
+                join.TeamName = inviteeEmail;
+                await _db.SaveChangesAsync(ct);
+            }
+
+            TempData["JoinCode"] = join.Code;
+            TempData["JoinCodeEmail"] = inviteeEmail;
+            TempData["JoinCodeInviteeName"] = inviteeName;
+            TempData["JoinCodeInviteeRole"] = invitedRole;
+            TempData["JoinCodeInviteeUserType"] = invitedUserType;
+            TempData["JoinCodeSuccess"] = "Join code generated successfully.";
+            TempData["JoinCodeOrganizationType"] = org?.Type.ToString();
+            TempData["JoinCodeLawFirmOrgId"] = lawFirmOrgIdForNotalize;
+            TempData["JoinCodeClientOrgId"] = orgId;
+
+            return RedirectToAction(nameof(Teams), new { orgId });
         }
 
         // GET /Client/GetJoinCode

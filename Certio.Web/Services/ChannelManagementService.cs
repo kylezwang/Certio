@@ -257,21 +257,21 @@ public class ChannelManagementService : Certio.Web.Services.IChannelManagementSe
         }
 
         var relationshipMemberData = await _context.UserOrganizations
-            .Where(uo => accessibleClientOrgIds.Contains(uo.OrganizationId) &&
-                         uo.IsActive &&
-                         uo.User != null &&
-                         uo.User.IsActive &&
-                         !uo.User.IsDeleted)
+                .Where(uo => accessibleClientOrgIds.Contains(uo.OrganizationId) &&
+                             uo.IsActive &&
+                             uo.User != null &&
+                             uo.User.IsActive &&
+                             !uo.User.IsDeleted)
             .Select(uo => new TeamMemberProjection
-            {
-                UserId = uo.UserId,
+                {
+                    UserId = uo.UserId,
                 FirstName = uo.User!.FirstName,
                 LastName = uo.User.LastName,
-                Role = uo.Role ?? "Member",
+                    Role = uo.Role ?? "Member",
                 UserType = uo.UserType,
-                OrganizationId = uo.OrganizationId,
-                OrganizationName = uo.Organization != null ? uo.Organization.Name : null,
-                IsExternalContacts = uo.Organization != null && uo.Organization.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase),
+                    OrganizationId = uo.OrganizationId,
+                    OrganizationName = uo.Organization != null ? uo.Organization.Name : null,
+                    IsExternalContacts = uo.Organization != null && uo.Organization.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase),
                 Email = uo.User.Email,
                 StoredColor = uo.User.Color
             })
@@ -330,8 +330,8 @@ public class ChannelManagementService : Certio.Web.Services.IChannelManagementSe
                 IsExternalContacts = false,
                 Email = uo.User.Email,
                 StoredColor = uo.User.Color
-            })
-            .ToListAsync();
+                })
+                .ToListAsync();
 
         // If there were no explicit assignments, ensure at least one contact per law firm (e.g., owners)
         if (!assignedLawFirmUserIds.Any())

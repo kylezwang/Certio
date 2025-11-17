@@ -2,9 +2,26 @@
 @{
     ViewData["Title"] = "Teams";
     Layout = "_ClientLayout";
+    
+    var generatedJoinCode = TempData["JoinCode"] as string;
+    var generatedJoinCodeEmail = TempData["JoinCodeEmail"] as string;
+    var joinCodeInviteeName = TempData["JoinCodeInviteeName"] as string;
+    var joinCodeInviteeRole = TempData["JoinCodeInviteeRole"] as string;
+    var joinCodeInviteeUserType = TempData["JoinCodeInviteeUserType"] as string;
+    var joinCodeInviteeRoleDisplay = string.IsNullOrWhiteSpace(joinCodeInviteeRole)
+        ? string.Empty
+        : System.Text.RegularExpressions.Regex.Replace(joinCodeInviteeRole, "(?<=[a-z])(?=[A-Z])", " ");
+    var joinCodeSuccessMessage = TempData["JoinCodeSuccess"] as string;
+    var joinCodeOrganizationType = TempData["JoinCodeOrganizationType"] as string;
+    var joinCodeLawFirmOrgIdValue = TempData["JoinCodeLawFirmOrgId"]?.ToString();
+    var joinCodeClientOrgIdValue = TempData["JoinCodeClientOrgId"]?.ToString();
+    var hasGeneratedJoinCode = !string.IsNullOrWhiteSpace(generatedJoinCode);
+    var joinCodeInviteeDisplayName = !string.IsNullOrWhiteSpace(joinCodeInviteeName) ? joinCodeInviteeName : generatedJoinCodeEmail;
+    _ = int.TryParse(joinCodeLawFirmOrgIdValue, out var joinCodeLawFirmOrgId);
+    _ = int.TryParse(joinCodeClientOrgIdValue, out var joinCodeClientOrgId);
 }
 
-<div class="min-h-screen">
+<div class="min-h-screen" style="padding: 1rem;">
     <!-- Header -->
     <div class="d-flex align-items-center justify-content-between mb-3">
         <div>
@@ -161,7 +178,7 @@
                     <div class="row g-4">
                         @foreach (var member in teamMembers)
                         {
-                            <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 team-member-card" data-name="@member.Name.ToLower()" data-role="@member.Role.ToLower()" data-team="@member.Team.ToString().ToLower()">
+                            <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 team-member-card" data-name="@member.Name.ToLower()" data-role="@((member.DisplayRole ?? string.Empty).ToLowerInvariant())" data-team="@member.Team.ToString().ToLower()">
                                 <div class="card h-100 border-0  hover-shadow transition-smooth cursor-pointer">
                                     <div class="card-body d-flex flex-column align-items-center text-center p-4">
                                         <!-- Avatar -->
@@ -174,7 +191,7 @@
                                         
                                         <!-- Name and Role -->
                                         <h5 class="card-title fw-medium mb-1">@member.Name</h5>
-                                        <p class="text-muted small mb-3">@member.Role</p>
+                                        <p class="text-muted small mb-3">@member.DisplayRole</p>
                                         
                                         <!-- Team Type -->
                                         <div class="d-flex align-items-center gap-1 text-muted small">
@@ -188,6 +205,67 @@
                     </div>
                 </div>
             }
+        }
+        
+        @* Pending Invitations Section - Always at bottom *@
+        @if (Model.PendingInvitations != null && Model.PendingInvitations.Any())
+        {
+            <div class="mb-5 team-section" data-team="pending">
+                <div class="team-section-header">
+                    <i class="fas fa-clock" style="color: #aaaaaa;"></i>
+                    <h2>Pending Invitations</h2>
+                    <span class="team-badge">@Model.PendingInvitations.Count</span>
+                </div>
+                
+                <div class="row g-4">
+                    @foreach (var invitation in Model.PendingInvitations)
+                    {
+                        var displayRole = string.IsNullOrWhiteSpace(invitation.InvitedRole)
+                            ? "Member"
+                            : System.Text.RegularExpressions.Regex.Replace(invitation.InvitedRole, "(?<=[a-z])(?=[A-Z])", " ");
+                        
+                        var displayEmail = string.IsNullOrWhiteSpace(invitation.Email) 
+                            ? "Pending" 
+                            : (invitation.Email.Length > 20 ? invitation.Email.Substring(0, 20) + "..." : invitation.Email);
+                        
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 team-member-card" data-name="pending" data-role="pending" data-team="pending">
+                            <div class="card h-100 border-0 hover-shadow transition-smooth">
+                                <div class="card-body d-flex flex-column align-items-center text-center p-4">
+                                    <!-- Avatar -->
+                                    <div class="mb-3">
+                                        <div class="team-member-avatar" style="background-color: #aaaaaa;">
+                                            <i class="fas fa-user-clock" style="font-size: 1.5rem;"></i>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Name and Role -->
+                                    <h5 class="card-title fw-medium mb-1" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">@displayEmail</h5>
+                                    <p class="text-muted small mb-3">@displayRole</p>
+                                    
+                                    <!-- Organization Type -->
+                                    <div class="d-flex flex-column align-items-center gap-1">
+                                        <div class="d-flex align-items-center gap-1 text-muted small">
+                                            <i class="fas fa-briefcase" style="font-size: 0.75rem;"></i>
+                                            <span>Pending</span>
+                                        </div>
+                                        <button type="button" class="btn btn-link p-0 view-join-code-btn" 
+                                                data-join-code="@invitation.JoinCode"
+                                                data-invited-role="@invitation.InvitedRole"
+                                                data-invited-usertype="@invitation.InvitedUserType"
+                                                data-created-by="@invitation.CreatedByName"
+                                                data-expires-at="@invitation.ExpiresAt.ToString("yyyy-MM-dd HH:mm:ss")"
+                                                data-email="@invitation.Email"
+                                                style="color: #aaaaaa; text-decoration: none; border: none; background: none; padding: 0.25rem !important;"
+                                                title="View Join Code">
+                                            <i class="fas fa-key" style="font-size: 1rem;"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
         }
     </div>
 </div>
@@ -232,6 +310,98 @@
         </div>
     </div>
 </div>
+
+@* Join Code Modal *@
+@if (hasGeneratedJoinCode)
+{
+    <div class="task-details-modal" id="joinCodeModal" style="display: none; border-radius: 12px; left: 20vw; bottom: 0;">
+        <div class="modal-dialog" style="margin-bottom: 1.5rem;">
+            <div class="task-details-content">
+                <!-- Modal Header -->
+                <div class="task-details-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem;">
+                    <div class="task-details-header-left" style="display: flex; align-items: center; gap: 0.5rem; flex: 1;">
+                        <i class="fa-solid fa-key" style="color: #3d1019; font-size: 1.25rem;"></i>
+                        <h2 class="task-title" style="cursor: default; margin: 0; font-size: 1.25rem; font-weight: 600; color: #3d1019;">Join Code Generated</h2>
+                    </div>
+                    <div class="task-details-header-right" style="margin-left: auto;">
+                        <button type="button" class="btn-close" id="closeJoinCodeModal" aria-label="Close"></button>
+                    </div>
+                </div>
+
+                <!-- Success Message -->
+                @if (!string.IsNullOrWhiteSpace(joinCodeSuccessMessage))
+                {
+                    <div class="task-details-body" style="padding: 0 1.5rem 1rem;">
+                        <div class="alert alert-success" style="margin-bottom: 1rem; border-radius: 8px;">
+                            <i class="fas fa-check-circle me-2"></i>
+                            @joinCodeSuccessMessage
+                        </div>
+                    </div>
+                }
+
+                <!-- Main Content Area -->
+                <div class="task-details-body">
+                    <!-- Left Panel -->
+                    <div class="task-details-left">
+                        <!-- Join Code Section -->
+                        <div class="task-section">
+                            <div class="task-section-header">
+                                <h6 class="task-section-title">
+                                    <i class="fas fa-key"></i> Join Code
+                                </h6>
+                            </div>
+                            <div class="task-section-content">
+                                <div style="position: relative; margin-bottom: 0.75rem;">
+                                    <input type="text" class="form-control form-control-lg" id="joinCodeValue" readonly value="@generatedJoinCode" style="font-size: 1.25rem; font-weight: 600; letter-spacing: 0.1em; font-family: monospace; background-color: #f8f9fa; padding-right: 5.5rem;">
+                                    <div style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 0.5rem;">
+                                        <button class="join-code-action-btn" type="button" id="copyJoinCodeBtn" title="Copy">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                        <button class="join-code-action-btn" type="button" id="notalizeJoinCodeBtn" title="Notalize">
+                                            <img src="/images/Notal_Logo.png" alt="Notalize" style="width: 18px; height: 18px; object-fit: contain;" />
+                                        </button>
+                                    </div>
+                                </div>
+                                <small class="text-muted d-block mb-4" style="font-size: 0.875rem;">
+                                    Share this code with the invitee via email, also handled through Communications hub. It expires in 7 days.
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Instructions Section -->
+                        <div class="task-section" style="margin-bottom: 0;">
+                            <div class="task-section-header">
+                                <h6 class="task-section-title">
+                                    <i class="fas fa-info-circle"></i> Instructions
+                                </h6>
+                            </div>
+                            <div class="task-section-content">
+                                <div style="font-size: 0.875rem; color: #4a5568;">
+                                    <p style="margin-bottom: 0.5rem;">
+                                        <strong>1.</strong> Click Notalize <em>(recommended)</em>, <strong>or</strong> Copy the join code above.
+                                    </p>
+                                    <p style="margin-bottom: 0.5rem;">
+                                        <strong>2.</strong> Share it with the invitee via email mode in the Communications hub.
+                                    </p>
+                                    <p style="margin-bottom: 0;">
+                                        <strong>3.</strong> The invitee will use this code to join the organization and will be pending until usage.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="task-action-buttons" style="padding: 0 1.5rem 1.5rem; justify-content: flex-end;">
+                    <button type="button" class="btn btn-primary" id="doneJoinCodeBtn" style="border-radius: 0.5rem;">
+                        Done
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 @section Scripts {
     <script>
@@ -419,7 +589,326 @@
                 });
             }
         });
+
+        // Handle "View Code" button clicks for pending invitations
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentOrgId = @(ViewBag.OrganizationId ?? 0);
+            
+            document.querySelectorAll('.view-join-code-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const joinCode = this.getAttribute('data-join-code');
+                    const invitedRole = this.getAttribute('data-invited-role');
+                    const invitedUserType = this.getAttribute('data-invited-usertype');
+                    const createdBy = this.getAttribute('data-created-by');
+                    const expiresAt = this.getAttribute('data-expires-at');
+                    const email = this.getAttribute('data-email') || '';
+                    
+                    showExistingJoinCodeModal(joinCode, invitedRole, invitedUserType, createdBy, expiresAt, email, currentOrgId);
+                });
+            });
+        });
+
+        function showExistingJoinCodeModal(joinCode, invitedRole, invitedUserType, createdBy, expiresAt, email, orgId) {
+            let modal = document.getElementById('existingJoinCodeModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'existingJoinCodeModal';
+                modal.className = 'task-details-modal';
+                modal.style.cssText = 'display: flex; position: fixed; top: 7vh; left: 20vw; right: 320px; bottom: 0; z-index: 1000; align-items: center; justify-content: center; background-color: rgba(0, 0, 0, 0.5); border-radius: 20px 20px 0px 0px;';
+                modal.innerHTML = `
+                    <div class="modal-dialog" style="margin-bottom: 1.5rem; border-radius: 12px;">
+                        <div class="task-details-content">
+                            <div class="task-details-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem;">
+                                <div class="task-details-header-left" style="display: flex; align-items: center; gap: 0.5rem; flex: 1;">
+                                    <i class="fa-solid fa-key" style="color: #3d1019; font-size: 1.25rem;"></i>
+                                    <h2 class="task-title" style="cursor: default; margin: 0; font-size: 1.25rem; font-weight: 600; color: #3d1019;">Join Code</h2>
+                                </div>
+                                <div class="task-details-header-right" style="margin-left: auto;">
+                                    <button type="button" class="btn-close" id="closeExistingJoinCodeModal" aria-label="Close"></button>
+                                </div>
+                            </div>
+                            <div class="task-details-body">
+                                <div class="task-details-left">
+                                    <div class="task-section">
+                                        <div class="task-section-header">
+                                            <h6 class="task-section-title">
+                                                <i class="fas fa-key"></i> Join Code
+                                            </h6>
+                                        </div>
+                                        <div class="task-section-content">
+                                            <div style="position: relative; margin-bottom: 0.75rem;">
+                                                <input type="text" class="form-control form-control-lg" id="existingJoinCodeValue" readonly style="font-size: 1.25rem; font-weight: 600; letter-spacing: 0.1em; font-family: monospace; background-color: #f8f9fa; padding-right: 5.5rem;">
+                                                <div style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 0.5rem;">
+                                                    <button class="join-code-action-btn" type="button" id="copyExistingJoinCodeBtn" title="Copy">
+                                                        <i class="fas fa-copy"></i>
+                                                    </button>
+                                                    <button class="join-code-action-btn" type="button" id="notalizeExistingJoinCodeBtn" title="Notalize">
+                                                        <img src="/images/Notal_Logo.png" alt="Notalize" style="width: 18px; height: 18px; object-fit: contain;" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <small class="text-muted d-block mb-4" style="font-size: 0.875rem;" id="existingJoinCodeDetails"></small>
+                                        </div>
+                                    </div>
+                                    <div class="task-section" style="margin-bottom: 0;">
+                                        <div class="task-section-header">
+                                            <h6 class="task-section-title">
+                                                <i class="fas fa-info-circle"></i> Instructions
+                                            </h6>
+                                        </div>
+                                        <div class="task-section-content">
+                                            <div style="font-size: 0.875rem; color: #4a5568;">
+                                                <p style="margin-bottom: 0.5rem;"><strong>1.</strong> Click Notalize <em>(recommended)</em>, <strong>or</strong> Copy the join code above.</p>
+                                                <p style="margin-bottom: 0.5rem;"><strong>2.</strong> Share it with the invitee via email mode in the Communications hub.</p>
+                                                <p style="margin-bottom: 0;"><strong>3.</strong> The invitee will use this code to join the organization and will be pending until usage.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="task-action-buttons" style="padding: 0 1.5rem 1.5rem; justify-content: flex-end;">
+                                <button type="button" class="btn btn-primary" id="doneExistingJoinCodeBtn" style="border-radius: 0.5rem;">Done</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+            
+            const input = document.getElementById('existingJoinCodeValue');
+            const details = document.getElementById('existingJoinCodeDetails');
+            if (input) input.value = joinCode;
+            if (details) {
+                const roleDisplay = invitedRole ? invitedRole.replace(/([a-z])([A-Z])/g, '$1 $2') : '';
+                const emailLine = email ? `Email: <strong>${email}</strong><br>` : '';
+                details.innerHTML = `${emailLine}Invited as: <strong>${roleDisplay}</strong><br>User type: <strong>${invitedUserType}</strong><br>Created by: <strong>${createdBy}</strong><br>Expires: <strong>${new Date(expiresAt).toLocaleString()}</strong>`;
+            }
+            
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            
+            const copyBtn = document.getElementById('copyExistingJoinCodeBtn');
+            const closeBtn = document.getElementById('closeExistingJoinCodeModal');
+            const doneBtn = document.getElementById('doneExistingJoinCodeBtn');
+            
+            if (copyBtn && input) {
+                copyBtn.onclick = async (e) => {
+                    e.stopPropagation();
+                    try {
+                        await navigator.clipboard.writeText(input.value);
+                        const originalHtml = copyBtn.innerHTML;
+                        copyBtn.innerHTML = '<i class="fas fa-check"></i>';
+                        setTimeout(() => { copyBtn.innerHTML = originalHtml; }, 1500);
+                    } catch (err) {
+                        console.error('Failed to copy:', err);
+                    }
+                };
+            }
+
+            // Notalize functionality
+            const notalizeBtn = document.getElementById('notalizeExistingJoinCodeBtn');
+            if (notalizeBtn && input && orgId) {
+                notalizeBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    try {
+                        // Disable button during request
+                        notalizeBtn.style.opacity = '0.5';
+                        notalizeBtn.style.pointerEvents = 'none';
+
+                        // Call notalize API
+                        const response = await fetch(`/api/dm/notalize-join-code?orgId=${orgId}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                JoinCode: input.value,
+                                ClientOrgId: orgId,
+                                TargetOrgId: orgId,
+                                InviteeEmail: email || '',
+                                InviteeName: email || '',
+                                InviteeRole: invitedRole || '',
+                                InvitedUserType: invitedUserType || '',
+                                LawFirmOrgId: orgId
+                            })
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success && result.thread && result.messageTemplate) {
+                            // Store message template in sessionStorage for Communications page
+                            sessionStorage.setItem('notalizeJoinCodeMessage', result.messageTemplate);
+                            sessionStorage.setItem('notalizeJoinCodeThreadId', result.thread.id);
+                            sessionStorage.setItem('notalizeJoinCodeOtherUserId', result.thread.otherUserId);
+                            sessionStorage.setItem('notalizeJoinCodeOtherUserName', result.thread.otherUserName);
+
+                            // Redirect to Communications page
+                            window.location.href = `/Client/${orgId}/Communications?notalize=true`;
+                        } else {
+                            alert(result.error || 'Failed to notalize join code. Please try again.');
+                            notalizeBtn.style.opacity = '';
+                            notalizeBtn.style.pointerEvents = '';
+                        }
+                    } catch (error) {
+                        console.error('Error notalizing join code:', error);
+                        alert('Failed to notalize join code. Please try again.');
+                        notalizeBtn.style.opacity = '';
+                        notalizeBtn.style.pointerEvents = '';
+                    }
+                });
+            }
+            
+            function closeModal() {
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+            
+            if (closeBtn) closeBtn.onclick = closeModal;
+            if (doneBtn) doneBtn.onclick = closeModal;
+            modal.onclick = function(e) {
+                if (e.target === modal) closeModal();
+            };
+        }
     </script>
+    
+    @if (hasGeneratedJoinCode)
+    {
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Notalize join code functionality
+                async function notalizeJoinCode(joinCode) {
+                    try {
+                        // Get organization IDs
+                        const lawFirmOrgId = @joinCodeLawFirmOrgId;
+                        const clientOrgId = @joinCodeClientOrgId;
+                        
+                        if (!lawFirmOrgId || !clientOrgId) {
+                            alert('Unable to determine organization context. Please try again.');
+                            return;
+                        }
+
+                        // Disable button during request
+                        const notalizeBtn = document.getElementById('notalizeJoinCodeBtn');
+                        if (notalizeBtn) {
+                            notalizeBtn.style.opacity = '0.5';
+                            notalizeBtn.style.pointerEvents = 'none';
+                        }
+
+                        // Call notalize API
+                        const response = await fetch(`/api/dm/notalize-join-code?orgId=${lawFirmOrgId}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                JoinCode: joinCode,
+                                ClientOrgId: clientOrgId,
+                                TargetOrgId: clientOrgId,
+                                InviteeEmail: '@generatedJoinCodeEmail' || '',
+                                InviteeName: '@joinCodeInviteeDisplayName' || '',
+                                InviteeRole: '@joinCodeInviteeRole' || '',
+                                InvitedUserType: '@joinCodeInviteeUserType' || '',
+                                LawFirmOrgId: lawFirmOrgId
+                            })
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success && result.thread && result.messageTemplate) {
+                            // Store message template in sessionStorage for Communications page
+                            sessionStorage.setItem('notalizeJoinCodeMessage', result.messageTemplate);
+                            sessionStorage.setItem('notalizeJoinCodeThreadId', result.thread.id);
+                            sessionStorage.setItem('notalizeJoinCodeOtherUserId', result.thread.otherUserId);
+                            sessionStorage.setItem('notalizeJoinCodeOtherUserName', result.thread.otherUserName);
+
+                            // Redirect to Communications page
+                            window.location.href = `/Client/${lawFirmOrgId}/Communications?notalize=true`;
+                        } else {
+                            alert(result.error || 'Failed to notalize join code. Please try again.');
+                            if (notalizeBtn) {
+                                notalizeBtn.style.opacity = '';
+                                notalizeBtn.style.pointerEvents = '';
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error notalizing join code:', error);
+                        alert('Failed to notalize join code. Please try again.');
+                        const notalizeBtn = document.getElementById('notalizeJoinCodeBtn');
+                        if (notalizeBtn) {
+                            notalizeBtn.style.opacity = '';
+                            notalizeBtn.style.pointerEvents = '';
+                        }
+                    }
+                }
+
+                // Join code modal
+                const joinCode = '@(generatedJoinCode ?? "")';
+                if (joinCode && joinCode.length > 0) {
+                    const modalEl = document.getElementById('joinCodeModal');
+                    if (modalEl) {
+                        // Show modal using task-details-modal style
+                        modalEl.style.display = 'flex';
+                        document.body.style.overflow = 'hidden';
+                        
+                        const copyBtn = document.getElementById('copyJoinCodeBtn');
+                        const input = document.getElementById('joinCodeValue');
+                        const closeBtn = document.getElementById('closeJoinCodeModal');
+                        const doneBtn = document.getElementById('doneJoinCodeBtn');
+                        
+                        // Copy functionality
+                        if (copyBtn && input) {
+                            copyBtn.addEventListener('click', async (e) => {
+                                e.stopPropagation();
+                                try {
+                                    await navigator.clipboard.writeText(input.value);
+                                    const originalHtml = copyBtn.innerHTML;
+                                    copyBtn.innerHTML = '<i class="fas fa-check"></i>';
+                                    setTimeout(() => {
+                                        copyBtn.innerHTML = originalHtml;
+                                    }, 1500);
+                                } catch (err) {
+                                    console.error('Failed to copy:', err);
+                                }
+                            });
+                        }
+
+                        // Notalize functionality
+                        const notalizeBtn = document.getElementById('notalizeJoinCodeBtn');
+                        if (notalizeBtn && input) {
+                            notalizeBtn.addEventListener('click', async (e) => {
+                                e.stopPropagation();
+                                await notalizeJoinCode(input.value);
+                            });
+                        }
+                        
+                        // Close handlers
+                        function closeJoinCodeModal() {
+                            modalEl.style.display = 'none';
+                            document.body.style.overflow = '';
+                        }
+                        
+                        if (closeBtn) {
+                            closeBtn.addEventListener('click', closeJoinCodeModal);
+                        }
+                        
+                        if (doneBtn) {
+                            doneBtn.addEventListener('click', closeJoinCodeModal);
+                        }
+                        
+                        // Close on backdrop click
+                        modalEl.addEventListener('click', function(e) {
+                            if (e.target === modalEl) {
+                                closeJoinCodeModal();
+                            }
+                        });
+                    }
+                }
+            });
+        </script>
+    }
+    
+    <link rel="stylesheet" href="~/css/tasks.css" />
 }
 
 <style>
@@ -450,5 +939,82 @@
     
     .team-member-card .card-body {
         border-radius: 12px;
+    }
+    
+    /* Join Code Modal Styles */
+    #joinCodeModal.task-details-modal {
+        position: fixed;
+        top: 7vh;
+        left: 20vw;
+        right: 320px;
+        bottom: 0;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(0, 0, 0, 0.5);
+        pointer-events: auto;
+    }
+
+    #joinCodeModal.task-details-modal .modal-dialog {
+        max-width: 90%;
+        width: 45rem;
+        margin: 0;
+        max-height: 90%;
+        border-radius: 12px;
+        pointer-events: auto;
+        position: relative;
+        z-index: 1001;
+    }
+
+    .sidebar-hidden #joinCodeModal.task-details-modal {
+        left: calc(6vw + 1rem);
+    }
+
+    .chat-hidden #joinCodeModal.task-details-modal {
+        right: 1rem !important;
+    }
+
+    .join-code-action-btn {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border-radius: 50%;
+        background-color: transparent;
+        border: none;
+        padding: 0;
+        color: #4a5568;
+    }
+
+    .join-code-action-btn:hover {
+        background-color: rgba(0, 0, 0, 0.08);
+        opacity: 1;
+    }
+
+    .join-code-action-btn i {
+        font-size: 1rem;
+    }
+
+    .join-code-action-btn img {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+        transition: opacity 0.15s;
+    }
+
+    .view-join-code-btn {
+        transition: color 0.15s ease;
+    }
+
+    .view-join-code-btn:hover {
+        color: #3d1019 !important;
+    }
+
+    .view-join-code-btn:hover i {
+        color: #3d1019;
     }
 </style>

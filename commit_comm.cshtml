@@ -1,0 +1,1356 @@
+@model Certio.Web.ViewModels.CommunicationsViewModel
+@using Certio.Web.ViewModels
+@using System.Text.Encodings.Web
+@using System.Text.RegularExpressions
+@{
+    ViewData["Title"] = "Communications - Notal";
+    ViewData["BodyClass"] = "communications-page";
+    // Show AI chat panel like other pages
+    ViewData["HideChatPanel"] = false;
+    Layout = "_ClientLayout";
+    var organizationId = ViewBag.OrganizationId ?? ViewContext.HttpContext.Items["CurrentOrganizationId"];
+}
+
+<!-- Organization ID for JavaScript access -->
+<div class="d-none" data-organization-id="@organizationId"></div>
+
+<div class="communications-container">
+    <div class="communications-layout">
+        <!-- Sidebar -->
+        <div class="communications-sidebar">
+            <!-- Header -->
+            <div class="communications-header">
+                <h2 class="communications-title">Communications Hub</h2>
+                <!-- Search Bar for Communications -->
+                <div style="position: relative; margin-top: 0.5rem;">
+                    <i class="fas fa-search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #6b7280; font-size: 0.875rem; pointer-events: none; z-index: 1;"></i>
+                    <input type="text" class="comms-search-input" id="commsPageSearchInput" placeholder="Search channels and messages..." style="width: 100%; padding-left: 2.25rem; padding-right: 2.5rem;">
+                    <button class="comms-filter-btn" title="Filter" style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%);">
+                        <i class="fas fa-filter"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Channels -->
+            <div class="channels-section">
+                @foreach (var category in Model.ChannelCategories.Where(c => c.Name != "VOICE CHANNELS"))
+                {
+                    <div class="channel-category">
+                        <button class="category-toggle" data-category="@category.Name">
+                            <i class="fas fa-chevron-down category-icon"></i>
+                            @category.Name
+                        </button>
+                        
+                        <div class="channels-list" data-category="@category.Name">
+                            @* Show category-level channels first (e.g., firm's general channels) *@
+                            @foreach (var channel in category.Channels)
+                            {
+                                <button class="channel-item @(channel.Name == Model.ActiveChannel ? "active" : "") @(channel.MatterId.HasValue ? "matter-channel" : "")" 
+                                        data-channel="@channel.Name"
+                                        data-channel-id="@channel.Id"
+                                        data-type="@channel.Type.ToString().ToLower()"
+                                        data-private="@channel.IsPrivate.ToString().ToLower()"
+                                        data-matter-id="@(channel.MatterId?.ToString() ?? "")"
+                                        data-matter-title="@(channel.MatterTitle ?? "")"
+                                        title="@(channel.MatterId.HasValue ? channel.MatterTitle : channel.Name)">
+                                    <div class="channel-info">
+                                        @if (channel.Type == ChannelType.Voice)
+                                        {
+                                            <i class="fas fa-volume-up channel-icon"></i>
+                                        }
+                                        else
+                                        {
+                                            @if (channel.MatterId.HasValue)
+                                            {
+                                                <i class="fas fa-folder channel-icon"></i>
+                                            }
+                                            else if (channel.IsPrivate)
+                                            {
+                                                <i class="fas fa-lock channel-icon"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="fas fa-hashtag channel-icon"></i>
+                                            }
+                                        }
+                                        <span class="channel-name">@channel.Name</span>
+                                    </div>
+                                    <div class="channel-meta">
+                                        @if (channel.Type == ChannelType.Voice && channel.Users.Any())
+                                        {
+                                            <div class="voice-users">
+                                                @foreach (var user in channel.Users.Take(3))
+                                                {
+                                                    <div class="voice-user-avatar">@user</div>
+                                                }
+                                            </div>
+                                        }
+                                        @if (channel.Unread > 0)
+                                        {
+                                            <span class="unread-badge">@channel.Unread</span>
+                                        }
+                                    </div>
+                                </button>
+                            }
+                            
+                            @* Then show subcategories (e.g., Firm Matters) *@
+                            @foreach (var subcategory in category.Subcategories)
+                            {
+                                <div class="subcategory-section">
+                                    <button class="subcategory-toggle" data-subcategory="@subcategory.Name">
+                                        <i class="fas fa-chevron-down subcategory-icon"></i>
+                                        @subcategory.Name
+                                    </button>
+                                    <div class="subcategory-channels" data-subcategory="@subcategory.Name">
+                                        @foreach (var channel in subcategory.Channels)
+                                        {
+                                            <button class="channel-item @(channel.Name == Model.ActiveChannel ? "active" : "") @(channel.MatterId.HasValue ? "matter-channel" : "")" 
+                                                    data-channel="@channel.Name"
+                                                    data-channel-id="@channel.Id"
+                                                    data-type="@channel.Type.ToString().ToLower()"
+                                                    data-private="@channel.IsPrivate.ToString().ToLower()"
+                                                    data-matter-id="@(channel.MatterId?.ToString() ?? "")"
+                                                    data-matter-title="@(channel.MatterTitle ?? "")"
+                                                    data-org-id="@(subcategory.OrganizationId?.ToString() ?? "")"
+                                                    title="@(channel.MatterId.HasValue ? channel.MatterTitle : channel.Name)">
+                                                <div class="channel-info">
+                                                    @if (channel.Type == ChannelType.Voice)
+                                                    {
+                                                        <i class="fas fa-volume-up channel-icon"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        @if (channel.MatterId.HasValue)
+                                                        {
+                                                            <i class="fas fa-folder channel-icon"></i>
+                                                        }
+                                                        else if (channel.IsPrivate)
+                                                        {
+                                                            <i class="fas fa-lock channel-icon"></i>
+                                                        }
+                                                        else
+                                                        {
+                                                            <i class="fas fa-hashtag channel-icon"></i>
+                                                        }
+                                                    }
+                                                    <span class="channel-name">@channel.Name</span>
+                                                </div>
+                                                <div class="channel-meta">
+                                                    @if (channel.Type == ChannelType.Voice && channel.Users.Any())
+                                                    {
+                                                        <div class="voice-users">
+                                                            @foreach (var user in channel.Users.Take(3))
+                                                            {
+                                                                <div class="voice-user-avatar">@user</div>
+                                                            }
+                                                        </div>
+                                                    }
+                                                    @if (channel.Unread > 0)
+                                                    {
+                                                        <span class="unread-badge">@channel.Unread</span>
+                                                    }
+                                                </div>
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- Direct Messages -->
+                <h3 class="team-title">Direct Messages ΓÇö @Model.OnlineMembersCount Online</h3>
+                <div class="team-members">
+                    @* Show current user first *@
+                    @foreach (var member in Model.TeamMembers.Where(m => m.UserId == ViewBag.CurrentUserId))
+                    {
+                        <div class="team-member @(member.CanDirectMessage ? "dm-user-item" : "dm-user-disabled")" 
+                             data-user-id="@member.UserId" 
+                             data-user-name="@member.Name"
+                             data-user-email="@(member.Email ?? "")"
+                             data-can-dm="@member.CanDirectMessage.ToString().ToLower()"
+                             data-org-id="@member.OrganizationId"
+                             data-org-name="@member.OrganizationName"
+                             style="cursor: @(member.CanDirectMessage ? "pointer" : "not-allowed"); @(member.CanDirectMessage ? "" : "opacity: 0.6;")">
+                            <div class="member-avatar current-user-avatar">
+                                <span>@member.Avatar</span>
+                                <div class="status-indicator @member.Status"></div>
+                            </div>
+                            <div class="member-info">
+                                <div class="member-name-row">
+                                    <span class="member-name">@member.Name</span>
+                                    <span class="you-label" style="font-weight: 500; color: #888888; font-size: 0.9em;">(You)</span>
+                                </div>
+                                <p class="member-activity">@member.Activity</p>
+                            </div>
+                        </div>
+                    }
+                    @* Then show all other members *@
+                    @foreach (var member in Model.TeamMembers.Where(m => m.UserId != ViewBag.CurrentUserId))
+                    {
+                        <div class="team-member @(member.CanDirectMessage ? "dm-user-item" : "dm-user-disabled")" 
+                             data-user-id="@member.UserId" 
+                             data-user-name="@member.Name"
+                             data-user-email="@(member.Email ?? "")"
+                             data-can-dm="@member.CanDirectMessage.ToString().ToLower()"
+                             data-org-id="@member.OrganizationId"
+                             data-org-name="@member.OrganizationName"
+                             data-is-external="@member.IsExternalContacts.ToString().ToLower()"
+                             style="cursor: @(member.CanDirectMessage ? "pointer" : "not-allowed"); @(member.CanDirectMessage ? "" : "opacity: 0.6;")">
+                            <div class="member-avatar @(member.IsExternalContacts ? "external-contacts-avatar" : "")" style="background: @member.Color !important;">
+                                <span>@member.Avatar</span>
+                                @if (!member.IsExternalContacts)
+                                {
+                                <div class="status-indicator @member.Status"></div>
+                                }
+                            </div>
+                            <div class="member-info">
+                                <div class="member-name-row">
+                                    <span class="member-name">@member.Name</span>
+                                    <i class="@member.RoleIcon @member.RoleColor" style="font-size: 0.875rem;"></i>
+                                </div>
+                                <p class="member-activity">@member.Activity</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Inbox (Email Messages) - Will be reordered by JavaScript -->
+                <div id="emailInboxSection" style="display: none; padding: 0 0.5rem; border-bottom: 1px solid #e8e8e8;">
+                    <h3 class="team-title">Email Inbox</h3>
+                    <div class="team-members">
+                        <div id="inboxItem" class="team-member dm-user-item" style="cursor: pointer;" data-type="inbox">
+                            <div class="member-avatar" style="
+                                width: 32px;
+                                height: 32px;
+                                border-radius: 6px;
+                                background: #c7b7a3;
+                                color: white;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                font-size: 0.875rem;
+                                flex-shrink: 0;
+                            ">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="member-info">
+                                <div class="member-name-row">
+                                    <span class="member-name">Inbox</span>
+                                    <span id="inboxUnreadBadge" class="unread-badge" style="display: none;">0</span>
+                                </div>
+                                <p class="member-activity">Email messages</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Email Integration - Will be reordered by JavaScript -->
+                <div id="emailIntegrationSection" class="email-integration-section" style="padding: 1rem 1rem 0 1rem; background: #f8f9fa; border-radius: 8px;">
+                    <h4 style="font-size: 0.9em; font-weight: 600; margin-bottom: 12px; color: #333;">Gmail & Outlook Integration</h4>
+                    <div id="emailAccountStatus">
+                        <div id="emailConnected" style="display: none;">
+                            <!-- G icon and (Gmail) tag on same row -->
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <i class="fab fa-google" style="font-size: 1.2em; color: #4285f4;"></i>
+                                <span id="connectedProvider" style="font-size: 0.75em; color: #999;">(Gmail)</span>
+                            </div>
+                            <!-- Email address on its own line -->
+                            <div style="margin-bottom: 8px;">
+                                    <span id="connectedEmailAddress" style="font-size: 0.85em; color: #666;"></span>
+                                </div>
+                            <!-- Disconnect button on row below email -->
+                            <div>
+                                <button id="disconnectEmailBtn" class="btn btn-sm btn-outline-danger" style="font-size: 0.75em; padding: 4px 8px;">
+                                    Disconnect
+                                </button>
+                            </div>
+                        </div>
+                        <div id="emailNotConnected" style="display: none;">
+                            <div style="display: flex; gap: 0.75rem;">
+                                <button id="connectGmailBtn" class="oauth-connect-btn">
+                                    <i class="fab fa-google"></i>
+                                </button>
+                                <button id="connectOutlookBtn" class="oauth-connect-btn">
+                                    <i class="fab fa-windows"></i>
+                                </button>
+                            </div>
+                            <p style="font-size: 0.85em; color: #666; margin: 0.75rem 0 0.25rem 0;">Connect your Gmail or Outlook to sync with Direct Messages</p>
+                        </div>
+                    </div>
+                    <button id="sendAsEmailToggle" class="btn btn-sm btn-outline-secondary" style="width: 100%; font-size: 0.75em; margin-top: 8px; display: none;">
+                        <i class="fas fa-envelope" style="margin-right: 5px;"></i>Switch to Email Mode
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Main Chat Area -->
+        <div class="main-chat">
+            <!-- Chat Header -->
+            <div class="chat-header">
+                <div class="chat-header-content">
+                    <div class="channel-header">
+                        <i class="fas fa-hashtag channel-header-icon"></i>
+                        <div class="channel-details">
+                            <h2 class="channel-title">@Model.ActiveChannel</h2>
+                            <p class="channel-description">Secure legal communications</p>
+                        </div>
+                    </div>
+                    <div class="chat-controls">
+                        <button class="control-btn" title="Search">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        <button class="control-btn" title="Notifications">
+                            <i class="fas fa-bell"></i>
+                        </button>
+                        <button class="control-btn" title="Members">
+                            <i class="fas fa-users"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div class="messages-container">
+                <div class="messages-list">
+                    @{
+                        Message? previousMessage = null;
+                        var currentUserId = ViewBag.CurrentUserId;
+                    }
+                    @foreach (var message in Model.Messages)
+                    {
+                        var member = Model.TeamMembers.FirstOrDefault(m => m.Name == message.User);
+                        var isCurrentUser = message.UserId.HasValue && currentUserId != null && message.UserId.Value.ToString() == currentUserId.ToString();
+                        
+                        // Check if message should be grouped with previous
+                        var isGrouped = false;
+                        if (previousMessage != null && message.UserId.HasValue && previousMessage.UserId.HasValue && 
+                            message.UserId.Value == previousMessage.UserId.Value && 
+                            message.CreatedAt.HasValue && previousMessage.CreatedAt.HasValue)
+                        {
+                            var diffInMinutes = (message.CreatedAt.Value - previousMessage.CreatedAt.Value).TotalMinutes;
+                            isGrouped = diffInMinutes <= 15;
+                        }
+                        
+                        var messageClasses = "message-item";
+                        if (isCurrentUser) { messageClasses += " current-user-message"; }
+                        if (isGrouped) { messageClasses += " grouped-message"; }
+                        
+                        // Get avatar color from member or default
+                        var avatarColor = "#3d1019"; // Default maroon
+                        var isExternalContacts = false;
+                        if (member != null)
+                        {
+                            avatarColor = member.Color ?? "#3d1019";
+                            isExternalContacts = member.IsExternalContacts;
+                            // Override to gray if external contacts
+                            if (isExternalContacts)
+                            {
+                                avatarColor = "#aaaaaa";
+                            }
+                        }
+                        else if (message.UserId.HasValue)
+                        {
+                            // Try to find member by UserId instead of Name
+                            var memberByUserId = Model.TeamMembers.FirstOrDefault(m => m.UserId == message.UserId.Value);
+                            if (memberByUserId != null)
+                            {
+                                avatarColor = memberByUserId.Color ?? "#3d1019";
+                                isExternalContacts = memberByUserId.IsExternalContacts;
+                                if (isExternalContacts)
+                                {
+                                    avatarColor = "#aaaaaa";
+                                }
+                            }
+                        }
+                        
+                        <div class="@messageClasses" data-message-id="@message.Id">
+                            <div class="message-avatar @(isExternalContacts ? "external-contacts-avatar" : "")" style="background: @avatarColor !important;">
+                                <span>@message.Avatar</span>
+                            </div>
+                            <div class="message-content">
+                                <div class="message-header">
+                                    <span class="message-author">@message.User</span>
+                                    @if (member != null)
+                                    {
+                                        <i class="@member.RoleIcon @member.RoleColor"></i>
+                                    }
+                                    @* Email badge for email messages *@
+                                    @if (message.MessageType == "Email")
+                                    {
+                                        <span class="email-badge" style="font-size: 0.7em; color: #007bff; margin-left: 8px; padding: 2px 6px; background: #e7f3ff; border-radius: 4px;">
+                                            <i class="fas fa-envelope" style="margin-right: 3px;"></i>Sent through Email
+                                        </span>
+                                    }
+                                    <span class="message-time">@message.Time</span>
+                                </div>
+                                @{
+                                    var encodedContent = HtmlEncoder.Default.Encode(message.Content ?? string.Empty);
+                                    // Normalize line endings
+                                    var normalizedContent = encodedContent
+                                        .Replace("\r\n", "\n")
+                                        .Replace("\r", "\n");
+                                    // Convert sequences of 2+ newlines to double <br> (paragraph breaks)
+                                    // Then convert remaining single newlines to single <br>
+                                    var contentWithBreaks = Regex.Replace(normalizedContent, @"\n{2,}", "<br><br>")
+                                        .Replace("\n", "<br />");
+                                }
+                                <p class="message-text">@Html.Raw(contentWithBreaks)</p>
+                                @if (message.Reactions.Any())
+                                {
+                                    <div class="message-reactions">
+                                        @foreach (var reaction in message.Reactions)
+                                        {
+                                            <button class="reaction-btn">
+                                                @reaction.Emoji @reaction.Count
+                                            </button>
+                                        }
+                                        <button class="add-reaction-btn">
+                                            <i class="fas fa-smile"></i>
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                            @if (isGrouped)
+                            {
+                                <div class="hover-timestamp">@message.Time</div>
+                            }
+                        </div>
+                        
+                        previousMessage = message;
+                    }
+                </div>
+            </div>
+
+            <!-- Scroll to bottom button -->
+            <button class="scroll-to-bottom-btn" id="scrollToBottomBtn" title="Scroll to bottom">
+                <i class="fas fa-arrow-down"></i>
+            </button>
+
+            <!-- Message Input -->
+            <div class="message-input-container">
+                <!-- Regular DM Input -->
+                <div id="regularMessageInput" class="message-input-wrapper">
+                    <!-- Email Subject Input (shown when in email mode) -->
+                    <input type="text" class="email-subject-input" id="channelEmailSubjectInput" placeholder="Subject..." style="display: none;" />
+                    
+                    <button class="input-btn" id="emailSwitcherBtn" title="Switch to Email Mode">
+                        <i class="fas fa-envelope"></i>
+                    </button>
+                    <button class="input-btn" title="Attach File">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                    <textarea class="message-input" 
+                              id="messageInput"
+                              placeholder="Message #@Model.ActiveChannel" 
+                              rows="1"></textarea>
+                    <div class="input-controls">
+                        <button class="input-btn" title="Emoji">
+                            <i class="fas fa-smile"></i>
+                        </button>
+                        <button class="send-btn" id="sendButton" title="Send">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Email Input Container (hidden by default) -->
+                <div id="emailMessageInput" class="email-input-wrapper" style="display: none;">
+                    <div class="email-input-header" style="background: #f0f0f0; padding: 8px 12px; border-radius: 8px 8px 0 0; font-size: 0.85em; color: #666;">
+                        <i class="fas fa-envelope" style="margin-right: 5px;"></i>
+                        <span>Send as Email</span>
+                        <button id="toggleEmailInputBtn" class="btn btn-sm btn-link" style="float: right; padding: 0; font-size: 0.85em; color: #666;">
+                            Switch to DM
+                        </button>
+                    </div>
+                    <div class="email-input-fields" style="padding: 12px; background: #fff; border: 1px solid #ddd; border-top: none;">
+                        <div style="margin-bottom: 8px;">
+                            <label style="font-size: 0.75em; color: #666; display: block; margin-bottom: 4px;">Subject</label>
+                            <input type="text" id="emailSubjectInput" class="form-control form-control-sm" placeholder="Email subject" style="font-size: 0.85em;">
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <label style="font-size: 0.75em; color: #666; display: block; margin-bottom: 4px;">To</label>
+                            <input type="text" id="emailToInput" class="form-control form-control-sm" placeholder="Recipient email" readonly style="font-size: 0.85em; background: #f5f5f5;">
+                        </div>
+                        <textarea class="message-input" 
+                                  id="emailBodyInput"
+                                  placeholder="Email message" 
+                                  rows="3" 
+                                  style="font-size: 0.85em; margin-bottom: 8px;"></textarea>
+                        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                            <button id="cancelEmailBtn" class="btn btn-sm btn-secondary" style="font-size: 0.75em;">
+                                Cancel
+                            </button>
+                            <button id="sendEmailBtn" class="btn btn-sm btn-primary" style="font-size: 0.75em;">
+                                <i class="fas fa-paper-plane" style="margin-right: 5px;"></i>Send Email
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- SignalR Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+    
+    <!-- Communications Script -->
+    <script src="~/js/communications.js"></script>
+    
+    <!-- Direct Messages Script -->
+    <script src="~/js/direct-messages.js"></script>
+    
+    <!-- Email Integration Script -->
+    <script src="~/js/email-integration.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get current user and organization info
+            const currentUserId = '@ViewBag.CurrentUserId';
+            const currentUserName = '@ViewBag.CurrentUserName';
+            const currentOrganizationId = '@ViewBag.OrganizationId';
+            
+            // Debug logging
+            console.log('Initialization values:');
+            console.log('  currentUserId:', currentUserId, '(type:', typeof currentUserId, ')');
+            console.log('  currentUserName:', currentUserName, '(type:', typeof currentUserName, ')');
+            console.log('  currentOrganizationId:', currentOrganizationId, '(type:', typeof currentOrganizationId, ')');
+            
+            // Get active channel from the first public channel
+            const firstChannel = document.querySelector('.channel-item');
+            const activeChannelId = firstChannel ? firstChannel.dataset.channelId : null;
+            const activeChannelName = firstChannel ? firstChannel.querySelector('.channel-name')?.textContent : 'general';
+            
+            console.log('Channel info:');
+            console.log('  firstChannel:', firstChannel);
+            console.log('  activeChannelId:', activeChannelId, '(type:', typeof activeChannelId, ')');
+            console.log('  activeChannelName:', activeChannelName);
+            
+            // Initialize communications chat if we have required data
+            if (currentUserId && activeChannelId && typeof initializeCommunicationsChat === 'function') {
+                console.log('Initializing communications chat...');
+                initializeCommunicationsChat(activeChannelId, currentUserId, currentUserName, currentOrganizationId);
+            } else {
+                console.warn('Cannot initialize communications chat:', {
+                    hasUserId: !!currentUserId,
+                    hasChannelId: !!activeChannelId,
+                    hasFunction: typeof initializeCommunicationsChat === 'function'
+                });
+            }
+
+            // Initialize email integration
+            if (typeof initializeEmailIntegration === 'function') {
+                console.log('Initializing email integration...');
+                initializeEmailIntegration();
+            } else {
+                console.warn('initializeEmailIntegration function not found!');
+            }
+
+            // Send message function - define first
+            window.handleSendMessage = function() {
+                const messageInput = document.getElementById('messageInput');
+                if (messageInput && messageInput.value.trim()) {
+                    const message = messageInput.value.trim();
+                    console.log('Sending message:', message);
+                    
+                    // Check if in DM mode first
+                    if (typeof sendCurrentDirectMessage === 'function' && sendCurrentDirectMessage(message)) {
+                        console.log('Sent as direct message');
+                        return;
+                    }
+                    
+                    // Otherwise send as channel message
+                    if (typeof sendChannelMessage === 'function') {
+                        sendChannelMessage(message);
+                    } else {
+                        console.warn('sendChannelMessage not available, message not sent');
+                        // Clear input anyway for demo purposes
+                        messageInput.value = '';
+                        messageInput.style.height = 'auto';
+                    }
+                }
+            };
+
+            // Initialize Direct Messaging
+            if (typeof initializeDirectMessaging === 'function') {
+                initializeDirectMessaging(currentUserId, currentOrganizationId, currentUserName);
+                console.log('Direct messaging initialized');
+            }
+            
+            // Message input handlers
+            const messageInput = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+            
+            // Handle keydown (Enter to send)
+            if (messageInput) {
+                messageInput.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter' && !event.shiftKey) {
+                        event.preventDefault();
+                        handleSendMessage();
+                    }
+                });
+                
+                // Handle input (typing indicator and auto-resize)
+                messageInput.addEventListener('input', function() {
+                    if (this.value.trim().length > 0) {
+                        // Start typing indicator
+                        if (typeof startTyping === 'function') {
+                            startTyping();
+                        }
+                    }
+                    
+                    // Auto-resize textarea
+                    this.style.height = 'auto';
+                    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+                });
+            }
+            
+            // Handle send button click
+            if (sendButton) {
+                sendButton.addEventListener('click', handleSendMessage);
+            }
+
+            // Email switcher button functionality
+            const emailSwitcherBtn = document.getElementById('emailSwitcherBtn');
+            let isEmailModeActive = false;
+            
+            if (emailSwitcherBtn) {
+                emailSwitcherBtn.addEventListener('click', async function() {
+                    isEmailModeActive = !isEmailModeActive;
+                    
+                    const switcherIcon = emailSwitcherBtn.querySelector('i');
+                    const sendButtonIcon = sendButton.querySelector('i');
+                    const messageInput = document.getElementById('messageInput');
+                    const emailSubjectInput = document.getElementById('channelEmailSubjectInput');
+                    const channelDescription = document.querySelector('.channel-description');
+                    const channelTitle = document.querySelector('.channel-title');
+                    
+                    // Check if we're in DM mode
+                    const isInDM = typeof isInDirectMessageMode === 'function' && isInDirectMessageMode();
+                    let contactName = null;
+                    let contactEmail = null;
+                    
+                    if (isInDM) {
+                        // Get contact name from channel title (most reliable source)
+                        if (channelTitle) {
+                            contactName = channelTitle.textContent.trim();
+                            // Remove "(You)" suffix if present
+                            contactName = contactName.replace(/\s*\(You\)\s*$/, '').trim();
+                        }
+                        
+                        // If no name from title, try getter function
+                        if (!contactName && typeof window !== 'undefined' && typeof window.getCurrentDirectOtherUserName === 'function') {
+                            contactName = window.getCurrentDirectOtherUserName();
+                        }
+                        
+                        // PRIMARY METHOD: Get email by user ID (most reliable)
+                        let currentUserId = null;
+                        if (typeof window !== 'undefined' && typeof window.getCurrentDirectOtherUserId === 'function') {
+                            currentUserId = window.getCurrentDirectOtherUserId();
+                        }
+                        
+                        if (currentUserId) {
+                            // Try to get email from getter first
+                            if (typeof window !== 'undefined' && typeof window.getCurrentDirectOtherUserEmail === 'function') {
+                                contactEmail = window.getCurrentDirectOtherUserEmail();
+                            }
+                            
+                            // If not found, query DOM by user ID
+                            if (!contactEmail || contactEmail.trim() === '') {
+                                const teamMemberElement = document.querySelector(`.team-member[data-user-id="${currentUserId}"]`);
+                                if (teamMemberElement) {
+                                    const emailAttr = teamMemberElement.getAttribute('data-user-email');
+                                    if (emailAttr && emailAttr.trim() !== '') {
+                                        contactEmail = emailAttr.trim();
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // FALLBACK: If still not found, try by name matching
+                        if ((!contactEmail || contactEmail.trim() === '') && contactName) {
+                            const teamMemberElements = document.querySelectorAll('.team-member');
+                            for (const element of teamMemberElements) {
+                                const elementName = (element.dataset.userName || '').trim();
+                                const elementEmail = element.getAttribute('data-user-email') || '';
+                                
+                                if (elementName === contactName && elementEmail.trim() !== '') {
+                                    contactEmail = elementEmail.trim();
+                                    break;
+                                }
+                            }
+                        }
+                        
+                    }
+                    
+                    // Get channel member names for channel mode
+                    let channelMemberNames = [];
+                    if (!isInDM && channelTitle) {
+                        // Fetch actual channel members from API instead of all team members
+                        // This ensures we only show names of users who have access to the channel
+                        // Try multiple sources for channel ID
+                        let channelId = null;
+                        
+                        // First try: global variable from communications.js (check both window and global scope)
+                        if (typeof window.currentChannelId !== 'undefined' && window.currentChannelId) {
+                            channelId = window.currentChannelId.toString();
+                        } else if (typeof currentChannelId !== 'undefined' && currentChannelId) {
+                            channelId = currentChannelId.toString();
+                        }
+                        
+                        // Second try: active channel item from DOM
+                        if (!channelId) {
+                            const activeChannelItem = document.querySelector('.channel-item.active');
+                            if (activeChannelItem?.dataset.channelId) {
+                                channelId = activeChannelItem.dataset.channelId;
+                            }
+                        }
+                        
+                        // Third try: any channel item (fallback)
+                        if (!channelId) {
+                            const firstChannelItem = document.querySelector('.channel-item');
+                            if (firstChannelItem?.dataset.channelId) {
+                                channelId = firstChannelItem.dataset.channelId;
+                            }
+                        }
+                        
+                        const orgId = document.querySelector('[data-organization-id]')?.dataset.organizationId || currentOrganizationId;
+                        
+                        console.log('Fetching channel members:', { channelId, orgId, isInDM, hasChannelTitle: !!channelTitle });
+                        
+                        if (channelId && orgId) {
+                            try {
+                                const response = await fetch(`/Client/${orgId}/Communications/GetChannelMembers?channelId=${channelId}`);
+                                console.log('GetChannelMembers response status:', response.status);
+                                
+                                if (response.ok) {
+                                    const data = await response.json();
+                                    console.log('GetChannelMembers response data:', data);
+                                    
+                                    if (data.success && data.members) {
+                                        // Extract names from channel members
+                                        const names = data.members
+                                            .map(member => member.name)
+                                            .filter(name => name && name.trim() !== '');
+                                        channelMemberNames = names;
+                                        console.log(`Loaded ${channelMemberNames.length} channel member names for channel ${channelId}:`, channelMemberNames);
+                                    } else {
+                                        console.warn('GetChannelMembers returned unsuccessful response:', data);
+                                    }
+                                } else {
+                                    const errorText = await response.text();
+                                    console.warn(`GetChannelMembers API returned status ${response.status}:`, errorText);
+                                }
+                            } catch (error) {
+                                console.error('Error fetching channel members:', error);
+                                // Fallback: show empty subtitle
+                                channelMemberNames = [];
+                            }
+                        } else {
+                            console.warn('Cannot fetch channel members: missing channelId or orgId', { channelId, orgId });
+                        }
+                    }
+                    
+                    if (isEmailModeActive) {
+                        // Switch to email mode
+                        // Switcher button shows paper airplane
+                        switcherIcon.className = 'fas fa-paper-plane';
+                        emailSwitcherBtn.title = 'Switch to Direct Message Mode';
+                        
+                        // Send button shows mail icon
+                        sendButtonIcon.className = 'fas fa-envelope';
+                        sendButton.title = 'Send Email';
+                        
+                        // Show subject input for both DM and channels
+                        if (emailSubjectInput) {
+                            emailSubjectInput.style.display = 'block';
+                            if (!emailSubjectInput.value) {
+                                emailSubjectInput.value = '';
+                            }
+                        }
+                        
+                        if (isInDM) {
+                            // DM mode: Update input placeholder and subtitle
+                            if (messageInput && contactName) {
+                                messageInput.placeholder = `Email ${contactName}`;
+                            }
+                            // Update subtitle to show email if available
+                            if (channelDescription) {
+                                if (contactEmail && contactEmail.trim() !== '') {
+                                    channelDescription.textContent = contactEmail;
+                                } else {
+                                    channelDescription.textContent = 'Direct Message';
+                                }
+                            }
+                        } else {
+                            // Channel mode: Update input placeholder and subtitle
+                            if (messageInput && channelTitle) {
+                                const channelName = channelTitle.textContent.trim();
+                                messageInput.placeholder = `Email #${channelName}`;
+                            }
+                            // Update subtitle to show channel member names
+                            if (channelDescription) {
+                                if (channelMemberNames.length > 0) {
+                                    // Show up to 3 names, or indicate if more
+                                    const displayNames = channelMemberNames.slice(0, 3);
+                                    let namesText = displayNames.join(', ');
+                                    if (channelMemberNames.length > 3) {
+                                        namesText += ` +${channelMemberNames.length - 3} more`;
+                                    }
+                                    channelDescription.textContent = namesText;
+                                } else {
+                                    channelDescription.textContent = 'Secure legal communications';
+                                }
+                            }
+                        }
+                    } else {
+                        // Switch to chat mode
+                        // Switcher button shows mail icon
+                        switcherIcon.className = 'fas fa-envelope';
+                        emailSwitcherBtn.title = 'Switch to Email Mode';
+                        
+                        // Send button shows paper airplane
+                        sendButtonIcon.className = 'fas fa-paper-plane';
+                        sendButton.title = 'Send';
+                        
+                        // Hide subject input for both DM and channels
+                        if (emailSubjectInput) {
+                            emailSubjectInput.style.display = 'none';
+                        }
+                        
+                        if (isInDM) {
+                            // DM mode: Revert input placeholder and subtitle
+                            if (messageInput && contactName) {
+                                messageInput.placeholder = `Message ${contactName}`;
+                            }
+                            if (channelDescription) {
+                                channelDescription.textContent = 'Direct Message';
+                            }
+                        } else {
+                            // Channel mode: Revert message placeholder and subtitle
+                            if (messageInput && channelTitle) {
+                                const channelName = channelTitle.textContent.trim();
+                                messageInput.placeholder = `Message #${channelName}`;
+                            }
+                            if (channelDescription) {
+                                channelDescription.textContent = 'Secure legal communications';
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Category toggle functionality
+            const categoryToggles = document.querySelectorAll('.category-toggle');
+            categoryToggles.forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    const categoryName = this.dataset.category;
+                    const channelsList = document.querySelector(`.channels-list[data-category="${categoryName}"]`);
+                    const icon = this.querySelector('.category-icon');
+                    
+                    if (!channelsList) return;
+                    
+                    // Toggle collapsed state
+                    const isCollapsed = channelsList.classList.contains('collapsed');
+                    
+                    if (isCollapsed) {
+                        channelsList.classList.remove('collapsed');
+                        icon.style.transform = 'rotate(0deg)';
+                    } else {
+                        channelsList.classList.add('collapsed');
+                        icon.style.transform = 'rotate(-90deg)';
+                    }
+                });
+            });
+
+            // Subcategory toggle functionality
+            const subcategoryToggles = document.querySelectorAll('.subcategory-toggle');
+            subcategoryToggles.forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    const subcategoryName = this.dataset.subcategory;
+                    const subcategoryChannels = document.querySelector(`.subcategory-channels[data-subcategory="${subcategoryName}"]`);
+                    const icon = this.querySelector('.subcategory-icon');
+                    
+                    if (!subcategoryChannels) return;
+                    
+                    // Toggle collapsed state
+                    const isCollapsed = subcategoryChannels.classList.contains('collapsed');
+                    
+                    if (isCollapsed) {
+                        subcategoryChannels.classList.remove('collapsed');
+                        icon.style.transform = 'rotate(0deg)';
+                    } else {
+                        subcategoryChannels.classList.add('collapsed');
+                        icon.style.transform = 'rotate(-90deg)';
+                    }
+                });
+            });
+
+            // Channel selection with event delegation
+            document.addEventListener('click', async function(event) {
+                const channelItem = event.target.closest('.channel-item');
+                if (channelItem) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    
+                    const channelId = channelItem.dataset.channelId;
+                    const channelName = channelItem.dataset.channel;
+                    const channelType = channelItem.dataset.type;
+                    const isPrivate = channelItem.dataset.private === 'true';
+                    const isMatterChannel = channelItem.dataset.matterId && channelItem.dataset.matterId !== '';
+                    const matterTitle = channelItem.dataset.matterTitle || channelName;
+                    
+                    // Remove active class from all channels
+                    document.querySelectorAll('.channel-item').forEach(ch => ch.classList.remove('active'));
+                    // Add active class to clicked channel
+                    channelItem.classList.add('active');
+                    
+                    // Update channel title - show just the name without prefix
+                    document.querySelector('.channel-title').textContent = channelName;
+                    
+                    // Check if we're in email mode
+                    const channelDescription = document.querySelector('.channel-description');
+                    const messageInput = document.getElementById('messageInput');
+                    const emailSubjectInput = document.getElementById('channelEmailSubjectInput');
+                    
+                    // If in email mode, fetch channel members and update subtitle
+                    if (isEmailModeActive && channelDescription) {
+                        const orgId = document.querySelector('[data-organization-id]')?.dataset.organizationId || currentOrganizationId;
+                        
+                        if (channelId && orgId) {
+                            try {
+                                const response = await fetch(`/Client/${orgId}/Communications/GetChannelMembers?channelId=${channelId}`);
+                                if (response.ok) {
+                                    const data = await response.json();
+                                    if (data.success && data.members) {
+                                        const names = data.members
+                                            .map(member => member.name)
+                                            .filter(name => name && name.trim() !== '');
+                                        
+                                        if (names.length > 0) {
+                                            const displayNames = names.slice(0, 3);
+                                            let namesText = displayNames.join(', ');
+                                            if (names.length > 3) {
+                                                namesText += ` +${names.length - 3} more`;
+                                            }
+                                            channelDescription.textContent = namesText;
+                                        } else {
+                                            channelDescription.textContent = 'Secure legal communications';
+                                        }
+                                    }
+                                }
+                            } catch (error) {
+                                console.error('Error fetching channel members on channel switch:', error);
+                                channelDescription.textContent = 'Secure legal communications';
+                            }
+                        }
+                        
+                        // Update input placeholder to stay in email mode
+                        if (messageInput) {
+                            messageInput.placeholder = `Email #${channelName}`;
+                        }
+                        
+                        // Keep subject input visible
+                        if (emailSubjectInput) {
+                            emailSubjectInput.style.display = 'block';
+                        }
+                    } else {
+                        // Not in email mode - update channel description based on type
+                        const defaultDescription = channelType === 'voice' ? 'Voice Channel' : 'Secure legal communications';
+                        if (channelDescription) {
+                            channelDescription.textContent = defaultDescription;
+                        }
+                    }
+                    
+                    // Update channel header icon
+                    const headerIcon = document.querySelector('.channel-header-icon');
+                    if (headerIcon) {
+                        if (channelType === 'voice') {
+                            headerIcon.className = 'fas fa-volume-up channel-header-icon';
+                        } else if (isMatterChannel) {
+                            headerIcon.className = 'fas fa-folder channel-header-icon';
+                        } else if (isPrivate) {
+                            headerIcon.className = 'fas fa-lock channel-header-icon';
+                        } else {
+                            headerIcon.className = 'fas fa-hashtag channel-header-icon';
+                        }
+                    }
+                    
+                    // Call switchChannel if available (from communications.js)
+                    if (typeof switchChannel === 'function') {
+                        switchChannel(parseInt(channelId), channelName, isMatterChannel, matterTitle);
+                    } else {
+                        console.log('switchChannel function not available yet, UI updated only');
+                    }
+                }
+            });
+            
+            // Direct Message user click handlers
+            document.addEventListener('click', function(event) {
+                const dmUserItem = event.target.closest('.dm-user-item, .dm-user-disabled');
+                if (dmUserItem) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    
+                    const userId = dmUserItem.dataset.userId;
+                    const userName = dmUserItem.dataset.userName;
+                    const canDm = dmUserItem.dataset.canDm === 'true';
+                    const orgName = dmUserItem.dataset.orgName;
+                    
+                    console.log('Clicked user:', userName, 'ID:', userId, 'CanDM:', canDm);
+                    
+                    if (!canDm) {
+                        // Show notification that DM is not allowed
+                        const message = orgName 
+                            ? `Cannot send direct messages to ${userName} (${orgName}). Direct messages are only available within the same organization.`
+                            : `Cannot send direct messages to ${userName}. They are in a different organization.`;
+                        
+                        if (typeof showNotification === 'function') {
+                            showNotification(message, 'warning');
+                        } else {
+                            alert(message);
+                        }
+                        return;
+                    }
+                    
+                    // Open direct message thread
+                    // Get email from data attribute
+                    const userEmail = dmUserItem.dataset.userEmail || null;
+                    
+                    if (typeof openDirectThread === 'function') {
+                        openDirectThread(userId, userName, userEmail);
+                    } else {
+                        console.error('openDirectThread function not available');
+                    }
+                }
+            });
+
+            // Auto-scroll to bottom of messages
+            function scrollToBottom() {
+                const messagesContainer = document.querySelector('.messages-container');
+                if (messagesContainer) {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }
+            }
+
+            // Smooth scroll to bottom
+            function smoothScrollToBottom() {
+                const messagesContainer = document.querySelector('.messages-container');
+                if (messagesContainer) {
+                    messagesContainer.scrollTo({
+                        top: messagesContainer.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+
+            // Scroll to bottom on page load (instant, no animation)
+            scrollToBottom();
+            // Also scroll after a short delay to ensure all content is rendered
+            setTimeout(scrollToBottom, 100);
+            // Final scroll after images and other content might load
+            setTimeout(scrollToBottom, 500);
+
+            // Make scrollToBottom available globally for future use
+            window.scrollToBottom = scrollToBottom;
+            window.smoothScrollToBottom = smoothScrollToBottom;
+
+            // Handle Notalize join code redirect
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('notalize') === 'true') {
+                const messageTemplate = sessionStorage.getItem('notalizeJoinCodeMessage');
+                const threadId = sessionStorage.getItem('notalizeJoinCodeThreadId');
+                const otherUserId = sessionStorage.getItem('notalizeJoinCodeOtherUserId');
+                const otherUserName = sessionStorage.getItem('notalizeJoinCodeOtherUserName');
+
+                if (messageTemplate && otherUserId && otherUserName) {
+                    // Clean up URL immediately
+                    const newUrl = window.location.pathname;
+                    window.history.replaceState({}, '', newUrl);
+
+                    // Wait for all scripts to load and page to be ready
+                    const waitForScripts = setInterval(() => {
+                        // Check if openDirectThread is available (from direct-messages.js)
+                        if (typeof openDirectThread === 'function') {
+                            clearInterval(waitForScripts);
+                            
+                            console.log('Opening DM thread for notalize:', otherUserName, otherUserId);
+                            
+                            // Open the DM thread
+                            openDirectThread(otherUserId, otherUserName).then(() => {
+                                console.log('DM thread opened, waiting for UI to update...');
+                                
+                                // Wait a bit for the UI to update after opening the thread
+                                setTimeout(() => {
+                                    // Wait for the DM view to be fully loaded and message input to be available
+                                    let attempts = 0;
+                                    const maxAttempts = 25; // Increased attempts
+                                    const checkInterval = setInterval(() => {
+                                        attempts++;
+                                        
+                                        // Try to find the message input
+                                        const messageInput = document.getElementById('messageInput');
+                                        
+                                        // Check if we're in DM mode by looking at the channel title
+                                        const channelTitle = document.querySelector('.channel-title');
+                                        const isDMVisible = channelTitle && 
+                                                           (channelTitle.textContent.trim() === otherUserName.trim() ||
+                                                            channelTitle.textContent.trim() === otherUserName.split(' ')[0]?.trim());
+                                        
+                                        // Also check if messages container shows DM content
+                                        const messagesContainer = document.querySelector('.messages-container');
+                                        const hasMessages = messagesContainer && messagesContainer.children.length > 0;
+                                        
+                                        if (messageInput && (isDMVisible || hasMessages) && messageTemplate) {
+                                            console.log('Setting message template in input');
+                                            
+                                            // Set the message value
+                                            messageInput.value = messageTemplate;
+                                            
+                                            // Trigger input event to ensure any handlers are notified
+                                            const inputEvent = new Event('input', { bubbles: true });
+                                            messageInput.dispatchEvent(inputEvent);
+                                            
+                                            // Also trigger change event
+                                            const changeEvent = new Event('change', { bubbles: true });
+                                            messageInput.dispatchEvent(changeEvent);
+                                            
+                                            // Focus the input
+                                            setTimeout(() => {
+                                                messageInput.focus();
+                                                // Set cursor to end of text
+                                                messageInput.setSelectionRange(messageTemplate.length, messageTemplate.length);
+                                            }, 100);
+                                            
+                                            // Scroll input into view if needed
+                                            messageInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                                            
+                                            // Clear sessionStorage
+                                            sessionStorage.removeItem('notalizeJoinCodeMessage');
+                                            sessionStorage.removeItem('notalizeJoinCodeThreadId');
+                                            sessionStorage.removeItem('notalizeJoinCodeOtherUserId');
+                                            sessionStorage.removeItem('notalizeJoinCodeOtherUserName');
+                                            
+                                            clearInterval(checkInterval);
+                                        } else if (attempts >= maxAttempts) {
+                                            console.warn('Message input not found or DM not opened after multiple attempts', {
+                                                messageInput: !!messageInput,
+                                                isDMVisible: isDMVisible,
+                                                channelTitle: channelTitle?.textContent,
+                                                hasMessages: hasMessages,
+                                                attempts: attempts
+                                            });
+                                            clearInterval(checkInterval);
+                                        }
+                                    }, 300);
+                                }, 500); // Wait 500ms after thread opens for UI to update
+                            }).catch(error => {
+                                console.error('Error opening DM thread for notalize:', error);
+                            });
+                        } else if (document.readyState === 'complete') {
+                            // If scripts haven't loaded after page is complete, try again with a longer delay
+                            clearInterval(waitForScripts);
+                            setTimeout(() => {
+                                if (typeof openDirectThread === 'function') {
+                                    openDirectThread(otherUserId, otherUserName);
+                                } else {
+                                    console.error('openDirectThread function not available after page load');
+                                }
+                            }, 1000);
+                        }
+                    }, 100);
+                }
+            }
+
+            // Scroll to bottom button functionality + Lazy loading (Discord/Slack style)
+            const scrollToBottomBtn = document.getElementById('scrollToBottomBtn');
+            const messagesContainer = document.querySelector('.messages-container');
+            
+            if (scrollToBottomBtn && messagesContainer) {
+                // Show/hide scroll to bottom button based on scroll position
+                function toggleScrollButton() {
+                    const isAtBottom = messagesContainer.scrollTop + messagesContainer.clientHeight >= messagesContainer.scrollHeight - 10;
+                    if (isAtBottom) {
+                        scrollToBottomBtn.classList.remove('show');
+                    } else {
+                        scrollToBottomBtn.classList.add('show');
+                    }
+                }
+
+                // Lazy load older messages when scrolling to top (Discord/Slack style)
+                let scrollDebounce = null;
+                messagesContainer.addEventListener('scroll', function() {
+                    toggleScrollButton();
+                    
+                    // Check if user scrolled near the top (50px threshold)
+                    if (messagesContainer.scrollTop < 50) {
+                        // Debounce to prevent multiple requests
+                        clearTimeout(scrollDebounce);
+                        scrollDebounce = setTimeout(function() {
+                            if (typeof hasMoreMessages !== 'undefined' && hasMoreMessages && 
+                                typeof loadChannelMessages === 'function' && 
+                                typeof currentChannelId !== 'undefined') {
+                                console.log('Loading older messages...');
+                                loadChannelMessages(parseInt(currentChannelId), true);
+                            }
+                        }, 200);
+                    }
+                });
+
+                // Click handler for scroll to bottom button
+                scrollToBottomBtn.addEventListener('click', function() {
+                    smoothScrollToBottom();
+                });
+
+                // Initial check
+                toggleScrollButton();
+            }
+        });
+    </script>
+}
+
+<!-- Email Inbox Modal - Placed at root level for proper fixed positioning -->
+<div class="task-details-modal" id="emailInboxModal" style="display: none;">
+    <div class="modal-dialog">
+        <div class="task-details-content" style="height: 75vh;">
+            <!-- Inbox Header -->
+            <div class="inbox-header">
+                <div class="inbox-title">
+                    <i class="fas fa-envelope"></i>
+                    <span>Inbox</span>
+                    <span id="inboxModalUnreadBadge" class="badge bg-primary" style="font-size: 0.75rem; display: none;">0</span>
+                </div>
+                <div class="inbox-header-search">
+                    <div class="search-container">
+                        <i class="fas fa-search"></i>
+                        <input type="text" class="form-control" id="inboxSearchInput" placeholder="Search emails..." />
+                    </div>
+                </div>
+                <div class="inbox-actions">
+                    <button class="action-btn" id="refreshInboxBtn" title="Refresh">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                    <button type="button" class="action-btn" id="closeInboxModal" aria-label="Close" title="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Inbox Content -->
+            <div class="task-details-body" style="flex-direction: column; padding: 0.5rem 1.5rem 0rem; overflow-y: auto; max-height: calc(100% - 60px);">
+                <!-- Column Headers -->
+                <div class="billing-card-item billing-column-header-card" style="background: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); padding: 0.6rem 1rem 0.2rem 1rem; margin-bottom: 0.4rem; display: grid !important; grid-template-columns: 0.5fr 0.5fr 1.5fr 4fr 1.2fr 0.5fr !important; gap: 0.75rem; align-items: center; flex-direction: row !important;" onclick="event.stopPropagation();">
+                    <div class="email-checkbox-column">
+                        <input type="checkbox" disabled class="form-check-input" style="cursor: default; width: 18px; height: 18px; border: transparent;">
+                    </div>
+                    <div class="email-star-column"></div>
+                    <div class="email-sender-column">
+                        <button class="column-header-btn" style="text-align: left;">From</button>
+                    </div>
+                    <div class="email-subject-column">
+                        <button class="column-header-btn" style="text-align: left;">Subject</button>
+                    </div>
+                    <div class="email-date-column">
+                        <button class="column-header-btn" style="text-align: right;">Date</button>
+                    </div>
+                    <div class="email-notalize-column">
+                        <button class="column-header-btn" style="text-align: center;">Notalize</button>
+                    </div>
+                </div>
+
+                <!-- Email List Container -->
+                <div id="inboxEmailList" style="display: flex; flex-direction: column; gap: 0; max-height: 60vh; overflow-y: auto;">
+                    <!-- Emails will be loaded here -->
+                </div>
+                
+                <!-- Loading State -->
+                <div id="inboxLoadingState" style="text-align: center; padding: 3rem; color: #9ca3af;">
+                    <div class="spinner-border spinner-border-sm" role="status" style="margin-bottom: 1rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <div>Loading emails...</div>
+                </div>
+                
+                <!-- Empty State -->
+                <div id="inboxEmptyState" style="text-align: center; padding: 3rem; color: #9ca3af; display: none;">
+                    <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                    <div>No emails yet. Emails will appear here once synced.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Email Subject Input - Styled like Calendar Event modal Title field */
+    .email-subject-input {
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: #111827;
+        margin: 0 0 0.5rem 0;
+        border: none;
+        border-bottom: 1px solid #e5e7eb;
+        background: transparent;
+        padding: 0.5rem 1rem;
+        border-radius: 0;
+        transition: all 0.2s;
+        width: 100%;
+        font-family: inherit;
+        box-sizing: border-box;
+    }
+
+    .email-subject-input:hover {
+        border-bottom-color: #d1d5db;
+    }
+
+    .email-subject-input:focus {
+        outline: none;
+        border-bottom-color: #3d1019;
+        background-color: #fafafa;
+    }
+
+    .email-subject-input::placeholder {
+        color: #a0aec0;
+        font-weight: 400;
+        font-style: italic;
+    }
+
+    .email-subject-input:focus::placeholder {
+        color: #cbd5e0;
+    }
+
+    /* Ensure proper spacing in message input container */
+    .message-input-container {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    /* Position subject input inside message-input-wrapper above textarea */
+    .message-input-wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        position: relative;
+    }
+    
+    /* Subject input appears on its own line above textarea, spanning full width */
+    .message-input-wrapper .email-subject-input {
+        order: -1;
+        width: 100%;
+        flex-basis: 100%;
+        margin: 0 4.25rem;
+        padding: 0.5rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    /* Ensure textarea maintains its flex behavior */
+    .message-input-wrapper .message-input {
+        flex: 1;
+        min-width: 0;
+    }
+</style>

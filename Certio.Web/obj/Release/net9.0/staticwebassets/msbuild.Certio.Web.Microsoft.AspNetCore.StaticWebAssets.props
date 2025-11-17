@@ -30,8 +30,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>k8315wpl1j</Fingerprint>
-      <Integrity>XMS5jrWVdqnt6VQ74mJZYylLahNyPhpZFKN+g/Sn5YA=</Integrity>
+      <Fingerprint>9o6u3kibnp</Fingerprint>
+      <Integrity>SRD+7EoPyBpFOz5p9hohoyUTDFDqQs/XCI0dZKbxyWQ=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\communications.css'))</OriginalItemSpec>
@@ -102,8 +102,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>p4oulajcms</Fingerprint>
-      <Integrity>qaI5LmljcZoFBbfh9vTj7+fVBZWvh1qpHr2v46Ea49w=</Integrity>
+      <Fingerprint>qn1bvxfxw7</Fingerprint>
+      <Integrity>2k8qwU8o5haYpOgZ4a7jxSvv1UKUgzw10YSGkSncir8=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\site.css'))</OriginalItemSpec>
@@ -233,6 +233,24 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\images\Notal_Banner_Logo_Large_Text.png'))</OriginalItemSpec>
+    </StaticWebAsset>
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\images\Notal_Banner_Logo_Large_Text_Center.png'))">
+      <SourceType>Package</SourceType>
+      <SourceId>Certio.Web</SourceId>
+      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
+      <BasePath>_content/Certio.Web</BasePath>
+      <RelativePath>images/Notal_Banner_Logo_Large_Text_Center.png</RelativePath>
+      <AssetKind>All</AssetKind>
+      <AssetMode>All</AssetMode>
+      <AssetRole>Primary</AssetRole>
+      <RelatedAsset></RelatedAsset>
+      <AssetTraitName></AssetTraitName>
+      <AssetTraitValue></AssetTraitValue>
+      <Fingerprint>til7wgvr8z</Fingerprint>
+      <Integrity>tXjLTzEAphdX9ubduRN5Etp8MQU4kyqkJDmFProU7g8=</Integrity>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\images\Notal_Banner_Logo_Large_Text_Center.png'))</OriginalItemSpec>
     </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\images\Notal_Logo.png'))">
       <SourceType>Package</SourceType>
@@ -390,8 +408,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>3zbdvpi4un</Fingerprint>
-      <Integrity>Id+PjqrGoqaN9HfGiaiTg8QGIuVFNYfINe0gtohinjE=</Integrity>
+      <Fingerprint>3504tmvsiw</Fingerprint>
+      <Integrity>tx5Y5zdde6R0GzpUlcHil09YN0QUxSbFE6v8q+bw16c=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\email-integration.js'))</OriginalItemSpec>

@@ -3,6 +3,19 @@ let emailAccountStatus = null;
 let isEmailMode = false;
 let currentEmailRecipient = null;
 
+function emitEmailModeChanged() {
+    if (typeof window !== 'undefined') {
+        window.isEmailModeEnabled = () => isEmailMode;
+        try {
+            window.dispatchEvent(new CustomEvent('emailModeChanged', { detail: { isEmailMode } }));
+        } catch (err) {
+            console.warn('Failed to dispatch emailModeChanged event', err);
+        }
+    }
+}
+
+emitEmailModeChanged();
+
 // Initialize email integration
 async function initializeEmailIntegration() {
     await loadEmailAccountStatus();
@@ -378,6 +391,7 @@ function toggleEmailMode(enabled = null) {
             if (regularInput) regularInput.style.display = 'flex';
             if (emailInput) emailInput.style.display = 'none';
             if (sendAsEmailToggle) sendAsEmailToggle.textContent = 'Switch to Email Mode';
+            emitEmailModeChanged();
             return;
         }
         alert('Please connect your email account first.');
@@ -416,6 +430,8 @@ function toggleEmailMode(enabled = null) {
         if (emailInput) emailInput.style.display = 'none';
         if (sendAsEmailToggle) sendAsEmailToggle.textContent = 'Switch to Email Mode';
     }
+    
+    emitEmailModeChanged();
 }
 
 // Get recipient email for current thread
@@ -457,27 +473,62 @@ function getRecipientEmailFromUserId(userId) {
 
 // Send email from Direct Message
 async function sendEmailFromDM() {
+    const inEmailMode = typeof window !== 'undefined' && typeof window.isEmailModeEnabled === 'function'
+        ? window.isEmailModeEnabled()
+        : isEmailMode;
+    
+    if (!inEmailMode) {
+        toggleEmailMode(true);
+        return;
+    }
+    
     if (!emailAccountStatus || !currentDirectThreadId) {
         alert('No email account connected or no active thread.');
+        return;
+    }
+    
+    if (typeof window.isDirectMessageMode !== 'undefined' && !window.isDirectMessageMode) {
+        alert('Please open a direct message conversation before sending an email.');
         return;
     }
     
     const subjectInput = document.getElementById('emailSubjectInput');
     const bodyInput = document.getElementById('emailBodyInput');
     const emailToInput = document.getElementById('emailToInput');
+    const sendEmailBtn = document.getElementById('sendEmailBtn');
     
-    const subject = subjectInput?.value || '';
-    const body = bodyInput?.value || '';
-    const recipientEmail = emailToInput?.value || '';
+    const subject = subjectInput?.value?.trim() || '';
+    const body = bodyInput?.value?.trim() || '';
+    const recipientEmail = emailToInput?.value?.trim() || '';
     
-    if (!subject || !body) {
-        alert('Please fill in both subject and message.');
+    if (!body) {
+        alert('Email message cannot be empty.');
         return;
     }
     
+    if (!recipientEmail) {
+        alert('Recipient email is required.');
+        return;
+    }
+    
+    const currentOrgId = document.querySelector('[data-organization-id]')?.dataset.organizationId;
+    if (!currentOrgId) {
+        alert('Unable to determine organization context for email.');
+        return;
+    }
+    
+    if (sendEmailBtn) {
+        sendEmailBtn.disabled = true;
+        sendEmailBtn.classList.add('is-loading');
+    }
+    
     try {
-        // First, send as Direct Message with email metadata
-        const currentOrgId = document.querySelector('[data-organization-id]')?.dataset.organizationId;
+        const metadata = {
+            EmailSubject: subject,
+            EmailTo: recipientEmail,
+            EmailProvider: emailAccountStatus.provider
+        };
+        
         const dmResponse = await fetch(`/api/dm/threads/${currentDirectThreadId}/messages?orgId=${currentOrgId}`, {
             method: 'POST',
             headers: {
@@ -486,51 +537,55 @@ async function sendEmailFromDM() {
             body: JSON.stringify({
                 Body: body,
                 MessageType: 'Email',
-                Metadata: {
-                    EmailSubject: subject,
-                    EmailTo: recipientEmail,
-                    EmailProvider: emailAccountStatus.provider
-                }
+                Metadata: metadata
             })
         });
         
         const dmResult = await dmResponse.json();
         
-        if (!dmResult.success) {
-            throw new Error('Failed to create Direct Message');
+        if (!dmResponse.ok || !dmResult.success) {
+            const errorMessage = dmResult.error || 'Failed to create Direct Message';
+            throw new Error(errorMessage);
         }
         
-        // Then send as email
+        const newMessageId = dmResult.message?.id || dmResult.message?.Id || dmResult.messageId;
+        if (!newMessageId) {
+            throw new Error('Email message was created but message identifier was missing.');
+        }
+        
         const emailResponse = await fetch(`/api/dm/threads/${currentDirectThreadId}/send-email?orgId=${currentOrgId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                MessageId: dmResult.message?.id
+                MessageId: newMessageId
             })
         });
         
         const emailResult = await emailResponse.json();
         
-        if (emailResult.success) {
-            // Clear inputs
-            if (subjectInput) subjectInput.value = '';
-            if (bodyInput) bodyInput.value = '';
-            
-            // Switch back to DM mode
-            toggleEmailMode(false);
-            
-            // Reload messages
-            if (typeof loadDirectMessages === 'function') {
-                loadDirectMessages();
-            }
-        } else {
-            throw new Error(emailResult.error || 'Failed to send email');
+        if (!emailResponse.ok || !emailResult.success) {
+            const errorMessage = emailResult.error || 'Failed to send email';
+            throw new Error(errorMessage);
+        }
+        
+        if (subjectInput) subjectInput.value = '';
+        if (bodyInput) bodyInput.value = '';
+        
+        toggleEmailMode(false);
+        
+        if (typeof loadDirectMessages === 'function') {
+            loadDirectMessages(currentDirectThreadId);
         }
     } catch (error) {
         console.error('Error sending email:', error);
-        alert('Failed to send email: ' + error.message);
+        alert('Failed to send email: ' + (error.message || error));
+    } finally {
+        if (sendEmailBtn) {
+            sendEmailBtn.disabled = false;
+            sendEmailBtn.classList.remove('is-loading');
+        }
     }
 }
 

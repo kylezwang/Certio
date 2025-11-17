@@ -2,6 +2,23 @@
 @{
     ViewData["Title"] = "Add People";
     Layout = "_ClientLayout";
+
+    var generatedJoinCode = TempData["JoinCode"] as string;
+    var generatedJoinCodeEmail = TempData["JoinCodeEmail"] as string;
+    var joinCodeInviteeName = TempData["JoinCodeInviteeName"] as string;
+    var joinCodeInviteeRole = TempData["JoinCodeInviteeRole"] as string;
+    var joinCodeInviteeUserType = TempData["JoinCodeInviteeUserType"] as string;
+    var joinCodeInviteeRoleDisplay = string.IsNullOrWhiteSpace(joinCodeInviteeRole)
+        ? string.Empty
+        : System.Text.RegularExpressions.Regex.Replace(joinCodeInviteeRole, "(?<=[a-z])(?=[A-Z])", " ");
+    var joinCodeSuccessMessage = TempData["JoinCodeSuccess"] as string ?? TempData["Success"] as string;
+    var joinCodeOrganizationType = TempData["JoinCodeOrganizationType"] as string;
+    var joinCodeLawFirmOrgIdValue = TempData["JoinCodeLawFirmOrgId"]?.ToString();
+    var joinCodeClientOrgIdValue = TempData["JoinCodeClientOrgId"]?.ToString();
+    var hasGeneratedJoinCode = !string.IsNullOrWhiteSpace(generatedJoinCode);
+    var joinCodeInviteeDisplayName = !string.IsNullOrWhiteSpace(joinCodeInviteeName) ? joinCodeInviteeName : generatedJoinCodeEmail;
+    _ = int.TryParse(joinCodeLawFirmOrgIdValue, out var joinCodeLawFirmOrgId);
+    _ = int.TryParse(joinCodeClientOrgIdValue, out var joinCodeClientOrgId);
 }
 
 <div class="min-h-screen py-8">
@@ -17,9 +34,9 @@
         {
             <div class="alert alert-danger">@TempData["Error"]</div>
         }
-        @if (TempData["Success"] != null)
+        @if (!hasGeneratedJoinCode && !string.IsNullOrWhiteSpace(joinCodeSuccessMessage))
         {
-            <div class="alert alert-success">@TempData["Success"]</div>
+            <div class="alert alert-success">@joinCodeSuccessMessage</div>
         }
         @if (TempData["Info"] != null)
         {
@@ -29,7 +46,6 @@
         @if (Model.IsLawFirmUser && Model.IsClientOrganization)
         {
             <!-- Law Firm User in Client Organization (2-Step Wizard) -->
-            
             @if (Model.Step == 1)
             {
                 <!-- Step 1: Card Selection -->
@@ -178,16 +194,16 @@
                                                 {
                                                     @foreach (var member in Model.AvailableTeamMembers)
                                                     {
-                                                        <div class="form-check user-item py-2 px-2 @(member.IsAlreadyAssigned ? "already-assigned" : "")" 
-                                                             data-user-id="@member.Id" 
-                                                             data-user-name="@member.Name" 
+                                                        <div class="form-check user-item py-2 px-2 @(member.IsAlreadyAssigned ? "already-assigned" : "")"
+                                                             data-user-id="@member.Id"
+                                                             data-user-name="@member.Name"
                                                              data-user-email="@member.Email"
                                                              data-user-role="@member.Role"
                                                              style="@(member.IsAlreadyAssigned ? "background-color: #f8f9fa; opacity: 0.6;" : "")">
-                                                            <input class="form-check-input member-checkbox" 
-                                                                   type="checkbox" 
-                                                                   name="SelectedUserIds" 
-                                                                   id="user_@member.Id" 
+                                                            <input class="form-check-input member-checkbox"
+                                                                   type="checkbox"
+                                                                   name="SelectedUserIds"
+                                                                   id="user_@member.Id"
                                                                    value="@member.Id"
                                                                    @(member.IsCurrentUser || member.IsAlreadyAssigned ? "checked disabled" : "")>
                                                             <label class="form-check-label" for="user_@member.Id" style="cursor: pointer; width: 100%;">
@@ -363,12 +379,16 @@
                 <div class="col-lg-8">
                     <div class="card shadow-elegant border-0">
                         <div class="card-body p-4">
-                            <h1 class="display-6 fw-bold text-dark mb-2">Add Team Member to @ViewBag.OrganizationName</h1>
+                            <h1 class="display-6 fw-bold text-dark mb-2">
+                                Add Team Member to
+                                <span class="d-block">@ViewBag.OrganizationName</span>
+                            </h1>
                             <p class="lead text-muted" style="font-size: 1.1rem;">Invite an attorney, paralegal, or staff member to your law firm.</p>
 
                             <form asp-action="AddPeople" asp-controller="Client" asp-route-orgId="@ViewBag.OrganizationId" method="post">
                                 <input type="hidden" asp-for="IsLawFirmUser" />
                                 <input type="hidden" asp-for="IsClientOrganization" />
+                                <input type="hidden" asp-for="SelectionType" value="InternalTeam" />
 
                                 <div class="mb-4">
                                     <label asp-for="Email" class="form-label fw-bold text-dark">Email Address <span class="text-danger">*</span></label>
@@ -485,31 +505,156 @@
     </div>
 </div>
 
-@* Join Code Modal *@
-<div class="modal fade" id="joinCodeModal" tabindex="-1" aria-labelledby="joinCodeLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="joinCodeLabel">Join Code Generated</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="input-group">
-                    <input type="text" class="form-control form-control-lg" id="joinCodeValue" readonly value="@ViewBag.JoinCode">
-                    <button class="btn btn-outline-secondary" type="button" id="copyJoinCodeBtn"><i class="fas fa-copy"></i></button>
+@if (hasGeneratedJoinCode)
+{
+    <div class="task-details-modal" id="joinCodeModal" style="display: none; border-radius: 12px; left: 23vw; bottom: 0;">
+        <div class="modal-dialog" style="margin-bottom: 1.5rem;">
+            <div class="task-details-content">
+                <div class="task-details-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem;">
+                    <div class="task-details-header-left" style="display: flex; align-items: center; gap: 0.5rem; flex: 1;">
+                        <i class="fa-solid fa-key" style="color: #3d1019; font-size: 1.25rem;"></i>
+                        <h2 class="task-title" style="cursor: default; margin: 0; font-size: 1.25rem; font-weight: 600; color: #3d1019;">Join Code Generated</h2>
+                    </div>
+                    <div class="task-details-header-right" style="margin-left: auto;">
+                        <button type="button" class="btn-close" id="closeJoinCodeModal" aria-label="Close"></button>
+                    </div>
                 </div>
-                <small class="text-muted d-block mt-2">Share this code with the invitee. It expires in 7 days.</small>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button>
+
+                @if (!string.IsNullOrWhiteSpace(joinCodeSuccessMessage))
+                {
+                    <div class="task-details-body" style="padding: 0 1.5rem 1rem;">
+                        <div class="alert alert-success" style="margin-bottom: 1rem; border-radius: 8px;">
+                            <i class="fas fa-check-circle me-2"></i>
+                            @joinCodeSuccessMessage
+                        </div>
+                    </div>
+                }
+
+                <div class="task-details-body">
+                    <div class="task-details-left">
+                        <div class="task-section">
+                            <div class="task-section-header">
+                                <h6 class="task-section-title">
+                                    <i class="fas fa-key"></i> Join Code
+                                </h6>
+                            </div>
+                            <div class="task-section-content">
+                                <div style="position: relative; margin-bottom: 0.75rem;">
+                                    <input type="text" class="form-control form-control-lg" id="joinCodeValue" readonly value="@generatedJoinCode" style="font-size: 1.25rem; font-weight: 600; letter-spacing: 0.1em; font-family: monospace; background-color: #f8f9fa; padding-right: 5.5rem;">
+                                    <div style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 0.5rem;">
+                                        <button class="join-code-action-btn" type="button" id="copyJoinCodeBtn" title="Copy">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                        <button class="join-code-action-btn" type="button" id="notalizeJoinCodeBtn" title="Notalize">
+                                            <img src="/images/Notal_Logo.png" alt="Notalize" style="width: 18px; height: 18px; object-fit: contain;" />
+                                        </button>
+                                    </div>
+                                </div>
+                                <small class="text-muted d-block mb-2" style="font-size: 0.875rem;">
+                                    Share this code with the invitee. It expires in 7 days.
+                                </small>
+                                @if (!string.IsNullOrWhiteSpace(generatedJoinCodeEmail))
+                                {
+                                    <small class="text-muted d-block" style="font-size: 0.875rem;">
+                                        Suggested recipient: <strong>@generatedJoinCodeEmail</strong>
+                                    </small>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(joinCodeInviteeRole))
+                                {
+                                    <small class="text-muted d-block" style="font-size: 0.875rem;">
+                                        Invited as: <strong>@joinCodeInviteeRoleDisplay</strong>
+                                    </small>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(joinCodeInviteeUserType))
+                                {
+                                    <small class="text-muted d-block" style="font-size: 0.875rem;">
+                                        Intended user type: <strong>@joinCodeInviteeUserType</strong>
+                                    </small>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="task-section" style="margin-bottom: 0;">
+                            <div class="task-section-header">
+                                <h6 class="task-section-title">
+                                    <i class="fas fa-info-circle"></i> Instructions
+                                </h6>
+                            </div>
+                            <div class="task-section-content">
+                                <div style="font-size: 0.875rem; color: #4a5568;">
+                                    <p style="margin-bottom: 0.5rem;">
+                                        <strong>1.</strong> Click Notalize <em>(recommended)</em>, <strong>or</strong> copy the join code above.
+                                    </p>
+                                    <p style="margin-bottom: 0.5rem;">
+                                        <strong>2.</strong> Share it with the invitee via Communications hub or email.
+                                    </p>
+                                    <p style="margin-bottom: 0;">
+                                        <strong>3.</strong> The invitee will use this code to join the organization.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="task-action-buttons" style="padding: 0 1.5rem 1.5rem; justify-content: flex-end;">
+                    <button type="button" class="btn btn-primary" id="doneJoinCodeBtn" style="border-radius: 0.5rem;">
+                        Done
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</div>
+}
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-    
+    <script>
+        (function () {
+            function loadScript(src) {
+                return new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = src;
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+            }
+
+            function initValidationScripts() {
+                if (window.__validationScriptsLoaded) {
+                    return;
+                }
+
+                function ensureJQuery() {
+                    if (window.jQuery) {
+                        return Promise.resolve();
+                    }
+                    if (window.__loadingJQuery) {
+                        return window.__loadingJQuery;
+                    }
+                    window.__loadingJQuery = loadScript('@Url.Content("~/lib/jquery/dist/jquery.min.js")');
+                    return window.__loadingJQuery;
+                }
+
+                ensureJQuery()
+                    .then(() => Promise.all([
+                        loadScript('@Url.Content("~/lib/jquery-validation/dist/jquery.validate.min.js")'),
+                        loadScript('@Url.Content("~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js")')
+                    ]))
+                    .then(() => {
+                        window.__validationScriptsLoaded = true;
+                    })
+                    .catch(err => console.error('Failed to load validation scripts', err));
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initValidationScripts);
+            } else {
+                initValidationScripts();
+            }
+        })();
+    </script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // Card selection for step 1
@@ -525,7 +670,6 @@
                     }
                 });
 
-                // Hover effects
                 card.addEventListener('mouseenter', function() {
                     this.style.transform = 'translateY(-4px)';
                     this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
@@ -543,11 +687,11 @@
                 searchInput.addEventListener('input', function() {
                     const searchTerm = this.value.toLowerCase();
                     const userItems = document.querySelectorAll('.user-item');
-                    
+
                     userItems.forEach(item => {
                         const name = item.getAttribute('data-user-name').toLowerCase();
                         const email = item.getAttribute('data-user-email').toLowerCase();
-                        
+
                         if (name.includes(searchTerm) || email.includes(searchTerm)) {
                             item.style.display = '';
                         } else {
@@ -564,20 +708,20 @@
 
             function updateSelectedDisplay() {
                 if (!selectedChipsContainer) return;
-                
+
                 selectedChipsContainer.innerHTML = '';
                 const checkedBoxes = document.querySelectorAll('.member-checkbox:checked:not([disabled])');
-                
+
                 if (checkedBoxes.length > 0 && emptyMessage) {
                     emptyMessage.style.display = 'none';
                 }
-                
+
                 checkedBoxes.forEach(checkbox => {
                     const userItem = checkbox.closest('.user-item');
                     const name = userItem.getAttribute('data-user-name');
                     const role = userItem.getAttribute('data-user-role');
                     const userId = userItem.getAttribute('data-user-id');
-                    
+
                     const chip = document.createElement('div');
                     chip.className = 'badge bg-primary text-white d-flex align-items-center gap-2';
                     chip.style.fontSize = '0.9rem';
@@ -589,15 +733,15 @@
                         </div>
                         <button type="button" class="btn-close btn-close-white" style="font-size: 0.6rem;" data-user-id="${userId}"></button>
                     `;
-                    
+
                     chip.querySelector('.btn-close').addEventListener('click', function() {
                         checkbox.checked = false;
                         updateSelectedDisplay();
                     });
-                    
+
                     selectedChipsContainer.appendChild(chip);
                 });
-                
+
                 if (checkedBoxes.length === 0 && emptyMessage) {
                     emptyMessage.style.display = '';
                 }
@@ -607,33 +751,156 @@
                 checkbox.addEventListener('change', updateSelectedDisplay);
             });
 
-            // Initialize on page load
             updateSelectedDisplay();
 
-            // Join code modal
-            const joinCode = '@(ViewBag.JoinCode ?? "")';
+            // Join code modal logic
+            const joinCode = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(generatedJoinCode ?? string.Empty));
+            const joinCodeEmail = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(generatedJoinCodeEmail ?? string.Empty));
+            const joinCodeInviteeName = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(joinCodeInviteeDisplayName ?? string.Empty));
+            const joinCodeInviteeRole = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(joinCodeInviteeRole ?? string.Empty));
+            const joinCodeInviteeUserType = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(joinCodeInviteeUserType ?? string.Empty));
+            const joinCodeOrganizationTypeValue = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(joinCodeOrganizationType ?? string.Empty));
+            const joinCodeOrganizationType = (joinCodeOrganizationTypeValue || '').toLowerCase();
+            const joinCodeLawFirmOrgId = @joinCodeLawFirmOrgId;
+            const joinCodeClientOrgId = @joinCodeClientOrgId;
+            const canNotalizeJoinCode = Boolean(joinCode) && joinCode.length > 0 &&
+                joinCodeEmail.length > 0 &&
+                joinCodeLawFirmOrgId > 0 &&
+                joinCodeClientOrgId > 0 &&
+                joinCodeOrganizationType === 'client';
+
             if (joinCode && joinCode.length > 0) {
                 const modalEl = document.getElementById('joinCodeModal');
-                const modal = new bootstrap.Modal(modalEl);
-                modal.show();
-                
-                const copyBtn = document.getElementById('copyJoinCodeBtn');
-                const input = document.getElementById('joinCodeValue');
-                
-                if (copyBtn && input) {
-                    copyBtn.addEventListener('click', async () => {
-                        try {
-                            await navigator.clipboard.writeText(input.value);
-                            copyBtn.innerHTML = '<i class="fas fa-check"></i>';
-                            setTimeout(() => copyBtn.innerHTML = '<i class="fas fa-copy"></i>', 1500);
-                        } catch (err) {
-                            console.error('Failed to copy:', err);
+                if (modalEl) {
+                    modalEl.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+
+                    const copyBtn = document.getElementById('copyJoinCodeBtn');
+                    const notalizeBtn = document.getElementById('notalizeJoinCodeBtn');
+                    const input = document.getElementById('joinCodeValue');
+                    const closeBtn = document.getElementById('closeJoinCodeModal');
+                    const doneBtn = document.getElementById('doneJoinCodeBtn');
+
+                    if (copyBtn && input) {
+                        copyBtn.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            try {
+                                await navigator.clipboard.writeText(input.value);
+                                const originalHtml = copyBtn.innerHTML;
+                                copyBtn.innerHTML = '<i class="fas fa-check"></i>';
+                                setTimeout(() => {
+                                    copyBtn.innerHTML = originalHtml;
+                                }, 1500);
+                            } catch (err) {
+                                console.error('Failed to copy:', err);
+                            }
+                        });
+                    }
+
+                    if (notalizeBtn) {
+                        if (canNotalizeJoinCode) {
+                            notalizeBtn.style.display = '';
+                            notalizeBtn.addEventListener('click', async (e) => {
+                                e.stopPropagation();
+                                await notalizeJoinCodeFromAddPeople(joinCode, joinCodeLawFirmOrgId, joinCodeClientOrgId, {
+                                    email: joinCodeEmail,
+                                    name: joinCodeInviteeName,
+                                    role: joinCodeInviteeRole,
+                                    userType: joinCodeInviteeUserType,
+                                    organizationType: joinCodeOrganizationType
+                                });
+                            });
+                        } else {
+                            notalizeBtn.style.display = 'none';
+                        }
+                    }
+
+                    function closeJoinCodeModal() {
+                        modalEl.style.display = 'none';
+                        document.body.style.overflow = '';
+                    }
+
+                    if (closeBtn) {
+                        closeBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            closeJoinCodeModal();
+                        });
+                    }
+
+                    if (doneBtn) {
+                        doneBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            closeJoinCodeModal();
+                        });
+                    }
+
+                    modalEl.addEventListener('click', function (e) {
+                        if (e.target === modalEl) {
+                            closeJoinCodeModal();
                         }
                     });
                 }
             }
+
+            async function notalizeJoinCodeFromAddPeople(code, lawFirmOrgId, clientOrgId, inviteeContext) {
+                if (!lawFirmOrgId || !clientOrgId) {
+                    alert('Unable to determine organization context for notalize.');
+                    return;
+                }
+
+                const notalizeBtn = document.getElementById('notalizeJoinCodeBtn');
+                try {
+                    if (notalizeBtn) {
+                        notalizeBtn.style.opacity = '0.5';
+                        notalizeBtn.style.pointerEvents = 'none';
+                    }
+
+                    const response = await fetch(`/api/dm/notalize-join-code?orgId=${lawFirmOrgId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            JoinCode: code,
+                            ClientOrgId: clientOrgId,
+                            TargetOrgId: clientOrgId,
+                            InviteeEmail: inviteeContext?.email ?? '',
+                            InviteeName: inviteeContext?.name ?? '',
+                            InviteeRole: inviteeContext?.role ?? '',
+                            InvitedUserType: inviteeContext?.userType ?? '',
+                            LawFirmOrgId: lawFirmOrgId
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success && result.thread && result.messageTemplate) {
+                        sessionStorage.setItem('notalizeJoinCodeMessage', result.messageTemplate);
+                        sessionStorage.setItem('notalizeJoinCodeThreadId', result.thread.id);
+                        sessionStorage.setItem('notalizeJoinCodeOtherUserId', result.thread.otherUserId);
+                        sessionStorage.setItem('notalizeJoinCodeOtherUserName', result.thread.otherUserName);
+
+                        window.location.href = `/Client/${lawFirmOrgId}/Communications?notalize=true`;
+                    } else {
+                        alert(result.error || 'Failed to notalize join code. Please try again.');
+                        if (notalizeBtn) {
+                            notalizeBtn.style.opacity = '';
+                            notalizeBtn.style.pointerEvents = '';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error notalizing join code:', error);
+                    alert('An error occurred while notalizing the join code.');
+                    if (notalizeBtn) {
+                        notalizeBtn.style.opacity = '';
+                        notalizeBtn.style.pointerEvents = '';
+                    }
+                }
+            }
         });
     </script>
+
+    <link rel="stylesheet" href="~/css/tasks.css" />
 
     <style>
         .shadow-elegant {
@@ -660,6 +927,70 @@
         .form-check-input:focus {
             border-color: #0d6efd;
             box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        #joinCodeModal.task-details-modal {
+            position: fixed;
+            top: 7vh;
+            left: 23vw;
+            right: 320px;
+            bottom: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.5);
+            pointer-events: auto;
+        }
+
+        #joinCodeModal.task-details-modal .modal-dialog {
+            max-width: 90%;
+            width: 45rem;
+            margin: 0;
+            max-height: 90%;
+            border-radius: 12px;
+            pointer-events: auto;
+            position: relative;
+            z-index: 1001;
+        }
+
+        .sidebar-hidden #joinCodeModal.task-details-modal {
+            left: calc(6vw + 1rem);
+        }
+
+        .chat-hidden #joinCodeModal.task-details-modal {
+            right: 1rem !important;
+        }
+
+        .join-code-action-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 50%;
+            background-color: transparent;
+            border: none;
+            padding: 0;
+            color: #4a5568;
+        }
+
+        .join-code-action-btn:hover {
+            background-color: rgba(0, 0, 0, 0.08);
+            opacity: 1;
+        }
+
+        .join-code-action-btn i {
+            font-size: 1rem;
+        }
+
+        .join-code-action-btn img {
+            width: 20px;
+            height: 20px;
+            object-fit: contain;
+            transition: opacity 0.15s;
         }
     </style>
 }

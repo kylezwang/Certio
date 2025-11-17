@@ -50,7 +50,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 1000); // 1 second delay for SignalR
 
     // Event listeners
-    document.getElementById('sendButton')?.addEventListener('click', sendMessage);
+    // Only attach send button handler if NOT on Communications page (to prevent conflict)
+    if (!window.communicationsPageActive) {
+        document.getElementById('sendButton')?.addEventListener('click', sendMessage);
+    }
     // Note: Enter key handling is now in _ClientLayout.cshtml to support Shift+Enter for new lines
     document.getElementById('clarityButton')?.addEventListener('click', requestClarity);
     document.getElementById('requestClarity')?.addEventListener('click', processClarityRequest);

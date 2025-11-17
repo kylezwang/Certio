@@ -2338,7 +2338,9 @@ namespace Certio.Web.Controllers
             return model.Role;
         }
 
+        [Authorize]
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ApplyJoinCode([FromBody] ApplyJoinCodeRequest request)
         {
             try
