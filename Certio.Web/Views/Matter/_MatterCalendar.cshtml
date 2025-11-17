@@ -448,17 +448,17 @@
         // Converts a datetime-local input value to UTC ISO string in user's timezone
         function convertLocalInputToUTC(dateTimeLocalValue) {
             if (!dateTimeLocalValue) return null;
-
+            
             const [datePart, timePart] = dateTimeLocalValue.split('T');
             if (!datePart || !timePart) return null;
 
             const [year, month, day] = datePart.split('-').map(Number);
             const [hour, minute] = timePart.split(':').map(Number);
-
+            
             const assumedUtc = new Date(Date.UTC(year, month - 1, day, hour, minute || 0));
             const offsetMinutes = getTimezoneOffset(assumedUtc, userTimeZone);
             const utcDate = new Date(assumedUtc.getTime() - offsetMinutes * 60000);
-
+            
             return utcDate.toISOString();
         }
         
@@ -467,10 +467,10 @@
             if (!utcISOString) return '';
             
             const utcDate = new Date(utcISOString);
-
+            
             const offsetMinutes = getTimezoneOffset(utcDate, userTimeZone);
             const localDate = new Date(utcDate.getTime() + offsetMinutes * 60000);
-
+            
             const year = localDate.getUTCFullYear();
             const month = String(localDate.getUTCMonth() + 1).padStart(2, '0');
             const day = String(localDate.getUTCDate()).padStart(2, '0');

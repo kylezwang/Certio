@@ -313,12 +313,15 @@ public class DirectMessageService : IDirectMessageService
         var isExternalContacts = false;
         
         // Check if sender is in ANY External Contacts organization (not just current orgId)
-        var senderExternalOrg = await _context.UserOrganizations
+        // Load organizations client-side since EF Core can't translate case-insensitive EndsWith
+        var senderOrgs = await _context.UserOrganizations
             .Include(uo => uo.Organization)
-            .Where(uo => uo.UserId == sender.Id && uo.IsActive &&
-                         uo.Organization != null &&
-                         uo.Organization.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase))
-            .FirstOrDefaultAsync(ct);
+            .Where(uo => uo.UserId == sender.Id && uo.IsActive && uo.Organization != null)
+            .ToListAsync(ct);
+        
+        var senderExternalOrg = senderOrgs.FirstOrDefault(uo => 
+            uo.Organization != null && 
+            uo.Organization.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase));
         
         if (senderExternalOrg != null)
         {

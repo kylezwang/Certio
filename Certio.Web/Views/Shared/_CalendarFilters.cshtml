@@ -289,7 +289,7 @@
                 const result = await response.json();
                 
                 if (!result.success || !result.events || result.events.length === 0) {
-                    deadlinesList.innerHTML = '<p class="text-muted small">No upcoming deadlines.</p>';
+                    deadlinesList.innerHTML = '<p class="text-muted small">No upcoming events.</p>';
                     return;
                 }
                 
@@ -300,7 +300,7 @@
                     .slice(0, 5); // Show top 5
                 
                 if (deadlines.length === 0) {
-                    deadlinesList.innerHTML = '<p class="text-muted small">No upcoming deadlines.</p>';
+                    deadlinesList.innerHTML = '<p class="text-muted small">No upcoming events.</p>';
                     return;
                 }
                 

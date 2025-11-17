@@ -473,22 +473,42 @@ function createMessageElement(message, previousMessage = null) {
     }
 
     const avatar = getInitials(senderName);
-    const time = formatTime(message.CreatedAt || message.createdAt || message.Time);
+    const timestamp = message.CreatedAt || message.createdAt || message.Time;
+    const { dateStr, timeStr } = formatTime(timestamp);
     // Check both camelCase and PascalCase for content
     const content = escapeHtml(message.Content || message.content || '');
+
+    // Format timestamp for hover (only show time)
+    let hoverTimestamp = '';
+    if (timestamp) {
+        try {
+            const hoverDate = new Date(timestamp);
+            const hoverHours = hoverDate.getHours();
+            const hoverMinutes = hoverDate.getMinutes();
+            const hoverAmpm = hoverHours >= 12 ? 'PM' : 'AM';
+            const hoverDisplayHours = hoverHours % 12 || 12;
+            const hoverDisplayMinutes = hoverMinutes < 10 ? '0' + hoverMinutes : hoverMinutes;
+            hoverTimestamp = `${hoverDisplayHours}:${hoverDisplayMinutes} ${hoverAmpm}`;
+        } catch (err) {
+            hoverTimestamp = timestamp;
+        }
+    }
 
     messageDiv.innerHTML = `
         <div class="message-avatar">${avatar}</div>
         <div class="message-content">
             <div class="message-header">
                 <span class="message-author">${escapeHtml(senderName)}</span>
-                <span class="message-time">${time}</span>
+                <span class="message-time">
+                    ${dateStr ? `<span class="message-date">${dateStr}</span>` : ''}
+                    <span class="message-time-value">${timeStr}</span>
+                </span>
                 ${message.IsEdited || message.isEdited ? '<span class="edited-badge">(edited)</span>' : ''}
             </div>
             <div class="message-text">${content}</div>
             ${message.Reactions || message.reactions ? createReactionsHTML(message.Reactions || message.reactions) : ''}
         </div>
-        ${isGrouped ? `<div class="hover-timestamp">${time}</div>` : ''}
+        ${isGrouped ? `<div class="hover-timestamp">${hoverTimestamp}</div>` : ''}
     `;
 
     return messageDiv;
@@ -842,18 +862,37 @@ function getInitials(name) {
 }
 
 function formatTime(dateString) {
-    if (!dateString) return '';
+    if (!dateString) return { dateStr: '', timeStr: '' };
     
     try {
         const date = new Date(dateString);
+        
+        // Check if date is valid
+        if (isNaN(date.getTime())) {
+            // If it's already a formatted time string (like "9:42 AM"), return it as-is
+            return { dateStr: '', timeStr: dateString };
+        }
+        
+        const now = new Date();
+        
+        // Check if message is from today
+        const isToday = date.toDateString() === now.toDateString();
+        
+        // Format time
         const hours = date.getHours();
         const minutes = date.getMinutes();
         const ampm = hours >= 12 ? 'PM' : 'AM';
         const displayHours = hours % 12 || 12;
         const displayMinutes = minutes < 10 ? '0' + minutes : minutes;
-        return `${displayHours}:${displayMinutes} ${ampm}`;
+        const timeStr = `${displayHours}:${displayMinutes} ${ampm}`;
+        
+        // Format date
+        const dateStr = isToday ? '' : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        
+        return { dateStr, timeStr };
     } catch (err) {
-        return dateString;
+        // If parsing fails, try to return as-is
+        return { dateStr: '', timeStr: dateString };
     }
 }
 

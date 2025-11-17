@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Notal AI Legal Assistant</title>
+    <title>@ViewData["Title"] - Notal</title>
     <link rel="icon" type="image/png" href="~/images/Notal_Logo.png" />
     <link rel="shortcut icon" type="image/png" href="~/images/Notal_Logo.png" />
     <link rel="apple-touch-icon" href="~/images/Notal_Logo.png" />
@@ -1123,13 +1123,17 @@
                 joinCodeMessage.style.display = 'none';
 
                 try {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
                     const response = await fetch('/Home/ApplyJoinCode', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                            'RequestVerificationToken': token || ''
                         },
-                        body: JSON.stringify({ joinCode: code })
+                        body: JSON.stringify({ 
+                            joinCode: code,
+                            __RequestVerificationToken: token 
+                        })
                     });
 
                     const result = await response.json();

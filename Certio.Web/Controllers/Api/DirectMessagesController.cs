@@ -13,6 +13,8 @@ using System;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Certio.Web.Controllers.Api;
 
@@ -144,6 +146,76 @@ public class DirectMessagesController : ControllerBase
         {
             _logger.LogError(ex, "Error getting messages from thread {ThreadId}", threadId);
             return StatusCode(500, new { success = false, error = "Failed to get messages" });
+        }
+    }
+
+    /// <summary>
+    /// Create a new message in a thread (used for email messages)
+    /// </summary>
+    [HttpPost("threads/{threadId}/messages")]
+    public async Task<IActionResult> CreateMessage(
+        Guid threadId, 
+        [FromBody] CreateMessageRequest request, 
+        [FromQuery] int orgId)
+    {
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            
+            // Verify user is participant in thread
+            var isParticipant = await _directMessageService.IsParticipantAsync(orgId, currentUserId, threadId);
+            if (!isParticipant)
+            {
+                return Unauthorized(new { success = false, error = "Not a participant in this thread" });
+            }
+            
+            // Parse metadata if provided
+            Dictionary<string, object>? metadata = null;
+            if (!string.IsNullOrWhiteSpace(request.Metadata))
+            {
+                try
+                {
+                    metadata = JsonSerializer.Deserialize<Dictionary<string, object>>(request.Metadata);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to parse message metadata");
+                }
+            }
+            
+            // Create message via service
+            var dto = new NewMessageDto(request.Body, request.MessageType ?? "Text", metadata);
+            var message = await _directMessageService.SendAsync(orgId, currentUserId, threadId, dto);
+            
+            return Ok(new { 
+                success = true, 
+                message = new {
+                    id = message.Id,
+                    threadId = message.ThreadId,
+                    senderId = message.SenderId,
+                    senderName = message.SenderName,
+                    body = message.Body,
+                    messageType = message.MessageType,
+                    createdAt = message.CreatedAt,
+                    senderColor = message.SenderColor ?? "#3d1019",
+                    isExternalContacts = message.IsExternalContacts ?? false
+                }
+            });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "Unauthorized attempt to create message in thread {ThreadId}", threadId);
+            return Unauthorized(new { success = false, error = ex.Message });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "Thread {ThreadId} not found", threadId);
+            return NotFound(new { success = false, error = "Thread not found" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating message in thread {ThreadId}", threadId);
+            return StatusCode(500, new { success = false, error = "Failed to create message" });
         }
     }
 
@@ -773,11 +845,17 @@ public class DirectMessagesController : ControllerBase
                 return BadRequest(new { success = false, error = "Join code is required" });
             }
             
+            var targetOrgId = request.TargetOrgId ?? request.ClientOrgId;
+            if (targetOrgId <= 0)
+            {
+                return BadRequest(new { success = false, error = "Organization context is required" });
+            }
+            
             // Get join code details
             var joinCode = await _context.OrganizationJoinCodes
                 .Include(jc => jc.Organization)
                 .FirstOrDefaultAsync(jc => jc.Code == request.JoinCode.Trim() && 
-                                         jc.OrganizationId == request.ClientOrgId &&
+                                         jc.OrganizationId == targetOrgId &&
                                          jc.IsActive && 
                                          jc.ExpiresAt > DateTime.UtcNow && 
                                          jc.UsesRemaining > 0);
@@ -787,24 +865,128 @@ public class DirectMessagesController : ControllerBase
                 return BadRequest(new { success = false, error = "Invalid or expired join code" });
             }
             
-            // Get client organization
-            var clientOrg = joinCode.Organization;
-            if (clientOrg == null || clientOrg.Type != Domain.Organizations.OrganizationType.Client)
+            // Determine target organization
+            var targetOrg = joinCode.Organization ?? await _context.Organizations.FindAsync(targetOrgId);
+            if (targetOrg == null)
             {
-                return BadRequest(new { success = false, error = "Join code is not for a client organization" });
+                return BadRequest(new { success = false, error = "Organization for join code not found" });
             }
             
-            // Get external user (owner of client organization)
-            var externalUser = await _context.Users
-                .FirstOrDefaultAsync(u => u.Id == clientOrg.OwnerId && u.IsActive);
-            
-            if (externalUser == null)
+            // Determine invitee information
+            string? inviteeEmail = request.InviteeEmail?.Trim();
+            if (string.IsNullOrWhiteSpace(inviteeEmail) && !string.IsNullOrWhiteSpace(joinCode.TeamName) && joinCode.TeamName.Contains("@"))
             {
-                return BadRequest(new { success = false, error = "Client organization owner not found" });
+                inviteeEmail = joinCode.TeamName.Trim();
             }
             
-            // Get or create thread
-            var thread = await _directMessageService.GetOrCreateThreadAsync(orgId, currentUserId, externalUser.Id);
+            User? recipientUser = null;
+            string inviteeDisplayName = string.Empty;
+            bool isExternalUser = false;
+            bool isNewThread = false;
+            DirectThreadDto thread = default!;
+            string? recipientEmailForResponse = null;
+            
+            User? existingInvitee = null;
+            if (!string.IsNullOrWhiteSpace(inviteeEmail))
+            {
+                var normalizedInvitee = NormalizeEmail(inviteeEmail);
+                if (!string.IsNullOrEmpty(normalizedInvitee))
+                {
+                    existingInvitee = await _context.Users
+                        .Include(u => u.UserOrganizations)
+                        .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedInvitee);
+                }
+            }
+            
+            if (existingInvitee != null)
+            {
+                var activeMemberships = existingInvitee.UserOrganizations.Where(uo => uo.IsActive).ToList();
+                var isMemberOfTargetOrg = activeMemberships.Any(uo => uo.OrganizationId == targetOrgId);
+                
+                var relatedClientOrgIds = isMemberOfTargetOrg
+                    ? new List<int>()
+                    : await _context.OrganizationRelationships
+                        .Where(or => or.SourceOrganizationId == orgId && or.IsActive)
+                        .Select(or => or.TargetOrganizationId)
+                        .ToListAsync();
+                
+                var isExistingClientForFirm = activeMemberships.Any(uo =>
+                    relatedClientOrgIds.Contains(uo.OrganizationId) &&
+                    string.Equals(uo.UserType, UserTypes.Client, StringComparison.OrdinalIgnoreCase));
+                
+                if (isMemberOfTargetOrg || isExistingClientForFirm)
+                {
+                    recipientUser = existingInvitee;
+                    inviteeDisplayName = BuildDisplayName(existingInvitee, request.InviteeName, inviteeEmail!);
+                    recipientEmailForResponse = existingInvitee.Email ?? inviteeEmail;
+                    isExternalUser = false;
+                    
+                    var threadExists = await _context.DirectThreads
+                        .AnyAsync(dt => dt.UserAId == Math.Min(currentUserId, existingInvitee.Id) &&
+                                        dt.UserBId == Math.Max(currentUserId, existingInvitee.Id) &&
+                                        !dt.IsDeleted);
+                    
+                    thread = await _directMessageService.GetOrCreateThreadAsync(orgId, currentUserId, existingInvitee.Id);
+                    isNewThread = !threadExists;
+                }
+            }
+            
+            if (recipientUser == null)
+            {
+                if (!string.IsNullOrWhiteSpace(inviteeEmail))
+                {
+                    var inviteeDetails = await FindOrCreateUserByEmailAsync(inviteeEmail, request.InviteeName, orgId);
+                    var recipientUserId = inviteeDetails.Id;
+                    isExternalUser = inviteeDetails.IsExternal;
+                    
+                    var threadExists = await _context.DirectThreads
+                        .AnyAsync(dt => dt.UserAId == Math.Min(currentUserId, recipientUserId) &&
+                                        dt.UserBId == Math.Max(currentUserId, recipientUserId) &&
+                                        !dt.IsDeleted);
+                    
+                    thread = await _directMessageService.GetOrCreateThreadAsync(orgId, currentUserId, recipientUserId);
+                    isNewThread = !threadExists;
+                    
+                    recipientUser = await _context.Users.FindAsync(recipientUserId);
+                    if (recipientUser == null)
+                    {
+                        return BadRequest(new { success = false, error = "Invitee user not found after creation" });
+                    }
+                    
+                    inviteeDisplayName = BuildDisplayName(recipientUser, request.InviteeName, inviteeEmail);
+                    recipientEmailForResponse = recipientUser.Email ?? inviteeEmail;
+                }
+                else
+                {
+                    // Fallback to client owner flow if no email provided
+                    if (targetOrg.Type != Domain.Organizations.OrganizationType.Client)
+                    {
+                        return BadRequest(new { success = false, error = "Invitee email is required for this join code" });
+                    }
+                    
+                    if (targetOrg.OwnerId <= 0)
+                    {
+                        return BadRequest(new { success = false, error = "Client organization owner not found" });
+                    }
+                    
+                    recipientUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == targetOrg.OwnerId && u.IsActive);
+                    if (recipientUser == null)
+                    {
+                        return BadRequest(new { success = false, error = "Client organization owner not found" });
+                    }
+                    
+                    var threadExists = await _context.DirectThreads
+                        .AnyAsync(dt => dt.UserAId == Math.Min(currentUserId, recipientUser.Id) &&
+                                        dt.UserBId == Math.Max(currentUserId, recipientUser.Id) &&
+                                        !dt.IsDeleted);
+                    
+                    thread = await _directMessageService.GetOrCreateThreadAsync(orgId, currentUserId, recipientUser.Id);
+                    isNewThread = !threadExists;
+                    isExternalUser = true;
+                    inviteeDisplayName = BuildDisplayName(recipientUser, request.InviteeName, recipientUser.Email ?? targetOrg.Name);
+                    recipientEmailForResponse = recipientUser.Email;
+                }
+            }
             
             // Get current user for template
             var currentUser = await _context.Users.FindAsync(currentUserId);
@@ -817,35 +999,47 @@ public class DirectMessagesController : ControllerBase
             var template = await GetJoinCodeNotalizeTemplateAsync(orgId);
             
             // Replace template variables
-            var clientName = externalUser.FirstName != null && externalUser.LastName != null
-                ? $"{externalUser.FirstName} {externalUser.LastName}".Trim()
-                : externalUser.Email ?? "Client";
-            
             var userName = currentUser.FirstName != null && currentUser.LastName != null
                 ? $"{currentUser.FirstName} {currentUser.LastName}".Trim()
                 : currentUser.Email ?? "User";
+            var organizationName = string.IsNullOrWhiteSpace(targetOrg.Name) ? "our organization" : targetOrg.Name;
             
             var messageText = template
-                .Replace("{Client Name}", clientName)
+                .Replace("{Client Name}", inviteeDisplayName)
                 .Replace("{join code}", joinCode.Code)
-                .Replace("(Client Name)", clientName)
-                .Replace("(Current user's first and last name)", userName);
+                .Replace("(Client Name)", inviteeDisplayName)
+                .Replace("(Current user's first and last name)", userName)
+                .Replace("{Organization Name}", organizationName)
+                .Replace("(Organization Name)", organizationName);
             
-            _logger.LogInformation("Notalize join code {JoinCode} for client {ClientId} in org {OrgId} by user {UserId}", 
-                joinCode.Code, externalUser.Id, orgId, currentUserId);
+            // Append additional context if available
+            var additionalLines = new List<string>();
+            if (!string.IsNullOrWhiteSpace(request.InvitedUserType))
+            {
+                additionalLines.Add($"User type: {request.InvitedUserType}");
+            }
+            if (!string.IsNullOrWhiteSpace(request.InviteeRole))
+            {
+                additionalLines.Add($"Role: {request.InviteeRole}");
+            }
+            if (additionalLines.Count > 0)
+            {
+                messageText += "\n\n" + string.Join("\n", additionalLines);
+            }
+            
+            _logger.LogInformation("Notalize join code {JoinCode} for organization {OrgId} by user {UserId}", 
+                joinCode.Code, targetOrgId, currentUserId);
             
             return Ok(new { 
                 success = true, 
                 thread = new {
                     id = thread.Id,
-                    otherUserId = externalUser.Id,
-                    otherUserName = externalUser.FirstName != null && externalUser.LastName != null
-                        ? $"{externalUser.FirstName} {externalUser.LastName}".Trim()
-                        : externalUser.Email ?? "Client",
-                    otherUserEmail = externalUser.Email,
-                    isExternalUser = true,
-                    isNewThread = false,
-                    otherUserColor = externalUser.Color ?? "#aaaaaa"
+                    otherUserId = recipientUser!.Id,
+                    otherUserName = inviteeDisplayName,
+                    otherUserEmail = recipientEmailForResponse,
+                    isExternalUser,
+                    isNewThread,
+                    otherUserColor = recipientUser.Color ?? "#aaaaaa"
                 },
                 messageTemplate = messageText
             });
@@ -1028,6 +1222,13 @@ Thanks,
     }
 }
 
+public class CreateMessageRequest
+{
+    public string Body { get; set; } = "";
+    public string? MessageType { get; set; }
+    public string? Metadata { get; set; }
+}
+
 public class SendEmailRequest
 {
     public Guid MessageId { get; set; }
@@ -1050,6 +1251,12 @@ public class NotalizeJoinCodeRequest
 {
     public string JoinCode { get; set; } = "";
     public int ClientOrgId { get; set; }
+    public int? TargetOrgId { get; set; }
+    public string? InviteeEmail { get; set; }
+    public string? InviteeName { get; set; }
+    public string? InviteeRole { get; set; }
+    public string? InvitedUserType { get; set; }
+    public int? LawFirmOrgId { get; set; }
 }
 
 public class SaveSettingsRequest

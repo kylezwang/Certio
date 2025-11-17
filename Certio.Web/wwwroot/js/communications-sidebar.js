@@ -953,7 +953,8 @@ function renderMessageItem(message, isGrouped, isCurrentUser) {
     
     const avatar = getInitials(senderName);
     // DM messages use 'createdAt', channel messages use 'CreatedAt'
-    const time = formatTime(message.createdAt || message.CreatedAt || message.Time);
+    const timestamp = message.createdAt || message.CreatedAt || message.Time;
+    const { dateStr, timeStr } = formatTime(timestamp);
     // DM messages use 'body', channel messages use 'Content' or 'content'
     const content = escapeHtml(message.body || message.Content || message.content || '');
     
@@ -979,17 +980,48 @@ function renderMessageItem(message, isGrouped, isCurrentUser) {
     const currentUserClass = isCurrentUser ? 'current-user-message' : '';
     const groupedClass = isGrouped ? 'grouped-message' : '';
     
+    // Check if message is an email
+    const messageType = (message.messageType || message.MessageType || '').toLowerCase();
+    const isEmailMessage = messageType === 'email';
+    const emailBadgeHtml = isEmailMessage ? `
+        <div class="task-matter-badge">
+            <span class="badge matter-priority-badge task-priority-badge priority-medium" style="font-size: 0.625rem; padding: 0.25rem 0.5rem; border-radius: 12px; font-weight: 600; background-color: #e3f2fd; color: #1565c0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block;">
+                Sent via email
+            </span>
+        </div>
+    ` : '';
+    
+    // Format timestamp for hover (only show time)
+    let hoverTimestamp = '';
+    if (timestamp) {
+        try {
+            const hoverDate = new Date(timestamp);
+            const hoverHours = hoverDate.getHours();
+            const hoverMinutes = hoverDate.getMinutes();
+            const hoverAmpm = hoverHours >= 12 ? 'PM' : 'AM';
+            const hoverDisplayHours = hoverHours % 12 || 12;
+            const hoverDisplayMinutes = hoverMinutes < 10 ? '0' + hoverMinutes : hoverMinutes;
+            hoverTimestamp = `${hoverDisplayHours}:${hoverDisplayMinutes} ${hoverAmpm}`;
+        } catch (err) {
+            hoverTimestamp = timestamp;
+        }
+    }
+
     return `
         <div class="comms-message-item ${currentUserClass} ${groupedClass}" data-message-id="${message.Id || message.id}">
             <div class="${avatarClass}"${avatarDataAttr}${avatarStyle ? ` style="${avatarStyle}"` : ''}>${avatar}</div>
             <div class="comms-message-content">
+                ${emailBadgeHtml}
                 <div class="comms-message-header">
                     <span class="comms-message-author">${escapeHtml(senderName)}</span>
-                    <span class="comms-message-time">${time}</span>
+                    <span class="comms-message-time">
+                        ${dateStr ? `<span class="message-date">${dateStr}</span>` : ''}
+                        <span class="message-time-value">${timeStr}</span>
+                    </span>
                 </div>
                 <div class="comms-message-text">${content}</div>
             </div>
-            ${isGrouped ? `<div class="hover-timestamp">${time}</div>` : ''}
+            ${isGrouped ? `<div class="hover-timestamp">${hoverTimestamp}</div>` : ''}
         </div>
     `;
 }
@@ -1006,9 +1038,38 @@ function getInitials(name) {
 
 // Format time
 function formatTime(timestamp) {
-    if (!timestamp) return '';
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (!timestamp) return { dateStr: '', timeStr: '' };
+    
+    try {
+        const date = new Date(timestamp);
+        
+        // Check if date is valid
+        if (isNaN(date.getTime())) {
+            // If it's already a formatted time string (like "9:42 AM"), return it as-is
+            return { dateStr: '', timeStr: timestamp };
+        }
+        
+        const now = new Date();
+        
+        // Check if message is from today
+        const isToday = date.toDateString() === now.toDateString();
+        
+        // Format time
+        const hours = date.getHours();
+        const minutes = date.getMinutes();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const displayHours = hours % 12 || 12;
+        const displayMinutes = minutes < 10 ? '0' + minutes : minutes;
+        const timeStr = `${displayHours}:${displayMinutes} ${ampm}`;
+        
+        // Format date
+        const dateStr = isToday ? '' : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        
+        return { dateStr, timeStr };
+    } catch (err) {
+        // If parsing fails, try to return as-is
+        return { dateStr: '', timeStr: timestamp };
+    }
 }
 
 // Render Demo Messages (fallback)

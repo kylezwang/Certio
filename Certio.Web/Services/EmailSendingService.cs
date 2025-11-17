@@ -58,6 +58,12 @@ public class EmailSendingService : IEmailSendingService
             throw new InvalidOperationException("Email account not found or inactive");
         }
 
+        // Security check: Verify email account belongs to the message sender
+        if (emailAccount.UserId != directMessage.SenderId)
+        {
+            throw new UnauthorizedAccessException("Email account does not belong to message sender");
+        }
+
         // Ensure token is valid
         await _emailService.RefreshAccessTokenAsync(emailAccountId, ct);
         await _context.Entry(emailAccount).ReloadAsync(ct);
@@ -316,7 +322,8 @@ public class EmailSendingService : IEmailSendingService
                 var metadata = JsonSerializer.Deserialize<Dictionary<string, object>>(directMessage.Metadata);
                 if (metadata != null && metadata.ContainsKey("EmailSubject"))
                 {
-                    subject = metadata["EmailSubject"].ToString() ?? subject;
+                    var rawSubject = metadata["EmailSubject"].ToString() ?? subject;
+                    subject = SanitizeEmailSubject(rawSubject);
                 }
             }
             catch
@@ -326,15 +333,19 @@ public class EmailSendingService : IEmailSendingService
         }
 
         // Format body as HTML email
+        // HTML-encode sender name and message body to prevent XSS
+        var encodedSenderName = System.Net.WebUtility.HtmlEncode(senderName);
+        var encodedBody = System.Net.WebUtility.HtmlEncode(directMessage.Body);
+        
         var body = $@"
 <html>
 <body>
-    <p>{senderName} sent you a message:</p>
+    <p>{encodedSenderName} sent you a message:</p>
     <div style=""border-left: 3px solid #007bff; padding-left: 15px; margin: 15px 0;"">
-        {directMessage.Body}
+        {encodedBody}
     </div>
     <p style=""color: #666; font-size: 12px;"">
-        Sent via Certio Direct Messaging
+        Sent via Notal Communications
     </p>
 </body>
 </html>";
@@ -419,6 +430,53 @@ public class EmailSendingService : IEmailSendingService
             .Replace('+', '-')
             .Replace('/', '_')
             .Replace("=", "");
+    }
+
+    /// <summary>
+    /// Sanitizes email subject to prevent header injection attacks.
+    /// Removes or replaces control characters (CR, LF, NULL) that could be used to inject additional headers.
+    /// </summary>
+    private string SanitizeEmailSubject(string subject)
+    {
+        if (string.IsNullOrEmpty(subject))
+        {
+            return "Direct Message";
+        }
+
+        // Remove control characters that could be used for header injection
+        // This includes CR (\r), LF (\n), NULL (\0), and other control characters
+        var sanitized = new StringBuilder(subject.Length);
+        
+        foreach (char c in subject)
+        {
+            // Allow printable characters and common whitespace (space and tab)
+            // Reject carriage return, line feed, null, and other control characters
+            if (c == '\r' || c == '\n' || c == '\0' || (char.IsControl(c) && c != '\t'))
+            {
+                // Replace with space to maintain readability
+                sanitized.Append(' ');
+            }
+            else
+            {
+                sanitized.Append(c);
+            }
+        }
+
+        // Trim and collapse multiple spaces
+        var result = sanitized.ToString().Trim();
+        while (result.Contains("  "))
+        {
+            result = result.Replace("  ", " ");
+        }
+
+        // Limit length to reasonable email subject length (RFC 5322 recommends 78 chars per line)
+        // Using 200 as a safe maximum for subject lines
+        if (result.Length > 200)
+        {
+            result = result.Substring(0, 197) + "...";
+        }
+
+        return string.IsNullOrWhiteSpace(result) ? "Direct Message" : result;
     }
 }
 

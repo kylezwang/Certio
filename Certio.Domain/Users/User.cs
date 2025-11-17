@@ -220,7 +220,8 @@ namespace Certio.Domain.Users
                      membership.Role == OrganizationRoles.Manager || 
                      membership.Role == OrganizationRoles.Lawyer)) ||
                    (membership.UserType == UserTypes.LawFirm && 
-                    (membership.Role == OrganizationRoles.Partner || 
+                    (membership.Role == OrganizationRoles.ManagingPartner ||
+                     membership.Role == OrganizationRoles.Partner || 
                      membership.Role == OrganizationRoles.Associate));
         }
         

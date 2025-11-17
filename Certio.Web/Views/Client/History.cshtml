@@ -1145,15 +1145,15 @@
             } catch (error) {
                 console.warn('Invalid timezone provided, falling back to browser default.', error);
                 timeFormatter = new Intl.DateTimeFormat('en-US', { 
-                    hour: 'numeric', 
-                    minute: '2-digit',
-                    hour12: true
-                });
+                hour: 'numeric', 
+                minute: '2-digit',
+                hour12: true 
+            });
                 dateFormatter = new Intl.DateTimeFormat('en-US', { 
-                    month: 'numeric', 
-                    day: 'numeric',
-                    year: 'numeric'
-                });
+                month: 'numeric', 
+                day: 'numeric',
+                year: 'numeric'
+            });
             }
             
             const time = timeFormatter.format(date);
@@ -1240,10 +1240,10 @@
                 const formattedTimestamp = date ? exportFormatter.format(date) : '';
                 return [
                     formattedTimestamp,
-                    activity.userName,
-                    activity.actionType,
-                    activity.action,
-                    activity.details || ''
+                activity.userName,
+                activity.actionType,
+                activity.action,
+                activity.details || ''
                 ];
             });
             

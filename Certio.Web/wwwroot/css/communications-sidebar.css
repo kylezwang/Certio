@@ -770,42 +770,50 @@
 }
 
 
-/* Message Input */
+/* Message Input - Match Communications Page Styling */
 .comms-message-input-container {
-    padding: 1rem 0.5rem 1rem 0.5rem;
-    border-top: 1px solid rgba(11, 54, 94, 0.1);
-    background: #ffffff;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.9);
     flex-shrink: 0;
     margin: 0 0.5rem;
     box-sizing: border-box;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+    will-change: transform;
+    transform: translateZ(0);
+    transition: transform 0.3s ease;
 }
 
 .comms-message-input-wrapper {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     gap: 0.5rem;
-    background: white;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    padding: 0.5rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid rgba(229, 231, 235, 0.5);
+    border-radius: 0.5rem;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+    will-change: transform;
+    transform: translateZ(0);
 }
 
 .comms-input-btn {
-    background: none;
+    width: 1.5rem;
+    height: 1.5rem;
     border: none;
+    background: none;
     color: #6b7280;
-    font-size: 1.125rem;
     cursor: pointer;
-    padding: 0.25rem;
-    border-radius: 4px;
+    border-radius: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.2s ease;
     flex-shrink: 0;
+    padding: 0;
 }
 
 .comms-input-btn:hover {
-    color: #374151;
-    background: #f3f4f6;
+    background: rgba(156, 163, 175, 0.1);
+    color: #1f2937;
 }
 
 .comms-message-input {
@@ -813,10 +821,18 @@
     border: none;
     outline: none;
     resize: none;
-    font-size: 0.9rem;
-    line-height: 1.5;
-    max-height: 120px;
-    min-height: 24px;
+    font-size: 0.875rem;
+    color: #1f2937;
+    background: transparent;
+    padding: 0;
+    resize: none;
+    min-height: 1.25rem;
+    max-height: 8rem;
+    line-height: 1.25rem;
+}
+
+.comms-message-input::placeholder {
+    color: #6b7280;
 }
 
 .comms-input-controls {
@@ -826,21 +842,25 @@
 }
 
 .comms-send-btn {
-    background: #3d1019;
+    width: 2rem;
+    height: 2rem;
     border: none;
+    background: #9d5252;
     color: white;
-    font-size: 1rem;
     cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 6px;
-    transition: all 0.2s ease;
+    border-radius: 0.375rem;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    padding: 0;
 }
 
 .comms-send-btn:hover {
-    background: #6d2932;
+    background: #914040;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.15);
 }
 
 .comms-send-btn:disabled {

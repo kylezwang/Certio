@@ -524,7 +524,7 @@ function appendDirectMessage(message, previousMessage = null) {
     }
     // For current user, CSS will apply the gradient via .message-item.current-user-message .message-avatar
 
-    const timestamp = formatTimestamp(message.createdAt);
+    const { dateStr, timeStr } = formatTimestamp(message.createdAt);
 
     const messageType = (message.messageType || message.MessageType || '').toLowerCase();
     const subjectLine = message.emailSubject || message.EmailSubject || '';
@@ -553,18 +553,42 @@ function appendDirectMessage(message, previousMessage = null) {
     // Then replace remaining single newlines with single <br>
     withBreaks = withBreaks.replace(/\n/g, '<br>');
     
+    // Check if message is an email
+    const isEmailMessage = messageType === 'email';
+    const badgeContainerClass = isOwnMessage ? 'task-matter-badge task-matter-badge-right' : 'task-matter-badge';
+    const emailBadgeHtml = isEmailMessage ? `
+        <div class="${badgeContainerClass}">
+            <span class="badge matter-priority-badge task-priority-badge priority-medium" style="font-size: 0.625rem; padding: 0.25rem 0.5rem; border-radius: 12px; font-weight: 600; background-color: #e3f2fd; color: #1565c0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block;">
+                Sent via email
+            </span>
+        </div>
+    ` : '';
+
+    // Format timestamp for hover (only show time)
+    const hoverDate = new Date(message.createdAt);
+    const hoverHours = hoverDate.getHours();
+    const hoverMinutes = hoverDate.getMinutes();
+    const hoverAmpm = hoverHours >= 12 ? 'PM' : 'AM';
+    const hoverDisplayHours = hoverHours % 12 || 12;
+    const hoverDisplayMinutes = hoverMinutes < 10 ? '0' + hoverMinutes : hoverMinutes;
+    const hoverTimestamp = `${hoverDisplayHours}:${hoverDisplayMinutes} ${hoverAmpm}`;
+
     messageElement.innerHTML = `
         <div class="${avatarClass}"${avatarStyle ? ` style="${avatarStyle}"` : ''}>
             <span>${initials}</span>
         </div>
         <div class="message-content">
+            ${emailBadgeHtml}
             <div class="message-header">
                 <span class="message-author">${escapeHtml(message.senderName)}</span>
-                <span class="message-time">${timestamp}</span>
+                <span class="message-time">
+                    ${dateStr ? `<span class="message-date">${dateStr}</span>` : ''}
+                    <span class="message-time-value">${timeStr}</span>
+                </span>
             </div>
             <p class="message-text">${withBreaks}</p>
         </div>
-        ${isGrouped ? `<div class="hover-timestamp">${timestamp}</div>` : ''}
+        ${isGrouped ? `<div class="hover-timestamp">${hoverTimestamp}</div>` : ''}
     `;
 
     messagesContainer.appendChild(messageElement);
@@ -595,18 +619,26 @@ function showDirectMessageError(message) {
 }
 
 function formatTimestamp(timestamp) {
-    if (!timestamp) return '';
+    if (!timestamp) return { dateStr: '', timeStr: '' };
     
     const date = new Date(timestamp);
     const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
     
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
+    // Check if message is from today
+    const isToday = date.toDateString() === now.toDateString();
     
-    return date.toLocaleDateString();
+    // Format time
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    const displayMinutes = minutes < 10 ? '0' + minutes : minutes;
+    const timeStr = `${displayHours}:${displayMinutes} ${ampm}`;
+    
+    // Format date
+    const dateStr = isToday ? '' : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    
+    return { dateStr, timeStr };
 }
 
 function escapeHtml(text) {
@@ -683,4 +715,5 @@ window.openDirectThread = openDirectThread;
 window.getCurrentDirectOtherUserName = () => currentDirectOtherUserName;
 window.getCurrentDirectOtherUserEmail = () => currentDirectOtherUserEmail;
 window.getCurrentDirectOtherUserId = () => currentDirectOtherUserId;
+window.getCurrentDirectThreadId = () => currentDirectThreadId;
 

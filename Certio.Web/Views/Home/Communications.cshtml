@@ -3,7 +3,7 @@
 @using System.Text.Encodings.Web
 @using System.Text.RegularExpressions
 @{
-    ViewData["Title"] = "Communications - Notal AI Legal Assistant";
+    ViewData["Title"] = "Communications";
     ViewData["BodyClass"] = "communications-page";
     // Show AI chat panel like other pages
     ViewData["HideChatPanel"] = false;
@@ -372,20 +372,58 @@
                                 <span>@message.Avatar</span>
                             </div>
                             <div class="message-content">
+                                @* Email badge for email messages - above header *@
+                                @if (message.MessageType == "Email")
+                                {
+                                    <div class="task-matter-badge@(isCurrentUser ? " task-matter-badge-right" : "")">
+                                        <span class="badge matter-priority-badge task-priority-badge priority-medium" style="font-size: 0.625rem; padding: 0.25rem 0.5rem; border-radius: 12px; font-weight: 600; background-color: #e3f2fd; color: #1565c0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block;">
+                                            Sent via email
+                                        </span>
+                                    </div>
+                                }
                                 <div class="message-header">
                                     <span class="message-author">@message.User</span>
                                     @if (member != null)
                                     {
                                         <i class="@member.RoleIcon @member.RoleColor"></i>
                                     }
-                                    @* Email badge for email messages *@
-                                    @if (message.MessageType == "Email")
-                                    {
-                                        <span class="email-badge" style="font-size: 0.7em; color: #007bff; margin-left: 8px; padding: 2px 6px; background: #e7f3ff; border-radius: 4px;">
-                                            <i class="fas fa-envelope" style="margin-right: 3px;"></i>Sent through Email
-                                        </span>
+                                    @{
+                                        DateTime? messageDate = message.CreatedAt;
+                                        string dateStr = "";
+                                        string timeStr = "";
+                                        
+                                        if (messageDate.HasValue)
+                                        {
+                                            var date = messageDate.Value;
+                                            var now = DateTime.Now;
+                                            var isToday = date.Date == now.Date;
+                                            
+                                            // Format time
+                                            var hours = date.Hour;
+                                            var minutes = date.Minute;
+                                            var ampm = hours >= 12 ? "PM" : "AM";
+                                            var displayHours = hours % 12 == 0 ? 12 : hours % 12;
+                                            timeStr = $"{displayHours}:{minutes:D2} {ampm}";
+                                            
+                                            // Format date (only if not today)
+                                            if (!isToday)
+                                            {
+                                                dateStr = date.ToString("MMM d, yyyy");
+                                            }
+                                        }
+                                        else if (!string.IsNullOrEmpty(message.Time))
+                                        {
+                                            // Fallback to Time property if CreatedAt is not available
+                                            timeStr = message.Time;
+                                        }
                                     }
-                                    <span class="message-time">@message.Time</span>
+                                    <span class="message-time">
+                                        @if (!string.IsNullOrEmpty(dateStr))
+                                        {
+                                            <span class="message-date">@dateStr</span>
+                                        }
+                                        <span class="message-time-value">@timeStr</span>
+                                    </span>
                                 </div>
                                 @{
                                     var encodedContent = HtmlEncoder.Default.Encode(message.Content ?? string.Empty);
@@ -416,7 +454,21 @@
                             </div>
                             @if (isGrouped)
                             {
-                                <div class="hover-timestamp">@message.Time</div>
+                                string hoverTimestamp = "";
+                                if (message.CreatedAt.HasValue)
+                                {
+                                    var hoverDate = message.CreatedAt.Value;
+                                    var hoverHours = hoverDate.Hour;
+                                    var hoverMinutes = hoverDate.Minute;
+                                    var hoverAmpm = hoverHours >= 12 ? "PM" : "AM";
+                                    var hoverDisplayHours = hoverHours % 12 == 0 ? 12 : hoverHours % 12;
+                                    hoverTimestamp = $"{hoverDisplayHours}:{hoverMinutes:D2} {hoverAmpm}";
+                                }
+                                else if (!string.IsNullOrEmpty(message.Time))
+                                {
+                                    hoverTimestamp = message.Time;
+                                }
+                                <div class="hover-timestamp">@hoverTimestamp</div>
                             }
                         </div>
                         
@@ -496,6 +548,11 @@
 </div>
 
 @section Scripts {
+    <!-- Signal to chat.js to NOT attach its send button handler on this page -->
+    <script>
+        window.communicationsPageActive = true;
+    </script>
+    
     <!-- SignalR Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
     
@@ -552,29 +609,296 @@
             }
 
             // Send message function - define first
-            window.handleSendMessage = function() {
+            window.handleSendMessage = async function() {
                 const messageInput = document.getElementById('messageInput');
-                if (messageInput && messageInput.value.trim()) {
-                    const message = messageInput.value.trim();
-                    console.log('Sending message:', message);
+                if (!messageInput || !messageInput.value.trim()) {
+                    return;
+                }
+                
+                const message = messageInput.value.trim();
+                console.log('Sending message:', message);
+                
+                // Check if in email mode
+                if (isEmailModeActive) {
+                    await handleSendAsEmail(message);
+                    return;
+                }
+                
+                // Check if in DM mode first
+                if (typeof sendCurrentDirectMessage === 'function' && sendCurrentDirectMessage(message)) {
+                    console.log('Sent as direct message');
+                    return;
+                }
+                
+                // Otherwise send as channel message
+                if (typeof sendChannelMessage === 'function') {
+                    sendChannelMessage(message);
+                } else {
+                    console.warn('sendChannelMessage not available, message not sent');
+                    // Clear input anyway for demo purposes
+                    messageInput.value = '';
+                    messageInput.style.height = 'auto';
+                }
+            };
+            
+            // Handle sending message as email
+            async function handleSendAsEmail(message) {
+                const emailSubjectInput = document.getElementById('channelEmailSubjectInput');
+                const messageInput = document.getElementById('messageInput');
+                const sendButton = document.getElementById('sendButton');
+                
+                const subject = emailSubjectInput?.value?.trim() || '';
+                const orgId = document.querySelector('[data-organization-id]')?.dataset.organizationId || currentOrganizationId;
+                
+                // Check if in DM mode
+                const isInDM = typeof isInDirectMessageMode === 'function' && isInDirectMessageMode();
+                
+                if (isInDM) {
+                    // Send email in DM mode
+                    await handleSendDMEmail(message, subject, orgId);
+                } else {
+                    // Send email in channel mode
+                    await handleSendChannelEmail(message, subject, orgId);
+                }
+            }
+            
+            // Send email in DM mode
+            async function handleSendDMEmail(message, subject, orgId) {
+                const messageInput = document.getElementById('messageInput');
+                const emailSubjectInput = document.getElementById('channelEmailSubjectInput');
+                const sendButton = document.getElementById('sendButton');
+                
+                // Get recipient email
+                let recipientEmail = null;
+                if (typeof window.getCurrentDirectOtherUserEmail === 'function') {
+                    recipientEmail = window.getCurrentDirectOtherUserEmail();
+                }
+                
+                if (!recipientEmail || recipientEmail.trim() === '') {
+                    alert('Recipient email is not available. Please switch to regular message mode.');
+                    return;
+                }
+                
+                const currentThreadId = typeof window.getCurrentDirectThreadId === 'function' ? window.getCurrentDirectThreadId() : null;
+                if (!currentThreadId) {
+                    alert('No active direct message thread. Please open a direct message conversation and try again.');
+                    // Exit email mode
+                    isEmailModeActive = false;
+                    const switcherIcon = emailSwitcherBtn?.querySelector('i');
+                    const sendButtonIcon = sendButton?.querySelector('i');
+                    if (switcherIcon) switcherIcon.className = 'fas fa-envelope';
+                    if (sendButtonIcon) sendButtonIcon.className = 'fas fa-paper-plane';
+                    if (emailSubjectInput) emailSubjectInput.style.display = 'none';
+                    return;
+                }
+                
+                // Disable send button
+                if (sendButton) {
+                    sendButton.disabled = true;
+                    sendButton.classList.add('is-loading');
+                }
+                
+                try {
+                    // Get email account info
+                    const emailAccountResponse = await fetch('/api/email-oauth/status');
+                    const emailAccountResult = await emailAccountResponse.json();
                     
-                    // Check if in DM mode first
-                    if (typeof sendCurrentDirectMessage === 'function' && sendCurrentDirectMessage(message)) {
-                        console.log('Sent as direct message');
+                    if (!emailAccountResult.success || !emailAccountResult.connected) {
+                        alert('Please connect your email account first.');
                         return;
                     }
                     
-                    // Otherwise send as channel message
-                    if (typeof sendChannelMessage === 'function') {
-                        sendChannelMessage(message);
-                    } else {
-                        console.warn('sendChannelMessage not available, message not sent');
-                        // Clear input anyway for demo purposes
+                    const emailAccount = emailAccountResult.emailAccount;
+                    
+                    // Create message metadata
+                    const metadata = {
+                        EmailSubject: subject || 'Re: Direct Message',
+                        EmailTo: recipientEmail,
+                        EmailProvider: emailAccount.provider
+                    };
+                    
+                    // Show optimistic message immediately (optional enhancement)
+                    // This will be replaced when we reload messages
+                    
+                    // Create the direct message with Email type
+                    const dmResponse = await fetch(`/api/dm/threads/${currentThreadId}/messages?orgId=${orgId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            Body: message,
+                            MessageType: 'Email',
+                            Metadata: JSON.stringify(metadata)
+                        })
+                    });
+                    
+                    const dmResult = await dmResponse.json();
+                    
+                    if (!dmResponse.ok || !dmResult.success) {
+                        throw new Error(dmResult.error || 'Failed to create message');
+                    }
+                    
+                    const newMessageId = dmResult.message?.id || dmResult.messageId;
+                    if (!newMessageId) {
+                        throw new Error('Message was created but message identifier was missing.');
+                    }
+                    
+                    // Send the actual email via OAuth
+                    const emailResponse = await fetch(`/api/dm/threads/${currentThreadId}/send-email?orgId=${orgId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            MessageId: newMessageId
+                        })
+                    });
+                    
+                    const emailResult = await emailResponse.json();
+                    
+                    if (!emailResponse.ok || !emailResult.success) {
+                        throw new Error(emailResult.error || 'Failed to send email');
+                    }
+                    
+                    // Clear inputs
+                    if (messageInput) {
                         messageInput.value = '';
                         messageInput.style.height = 'auto';
                     }
+                    if (emailSubjectInput) {
+                        emailSubjectInput.value = '';
+                    }
+                    
+                    // Reload messages to show the sent email
+                    if (typeof loadDirectMessages === 'function') {
+                        loadDirectMessages(currentThreadId);
+                    }
+                    
+                    console.log('Email sent successfully in DM mode');
+                } catch (error) {
+                    console.error('Error sending email in DM mode:', error);
+                    alert('Failed to send email: ' + (error.message || error));
+                } finally {
+                    if (sendButton) {
+                        sendButton.disabled = false;
+                        sendButton.classList.remove('is-loading');
+                    }
                 }
-            };
+            }
+            
+            // Send email in channel mode
+            async function handleSendChannelEmail(message, subject, orgId) {
+                const messageInput = document.getElementById('messageInput');
+                const emailSubjectInput = document.getElementById('channelEmailSubjectInput');
+                const sendButton = document.getElementById('sendButton');
+                
+                // Get channel members' emails
+                let channelId = null;
+                if (typeof window.currentChannelId !== 'undefined' && window.currentChannelId) {
+                    channelId = window.currentChannelId.toString();
+                } else if (typeof currentChannelId !== 'undefined' && currentChannelId) {
+                    channelId = currentChannelId.toString();
+                }
+                
+                if (!channelId) {
+                    alert('No active channel selected.');
+                    return;
+                }
+                
+                // Disable send button
+                if (sendButton) {
+                    sendButton.disabled = true;
+                    sendButton.classList.add('is-loading');
+                }
+                
+                try {
+                    // Get email account info
+                    const emailAccountResponse = await fetch('/api/email-oauth/status');
+                    const emailAccountResult = await emailAccountResponse.json();
+                    
+                    if (!emailAccountResult.success || !emailAccountResult.connected) {
+                        alert('Please connect your email account first.');
+                        return;
+                    }
+                    
+                    const emailAccount = emailAccountResult.emailAccount;
+                    
+                    // Fetch channel members to get their emails
+                    const membersResponse = await fetch(`/Client/${orgId}/Communications/GetChannelMembers?channelId=${channelId}`);
+                    if (!membersResponse.ok) {
+                        throw new Error('Failed to load channel members');
+                    }
+                    
+                    const membersData = await membersResponse.json();
+                    if (!membersData.success || !membersData.members) {
+                        throw new Error('Failed to load channel members');
+                    }
+                    
+                    // Extract emails from members (excluding current user)
+                    const recipientEmails = membersData.members
+                        .filter(m => m.email && m.email.trim() !== '' && m.userId != currentUserId)
+                        .map(m => m.email.trim());
+                    
+                    if (recipientEmails.length === 0) {
+                        alert('No recipient emails found in this channel.');
+                        return;
+                    }
+                    
+                    // Get channel name for subject
+                    const channelTitle = document.querySelector('.channel-title');
+                    const channelName = channelTitle ? channelTitle.textContent.trim() : 'Channel';
+                    
+                    // Create message metadata
+                    const metadata = {
+                        EmailSubject: subject || `Message from #${channelName}`,
+                        EmailTo: recipientEmails.join(', '),
+                        EmailProvider: emailAccount.provider,
+                        EmailRecipients: recipientEmails
+                    };
+                    
+                    // Send message via SignalR (this will broadcast to all channel members)
+                    if (typeof sendChannelMessage === 'function') {
+                        // Clear inputs first
+                        if (messageInput) {
+                            messageInput.value = '';
+                            messageInput.style.height = 'auto';
+                        }
+                        if (emailSubjectInput) {
+                            emailSubjectInput.value = '';
+                        }
+                        
+                        // Send via SignalR with email metadata
+                        // Note: We'll need to enhance the SignalR hub to handle email sending
+                        // For now, just send as regular message and show a notification
+                        sendChannelMessage(message);
+                        
+                        // TODO: Implement actual email sending for channels via backend API
+                        console.log('Channel email would be sent to:', recipientEmails);
+                        console.log('Email subject:', metadata.EmailSubject);
+                        console.log('Email body:', message);
+                        
+                        // Show notification that this feature is pending implementation
+                        if (typeof showNotification === 'function') {
+                            showNotification('Message sent to channel. Email delivery for channels is in progress.', 'info');
+                        } else {
+                            alert('Message sent to channel. Email delivery for channels is in progress.');
+                        }
+                    } else {
+                        throw new Error('sendChannelMessage function not available');
+                    }
+                    
+                    console.log('Channel email sent successfully');
+                } catch (error) {
+                    console.error('Error sending email in channel mode:', error);
+                    alert('Failed to send email: ' + (error.message || error));
+                } finally {
+                    if (sendButton) {
+                        sendButton.disabled = false;
+                        sendButton.classList.remove('is-loading');
+                    }
+                }
+            }
 
             // Initialize Direct Messaging
             if (typeof initializeDirectMessaging === 'function') {
@@ -621,6 +945,43 @@
             
             if (emailSwitcherBtn) {
                 emailSwitcherBtn.addEventListener('click', async function() {
+                    // Check if we're in DM mode
+                    const isInDM = typeof isInDirectMessageMode === 'function' && isInDirectMessageMode();
+                    const currentThreadId = typeof window.getCurrentDirectThreadId === 'function' ? window.getCurrentDirectThreadId() : null;
+                    
+                    // Validate that we have a valid context for email mode
+                    if (!isEmailModeActive) {
+                        // Trying to enable email mode - validate context
+                        // Check if we have a channel ID
+                        const hasChannelId = (typeof window.currentChannelId !== 'undefined' && window.currentChannelId) || 
+                                            (typeof currentChannelId !== 'undefined' && currentChannelId);
+                        
+                        if (!isInDM && !hasChannelId) {
+                            alert('Please select a channel or open a direct message first before switching to email mode.');
+                            return;
+                        }
+                        
+                        if (isInDM && !currentThreadId) {
+                            alert('Please open a direct message conversation first before switching to email mode.');
+                            return;
+                        }
+                        
+                        // Check if email account is connected
+                        try {
+                            const emailAccountResponse = await fetch('/api/email-oauth/status');
+                            const emailAccountResult = await emailAccountResponse.json();
+                            
+                            if (!emailAccountResult.success || !emailAccountResult.connected) {
+                                alert('Please connect your email account first (Gmail or Outlook) from the sidebar.');
+                                return;
+                            }
+                        } catch (error) {
+                            console.error('Error checking email account:', error);
+                            alert('Failed to check email account status. Please try again.');
+                            return;
+                        }
+                    }
+                    
                     isEmailModeActive = !isEmailModeActive;
                     
                     const switcherIcon = emailSwitcherBtn.querySelector('i');
@@ -629,9 +990,6 @@
                     const emailSubjectInput = document.getElementById('channelEmailSubjectInput');
                     const channelDescription = document.querySelector('.channel-description');
                     const channelTitle = document.querySelector('.channel-title');
-                    
-                    // Check if we're in DM mode
-                    const isInDM = typeof isInDirectMessageMode === 'function' && isInDirectMessageMode();
                     let contactName = null;
                     let contactEmail = null;
                     
@@ -1352,5 +1710,34 @@
     .message-input-wrapper .message-input {
         flex: 1;
         min-width: 0;
+    }
+    
+    /* Email badge alignment for current user messages */
+    .message-item.current-user-message .task-matter-badge-right {
+        text-align: right;
+    }
+    
+    .message-item.current-user-message .task-matter-badge-right .badge {
+        display: inline-block;
+    }
+    
+    /* Date and time layout in message header */
+    .message-header .message-time {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-left: auto;
+        color: #9ca3af;
+        font-size: 0.7rem;
+    }
+    
+    .message-date {
+        color: #9ca3af;
+        font-size: 0.7rem;
+    }
+    
+    .message-time-value {
+        color: #9ca3af;
+        font-size: 0.7rem;
     }
 </style>
