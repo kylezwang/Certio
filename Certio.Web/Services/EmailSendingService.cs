@@ -82,15 +82,23 @@ public class EmailSendingService : IEmailSendingService
         // Format message as email
         var (subject, body) = await FormatDirectMessageAsEmailAsync(directMessage, ct);
 
+        // Get sender's display name
+        var sender = directMessage.Sender;
+        var senderName = sender != null ? $"{sender.FirstName} {sender.LastName}".Trim() : null;
+        if (string.IsNullOrWhiteSpace(senderName))
+        {
+            senderName = sender?.Email?.Split('@')[0] ?? "Unknown";
+        }
+
         // Send email based on provider
         string externalEmailId;
         if (emailAccount.Provider == "Gmail")
         {
-            externalEmailId = await SendGmailEmailAsync(emailAccount, otherUser.Email, subject, body, ct);
+            externalEmailId = await SendGmailEmailAsync(emailAccount, otherUser.Email, subject, body, senderName, ct);
         }
         else if (emailAccount.Provider == "Outlook")
         {
-            externalEmailId = await SendOutlookEmailAsync(emailAccount, otherUser.Email, subject, body, ct);
+            externalEmailId = await SendOutlookEmailAsync(emailAccount, otherUser.Email, subject, body, senderName, ct);
         }
         else
         {
@@ -353,7 +361,7 @@ public class EmailSendingService : IEmailSendingService
         return (subject, body);
     }
 
-    private async Task<string> SendGmailEmailAsync(EmailAccount emailAccount, string toEmail, string subject, string body, CancellationToken ct)
+    private async Task<string> SendGmailEmailAsync(EmailAccount emailAccount, string toEmail, string subject, string body, string? senderName, CancellationToken ct)
     {
         var protector = _dataProtectionProvider.CreateProtector("EmailTokens");
         var accessToken = protector.Unprotect(emailAccount.AccessToken);
@@ -365,17 +373,20 @@ public class EmailSendingService : IEmailSendingService
             ApplicationName = "Certio"
         });
 
+        // Format From header with display name
+        var fromHeader = FormatEmailAddress(emailAccount.EmailAddress, senderName);
+
         // Create email message
         var emailMessage = new Message
         {
-            Raw = CreateRawEmailMessage(emailAccount.EmailAddress, toEmail, subject, body)
+            Raw = CreateRawEmailMessage(fromHeader, toEmail, subject, body)
         };
 
         var sentMessage = await service.Users.Messages.Send(emailMessage, "me").ExecuteAsync(ct);
         return sentMessage.Id ?? throw new InvalidOperationException("No message ID returned");
     }
 
-    private async Task<string> SendOutlookEmailAsync(EmailAccount emailAccount, string toEmail, string subject, string body, CancellationToken ct)
+    private async Task<string> SendOutlookEmailAsync(EmailAccount emailAccount, string toEmail, string subject, string body, string? senderName, CancellationToken ct)
     {
         var protector = _dataProtectionProvider.CreateProtector("EmailTokens");
         var accessToken = protector.Unprotect(emailAccount.AccessToken);
@@ -383,6 +394,9 @@ public class EmailSendingService : IEmailSendingService
         using var httpClient = new HttpClient();
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
         httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
+
+        // Build from field with display name if available
+        var fromField = new { emailAddress = new { address = emailAccount.EmailAddress, name = senderName } };
 
         var message = new
         {
@@ -394,6 +408,7 @@ public class EmailSendingService : IEmailSendingService
                     contentType = "HTML",
                     content = body
                 },
+                from = fromField,
                 toRecipients = new[]
                 {
                     new { emailAddress = new { address = toEmail } }
@@ -413,6 +428,28 @@ public class EmailSendingService : IEmailSendingService
 
         // Outlook doesn't return message ID immediately, generate one
         return $"outlook_{DateTime.UtcNow.Ticks}";
+    }
+
+    /// <summary>
+    /// Formats an email address with optional display name in RFC 5322 format.
+    /// Example: "John Marshall <johnm123@gmail.com>" or just "johnm123@gmail.com" if no name
+    /// </summary>
+    private string FormatEmailAddress(string emailAddress, string? displayName)
+    {
+        if (string.IsNullOrWhiteSpace(displayName))
+        {
+            return emailAddress;
+        }
+
+        // Escape display name if it contains special characters
+        // If it contains quotes, commas, or other special chars, wrap in quotes
+        var escapedName = displayName;
+        if (displayName.Contains('"') || displayName.Contains(',') || displayName.Contains(';') || displayName.Contains('<') || displayName.Contains('>'))
+        {
+            escapedName = $"\"{displayName.Replace("\"", "\\\"")}\"";
+        }
+
+        return $"{escapedName} <{emailAddress}>";
     }
 
     private string CreateRawEmailMessage(string from, string to, string subject, string body)
