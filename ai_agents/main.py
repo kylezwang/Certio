@@ -18,6 +18,8 @@ from simplified_cost_optimization import (
     ModelType, TaskComplexity
 )
 from context_manager import IntelligentContextManager
+
+# Force deployment trigger for user data sync endpoint
 from background_agents import BackgroundAgentManager, TaskPriority
 from intelligent_routing import IntelligentRouter, TaskContext, TaskType, ProcessingMethod
 from certio_training_pipeline import (

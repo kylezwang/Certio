@@ -19,8 +19,10 @@ try:
     from sklearn.feature_extraction.text import TfidfVectorizer
     from sklearn.metrics.pairwise import cosine_similarity
     VECTOR_AVAILABLE = True
+    NumpyArrayType = np.ndarray
 except ImportError:
     VECTOR_AVAILABLE = False
+    NumpyArrayType = Any  # Fallback type when numpy isn't available
     logging.warning("numpy/sklearn not available for user data RAG, using basic text matching")
 
 logger = logging.getLogger(__name__)
@@ -38,7 +40,7 @@ class UserDataChunk:
     created_at: str
     modified_at: Optional[str] = None
     relevance_score: float = 0.0
-    embedding: Optional[np.ndarray] = None
+    embedding: Optional[NumpyArrayType] = None
 
 @dataclass
 class UserDataIndex:
