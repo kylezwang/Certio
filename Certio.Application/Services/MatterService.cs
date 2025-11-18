@@ -354,7 +354,8 @@ namespace Certio.Application.Services
                         userId, userOrgMembership?.Role ?? "NULL");
                     
                     // Only Partners see all matters; others ONLY see assigned matters
-                    if (userOrgMembership?.Role != Certio.Domain.Users.OrganizationRoles.Partner)
+                    if (userOrgMembership?.Role != Certio.Domain.Users.OrganizationRoles.Partner && 
+                        userOrgMembership?.Role != Certio.Domain.Users.OrganizationRoles.ManagingPartner)
                     {
                         _logger.LogInformation("ListMatters: Applying non-Partner filtering for user {UserId}", userId);
                         
@@ -379,7 +380,8 @@ namespace Certio.Application.Services
                                                    uo.IsActive && 
                                                    uo.UserType == Certio.Domain.Users.UserTypes.LawFirm);
                     
-                    var isPartner = lawFirmMembership?.Role == Certio.Domain.Users.OrganizationRoles.Partner;
+                    var isPartner = lawFirmMembership?.Role == Certio.Domain.Users.OrganizationRoles.Partner || 
+                                    lawFirmMembership?.Role == Certio.Domain.Users.OrganizationRoles.ManagingPartner;
                     
                     _logger.LogInformation("ListMatters: Firm user {UserId}, isPartner={IsPartner}, AccessLevel={AccessLevel}", 
                         userId, isPartner, firmRelationship?.AccessLevel ?? "NULL");

@@ -93,6 +93,7 @@ namespace Certio.Web.Controllers
                 // Determine if user has admin/partner privileges
                 bool hasFullAccess = userOrg.UserType == UserTypes.LawFirm && 
                                     (userOrg.Role == OrganizationRoles.Partner || 
+                                     userOrg.Role == OrganizationRoles.ManagingPartner ||
                                      userOrg.Role == OrganizationRoles.Owner) ||
                                     userOrg.UserType == UserTypes.Certio && 
                                     userOrg.Role == OrganizationRoles.Admin ||

@@ -150,7 +150,8 @@ namespace Certio.Web.Services
 
                 // Determine user's firm role
                 var role = lawFirmMembership.Role;
-                var isPartner = string.Equals(role, OrganizationRoles.Partner, StringComparison.OrdinalIgnoreCase);
+                var isPartner = string.Equals(role, OrganizationRoles.Partner, StringComparison.OrdinalIgnoreCase) || 
+                                string.Equals(role, OrganizationRoles.ManagingPartner, StringComparison.OrdinalIgnoreCase);
                 var isAssociate = string.Equals(role, OrganizationRoles.Associate, StringComparison.OrdinalIgnoreCase);
 
                 if (isPartner)
@@ -211,7 +212,8 @@ namespace Certio.Web.Services
                     return new List<Organization>();
 
                 var role = lawFirmMembership.Role;
-                var isPartner = string.Equals(role, OrganizationRoles.Partner, StringComparison.OrdinalIgnoreCase);
+                var isPartner = string.Equals(role, OrganizationRoles.Partner, StringComparison.OrdinalIgnoreCase) ||
+                                string.Equals(role, OrganizationRoles.ManagingPartner, StringComparison.OrdinalIgnoreCase);
 
                 var relationships = lawFirmMembership.Organization.OrganizationRelationships
                     .Where(rel => rel.IsValid() && rel.RelationshipType == RelationshipTypes.LawFirmClient)
@@ -311,7 +313,8 @@ namespace Certio.Web.Services
                     return relationship;
 
                 var role = lawFirmMembership.Role;
-                var isPartner = string.Equals(role, OrganizationRoles.Partner, StringComparison.OrdinalIgnoreCase);
+                var isPartner = string.Equals(role, OrganizationRoles.Partner, StringComparison.OrdinalIgnoreCase) ||
+                                string.Equals(role, OrganizationRoles.ManagingPartner, StringComparison.OrdinalIgnoreCase);
                 
                 if (isPartner)
                 {
@@ -383,7 +386,8 @@ namespace Certio.Web.Services
                 }
 
                 var role = lawFirmMembership.Role;
-                var isPartner = string.Equals(role, OrganizationRoles.Partner, StringComparison.OrdinalIgnoreCase);
+                var isPartner = string.Equals(role, OrganizationRoles.Partner, StringComparison.OrdinalIgnoreCase) ||
+                                string.Equals(role, OrganizationRoles.ManagingPartner, StringComparison.OrdinalIgnoreCase);
 
                 if (isPartner)
                 {
