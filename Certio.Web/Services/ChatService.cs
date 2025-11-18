@@ -854,7 +854,6 @@ public class ChatService : IChatService
             // We need to get the user ID who created the conversation to invalidate their cache
             // If the current user is renaming it, that's fine, but ideally we invalidate for the creator
             await _cacheService.InvalidateUserConversationsCacheAsync(conversation.CreatedById, organizationId);
-            await _cacheService.InvalidateUserAIConversationsCacheAsync(conversation.CreatedById, organizationId);
             
             return true;
         }
@@ -889,7 +888,6 @@ public class ChatService : IChatService
             
             // Invalidate caches to ensure the conversation is removed from lists
             await _cacheService.InvalidateUserConversationsCacheAsync(userId, organizationId);
-            await _cacheService.InvalidateUserAIConversationsCacheAsync(userId, organizationId);
             
             // Audit log the deletion
             // Audit logging now handled automatically by AuditInterceptor
