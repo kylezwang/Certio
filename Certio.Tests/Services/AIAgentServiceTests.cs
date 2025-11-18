@@ -49,13 +49,15 @@ public class AIAgentServiceTests
             .Setup(s => s.FetchContentAsync(It.IsAny<Certio.Domain.Documents.Document>(), It.IsAny<Guid?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(DocumentContentResult.Empty("not_used"));
 
+        var userDataContextService = new Mock<IUserDataContextService>();
+
         var dbOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
         using var dbContext = new ApplicationDbContext(dbOptions);
 
-        var service = new AIAgentService(httpClient, configuration, ragContextService.Object, dbContext, documentContentService.Object);
+        var service = new AIAgentService(httpClient, configuration, ragContextService.Object, dbContext, documentContentService.Object, userDataContextService.Object, null);
 
         // Act
         await service.SummarizeConversationAsync("123", new List<ChatMessage>());
