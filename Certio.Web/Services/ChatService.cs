@@ -897,67 +897,106 @@ public class ChatService : IChatService
     {
         try
         {
+            _logger.LogInformation("🔍 DEBUG CanUserAccessConversation: Checking User {UserId} access to Conversation {ConvId} in context of Org {OrgId}", 
+                userId, conversationId, organizationId);
+            
             var conversation = await _context.Conversations
                 .Include(c => c.Participants)
                 .FirstOrDefaultAsync(c => c.Id == conversationId);
 
             if (conversation == null)
             {
+                _logger.LogWarning("⛔ DEBUG: Conversation {ConvId} NOT FOUND in database", conversationId);
                 return false;
             }
+
+            _logger.LogInformation("📋 DEBUG: Found conversation - IsChannel: {IsChannel}, OrgId: {ConvOrgId}, RequestedOrgId: {ReqOrgId}, MatterId: {MatterId}", 
+                conversation.IsChannel, conversation.OrganizationId, organizationId, conversation.MatterId);
 
             // For channels, check multiple access paths
             if (conversation.IsChannel)
             {
+                _logger.LogInformation("🔍 DEBUG: This is a CHANNEL - checking channel access paths...");
+                
                 // 1. Direct organization membership - conversation belongs to current organization
                 if (conversation.OrganizationId == organizationId)
                 {
+                    _logger.LogInformation("✓ DEBUG: Channel org matches requested org - checking membership...");
                     // Check if user is a member of the organization
                     var isOrgMember = await _permissionService.IsOrganizationMemberAsync(userId, organizationId);
+                    _logger.LogInformation("✓ DEBUG: Is org member: {IsOrgMember}", isOrgMember);
                     if (isOrgMember)
                     {
+                        _logger.LogInformation("✅ DEBUG: Access GRANTED via direct org membership");
                         return true;
                     }
                 }
 
                 // 2. Cross-organization access through firm relationships
                 // Check if user's law firm has access to the channel's organization
+                _logger.LogInformation("🔍 DEBUG: Checking firm-based cross-org access...");
                 var hasFirmAccess = await _permissionService.HasFirmBasedAccessAsync(userId, conversation.OrganizationId);
+                _logger.LogInformation("✓ DEBUG: Has firm-based access: {HasFirmAccess}", hasFirmAccess);
                 if (hasFirmAccess)
                 {
-                    _logger.LogInformation("User {UserId} granted firm-based access to channel {ConversationId} in org {OrgId}", userId, conversationId, conversation.OrganizationId);
+                    _logger.LogInformation("✅ User {UserId} granted firm-based access to channel {ConversationId} in org {OrgId}", userId, conversationId, conversation.OrganizationId);
                     return true;
                 }
 
                 // 3. Matter-based access - if channel is linked to a matter, check matter access
                 if (conversation.MatterId.HasValue)
                 {
+                    _logger.LogInformation("🔍 DEBUG: Channel linked to Matter {MatterId}, checking matter access...", conversation.MatterId.Value);
                     var canAccessMatter = await _permissionService.CanAccessMatterAsync(userId, conversation.MatterId.Value);
+                    _logger.LogInformation("✓ DEBUG: Can access matter: {CanAccess}", canAccessMatter);
                     if (canAccessMatter)
                     {
+                        _logger.LogInformation("✅ DEBUG: Access GRANTED via matter access");
                         return true;
                     }
                 }
 
+                _logger.LogWarning("⛔ DEBUG: CHANNEL access DENIED - no valid access path found");
                 return false;
             }
 
-            // For non-channel conversations, use original logic
+            // For non-channel conversations (AI chat), use original logic
+            _logger.LogInformation("🔍 DEBUG: This is a NON-CHANNEL conversation (AI chat) - checking access...");
+            
             // Check if conversation belongs to the organization
             if (conversation.OrganizationId != organizationId)
             {
+                _logger.LogWarning("⛔ DEBUG: Conversation org {ConvOrgId} DOES NOT MATCH requested org {ReqOrgId}", 
+                    conversation.OrganizationId, organizationId);
+                _logger.LogWarning("⛔ DEBUG: This happens when viewing from a DIFFERENT ORG than where the conversation was created");
+                _logger.LogWarning("⛔ DEBUG: User may be in client org {ReqOrgId} but conversation is in law firm org {ConvOrgId}", 
+                    organizationId, conversation.OrganizationId);
                 return false;
             }
 
+            _logger.LogInformation("✓ DEBUG: Conversation org matches requested org - checking participation...");
+            
             // Check if user is a participant or creator
             var isParticipant = conversation.Participants.Any(p => p.UserId == userId);
             var isCreator = conversation.CreatedById == userId;
+            
+            _logger.LogInformation("✓ DEBUG: Is participant: {IsParticipant}, Is creator: {IsCreator}", isParticipant, isCreator);
 
-            return isParticipant || isCreator;
+            var hasAccess = isParticipant || isCreator;
+            if (hasAccess)
+            {
+                _logger.LogInformation("✅ DEBUG: Access GRANTED via participation/creator");
+            }
+            else
+            {
+                _logger.LogWarning("⛔ DEBUG: Access DENIED - user is not a participant or creator");
+            }
+            
+            return hasAccess;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error validating conversation access for user {UserId} and conversation {ConversationId}", userId, conversationId);
+            _logger.LogError(ex, "❌ ERROR validating conversation access for user {UserId} and conversation {ConversationId}", userId, conversationId);
             return false;
         }
     }

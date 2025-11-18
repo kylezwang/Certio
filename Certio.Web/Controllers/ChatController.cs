@@ -186,21 +186,32 @@ public class ChatController : Controller
         {
             var userId = GetCurrentUserId();
             
+            _logger.LogInformation("🔍 DEBUG GetMessages: User {UserId} requesting messages for Conversation {ConvId} in Org {OrgId}", 
+                userId, id, orgId);
+            
             // Security: Verify user has access to this conversation
             var hasAccess = await _chatService.CanUserAccessConversationAsync(id, userId, orgId);
+            
+            _logger.LogInformation("🔐 DEBUG GetMessages: Access check result for User {UserId} Conversation {ConvId} Org {OrgId}: {HasAccess}", 
+                userId, id, orgId, hasAccess);
+            
             if (!hasAccess)
             {
-                _logger.LogWarning("SECURITY: User {UserId} attempted to get messages from unauthorized conversation {ConversationId} in org {OrgId}", 
+                _logger.LogWarning("⛔ SECURITY: User {UserId} DENIED access to conversation {ConversationId} in org {OrgId}", 
                     userId, id, orgId);
+                _logger.LogWarning("🔍 DEBUG: User may be in a client org trying to access law firm conversation, or conversation doesn't exist");
                 return Json(new { success = false, error = "Access denied." });
             }
             
-        var messages = await _chatService.GetConversationMessagesAsync(id);
-        return Json(messages);
+            _logger.LogInformation("✅ DEBUG GetMessages: Access granted, fetching messages...");
+            var messages = await _chatService.GetConversationMessagesAsync(id);
+            _logger.LogInformation("✅ DEBUG GetMessages: Retrieved {Count} messages for conversation {ConvId}", messages.Count, id);
+            
+            return Json(messages);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving messages for conversation {ConversationId}", id);
+            _logger.LogError(ex, "❌ ERROR retrieving messages for conversation {ConversationId} in org {OrgId}", id, orgId);
             return Json(new { success = false, error = "An error occurred while retrieving messages." });
         }
     }

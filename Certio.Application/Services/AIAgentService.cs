@@ -4,7 +4,9 @@ using System.Text;
 using System.Security.Cryptography;
 using System.Globalization;
 using System.Linq;
+using System.Collections.Concurrent;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Certio.Domain.Services;
 using Certio.Domain.Documents;
 using Certio.Application.Interfaces;
@@ -26,19 +28,27 @@ public class AIAgentService : IAIAgentService
     private readonly IRagContextService _ragContextService;
     private readonly ApplicationDbContext _dbContext;
     private readonly IDocumentContentService _documentContentService;
+    private readonly IUserDataContextService _userDataContextService;
+    private readonly ILogger<AIAgentService>? _logger;
+    private readonly ConcurrentDictionary<string, DateTime> _userDataSyncCache = new();
+    private static readonly TimeSpan UserDataSyncInterval = TimeSpan.FromMinutes(5);
 
     public AIAgentService(
         HttpClient httpClient, 
         IConfiguration configuration,
         IRagContextService ragContextService,
         ApplicationDbContext dbContext,
-        IDocumentContentService documentContentService)
+        IDocumentContentService documentContentService,
+        IUserDataContextService userDataContextService,
+        ILogger<AIAgentService>? logger = null)
     {
         _httpClient = httpClient;
         _configuration = configuration;
         _ragContextService = ragContextService;
         _dbContext = dbContext;
         _documentContentService = documentContentService;
+        _userDataContextService = userDataContextService;
+        _logger = logger;
         
         // Configure the HTTP client for the Python AI service
         var aiServiceUrl = _configuration["AIService:BaseUrl"] ?? "http://localhost:8000";
@@ -332,6 +342,33 @@ public class AIAgentService : IAIAgentService
             .ToList();
     }
 
+    private async Task EnsureUserDataContextSyncedAsync(int organizationId, int userId)
+    {
+        if (_userDataContextService == null)
+        {
+            return;
+        }
+
+        var cacheKey = $"{organizationId}:{userId}";
+        var now = DateTime.UtcNow;
+
+        if (_userDataSyncCache.TryGetValue(cacheKey, out var lastSync) &&
+            now - lastSync < UserDataSyncInterval)
+        {
+            return;
+        }
+
+        try
+        {
+            await _userDataContextService.SyncUserDataToPythonAsync(userId, organizationId);
+            _userDataSyncCache[cacheKey] = now;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to sync user data context for User {UserId} Org {OrgId}", userId, organizationId);
+        }
+    }
+
     private object CreateAIRequest(
         string conversationId, 
         List<ChatMessage> messages, 
@@ -341,6 +378,26 @@ public class AIAgentService : IAIAgentService
         Certio.Domain.Organizations.AIModelTier? aiModelTier = null)
     {
         var orderedMessages = OrderMessages(messages);
+
+        // Try to extract user_id and organization_id from messages for user data context
+        int? userId = orderedMessages.LastOrDefault(m => m.UserId.HasValue)?.UserId;
+        int? organizationId = null;
+        
+        // Get organization ID from conversation if available
+        if (int.TryParse(conversationId, out var convId))
+        {
+            try
+            {
+                var conversation = _dbContext.Conversations
+                    .AsNoTracking()
+                    .FirstOrDefault(c => c.Id == convId);
+                organizationId = conversation?.OrganizationId;
+            }
+            catch
+            {
+                // If we can't get the conversation, that's okay - continue without organization_id
+            }
+        }
 
         var request = new
         {
@@ -359,16 +416,18 @@ public class AIAgentService : IAIAgentService
                 is_read = m.IsRead
             }).ToList(),
             user_type = userType,
-            ai_model_tier = aiModelTier?.ToString() ?? "Auto"
+            ai_model_tier = aiModelTier?.ToString() ?? "Auto",
+            user_id = userId,  // Added for user data RAG context
+            organization_id = organizationId  // Added for user data RAG context
         };
 
         if (userMessage != null && documentContext != null)
         {
-            return new { request.conversation_id, request.messages, request.user_type, request.ai_model_tier, user_message = userMessage, document_context = documentContext };
+            return new { request.conversation_id, request.messages, request.user_type, request.ai_model_tier, request.user_id, request.organization_id, user_message = userMessage, document_context = documentContext };
         }
         else if (userMessage != null)
         {
-            return new { request.conversation_id, request.messages, request.user_type, request.ai_model_tier, user_message = userMessage };
+            return new { request.conversation_id, request.messages, request.user_type, request.ai_model_tier, request.user_id, request.organization_id, user_message = userMessage };
         }
         else
         {
@@ -398,7 +457,7 @@ public class AIAgentService : IAIAgentService
                 return null;
             }
 
-            var initiatingMessage = orderedMessages.FirstOrDefault(m => !m.IsFromAI);
+            var initiatingMessage = orderedMessages.LastOrDefault(m => !m.IsFromAI);
             if (initiatingMessage?.UserId == null)
             {
                 return null;
@@ -412,6 +471,10 @@ public class AIAgentService : IAIAgentService
             {
                 return null;
             }
+
+            await EnsureUserDataContextSyncedAsync(
+                conversation.OrganizationId,
+                initiatingMessage.UserId.Value);
 
             var ragRequest = new RagContextRequest(
                 CreateDeterministicGuid("certio:organization", conversation.OrganizationId),

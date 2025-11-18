@@ -61,6 +61,18 @@ except ImportError as e:
         def get_knowledge_stats():
             return notal_rag.get_knowledge_stats() if hasattr(notal_rag, 'get_knowledge_stats') else {}
 
+# Import user data RAG system
+try:
+    from user_data_rag_system import user_data_rag, get_user_data_context
+    logger.info("✅ User Data RAG System loaded successfully")
+    USER_DATA_RAG_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"User Data RAG system not available: {e}")
+    USER_DATA_RAG_AVAILABLE = False
+    user_data_rag = None
+    async def get_user_data_context(*args, **kwargs):
+        return ""
+
 # Initialize FastAPI app
 app = FastAPI(title="Notal AI Agents", version="1.0.0")
 
@@ -1571,6 +1583,99 @@ async def add_custom_knowledge(request: dict, _: str = Depends(authenticate_requ
         logger.error(f"Error adding custom knowledge: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+# ============================================
+# USER DATA RAG ENDPOINTS
+# ============================================
+
+@app.post("/data-context/sync")
+async def sync_user_data_context(payload: dict, _: str = Depends(authenticate_request)):
+    """
+    Endpoint to sync user data context from C# backend
+    Receives comprehensive user data and indexes it for RAG
+    """
+    try:
+        if not USER_DATA_RAG_AVAILABLE:
+            raise HTTPException(status_code=503, detail="User Data RAG system not available")
+        
+        user_id = payload.get('userId')
+        organization_id = payload.get('organizationId')
+        user_name = payload.get('userName', 'User')  # Get actual user name
+        module_data = payload.get('moduleData', {})
+        metadata = payload.get('metadata', {})
+        
+        if not user_id or not organization_id:
+            raise HTTPException(status_code=400, detail="userId and organizationId are required")
+        
+        success = await user_data_rag.sync_user_data(
+            user_id, organization_id, module_data, metadata, user_name
+        )
+        
+        if success:
+            return {
+                "success": True,
+                "message": f"Successfully synced data for user {user_id}",
+                "total_chunks": sum(m.get('totalItems', 0) for m in module_data.values() if isinstance(m, dict))
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Failed to sync user data")
+            
+    except Exception as e:
+        logger.error(f"Error syncing user data: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/data-context/summary/{user_id}/{organization_id}")
+async def get_user_data_summary_endpoint(user_id: int, organization_id: int, _: str = Depends(authenticate_request)):
+    """Get summary of available user data"""
+    try:
+        if not USER_DATA_RAG_AVAILABLE:
+            return {"has_data": False, "message": "User Data RAG system not available"}
+        
+        summary = await user_data_rag.get_user_summary(user_id, organization_id)
+        return summary
+    except Exception as e:
+        logger.error(f"Error getting user data summary: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/data-context/search")
+async def search_user_data_endpoint(payload: dict, _: str = Depends(authenticate_request)):
+    """Search user data with semantic/keyword matching"""
+    try:
+        if not USER_DATA_RAG_AVAILABLE:
+            raise HTTPException(status_code=503, detail="User Data RAG system not available")
+        
+        user_id = payload.get('userId')
+        organization_id = payload.get('organizationId')
+        query = payload.get('query', '')
+        top_k = payload.get('topK', 10)
+        module_filter = payload.get('moduleFilter')
+        
+        if not user_id or not organization_id or not query:
+            raise HTTPException(status_code=400, detail="userId, organizationId, and query are required")
+        
+        from user_data_rag_system import search_user_data
+        result = await search_user_data(user_id, organization_id, query, top_k, module_filter)
+        
+        return {
+            "query": query,
+            "total_available": result.total_available,
+            "results_count": len(result.chunks),
+            "module_breakdown": result.module_breakdown,
+            "chunks": [
+                {
+                    "id": chunk.id,
+                    "module": chunk.module_name,
+                    "entity_type": chunk.entity_type,
+                    "title": chunk.title,
+                    "content": chunk.content[:200] + "..." if len(chunk.content) > 200 else chunk.content,
+                    "relevance_score": score
+                }
+                for chunk, score in zip(result.chunks, result.relevance_scores)
+            ]
+        }
+    except Exception as e:
+        logger.error(f"Error searching user data: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/training/add-conversations")
 async def add_conversation_training_data_endpoint(request: dict, _: str = Depends(authenticate_request)):
     """Add training data from conversations"""
@@ -1836,7 +1941,12 @@ async def conversational_response(payload: dict, _: str = Depends(authenticate_r
 
 Respond with a brief, warm greeting and offer to help with legal questions. Keep it conversational and under 50 words. Use HTML formatting with proper <p> tags and <br> for line breaks.
 
-Be friendly, professional, and concise. Format your response as proper HTML."""
+CRITICAL RULES:
+- Do NOT start with "Hello [Name]" or greet the user again if they already said hi
+- Only say their name in the VERY FIRST message of a new conversation
+- For follow-up messages, jump straight to answering their question
+- Be friendly but don't waste words on repeated greetings
+Format your response as proper HTML with <p> tags."""
             
             # Even simple messages get RAG enhancement for Notal context
             simple_context = {"user_type": user_type, "message_type": "greeting"}
@@ -1913,15 +2023,52 @@ CURRENT REQUEST: {user_message}{doc_context_section}"""  # Close the base prompt
                 enhanced_prompt = enhance_agent_prompt("ConversationalAI", base_system_prompt, user_message, conversation_context_payload)
             logger.info(f"✅ RAG enhancement completed for conversational response")
             
+            # Add user data context from all modules (Matters, Tasks, Calendar, etc.)
+            user_data_context_section = ""
+            if USER_DATA_RAG_AVAILABLE:
+                try:
+                    # Extract user_id and organization_id from payload if available
+                    user_id = payload.get("user_id")
+                    organization_id = payload.get("organization_id")
+                    
+                    if user_id and organization_id:
+                        logger.info(f"🔍 Fetching user data context for User {user_id} in Org {organization_id}")
+                        user_data_context = await get_user_data_context(
+                            user_id, organization_id, user_message, 
+                            agent_type="ConversationalAI", top_k=8
+                        )
+                        if user_data_context and len(user_data_context) > 50:  # Has meaningful content
+                            user_data_context_section = f"\n\n{user_data_context}"
+                            logger.info(f"✅ Added user data context ({len(user_data_context)} chars) from user's modules")
+                        else:
+                            logger.info("ℹ️ No relevant user data context found")
+                    else:
+                        logger.debug("ℹ️ User ID or Organization ID not provided, skipping user data context")
+                except Exception as e:
+                    logger.warning(f"Failed to retrieve user data context: {e}")
+            
+            enhanced_prompt = enhanced_prompt + user_data_context_section
+            
             # Add the response requirements to the enhanced prompt
             system_prompt = enhanced_prompt + f"""
 
+🚨 CRITICAL ANTI-HALLUCINATION RULES:
+1. If you received "USER'S ACTUAL DATA" context above, you MUST use ONLY that exact data
+2. DO NOT invent or make up information about matters, practice areas, dates, or team members
+3. If a field says "Not specified" or is missing, acknowledge it - don't fill it in
+4. For questions about user data (matters, tasks, messages), quote the actual data provided
+5. If you don't have the specific information requested, say "I don't have access to that information in your data"
+6. Do NOT start responses with "Hello [Name]," - only greet in the first message of a conversation
+7. Pay attention to pronouns like "that matter", "this task" - they refer to the previous message
+
 RESPONSE REQUIREMENTS:
 1. Provide a helpful, conversational response to the user's request
-2. Include relevant legal insights and suggestions
-3. Identify key legal topics and potential next steps
-4. Be specific and actionable
-5. Use proper HTML formatting with <p> tags, <br> for line breaks, <ul><li> for lists, and <strong> for emphasis
+2. When referencing user data, use the EXACT information from the context (e.g., exact practice areas, dates, names)
+3. Include relevant legal insights and suggestions
+4. Identify key legal topics and potential next steps
+5. Be specific and actionable
+6. Use proper HTML formatting with <p> tags, <br> for line breaks, <ul><li> for lists, and <strong> for emphasis
+7. NO repeated greetings - jump straight to answering the question
 
 RESPONSE FORMAT:
 <response>
@@ -2037,6 +2184,29 @@ async def conversational_response_stream(payload: dict, _: str = Depends(authent
             user_type = payload.get("user_type", "Client")
             document_context = payload.get("document_context", None)
             ai_model_tier = payload.get("ai_model_tier", "Auto")  # Get tier preference
+            user_id = payload.get("user_id")
+            organization_id = payload.get("organization_id")
+
+            async def fetch_user_data_context():
+                """Retrieve user-specific data context for RAG if available."""
+                if not USER_DATA_RAG_AVAILABLE or not user_id or not organization_id:
+                    return ""
+                try:
+                    logger.info(f"🔍 Fetching user data context (stream) for User {user_id} Org {organization_id}")
+                    context_text = await get_user_data_context(
+                        user_id,
+                        organization_id,
+                        user_message,
+                        agent_type="ConversationalAI",
+                        top_k=8
+                    )
+                    if context_text and len(context_text) > 50:
+                        logger.info(f"✅ Added streaming user data context ({len(context_text)} chars)")
+                        return f"\n\n{context_text}"
+                    logger.info("ℹ️ No streaming user data context available")
+                except Exception as exc:
+                    logger.warning(f"Streaming user data context unavailable: {exc}")
+                return ""
             
             # Check if this is a dashboard card request (conversation_id starts with "dashboard-")
             is_dashboard_card = conversation_id.startswith("dashboard-")
@@ -2068,6 +2238,11 @@ async def conversational_response_stream(payload: dict, _: str = Depends(authent
 
 Respond with a brief, warm greeting and offer to help with legal questions. Keep it conversational and under 50 words.
 
+CRITICAL RULES:
+- Do NOT start with "Hello [Name]" or greet the user again if they already said hi
+- Only say their name in the VERY FIRST message of a new conversation
+- For follow-up messages, jump straight to answering their question
+- Be friendly but don't waste words on repeated greetings
 IMPORTANT: Return ONLY the HTML content with <p> tags and <br> for line breaks. Do NOT wrap your response in ```html code blocks or any other markdown formatting. Return the raw HTML directly."""
                 
                 # Even simple messages get RAG enhancement for Notal context
@@ -2077,6 +2252,11 @@ IMPORTANT: Return ONLY the HTML content with <p> tags and <br> for line breaks. 
                                                         user_type=user_type, conversation_context=simple_context)
                 else:
                     system_prompt = enhance_agent_prompt("ConversationalAI", base_simple_prompt, user_message, simple_context)
+
+                # Attach user data context if available
+                user_data_context_section = await fetch_user_data_context()
+                if user_data_context_section:
+                    system_prompt += user_data_context_section
                 
                 # Use GPT-4o-mini for simple responses (unless tier forces different model)
                 if force_model_type:
@@ -2149,16 +2329,32 @@ CURRENT REQUEST: {user_message}{doc_context_section}"""
                 else:
                     enhanced_prompt = enhance_agent_prompt("ConversationalAI", base_system_prompt, user_message, conversation_context_payload)
                 logger.info(f"✅ RAG enhancement completed for streaming response")
+
+                # Attach user data context if available
+                user_data_context_section = await fetch_user_data_context()
+                if user_data_context_section:
+                    enhanced_prompt = enhanced_prompt + user_data_context_section
                 
                 # Add the response requirements to the enhanced prompt
                 system_prompt = enhanced_prompt + """
 
+🚨 CRITICAL ANTI-HALLUCINATION RULES:
+1. If you received "USER'S ACTUAL DATA" context above, you MUST use ONLY that exact data
+2. DO NOT invent or make up information about matters, practice areas, dates, or team members  
+3. If a field says "Not specified" or is missing, acknowledge it - don't fill it in
+4. For questions about user data (matters, tasks, messages), quote the actual data provided
+5. If you don't have the specific information requested, say "I don't have access to that information in your data"
+6. Do NOT start responses with "Hello [Name]," - only greet in the first message of a conversation
+7. Pay attention to pronouns like "that matter", "this task" - they refer to the previous message
+
 RESPONSE REQUIREMENTS:
 1. Provide a helpful, conversational response to the user's request
-2. Include relevant legal insights and suggestions
-3. Be specific and actionable
-4. Use proper HTML formatting with <p> tags for paragraphs, <ul><li> for lists, and <strong> for emphasis
-5. Do NOT use <br> tags - use separate <p> tags for new paragraphs instead
+2. When referencing user data, use the EXACT information from the context (e.g., exact practice areas, dates, names)
+3. Include relevant legal insights and suggestions
+4. Be specific and actionable
+5. Use proper HTML formatting with <p> tags for paragraphs, <ul><li> for lists, and <strong> for emphasis
+6. Do NOT use <br> tags - use separate <p> tags for new paragraphs instead
+7. NO repeated greetings - jump straight to answering the question
 
 CRITICAL: Return ONLY the HTML content. Do NOT wrap your response in ```html code blocks or any markdown formatting. Return the raw HTML directly - just the <p> tags and their content.
 
