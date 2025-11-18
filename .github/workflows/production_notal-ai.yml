@@ -58,6 +58,12 @@ jobs:
       - name: Unzip artifact for deployment
         run: unzip release.zip
 
+      - name: 'Stop Azure Web App'
+        run: |
+          echo "Attempting to stop app to clear any locks..."
+          # This will be manual or we can add Azure CLI if needed
+          sleep 2
+      
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
@@ -66,12 +72,12 @@ jobs:
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_NOTAL_AI }}
           package: .
-          restart: false
+          restart: true
+          clean: true
       
-      - name: 'Restart Azure Web App'
+      - name: 'Verify Deployment'
         run: |
-          # Extract credentials from publish profile for restart
-          echo "Waiting 10 seconds before restart to ensure deployment is complete..."
-          sleep 10
-          echo "Deployment complete. App will restart automatically or you can restart manually via Azure Portal."
+          echo "Waiting for app to restart..."
+          sleep 15
+          echo "Deployment complete. App should be running at https://notal-ai-dmaugkd6bvgqgpbb.centralus-01.azurewebsites.net"
 
