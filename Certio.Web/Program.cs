@@ -617,11 +617,29 @@ builder.Services.AddScoped<IAuthorizationHandler, OrgMemberAuthorizationHandler>
 
 // AI Services
 builder.Services.AddHttpClient<Certio.Application.Services.IAIAgentService, Certio.Application.Services.AIAgentService>();
+
+// Named HttpClient for UserDataContextService to use
+builder.Services.AddHttpClient("AIAgentService", client =>
+{
+    var aiServiceUrl = builder.Configuration["AIService:BaseUrl"] ?? "http://localhost:8000";
+    client.BaseAddress = new Uri(aiServiceUrl);
+    client.Timeout = TimeSpan.FromSeconds(builder.Configuration.GetValue<int>("AIService:TimeoutSeconds", 30));
+    
+    var apiKey = builder.Configuration["AIService:ApiKey"];
+    if (!string.IsNullOrWhiteSpace(apiKey))
+    {
+        client.DefaultRequestHeaders.Add("X-API-Key", apiKey);
+    }
+});
+
 builder.Services.AddScoped<Certio.Application.Interfaces.IChatService, Certio.Web.Services.ChatService>();
 builder.Services.AddSingleton<Certio.Web.Services.AIBackgroundService>();
 
 // Direct Message Services
 builder.Services.AddScoped<Certio.Application.Interfaces.IDirectMessageService, Certio.Web.Services.DirectMessageService>();
+
+// User Data Context Service for comprehensive AI RAG across all modules
+builder.Services.AddScoped<Certio.Application.Interfaces.IUserDataContextService, Certio.Application.Services.UserDataContextService>();
 
 // Email Integration Services
 builder.Services.AddScoped<Certio.Application.Interfaces.IEmailService, Certio.Web.Services.EmailService>();

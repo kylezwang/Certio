@@ -1,0 +1,436 @@
+{
+  "user_id": 1,
+  "organization_id": 4,
+  "user_name": "Kyle Wang",
+  "total_chunks": 19,
+  "last_synced": "2025-11-18T02:10:07.633022",
+  "module_summaries": {
+    "tasks": {
+      "totalTasks": 7,
+      "pendingTasks": 1,
+      "inProgressTasks": 1,
+      "completedTasks": 2,
+      "highPriorityTasks": 6
+    },
+    "calendar": {
+      "totalEvents": 5,
+      "upcomingEvents": 0,
+      "todayEvents": 0,
+      "thisWeekEvents": 0
+    },
+    "communications": {
+      "totalChannels": 5,
+      "totalChannelMessages": 15,
+      "totalDMThreads": 1,
+      "totalDMMessages": 6,
+      "uniqueParticipants": 3
+    },
+    "clients": {
+      "totalClients": 1,
+      "activeClients": 1
+    }
+  },
+  "chunks": [
+    {
+      "id": "cef1e28d-e1eb-4e50-b196-0d965047a5ce",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 15,
+      "title": "Third Visible Matters Task",
+      "content": "Task: Third Visible Matters Task\r\nStatus: Review\r\nPriority: Critical\r\nDescription: The third Visible Matters task to check whether or not adding new matter-scoped tasks still works after UI polish.\r\nRelated Matter: Visible Matters Corporation\r\nDue Date: 2025-10-10\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Review",
+        "priority": "Critical",
+        "dueDate": "2025-10-10T00:00:00",
+        "matterId": 5,
+        "matterTitle": "Visible Matters Corporation",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-10-09T22:36:30.1964673",
+      "modified_at": "2025-11-11T02:22:38.6427262",
+      "relevance_score": 0
+    },
+    {
+      "id": "af2ad9f1-c064-4fe9-a4c3-e45bdd79dc6c",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 21,
+      "title": "Internal Visible Matters Task",
+      "content": "Task: Internal Visible Matters Task\r\nStatus: Completed\r\nPriority: High\r\nDescription: First task testing internal matter-scoped task creation within Matter Details.\r\nRelated Matter: Visible Matters Corporation\r\nDue Date: 2025-10-18\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Completed",
+        "priority": "High",
+        "dueDate": "2025-10-18T00:00:00",
+        "matterId": 5,
+        "matterTitle": "Visible Matters Corporation",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-10-18T04:55:26.3452647",
+      "modified_at": "2025-11-11T02:04:10.6489197",
+      "relevance_score": 0
+    },
+    {
+      "id": "b1fdc0e1-a71e-4d8b-bb06-a60404b959ec",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 9,
+      "title": "First Visible Matters Task",
+      "content": "Task: First Visible Matters Task\r\nStatus: Pending\r\nPriority: Critical\r\nDescription: Here's the first example Visible Matters task. Example revision.\r\nRelated Matter: Visible Matters Corporation\r\nDue Date: 2025-10-08\r\nAssigned to: Kyle Wang, John Marshall\r\n",
+      "metadata": {
+        "status": "Pending",
+        "priority": "Critical",
+        "dueDate": "2025-10-08T00:00:00",
+        "matterId": 5,
+        "matterTitle": "Visible Matters Corporation",
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall"
+        ]
+      },
+      "created_at": "2025-10-09T06:23:14.651272",
+      "modified_at": "2025-11-10T02:35:00.0084564",
+      "relevance_score": 0
+    },
+    {
+      "id": "f5953d49-f049-4eec-bdd1-4fea2bc19a6c",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 18,
+      "title": "SLA IV Task",
+      "content": "Task: SLA IV Task\r\nStatus: Completed\r\nPriority: High\r\nDescription: Example task to check whether the task assignments work and also if the Subtasks get displayed properly.\r\nRelated Matter: SLA IV Corporation\r\nDue Date: 2025-10-13\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Completed",
+        "priority": "High",
+        "dueDate": "2025-10-13T00:00:00",
+        "matterId": 16,
+        "matterTitle": "SLA IV Corporation",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-10-13T01:26:54.9097378",
+      "modified_at": "2025-11-07T08:13:16.0443547",
+      "relevance_score": 0
+    },
+    {
+      "id": "c50186cc-fd41-413a-af47-384e4c6f9342",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 19,
+      "title": "Second SLA IV Task",
+      "content": "Task: Second SLA IV Task\r\nStatus: Review\r\nPriority: Critical\r\nDescription: This is a test to check whether tasks can be created for a client organization within the law firm organization.\r\nRelated Matter: SLA IV Corporation\r\nDue Date: 2025-10-14\r\nAssigned to: Kyle Wang, John Marshall\r\n",
+      "metadata": {
+        "status": "Review",
+        "priority": "Critical",
+        "dueDate": "2025-10-14T00:00:00",
+        "matterId": 16,
+        "matterTitle": "SLA IV Corporation",
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall"
+        ]
+      },
+      "created_at": "2025-10-13T01:28:18.313094",
+      "modified_at": "2025-11-07T08:13:11.972912",
+      "relevance_score": 0
+    },
+    {
+      "id": "fadb97f3-58b2-447d-b2e9-5cedbbb8d20d",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 10,
+      "title": "Second Visible Matters Task",
+      "content": "Task: Second Visible Matters Task\r\nStatus: InProgress\r\nPriority: Low\r\nDescription: This is the second Visible Matters task to test whether or not the pre-assignee permission system is implemented.\r\nRelated Matter: Visible Matters Corporation\r\nDue Date: 2025-10-10\r\nAssigned to: Kyle Wang, Chloe Tang, John Marshall\r\n",
+      "metadata": {
+        "status": "InProgress",
+        "priority": "Low",
+        "dueDate": "2025-10-10T00:00:00",
+        "matterId": 5,
+        "matterTitle": "Visible Matters Corporation",
+        "assignees": [
+          "Kyle Wang",
+          "Chloe Tang",
+          "John Marshall"
+        ]
+      },
+      "created_at": "2025-10-09T07:01:15.9612594",
+      "modified_at": "2025-11-07T03:09:25.4390927",
+      "relevance_score": 0
+    },
+    {
+      "id": "c5da5326-7c0c-4025-bfd6-1f382517311f",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 17,
+      "title": "First SLA Task",
+      "content": "Task: First SLA Task\r\nStatus: Review\r\nPriority: Critical\r\nDescription: Testing task creation for clients through organization relationships.\r\nRelated Matter: SLA V Finale\r\nDue Date: 2025-10-13\r\n",
+      "metadata": {
+        "status": "Review",
+        "priority": "Critical",
+        "dueDate": "2025-10-13T00:00:00",
+        "matterId": 17,
+        "matterTitle": "SLA V Finale",
+        "assignees": []
+      },
+      "created_at": "2025-10-13T01:04:49.3782262",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "9d67f8e6-fb52-4dbb-b572-ebbfeb5680ff",
+      "module_name": "calendar",
+      "entity_type": "CalendarEvent",
+      "entity_id": 13,
+      "title": "Fixed MC Event",
+      "content": "Event: Fixed MC Event\r\nType: Meeting\r\nStart: 2025-10-18 12:12\r\nEnd: 2025-10-18 13:12\r\nLocation: {\"name\":\"Finland\",\"address\":\"Finland\",\"formatted_address\":\"Finland\",\"place_id\":null,\"geometry\":null}\r\nDescription: Checking again to see if duplicate events are created.\r\nAttendees: John Marshall\r\n",
+      "metadata": {
+        "startDateTime": "2025-10-18T12:12:00",
+        "endDateTime": "2025-10-18T13:12:00",
+        "eventType": "Meeting",
+        "location": "{\"name\":\"Finland\",\"address\":\"Finland\",\"formatted_address\":\"Finland\",\"place_id\":null,\"geometry\":null}",
+        "isAllDay": false,
+        "attendees": [
+          "John Marshall"
+        ],
+        "matterId": 5
+      },
+      "created_at": "2025-10-21T22:13:37.939657",
+      "modified_at": "2025-10-22T00:39:10.6874609",
+      "relevance_score": 0
+    },
+    {
+      "id": "14560353-c71f-4be3-96c2-d85fa59129b6",
+      "module_name": "calendar",
+      "entity_type": "CalendarEvent",
+      "entity_id": 14,
+      "title": "Real Visible Finale!!!",
+      "content": "Event: Real Visible Finale!!!\r\nType: Meeting\r\nStart: 2025-10-23 12:12\r\nEnd: 2025-10-23 13:12\r\nLocation: {\"name\":\"Finland\",\"address\":\"Finland\",\"formatted_address\":\"Finland\",\"place_id\":null,\"geometry\":null}\r\nDescription: Checking again to see if duplicate events are created.\r\n",
+      "metadata": {
+        "startDateTime": "2025-10-23T12:12:00",
+        "endDateTime": "2025-10-23T13:12:00",
+        "eventType": "Meeting",
+        "location": "{\"name\":\"Finland\",\"address\":\"Finland\",\"formatted_address\":\"Finland\",\"place_id\":null,\"geometry\":null}",
+        "isAllDay": false,
+        "attendees": [],
+        "matterId": 5
+      },
+      "created_at": "2025-10-21T22:13:37.939657",
+      "modified_at": "2025-10-22T00:41:29.9221482",
+      "relevance_score": 0
+    },
+    {
+      "id": "8c6be2f6-e74e-4db8-9ec7-1bde07e9902e",
+      "module_name": "calendar",
+      "entity_type": "CalendarEvent",
+      "entity_id": 12,
+      "title": "VFER Relocation",
+      "content": "Event: VFER Relocation\r\nType: Conference\r\nStart: 2025-10-26 16:06\r\nEnd: 2025-10-26 18:06\r\nLocation: {\"name\":\"Vista\",\"address\":\"Vista, CA, USA\",\"formatted_address\":\"Vista, CA, USA\",\"place_id\":null,\"geometry\":null}\r\nDescription: Testing if Matter Details Calendar event creation is properly assigning matter and org ID's.\r\n",
+      "metadata": {
+        "startDateTime": "2025-10-26T16:06:00",
+        "endDateTime": "2025-10-26T18:06:00",
+        "eventType": "Conference",
+        "location": "{\"name\":\"Vista\",\"address\":\"Vista, CA, USA\",\"formatted_address\":\"Vista, CA, USA\",\"place_id\":null,\"geometry\":null}",
+        "isAllDay": false,
+        "attendees": [],
+        "matterId": 5
+      },
+      "created_at": "2025-10-21T22:08:18.7273029",
+      "modified_at": "2025-10-22T00:39:46.4155596",
+      "relevance_score": 0
+    },
+    {
+      "id": "05069264-9668-4ef1-b9cf-0f3589e40e4e",
+      "module_name": "calendar",
+      "entity_type": "CalendarEvent",
+      "entity_id": 16,
+      "title": "FINALE",
+      "content": "Event: FINALE\r\nType: CourtDate\r\nStart: 2025-10-29 09:30\r\nEnd: 2025-10-29 10:30\r\nLocation: {\"name\":\"Finale Court\",\"address\":\"Finale Ct, Menifee, CA 92584, USA\",\"formatted_address\":\"Finale Ct, Menifee, CA 92584, USA\",\"place_id\":null,\"geometry\":null}\r\nDescription: Create now works and doesn't create duplicates.\r\nAttendees: John Marshall\r\n",
+      "metadata": {
+        "startDateTime": "2025-10-29T09:30:00",
+        "endDateTime": "2025-10-29T10:30:00",
+        "eventType": "CourtDate",
+        "location": "{\"name\":\"Finale Court\",\"address\":\"Finale Ct, Menifee, CA 92584, USA\",\"formatted_address\":\"Finale Ct, Menifee, CA 92584, USA\",\"place_id\":null,\"geometry\":null}",
+        "isAllDay": false,
+        "attendees": [
+          "John Marshall"
+        ],
+        "matterId": 5
+      },
+      "created_at": "2025-10-21T22:29:32.6800872",
+      "modified_at": "2025-10-22T00:24:47.6979848",
+      "relevance_score": 0
+    },
+    {
+      "id": "7fe79ee8-e92e-4137-911d-441b385b79fd",
+      "module_name": "calendar",
+      "entity_type": "CalendarEvent",
+      "entity_id": 22,
+      "title": "New Visible Event",
+      "content": "Event: New Visible Event\r\nType: Meeting\r\nStart: 2025-11-07 11:00\r\nEnd: 2025-11-07 12:48\r\nLocation: {\"name\":\"The White House\",\"address\":\"1600 Pennsylvania Ave NW, Washington, DC 20500, USA\",\"formatted_address\":\"1600 Pennsylvania Ave NW, Washington, DC 20500, USA\",\"place_id\":null,\"geometry\":null}\r\nAttendees: Kyle Wang, John Marshall\r\n",
+      "metadata": {
+        "startDateTime": "2025-11-07T11:00:00",
+        "endDateTime": "2025-11-07T12:48:00",
+        "eventType": "Meeting",
+        "location": "{\"name\":\"The White House\",\"address\":\"1600 Pennsylvania Ave NW, Washington, DC 20500, USA\",\"formatted_address\":\"1600 Pennsylvania Ave NW, Washington, DC 20500, USA\",\"place_id\":null,\"geometry\":null}",
+        "isAllDay": false,
+        "attendees": [
+          "Kyle Wang",
+          "John Marshall"
+        ],
+        "matterId": 5
+      },
+      "created_at": "2025-11-05T23:49:20.169736",
+      "modified_at": "2025-11-11T02:05:12.6089806",
+      "relevance_score": 0
+    },
+    {
+      "id": "ac600d45-aab1-49ba-80e6-4990336cb072",
+      "module_name": "communications",
+      "entity_type": "Channel",
+      "entity_id": 52,
+      "title": "Channel: visible-matters-corporation",
+      "content": "Channel: visible-matters-corporation\r\nTotal Messages: 4\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-10 06:57] John Marshall: Hi everybody, associate here. We will keep you posted on your case's progress, client.\r\n[2025-11-10 06:56] Chloe Tang: Hey, client here and can see our connected matter channel.\r\n[2025-10-30 01:09] Kyle Wang: Recent messages?\r\n[2025-10-18 23:39] Kyle Wang: Testing the first message to be sent through the Matter Details Communications tab.\r\n",
+      "metadata": {
+        "channelId": 52,
+        "channelName": "visible-matters-corporation",
+        "messageCount": 4,
+        "participants": [
+          "John Marshall",
+          "Chloe Tang",
+          "Kyle Wang"
+        ],
+        "lastMessageAt": "2025-11-10T06:57:31.6802359",
+        "communicationType": "channel"
+      },
+      "created_at": "2025-10-18T23:39:07.8796173",
+      "modified_at": "2025-11-10T06:57:31.6802359",
+      "relevance_score": 0
+    },
+    {
+      "id": "559e9013-895c-415c-a8b5-f34fd8faef08",
+      "module_name": "communications",
+      "entity_type": "Channel",
+      "entity_id": 56,
+      "title": "Channel: audit-log-verification",
+      "content": "Channel: audit-log-verification\r\nTotal Messages: 1\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-04 11:38] Kyle Wang: Checking Matter Communications\r\n",
+      "metadata": {
+        "channelId": 56,
+        "channelName": "audit-log-verification",
+        "messageCount": 1,
+        "participants": [
+          "Kyle Wang"
+        ],
+        "lastMessageAt": "2025-11-04T11:38:04.2265814",
+        "communicationType": "channel"
+      },
+      "created_at": "2025-11-04T11:38:04.2265814",
+      "modified_at": "2025-11-04T11:38:04.2265814",
+      "relevance_score": 0
+    },
+    {
+      "id": "6b0ea082-c0e3-47e3-b8fa-69df0d8efce2",
+      "module_name": "communications",
+      "entity_type": "Channel",
+      "entity_id": 53,
+      "title": "Channel: sla-ii-partnership",
+      "content": "Channel: sla-ii-partnership\r\nTotal Messages: 2\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-10-30 01:28] Kyle Wang: Channels work though.\r\n[2025-10-18 23:42] Kyle Wang: Starting the conversation for the SLA II Matter Details Communications module here\r\n",
+      "metadata": {
+        "channelId": 53,
+        "channelName": "sla-ii-partnership",
+        "messageCount": 2,
+        "participants": [
+          "Kyle Wang"
+        ],
+        "lastMessageAt": "2025-10-30T01:28:01.3340883",
+        "communicationType": "channel"
+      },
+      "created_at": "2025-10-18T23:42:24.656151",
+      "modified_at": "2025-10-30T01:28:01.3340883",
+      "relevance_score": 0
+    },
+    {
+      "id": "3df35720-76bf-4a9e-ba43-4afc459b7938",
+      "module_name": "communications",
+      "entity_type": "Channel",
+      "entity_id": 54,
+      "title": "Channel: sla-iv-corporation",
+      "content": "Channel: sla-iv-corporation\r\nTotal Messages: 2\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-10-26 02:11] Kyle Wang: Hello SLA IV Corporation, welcome to Notal!\r\n[2025-10-18 23:47] Kyle Wang: Welcome everybody, we will handle collaborative decisions and planning in this channel.\r\n",
+      "metadata": {
+        "channelId": 54,
+        "channelName": "sla-iv-corporation",
+        "messageCount": 2,
+        "participants": [
+          "Kyle Wang"
+        ],
+        "lastMessageAt": "2025-10-26T02:11:31.1173307",
+        "communicationType": "channel"
+      },
+      "created_at": "2025-10-18T23:47:45.5368052",
+      "modified_at": "2025-10-26T02:11:31.1173307",
+      "relevance_score": 0
+    },
+    {
+      "id": "a91c4299-1a3a-4761-a14a-664de2903166",
+      "module_name": "communications",
+      "entity_type": "Channel",
+      "entity_id": 45,
+      "title": "Channel: client-ready-communications-ii",
+      "content": "Channel: client-ready-communications-ii\r\nTotal Messages: 6\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-10-18 22:15] Kyle Wang: Testing if messages are still going through after service layer architecture fix\r\n[2025-10-15 23:12] Chloe Tang: Client here, testing if my messages go through\r\n[2025-10-15 23:09] John Marshall: Or maybe it is?\r\n[2025-10-15 23:09] John Marshall: Sending messages through client matter not working\r\n[2025-10-15 23:02] Kyle Wang: Second message testing again\r\n[2025-10-15 23:02] Kyle Wang: Testing client matter channel sending\r\n",
+      "metadata": {
+        "channelId": 45,
+        "channelName": "client-ready-communications-ii",
+        "messageCount": 6,
+        "participants": [
+          "Kyle Wang",
+          "Chloe Tang",
+          "John Marshall"
+        ],
+        "lastMessageAt": "2025-10-18T22:15:46.3117385",
+        "communicationType": "channel"
+      },
+      "created_at": "2025-10-15T23:02:33.1183741",
+      "modified_at": "2025-10-18T22:15:46.3117385",
+      "relevance_score": 0
+    },
+    {
+      "id": "46cf6e67-a64f-4ed6-9ebd-44174ae2cc64",
+      "module_name": "communications",
+      "entity_type": "DirectThread",
+      "entity_id": 0,
+      "title": "DM with Chloe Tang",
+      "content": "Direct Message Thread with: Chloe Tang\r\nTotal Messages: 6\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-10-15 23:13] Kyle Wang: How are you doing on the document analysis, Lawyer Kyle?\r\n[2025-10-15 23:13] Kyle Wang: Seems like this matter is going well.\r\n[2025-10-15 23:13] Chloe Tang: Nice to see you, Kyle!\r\n[2025-10-15 21:55] Kyle Wang: Testing if it activates AI Chat automatically still.\r\n[2025-10-15 21:53] Kyle Wang: Hello client, this is Kyle Wang partner at Law Office of Kyle Wang.\r\n[2025-10-15 21:49] Chloe Tang: Hey, this is the client.\r\n",
+      "metadata": {
+        "threadId": "8fa44ce0-210e-4e76-bea8-233e386f1ec9",
+        "otherUserId": 6,
+        "otherUserName": "Chloe Tang",
+        "messageCount": 6,
+        "lastMessageAt": "2025-10-15T23:13:51.6120098",
+        "communicationType": "direct_message"
+      },
+      "created_at": "2025-10-15T21:49:09.367348",
+      "modified_at": "2025-10-15T23:13:51.6120098",
+      "relevance_score": 0
+    },
+    {
+      "id": "260bab1a-7a6a-4ade-9d87-cd9d08ba21a7",
+      "module_name": "clients",
+      "entity_type": "User",
+      "entity_id": 6,
+      "title": "Chloe Tang",
+      "content": "Client: Chloe Tang\r\nEmail: chloethy.mc@gmail.com\r\n",
+      "metadata": {
+        "email": "chloethy.mc@gmail.com",
+        "phoneNumber": null,
+        "company": null,
+        "jobTitle": null
+      },
+      "created_at": "2025-09-29T01:18:27.4590942",
+      "modified_at": null,
+      "relevance_score": 0
+    }
+  ]
+}

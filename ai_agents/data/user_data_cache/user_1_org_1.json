@@ -1,0 +1,2368 @@
+{
+  "user_id": 1,
+  "organization_id": 1,
+  "user_name": "Kyle Wang",
+  "total_chunks": 102,
+  "last_synced": "2025-11-18T02:26:19.898798",
+  "module_summaries": {
+    "matters": {
+      "totalMatters": 29,
+      "activeMatters": 6,
+      "completedMatters": 3,
+      "practiceAreas": [
+        "Employment / Labor",
+        "Trusts",
+        "Personal Injury",
+        "Family",
+        "Commercial Litigation",
+        "Criminal",
+        "Construction",
+        "Elder",
+        "Corporate Litigation",
+        "Medical Malpractice",
+        "Healthcare",
+        "Securities / Mergers & Acquisitions",
+        "Wills & Estates",
+        "Product Liability",
+        "Real Estate",
+        "Privacy / Information Security",
+        "Sports / Entertainment / Gaming",
+        "Business Formation / Compliance"
+      ]
+    },
+    "tasks": {
+      "totalTasks": 21,
+      "pendingTasks": 3,
+      "inProgressTasks": 3,
+      "completedTasks": 7,
+      "highPriorityTasks": 14
+    },
+    "calendar": {
+      "totalEvents": 17,
+      "upcomingEvents": 0,
+      "todayEvents": 0,
+      "thisWeekEvents": 0
+    },
+    "communications": {
+      "totalChannels": 12,
+      "totalChannelMessages": 63,
+      "totalDMThreads": 20,
+      "totalDMMessages": 58,
+      "uniqueParticipants": 4
+    },
+    "clients": {
+      "totalClients": 3,
+      "activeClients": 3
+    }
+  },
+  "chunks": [
+    {
+      "id": "a3328703-ca20-4f49-800f-3a13ab662662",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 16,
+      "title": "SLA IV Corporation",
+      "content": "=== MATTER: SLA IV Corporation ===\r\nMatter ID: 16\r\nClient/Organization: Chloe Tang's Organization\r\nStatus: Review\r\nPractice Area: Employment / Labor\r\nDescription: Assignee submission testing for correctness. Test update.\r\nStart Date: 2025-10-12\r\nDue Date: 2025-10-13\r\nPending Date: 2025-10-12\r\nStatute of Limitations: 2025-10-13\r\nTasks Progress: 1/2 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\nCreated: 2025-10-12\r\nLast Modified: 2025-11-01\r\n",
+      "metadata": {
+        "matterId": 16,
+        "organizationId": 4,
+        "organizationName": "Chloe Tang's Organization",
+        "status": "Review",
+        "practiceArea": "Employment / Labor",
+        "dueDate": "2025-10-13T00:00:00",
+        "tasksCompleted": 1,
+        "totalTasks": 2,
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-12T23:35:08.3706377",
+      "modified_at": "2025-11-01T22:14:38.1796036",
+      "relevance_score": 0
+    },
+    {
+      "id": "48d401da-fe8c-4b38-ba9b-e77eecf37f1b",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 5,
+      "title": "Visible Matters Corporation",
+      "content": "=== MATTER: Visible Matters Corporation ===\r\nMatter ID: 5\r\nClient/Organization: Chloe Tang's Organization\r\nStatus: Review\r\nPractice Area: Trusts\r\nDescription: This is a test matter to see if Partners have access to client data while others do not.\r\nStart Date: 2025-09-29\r\nDue Date: 2025-09-30\r\nPending Date: 2025-09-30\r\nTasks Progress: 1/4 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\nCreated: 2025-09-30\r\nLast Modified: 2025-11-01\r\n",
+      "metadata": {
+        "matterId": 5,
+        "organizationId": 4,
+        "organizationName": "Chloe Tang's Organization",
+        "status": "Review",
+        "practiceArea": "Trusts",
+        "dueDate": "2025-09-30T00:00:00",
+        "tasksCompleted": 1,
+        "totalTasks": 4,
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall",
+          "Kyle Wang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-09-30T08:47:11.9083643",
+      "modified_at": "2025-11-01T21:28:42.026074",
+      "relevance_score": 0
+    },
+    {
+      "id": "5ef4035f-5223-40fc-9b8c-7ca5020f3088",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 30,
+      "title": "Intro Client Matter",
+      "content": "=== MATTER: Intro Client Matter ===\r\nMatter ID: 30\r\nClient/Organization: Law Office of Kyle Wang\r\nStatus: In Progress\r\nPractice Area: Personal Injury\r\nDescription: This is the matter describing the client's personal injury case description.\r\nStart Date: 2025-10-31\r\nDue Date: 2025-11-07\r\nPending Date: 2025-11-03\r\nStatute of Limitations: 2025-11-05\r\nTasks Progress: 0/1 tasks completed\r\nTeam Members:\r\n  - John Marshall (ResponsibleAttorney)\r\n  - Chloe Tang (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\nCreated: 2025-10-30\r\n",
+      "metadata": {
+        "matterId": 30,
+        "organizationId": 1,
+        "organizationName": "Law Office of Kyle Wang",
+        "status": "In Progress",
+        "practiceArea": "Personal Injury",
+        "dueDate": "2025-11-07T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 1,
+        "assignees": [
+          "John Marshall",
+          "Chloe Tang",
+          "Kyle Wang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-30T23:50:11.0786009",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "d667f0b5-b99d-4b80-a647-c877fe197cb5",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 29,
+      "title": "Kevin's New Matter",
+      "content": "=== MATTER: Kevin's New Matter ===\r\nMatter ID: 29\r\nClient/Organization: Law Office of Kyle Wang\r\nStatus: Planning\r\nPractice Area: Family\r\nDescription: This is a test matter for Kevin Yin.\r\nStart Date: 2025-10-18\r\nDue Date: 2025-10-27\r\nPending Date: 2025-10-22\r\nStatute of Limitations: 2025-10-25\r\nTasks Progress: 0/0 tasks completed\r\nCreated: 2025-10-18\r\n",
+      "metadata": {
+        "matterId": 29,
+        "organizationId": 1,
+        "organizationName": "Law Office of Kyle Wang",
+        "status": "Planning",
+        "practiceArea": "Family",
+        "dueDate": "2025-10-27T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 0,
+        "assignees": [],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-18T08:00:24.1728854",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "b56eb05b-7092-41ae-8bec-c1348fb8f6a0",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 28,
+      "title": "Client Ready Communications II",
+      "content": "=== MATTER: Client Ready Communications II ===\r\nMatter ID: 28\r\nClient/Organization: Chloe Tang's Organization\r\nStatus: Planning\r\nPractice Area: Commercial Litigation\r\nDescription: Testing if new channel is created for client communications after matter creation. Channels are created now after matter creation in law firm organization.\r\nStart Date: 2025-10-14\r\nDue Date: 2025-10-17\r\nPending Date: 2025-10-15\r\nStatute of Limitations: 2025-10-16\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\nCreated: 2025-10-15\r\n",
+      "metadata": {
+        "matterId": 28,
+        "organizationId": 4,
+        "organizationName": "Chloe Tang's Organization",
+        "status": "Planning",
+        "practiceArea": "Commercial Litigation",
+        "dueDate": "2025-10-17T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 0,
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall",
+          "Kyle Wang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-15T03:08:16.8780907",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "7f720376-b4a4-4c01-a06a-70f9587d410b",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 27,
+      "title": "Communications Progress II",
+      "content": "=== MATTER: Communications Progress II ===\r\nMatter ID: 27\r\nClient/Organization: Law Office of Kyle Wang\r\nStatus: Planning\r\nPractice Area: Criminal\r\nDescription: Second test for newly created matters' channels\r\nStart Date: 2025-10-14\r\nDue Date: 2025-10-17\r\nPending Date: 2025-10-15\r\nStatute of Limitations: 2025-10-15\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\nCreated: 2025-10-15\r\n",
+      "metadata": {
+        "matterId": 27,
+        "organizationId": 1,
+        "organizationName": "Law Office of Kyle Wang",
+        "status": "Planning",
+        "practiceArea": "Criminal",
+        "dueDate": "2025-10-17T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 0,
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall",
+          "Kyle Wang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-15T03:05:25.9254107",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "06b8eee9-cb44-44e5-a609-bc96a4f97975",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 26,
+      "title": "Communications Progress",
+      "content": "=== MATTER: Communications Progress ===\r\nMatter ID: 26\r\nClient/Organization: Law Office of Kyle Wang\r\nStatus: Planning\r\nPractice Area: Construction\r\nDescription: Testing channel creation for new matters in law firm organization.\r\nStart Date: 2025-10-14\r\nDue Date: 2025-10-16\r\nPending Date: 2025-10-15\r\nStatute of Limitations: 2025-10-15\r\nTasks Progress: 0/1 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\nCreated: 2025-10-15\r\n",
+      "metadata": {
+        "matterId": 26,
+        "organizationId": 1,
+        "organizationName": "Law Office of Kyle Wang",
+        "status": "Planning",
+        "practiceArea": "Construction",
+        "dueDate": "2025-10-16T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 1,
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall",
+          "Kyle Wang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-15T03:03:54.8111033",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "dd03800f-b252-4161-b67e-ff26a9d7322d",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 25,
+      "title": "Client Ready Communications",
+      "content": "=== MATTER: Client Ready Communications ===\r\nMatter ID: 25\r\nClient/Organization: Chloe Tang's Organization\r\nStatus: In Progress\r\nPractice Area: Elder\r\nDescription: Testing if created matters within client organizations are automatically creating channels.\r\nStart Date: 2025-10-14\r\nDue Date: 2025-10-15\r\nPending Date: 2025-10-14\r\nStatute of Limitations: 2025-10-15\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\nCreated: 2025-10-15\r\n",
+      "metadata": {
+        "matterId": 25,
+        "organizationId": 4,
+        "organizationName": "Chloe Tang's Organization",
+        "status": "In Progress",
+        "practiceArea": "Elder",
+        "dueDate": "2025-10-15T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 0,
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall",
+          "Kyle Wang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-15T02:58:43.3977256",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "adc55fb5-cd77-4777-9f57-590ff3f8cbe2",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 24,
+      "title": "Ready Communications LLC",
+      "content": "=== MATTER: Ready Communications LLC ===\r\nMatter ID: 24\r\nClient/Organization: Law Office of Kyle Wang\r\nStatus: Review\r\nPractice Area: Corporate Litigation\r\nDescription: Test matter to check whether channels are automatically created after matter creation.\r\nStart Date: 2025-10-14\r\nDue Date: 2025-10-16\r\nPending Date: 2025-10-14\r\nStatute of Limitations: 2025-10-15\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\nCreated: 2025-10-15\r\n",
+      "metadata": {
+        "matterId": 24,
+        "organizationId": 1,
+        "organizationName": "Law Office of Kyle Wang",
+        "status": "Review",
+        "practiceArea": "Corporate Litigation",
+        "dueDate": "2025-10-16T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 0,
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall",
+          "Kyle Wang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-15T02:51:21.5309977",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "4450c7e7-cce4-4d85-b6fb-c79191d715d0",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 23,
+      "title": "Manual Matter LLC",
+      "content": "=== MATTER: Manual Matter LLC ===\r\nMatter ID: 23\r\nClient/Organization: Law Office of Kyle Wang\r\nStatus: Planning\r\nPractice Area: Medical Malpractice\r\nDescription: This is a manually inputted matter\r\nStart Date: 2025-10-14\r\nDue Date: 2025-10-16\r\nPending Date: 2025-10-15\r\nStatute of Limitations: 2025-10-15\r\nTasks Progress: 0/0 tasks completed\r\nCreated: 2025-10-14\r\n",
+      "metadata": {
+        "matterId": 23,
+        "organizationId": 1,
+        "organizationName": "Law Office of Kyle Wang",
+        "status": "Planning",
+        "practiceArea": "Medical Malpractice",
+        "dueDate": "2025-10-16T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 0,
+        "assignees": [],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-14T08:08:49.8255071",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "385ed432-5d15-4a06-8422-9e93bbfc0fb0",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 22,
+      "title": "Firm Audit III",
+      "content": "=== MATTER: Firm Audit III ===\r\nMatter ID: 22\r\nClient/Organization: Law Office of Kyle Wang\r\nStatus: Review\r\nPractice Area: Elder\r\nDescription: Testing the audit logging to see if user id is properly tracked by the audit log.\r\nStart Date: 2025-10-13\r\nDue Date: 2025-10-15\r\nPending Date: 2025-10-14\r\nStatute of Limitations: 2025-10-15\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - Chloe Tang (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\nCreated: 2025-10-13\r\n",
+      "metadata": {
+        "matterId": 22,
+        "organizationId": 1,
+        "organizationName": "Law Office of Kyle Wang",
+        "status": "Review",
+        "practiceArea": "Elder",
+        "dueDate": "2025-10-15T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 0,
+        "assignees": [
+          "Kyle Wang",
+          "Chloe Tang",
+          "Kyle Wang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-13T22:04:38.4536464",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "0cb7e30d-afda-4804-9ba5-20441524d6e5",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 21,
+      "title": "Firm Audit II Verification",
+      "content": "=== MATTER: Firm Audit II Verification ===\r\nMatter ID: 21\r\nClient/Organization: Law Office of Kyle Wang\r\nStatus: Review\r\nPractice Area: Healthcare\r\nDescription: Second firm test for audit logging during matter creation\r\nStart Date: 2025-10-13\r\nDue Date: 2025-10-15\r\nPending Date: 2025-10-14\r\nStatute of Limitations: 2025-10-15\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\nCreated: 2025-10-13\r\n",
+      "metadata": {
+        "matterId": 21,
+        "organizationId": 1,
+        "organizationName": "Law Office of Kyle Wang",
+        "status": "Review",
+        "practiceArea": "Healthcare",
+        "dueDate": "2025-10-15T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 0,
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall",
+          "Kyle Wang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-13T19:57:52.7130258",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "b0f51224-896b-40d8-9f1d-5847bb2771bc",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 20,
+      "title": "Firm Audit Verification",
+      "content": "=== MATTER: Firm Audit Verification ===\r\nMatter ID: 20\r\nClient/Organization: Law Office of Kyle Wang\r\nStatus: Review\r\nPractice Area: Securities / Mergers & Acquisitions\r\nDescription: Testing audit log detection within the primary firm organization\r\nStart Date: 2025-10-13\r\nDue Date: 2025-10-15\r\nPending Date: 2025-10-14\r\nStatute of Limitations: 2025-10-15\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\nCreated: 2025-10-13\r\n",
+      "metadata": {
+        "matterId": 20,
+        "organizationId": 1,
+        "organizationName": "Law Office of Kyle Wang",
+        "status": "Review",
+        "practiceArea": "Securities / Mergers & Acquisitions",
+        "dueDate": "2025-10-15T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 0,
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall",
+          "Kyle Wang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-13T19:44:31.2651463",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "9bae41f2-05b1-4d7d-8cd5-3054a42c28e8",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 19,
+      "title": "Audit Log Verification",
+      "content": "=== MATTER: Audit Log Verification ===\r\nMatter ID: 19\r\nClient/Organization: Chloe Tang's Organization\r\nStatus: Review\r\nPractice Area: Securities / Mergers & Acquisitions\r\nDescription: Testing new audit and compliance frameworks inside Certio.\r\nStart Date: 2025-10-13\r\nDue Date: 2025-10-14\r\nPending Date: 2025-10-13\r\nStatute of Limitations: 2025-10-14\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - John Marshall (ResponsibleAttorney)\r\n  - Kyle Wang (ResponsibleStaff)\r\n  - John Marshall (OriginatingAttorney)\r\nCreated: 2025-10-13\r\n",
+      "metadata": {
+        "matterId": 19,
+        "organizationId": 4,
+        "organizationName": "Chloe Tang's Organization",
+        "status": "Review",
+        "practiceArea": "Securities / Mergers & Acquisitions",
+        "dueDate": "2025-10-14T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 0,
+        "assignees": [
+          "John Marshall",
+          "Kyle Wang",
+          "John Marshall"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-13T19:41:22.3798493",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "fd225b0f-0ed3-40ec-a01b-3b65f8185f6e",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 18,
+      "title": "SLA",
+      "content": "=== MATTER: SLA ===\r\nMatter ID: 18\r\nClient/Organization: Law Office of Kyle Wang\r\nStatus: Completed\r\nPractice Area: Wills & Estates\r\nDescription: Final check if service layer architecture works properly for matter creation.\r\nStart Date: 2025-10-12\r\nDue Date: 2025-10-12\r\nPending Date: 2025-10-12\r\nStatute of Limitations: 2025-10-12\r\nTasks Progress: 1/1 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\nCreated: 2025-10-13\r\n",
+      "metadata": {
+        "matterId": 18,
+        "organizationId": 1,
+        "organizationName": "Law Office of Kyle Wang",
+        "status": "Completed",
+        "practiceArea": "Wills & Estates",
+        "dueDate": "2025-10-12T00:00:00",
+        "tasksCompleted": 1,
+        "totalTasks": 1,
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall",
+          "Kyle Wang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-13T04:53:33.768536",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "7e8d532f-1084-4029-afd7-48a53d9dc926",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 17,
+      "title": "SLA V Finale",
+      "content": "=== MATTER: SLA V Finale ===\r\nMatter ID: 17\r\nClient/Organization: Chloe Tang's Organization\r\nStatus: Completed\r\nPractice Area: Corporate Litigation\r\nDescription: Here is the final test to check whether or not duplicate assignments are allowed for full auditability.\r\nStart Date: 2025-10-12\r\nDue Date: 2025-10-13\r\nPending Date: 2025-10-12\r\nStatute of Limitations: 2025-10-13\r\nTasks Progress: 0/1 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\nCreated: 2025-10-12\r\n",
+      "metadata": {
+        "matterId": 17,
+        "organizationId": 4,
+        "organizationName": "Chloe Tang's Organization",
+        "status": "Completed",
+        "practiceArea": "Corporate Litigation",
+        "dueDate": "2025-10-13T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 1,
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall",
+          "Kyle Wang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-12T23:54:43.5042715",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "7e55a747-5181-4dc0-801b-4b6e446911ad",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 15,
+      "title": "SLA III LLC",
+      "content": "=== MATTER: SLA III LLC ===\r\nMatter ID: 15\r\nClient/Organization: Chloe Tang's Organization\r\nStatus: Planning\r\nPractice Area: Trusts\r\nDescription: Testing new SLA fixes for matter creation. Assignees should be properly submitted.\r\nStart Date: 2025-10-12\r\nDue Date: 2025-10-13\r\nPending Date: 2025-10-12\r\nStatute of Limitations: 2025-10-13\r\nTasks Progress: 0/0 tasks completed\r\nCreated: 2025-10-12\r\n",
+      "metadata": {
+        "matterId": 15,
+        "organizationId": 4,
+        "organizationName": "Chloe Tang's Organization",
+        "status": "Planning",
+        "practiceArea": "Trusts",
+        "dueDate": "2025-10-13T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 0,
+        "assignees": [],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-12T23:27:42.2997617",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "144748b8-bf9c-4469-9daa-8c5042e780da",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 14,
+      "title": "SLA II Partnership",
+      "content": "=== MATTER: SLA II Partnership ===\r\nMatter ID: 14\r\nClient/Organization: Chloe Tang's Organization\r\nStatus: In Progress\r\nPractice Area: Product Liability\r\nDescription: Second test of new SLA fixes for matter creation. Assignees should be properly assigned and Law Firm Partners should have access permissions to create new matters in client organizations.\r\nStart Date: 2025-10-12\r\nDue Date: 2025-10-13\r\nPending Date: 2025-10-12\r\nStatute of Limitations: 2025-10-13\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - John Marshall (ResponsibleAttorney)\r\n  - John Marshall (OriginatingAttorney)\r\nCreated: 2025-10-12\r\n",
+      "metadata": {
+        "matterId": 14,
+        "organizationId": 4,
+        "organizationName": "Chloe Tang's Organization",
+        "status": "In Progress",
+        "practiceArea": "Product Liability",
+        "dueDate": "2025-10-13T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 0,
+        "assignees": [
+          "John Marshall",
+          "John Marshall"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-12T23:06:45.952575",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "b25fdba1-0130-455f-844b-43c8f23ac1c4",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 13,
+      "title": "Service Layer Architecture Partnership",
+      "content": "=== MATTER: Service Layer Architecture Partnership ===\r\nMatter ID: 13\r\nClient/Organization: Law Office of Kyle Wang\r\nStatus: In Progress\r\nPractice Area: Product Liability\r\nDescription: Testing the new service layer architecture for matter creation.\r\nStart Date: 2025-10-12\r\nDue Date: 2025-10-13\r\nPending Date: 2025-10-12\r\nStatute of Limitations: 2025-10-13\r\nTasks Progress: 0/0 tasks completed\r\nCreated: 2025-10-12\r\n",
+      "metadata": {
+        "matterId": 13,
+        "organizationId": 1,
+        "organizationName": "Law Office of Kyle Wang",
+        "status": "In Progress",
+        "practiceArea": "Product Liability",
+        "dueDate": "2025-10-13T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 0,
+        "assignees": [],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-12T21:54:54.43509",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "3766bf60-0914-40ba-b22f-996f314eb316",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 12,
+      "title": "Redundant Extermination Corporation",
+      "content": "=== MATTER: Redundant Extermination Corporation ===\r\nMatter ID: 12\r\nClient/Organization: Law Office of Kyle Wang\r\nStatus: Completed\r\nPractice Area: Healthcare\r\nDescription: This is an example matter for cleaning up matter creation.\r\nStart Date: 2025-10-11\r\nDue Date: 2025-10-11\r\nPending Date: 2025-10-11\r\nStatute of Limitations: 2025-10-11\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\n  - David Wang (RelevantContact)\r\nCreated: 2025-10-12\r\n",
+      "metadata": {
+        "matterId": 12,
+        "organizationId": 1,
+        "organizationName": "Law Office of Kyle Wang",
+        "status": "Completed",
+        "practiceArea": "Healthcare",
+        "dueDate": "2025-10-11T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 0,
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall",
+          "Kyle Wang",
+          "David Wang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-12T04:37:21.2721969",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "5ad62cf3-1756-4d84-a125-b412e0fc5206",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 11,
+      "title": "Kyle's University Education",
+      "content": "=== MATTER: Kyle's University Education ===\r\nMatter ID: 11\r\nClient/Organization: Law Office of Kyle Wang\r\nStatus: In Progress\r\nPractice Area: Employment / Labor\r\nDescription: Educational background and academic progression at the University of California, Irvine. This matter covers all documentation, correspondence, and related administrative records associated with Kyle\u2019s enrollment, coursework, and degree completion.\r\nStart Date: 2022-09-22\r\nDue Date: 2026-12-31\r\nPending Date: 2025-10-09\r\nStatute of Limitations: 2025-11-10\r\nTasks Progress: 2/4 tasks completed\r\nTeam Members:\r\n  - John Marshall (ResponsibleAttorney)\r\n  - Chloe Tang (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\n  - David Wang (RelevantContact)\r\nCreated: 2025-10-09\r\n",
+      "metadata": {
+        "matterId": 11,
+        "organizationId": 1,
+        "organizationName": "Law Office of Kyle Wang",
+        "status": "In Progress",
+        "practiceArea": "Employment / Labor",
+        "dueDate": "2026-12-31T00:00:00",
+        "tasksCompleted": 2,
+        "totalTasks": 4,
+        "assignees": [
+          "John Marshall",
+          "Chloe Tang",
+          "Kyle Wang",
+          "David Wang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-09T07:22:11.1755375",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "94910e0c-1976-4f72-b981-84e248af12b1",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 10,
+      "title": "David's New Matter",
+      "content": "=== MATTER: David's New Matter ===\r\nMatter ID: 10\r\nClient/Organization: Law Office of Kyle Wang\r\nStatus: In Progress\r\nPractice Area: Family\r\nDescription: This is an example matter for David Wang\r\nStart Date: 2025-10-05\r\nDue Date: 2025-10-25\r\nPending Date: 2025-10-09\r\nStatute of Limitations: 2025-10-21\r\nTasks Progress: 1/2 tasks completed\r\nTeam Members:\r\n  - John Marshall (ResponsibleAttorney)\r\n  - Kyle Wang (ResponsibleStaff)\r\n  - John Marshall (OriginatingAttorney)\r\n  - David Wang (RelevantContact)\r\nCreated: 2025-10-06\r\n",
+      "metadata": {
+        "matterId": 10,
+        "organizationId": 1,
+        "organizationName": "Law Office of Kyle Wang",
+        "status": "In Progress",
+        "practiceArea": "Family",
+        "dueDate": "2025-10-25T00:00:00",
+        "tasksCompleted": 1,
+        "totalTasks": 2,
+        "assignees": [
+          "John Marshall",
+          "Kyle Wang",
+          "John Marshall",
+          "David Wang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-06T01:16:15.9676911",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "8dc3db3a-4b1b-40b5-9d08-d76e83ad23fb",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 9,
+      "title": "Brand New Day Document Review",
+      "content": "=== MATTER: Brand New Day Document Review ===\r\nMatter ID: 9\r\nClient/Organization: Law Office of Kyle Wang\r\nStatus: Review\r\nPractice Area: Real Estate\r\nDescription: This is a document review request for Brand New Day\r\nStart Date: 2025-10-08\r\nDue Date: 2025-10-30\r\nPending Date: 2025-10-18\r\nStatute of Limitations: 2025-10-26\r\nTasks Progress: 0/2 tasks completed\r\nTeam Members:\r\n  - John Marshall (ResponsibleAttorney)\r\n  - Kyle Wang (ResponsibleStaff)\r\n  - John Marshall (OriginatingAttorney)\r\n  - Chloe Tang (RelevantContact)\r\nCreated: 2025-10-02\r\n",
+      "metadata": {
+        "matterId": 9,
+        "organizationId": 1,
+        "organizationName": "Law Office of Kyle Wang",
+        "status": "Review",
+        "practiceArea": "Real Estate",
+        "dueDate": "2025-10-30T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 2,
+        "assignees": [
+          "John Marshall",
+          "Kyle Wang",
+          "John Marshall",
+          "Chloe Tang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-02T09:23:19.0477256",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "fa9e16e6-24d3-4e98-9d3f-ef5c5b458403",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 8,
+      "title": "2020 Desktop Organization Matter",
+      "content": "=== MATTER: 2020 Desktop Organization Matter ===\r\nMatter ID: 8\r\nClient/Organization: Law Office of Kyle Wang\r\nStatus: In Progress\r\nPractice Area: Privacy / Information Security\r\nDescription: Demo matter description for display\r\nStart Date: 2025-10-02\r\nDue Date: 2025-10-15\r\nPending Date: 2025-10-05\r\nStatute of Limitations: 2025-10-08\r\nTasks Progress: 0/1 tasks completed\r\nTeam Members:\r\n  - John Marshall (ResponsibleAttorney)\r\n  - Kyle Wang (ResponsibleStaff)\r\n  - John Marshall (OriginatingAttorney)\r\n  - Chloe Tang (RelevantContact)\r\nCreated: 2025-10-02\r\n",
+      "metadata": {
+        "matterId": 8,
+        "organizationId": 1,
+        "organizationName": "Law Office of Kyle Wang",
+        "status": "In Progress",
+        "practiceArea": "Privacy / Information Security",
+        "dueDate": "2025-10-15T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 1,
+        "assignees": [
+          "John Marshall",
+          "Kyle Wang",
+          "John Marshall",
+          "Chloe Tang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-02T09:14:45.4946533",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "825b84c3-c146-47f9-94f5-31c0d1e78489",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 7,
+      "title": "995 Test Matters LLC",
+      "content": "=== MATTER: 995 Test Matters LLC ===\r\nMatter ID: 7\r\nClient/Organization: Law Office of Kyle Wang\r\nStatus: In Progress\r\nPractice Area: Sports / Entertainment / Gaming\r\nDescription: Demo test description for display\r\nStart Date: 2025-10-02\r\nDue Date: 2025-10-29\r\nPending Date: 2025-10-15\r\nStatute of Limitations: 2025-10-18\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - John Marshall (ResponsibleAttorney)\r\n  - Kyle Wang (ResponsibleStaff)\r\n  - John Marshall (OriginatingAttorney)\r\n  - Chloe Tang (RelevantContact)\r\nCreated: 2025-10-02\r\n",
+      "metadata": {
+        "matterId": 7,
+        "organizationId": 1,
+        "organizationName": "Law Office of Kyle Wang",
+        "status": "In Progress",
+        "practiceArea": "Sports / Entertainment / Gaming",
+        "dueDate": "2025-10-29T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 0,
+        "assignees": [
+          "John Marshall",
+          "Kyle Wang",
+          "John Marshall",
+          "Chloe Tang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-02T09:07:27.3063427",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "bcda2a5d-a25d-492c-b148-1553e02a7ee9",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 6,
+      "title": "Demo Matters Document Review",
+      "content": "=== MATTER: Demo Matters Document Review ===\r\nMatter ID: 6\r\nClient/Organization: Law Office of Kyle Wang\r\nStatus: Review\r\nPractice Area: Employment / Labor\r\nDescription: This is a demo description for a document review request\r\nStart Date: 2025-09-30\r\nDue Date: 2025-10-10\r\nPending Date: 2025-10-04\r\nStatute of Limitations: 2025-10-08\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - John Marshall (ResponsibleAttorney)\r\n  - Kyle Wang (ResponsibleStaff)\r\n  - John Marshall (OriginatingAttorney)\r\n  - Chloe Tang (RelevantContact)\r\nCreated: 2025-09-30\r\n",
+      "metadata": {
+        "matterId": 6,
+        "organizationId": 1,
+        "organizationName": "Law Office of Kyle Wang",
+        "status": "Review",
+        "practiceArea": "Employment / Labor",
+        "dueDate": "2025-10-10T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 0,
+        "assignees": [
+          "John Marshall",
+          "Kyle Wang",
+          "John Marshall",
+          "Chloe Tang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-09-30T12:33:41.2849593",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "6e69c0ca-77a4-4fd7-8791-096c0e80315b",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 4,
+      "title": "Cane's Paradise Formation",
+      "content": "=== MATTER: Cane's Paradise Formation ===\r\nMatter ID: 4\r\nClient/Organization: Law Office of Kyle Wang\r\nStatus: Review\r\nPractice Area: Business Formation / Compliance\r\nDescription: A foreign business formation for Raising Cane's globally\r\nStart Date: 2025-09-28\r\nDue Date: 2026-05-27\r\nPending Date: 2026-02-04\r\nTasks Progress: 0/1 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - Kyle Wang (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\n  - Kyle Wang (RelevantContact)\r\nCreated: 2025-09-29\r\n",
+      "metadata": {
+        "matterId": 4,
+        "organizationId": 1,
+        "organizationName": "Law Office of Kyle Wang",
+        "status": "Review",
+        "practiceArea": "Business Formation / Compliance",
+        "dueDate": "2026-05-27T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 1,
+        "assignees": [
+          "Kyle Wang",
+          "Kyle Wang",
+          "Kyle Wang",
+          "Kyle Wang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-09-29T00:07:08.846244",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "0d44e07e-c54d-4e53-9e3f-b38ee174710b",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 2,
+      "title": "Sesame Street LLC",
+      "content": "=== MATTER: Sesame Street LLC ===\r\nMatter ID: 2\r\nClient/Organization: Law Office of Kyle Wang\r\nStatus: In Progress\r\nPractice Area: Real Estate\r\nDescription: New organization building at Sesame Street LLC\r\nStart Date: 2025-09-28\r\nDue Date: 2025-10-29\r\nPending Date: 2025-10-10\r\nTasks Progress: 1/1 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - Kyle Wang (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\n  - Kyle Wang (RelevantContact)\r\nCreated: 2025-09-28\r\n",
+      "metadata": {
+        "matterId": 2,
+        "organizationId": 1,
+        "organizationName": "Law Office of Kyle Wang",
+        "status": "In Progress",
+        "practiceArea": "Real Estate",
+        "dueDate": "2025-10-29T00:00:00",
+        "tasksCompleted": 1,
+        "totalTasks": 1,
+        "assignees": [
+          "Kyle Wang",
+          "Kyle Wang",
+          "Kyle Wang",
+          "Kyle Wang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-09-28T23:32:27.4868016",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "17a5745c-bd8a-45dc-b0b8-573d3da51525",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 1,
+      "title": "HK Desktop Recoveries LLC",
+      "content": "=== MATTER: HK Desktop Recoveries LLC ===\r\nMatter ID: 1\r\nClient/Organization: Law Office of Kyle Wang\r\nStatus: Review\r\nPractice Area: Real Estate\r\nDescription: This is the recovery matter marking the start of the new Certio desktop development track.\r\nStart Date: 2025-09-27\r\nDue Date: 2025-09-28\r\nPending Date: 2025-09-27\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - Kyle Wang (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\n  - Kyle Wang (RelevantContact)\r\nCreated: 2025-09-28\r\n",
+      "metadata": {
+        "matterId": 1,
+        "organizationId": 1,
+        "organizationName": "Law Office of Kyle Wang",
+        "status": "Review",
+        "practiceArea": "Real Estate",
+        "dueDate": "2025-09-28T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 0,
+        "assignees": [
+          "Kyle Wang",
+          "Kyle Wang",
+          "Kyle Wang",
+          "Kyle Wang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-09-28T05:33:14.732031",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "86873ed0-01b6-4b5f-b14a-c3b96cd76267",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 15,
+      "title": "Third Visible Matters Task",
+      "content": "Task: Third Visible Matters Task\r\nStatus: Review\r\nPriority: Critical\r\nDescription: The third Visible Matters task to check whether or not adding new matter-scoped tasks still works after UI polish.\r\nRelated Matter: Visible Matters Corporation\r\nDue Date: 2025-10-10\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Review",
+        "priority": "Critical",
+        "dueDate": "2025-10-10T00:00:00",
+        "matterId": 5,
+        "matterTitle": "Visible Matters Corporation",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-10-09T22:36:30.1964673",
+      "modified_at": "2025-11-11T02:22:38.6427262",
+      "relevance_score": 0
+    },
+    {
+      "id": "49866d6f-02b5-4bae-8595-ce1d8e89ba57",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 21,
+      "title": "Internal Visible Matters Task",
+      "content": "Task: Internal Visible Matters Task\r\nStatus: Completed\r\nPriority: High\r\nDescription: First task testing internal matter-scoped task creation within Matter Details.\r\nRelated Matter: Visible Matters Corporation\r\nDue Date: 2025-10-18\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Completed",
+        "priority": "High",
+        "dueDate": "2025-10-18T00:00:00",
+        "matterId": 5,
+        "matterTitle": "Visible Matters Corporation",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-10-18T04:55:26.3452647",
+      "modified_at": "2025-11-11T02:04:10.6489197",
+      "relevance_score": 0
+    },
+    {
+      "id": "5a627df1-35f2-4e5e-97a8-b5c08bcf0118",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 9,
+      "title": "First Visible Matters Task",
+      "content": "Task: First Visible Matters Task\r\nStatus: Pending\r\nPriority: Critical\r\nDescription: Here's the first example Visible Matters task. Example revision.\r\nRelated Matter: Visible Matters Corporation\r\nDue Date: 2025-10-08\r\nAssigned to: Kyle Wang, John Marshall\r\n",
+      "metadata": {
+        "status": "Pending",
+        "priority": "Critical",
+        "dueDate": "2025-10-08T00:00:00",
+        "matterId": 5,
+        "matterTitle": "Visible Matters Corporation",
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall"
+        ]
+      },
+      "created_at": "2025-10-09T06:23:14.651272",
+      "modified_at": "2025-11-10T02:35:00.0084564",
+      "relevance_score": 0
+    },
+    {
+      "id": "29382d63-1c62-470f-8ca8-680f401c1653",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 18,
+      "title": "SLA IV Task",
+      "content": "Task: SLA IV Task\r\nStatus: Completed\r\nPriority: High\r\nDescription: Example task to check whether the task assignments work and also if the Subtasks get displayed properly.\r\nRelated Matter: SLA IV Corporation\r\nDue Date: 2025-10-13\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Completed",
+        "priority": "High",
+        "dueDate": "2025-10-13T00:00:00",
+        "matterId": 16,
+        "matterTitle": "SLA IV Corporation",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-10-13T01:26:54.9097378",
+      "modified_at": "2025-11-07T08:13:16.0443547",
+      "relevance_score": 0
+    },
+    {
+      "id": "33d61a5c-1375-4f93-b03a-349788fa571a",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 19,
+      "title": "Second SLA IV Task",
+      "content": "Task: Second SLA IV Task\r\nStatus: Review\r\nPriority: Critical\r\nDescription: This is a test to check whether tasks can be created for a client organization within the law firm organization.\r\nRelated Matter: SLA IV Corporation\r\nDue Date: 2025-10-14\r\nAssigned to: Kyle Wang, John Marshall\r\n",
+      "metadata": {
+        "status": "Review",
+        "priority": "Critical",
+        "dueDate": "2025-10-14T00:00:00",
+        "matterId": 16,
+        "matterTitle": "SLA IV Corporation",
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall"
+        ]
+      },
+      "created_at": "2025-10-13T01:28:18.313094",
+      "modified_at": "2025-11-07T08:13:11.972912",
+      "relevance_score": 0
+    },
+    {
+      "id": "2650603f-a9a6-43b7-ac37-34a45b1255ad",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 12,
+      "title": "EECS 40",
+      "content": "Task: EECS 40\r\nStatus: Completed\r\nPriority: Medium\r\nDescription: Fall 2025 quarter\nProfessor: Zhou Li\nTAs: Chengheng Lyu, Xuesong Bai, Xun Li\nFinal Grade: ?\r\nRelated Matter: Kyle's University Education\r\nDue Date: 2025-12-12\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Completed",
+        "priority": "Medium",
+        "dueDate": "2025-12-12T00:00:00",
+        "matterId": 11,
+        "matterTitle": "Kyle's University Education",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-10-09T07:31:26.514444",
+      "modified_at": "2025-11-07T07:45:47.3629403",
+      "relevance_score": 0
+    },
+    {
+      "id": "888de286-0131-48bc-bc57-fa97e2d2ea8d",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 14,
+      "title": "EECS 112L",
+      "content": "Task: EECS 112L\r\nStatus: Completed\r\nPriority: Low\r\nDescription: Fall 2025 quarter\nProfessor: Salma Elmalaki\nTAs: tzhao15@uci.edu, yashuow@uci.edu\nFinal Grade: ?\r\nRelated Matter: Kyle's University Education\r\nDue Date: 2025-12-12\r\nAssigned to: Kyle Wang, Chloe Tang\r\n",
+      "metadata": {
+        "status": "Completed",
+        "priority": "Low",
+        "dueDate": "2025-12-12T00:00:00",
+        "matterId": 11,
+        "matterTitle": "Kyle's University Education",
+        "assignees": [
+          "Kyle Wang",
+          "Chloe Tang"
+        ]
+      },
+      "created_at": "2025-10-09T07:38:21.6348772",
+      "modified_at": "2025-11-07T07:45:45.1518326",
+      "relevance_score": 0
+    },
+    {
+      "id": "d837174b-a057-42ee-848a-8def31017217",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 10,
+      "title": "Second Visible Matters Task",
+      "content": "Task: Second Visible Matters Task\r\nStatus: InProgress\r\nPriority: Low\r\nDescription: This is the second Visible Matters task to test whether or not the pre-assignee permission system is implemented.\r\nRelated Matter: Visible Matters Corporation\r\nDue Date: 2025-10-10\r\nAssigned to: Kyle Wang, Chloe Tang, John Marshall\r\n",
+      "metadata": {
+        "status": "InProgress",
+        "priority": "Low",
+        "dueDate": "2025-10-10T00:00:00",
+        "matterId": 5,
+        "matterTitle": "Visible Matters Corporation",
+        "assignees": [
+          "Kyle Wang",
+          "Chloe Tang",
+          "John Marshall"
+        ]
+      },
+      "created_at": "2025-10-09T07:01:15.9612594",
+      "modified_at": "2025-11-07T03:09:25.4390927",
+      "relevance_score": 0
+    },
+    {
+      "id": "70ec5321-de4e-4b6e-801d-5214502a7f81",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 23,
+      "title": "Security Layer Architecture Task",
+      "content": "Task: Security Layer Architecture Task\r\nStatus: Review\r\nPriority: Critical\r\nDescription: A complex task for security layer architecture to demo the tasks and work feature.\r\nRelated Matter: Intro Client Matter\r\nDue Date: 2025-11-02\r\nAssigned to: Kyle Wang, John Marshall\r\n",
+      "metadata": {
+        "status": "Review",
+        "priority": "Critical",
+        "dueDate": "2025-11-02T00:00:00",
+        "matterId": 30,
+        "matterTitle": "Intro Client Matter",
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall"
+        ]
+      },
+      "created_at": "2025-10-30T23:53:12.874957",
+      "modified_at": "2025-10-30T23:53:34.3888592",
+      "relevance_score": 0
+    },
+    {
+      "id": "50fc4190-64fc-4ca6-83c6-6ce80e885a7a",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 22,
+      "title": "Communications Audit Log",
+      "content": "Task: Communications Audit Log\r\nStatus: Review\r\nPriority: Critical\r\nDescription: Checking to see if Audit log is really tracking everything in real time!\r\nRelated Matter: Communications Progress\r\nDue Date: 2025-10-23\r\nAssigned to: John Marshall\r\n",
+      "metadata": {
+        "status": "Review",
+        "priority": "Critical",
+        "dueDate": "2025-10-23T00:00:00",
+        "matterId": 26,
+        "matterTitle": "Communications Progress",
+        "assignees": [
+          "John Marshall"
+        ]
+      },
+      "created_at": "2025-10-23T03:18:06.3205125",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "252d3748-3ec7-4c76-82e2-68e0b0b01d91",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 4,
+      "title": "2020 Desktop Example Task",
+      "content": "Task: 2020 Desktop Example Task\r\nStatus: InProgress\r\nPriority: High\r\nDescription: This is an example task for the 2020 Desktop Organization Matter to test whether there is separation between tasks.\r\nRelated Matter: 2020 Desktop Organization Matter\r\nDue Date: 2025-10-07\r\n",
+      "metadata": {
+        "status": "InProgress",
+        "priority": "High",
+        "dueDate": "2025-10-07T00:00:00",
+        "matterId": 8,
+        "matterTitle": "2020 Desktop Organization Matter",
+        "assignees": []
+      },
+      "created_at": "2025-10-04T23:07:26.4545178",
+      "modified_at": "2025-10-17T08:00:09.6053343",
+      "relevance_score": 0
+    },
+    {
+      "id": "e460f26f-75c2-444c-8406-07c8ca29ae68",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 13,
+      "title": "EECS 170A/LA",
+      "content": "Task: EECS 170A/LA\r\nStatus: Pending\r\nPriority: High\r\nDescription: Fall 2025 quarter\nProfessor: ?\nTAs: ?\nFinal Grade: ?\r\nRelated Matter: Kyle's University Education\r\nDue Date: 2025-12-12\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Pending",
+        "priority": "High",
+        "dueDate": "2025-12-12T00:00:00",
+        "matterId": 11,
+        "matterTitle": "Kyle's University Education",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-10-09T07:35:21.4981315",
+      "modified_at": "2025-10-16T21:40:58.885997",
+      "relevance_score": 0
+    },
+    {
+      "id": "b1c87a08-2460-4316-b606-2a731d00a905",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 11,
+      "title": "EECS 50",
+      "content": "Task: EECS 50\r\nStatus: Review\r\nPriority: Medium\r\nDescription: Fall 2025 quarter\nProfessor: zhiying@uci.edu\nTAs: ruijied@uci.edu, weishil1@uci.edu\nFinal Grade: ?\r\nRelated Matter: Kyle's University Education\r\nDue Date: 2025-12-12\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Review",
+        "priority": "Medium",
+        "dueDate": "2025-12-12T00:00:00",
+        "matterId": 11,
+        "matterTitle": "Kyle's University Education",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-10-09T07:27:49.2459413",
+      "modified_at": "2025-10-14T07:22:43.4367418",
+      "relevance_score": 0
+    },
+    {
+      "id": "d9ce0867-d67d-40ea-ba83-6eb4334d1959",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 20,
+      "title": "Finale SLA",
+      "content": "Task: Finale SLA\r\nStatus: Completed\r\nPriority: Critical\r\nDescription: The service layer architecture finale test.\r\nRelated Matter: SLA\r\nDue Date: 2025-10-12\r\nAssigned to: Kyle Wang, John Marshall\r\n",
+      "metadata": {
+        "status": "Completed",
+        "priority": "Critical",
+        "dueDate": "2025-10-12T00:00:00",
+        "matterId": 18,
+        "matterTitle": "SLA",
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall"
+        ]
+      },
+      "created_at": "2025-10-13T04:57:28.545631",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "523799a0-e719-44b8-ab7b-c2bd508ecf89",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 17,
+      "title": "First SLA Task",
+      "content": "Task: First SLA Task\r\nStatus: Review\r\nPriority: Critical\r\nDescription: Testing task creation for clients through organization relationships.\r\nRelated Matter: SLA V Finale\r\nDue Date: 2025-10-13\r\n",
+      "metadata": {
+        "status": "Review",
+        "priority": "Critical",
+        "dueDate": "2025-10-13T00:00:00",
+        "matterId": 17,
+        "matterTitle": "SLA V Finale",
+        "assignees": []
+      },
+      "created_at": "2025-10-13T01:04:49.3782262",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "b1c86aba-ce43-4e44-a93d-419191987f5b",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 8,
+      "title": "beat kyle up",
+      "content": "Task: beat kyle up\r\nStatus: Review\r\nPriority: Medium\r\nDescription: for misbehaving\r\nRelated Matter: Cane's Paradise Formation\r\nDue Date: 2025-10-11\r\nAssigned to: Chloe Tang\r\n",
+      "metadata": {
+        "status": "Review",
+        "priority": "Medium",
+        "dueDate": "2025-10-11T00:00:00",
+        "matterId": 4,
+        "matterTitle": "Cane's Paradise Formation",
+        "assignees": [
+          "Chloe Tang"
+        ]
+      },
+      "created_at": "2025-10-08T04:39:54.5862528",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "413f47f0-113a-4c50-adf0-5865d1076419",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 7,
+      "title": "Assignees and Matters Scoping",
+      "content": "Task: Assignees and Matters Scoping\r\nStatus: Completed\r\nPriority: Critical\r\nDescription: This is an example task to check if the new Assignees implementation and Matters scoping works properly.\r\nRelated Matter: David's New Matter\r\nDue Date: 2025-10-07\r\nAssigned to: Kyle Wang, John Marshall, Chloe Tang\r\n",
+      "metadata": {
+        "status": "Completed",
+        "priority": "Critical",
+        "dueDate": "2025-10-07T00:00:00",
+        "matterId": 10,
+        "matterTitle": "David's New Matter",
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall",
+          "Chloe Tang"
+        ]
+      },
+      "created_at": "2025-10-07T07:20:12.2370488",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "6fea1ef9-5b51-4932-b5ae-6e08aea6f793",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 6,
+      "title": "David's New Task",
+      "content": "Task: David's New Task\r\nStatus: Review\r\nPriority: Low\r\nDescription: This is a demo task for David's Matter\r\nRelated Matter: David's New Matter\r\nDue Date: 2025-10-15\r\nAssigned to: David Wang\r\n",
+      "metadata": {
+        "status": "Review",
+        "priority": "Low",
+        "dueDate": "2025-10-15T00:00:00",
+        "matterId": 10,
+        "matterTitle": "David's New Matter",
+        "assignees": [
+          "David Wang"
+        ]
+      },
+      "created_at": "2025-10-06T01:18:06.32427",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "dd31014d-b44a-4506-bb79-7b99019e85e9",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 5,
+      "title": "Sesame Street Example Task",
+      "content": "Task: Sesame Street Example Task\r\nStatus: Completed\r\nPriority: Critical\r\nDescription: This is an example task for Sesame Street LLC\r\nRelated Matter: Sesame Street LLC\r\nDue Date: 2025-10-14\r\n",
+      "metadata": {
+        "status": "Completed",
+        "priority": "Critical",
+        "dueDate": "2025-10-14T00:00:00",
+        "matterId": 2,
+        "matterTitle": "Sesame Street LLC",
+        "assignees": []
+      },
+      "created_at": "2025-10-05T03:23:12.9938417",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "4898fda8-8682-4d3f-bc06-0e46fa22bf67",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 3,
+      "title": "BND Document Review",
+      "content": "Task: BND Document Review\r\nStatus: InProgress\r\nPriority: High\r\nDescription: This is the second task added into the Brand New Day Document Review matter\r\nRelated Matter: Brand New Day Document Review\r\nDue Date: 2025-10-06\r\n",
+      "metadata": {
+        "status": "InProgress",
+        "priority": "High",
+        "dueDate": "2025-10-06T00:00:00",
+        "matterId": 9,
+        "matterTitle": "Brand New Day Document Review",
+        "assignees": []
+      },
+      "created_at": "2025-10-04T20:23:38.605794",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "bd374fb9-f2d5-4e2a-bb57-2d2bc8a51af0",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 2,
+      "title": "Brand New Day's First Task",
+      "content": "Task: Brand New Day's First Task\r\nStatus: Pending\r\nPriority: Medium\r\nDescription: The first task added into the Certio desktop development database! Here's a test update. Another test update.\r\nRelated Matter: Brand New Day Document Review\r\nDue Date: 2025-10-05\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Pending",
+        "priority": "Medium",
+        "dueDate": "2025-10-05T00:00:00",
+        "matterId": 9,
+        "matterTitle": "Brand New Day Document Review",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-10-04T11:40:34.087416",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "6319d2a7-508b-40f0-a62d-958d2fbf903c",
+      "module_name": "calendar",
+      "entity_type": "CalendarEvent",
+      "entity_id": 13,
+      "title": "Fixed MC Event",
+      "content": "Event: Fixed MC Event\r\nType: Meeting\r\nStart: 2025-10-18 12:12\r\nEnd: 2025-10-18 13:12\r\nLocation: {\"name\":\"Finland\",\"address\":\"Finland\",\"formatted_address\":\"Finland\",\"place_id\":null,\"geometry\":null}\r\nDescription: Checking again to see if duplicate events are created.\r\nAttendees: John Marshall\r\n",
+      "metadata": {
+        "startDateTime": "2025-10-18T12:12:00",
+        "endDateTime": "2025-10-18T13:12:00",
+        "eventType": "Meeting",
+        "location": "{\"name\":\"Finland\",\"address\":\"Finland\",\"formatted_address\":\"Finland\",\"place_id\":null,\"geometry\":null}",
+        "isAllDay": false,
+        "attendees": [
+          "John Marshall"
+        ],
+        "matterId": 5
+      },
+      "created_at": "2025-10-21T22:13:37.939657",
+      "modified_at": "2025-10-22T00:39:10.6874609",
+      "relevance_score": 0
+    },
+    {
+      "id": "918cdb11-f9f6-44bc-a22c-4dc74842d808",
+      "module_name": "calendar",
+      "entity_type": "CalendarEvent",
+      "entity_id": 1,
+      "title": "First Calendar Event",
+      "content": "Event: First Calendar Event\r\nType: Meeting\r\nStart: 2025-10-21 15:44\r\nEnd: 2025-10-21 16:44\r\nLocation: {\"name\":\"Callander\",\"address\":\"Callander FK17, UK\",\"formatted_address\":\"Callander FK17, UK\",\"place_id\":null,\"geometry\":{\"location\":{\"lat\":56.245059,\"lng\":-4.211663}}}\r\nDescription: The first calendar event to be added into the desktop development database. Test revision.\r\nAttendees: Kyle Wang, Chloe Tang\r\n",
+      "metadata": {
+        "startDateTime": "2025-10-21T15:44:00",
+        "endDateTime": "2025-10-21T16:44:00",
+        "eventType": "Meeting",
+        "location": "{\"name\":\"Callander\",\"address\":\"Callander FK17, UK\",\"formatted_address\":\"Callander FK17, UK\",\"place_id\":null,\"geometry\":{\"location\":{\"lat\":56.245059,\"lng\":-4.211663}}}",
+        "isAllDay": false,
+        "attendees": [
+          "Kyle Wang",
+          "Chloe Tang"
+        ],
+        "matterId": 18
+      },
+      "created_at": "2025-10-21T08:45:07.349109",
+      "modified_at": "2025-10-21T08:57:08.1475272",
+      "relevance_score": 0
+    },
+    {
+      "id": "28446a59-f515-42ac-9416-fa6f9d2f90fb",
+      "module_name": "calendar",
+      "entity_type": "CalendarEvent",
+      "entity_id": 4,
+      "title": "Jake's New Event",
+      "content": "Event: Jake's New Event\r\nType: Meeting\r\nStart: 2025-10-21 20:25\r\nEnd: 2025-10-21 21:25\r\nLocation: {\"name\":\"242 Novel\",\"address\":\"242 Novel, Irvine, CA 92618, USA\",\"formatted_address\":\"242 Novel, Irvine, CA 92618, USA\",\"place_id\":null,\"geometry\":{\"location\":{\"lat\":33.6911625,\"lng\":-117.7377849}}}\r\nDescription: New event for Jake\r\nAttendees: Kyle Wang, John Marshall\r\n",
+      "metadata": {
+        "startDateTime": "2025-10-21T20:25:00",
+        "endDateTime": "2025-10-21T21:25:00",
+        "eventType": "Meeting",
+        "location": "{\"name\":\"242 Novel\",\"address\":\"242 Novel, Irvine, CA 92618, USA\",\"formatted_address\":\"242 Novel, Irvine, CA 92618, USA\",\"place_id\":null,\"geometry\":{\"location\":{\"lat\":33.6911625,\"lng\":-117.7377849}}}",
+        "isAllDay": false,
+        "attendees": [
+          "Kyle Wang",
+          "John Marshall"
+        ],
+        "matterId": 23
+      },
+      "created_at": "2025-10-21T20:26:42.3854079",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "63ff2cfc-c182-4a90-b5e7-6d92eb470645",
+      "module_name": "calendar",
+      "entity_type": "CalendarEvent",
+      "entity_id": 5,
+      "title": "Visible Event",
+      "content": "Event: Visible Event\r\nType: Meeting\r\nStart: 2025-10-21 21:06\r\nEnd: 2025-10-21 22:06\r\nLocation: {\"name\":\"The Marine Room\",\"address\":\"1950 Spindrift Dr, La Jolla, CA 92037, USA\",\"formatted_address\":\"1950 Spindrift Dr, La Jolla, CA 92037, USA\",\"place_id\":null,\"geometry\":{\"location\":{\"lat\":32.8528366,\"lng\":-117.2601311}}}\r\nDescription: First test of Matter Details Calendar implementation\r\n",
+      "metadata": {
+        "startDateTime": "2025-10-21T21:06:00",
+        "endDateTime": "2025-10-21T22:06:00",
+        "eventType": "Meeting",
+        "location": "{\"name\":\"The Marine Room\",\"address\":\"1950 Spindrift Dr, La Jolla, CA 92037, USA\",\"formatted_address\":\"1950 Spindrift Dr, La Jolla, CA 92037, USA\",\"place_id\":null,\"geometry\":{\"location\":{\"lat\":32.8528366,\"lng\":-117.2601311}}}",
+        "isAllDay": false,
+        "attendees": [],
+        "matterId": null
+      },
+      "created_at": "2025-10-21T21:08:15.9240944",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "737e21ec-1012-453c-a820-db0c8573c45d",
+      "module_name": "calendar",
+      "entity_type": "CalendarEvent",
+      "entity_id": 6,
+      "title": "Visible Event",
+      "content": "Event: Visible Event\r\nType: Meeting\r\nStart: 2025-10-22 11:06\r\nEnd: 2025-10-22 12:06\r\nLocation: {\"name\":\"The Marine Room\",\"address\":\"1950 Spindrift Dr, La Jolla, CA 92037, USA\",\"formatted_address\":\"1950 Spindrift Dr, La Jolla, CA 92037, USA\",\"place_id\":null,\"geometry\":null}\r\nDescription: First test of Matter Details Calendar implementation. Test revision.\r\n",
+      "metadata": {
+        "startDateTime": "2025-10-22T11:06:00",
+        "endDateTime": "2025-10-22T12:06:00",
+        "eventType": "Meeting",
+        "location": "{\"name\":\"The Marine Room\",\"address\":\"1950 Spindrift Dr, La Jolla, CA 92037, USA\",\"formatted_address\":\"1950 Spindrift Dr, La Jolla, CA 92037, USA\",\"place_id\":null,\"geometry\":null}",
+        "isAllDay": false,
+        "attendees": [],
+        "matterId": null
+      },
+      "created_at": "2025-10-21T21:08:15.9240942",
+      "modified_at": "2025-10-21T21:15:40.6554137",
+      "relevance_score": 0
+    },
+    {
+      "id": "a46fe023-bc2e-49be-beb9-c7cfff7dd9f2",
+      "module_name": "calendar",
+      "entity_type": "CalendarEvent",
+      "entity_id": 7,
+      "title": "Visible Event",
+      "content": "Event: Visible Event\r\nType: Meeting\r\nStart: 2025-10-22 11:06\r\nEnd: 2025-10-22 12:06\r\nLocation: {\"name\":\"The Marine Room\",\"address\":\"1950 Spindrift Dr, La Jolla, CA 92037, USA\",\"formatted_address\":\"1950 Spindrift Dr, La Jolla, CA 92037, USA\",\"place_id\":null,\"geometry\":null}\r\nDescription: First test of Matter Details Calendar implementation. Another revision test.\r\nAttendees: Kyle Wang\r\n",
+      "metadata": {
+        "startDateTime": "2025-10-22T11:06:00",
+        "endDateTime": "2025-10-22T12:06:00",
+        "eventType": "Meeting",
+        "location": "{\"name\":\"The Marine Room\",\"address\":\"1950 Spindrift Dr, La Jolla, CA 92037, USA\",\"formatted_address\":\"1950 Spindrift Dr, La Jolla, CA 92037, USA\",\"place_id\":null,\"geometry\":null}",
+        "isAllDay": false,
+        "attendees": [
+          "Kyle Wang"
+        ],
+        "matterId": null
+      },
+      "created_at": "2025-10-21T21:08:34.8933412",
+      "modified_at": "2025-10-21T21:25:52.3849033",
+      "relevance_score": 0
+    },
+    {
+      "id": "a84cbfc6-1887-4e25-8408-9362fc1968e1",
+      "module_name": "calendar",
+      "entity_type": "CalendarEvent",
+      "entity_id": 9,
+      "title": "Visible Event",
+      "content": "Event: Visible Event\r\nType: Meeting\r\nStart: 2025-10-22 11:06\r\nEnd: 2025-10-22 12:06\r\nLocation: {\"name\":\"The Marine Room\",\"address\":\"1950 Spindrift Dr, La Jolla, CA 92037, USA\",\"formatted_address\":\"1950 Spindrift Dr, La Jolla, CA 92037, USA\",\"place_id\":null,\"geometry\":null}\r\nDescription: First test of Matter Details Calendar implementation. Another revision test.\r\n",
+      "metadata": {
+        "startDateTime": "2025-10-22T11:06:00",
+        "endDateTime": "2025-10-22T12:06:00",
+        "eventType": "Meeting",
+        "location": "{\"name\":\"The Marine Room\",\"address\":\"1950 Spindrift Dr, La Jolla, CA 92037, USA\",\"formatted_address\":\"1950 Spindrift Dr, La Jolla, CA 92037, USA\",\"place_id\":null,\"geometry\":null}",
+        "isAllDay": false,
+        "attendees": [],
+        "matterId": null
+      },
+      "created_at": "2025-10-21T21:25:52.384909",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "49ac5584-8b71-4e26-bf69-286433e6898e",
+      "module_name": "calendar",
+      "entity_type": "CalendarEvent",
+      "entity_id": 14,
+      "title": "Real Visible Finale!!!",
+      "content": "Event: Real Visible Finale!!!\r\nType: Meeting\r\nStart: 2025-10-23 12:12\r\nEnd: 2025-10-23 13:12\r\nLocation: {\"name\":\"Finland\",\"address\":\"Finland\",\"formatted_address\":\"Finland\",\"place_id\":null,\"geometry\":null}\r\nDescription: Checking again to see if duplicate events are created.\r\n",
+      "metadata": {
+        "startDateTime": "2025-10-23T12:12:00",
+        "endDateTime": "2025-10-23T13:12:00",
+        "eventType": "Meeting",
+        "location": "{\"name\":\"Finland\",\"address\":\"Finland\",\"formatted_address\":\"Finland\",\"place_id\":null,\"geometry\":null}",
+        "isAllDay": false,
+        "attendees": [],
+        "matterId": 5
+      },
+      "created_at": "2025-10-21T22:13:37.939657",
+      "modified_at": "2025-10-22T00:41:29.9221482",
+      "relevance_score": 0
+    },
+    {
+      "id": "e825d565-9064-43df-a77d-26b05130a7ac",
+      "module_name": "calendar",
+      "entity_type": "CalendarEvent",
+      "entity_id": 12,
+      "title": "VFER Relocation",
+      "content": "Event: VFER Relocation\r\nType: Conference\r\nStart: 2025-10-26 16:06\r\nEnd: 2025-10-26 18:06\r\nLocation: {\"name\":\"Vista\",\"address\":\"Vista, CA, USA\",\"formatted_address\":\"Vista, CA, USA\",\"place_id\":null,\"geometry\":null}\r\nDescription: Testing if Matter Details Calendar event creation is properly assigning matter and org ID's.\r\n",
+      "metadata": {
+        "startDateTime": "2025-10-26T16:06:00",
+        "endDateTime": "2025-10-26T18:06:00",
+        "eventType": "Conference",
+        "location": "{\"name\":\"Vista\",\"address\":\"Vista, CA, USA\",\"formatted_address\":\"Vista, CA, USA\",\"place_id\":null,\"geometry\":null}",
+        "isAllDay": false,
+        "attendees": [],
+        "matterId": 5
+      },
+      "created_at": "2025-10-21T22:08:18.7273029",
+      "modified_at": "2025-10-22T00:39:46.4155596",
+      "relevance_score": 0
+    },
+    {
+      "id": "a8105840-3558-478f-9314-7aa0ecf37a4a",
+      "module_name": "calendar",
+      "entity_type": "CalendarEvent",
+      "entity_id": 16,
+      "title": "FINALE",
+      "content": "Event: FINALE\r\nType: CourtDate\r\nStart: 2025-10-29 09:30\r\nEnd: 2025-10-29 10:30\r\nLocation: {\"name\":\"Finale Court\",\"address\":\"Finale Ct, Menifee, CA 92584, USA\",\"formatted_address\":\"Finale Ct, Menifee, CA 92584, USA\",\"place_id\":null,\"geometry\":null}\r\nDescription: Create now works and doesn't create duplicates.\r\nAttendees: John Marshall\r\n",
+      "metadata": {
+        "startDateTime": "2025-10-29T09:30:00",
+        "endDateTime": "2025-10-29T10:30:00",
+        "eventType": "CourtDate",
+        "location": "{\"name\":\"Finale Court\",\"address\":\"Finale Ct, Menifee, CA 92584, USA\",\"formatted_address\":\"Finale Ct, Menifee, CA 92584, USA\",\"place_id\":null,\"geometry\":null}",
+        "isAllDay": false,
+        "attendees": [
+          "John Marshall"
+        ],
+        "matterId": 5
+      },
+      "created_at": "2025-10-21T22:29:32.6800872",
+      "modified_at": "2025-10-22T00:24:47.6979848",
+      "relevance_score": 0
+    },
+    {
+      "id": "b25085c5-03fa-43e2-bba1-48caf63d1a71",
+      "module_name": "calendar",
+      "entity_type": "CalendarEvent",
+      "entity_id": 8,
+      "title": "Visible Event",
+      "content": "Event: Visible Event\r\nType: Meeting\r\nStart: 2025-10-31 06:06\r\nEnd: 2025-10-31 06:14\r\nLocation: {\"name\":\"The Marine Room\",\"address\":\"1950 Spindrift Dr, La Jolla, CA 92037, USA\",\"formatted_address\":\"1950 Spindrift Dr, La Jolla, CA 92037, USA\",\"place_id\":null,\"geometry\":null}\r\nDescription: First test of Matter Details Calendar implementation. Test revision.\r\n",
+      "metadata": {
+        "startDateTime": "2025-10-31T06:06:00",
+        "endDateTime": "2025-10-31T06:14:00",
+        "eventType": "Meeting",
+        "location": "{\"name\":\"The Marine Room\",\"address\":\"1950 Spindrift Dr, La Jolla, CA 92037, USA\",\"formatted_address\":\"1950 Spindrift Dr, La Jolla, CA 92037, USA\",\"place_id\":null,\"geometry\":null}",
+        "isAllDay": false,
+        "attendees": [],
+        "matterId": null
+      },
+      "created_at": "2025-10-21T21:15:40.6554142",
+      "modified_at": "2025-10-30T20:38:50.422807",
+      "relevance_score": 0
+    },
+    {
+      "id": "e99659a1-d750-41cb-8fd0-920e8d6a44ac",
+      "module_name": "calendar",
+      "entity_type": "CalendarEvent",
+      "entity_id": 20,
+      "title": "REC Document Review",
+      "content": "Event: REC Document Review\r\nType: Meeting\r\nStart: 2025-10-31 12:00\r\nEnd: 2025-10-31 13:00\r\nLocation: {\"name\":\"Nara Ultra Lounge\",\"address\":\"8055 Clairemont Mesa Blvd, San Diego, CA 92111, USA\",\"formatted_address\":\"8055 Clairemont Mesa Blvd, San Diego, CA 92111, USA\",\"place_id\":null,\"geometry\":{\"location\":{\"lat\":32.8321505,\"lng\":-117.1497883}}}\r\nDescription: Example event for Redundant Extermination Corporation\r\nAttendees: Kyle Wang, John Marshall\r\n",
+      "metadata": {
+        "startDateTime": "2025-10-31T12:00:00",
+        "endDateTime": "2025-10-31T13:00:00",
+        "eventType": "Meeting",
+        "location": "{\"name\":\"Nara Ultra Lounge\",\"address\":\"8055 Clairemont Mesa Blvd, San Diego, CA 92111, USA\",\"formatted_address\":\"8055 Clairemont Mesa Blvd, San Diego, CA 92111, USA\",\"place_id\":null,\"geometry\":{\"location\":{\"lat\":32.8321505,\"lng\":-117.1497883}}}",
+        "isAllDay": false,
+        "attendees": [
+          "Kyle Wang",
+          "John Marshall"
+        ],
+        "matterId": 12
+      },
+      "created_at": "2025-10-27T01:15:42.5357216",
+      "modified_at": "2025-10-30T20:38:22.245842",
+      "relevance_score": 0
+    },
+    {
+      "id": "59e05c1c-ca10-4511-b360-71feb9940827",
+      "module_name": "calendar",
+      "entity_type": "CalendarEvent",
+      "entity_id": 22,
+      "title": "New Visible Event",
+      "content": "Event: New Visible Event\r\nType: Meeting\r\nStart: 2025-11-07 11:00\r\nEnd: 2025-11-07 12:48\r\nLocation: {\"name\":\"The White House\",\"address\":\"1600 Pennsylvania Ave NW, Washington, DC 20500, USA\",\"formatted_address\":\"1600 Pennsylvania Ave NW, Washington, DC 20500, USA\",\"place_id\":null,\"geometry\":null}\r\nAttendees: Kyle Wang, John Marshall\r\n",
+      "metadata": {
+        "startDateTime": "2025-11-07T11:00:00",
+        "endDateTime": "2025-11-07T12:48:00",
+        "eventType": "Meeting",
+        "location": "{\"name\":\"The White House\",\"address\":\"1600 Pennsylvania Ave NW, Washington, DC 20500, USA\",\"formatted_address\":\"1600 Pennsylvania Ave NW, Washington, DC 20500, USA\",\"place_id\":null,\"geometry\":null}",
+        "isAllDay": false,
+        "attendees": [
+          "Kyle Wang",
+          "John Marshall"
+        ],
+        "matterId": 5
+      },
+      "created_at": "2025-11-05T23:49:20.169736",
+      "modified_at": "2025-11-11T02:05:12.6089806",
+      "relevance_score": 0
+    },
+    {
+      "id": "ee1b0d5e-d65f-4bb9-b9cc-ed2b29c442b4",
+      "module_name": "calendar",
+      "entity_type": "CalendarEvent",
+      "entity_id": 23,
+      "title": "Check Canvas",
+      "content": "Event: Check Canvas\r\nType: CourtDate\r\nStart: 2025-11-08 15:46\r\nEnd: 2025-11-08 16:46\r\nLocation: {\"name\":\"Freaky Lomas\",\"address\":\"Los Trancos Dr, Irvine, CA 92617, USA\",\"formatted_address\":\"Los Trancos Dr, Irvine, CA 92617, USA\",\"place_id\":null,\"geometry\":null}\r\nDescription: Freaky Lomas\r\nAttendees: Kyle Wang, John Marshall\r\n",
+      "metadata": {
+        "startDateTime": "2025-11-08T15:46:00",
+        "endDateTime": "2025-11-08T16:46:00",
+        "eventType": "CourtDate",
+        "location": "{\"name\":\"Freaky Lomas\",\"address\":\"Los Trancos Dr, Irvine, CA 92617, USA\",\"formatted_address\":\"Los Trancos Dr, Irvine, CA 92617, USA\",\"place_id\":null,\"geometry\":null}",
+        "isAllDay": false,
+        "attendees": [
+          "Kyle Wang",
+          "John Marshall"
+        ],
+        "matterId": 11
+      },
+      "created_at": "2025-11-07T07:47:15.256744",
+      "modified_at": "2025-11-07T07:47:28.694775",
+      "relevance_score": 0
+    },
+    {
+      "id": "71556fa5-cd6c-4496-ac73-ff22a74079e3",
+      "module_name": "calendar",
+      "entity_type": "CalendarEvent",
+      "entity_id": 3,
+      "title": "Audit Logging",
+      "content": "Event: Audit Logging\r\nType: Filing\r\nStart: 2025-11-11 14:15\r\nEnd: 2025-11-11 16:45\r\nLocation: {\"name\":\"Logging Lake\",\"address\":\"Logging Lake, Montana 59936, USA\",\"formatted_address\":\"Logging Lake, Montana 59936, USA\",\"place_id\":null,\"geometry\":{\"location\":{\"lat\":48.7591981,\"lng\":-114.0731626}}}\r\nDescription: Testing audit logging capabilities for newly created Calendar Events. Update test for audit log.\r\nAttendees: Kyle Wang, John Marshall\r\n",
+      "metadata": {
+        "startDateTime": "2025-11-11T14:15:00",
+        "endDateTime": "2025-11-11T16:45:00",
+        "eventType": "Filing",
+        "location": "{\"name\":\"Logging Lake\",\"address\":\"Logging Lake, Montana 59936, USA\",\"formatted_address\":\"Logging Lake, Montana 59936, USA\",\"place_id\":null,\"geometry\":{\"location\":{\"lat\":48.7591981,\"lng\":-114.0731626}}}",
+        "isAllDay": false,
+        "attendees": [
+          "Kyle Wang",
+          "John Marshall"
+        ],
+        "matterId": null
+      },
+      "created_at": "2025-10-21T09:03:11.6977475",
+      "modified_at": "2025-11-10T10:15:32.4568081",
+      "relevance_score": 0
+    },
+    {
+      "id": "05b6e701-8275-43b4-a4cd-d13a36f10f49",
+      "module_name": "calendar",
+      "entity_type": "CalendarEvent",
+      "entity_id": 21,
+      "title": "Intro Demo Event with XYZ",
+      "content": "Event: Intro Demo Event with XYZ\r\nType: Conference\r\nStart: 2025-11-11 19:00\r\nEnd: 2025-11-11 22:00\r\nLocation: {\"name\":\"Marshalls\",\"address\":\"4209 Genesee Ave, San Diego, CA 92117, USA\",\"formatted_address\":\"4209 Genesee Ave, San Diego, CA 92117, USA\",\"place_id\":null,\"geometry\":null}\r\nDescription: Partner associate\r\nAttendees: Kyle Wang, John Marshall\r\n",
+      "metadata": {
+        "startDateTime": "2025-11-11T19:00:00",
+        "endDateTime": "2025-11-11T22:00:00",
+        "eventType": "Conference",
+        "location": "{\"name\":\"Marshalls\",\"address\":\"4209 Genesee Ave, San Diego, CA 92117, USA\",\"formatted_address\":\"4209 Genesee Ave, San Diego, CA 92117, USA\",\"place_id\":null,\"geometry\":null}",
+        "isAllDay": false,
+        "attendees": [
+          "Kyle Wang",
+          "John Marshall"
+        ],
+        "matterId": 30
+      },
+      "created_at": "2025-10-30T23:55:55.0524728",
+      "modified_at": "2025-11-10T02:16:46.1494762",
+      "relevance_score": 0
+    },
+    {
+      "id": "3041fe7d-a7f9-423e-a904-9a9184aab38d",
+      "module_name": "calendar",
+      "entity_type": "CalendarEvent",
+      "entity_id": 19,
+      "title": "Brown v. Jones Filing",
+      "content": "Event: Brown v. Jones Filing\r\nType: CourtDate\r\nStart: 2025-11-12 13:00\r\nEnd: 2025-11-12 14:00\r\nLocation: {\"name\":\"Superior Court Kearny Mesa Courthouse\",\"address\":\"8950 Clairemont Mesa Blvd, San Diego, CA 92123, USA\",\"formatted_address\":\"8950 Clairemont Mesa Blvd, San Diego, CA 92123, USA\",\"place_id\":null,\"geometry\":{\"location\":{\"lat\":32.8323913,\"lng\":-117.1356528}}}\r\nDescription: Need to go in-person to Superior Court Kearny Mesa Courthouse to submit Brown v. Jones filings.\r\nAttendees: Kyle Wang\r\n",
+      "metadata": {
+        "startDateTime": "2025-11-12T13:00:00",
+        "endDateTime": "2025-11-12T14:00:00",
+        "eventType": "CourtDate",
+        "location": "{\"name\":\"Superior Court Kearny Mesa Courthouse\",\"address\":\"8950 Clairemont Mesa Blvd, San Diego, CA 92123, USA\",\"formatted_address\":\"8950 Clairemont Mesa Blvd, San Diego, CA 92123, USA\",\"place_id\":null,\"geometry\":{\"location\":{\"lat\":32.8323913,\"lng\":-117.1356528}}}",
+        "isAllDay": false,
+        "attendees": [
+          "Kyle Wang"
+        ],
+        "matterId": null
+      },
+      "created_at": "2025-10-26T20:00:05.1468522",
+      "modified_at": "2025-11-10T19:32:36.2776444",
+      "relevance_score": 0
+    },
+    {
+      "id": "4448ec83-4762-4278-ae0c-49f0488891ba",
+      "module_name": "communications",
+      "entity_type": "DirectThread",
+      "entity_id": 0,
+      "title": "DM with John Marshall",
+      "content": "Direct Message Thread with: John Marshall\r\nTotal Messages: 17\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-17 03:01] Kyle Wang: That's great\r\n[2025-11-10 09:36] John Marshall: I've been staying up late redlining XYZ Contract and just wanted to check in on how you're doing on ABC client.\r\n[2025-11-10 09:35] John Marshall: Hey Kyle, how's your evening going?\r\n[2025-11-07 03:58] Kyle Wang: John\r\n[2025-11-07 03:58] Kyle Wang: Hey Join\r\n[2025-11-02 01:55] Kyle Wang: Subject sync\r\n\r\n[2025-10-30 01:27] Kyle Wang: You there?\r\n[2025-10-30 01:25] Kyle Wang: Let's see the deployment\r\n[2025-10-30 01:21] Kyle Wang: Huge success\r\n[2025-10-30 01:19] John Marshall: Yeah, real time.\r\n[2025-10-30 01:14] Kyle Wang: Real time?\r\n[2025-10-30 01:08] Kyle Wang: Hey, checking recent messages\r\n[2025-10-19 01:23] Kyle Wang: Direct message test\r\n[2025-10-18 07:57] Kyle Wang: Hey this is a DM to my lawyer\r\n[2025-10-15 23:08] John Marshall: Looks like we're good!\r\n[2025-10-15 23:08] John Marshall: Hello Partner Kyle!\r\n[2025-10-15 22:03] Kyle Wang: helloooooooo\r\n",
+      "metadata": {
+        "threadId": "f5051780-529b-430f-8abb-5cc795a2ee68",
+        "otherUserId": 5,
+        "otherUserName": "John Marshall",
+        "messageCount": 17,
+        "lastMessageAt": "2025-11-17T03:01:14.6859457",
+        "communicationType": "direct_message"
+      },
+      "created_at": "2025-10-15T21:17:42.9635538",
+      "modified_at": "2025-11-17T03:01:14.6859457",
+      "relevance_score": 1.5
+    },
+    {
+      "id": "27abb734-2dd0-43fd-a2c4-483844f96fd2",
+      "module_name": "communications",
+      "entity_type": "DirectThread",
+      "entity_id": 0,
+      "title": "DM with Kyle Wang",
+      "content": "Direct Message Thread with: Kyle Wang\r\nTotal Messages: 2\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-03 01:45] Kyle Wang: Notal Partnership Inquiry\n\nHi Kyle,I hope you\u2019re doing well. I came across Notal while researching practice management platforms tailored for small to mid-sized firms, and I was immediately impressed by the product positioning and the thoughtful approach to AI-assisted workflows. Our firm is currently evaluating tools that can streamline intake, document management, and client communication without adding complexity for our attorneys, and Notal\u2019s focus on keeping judgment firmly in the hands of lawyers resonates with what we need. I\u2019d love to learn more about how you handle multi-tenant security, role-based permissions, and any audit logging or compliance features that make onboarding and recordkeeping painless for a legal team.We\u2019re particularly interested in a short demo that highlights three things: practical, day-to-day workflows for intake-to-billing; your document and template handling (including version control and collaboration); and the way your AI suggestions are surfaced and moderated in the UI. Our current stack has a mix of legacy document storage and cloud drives, so a demo that shows migration paths, integration points (especially mailbox and calendar sync), and the administrative controls for client/matter scoping would be most helpful. If possible, please also touch on pricing models for small firms and any pilot options or limited-scope trials, we prefer to start with a single practice group and expand once we validate benefits and ease of use.If you\u2019re available, I can do a 30-45 minute slot any weekday afternoon over the next two weeks; alternatively, I\u2019m happy to share a short list of use cases and a sandbox dataset beforehand so the demo can be tailored to our needs. Please let me know a few windows that work for you and whether you prefer Zoom or another platform for the walkthrough. Thanks for building something practical for firms that want to work smarter, I\u2019m looking forward to seeing Notal in action and exploring how we might move forward with a pilot.Best regards,Bary PrincePartner, Prince & Rexton LLP(123) 456-7890\r\n[2025-11-02 21:59] Kyle Wang: Hi Kyle,I hope you\u2019re doing well. I came across Notal while researching practice management platforms tailored for small to mid-sized firms, and I was immediately impressed by the product positioning and the thoughtful approach to AI-assisted workflows. Our firm is currently evaluating tools that can streamline intake, document management, and client communication without adding complexity for our attorneys, and Notal\u2019s focus on keeping judgment firmly in the hands of lawyers resonates with what we need. I\u2019d love to learn more about how you handle multi-tenant security, role-based permissions, and any audit logging or compliance features that make onboarding and recordkeeping painless for a legal team.We\u2019re particularly interested in a short demo that highlights three things: practical, day-to-day workflows for intake-to-billing; your document and template handling (including version control and collaboration); and the way your AI suggestions are surfaced and moderated in the UI. Our current stack has a mix of legacy document storage and cloud drives, so a demo that shows migration paths, integration points (especially mailbox and calendar sync), and the administrative controls for client/matter scoping would be most helpful. If possible, please also touch on pricing models for small firms and any pilot options or limited-scope trials, we prefer to start with a single practice group and expand once we validate benefits and ease of use.If you\u2019re available, I can do a 30-45 minute slot any weekday afternoon over the next two weeks; alternatively, I\u2019m happy to share a short list of use cases and a sandbox dataset beforehand so the demo can be tailored to our needs. Please let me know a few windows that work for you and whether you prefer Zoom or another platform for the walkthrough. Thanks for building something practical for firms that want to work smarter, I\u2019m looking forward to seeing Notal in action and exploring how we might move forward with a pilot.Best regards,Bary PrincePartner, Prince & Rexton LLP(123) 456-7890\r\n",
+      "metadata": {
+        "threadId": "a85b7bd9-29aa-4bc0-a172-22aefdf671fa",
+        "otherUserId": 17,
+        "otherUserName": "Kyle Wang",
+        "messageCount": 2,
+        "lastMessageAt": "2025-11-03T01:45:07.7226078",
+        "communicationType": "direct_message"
+      },
+      "created_at": "2025-11-02T20:41:59.4330332",
+      "modified_at": "2025-11-03T01:45:07.7226078",
+      "relevance_score": 1.2
+    },
+    {
+      "id": "b246ff9f-9119-4138-9f12-929ef800e750",
+      "module_name": "communications",
+      "entity_type": "Channel",
+      "entity_id": 29,
+      "title": "Channel: client-onboarding",
+      "content": "Channel: client-onboarding\r\nTotal Messages: 4\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-11 01:10] Chloe Tang: I hope that everybody can see the value behind a product like Notal and can continue to support us in any industry!\r\n[2025-11-11 01:09] Chloe Tang: Hey everyone, welcome to Notal! Here's our first official demo release.\r\n[2025-11-05 01:15] Kyle Wang: Onboarding new chat security infrastructure\r\n[2025-10-15 23:04] Chloe Tang: Here is the channel we will use to help client onboarding.\r\n",
+      "metadata": {
+        "channelId": 29,
+        "channelName": "client-onboarding",
+        "messageCount": 4,
+        "participants": [
+          "Chloe Tang",
+          "Kyle Wang"
+        ],
+        "lastMessageAt": "2025-11-11T01:10:08.5102078",
+        "communicationType": "channel"
+      },
+      "created_at": "2025-10-15T23:04:07.8174358",
+      "modified_at": "2025-11-11T01:10:08.5102078",
+      "relevance_score": 0
+    },
+    {
+      "id": "50b8a1f1-26c1-4a2b-acd3-91926d2d5ea9",
+      "module_name": "communications",
+      "entity_type": "Channel",
+      "entity_id": 44,
+      "title": "Channel: communications-progress-ii",
+      "content": "Channel: communications-progress-ii\r\nTotal Messages: 2\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-10 11:27] John Marshall: Great to be working with Kyle.\r\n[2025-11-10 11:26] John Marshall: Starting out Communications Progress II matter chat including client.\r\n",
+      "metadata": {
+        "channelId": 44,
+        "channelName": "communications-progress-ii",
+        "messageCount": 2,
+        "participants": [
+          "John Marshall"
+        ],
+        "lastMessageAt": "2025-11-10T11:27:23.6895175",
+        "communicationType": "channel"
+      },
+      "created_at": "2025-11-10T11:26:25.3408365",
+      "modified_at": "2025-11-10T11:27:23.6895175",
+      "relevance_score": 0
+    },
+    {
+      "id": "5f07c7b4-54d1-4d35-9f7b-843c01ca4618",
+      "module_name": "communications",
+      "entity_type": "Channel",
+      "entity_id": 55,
+      "title": "Channel: sesame-street-llc",
+      "content": "Channel: sesame-street-llc\r\nTotal Messages: 3\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-10 09:39] John Marshall: It definitely mentioned due diligence and regular security audits for security.\r\n[2025-11-04 11:37] Kyle Wang: Can't remember the clause from the original agreement. Any help?\r\n[2025-10-30 01:18] Kyle Wang: What's up, Sesame Street?\r\n",
+      "metadata": {
+        "channelId": 55,
+        "channelName": "sesame-street-llc",
+        "messageCount": 3,
+        "participants": [
+          "John Marshall",
+          "Kyle Wang"
+        ],
+        "lastMessageAt": "2025-11-10T09:39:48.5316046",
+        "communicationType": "channel"
+      },
+      "created_at": "2025-10-30T01:18:47.1447172",
+      "modified_at": "2025-11-10T09:39:48.5316046",
+      "relevance_score": 0
+    },
+    {
+      "id": "ad8a625c-7aa2-4664-b441-57d98c545639",
+      "module_name": "communications",
+      "entity_type": "Channel",
+      "entity_id": 28,
+      "title": "Channel: urgent-matters",
+      "content": "Channel: urgent-matters\r\nTotal Messages: 6\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-10 09:38] John Marshall: Let me know updates ASAP.\r\n[2025-11-10 09:38] John Marshall: Still waiting on those reviews.\r\n[2025-11-10 09:38] John Marshall: Urgent: getting close to fundraising deadline.\r\n[2025-11-04 11:26] Kyle Wang: URGENT\r\n[2025-10-15 22:58] Kyle Wang: Trying urgent-matters channel again\r\n[2025-10-15 05:43] Kyle Wang: First message sent to a new channel\r\n",
+      "metadata": {
+        "channelId": 28,
+        "channelName": "urgent-matters",
+        "messageCount": 6,
+        "participants": [
+          "John Marshall",
+          "Kyle Wang"
+        ],
+        "lastMessageAt": "2025-11-10T09:38:53.6228359",
+        "communicationType": "channel"
+      },
+      "created_at": "2025-10-15T05:43:37.6942316",
+      "modified_at": "2025-11-10T09:38:53.6228359",
+      "relevance_score": 0
+    },
+    {
+      "id": "232eb84b-81ad-4d7e-8e96-46b315fcc0ce",
+      "module_name": "communications",
+      "entity_type": "Channel",
+      "entity_id": 27,
+      "title": "Channel: general",
+      "content": "Channel: general\r\nTotal Messages: 23\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-10 07:18] Kyle Wang: Got it, will see you in the office tomorrow.\r\n[2025-11-10 07:17] John Marshall: Kyle, sent you a direct message about one of our cases.\r\n[2025-11-10 07:15] John Marshall: Looks like everybody in the firm is in now! Let's start collaborating on our shared cases.\r\n[2025-11-10 07:13] Chloe Tang: Hey Partner W, I'm doing great. Would love to start onboarding Notal users as soon as possible.\r\n[2025-11-10 07:12] Kyle Wang: We have a lot on our plate with the pilot phase 1 and we need everybody's help!\r\n[2025-11-10 07:11] Kyle Wang: Law Office of Kyle Wang, how is everybody doing?\r\n[2025-10-15 22:02] Kyle Wang: h i\r\n[2025-10-15 21:34] Kyle Wang: Hello client!\r\n[2025-10-15 20:47] Kyle Wang: Hi Chloe!\r\n[2025-10-15 20:47] Kyle Wang: Test message to myself\r\n[2025-10-14 08:05] Kyle Wang: This is a test message to see new messages\r\n[2025-10-13 04:58] Chloe Tang: Testing the service layer architecture finale!\r\n[2025-10-13 02:04] John Marshall: This is the first message to be sent after the service layer architecture has been implemented.\r\n[2025-10-11 05:25] Kyle Wang: We finally fixed the white flashing issue. The issue was because of the Communications page. It wasn't responding to targeted fixes because the main issue was with the duplicated Organization ID fetching\r\n[2025-10-11 04:43] Chloe Tang: Messages are still going through properly. Likely there is extra data to be loaded on each page. Might just give up on this fix.\r\n[2025-10-11 04:42] Kyle Wang: Checking again if messages are going through properly. Still trying to fix the white screen flashing in between each page navigation.\r\n[2025-10-11 02:41] Kyle Wang: Fourth test of real-time UI display. Sends to the database properly and displays correctly on reload.\r\n[2025-10-11 02:38] Kyle Wang: Third test of new real-time UI display.\r\n[2025-10-11 02:36] Kyle Wang: Again testing new real-time UI display after sending a new message.\r\n[2025-10-11 02:34] Kyle Wang: Testing new real-time UI display after sending a new message.\r\n[2025-10-11 02:31] John Marshall: Hey this is Lawyer Kyle.\r\n[2025-10-11 02:10] Chloe Tang: Hey, this is Chloe. Testing the user separation now.\r\n[2025-10-11 02:00] Kyle Wang: Hey, this is Kyle. This is the first message to be sent into the Certio desktop development database!\r\n",
+      "metadata": {
+        "channelId": 27,
+        "channelName": "general",
+        "messageCount": 23,
+        "participants": [
+          "Kyle Wang",
+          "John Marshall",
+          "Chloe Tang"
+        ],
+        "lastMessageAt": "2025-11-10T07:18:20.9594321",
+        "communicationType": "channel"
+      },
+      "created_at": "2025-10-11T02:00:43.1242182",
+      "modified_at": "2025-11-10T07:18:20.9594321",
+      "relevance_score": 0
+    },
+    {
+      "id": "5110dda7-8c9a-401e-8112-c71f2b8bb8b3",
+      "module_name": "communications",
+      "entity_type": "Channel",
+      "entity_id": 52,
+      "title": "Channel: visible-matters-corporation",
+      "content": "Channel: visible-matters-corporation\r\nTotal Messages: 4\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-10 06:57] John Marshall: Hi everybody, associate here. We will keep you posted on your case's progress, client.\r\n[2025-11-10 06:56] Chloe Tang: Hey, client here and can see our connected matter channel.\r\n[2025-10-30 01:09] Kyle Wang: Recent messages?\r\n[2025-10-18 23:39] Kyle Wang: Testing the first message to be sent through the Matter Details Communications tab.\r\n",
+      "metadata": {
+        "channelId": 52,
+        "channelName": "visible-matters-corporation",
+        "messageCount": 4,
+        "participants": [
+          "John Marshall",
+          "Chloe Tang",
+          "Kyle Wang"
+        ],
+        "lastMessageAt": "2025-11-10T06:57:31.6802359",
+        "communicationType": "channel"
+      },
+      "created_at": "2025-10-18T23:39:07.8796173",
+      "modified_at": "2025-11-10T06:57:31.6802359",
+      "relevance_score": 0
+    },
+    {
+      "id": "0fe14c70-49d2-49f7-98b1-cd02e278a73b",
+      "module_name": "communications",
+      "entity_type": "Channel",
+      "entity_id": 56,
+      "title": "Channel: audit-log-verification",
+      "content": "Channel: audit-log-verification\r\nTotal Messages: 1\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-04 11:38] Kyle Wang: Checking Matter Communications\r\n",
+      "metadata": {
+        "channelId": 56,
+        "channelName": "audit-log-verification",
+        "messageCount": 1,
+        "participants": [
+          "Kyle Wang"
+        ],
+        "lastMessageAt": "2025-11-04T11:38:04.2265814",
+        "communicationType": "channel"
+      },
+      "created_at": "2025-11-04T11:38:04.2265814",
+      "modified_at": "2025-11-04T11:38:04.2265814",
+      "relevance_score": 0
+    },
+    {
+      "id": "7f662ac3-35a8-46f8-8ac1-81d83e4506a4",
+      "module_name": "communications",
+      "entity_type": "Channel",
+      "entity_id": 59,
+      "title": "Channel: kyle-s-university-education",
+      "content": "Channel: kyle-s-university-education\r\nTotal Messages: 3\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-04 11:32] Kyle Wang: Sidebar test\r\n[2025-11-04 11:31] Kyle Wang: Back to the channels after direct messaging\r\n[2025-11-04 11:31] Kyle Wang: Checking channel first test\r\n",
+      "metadata": {
+        "channelId": 59,
+        "channelName": "kyle-s-university-education",
+        "messageCount": 3,
+        "participants": [
+          "Kyle Wang"
+        ],
+        "lastMessageAt": "2025-11-04T11:32:51.6891542",
+        "communicationType": "channel"
+      },
+      "created_at": "2025-11-04T11:31:16.0990834",
+      "modified_at": "2025-11-04T11:32:51.6891542",
+      "relevance_score": 0
+    },
+    {
+      "id": "ca5223c8-1c19-4ed1-a590-eed5c2044e83",
+      "module_name": "communications",
+      "entity_type": "Channel",
+      "entity_id": 43,
+      "title": "Channel: communications-progress",
+      "content": "Channel: communications-progress\r\nTotal Messages: 7\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-10-30 23:02] Kyle Wang: Hey Communications Progress\r\n[2025-10-30 01:33] Kyle Wang: Let's start talking about the contract review\r\n[2025-10-19 01:22] John Marshall: Hey Kyle!\r\n[2025-10-19 01:20] Kyle Wang: Test message for Lawyer\r\n[2025-10-15 23:16] Kyle Wang: Seems like the channel messaging is working, just need to fix styling.\r\n[2025-10-15 23:08] John Marshall: Checking real-time message display when sending through channels\r\n[2025-10-15 23:02] Kyle Wang: Hello, testing matter channel sending\r\n",
+      "metadata": {
+        "channelId": 43,
+        "channelName": "communications-progress",
+        "messageCount": 7,
+        "participants": [
+          "Kyle Wang",
+          "John Marshall"
+        ],
+        "lastMessageAt": "2025-10-30T23:02:18.4355901",
+        "communicationType": "channel"
+      },
+      "created_at": "2025-10-15T23:02:11.7912719",
+      "modified_at": "2025-10-30T23:02:18.4355901",
+      "relevance_score": 0
+    },
+    {
+      "id": "22269bd6-1e73-438d-88d3-3d02f1aac378",
+      "module_name": "communications",
+      "entity_type": "Channel",
+      "entity_id": 53,
+      "title": "Channel: sla-ii-partnership",
+      "content": "Channel: sla-ii-partnership\r\nTotal Messages: 2\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-10-30 01:28] Kyle Wang: Channels work though.\r\n[2025-10-18 23:42] Kyle Wang: Starting the conversation for the SLA II Matter Details Communications module here\r\n",
+      "metadata": {
+        "channelId": 53,
+        "channelName": "sla-ii-partnership",
+        "messageCount": 2,
+        "participants": [
+          "Kyle Wang"
+        ],
+        "lastMessageAt": "2025-10-30T01:28:01.3340883",
+        "communicationType": "channel"
+      },
+      "created_at": "2025-10-18T23:42:24.656151",
+      "modified_at": "2025-10-30T01:28:01.3340883",
+      "relevance_score": 0
+    },
+    {
+      "id": "de7b2208-e8f6-457e-9058-cfa7f25f4f72",
+      "module_name": "communications",
+      "entity_type": "Channel",
+      "entity_id": 54,
+      "title": "Channel: sla-iv-corporation",
+      "content": "Channel: sla-iv-corporation\r\nTotal Messages: 2\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-10-26 02:11] Kyle Wang: Hello SLA IV Corporation, welcome to Notal!\r\n[2025-10-18 23:47] Kyle Wang: Welcome everybody, we will handle collaborative decisions and planning in this channel.\r\n",
+      "metadata": {
+        "channelId": 54,
+        "channelName": "sla-iv-corporation",
+        "messageCount": 2,
+        "participants": [
+          "Kyle Wang"
+        ],
+        "lastMessageAt": "2025-10-26T02:11:31.1173307",
+        "communicationType": "channel"
+      },
+      "created_at": "2025-10-18T23:47:45.5368052",
+      "modified_at": "2025-10-26T02:11:31.1173307",
+      "relevance_score": 0
+    },
+    {
+      "id": "3311a41d-ca10-4a9e-a83a-0542a2acf459",
+      "module_name": "communications",
+      "entity_type": "Channel",
+      "entity_id": 45,
+      "title": "Channel: client-ready-communications-ii",
+      "content": "Channel: client-ready-communications-ii\r\nTotal Messages: 6\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-10-18 22:15] Kyle Wang: Testing if messages are still going through after service layer architecture fix\r\n[2025-10-15 23:12] Chloe Tang: Client here, testing if my messages go through\r\n[2025-10-15 23:09] John Marshall: Or maybe it is?\r\n[2025-10-15 23:09] John Marshall: Sending messages through client matter not working\r\n[2025-10-15 23:02] Kyle Wang: Second message testing again\r\n[2025-10-15 23:02] Kyle Wang: Testing client matter channel sending\r\n",
+      "metadata": {
+        "channelId": 45,
+        "channelName": "client-ready-communications-ii",
+        "messageCount": 6,
+        "participants": [
+          "Kyle Wang",
+          "Chloe Tang",
+          "John Marshall"
+        ],
+        "lastMessageAt": "2025-10-18T22:15:46.3117385",
+        "communicationType": "channel"
+      },
+      "created_at": "2025-10-15T23:02:33.1183741",
+      "modified_at": "2025-10-18T22:15:46.3117385",
+      "relevance_score": 0
+    },
+    {
+      "id": "49837088-b3c6-4cd0-9d46-cc0e1c3bc5da",
+      "module_name": "communications",
+      "entity_type": "DirectThread",
+      "entity_id": 0,
+      "title": "DM with Chloe Tang",
+      "content": "Direct Message Thread with: Chloe Tang\r\nTotal Messages: 14\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-17 03:11] Kyle Wang: Testing if display name is correct when sending email.\r\n[2025-11-17 03:01] Kyle Wang: Hi\r\n[2025-11-17 02:31] Kyle Wang: Testing to see if email sending still works\r\n[2025-11-17 02:01] Kyle Wang: Hey, checking if regular communications still work.\r\n[2025-11-17 02:00] Kyle Wang: Hello\r\n[2025-11-17 01:56] Kyle Wang: Hi\r\n[2025-11-17 01:39] Kyle Wang: Example email content\r\n[2025-10-30 01:36] Kyle Wang: Hope you're doing well.\r\n[2025-10-30 01:32] Kyle Wang: Wrong account\r\n[2025-10-18 07:58] Kyle Wang: What legal matter do you need me to do?\r\n[2025-10-15 23:04] Chloe Tang: I'm doing great! Love to see the messages working properly.\r\n[2025-10-15 21:35] Kyle Wang: Hello client, how are you?\r\n[2025-10-15 21:26] Chloe Tang: Hey Kyle, this is Chloe\r\n[2025-10-15 21:18] Kyle Wang: Hey, this is the first message to be sent through Direct Messages.\r\n",
+      "metadata": {
+        "threadId": "8f9613d1-392f-4fa3-8ebf-1a0f14ee43dd",
+        "otherUserId": 3,
+        "otherUserName": "Chloe Tang",
+        "messageCount": 14,
+        "lastMessageAt": "2025-11-17T03:11:15.8876417",
+        "communicationType": "direct_message"
+      },
+      "created_at": "2025-10-15T21:14:30.1952819",
+      "modified_at": "2025-11-17T03:11:15.8876417",
+      "relevance_score": 0
+    },
+    {
+      "id": "2b5b9c62-f2c4-4853-9e9b-7429d98b8d17",
+      "module_name": "communications",
+      "entity_type": "DirectThread",
+      "entity_id": 0,
+      "title": "DM with chhloee220@gmail.com ",
+      "content": "Direct Message Thread with: chhloee220@gmail.com \r\nTotal Messages: 0\r\n\r\nRecent Messages (newest first):\r\n\r\n",
+      "metadata": {
+        "threadId": "cf3b6664-4c1e-4c10-b154-5f6659f19403",
+        "otherUserId": 36,
+        "otherUserName": "chhloee220@gmail.com ",
+        "messageCount": 0,
+        "lastMessageAt": null,
+        "communicationType": "direct_message"
+      },
+      "created_at": "2025-11-16T23:23:29.3309206",
+      "modified_at": "2025-11-16T23:23:29.3309206",
+      "relevance_score": 0
+    },
+    {
+      "id": "475046a3-506d-4dfa-8dfb-21db5824cb03",
+      "module_name": "communications",
+      "entity_type": "DirectThread",
+      "entity_id": 0,
+      "title": "DM with Google Docs",
+      "content": "Direct Message Thread with: Google Docs\r\nTotal Messages: 1\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-11 02:18] Google Docs: kyle_resume\n\n<table style=\"border-collapse: collapse; width: 100%; background-color: white; text-align: center\r\n",
+      "metadata": {
+        "threadId": "353854d8-56a0-4113-8a3d-1a3d24fe318d",
+        "otherUserId": 35,
+        "otherUserName": "Google Docs",
+        "messageCount": 1,
+        "lastMessageAt": "2025-11-11T02:18:17.1369991",
+        "communicationType": "direct_message"
+      },
+      "created_at": "2025-11-11T02:18:17.1223464",
+      "modified_at": "2025-11-11T02:18:17.1369991",
+      "relevance_score": 0
+    },
+    {
+      "id": "7bb6f0c2-2d48-4b8a-8e6e-3457181cddea",
+      "module_name": "communications",
+      "entity_type": "DirectThread",
+      "entity_id": 0,
+      "title": "DM with Chick-fil-A ",
+      "content": "Direct Message Thread with: Chick-fil-A \r\nTotal Messages: 1\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-11 01:54] Chick-fil-A: So minty ways to holiday\n\n96<o:AllowPNG\r\n",
+      "metadata": {
+        "threadId": "63e9d576-e718-4a39-addc-742b8bceb2bb",
+        "otherUserId": 34,
+        "otherUserName": "Chick-fil-A ",
+        "messageCount": 1,
+        "lastMessageAt": "2025-11-11T01:54:30.0394463",
+        "communicationType": "direct_message"
+      },
+      "created_at": "2025-11-11T01:54:29.9926629",
+      "modified_at": "2025-11-11T01:54:30.0394463",
+      "relevance_score": 0
+    },
+    {
+      "id": "d96243a4-5d15-4cf3-8f7d-f43ba6cdc610",
+      "module_name": "communications",
+      "entity_type": "DirectThread",
+      "entity_id": 0,
+      "title": "DM with Target Circle",
+      "content": "Direct Message Thread with: Target Circle\r\nTotal Messages: 2\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-11 01:49] Target Circle: Don't miss out, save $5 on just about anything.\n\n<!-- Dark Mode Meta Tag\r\n[2025-11-02 21:59] Target Circle: 96 The easy way to find all your savings for the week. Weekly Ad Deals New Arrivals --> This week\u2019s deals are here! See all deals --> This week\u2019s deals are here! See all deals Explore this week\u2019s top deals Electronics Deals Toy Deals Clothing, Shoes & Accessory Deals Home Deals Beauty & Personal Care Deals All Top Deals *See the full details of all deals. Some restrictions apply. Offer Details Clothing Shoes Home Electronics Toys Grocery Help Privacy \u2020\u201dLifetime savings\u201d includes savings from Cartwheel and Target Circle offers. \u201cAvailable balance\u201d includes Target Circle Rewards available to apply to a future purchase. Data is updated daily; these stats may not include recent activity. Promotions valid Sunday\u2013Saturday unless otherwise stated. Pricing, promotions, and availability may vary by location and online. Descriptive, typographic and photographic errors are subject to correction and Target shall have no liability for such errors. \u00b9 Target Circle\u2122: Restrictions apply. See Target.com/terms for program rules and details. Target Circle\u2122 Rewards: Terms and restrictions apply to Target Circle Rewards. Target Circle Rewards will expire if you have not earned or redeemed any Target Circle Rewards for one year. See https://www.target.com/c/terms-conditions/-/N-4sr7l#circlenew for details. Community Support: Earn votes to help direct where Target gives in your community. See https://www.target.com/c/terms-conditions/-/N-4sr7l#circlenew for details. \u00b2 Target Circle\u2122 Card: Target Debit Card, Target Credit Card, Target\u2122 Mastercard\u00ae, and Target Circle Card Account (Reloadable). Subject to application approval and identity verification. The Target Circle debit card is issued by Target Corporation. The Target Circle credit cards (Target Credit Card and Target Mastercard) are issued by TD Bank USA, N.A. Mastercard is a registered trademark of Mastercard International, Inc. Target Circle Card Account is a demand deposit account established by Pathward\u00ae, N.A., Member FDIC, and card is issued by Pathward pursuant to a license from Visa U.S.A. Inc. Card can be used everywhere Visa\u00ae debit cards are accepted. Funds are FDIC insured, subject to applicable limitations and restrictions, when we receive the funds deposited to your account. Target and Incomm Payments are not banks or FDIC-insured institutions and the FDIC\u2019s deposit insurance coverage only protects against the failure of an FDIC-insured institution. Pathward, N.A. is an FDIC-insured depository institution. 5% Target Circle\u2122 Card Discount: You will receive 5% off purchases paid for with your Target Circle Card (debit, credit, and reloadable) at Target stores and Target.com, except on prescriptions and other CVS pharmacy products; Target GiftCards; Visa, Mastercard and American Express prepaid cards; Game On, DraftKings and other sports betting gift cards; Starbucks gift cards purchased at Starbucks locations within Target stores; previous purchases; clinic services at Target; Target Optical eye exams and protection plans; Target Circle 360\u2122 memberships; Shipt memberships; alcohol purchases in IN; some independent businesses in Target stores; wireless protection programs and mobile carrier deposits; gift wrapping services; and taxes, shipping, delivery, handling and all other fees or charges. 5% discount applies to eligible purchases minus any other discounts and the value of any promotional Target GiftCards received in the transaction. New cards subject to application approval. Additional restrictions apply. See full program rules in store or at Target.com/CircleCard for details. \u00b3 Target Circle 360\u2122: Membership required. Terms and conditions apply. Unlimited Same-Day Delivery applies to orders over $35. Fastest delivery is based on the Same-Day Delivery benefit and is subject to geographic availability. See https://www.target.com/c/terms-conditions/-/N-4sr7l for details. No markups: Offer valid for Target Circle 360 members only. Now through December 2026. Pricing is generally based on information from retailers, including alcohol pricing. \"No Markups\" means product prices are generally the same as in-store, except alcohol. Alcohol prices, and prices on non-alcohol items where alcohol is predominantly sold, are generally not the same as in-store. Pricing and availability is subject to change without notice, delays, data limitations, adjustments, and/or errors. In-store deals may not apply. \u2074 2-day shipping: When you pay with your Target Circle\u2122 Card (debit, credit, and reloadable) or are a Target Circle 360\u2122 member, you will receive free standard shipping on most items and free 2-day shipping on eligible items from Target.com. Hundreds of thousands of items qualify for 2-day shipping. See https://www.target.com/c/free-2-day-shipping/-/N-49cz6 for general delivery guidelines. \u2075 Extended returns program rules: When you pay with your Target Circle\u2122 Card (debit, credit, and reloadable) or are a Target Circle 360\u2122 member, you will receive 30 additional days to return the purchases beyond the standard return policy applicable to each of the purchased items. Extended returns do not apply to: Target Optical products, contract mobile phones; non-returnable items and online purchases of SNAP eligible items using EBT and a Target Circle Card. For messages containing promotional codes: Discount applied at checkout with valid promotion code. Discount not applicable to gift wrap, tax or shipping and handling charges. May not be applied to previous orders. Exclusions may apply. Offer details \u203a For messages containing gift card offers: Gift card on select items with purchase. Terms and conditions apply to gift cards. Offer details \u203a \u00a92025 Target Brands, Inc. Target and the Bullseye Design are registered trademarks of Target Brands, Inc. Subscribe \u203a Was this email forwarded to you? Sign up to get them straight from the source. Unsubscribe \u203a If you no longer wish to receive our commercial email advertisements, simply unsubscribe. Contact us \u203a We can\u2019t respond to emails sent to this address but you can get in touch through our contact us page or by writing to: Target Guest Relations, Mail Stop NCB-0310, P.O. Box 9350, Minneapolis, MN 55440-9350. --> Shop & save with the Target app Get all of Target in one place, wherever you are. --> Expect More. Pay Less.\r\n",
+      "metadata": {
+        "threadId": "61f3ff43-15c4-4121-b1ac-ca293b0d1a4d",
+        "otherUserId": 18,
+        "otherUserName": "Target Circle",
+        "messageCount": 2,
+        "lastMessageAt": "2025-11-11T01:49:47.9871982",
+        "communicationType": "direct_message"
+      },
+      "created_at": "2025-11-02T21:59:38.7493595",
+      "modified_at": "2025-11-11T01:49:47.9871982",
+      "relevance_score": 0
+    },
+    {
+      "id": "988e18e8-c459-4c31-b6d8-eca839e57236",
+      "module_name": "communications",
+      "entity_type": "DirectThread",
+      "entity_id": 0,
+      "title": "DM with Optimus Prime",
+      "content": "Direct Message Thread with: Optimus Prime\r\nTotal Messages: 2\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-07 08:11] Kyle Wang: Hi Optimus\r\n[2025-11-04 11:32] Kyle Wang: Autobots, roll out.\r\n",
+      "metadata": {
+        "threadId": "1296b1ef-0052-4010-9477-fd93a2f2ebcd",
+        "otherUserId": 24,
+        "otherUserName": "Optimus Prime",
+        "messageCount": 2,
+        "lastMessageAt": "2025-11-07T08:11:22.8539246",
+        "communicationType": "direct_message"
+      },
+      "created_at": "2025-11-04T02:20:14.1365613",
+      "modified_at": "2025-11-07T08:11:22.8539246",
+      "relevance_score": 0
+    },
+    {
+      "id": "d8f80deb-4398-4cc0-987d-0f70495d99bc",
+      "module_name": "communications",
+      "entity_type": "DirectThread",
+      "entity_id": 0,
+      "title": "DM with Expedia.com ",
+      "content": "Direct Message Thread with: Expedia.com \r\nTotal Messages: 1\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-07 08:10] Expedia.com: Easily find the right flight\n\n<meta name=\r\n",
+      "metadata": {
+        "threadId": "1d4e77dc-a2de-479e-8a64-276bb3042fb8",
+        "otherUserId": 33,
+        "otherUserName": "Expedia.com ",
+        "messageCount": 1,
+        "lastMessageAt": "2025-11-07T08:10:19.1585739",
+        "communicationType": "direct_message"
+      },
+      "created_at": "2025-11-07T08:10:19.1104051",
+      "modified_at": "2025-11-07T08:10:19.1585739",
+      "relevance_score": 0
+    },
+    {
+      "id": "93add9bd-a527-4526-bae1-563d44a8ff22",
+      "module_name": "communications",
+      "entity_type": "DirectThread",
+      "entity_id": 0,
+      "title": "DM with Ben Franklin",
+      "content": "Direct Message Thread with: Ben Franklin\r\nTotal Messages: 2\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-07 08:06] Kyle Wang: Yo Ben\r\n[2025-11-04 11:23] Kyle Wang: Hey Benjamin, nice to see you joined properly as a client!\r\n",
+      "metadata": {
+        "threadId": "69cb98c5-ecd0-4145-b513-a41f8d2db912",
+        "otherUserId": 27,
+        "otherUserName": "Ben Franklin",
+        "messageCount": 2,
+        "lastMessageAt": "2025-11-07T08:06:14.9349396",
+        "communicationType": "direct_message"
+      },
+      "created_at": "2025-11-04T02:20:11.3221503",
+      "modified_at": "2025-11-07T08:06:14.9349396",
+      "relevance_score": 0
+    },
+    {
+      "id": "87c8723f-3720-4117-926f-fea992fad6f3",
+      "module_name": "communications",
+      "entity_type": "DirectThread",
+      "entity_id": 0,
+      "title": "DM with Gerald Google",
+      "content": "Direct Message Thread with: Gerald Google\r\nTotal Messages: 4\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-07 07:43] Kyle Wang: Hey Gerald\r\n[2025-11-07 03:25] Kyle Wang: Hey Gerald\r\n[2025-11-04 11:25] Kyle Wang: Gerald. Good to see you set up your Notal client account. We can start from here\r\n[2025-11-02 08:07] Gerald Google: This is a copy of a security alert sent to kzwang.mc@gmail.com. wangzonghao@gmail.com is the recovery email for this account. If you don't recognize this account, remove it.New sign-in to your account kzwang.mc@gmail.com We noticed a new sign-in to your Google Account. If this was you, you don\u2019t need to do anything. If not, we\u2019ll help you secure your account.Check activityYou can also see security activity athttps://myaccount.google.com/notificationsYou received this email to let you know about important changes to your Google Account and services.\u00a9 2025 Google LLC, 1600 Amphitheatre Parkway, Mountain View, CA 94043, USA\r\n",
+      "metadata": {
+        "threadId": "a2375a23-4522-4a46-952b-7c5d5cd4a72c",
+        "otherUserId": 14,
+        "otherUserName": "Gerald Google",
+        "messageCount": 4,
+        "lastMessageAt": "2025-11-07T07:43:41.1234443",
+        "communicationType": "direct_message"
+      },
+      "created_at": "2025-11-02T08:07:18.7352707",
+      "modified_at": "2025-11-07T07:43:41.1234443",
+      "relevance_score": 0
+    },
+    {
+      "id": "0e3582f4-9608-4374-b227-2bd2ef25e0a4",
+      "module_name": "communications",
+      "entity_type": "DirectThread",
+      "entity_id": 0,
+      "title": "DM with VIZ Media",
+      "content": "Direct Message Thread with: VIZ Media\r\nTotal Messages: 1\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-07 07:41] VIZ Media: \ud83c\udf65 Cook Recipes From Naruto Shippuden \ud83c\udf65\n\n<title\r\n",
+      "metadata": {
+        "threadId": "6a195019-de58-4570-a20a-97c6935b4a84",
+        "otherUserId": 32,
+        "otherUserName": "VIZ Media",
+        "messageCount": 1,
+        "lastMessageAt": "2025-11-07T07:41:24.1755452",
+        "communicationType": "direct_message"
+      },
+      "created_at": "2025-11-07T07:41:24.1177421",
+      "modified_at": "2025-11-07T07:41:24.1755452",
+      "relevance_score": 0
+    },
+    {
+      "id": "0bf659b6-709d-44e7-858f-db1ac3eb4504",
+      "module_name": "communications",
+      "entity_type": "DirectThread",
+      "entity_id": 0,
+      "title": "DM with AthleticNET ",
+      "content": "Direct Message Thread with: AthleticNET \r\nTotal Messages: 1\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-07 03:11] AthleticNET: Nike Cross Regionals Season Kicks Off + NJCAA XC Champs Live + State Meets!\n\nNike Cross Regionals Season Kicks Off + NJCAA XC Champs Live + State Meets!\r\n",
+      "metadata": {
+        "threadId": "d1a8dcfa-4fb5-48a9-98d2-c740aad4af80",
+        "otherUserId": 31,
+        "otherUserName": "AthleticNET ",
+        "messageCount": 1,
+        "lastMessageAt": "2025-11-07T03:11:45.907328",
+        "communicationType": "direct_message"
+      },
+      "created_at": "2025-11-07T03:11:45.8919746",
+      "modified_at": "2025-11-07T03:11:45.907328",
+      "relevance_score": 0
+    },
+    {
+      "id": "9dd616af-6738-49aa-b395-acee7ce8e1c0",
+      "module_name": "communications",
+      "entity_type": "DirectThread",
+      "entity_id": 0,
+      "title": "DM with Humble Bundle",
+      "content": "Direct Message Thread with: Humble Bundle\r\nTotal Messages: 1\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-07 03:01] Humble Bundle: The Telltale Collection is back with Batman, The Walking Dead, and more\n\nHumble\r\n",
+      "metadata": {
+        "threadId": "b431a7fc-1712-468b-a757-d4640f0d4af4",
+        "otherUserId": 30,
+        "otherUserName": "Humble Bundle",
+        "messageCount": 1,
+        "lastMessageAt": "2025-11-07T03:01:34.349314",
+        "communicationType": "direct_message"
+      },
+      "created_at": "2025-11-07T03:01:34.2914236",
+      "modified_at": "2025-11-07T03:01:34.349314",
+      "relevance_score": 0
+    },
+    {
+      "id": "fd05ccc2-3fe6-4f89-8598-2793ad39bd50",
+      "module_name": "communications",
+      "entity_type": "DirectThread",
+      "entity_id": 0,
+      "title": "DM with Burger King",
+      "content": "Direct Message Thread with: Burger King\r\nTotal Messages: 1\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-05 23:44] Burger King: $3.99 Whopper Wednesday? Yes, please! \ud83d\ude0b\ud83c\udf54\n\n96<o:Al\r\n",
+      "metadata": {
+        "threadId": "558d1da3-2cfc-4f4a-a0af-17e6cab92174",
+        "otherUserId": 29,
+        "otherUserName": "Burger King",
+        "messageCount": 1,
+        "lastMessageAt": "2025-11-05T23:44:42.4854967",
+        "communicationType": "direct_message"
+      },
+      "created_at": "2025-11-05T23:44:42.4157605",
+      "modified_at": "2025-11-05T23:44:42.4854967",
+      "relevance_score": 0
+    },
+    {
+      "id": "33d9aba4-804d-417e-b469-bc1e2e58c683",
+      "module_name": "communications",
+      "entity_type": "DirectThread",
+      "entity_id": 0,
+      "title": "DM with Frederick Dewey",
+      "content": "Direct Message Thread with: Frederick Dewey\r\nTotal Messages: 2\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-04 11:31] Kyle Wang: Blah\r\n[2025-11-04 03:58] Frederick Dewey: Hello\n\nBlah\r\n",
+      "metadata": {
+        "threadId": "3de3a03a-ccd0-4ff5-9248-8daa9ca7df57",
+        "otherUserId": 4,
+        "otherUserName": "Frederick Dewey",
+        "messageCount": 2,
+        "lastMessageAt": "2025-11-04T11:31:32.1811119",
+        "communicationType": "direct_message"
+      },
+      "created_at": "2025-11-04T03:58:41.2888078",
+      "modified_at": "2025-11-04T11:31:32.1811119",
+      "relevance_score": 0
+    },
+    {
+      "id": "f4ead9f1-4726-48da-b3ad-95deeabda156",
+      "module_name": "communications",
+      "entity_type": "DirectThread",
+      "entity_id": 0,
+      "title": "DM with Bella Yuan",
+      "content": "Direct Message Thread with: Bella Yuan\r\nTotal Messages: 3\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-04 11:25] Kyle Wang: I love Cane's\r\n[2025-11-04 04:08] Kyle Wang: hi\r\n[2025-11-04 03:59] Bella Yuan: Sweaters to complete your cold-weather wardrobe\n\nSweaters to complete your cold-weather wardrobe\r\n",
+      "metadata": {
+        "threadId": "20945555-29ef-44b4-ab8d-aecdddb2c625",
+        "otherUserId": 28,
+        "otherUserName": "Bella Yuan",
+        "messageCount": 3,
+        "lastMessageAt": "2025-11-04T11:25:35.3170296",
+        "communicationType": "direct_message"
+      },
+      "created_at": "2025-11-04T03:59:42.6737221",
+      "modified_at": "2025-11-04T11:25:35.3170296",
+      "relevance_score": 0
+    },
+    {
+      "id": "88669017-c5d4-49ab-aaa1-e2a17c2034ac",
+      "module_name": "communications",
+      "entity_type": "DirectThread",
+      "entity_id": 0,
+      "title": "DM with mnml ",
+      "content": "Direct Message Thread with: mnml \r\nTotal Messages: 1\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-03 06:01] mnml: Last Chance: up to 30% OFF Sitewdie Ends Tonight \ud83d\udea8\n\nbuy more, save more. discount applies automatically in cart\u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u2007\u034f \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad \u00ad\n\n\ncopyright \u00a9 2025 mnml, all rights reserved\n\nWant to change how you receive these emails?You can Manage Preferences\u00a0or Unsubscribe\u00a0from this list but if you do you're trippin.\r\n",
+      "metadata": {
+        "threadId": "2b0632e6-cf56-4782-ae32-ac3b74428fb2",
+        "otherUserId": 26,
+        "otherUserName": "mnml ",
+        "messageCount": 1,
+        "lastMessageAt": "2025-11-03T06:01:08.6037416",
+        "communicationType": "direct_message"
+      },
+      "created_at": "2025-11-03T06:01:08.5518471",
+      "modified_at": "2025-11-03T06:01:08.6037416",
+      "relevance_score": 0
+    },
+    {
+      "id": "f02919fe-ecf9-4348-9398-cb4f132f030b",
+      "module_name": "communications",
+      "entity_type": "DirectThread",
+      "entity_id": 0,
+      "title": "DM with Kevin Yin",
+      "content": "Direct Message Thread with: Kevin Yin\r\nTotal Messages: 1\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-03 04:47] Kevin Yin: Notal Goated\n\n[No email content]\r\n",
+      "metadata": {
+        "threadId": "b38f650e-48a4-4dcf-ae93-1eb5229a8a8b",
+        "otherUserId": 25,
+        "otherUserName": "Kevin Yin",
+        "messageCount": 1,
+        "lastMessageAt": "2025-11-03T04:47:35.2575755",
+        "communicationType": "direct_message"
+      },
+      "created_at": "2025-11-03T04:47:35.210989",
+      "modified_at": "2025-11-03T04:47:35.2575755",
+      "relevance_score": 0
+    },
+    {
+      "id": "197d2202-e5a9-4e51-9514-86a082ad22e2",
+      "module_name": "communications",
+      "entity_type": "DirectThread",
+      "entity_id": 0,
+      "title": "DM with NerdWallet ",
+      "content": "Direct Message Thread with: NerdWallet \r\nTotal Messages: 1\r\n\r\nRecent Messages (newest first):\r\n\r\n[2025-11-03 01:45] NerdWallet: See how a financial advisor can help you \ud83e\udd13\n\nAnswer a few questions, and NerdWallet Advisors Match will do the rest \u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0\u200c\u00a0 \u00a0 What\u2019s your top financial priority? Choose the best option below, and NerdWallet Advisors Match will connect you to a financial advisor in just a few minutes. Powered by NerdWallet Advisory LLC Unpaid non-client promotion. NerdWallet, Inc., and NerdWallet Advisory, LLC (\"NWA\") are affiliated entities, therefore, Nerdwallet, Inc. has a financial incentive to promote the advisory services offered by NWA. NWA is an SEC-registered investment adviser. Registration as an investment adviser does not imply a certain level of skill or training, nor does it constitute an endorsement by any securities regulator. Advisors Match is a referral service operated by NWA that connects users with both affiliated and independent third-party financial advisors. NWA does not guarantee the services of any advisor. Use of the service is free for users; advisors pay NWA a fee. Advisory services are provided by third-party advisors, not NWA. NWA does not provide tax or legal advice. Please see NWA\u2019s website for additional disclosures and important information. You got this message because you signed up to receive NerdWallet emails. We love having you, but we won\u2019t take it personally if you want to unsubscribe. Got a question about NerdWallet, your money, or just want to say hi? Visit our help center. NerdWallet\u2122 | 4150 N Drinkwater Blvd Suite 200 | Scottsdale, AZ 85251\r\n",
+      "metadata": {
+        "threadId": "160c40d5-6e55-4fe9-8168-5d426628a248",
+        "otherUserId": 23,
+        "otherUserName": "NerdWallet ",
+        "messageCount": 1,
+        "lastMessageAt": "2025-11-03T01:45:46.7485505",
+        "communicationType": "direct_message"
+      },
+      "created_at": "2025-11-03T01:45:46.7152428",
+      "modified_at": "2025-11-03T01:45:46.7485505",
+      "relevance_score": 0
+    },
+    {
+      "id": "645da154-434a-49f8-8688-89d25f3b49ee",
+      "module_name": "clients",
+      "entity_type": "User",
+      "entity_id": 1,
+      "title": "Kyle Wang",
+      "content": "Client: Kyle Wang\r\nEmail: kyle@notal.org\r\n",
+      "metadata": {
+        "email": "kyle@notal.org",
+        "phoneNumber": "",
+        "company": null,
+        "jobTitle": null
+      },
+      "created_at": "2025-09-28T05:23:21.7575096",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "16f9a69a-334b-415f-bc83-660917d32eb7",
+      "module_name": "clients",
+      "entity_type": "User",
+      "entity_id": 3,
+      "title": "Chloe Tang",
+      "content": "Client: Chloe Tang\r\nEmail: chloetangthy@gmail.com\r\n",
+      "metadata": {
+        "email": "chloetangthy@gmail.com",
+        "phoneNumber": null,
+        "company": null,
+        "jobTitle": null
+      },
+      "created_at": "2025-09-29T00:19:08.8276336",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "995f5aae-c15c-42b9-b4f5-85f721ade0b8",
+      "module_name": "clients",
+      "entity_type": "User",
+      "entity_id": 5,
+      "title": "John Marshall",
+      "content": "Client: John Marshall\r\nEmail: kzwang.mc@gmail.com\r\n",
+      "metadata": {
+        "email": "kzwang.mc@gmail.com",
+        "phoneNumber": null,
+        "company": null,
+        "jobTitle": null
+      },
+      "created_at": "2025-09-29T01:12:29.9320965",
+      "modified_at": null,
+      "relevance_score": 0
+    }
+  ]
+}

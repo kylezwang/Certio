@@ -1,0 +1,32 @@
+{
+  "user_id": 1,
+  "organization_id": 19,
+  "user_name": "Kyle Wang",
+  "total_chunks": 1,
+  "last_synced": "2025-11-18T01:41:55.897227",
+  "module_summaries": {
+    "clients": {
+      "totalClients": 1,
+      "activeClients": 1
+    }
+  },
+  "chunks": [
+    {
+      "id": "92250cc4-96fd-4433-93a8-d7f2faa7db7e",
+      "module_name": "clients",
+      "entity_type": "User",
+      "entity_id": 4,
+      "title": "Frederick Dewey",
+      "content": "Client: Frederick Dewey\r\nEmail: cht042@ucsd.edu\r\n",
+      "metadata": {
+        "email": "cht042@ucsd.edu",
+        "phoneNumber": null,
+        "company": null,
+        "jobTitle": null
+      },
+      "created_at": "2025-09-29T00:57:21.9235041",
+      "modified_at": null,
+      "relevance_score": 0
+    }
+  ]
+}
