@@ -920,7 +920,10 @@ public class UserDataContextService : IUserDataContextService
             var json = JsonSerializer.Serialize(payload, JsonOptions);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync("/data-context/sync", content, cancellationToken);
+            var syncUrl = "/data-context/sync";
+            _logger.LogInformation("Syncing user data to Python AI at endpoint: {BaseAddress}{Endpoint}", _httpClient.BaseAddress, syncUrl);
+
+            var response = await _httpClient.PostAsync(syncUrl, content, cancellationToken);
             response.EnsureSuccessStatusCode();
 
             _logger.LogInformation("Successfully synced user data context to Python AI for User {UserId}", userId);

@@ -1644,6 +1644,7 @@ namespace Certio.Web.Controllers
 
             ViewBag.OrganizationId = orgId;
             ViewBag.OrganizationName = lawFirmOrgName;
+            ViewBag.CurrentUserId = customUser.Id;
 
             return View("~/Views/Client/NewClient.cshtml", model);
         }
@@ -1679,6 +1680,7 @@ namespace Certio.Web.Controllers
                 }
 
                 ViewBag.OrganizationId = orgId;
+                ViewBag.CurrentUserId = customUser.Id;
                 return View("~/Views/Client/NewClient.cshtml", model);
             }
 
