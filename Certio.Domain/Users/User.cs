@@ -153,7 +153,7 @@ namespace Certio.Domain.Users
         public bool IsLawFirmPartner()
         {
             var membership = GetLawFirmMembership();
-            return membership?.Role == OrganizationRoles.Partner;
+            return membership?.Role == OrganizationRoles.Partner || membership?.Role == OrganizationRoles.ManagingPartner;
         }
         
         public bool IsLawFirmAssociate()

@@ -332,7 +332,8 @@ namespace Certio.Application.Services
                         .FirstOrDefaultAsync(uo => uo.UserId == userId && uo.OrganizationId == organizationId && uo.IsActive);
                     
                     // Only Partners see all tasks; others ONLY see assigned tasks
-                    if (userOrgMembership?.Role != Certio.Domain.Users.OrganizationRoles.Partner)
+                    if (userOrgMembership?.Role != Certio.Domain.Users.OrganizationRoles.Partner &&
+                        userOrgMembership?.Role != Certio.Domain.Users.OrganizationRoles.ManagingPartner)
                     {
                         // Non-partners: only show tasks they're assigned to or in matters they're assigned to
                         query = query.Where(t => 
