@@ -210,6 +210,13 @@ namespace Certio.Web.Controllers
                 if (allOrgs.Any(o => ((dynamic)o).organizationId == org.Id))
                     continue;
 
+                // SECURITY: Filter out external organizations where the current user is not the owner
+                var isExternalGuestsOrg = org.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase);
+                if (isExternalGuestsOrg && org.OwnerId != customUser.Id)
+                {
+                    continue; // Skip external organizations owned by other users
+                }
+
                 var orgUsers = org.UserOrganizations.Where(uo => uo.IsActive).ToList();
                 var ownerMembership = orgUsers.FirstOrDefault(uo => uo.UserId == org.OwnerId);
                 var ownerHasMembership = ownerMembership != null;
