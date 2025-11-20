@@ -16,6 +16,8 @@ public interface IAIAgentService
         string conversationId, 
         List<ChatMessage> messages, 
         string userMessage, 
-        Certio.Domain.Organizations.AIModelTier? aiModelTier = null);
+        Certio.Domain.Organizations.AIModelTier? aiModelTier = null,
+        int? fallbackUserId = null,
+        int? fallbackOrganizationId = null);
     Task<Dictionary<string, object>> ProcessConversationIntelligentlyAsync(string conversationId, List<ChatMessage> messages, string userType = "Client");
 }

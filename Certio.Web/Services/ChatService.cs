@@ -5,6 +5,8 @@ using Certio.Application.Services;
 using Certio.Application.Interfaces;
 using Certio.Domain.Exceptions;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Certio.Web.Services;
 
@@ -82,6 +84,131 @@ public class ChatService : IChatService
         _logger.LogInformation("User {UserId} created conversation {ConvId} in org {OrgId}", userId, conversation.Id, organizationId);
 
         return conversation;
+    }
+
+    private async Task<string> BuildDashboardCardContextAsync(int organizationId)
+    {
+        var today = DateTime.UtcNow.Date;
+        var now = DateTime.UtcNow;
+
+        var overdueTasksRaw = await _context.TaskItems
+            .AsNoTracking()
+            .Include(t => t.Matter)
+            .Include(t => t.TaskAssignments)
+                .ThenInclude(a => a.User)
+            .Where(t => t.OrgId == organizationId && !t.IsDeleted && t.DueDate.HasValue && t.DueDate.Value.Date < today && t.Status != "Completed")
+            .OrderBy(t => t.DueDate)
+            .Take(12)
+            .ToListAsync();
+
+        var overdueTasks = overdueTasksRaw.Select(t =>
+        {
+            var dueDate = t.DueDate?.Date;
+            var daysOverdue = dueDate.HasValue ? (today - dueDate.Value).Days : (int?)null;
+            var assignees = t.TaskAssignments
+                .Where(a => a.User != null && a.AssignmentType == "Assignee")
+                .Select(a => new DashboardAssignee(
+                    $"{a.User!.FirstName} {a.User.LastName}".Trim(),
+                    string.IsNullOrWhiteSpace(a.Role) ? a.AssignmentType : a.Role))
+                .ToList();
+
+            return new DashboardTaskSummary(
+                t.Id,
+                t.Title,
+                t.Matter?.Title ?? "Unspecified Matter",
+                t.Priority,
+                t.Status,
+                dueDate,
+                daysOverdue,
+                assignees);
+        }).ToList();
+
+        var upcomingEventsRaw = await _context.CalendarEvents
+            .AsNoTracking()
+            .Include(e => e.Matter)
+            .Where(e => e.OrgId == organizationId && !e.IsDeleted && e.StartDateTime >= now && e.StartDateTime <= now.AddDays(7))
+            .OrderBy(e => e.StartDateTime)
+            .Take(10)
+            .ToListAsync();
+
+        var upcomingEvents = upcomingEventsRaw.Select(e => new DashboardEventSummary(
+            e.Id,
+            e.Title,
+            e.EventType,
+            e.StartDateTime,
+            e.EndDateTime,
+            e.Matter?.Title,
+            e.Location)).ToList();
+
+        var mattersRaw = await _context.Matters
+            .AsNoTracking()
+            .Where(m => m.OrganizationId == organizationId && !m.IsDeleted && m.Status != "Completed")
+            .Select(m => new
+            {
+                m.Id,
+                m.Title,
+                m.Status,
+                m.PracticeArea,
+                LastActivity = m.ModifiedAt ?? m.LastModifiedDate ?? m.CreatedAt
+            })
+            .ToListAsync();
+
+        var staleMatters = mattersRaw
+            .Select(m =>
+            {
+                var lastActivity = m.LastActivity; // Already non-nullable due to ?? m.CreatedAt fallback
+                var daysInactive = (now - lastActivity).TotalDays;
+                return new DashboardMatterSummary(
+                    m.Id,
+                    m.Title,
+                    m.Status,
+                    m.PracticeArea,
+                    lastActivity,
+                    Math.Round(daysInactive, 1));
+            })
+            .OrderByDescending(m => m.DaysSinceActivity)
+            .Take(5)
+            .ToList();
+
+        var recentActivityRaw = await _context.TaskItems
+            .AsNoTracking()
+            .Include(t => t.Matter)
+            .Where(t => t.OrgId == organizationId && !t.IsDeleted)
+            .OrderByDescending(t => t.ModifiedAt ?? t.LastModifiedAt ?? t.CreatedAt)
+            .Take(8)
+            .ToListAsync();
+
+        var recentActivity = recentActivityRaw.Select(t =>
+        {
+            var activityDate = t.ModifiedAt ?? t.LastModifiedAt ?? t.CreatedAt;
+            var activityType = t.Status == "Completed" ? "Task completed" : "Task updated";
+            return new DashboardActivitySummary(
+                t.Id,
+                t.Title,
+                t.Matter?.Title ?? "Unspecified Matter",
+                activityType,
+                activityDate);
+        }).ToList();
+
+        var stats = new DashboardStats(
+            overdueTasks.Count,
+            upcomingEvents.Count(e => e.EventType.Equals("Call", StringComparison.OrdinalIgnoreCase) || e.EventType.Equals("Meeting", StringComparison.OrdinalIgnoreCase)),
+            staleMatters.Count(m => m.DaysSinceActivity >= 7));
+
+        var context = new DashboardCardContext(
+            organizationId,
+            DateTime.UtcNow,
+            stats,
+            overdueTasks,
+            upcomingEvents,
+            staleMatters,
+            recentActivity);
+
+        return JsonSerializer.Serialize(context, new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        });
     }
 
     public async Task<Conversation> CreateChannelAsync(int organizationId, int userId, string title, string description, string channelType = "Group", bool isPrivateChannel = false, int? matterId = null)
@@ -347,7 +474,9 @@ public class ChatService : IChatService
         }
 
         var conversations = await _context.Conversations
-            .Where(c => c.OrganizationId == organizationId && c.CreatedById == userId)
+            .Where(c => c.OrganizationId == organizationId &&
+                        c.CreatedById == userId &&
+                        !c.IsDeleted)
             .OrderByDescending(c => c.LastMessageAt)
             .ToListAsync();
 
@@ -371,7 +500,8 @@ public class ChatService : IChatService
         var conversations = await _context.Conversations
             .Where(c => c.OrganizationId == organizationId && 
                        c.CreatedById == userId && 
-                       !c.IsChannel) // Only filter out channels - include all conversations regardless of message count
+                       !c.IsChannel &&
+                       !c.IsDeleted) // Only filter out channels and deleted conversations
             .OrderByDescending(c => c.LastMessageAt)
             .ToListAsync();
 
@@ -688,28 +818,64 @@ public class ChatService : IChatService
         }
     }
 
-    public async IAsyncEnumerable<string> GenerateDashboardCardStreamAsync(string userMessage, string userType, int? organizationId = null)
+    public async IAsyncEnumerable<string> GenerateDashboardCardStreamAsync(string userMessage, string userType, int organizationId, int userId, string cardType)
     {
-        // Generate streaming response for dashboard cards without conversation context
-        // Use empty conversation history since this is a standalone prompt
-        var emptyMessages = new List<ChatMessage>();
+        // Build real data context for dashboard cards
+        var dataContextJson = await BuildDashboardCardContextAsync(organizationId);
+        var normalizedCardType = string.IsNullOrWhiteSpace(cardType) ? "dashboard-card" : cardType;
+        var contextualPrompt = $"""
+You are generating the '{normalizedCardType}' dashboard card for organization {organizationId}.
+Use ONLY the structured data provided below. If specific information is missing, clearly state that it is unavailable rather than guessing.
+
+DATA_CONTEXT_JSON:
+{dataContextJson}
+
+INSTRUCTIONS:
+{userMessage}
+
+Rules:
+1. Match counts, dates, and names exactly as provided in the dataset.
+2. When referencing people, use the role/title specified in the data (do not assume new titles).
+3. When listing overdue items, include the task title, matter, due date, and priority as given.
+4. If a section has zero items, explicitly state that there are none.
+5. Never invent matters, tasks, or people not present in DATA_CONTEXT_JSON.
+""";
+
+        // Generate streaming response using the contextualized prompt
+        var placeholderMessages = new List<ChatMessage>
+        {
+            new ChatMessage
+            {
+                Id = 0,
+                ConversationId = 0,
+                UserId = userId,
+                UserType = userType,
+                Content = contextualPrompt,
+                MessageType = "DashboardPrompt",
+                IsFromAI = false,
+                CreatedAt = DateTime.UtcNow,
+                IsRead = true
+            }
+        };
         
         // Get organization's AI tier preference
         var aiModelTier = Certio.Domain.Organizations.AIModelTier.Auto; // Default to Auto
-        if (organizationId.HasValue)
+        var org = await _context.Organizations.FindAsync(new object[] { organizationId });
+        if (org != null)
         {
-            var org = await _context.Organizations.FindAsync(new object[] { organizationId.Value });
-            if (org != null)
-            {
-                aiModelTier = org.GetAIModelTier();
-            }
+            aiModelTier = org.GetAIModelTier();
         }
         
         // Use a unique identifier for dashboard cards (not a real conversation ID)
         var dashboardCardId = $"dashboard-{DateTime.UtcNow:yyyyMMddHHmmss}";
         
         await foreach (var chunk in _aiAgentService.GenerateConversationalResponseStreamAsync(
-            dashboardCardId, emptyMessages, userMessage, aiModelTier: aiModelTier))
+            dashboardCardId, 
+            placeholderMessages, 
+            contextualPrompt, 
+            aiModelTier: aiModelTier,
+            fallbackUserId: userId,
+            fallbackOrganizationId: organizationId))
         {
             yield return chunk;
         }
@@ -835,6 +1001,56 @@ public class ChatService : IChatService
                "Our AI assistant will be back online shortly to provide intelligent responses!";
     }
 
+    private sealed record DashboardCardContext(
+        int OrganizationId,
+        DateTime GeneratedAtUtc,
+        DashboardStats Stats,
+        List<DashboardTaskSummary> OverdueTasks,
+        List<DashboardEventSummary> UpcomingEvents,
+        List<DashboardMatterSummary> StaleMatters,
+        List<DashboardActivitySummary> RecentActivity);
+
+    private sealed record DashboardStats(
+        int TotalOverdueTasks,
+        int UpcomingCallsOrMeetings,
+        int StaleMatterCount);
+
+    private sealed record DashboardTaskSummary(
+        int TaskId,
+        string Title,
+        string Matter,
+        string Priority,
+        string Status,
+        DateTime? DueDate,
+        int? DaysOverdue,
+        List<DashboardAssignee> Assignees);
+
+    private sealed record DashboardAssignee(string Name, string Role);
+
+    private sealed record DashboardEventSummary(
+        int EventId,
+        string Title,
+        string EventType,
+        DateTime StartDateTime,
+        DateTime EndDateTime,
+        string? Matter,
+        string? Location);
+
+    private sealed record DashboardMatterSummary(
+        int MatterId,
+        string Title,
+        string Status,
+        string PracticeArea,
+        DateTime? LastActivity,
+        double DaysSinceActivity);
+
+    private sealed record DashboardActivitySummary(
+        int ItemId,
+        string Title,
+        string Matter,
+        string ActivityType,
+        DateTime ActivityDate);
+
     public async Task<bool> RenameConversationAsync(int conversationId, int organizationId, string newTitle)
     {
         try
@@ -868,26 +1084,48 @@ public class ChatService : IChatService
     {
         try
         {
-            // First delete all messages in the conversation
+            // Get the conversation first to verify it exists and user has access
+            var conversation = await _context.Conversations
+                .Include(c => c.Participants)
+                .FirstOrDefaultAsync(c => c.Id == conversationId && c.OrganizationId == organizationId);
+            
+            if (conversation == null)
+            {
+                return false;
+            }
+            
+            var creatorId = conversation.CreatedById;
+            
+            // Delete all participants first (even though cascade delete should handle this)
+            if (conversation.Participants != null && conversation.Participants.Any())
+            {
+                _context.ConversationParticipants.RemoveRange(conversation.Participants);
+            }
+            
+            // Delete all messages in the conversation
             var messages = await _context.ChatMessages
                 .Where(m => m.ConversationId == conversationId)
                 .ToListAsync();
             
-            _context.ChatMessages.RemoveRange(messages);
-            
-            // Then delete the conversation itself
-            var conversation = await _context.Conversations
-                .FirstOrDefaultAsync(c => c.Id == conversationId && c.OrganizationId == organizationId);
-            
-            if (conversation != null)
+            if (messages.Any())
             {
-                _context.Conversations.Remove(conversation);
+                _context.ChatMessages.RemoveRange(messages);
             }
             
+            // Finally delete the conversation itself
+            _context.Conversations.Remove(conversation);
+            
+            // Save all changes in a transaction
             await _context.SaveChangesAsync();
             
             // Invalidate caches to ensure the conversation is removed from lists
             await _cacheService.InvalidateUserConversationsCacheAsync(userId, organizationId);
+            
+            // Also invalidate cache for the conversation creator if different
+            if (creatorId != userId)
+            {
+                await _cacheService.InvalidateUserConversationsCacheAsync(creatorId, organizationId);
+            }
             
             // Audit log the deletion
             // Audit logging now handled automatically by AuditInterceptor
@@ -897,6 +1135,7 @@ public class ChatService : IChatService
         catch (Exception ex)
         {
             Console.WriteLine($"Error deleting conversation: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
             return false;
         }
     }

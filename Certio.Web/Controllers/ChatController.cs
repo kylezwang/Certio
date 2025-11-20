@@ -466,8 +466,14 @@ public class ChatController : Controller
 
         try
         {
+            var userId = GetCurrentUserId();
             var userType = GetCurrentUserType();
-            await foreach (var chunk in _chatService.GenerateDashboardCardStreamAsync(request.UserMessage, userType, orgId))
+            await foreach (var chunk in _chatService.GenerateDashboardCardStreamAsync(
+                request.UserMessage, 
+                userType, 
+                orgId, 
+                userId,
+                request.CardType))
             {
                 var data = $"data: {System.Text.Json.JsonSerializer.Serialize(new { content = chunk, done = false })}\n\n";
                 await Response.WriteAsync(data);
@@ -712,6 +718,7 @@ public class AIResponseRequest
 public class DashboardCardRequest
 {
     public string UserMessage { get; set; } = "";
+    public string CardType { get; set; } = "";
 }
 
 public class RenameConversationRequest
