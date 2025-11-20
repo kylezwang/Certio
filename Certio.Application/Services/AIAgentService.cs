@@ -186,7 +186,9 @@ public class AIAgentService : IAIAgentService
         string conversationId, 
         List<ChatMessage> messages, 
         string userMessage, 
-        Certio.Domain.Organizations.AIModelTier? aiModelTier = null)
+        Certio.Domain.Organizations.AIModelTier? aiModelTier = null,
+        int? fallbackUserId = null,
+        int? fallbackOrganizationId = null)
     {
         HttpResponseMessage? response = null;
         Stream? stream = null;
@@ -194,10 +196,22 @@ public class AIAgentService : IAIAgentService
         bool connectionFailed = false;
 
         // Fetch document context via RAG if conversation has org/user/matter context
-        var documentContext = await TryBuildDocumentContextAsync(conversationId, messages, userMessage);
+        var documentContext = await TryBuildDocumentContextAsync(
+            conversationId, 
+            messages, 
+            userMessage, 
+            fallbackOrganizationId, 
+            fallbackUserId);
 
         // Setup request with optional document context and AI model tier
-        var request = CreateAIRequest(conversationId, messages, userMessage, documentContext: documentContext, aiModelTier: aiModelTier);
+        var request = CreateAIRequest(
+            conversationId, 
+            messages, 
+            userMessage, 
+            documentContext: documentContext, 
+            aiModelTier: aiModelTier,
+            fallbackUserId: fallbackUserId,
+            fallbackOrganizationId: fallbackOrganizationId);
         var json = JsonSerializer.Serialize(request);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
         var httpRequest = new HttpRequestMessage(HttpMethod.Post, "/agents/conversational-response-stream")
@@ -375,12 +389,18 @@ public class AIAgentService : IAIAgentService
         string? userMessage = null, 
         string userType = "Client", 
         Dictionary<string, string?>? documentContext = null,
-        Certio.Domain.Organizations.AIModelTier? aiModelTier = null)
+        Certio.Domain.Organizations.AIModelTier? aiModelTier = null,
+        int? fallbackUserId = null,
+        int? fallbackOrganizationId = null)
     {
         var orderedMessages = OrderMessages(messages);
 
         // Try to extract user_id and organization_id from messages for user data context
         int? userId = orderedMessages.LastOrDefault(m => m.UserId.HasValue)?.UserId;
+        if (!userId.HasValue && fallbackUserId.HasValue)
+        {
+            userId = fallbackUserId;
+        }
         int? organizationId = null;
         
         // Get organization ID from conversation if available
@@ -397,6 +417,10 @@ public class AIAgentService : IAIAgentService
             {
                 // If we can't get the conversation, that's okay - continue without organization_id
             }
+        }
+        if (!organizationId.HasValue && fallbackOrganizationId.HasValue)
+        {
+            organizationId = fallbackOrganizationId;
         }
 
         var request = new
@@ -435,12 +459,21 @@ public class AIAgentService : IAIAgentService
         }
     }
 
-    private async Task<Dictionary<string, string?>?> TryBuildDocumentContextAsync(string conversationId, List<ChatMessage> messages, string userMessage)
+    private async Task<Dictionary<string, string?>?> TryBuildDocumentContextAsync(
+        string conversationId, 
+        List<ChatMessage> messages, 
+        string userMessage,
+        int? fallbackOrganizationId = null,
+        int? fallbackUserId = null)
     {
         var orderedMessages = OrderMessages(messages);
 
         if (!int.TryParse(conversationId, out var convId))
         {
+            if (fallbackOrganizationId.HasValue && fallbackUserId.HasValue)
+            {
+                await EnsureUserDataContextSyncedAsync(fallbackOrganizationId.Value, fallbackUserId.Value);
+            }
             return null;
         }
 
@@ -454,12 +487,20 @@ public class AIAgentService : IAIAgentService
 
             if (conversation == null)
             {
+                if (fallbackOrganizationId.HasValue && fallbackUserId.HasValue)
+                {
+                    await EnsureUserDataContextSyncedAsync(fallbackOrganizationId.Value, fallbackUserId.Value);
+                }
                 return null;
             }
 
             var initiatingMessage = orderedMessages.LastOrDefault(m => !m.IsFromAI);
             if (initiatingMessage?.UserId == null)
             {
+                if (fallbackOrganizationId.HasValue && fallbackUserId.HasValue)
+                {
+                    await EnsureUserDataContextSyncedAsync(fallbackOrganizationId.Value, fallbackUserId.Value);
+                }
                 return null;
             }
 
@@ -469,6 +510,10 @@ public class AIAgentService : IAIAgentService
 
             if (user == null)
             {
+                if (fallbackOrganizationId.HasValue && fallbackUserId.HasValue)
+                {
+                    await EnsureUserDataContextSyncedAsync(fallbackOrganizationId.Value, fallbackUserId.Value);
+                }
                 return null;
             }
 

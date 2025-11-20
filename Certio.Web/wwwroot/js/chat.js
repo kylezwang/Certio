@@ -2305,8 +2305,8 @@ function initializeChatLayout() {
 }
 
 // Load AI-only conversations for the global chat panel
-async function loadAIConversationsForPanel() {
-    console.log('Loading conversations for panel...');
+async function loadAIConversationsForPanel(forceReload = false) {
+    console.log('Loading conversations for panel...', { forceReload });
     const tabList = document.querySelector('.tab-list');
     if (!tabList) {
         console.error('Tab list not found');
@@ -2314,10 +2314,10 @@ async function loadAIConversationsForPanel() {
     }
     
     // Check if we have actual conversation tabs (not just the loading indicator)
-    // Skip this check if tabList is explicitly empty (cleared for refresh)
+    // Skip this check if tabList is explicitly empty (cleared for refresh) or if we're forcing a reload
     const hasConversationTabs = tabList.querySelector('.conversation-tab') !== null;
     const isEmpty = tabList.innerHTML.trim() === '';
-    if (hasConversationTabs && !isEmpty) {
+    if (hasConversationTabs && !isEmpty && !forceReload) {
         console.log('Conversations already loaded, skipping reload');
         return;
     }
@@ -2706,10 +2706,32 @@ function deleteConversation(conversationId) {
                     conversationElement.remove();
                 }
                 
+                // Reload conversations list to ensure UI is in sync with database
+                // This handles cases where cache invalidation might not have taken effect yet
+                if (typeof loadAIConversationsForPanel === 'function') {
+                    loadAIConversationsForPanel(true);
+                }
+                // Also reload dashboard conversations if on dashboard
+                if (typeof loadDashboardConversations === 'function') {
+                    loadDashboardConversations();
+                }
+                
                 // Check if this was the active conversation in sidebar
                 if (currentConversationId === convIdStr || currentConversationId === convId) {
                     currentConversationId = null;
                     clearSelectedConversation(); // Clear the saved selection
+                    
+                    // Reset sticky message state
+                    stickyMessageIndex = -1;
+                    messageElements = [];
+                    userMessageElements = [];
+                    
+                    // Hide sticky last message overlay
+                    const stickyLastMessage = document.getElementById('stickyLastMessage');
+                    if (stickyLastMessage) {
+                        stickyLastMessage.style.display = 'none';
+                        stickyLastMessage.classList.remove('visible');
+                    }
                     
                     // Clear messages and hide conversation header
                     const chatMessagesContainer = document.getElementById('chatMessages');

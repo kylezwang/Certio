@@ -272,14 +272,18 @@
 
         <!-- Daily Briefing - AI Streaming -->
         <div class="col-md-4 mb-4">
-            <div class="card border-0 h-100 daily-briefing-card gd-card">
+            <div class="card border-0 h-100 daily-briefing-card gd-card" id="dailyBriefingCard">
                 <div class="card-body p-4">
+                    <button class="btn btn-link text-muted p-0 briefing-fullscreen-btn" id="dailyBriefingFullscreenBtn" title="Toggle fullscreen">
+                        <i class="fas fa-expand"></i>
+                    </button>
                     <div class="d-flex align-items-center mb-3">
                         <i class="fa-solid fa-chart-pie text-muted me-2" style="font-size: 0.9em;"></i>
                         <h5 class="card-title fw-bold mb-0">Daily Briefing <span class="text-muted fw-normal" style="font-size: 0.75rem;">(Beta)</span></h5>
                     </div>
                     
-                    <div id="dailyBriefingContent" class="briefing-content">
+                    <!-- Summary Grid View (shown when not fullscreen) -->
+                    <div id="dailyBriefingSummary">
                         <div class="briefing-loading">
                             <div class="spinner-border spinner-border-sm text-primary" role="status">
                                 <span class="visually-hidden">Loading...</span>
@@ -287,23 +291,35 @@
                             <span class="ms-2 text-muted small">Generating briefing...</span>
                         </div>
                     </div>
+                    
+                    <!-- Full Content View (shown when fullscreen) -->
+                    <div id="dailyBriefingContent" class="briefing-content" style="display: none;">
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Notal Suggestions - AI Streaming -->
         <div class="col-md-4 mb-4">
-            <div class="card border-0 h-100 gd-card">
+            <div class="card border-0 h-100 notal-suggestions-card gd-card" id="notalSuggestionsCard">
                 <div class="card-body p-4">
+                    <button class="btn btn-link text-muted p-0 suggestions-fullscreen-btn" id="notalSuggestionsFullscreenBtn" title="Toggle fullscreen">
+                        <i class="fas fa-expand"></i>
+                    </button>
                     <h5 class="card-title fw-bold mb-3"><img src="~/images/Notal_Banner_Logo_Large_Text.png" alt="Notal AI" style="height: 1.3rem; object-fit: contain; display: inline-block; margin-right: 0.25rem; margin-bottom: 0.2rem;" />Suggestions <span class="text-muted fw-normal" style="font-size: 0.75rem;">(Beta)</span></h5>
                     
-                    <div id="notalSuggestionsContent" class="suggestions-content">
+                    <!-- Summary View (shown when not fullscreen) -->
+                    <div id="notalSuggestionsSummary" class="suggestions-summary">
                         <div class="briefing-loading">
                             <div class="spinner-border spinner-border-sm text-primary" role="status">
                                 <span class="visually-hidden">Loading...</span>
                             </div>
                             <span class="ms-2 text-muted small">Generating suggestions...</span>
                         </div>
+                    </div>
+                    
+                    <!-- Full Content View (shown when fullscreen) -->
+                    <div id="notalSuggestionsContent" class="suggestions-content" style="display: none;">
                     </div>
                 </div>
             </div>
@@ -950,6 +966,203 @@
         height: 100%;
     }
 
+    /* Daily Briefing and Notal Suggestions Fullscreen Styles */
+    .briefing-fullscreen-btn,
+    .suggestions-fullscreen-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 1.25rem;
+        color: #6c757d !important;
+        background: white !important;
+        border: none !important;
+        border-radius: 50% !important;
+        width: 2rem;
+        height: 2rem;
+        padding: 0 !important;
+        display: none; /* Hidden by default */
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10;
+        transition: color 0.2s ease, background-color 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        text-decoration: none !important;
+    }
+
+    /* Show fullscreen button on card hover */
+    .daily-briefing-card:hover .briefing-fullscreen-btn,
+    .notal-suggestions-card:hover .suggestions-fullscreen-btn {
+        display: flex;
+    }
+
+    .briefing-fullscreen-btn:hover,
+    .suggestions-fullscreen-btn:hover {
+        color: #495057 !important;
+        background-color: #f3f4f6 !important;
+        text-decoration: none !important;
+    }
+
+    .daily-briefing-card,
+    .notal-suggestions-card {
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    .daily-briefing-card .card-body,
+    .notal-suggestions-card .card-body {
+        position: relative;
+    }
+
+    .daily-briefing-card.fullscreen,
+    .notal-suggestions-card.fullscreen {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        z-index: 1000 !important;
+        border-radius: 12px !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .daily-briefing-card.fullscreen .card-body,
+    .notal-suggestions-card.fullscreen .card-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        padding: 1.5rem !important;
+    }
+
+    .daily-briefing-card.fullscreen .briefing-content,
+    .notal-suggestions-card.fullscreen .suggestions-content {
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0;
+    }
+
+    /* Notal Suggestions Summary */
+    .suggestions-summary {
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    .suggestions-summary ul {
+        padding-left: 1.5rem;
+        margin-left: 0;
+        margin-bottom: 0;
+        list-style-position: outside;
+    }
+
+    .suggestions-summary li {
+        margin-bottom: 0.5rem;
+        margin-left: 1.5rem;
+    }
+
+    .suggestions-summary p {
+        margin-bottom: 0.5rem;
+        padding-left: 0;
+        margin-left: 0;
+    }
+
+    .suggestions-more-link-container {
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid #e5e7eb;
+        text-align: center;
+    }
+
+    .suggestions-more-link {
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: color 0.2s ease;
+    }
+
+    .suggestions-more-link:hover {
+        color: #1e40af !important;
+        text-decoration: underline !important;
+    }
+
+    .notal-suggestions-card.fullscreen .suggestions-summary {
+        display: none !important;
+    }
+
+    .notal-suggestions-card.fullscreen .suggestions-content {
+        display: block !important;
+    }
+
+    .notal-suggestions-card:not(.fullscreen) .suggestions-content {
+        display: none !important;
+    }
+
+    .notal-suggestions-card:not(.fullscreen) .suggestions-summary {
+        display: block !important;
+    }
+
+    /* Daily Briefing Summary Grid */
+    .briefing-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        padding: 0.5rem 0;
+    }
+
+
+    .briefing-summary-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        text-align: center;
+        transition: background-color 0.2s ease;
+    }
+
+    .briefing-summary-item:hover {
+        background: #e9ecef;
+    }
+
+    .briefing-summary-count {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #3d1019;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+    }
+
+    .briefing-summary-label {
+        font-size: 0.75rem;
+        color: #6c757d;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .daily-briefing-card.fullscreen .briefing-summary-grid {
+        display: none !important;
+    }
+
+    .daily-briefing-card.fullscreen .briefing-content {
+        display: block !important;
+    }
+
+    .daily-briefing-card:not(.fullscreen) .briefing-content {
+        display: none !important;
+    }
+
+    .daily-briefing-card:not(.fullscreen) .briefing-summary-grid {
+        display: grid !important;
+    }
+
 </style>
 
 @section Scripts {
@@ -977,6 +1190,8 @@
         document.addEventListener('DOMContentLoaded', async function () {
             await loadDashboardUpcomingDeadlines();
             initializeAiFullscreen();
+            initializeBriefingFullscreen();
+            initializeSuggestionsFullscreen();
             initializeAiChatActivation();
             initializeAiClose();
             initializeNewNoteButton();
@@ -1316,6 +1531,277 @@
                     toggleFullscreen(false);
                 }
             });
+        }
+
+        function initializeBriefingFullscreen() {
+            const briefingCard = document.getElementById('dailyBriefingCard');
+            const fullscreenBtn = document.getElementById('dailyBriefingFullscreenBtn');
+            const mainContent = document.querySelector('.main-content.client-main-content');
+            const summaryView = document.getElementById('dailyBriefingSummary');
+            const contentView = document.getElementById('dailyBriefingContent');
+            
+            if (!briefingCard || !fullscreenBtn) return;
+
+            function toggleFullscreen(isFullscreen) {
+                if (isFullscreen) {
+                    briefingCard.classList.add('fullscreen');
+                    if (mainContent) {
+                        mainContent.style.position = 'relative';
+                        mainContent.style.overflow = 'hidden';
+                    }
+                    // Show full content, hide summary
+                    if (summaryView) summaryView.style.display = 'none';
+                    if (contentView) contentView.style.display = 'block';
+                    const icon = fullscreenBtn.querySelector('i');
+                    icon.classList.remove('fa-expand');
+                    icon.classList.add('fa-compress');
+                } else {
+                    briefingCard.classList.remove('fullscreen');
+                    if (mainContent) {
+                        mainContent.style.position = '';
+                        mainContent.style.overflow = '';
+                    }
+                    // Show summary, hide full content
+                    if (summaryView) {
+                        summaryView.style.display = summaryView.classList.contains('briefing-summary-grid') ? 'grid' : 'block';
+                    }
+                    if (contentView) contentView.style.display = 'none';
+                    const icon = fullscreenBtn.querySelector('i');
+                    icon.classList.remove('fa-compress');
+                    icon.classList.add('fa-expand');
+                }
+            }
+
+            fullscreenBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const isFullscreen = briefingCard.classList.contains('fullscreen');
+                toggleFullscreen(!isFullscreen);
+            });
+
+            // Allow ESC key to exit fullscreen
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && briefingCard.classList.contains('fullscreen')) {
+                    toggleFullscreen(false);
+                }
+            });
+        }
+
+        // Parse briefing content and extract counts for summary grid
+        function parseBriefingContent(content) {
+            // Remove HTML tags and normalize whitespace
+            const text = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').toLowerCase();
+            
+            // Extract counts for different categories
+            let filingsDue = 0;
+            let clientCalls = 0;
+            let overdueItems = 0;
+            
+            // Look for filings due patterns - most specific first
+            const filingsMatch = text.match(/(\d+)\s*(filings?|filing)\s*(due|today)/i);
+            if (filingsMatch) {
+                filingsDue = parseInt(filingsMatch[1]) || 0;
+            } else {
+                // Try alternative pattern
+                const filingsAlt = text.match(/(\d+)\s*(filings?)/i);
+                if (filingsAlt) {
+                    filingsDue = parseInt(filingsAlt[1]) || 0;
+                }
+            }
+            
+            // Look for client calls - MUST include "client" to avoid false matches
+            const clientCallsMatch = text.match(/(\d+)\s*(client\s*)?calls?/i);
+            if (clientCallsMatch) {
+                clientCalls = parseInt(clientCallsMatch[1]) || 0;
+            } else {
+                // Try pattern with "client call" explicitly
+                const clientCallsAlt = text.match(/client\s*calls?.*?(\d+)/i);
+                if (clientCallsAlt) {
+                    clientCalls = parseInt(clientCallsAlt[1]) || 0;
+                }
+            }
+            
+            // Look for overdue items - check for "overdue" keyword specifically
+            const overdueMatch = text.match(/(\d+)\s*overdue\s*(tasks?|items?|invoices?|deadlines?)/i);
+            if (overdueMatch) {
+                overdueItems = parseInt(overdueMatch[1]) || 0;
+            } else {
+                // Try alternative patterns
+                const overdueAlt1 = text.match(/(\d+)\s*(overdue|past\s*due)/i);
+                if (overdueAlt1) {
+                    overdueItems = parseInt(overdueAlt1[1]) || 0;
+                } else {
+                    const overdueAlt2 = text.match(/overdue.*?(\d+)/i);
+                    if (overdueAlt2) {
+                        overdueItems = parseInt(overdueAlt2[1]) || 0;
+                    }
+                }
+            }
+            
+            return {
+                filingsDue: filingsDue,
+                clientCalls: clientCalls,
+                overdueItems: overdueItems
+            };
+        }
+
+        // Create summary grid HTML
+        function createBriefingSummaryGrid(counts) {
+            return `
+                <div class="briefing-summary-item">
+                    <div class="briefing-summary-count">${counts.filingsDue}</div>
+                    <div class="briefing-summary-label">Filings Due</div>
+                </div>
+                <div class="briefing-summary-item">
+                    <div class="briefing-summary-count">${counts.clientCalls}</div>
+                    <div class="briefing-summary-label">Client Calls</div>
+                </div>
+                <div class="briefing-summary-item">
+                    <div class="briefing-summary-count">${counts.overdueItems}</div>
+                    <div class="briefing-summary-label">Overdue Items</div>
+                </div>
+            `;
+        }
+
+        // Update summary grid with counts
+        function updateBriefingSummary(counts) {
+            const summaryElement = document.getElementById('dailyBriefingSummary');
+            if (!summaryElement) return;
+            
+            summaryElement.innerHTML = createBriefingSummaryGrid(counts);
+            summaryElement.classList.add('briefing-summary-grid');
+        }
+
+        function initializeSuggestionsFullscreen() {
+            const suggestionsCard = document.getElementById('notalSuggestionsCard');
+            const fullscreenBtn = document.getElementById('notalSuggestionsFullscreenBtn');
+            const mainContent = document.querySelector('.main-content.client-main-content');
+            const summaryView = document.getElementById('notalSuggestionsSummary');
+            const contentView = document.getElementById('notalSuggestionsContent');
+            
+            if (!suggestionsCard || !fullscreenBtn) return;
+
+            function toggleFullscreen(isFullscreen) {
+                if (isFullscreen) {
+                    suggestionsCard.classList.add('fullscreen');
+                    if (mainContent) {
+                        mainContent.style.position = 'relative';
+                        mainContent.style.overflow = 'hidden';
+                    }
+                    // Show full content, hide summary
+                    if (summaryView) summaryView.style.display = 'none';
+                    if (contentView) contentView.style.display = 'block';
+                    const icon = fullscreenBtn.querySelector('i');
+                    icon.classList.remove('fa-expand');
+                    icon.classList.add('fa-compress');
+                } else {
+                    suggestionsCard.classList.remove('fullscreen');
+                    if (mainContent) {
+                        mainContent.style.position = '';
+                        mainContent.style.overflow = '';
+                    }
+                    // Show summary, hide full content
+                    if (summaryView) summaryView.style.display = 'block';
+                    if (contentView) contentView.style.display = 'none';
+                    const icon = fullscreenBtn.querySelector('i');
+                    icon.classList.remove('fa-compress');
+                    icon.classList.add('fa-expand');
+                }
+            }
+
+            // Handle fullscreen toggle from button
+            fullscreenBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const isFullscreen = suggestionsCard.classList.contains('fullscreen');
+                toggleFullscreen(!isFullscreen);
+            });
+
+            // Handle "+X more suggestions" link click
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.suggestions-more-link')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!suggestionsCard.classList.contains('fullscreen')) {
+                        toggleFullscreen(true);
+                    }
+                }
+            });
+
+            // Allow ESC key to exit fullscreen
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && suggestionsCard.classList.contains('fullscreen')) {
+                    toggleFullscreen(false);
+                }
+            });
+        }
+
+        // Parse suggestions content and create truncated summary view
+        function createSuggestionsSummary(fullContent, maxItems = 3) {
+            // Create a temporary DOM element to parse HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = fullContent;
+            
+            let items = [];
+            
+            // Try to find list items first (most common format)
+            const listItems = tempDiv.querySelectorAll('li');
+            if (listItems.length > 0) {
+                listItems.forEach(item => {
+                    const itemText = item.textContent.trim();
+                    if (itemText && itemText.length > 0 && !itemText.match(/^(here are|suggestions?|based on)/i)) {
+                        items.push(item.outerHTML);
+                    }
+                });
+            }
+            
+            // If no list items, try paragraphs
+            if (items.length === 0) {
+                const paragraphs = tempDiv.querySelectorAll('p');
+                paragraphs.forEach(p => {
+                    const itemText = p.textContent.trim();
+                    if (itemText && itemText.length > 0 && !itemText.match(/^(here are|suggestions?|based on)/i)) {
+                        items.push(p.outerHTML);
+                    }
+                });
+            }
+            
+            // If still no items, try splitting by line breaks
+            if (items.length === 0) {
+                const text = tempDiv.textContent || tempDiv.innerText || '';
+                const lines = text.split(/\n+/).filter(line => {
+                    const trimmed = line.trim();
+                    return trimmed.length > 0 && 
+                           !trimmed.match(/^(here are|suggestions?|based on|today)/i) &&
+                           trimmed.length > 10; // Only substantial lines
+                });
+                lines.forEach(line => {
+                    items.push(`<p>${line.trim()}</p>`);
+                });
+            }
+            
+            // Filter out empty or very short items
+            items = items.filter(item => {
+                const temp = document.createElement('div');
+                temp.innerHTML = item;
+                const text = temp.textContent.trim();
+                return text.length > 10;
+            });
+            
+            // Limit to maxItems
+            const visibleItems = items.slice(0, maxItems);
+            const remainingCount = items.length - maxItems;
+            
+            let summaryHTML = visibleItems.join('');
+            
+            // Add "+X more suggestions" link if there are more items
+            if (remainingCount > 0) {
+                summaryHTML += `<div class="suggestions-more-link-container"><a href="#" class="suggestions-more-link text-primary text-decoration-none">+${remainingCount} more suggestion${remainingCount !== 1 ? 's' : ''}</a></div>`;
+            }
+            
+            return summaryHTML || fullContent; // Fallback to full content if parsing fails
         }
 
         function initializeAiClose() {
@@ -1956,10 +2442,61 @@
                 const cachedSuggestions = sessionStorage.getItem('suggestionsContent');
                 
                 if (cachedBriefing) {
-                    document.getElementById('dailyBriefingContent').innerHTML = cachedBriefing;
+                    const contentElement = document.getElementById('dailyBriefingContent');
+                    const summaryElement = document.getElementById('dailyBriefingSummary');
+                    
+                    // Parse and create summary grid
+                    const counts = parseBriefingContent(cachedBriefing);
+                    if (summaryElement) {
+                        updateBriefingSummary(counts);
+                    }
+                    
+                    // Format and store full content
+                    let displayText = cachedBriefing
+                        .replace(/<[^>]*$/g, '')
+                        .trim();
+                    
+                    if (typeof formatIntelligentResponse === 'function') {
+                        displayText = formatIntelligentResponse(displayText);
+                    } else {
+                        displayText = displayText
+                            .replace(/\n/g, '<br>')
+                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                            .replace(/→/g, '→');
+                    }
+                    
+                    if (contentElement) {
+                        contentElement.innerHTML = displayText;
+                    }
                 }
                 if (cachedSuggestions) {
-                    document.getElementById('notalSuggestionsContent').innerHTML = cachedSuggestions;
+                    const suggestionsContentElement = document.getElementById('notalSuggestionsContent');
+                    const suggestionsSummaryElement = document.getElementById('notalSuggestionsSummary');
+                    
+                    // Format cached content
+                    let displayText = cachedSuggestions
+                        .replace(/<[^>]*$/g, '')
+                        .trim();
+                    
+                    if (typeof formatIntelligentResponse === 'function') {
+                        displayText = formatIntelligentResponse(displayText);
+                    } else {
+                        displayText = displayText
+                            .replace(/\n/g, '<br>')
+                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                            .replace(/→/g, '→');
+                    }
+                    
+                    // Create truncated summary view
+                    if (suggestionsSummaryElement) {
+                        const summaryHTML = createSuggestionsSummary(displayText, 3);
+                        suggestionsSummaryElement.innerHTML = summaryHTML;
+                    }
+                    
+                    // Store full content for fullscreen view
+                    if (suggestionsContentElement) {
+                        suggestionsContentElement.innerHTML = displayText;
+                    }
                 }
                 return;
             }
@@ -2024,6 +2561,12 @@
             const contentElement = document.getElementById(contentElementId);
             if (!contentElement) return;
 
+            // For Daily Briefing and Suggestions, we need to handle both summary and full content views
+            const isDailyBriefing = contentElementId === 'dailyBriefingContent';
+            const isSuggestions = contentElementId === 'notalSuggestionsContent';
+            const summaryElement = isDailyBriefing ? document.getElementById('dailyBriefingSummary') : 
+                                   isSuggestions ? document.getElementById('notalSuggestionsSummary') : null;
+
             try {
                 const orgId = @ViewBag.OrganizationId;
                 const response = await fetch(`/Client/${orgId}/Chat/GenerateDashboardCardStream`, {
@@ -2032,7 +2575,8 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        userMessage: promptTemplate
+                        userMessage: promptTemplate,
+                        cardType: cardType
                     })
                 });
 
@@ -2041,7 +2585,11 @@
                 }
 
                 // Clear loading state
-                contentElement.innerHTML = '';
+                if ((isDailyBriefing || isSuggestions) && summaryElement) {
+                    summaryElement.innerHTML = '';
+                } else {
+                    contentElement.innerHTML = '';
+                }
 
                 // Handle SSE streaming (same format as chat sidebar)
                 const reader = response.body.getReader();
@@ -2066,37 +2614,84 @@
                                 const eventData = JSON.parse(jsonData);
                                 
                                 if (eventData.error) {
-                                    contentElement.innerHTML = '<p class="text-muted small">Unable to generate content</p>';
+                                    if ((isDailyBriefing || isSuggestions) && summaryElement) {
+                                        summaryElement.innerHTML = '<p class="text-muted small">Unable to generate content</p>';
+                                    } else {
+                                        contentElement.innerHTML = '<p class="text-muted small">Unable to generate content</p>';
+                                    }
                                     return;
                                 }
                                 
                                 if (eventData.done) {
                                     // Cache the final content for session persistence
                                     sessionStorage.setItem(contentElementId === 'dailyBriefingContent' ? 'briefingContent' : 'suggestionsContent', fullContent);
-                                    return;
-                                }
-                                
-                                if (eventData.content) {
-                                    fullContent += eventData.content;
                                     
-                                    // Update display with streaming content (remove incomplete HTML tags)
+                                    // Format full content for display
                                     let displayText = fullContent
-                                        .replace(/<[^>]*$/g, '')  // Remove incomplete tags
+                                        .replace(/<[^>]*$/g, '')
                                         .trim();
                                     
-                                    // Use the same formatting function as AI chat sidebar for consistency
-                                    // formatIntelligentResponse handles markdown conversion and HTML detection
                                     if (typeof formatIntelligentResponse === 'function') {
                                         displayText = formatIntelligentResponse(displayText);
                                     } else {
-                                        // Fallback to basic markdown if function not available
                                         displayText = displayText
                                             .replace(/\n/g, '<br>')
                                             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                                             .replace(/→/g, '→');
                                     }
                                     
-                                    contentElement.innerHTML = displayText;
+                                    // For Daily Briefing, parse content and create summary grid
+                                    if (isDailyBriefing && summaryElement) {
+                                        const counts = parseBriefingContent(fullContent);
+                                        updateBriefingSummary(counts);
+                                        contentElement.innerHTML = displayText;
+                                    }
+                                    // For Suggestions, create truncated summary view
+                                    else if (isSuggestions && summaryElement) {
+                                        const summaryHTML = createSuggestionsSummary(displayText, 3);
+                                        summaryElement.innerHTML = summaryHTML;
+                                        contentElement.innerHTML = displayText;
+                                    }
+                                    // For other cards, update normally
+                                    else {
+                                        contentElement.innerHTML = displayText;
+                                    }
+                                    return;
+                                }
+                                
+                                if (eventData.content) {
+                                    fullContent += eventData.content;
+                                    
+                                    // Format content for display
+                                    let displayText = fullContent
+                                        .replace(/<[^>]*$/g, '')
+                                        .trim();
+                                    
+                                    if (typeof formatIntelligentResponse === 'function') {
+                                        displayText = formatIntelligentResponse(displayText);
+                                    } else {
+                                        displayText = displayText
+                                            .replace(/\n/g, '<br>')
+                                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                            .replace(/→/g, '→');
+                                    }
+                                    
+                                    // For Daily Briefing, update summary grid as content streams
+                                    if (isDailyBriefing && summaryElement) {
+                                        const counts = parseBriefingContent(fullContent);
+                                        updateBriefingSummary(counts);
+                                        contentElement.innerHTML = displayText;
+                                    }
+                                    // For Suggestions, update truncated summary view as content streams
+                                    else if (isSuggestions && summaryElement) {
+                                        const summaryHTML = createSuggestionsSummary(displayText, 3);
+                                        summaryElement.innerHTML = summaryHTML;
+                                        contentElement.innerHTML = displayText;
+                                    }
+                                    // For other cards, update normally
+                                    else {
+                                        contentElement.innerHTML = displayText;
+                                    }
                                 }
                             } catch (e) {
                                 console.error('Error parsing SSE:', e);
@@ -2106,7 +2701,11 @@
                 }
             } catch (error) {
                 console.error(`Error streaming ${cardType}:`, error);
-                contentElement.innerHTML = '<p class="text-muted small">Unable to load content</p>';
+                if (isDailyBriefing && summaryElement) {
+                    summaryElement.innerHTML = '<p class="text-muted small">Unable to load content</p>';
+                } else {
+                    contentElement.innerHTML = '<p class="text-muted small">Unable to load content</p>';
+                }
             }
         }
 

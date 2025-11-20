@@ -2,9 +2,23 @@
   "user_id": 1,
   "organization_id": 4,
   "user_name": "Kyle Wang",
-  "total_chunks": 19,
-  "last_synced": "2025-11-18T02:10:07.633022",
+  "total_chunks": 26,
+  "last_synced": "2025-11-19T23:03:03.313606",
   "module_summaries": {
+    "matters": {
+      "totalMatters": 8,
+      "activeMatters": 2,
+      "completedMatters": 1,
+      "practiceAreas": [
+        "Employment / Labor",
+        "Trusts",
+        "Commercial Litigation",
+        "Elder",
+        "Securities / Mergers & Acquisitions",
+        "Corporate Litigation",
+        "Product Liability"
+      ]
+    },
     "tasks": {
       "totalTasks": 7,
       "pendingTasks": 1,
@@ -13,7 +27,7 @@
       "highPriorityTasks": 6
     },
     "calendar": {
-      "totalEvents": 5,
+      "totalEvents": 4,
       "upcomingEvents": 0,
       "todayEvents": 0,
       "thisWeekEvents": 0
@@ -32,7 +46,225 @@
   },
   "chunks": [
     {
-      "id": "cef1e28d-e1eb-4e50-b196-0d965047a5ce",
+      "id": "fc166fed-1f94-46a1-9496-42b9b081194c",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 16,
+      "title": "SLA IV Corporation",
+      "content": "=== MATTER: SLA IV Corporation ===\r\nMatter ID: 16\r\nClient/Organization: Chloe Tang's Organization\r\nStatus: Review\r\nPractice Area: Employment / Labor\r\nDescription: Assignee submission testing for correctness. Test update.\r\nStart Date: 2025-10-12\r\nDue Date: 2025-10-13\r\nPending Date: 2025-10-12\r\nStatute of Limitations: 2025-10-13\r\nTasks Progress: 1/2 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\nCreated: 2025-10-12\r\nLast Modified: 2025-11-01\r\n",
+      "metadata": {
+        "matterId": 16,
+        "organizationId": 4,
+        "organizationName": "Chloe Tang's Organization",
+        "status": "Review",
+        "practiceArea": "Employment / Labor",
+        "dueDate": "2025-10-13T00:00:00",
+        "tasksCompleted": 1,
+        "totalTasks": 2,
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-12T23:35:08.3706377",
+      "modified_at": "2025-11-01T22:14:38.1796036",
+      "relevance_score": 0
+    },
+    {
+      "id": "b40ca1e8-7268-40e3-9d9d-908a0d596a21",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 5,
+      "title": "Visible Matters Corporation",
+      "content": "=== MATTER: Visible Matters Corporation ===\r\nMatter ID: 5\r\nClient/Organization: Chloe Tang's Organization\r\nStatus: Review\r\nPractice Area: Trusts\r\nDescription: This is a test matter to see if Partners have access to client data while others do not.\r\nStart Date: 2025-09-29\r\nDue Date: 2025-09-30\r\nPending Date: 2025-09-30\r\nTasks Progress: 1/4 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\nCreated: 2025-09-30\r\nLast Modified: 2025-11-01\r\n",
+      "metadata": {
+        "matterId": 5,
+        "organizationId": 4,
+        "organizationName": "Chloe Tang's Organization",
+        "status": "Review",
+        "practiceArea": "Trusts",
+        "dueDate": "2025-09-30T00:00:00",
+        "tasksCompleted": 1,
+        "totalTasks": 4,
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall",
+          "Kyle Wang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-09-30T08:47:11.9083643",
+      "modified_at": "2025-11-01T21:28:42.026074",
+      "relevance_score": 0
+    },
+    {
+      "id": "ee48cdc3-cb78-4b58-9b0b-c165100689de",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 28,
+      "title": "Client Ready Communications II",
+      "content": "=== MATTER: Client Ready Communications II ===\r\nMatter ID: 28\r\nClient/Organization: Chloe Tang's Organization\r\nStatus: Planning\r\nPractice Area: Commercial Litigation\r\nDescription: Testing if new channel is created for client communications after matter creation. Channels are created now after matter creation in law firm organization.\r\nStart Date: 2025-10-14\r\nDue Date: 2025-10-17\r\nPending Date: 2025-10-15\r\nStatute of Limitations: 2025-10-16\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\nCreated: 2025-10-15\r\n",
+      "metadata": {
+        "matterId": 28,
+        "organizationId": 4,
+        "organizationName": "Chloe Tang's Organization",
+        "status": "Planning",
+        "practiceArea": "Commercial Litigation",
+        "dueDate": "2025-10-17T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 0,
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall",
+          "Kyle Wang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-15T03:08:16.8780907",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "80704112-9de4-4c86-96f0-c1af19e21823",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 25,
+      "title": "Client Ready Communications",
+      "content": "=== MATTER: Client Ready Communications ===\r\nMatter ID: 25\r\nClient/Organization: Chloe Tang's Organization\r\nStatus: In Progress\r\nPractice Area: Elder\r\nDescription: Testing if created matters within client organizations are automatically creating channels.\r\nStart Date: 2025-10-14\r\nDue Date: 2025-10-15\r\nPending Date: 2025-10-14\r\nStatute of Limitations: 2025-10-15\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\nCreated: 2025-10-15\r\n",
+      "metadata": {
+        "matterId": 25,
+        "organizationId": 4,
+        "organizationName": "Chloe Tang's Organization",
+        "status": "In Progress",
+        "practiceArea": "Elder",
+        "dueDate": "2025-10-15T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 0,
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall",
+          "Kyle Wang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-15T02:58:43.3977256",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "f952c12e-e0f6-4afc-aa90-556c2de7941a",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 19,
+      "title": "Audit Log Verification",
+      "content": "=== MATTER: Audit Log Verification ===\r\nMatter ID: 19\r\nClient/Organization: Chloe Tang's Organization\r\nStatus: Review\r\nPractice Area: Securities / Mergers & Acquisitions\r\nDescription: Testing new audit and compliance frameworks inside Certio.\r\nStart Date: 2025-10-13\r\nDue Date: 2025-10-14\r\nPending Date: 2025-10-13\r\nStatute of Limitations: 2025-10-14\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - John Marshall (ResponsibleAttorney)\r\n  - Kyle Wang (ResponsibleStaff)\r\n  - John Marshall (OriginatingAttorney)\r\nCreated: 2025-10-13\r\n",
+      "metadata": {
+        "matterId": 19,
+        "organizationId": 4,
+        "organizationName": "Chloe Tang's Organization",
+        "status": "Review",
+        "practiceArea": "Securities / Mergers & Acquisitions",
+        "dueDate": "2025-10-14T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 0,
+        "assignees": [
+          "John Marshall",
+          "Kyle Wang",
+          "John Marshall"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-13T19:41:22.3798493",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "573bbabd-a2a4-435e-b5b6-b5a320ead960",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 17,
+      "title": "SLA V Finale",
+      "content": "=== MATTER: SLA V Finale ===\r\nMatter ID: 17\r\nClient/Organization: Chloe Tang's Organization\r\nStatus: Completed\r\nPractice Area: Corporate Litigation\r\nDescription: Here is the final test to check whether or not duplicate assignments are allowed for full auditability.\r\nStart Date: 2025-10-12\r\nDue Date: 2025-10-13\r\nPending Date: 2025-10-12\r\nStatute of Limitations: 2025-10-13\r\nTasks Progress: 0/1 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\nCreated: 2025-10-12\r\n",
+      "metadata": {
+        "matterId": 17,
+        "organizationId": 4,
+        "organizationName": "Chloe Tang's Organization",
+        "status": "Completed",
+        "practiceArea": "Corporate Litigation",
+        "dueDate": "2025-10-13T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 1,
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall",
+          "Kyle Wang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-12T23:54:43.5042715",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "02418a97-c69e-4e00-b117-51dc2e2fd5fc",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 15,
+      "title": "SLA III LLC",
+      "content": "=== MATTER: SLA III LLC ===\r\nMatter ID: 15\r\nClient/Organization: Chloe Tang's Organization\r\nStatus: Planning\r\nPractice Area: Trusts\r\nDescription: Testing new SLA fixes for matter creation. Assignees should be properly submitted.\r\nStart Date: 2025-10-12\r\nDue Date: 2025-10-13\r\nPending Date: 2025-10-12\r\nStatute of Limitations: 2025-10-13\r\nTasks Progress: 0/0 tasks completed\r\nCreated: 2025-10-12\r\n",
+      "metadata": {
+        "matterId": 15,
+        "organizationId": 4,
+        "organizationName": "Chloe Tang's Organization",
+        "status": "Planning",
+        "practiceArea": "Trusts",
+        "dueDate": "2025-10-13T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 0,
+        "assignees": [],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-12T23:27:42.2997617",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "c4a84403-34ed-4b1e-86ee-51055772d0bd",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 14,
+      "title": "SLA II Partnership",
+      "content": "=== MATTER: SLA II Partnership ===\r\nMatter ID: 14\r\nClient/Organization: Chloe Tang's Organization\r\nStatus: In Progress\r\nPractice Area: Product Liability\r\nDescription: Second test of new SLA fixes for matter creation. Assignees should be properly assigned and Law Firm Partners should have access permissions to create new matters in client organizations.\r\nStart Date: 2025-10-12\r\nDue Date: 2025-10-13\r\nPending Date: 2025-10-12\r\nStatute of Limitations: 2025-10-13\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - John Marshall (ResponsibleAttorney)\r\n  - John Marshall (OriginatingAttorney)\r\nCreated: 2025-10-12\r\n",
+      "metadata": {
+        "matterId": 14,
+        "organizationId": 4,
+        "organizationName": "Chloe Tang's Organization",
+        "status": "In Progress",
+        "practiceArea": "Product Liability",
+        "dueDate": "2025-10-13T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 0,
+        "assignees": [
+          "John Marshall",
+          "John Marshall"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-12T23:06:45.952575",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "0463eb7d-e095-4c58-a4e5-33f8c5982b3a",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 15,
@@ -53,7 +285,7 @@
       "relevance_score": 0
     },
     {
-      "id": "af2ad9f1-c064-4fe9-a4c3-e45bdd79dc6c",
+      "id": "1f10bd94-4c58-4e16-8f0f-5d01534f85d0",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 21,
@@ -74,7 +306,7 @@
       "relevance_score": 0
     },
     {
-      "id": "b1fdc0e1-a71e-4d8b-bb06-a60404b959ec",
+      "id": "f2fd5a0d-042f-46f1-9b7c-552d72e95681",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 9,
@@ -96,7 +328,7 @@
       "relevance_score": 0
     },
     {
-      "id": "f5953d49-f049-4eec-bdd1-4fea2bc19a6c",
+      "id": "572d38af-29b3-4022-90ab-eecee510da61",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 18,
@@ -117,7 +349,7 @@
       "relevance_score": 0
     },
     {
-      "id": "c50186cc-fd41-413a-af47-384e4c6f9342",
+      "id": "7521662b-c625-4b06-8d50-9341ebaae610",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 19,
@@ -139,7 +371,7 @@
       "relevance_score": 0
     },
     {
-      "id": "fadb97f3-58b2-447d-b2e9-5cedbbb8d20d",
+      "id": "15e48fbd-1e05-4265-848c-d6efb23c2362",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 10,
@@ -162,7 +394,7 @@
       "relevance_score": 0
     },
     {
-      "id": "c5da5326-7c0c-4025-bfd6-1f382517311f",
+      "id": "b3fbd58a-2072-49be-8f02-431eccc219a4",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 17,
@@ -181,29 +413,7 @@
       "relevance_score": 0
     },
     {
-      "id": "9d67f8e6-fb52-4dbb-b572-ebbfeb5680ff",
-      "module_name": "calendar",
-      "entity_type": "CalendarEvent",
-      "entity_id": 13,
-      "title": "Fixed MC Event",
-      "content": "Event: Fixed MC Event\r\nType: Meeting\r\nStart: 2025-10-18 12:12\r\nEnd: 2025-10-18 13:12\r\nLocation: {\"name\":\"Finland\",\"address\":\"Finland\",\"formatted_address\":\"Finland\",\"place_id\":null,\"geometry\":null}\r\nDescription: Checking again to see if duplicate events are created.\r\nAttendees: John Marshall\r\n",
-      "metadata": {
-        "startDateTime": "2025-10-18T12:12:00",
-        "endDateTime": "2025-10-18T13:12:00",
-        "eventType": "Meeting",
-        "location": "{\"name\":\"Finland\",\"address\":\"Finland\",\"formatted_address\":\"Finland\",\"place_id\":null,\"geometry\":null}",
-        "isAllDay": false,
-        "attendees": [
-          "John Marshall"
-        ],
-        "matterId": 5
-      },
-      "created_at": "2025-10-21T22:13:37.939657",
-      "modified_at": "2025-10-22T00:39:10.6874609",
-      "relevance_score": 0
-    },
-    {
-      "id": "14560353-c71f-4be3-96c2-d85fa59129b6",
+      "id": "cbb5abb8-1eef-436f-a860-be2f945ac17b",
       "module_name": "calendar",
       "entity_type": "CalendarEvent",
       "entity_id": 14,
@@ -223,7 +433,7 @@
       "relevance_score": 0
     },
     {
-      "id": "8c6be2f6-e74e-4db8-9ec7-1bde07e9902e",
+      "id": "b9476526-dae7-4c62-be5e-d7451cd2e360",
       "module_name": "calendar",
       "entity_type": "CalendarEvent",
       "entity_id": 12,
@@ -243,7 +453,7 @@
       "relevance_score": 0
     },
     {
-      "id": "05069264-9668-4ef1-b9cf-0f3589e40e4e",
+      "id": "67ca4962-0b18-48e2-949f-46a89c134990",
       "module_name": "calendar",
       "entity_type": "CalendarEvent",
       "entity_id": 16,
@@ -265,7 +475,7 @@
       "relevance_score": 0
     },
     {
-      "id": "7fe79ee8-e92e-4137-911d-441b385b79fd",
+      "id": "3c370c82-d214-402e-9917-c6da7c60348b",
       "module_name": "calendar",
       "entity_type": "CalendarEvent",
       "entity_id": 22,
@@ -288,7 +498,7 @@
       "relevance_score": 0
     },
     {
-      "id": "ac600d45-aab1-49ba-80e6-4990336cb072",
+      "id": "b737a065-e58c-4cc9-818e-6d03f9ffe6b9",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 52,
@@ -311,7 +521,7 @@
       "relevance_score": 0
     },
     {
-      "id": "559e9013-895c-415c-a8b5-f34fd8faef08",
+      "id": "dbe381b3-c6a1-47ae-9267-080c82880962",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 56,
@@ -332,7 +542,7 @@
       "relevance_score": 0
     },
     {
-      "id": "6b0ea082-c0e3-47e3-b8fa-69df0d8efce2",
+      "id": "581163f2-6be1-44b2-9e8b-b2166fbbb3f5",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 53,
@@ -353,7 +563,7 @@
       "relevance_score": 0
     },
     {
-      "id": "3df35720-76bf-4a9e-ba43-4afc459b7938",
+      "id": "8449962e-7913-4372-b55f-e98cbce638d3",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 54,
@@ -374,7 +584,7 @@
       "relevance_score": 0
     },
     {
-      "id": "a91c4299-1a3a-4761-a14a-664de2903166",
+      "id": "1acc9050-b6e0-4ca7-95ab-109cc515ab7c",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 45,
@@ -397,7 +607,7 @@
       "relevance_score": 0
     },
     {
-      "id": "46cf6e67-a64f-4ed6-9ebd-44174ae2cc64",
+      "id": "2ea368f8-673e-4f8b-9bd6-101bec32d6da",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -416,7 +626,7 @@
       "relevance_score": 0
     },
     {
-      "id": "260bab1a-7a6a-4ade-9d87-cd9d08ba21a7",
+      "id": "683e0771-9a87-49a6-8d35-cae5072655db",
       "module_name": "clients",
       "entity_type": "User",
       "entity_id": 6,
