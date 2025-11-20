@@ -233,7 +233,6 @@ namespace Certio.Web.Controllers
 
                 var ownerFirstName = org.Owner?.FirstName ?? "";
                 var ownerLastName = org.Owner?.LastName ?? "";
-                var isExternalGuestsOrg = org.Name.EndsWith("'s External Contacts", StringComparison.OrdinalIgnoreCase);
                 var displayOwnerName = isExternalGuestsOrg 
                     ? "External Contacts" 
                     : $"{ownerFirstName} {ownerLastName}".Trim();
