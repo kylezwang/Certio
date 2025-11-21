@@ -449,12 +449,37 @@
                 <div class="clients-section-header">
                     <a href="#" id="viewAllClientsLink" class="text-decoration-none" style="display: block;">
                         <div class="card border-0" style="background-color: #f8f9fa; padding: 0.75rem; border-radius: 8px; cursor: pointer; transition: background-color 0.2s ease;" onmouseover="this.style.backgroundColor='#e9ecef'" onmouseout="this.style.backgroundColor='#f8f9fa'">
-                            <div class="d-flex align-items-center gap-2">
+                            <div class="d-flex align-items-center gap-2 mb-2">
                                 <i class="fas fa-users" style="color: #3d1019; font-size: 0.875rem;"></i>
                                 <div style="min-width: 0; flex: 1; margin-top: 0;">
                                     <h6 class="mb-0 fw-bold text-dark" style="font-size: 0.875rem;">
                                         View All Clients & Contacts
                                     </h6>
+                                </div>
+                            </div>
+                            <!-- Firm Identifier Container -->
+                            <div class="card border-0" style="background-color: white; padding: 0.5rem; border-radius: 6px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="matter-icon-badge-small" style="
+                                        width: 24px;
+                                        height: 24px;
+                                        border-radius: 4px;
+                                        background: linear-gradient(135deg, #a32b43, #3d1019);
+                                        color: white;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        font-size: 0.65rem;
+                                        font-weight: 700;
+                                        flex-shrink: 0;
+                                    " id="firmBadgeInitials">
+                                        LF
+                                    </div>
+                                    <div style="min-width: 0; flex: 1; margin-top: 0;">
+                                        <h6 class="mb-0 fw-bold text-dark" style="font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="firmBadgeName">
+                                            Loading Firm...
+                                        </h6>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -464,19 +489,25 @@
                     <!-- Client items will be populated by JavaScript -->
                 </div>
             </div>
-            <div class="join-code-section">
-                <h4 class="join-code-title">Apply Join Code</h4>
-                <form class="join-code-form" id="joinCodeForm">
-                    <input type="text" 
-                           class="join-code-input" 
-                           id="joinCodeInput" 
-                           placeholder="Enter join code..."
-                           maxlength="20">
-                    <button type="submit" class="join-code-button" id="joinCodeButton">
-                        Apply Code
-                    </button>
-                    <div class="join-code-message" id="joinCodeMessage" style="display: none;"></div>
-                </form>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+
+    <!-- Firms Popup -->
+    <div class="clients-popup" id="firmsPopup">
+        <div class="clients-popup-header">
+            <h3 class="clients-popup-title">My Firms</h3>
+            <button class="clients-popup-close" id="firmsPopupClose">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="clients-popup-content">
+            <div class="clients-scrollable-area">
+                <div class="clients-list" id="firmsList">
+                    <!-- Firm items will be populated by JavaScript -->
+                </div>
             </div>
         </div>
     </div>
@@ -486,27 +517,40 @@
     <script src="~/js/site.js" asp-append-version="true" defer></script>
 
     <script defer>
-        // Clients Popup Functionality - deferred to not block page load
+        // Clients and Firms Popup Functionality - deferred to not block page load
         window.addEventListener('load', function() {
             const clientsButton = document.getElementById('clientsButton');
             const clientsPopup = document.getElementById('clientsPopup');
             const clientsPopupClose = document.getElementById('clientsPopupClose');
             const clientsList = document.getElementById('clientsList');
+            
             const myFirmLink = document.getElementById('myFirmLink');
+            const firmsPopup = document.getElementById('firmsPopup');
+            const firmsPopupClose = document.getElementById('firmsPopupClose');
+            const firmsList = document.getElementById('firmsList');
+
             const calendarLink = document.getElementById('calendarLink');
             const billingLink = document.getElementById('billingLink');
             const historyLink = document.getElementById('historyLink');
 
+            // Helper to get initials
+            function getInitials(name) {
+                if (!name) return 'LF';
+                const parts = name.trim().split(' ');
+                if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+                return (parts[0][0] + parts[1][0]).toUpperCase();
+            }
+
             // Initialize My Firm link
             initializeMyFirmLink();
             
-            // Initialize Calendar link with same logic
+            // Initialize Calendar link
             initializeCalendarLink();
             
-            // Initialize Billing link with same logic
+            // Initialize Billing link
             initializeBillingLink();
             
-            // Initialize History link with same logic
+            // Initialize History link
             initializeHistoryLink();
 
             // Initialize Clients link
@@ -525,356 +569,275 @@
                 }
             })();
 
-            // Function to initialize My Firm link - defer to not block page load
-            async function initializeMyFirmLink() {
-                // Defer to idle time to not block page load
-                if ('requestIdleCallback' in window) {
-                    requestIdleCallback(doFetch);
-                } else {
-                    setTimeout(doFetch, 100);
-                }
-                
-                async function doFetch() {
-                    try {
-                        const response = await fetch('/Client/List', { credentials: 'include' });
-                        const result = await response.json();
-                        
-                        if (result.success && result.organizations) {
-                            // Find the user's firm organization (LawFirm type)
-                            const firmOrg = result.organizations.find(org => 
-                                org.organizationType === 'LawFirm'
-                            );
-                            
-                            if (firmOrg) {
-                                myFirmLink.href = `/Client/${firmOrg.organizationId}/Dashboard`;
-                                
-                                // Check if current URL is in the law firm organization and add active class
-                                updateMyFirmActiveState(firmOrg.organizationId);
-                            } else {
-                                // If no firm organization found, redirect to Global/Dashboard
-                                myFirmLink.href = '/Global/Dashboard';
-                            }
-                        } else {
-                            // Fallback to Global Dashboard if unable to fetch organizations
-                            myFirmLink.href = '/Global/Dashboard';
-                        }
-                    } catch (error) {
-                        console.error('Error initializing My Firm link:', error);
-                        // Fallback to Global Dashboard on error
-                        myFirmLink.href = '/Global/Dashboard';
+            // --- My Firm Functionality ---
+
+            function initializeMyFirmLink() {
+                myFirmLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (firmsPopup.classList.contains('show')) {
+                        hideFirmsPopup();
+                    } else {
+                        if (clientsPopup.classList.contains('show')) hideClientsPopup();
+                        showFirmsPopup();
                     }
+                });
+
+                firmsPopupClose.addEventListener('click', hideFirmsPopup);
+
+                // Update active state based on URL
+                updateMyFirmActiveState();
+            }
+
+            async function showFirmsPopup() {
+                firmsPopup.classList.add('show');
+                myFirmLink.classList.add('active');
+                await populateFirmsList();
+            }
+
+            function hideFirmsPopup() {
+                firmsPopup.classList.remove('show');
+                updateMyFirmActiveState();
+            }
+
+            async function populateFirmsList() {
+                firmsList.innerHTML = '<div class="client-item"><p class="client-status">Loading...</p></div>';
+                try {
+                    // Pass current active firm ID to highlight it
+                    const storedFirmId = localStorage.getItem('activeFirmId');
+                    let url = '/Client/List';
+                    if (storedFirmId) url += `?firmOrgId=${storedFirmId}`;
+
+                    const response = await fetch(url, { credentials: 'include' });
+                    const result = await response.json();
+                    
+                    firmsList.innerHTML = '';
+                    
+                    if (result.success && result.myFirms && result.myFirms.length > 0) {
+                        const activeFirmId = result.activeFirmId;
+                        
+                        // Update localStorage with the confirmed active firm ID from backend
+                        if (activeFirmId) {
+                            localStorage.setItem('activeFirmId', activeFirmId);
+                        }
+
+                        result.myFirms.forEach(firm => {
+                            const firmItem = document.createElement('div');
+                            const isActive = firm.organizationId === activeFirmId;
+                            firmItem.className = isActive ? 'client-item active' : 'client-item';
+                            
+                            firmItem.innerHTML = `
+                                <h5 class="client-name">${firm.organizationName}</h5>
+                                <p class="client-status">${firm.role} ${firm.isPrimary ? '• Primary' : ''}</p>
+                            `;
+                            
+                            firmItem.addEventListener('click', () => {
+                                // Set active firm context
+                                localStorage.setItem('activeFirmId', firm.organizationId);
+                                // Navigate to dashboard
+                                window.location.href = `/Client/${firm.organizationId}/Dashboard`;
+                            });
+                            
+                            firmsList.appendChild(firmItem);
+                        });
+                    } else {
+                        firmsList.innerHTML = '<div class="client-item"><p class="client-status">No firm memberships found.</p></div>';
+                    }
+                } catch (error) {
+                    console.error('Error loading firms:', error);
+                    firmsList.innerHTML = '<div class="client-item"><p class="client-status">Error loading firms.</p></div>';
                 }
             }
 
-            // Function to update My Firm button active state based on current URL
-            async function updateMyFirmActiveState(firmOrgId) {
-                // Check if current URL path matches the firm organization ID but is NOT the Calendar page
-                const currentPath = window.location.pathname;
-                const isFirmPath = new RegExp(`^/Client/${firmOrgId}/`).test(currentPath);
-                const isCalendarPath = new RegExp(`^/Client/${firmOrgId}/Calendar`).test(currentPath);
+            async function updateMyFirmActiveState() {
+                // Check if current URL path matches a firm organization ID but is NOT Calendar/Billing/History
                 
-                // Quick check: use meta tag if available (synchronous, no delay)
+                const currentPath = window.location.pathname;
+                // If we are on a client-scoped page, My Firm is NOT active
                 const orgTypeMeta = document.querySelector('meta[name="organization-type"]');
                 if (orgTypeMeta) {
                     const orgType = orgTypeMeta.getAttribute('content');
                     if (orgType && orgType !== 'LawFirm') {
-                        // We're viewing client-scoped data - don't mark My Firm as active
                         myFirmLink.classList.remove('active');
                         return;
                     }
                 }
-                
-                // Check if we're viewing client-scoped data (not firm-scoped)
-                try {
-                    const response = await fetch('/Client/List', { credentials: 'include' });
-                    const result = await response.json();
-                    
-                    if (result.success && result.organizations) {
-                        // Extract orgId from current URL path
-                        const urlMatch = currentPath.match(/^\/Client\/(\d+)/);
-                        if (urlMatch) {
-                            const currentOrgId = parseInt(urlMatch[1]);
-                            
-                            // Check if current orgId is a client organization (not the firm)
-                            const clientOrg = result.organizations.find(org => 
-                                org.organizationId === currentOrgId && 
-                                org.organizationType !== 'LawFirm'
-                            );
-                            
-                            if (clientOrg) {
-                                // We're viewing client-scoped data - don't mark My Firm as active
-                                myFirmLink.classList.remove('active');
-                                return;
-                            }
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error checking client organization:', error);
+
+                // If we are on Calendar, Billing, History, those have their own active states
+                if (currentPath.includes('/Calendar') || currentPath.includes('/Billing') || currentPath.includes('/History')) {
+                    myFirmLink.classList.remove('active');
+                    return;
                 }
 
-                if (isFirmPath && !isCalendarPath) {
-                    myFirmLink.classList.add('active');
-                } else {
-                    myFirmLink.classList.remove('active');
+                // If we are on Dashboard or other firm pages
+                const urlMatch = currentPath.match(/^\/Client\/(\d+)/);
+                if (urlMatch) {
+                    // We are in some client/firm context. 
+                    // If it's a LawFirm (checked above via meta or if we assume /Dashboard is firm), make it active.
+                    if (!firmsPopup.classList.contains('show')) {
+                         myFirmLink.classList.add('active');
+                    }
                 }
             }
 
-            // Function to initialize Calendar link - defer to not block page load
+            // --- Other Links (Calendar, Billing, History) ---
+            // These should also respect the active firm context
+
             async function initializeCalendarLink() {
-                // Defer to idle time to not block page load
-                if ('requestIdleCallback' in window) {
-                    requestIdleCallback(doFetch);
+                // Use activeFirmId from localStorage if available
+                const storedFirmId = localStorage.getItem('activeFirmId');
+                if (storedFirmId) {
+                    calendarLink.href = `/Client/${storedFirmId}/Calendar`;
+                    updateCalendarActiveState(storedFirmId);
                 } else {
-                    setTimeout(doFetch, 100);
-                }
-                
-                async function doFetch() {
+                    // Fallback to fetch if no stored ID
                     try {
                         const response = await fetch('/Client/List', { credentials: 'include' });
                         const result = await response.json();
-                        
-                        if (result.success && result.organizations) {
-                            // Find the user's firm organization (LawFirm type)
-                            const firmOrg = result.organizations.find(org => 
-                                org.organizationType === 'LawFirm'
-                            );
-                            
-                            if (firmOrg) {
-                                calendarLink.href = `/Client/${firmOrg.organizationId}/Calendar`;
-                                
-                                // Check if current URL is the calendar page and add active class
-                                updateCalendarActiveState(firmOrg.organizationId);
-                            } else {
-                                // If no firm organization found, default to #
-                                calendarLink.href = '#';
-                            }
-                        } else {
-                            // Fallback on error
-                            calendarLink.href = '#';
+                        if (result.success && result.activeFirmId) {
+                            calendarLink.href = `/Client/${result.activeFirmId}/Calendar`;
+                            updateCalendarActiveState(result.activeFirmId);
                         }
-                    } catch (error) {
-                        console.error('Error initializing Calendar link:', error);
-                        // Fallback on error
+                    } catch (e) {
                         calendarLink.href = '#';
                     }
                 }
             }
 
-            // Function to update Calendar button active state based on current URL
             function updateCalendarActiveState(firmOrgId) {
                 const currentPath = window.location.pathname;
-                const calendarPathPattern = new RegExp(`^/Client/${firmOrgId}/Calendar`);
-                
-                if (calendarPathPattern.test(currentPath)) {
+                if (currentPath.includes(`/Client/${firmOrgId}/Calendar`)) {
                     calendarLink.classList.add('active');
-                    // Ensure My Firm is not marked active when Calendar is active
                     myFirmLink.classList.remove('active');
                 } else {
                     calendarLink.classList.remove('active');
                 }
             }
 
-            // Function to initialize Billing link
-            function initializeBillingLink() {
-                // Defer to idle time to not block page load
-                if ('requestIdleCallback' in window) {
-                    requestIdleCallback(doFetch);
+            async function initializeBillingLink() {
+                const storedFirmId = localStorage.getItem('activeFirmId');
+                if (storedFirmId) {
+                    billingLink.href = `/Client/${storedFirmId}/Billing`;
+                    updateBillingActiveState(storedFirmId);
                 } else {
-                    setTimeout(doFetch, 100);
-                }
-                
-                async function doFetch() {
                     try {
                         const response = await fetch('/Client/List', { credentials: 'include' });
                         const result = await response.json();
-                        
-                        if (result.success && result.organizations) {
-                            // Find the user's firm organization (LawFirm type)
-                            const firmOrg = result.organizations.find(org => 
-                                org.organizationType === 'LawFirm'
-                            );
-                            
-                            if (firmOrg) {
-                                billingLink.href = `/Client/${firmOrg.organizationId}/Billing`;
-                                
-                                // Check if current URL is the billing page and add active class
-                                updateBillingActiveState(firmOrg.organizationId);
-                            } else {
-                                // If no firm organization found, default to #
-                                billingLink.href = '#';
-                            }
-                        } else {
-                            // Fallback on error
-                            billingLink.href = '#';
+                        if (result.success && result.activeFirmId) {
+                            billingLink.href = `/Client/${result.activeFirmId}/Billing`;
+                            updateBillingActiveState(result.activeFirmId);
                         }
-                    } catch (error) {
-                        console.error('Error initializing Billing link:', error);
-                        // Fallback on error
+                    } catch (e) {
                         billingLink.href = '#';
                     }
                 }
             }
 
-            // Function to update Billing button active state based on current URL
             function updateBillingActiveState(firmOrgId) {
                 const currentPath = window.location.pathname;
-                const billingPathPattern = new RegExp(`^/Client/${firmOrgId}/Billing`);
-                
-                if (billingPathPattern.test(currentPath)) {
+                if (currentPath.includes(`/Client/${firmOrgId}/Billing`)) {
                     billingLink.classList.add('active');
-                    // Ensure My Firm is not marked active when Billing is active
                     myFirmLink.classList.remove('active');
                 } else {
                     billingLink.classList.remove('active');
                 }
             }
 
-            // Function to initialize History link
             async function initializeHistoryLink() {
-                // Defer to idle time to not block page load
-                if ('requestIdleCallback' in window) {
-                    requestIdleCallback(doFetch);
+                const storedFirmId = localStorage.getItem('activeFirmId');
+                if (storedFirmId) {
+                    historyLink.href = `/Client/${storedFirmId}/History`;
+                    updateHistoryActiveState(storedFirmId);
                 } else {
-                    setTimeout(doFetch, 100);
-                }
-                
-                async function doFetch() {
                     try {
                         const response = await fetch('/Client/List', { credentials: 'include' });
                         const result = await response.json();
-                        
-                        if (result.success && result.organizations) {
-                            // Find the user's firm organization (LawFirm type)
-                            const firmOrg = result.organizations.find(org => 
-                                org.organizationType === 'LawFirm'
-                            );
-                            
-                            if (firmOrg) {
-                                historyLink.href = `/Client/${firmOrg.organizationId}/History`;
-                                
-                                // Check if current URL is the history page and add active class
-                                updateHistoryActiveState(firmOrg.organizationId);
-                            } else {
-                                // If no firm organization found, default to #
-                                historyLink.href = '#';
-                            }
-                        } else {
-                            // Fallback on error
-                            historyLink.href = '#';
+                        if (result.success && result.activeFirmId) {
+                            historyLink.href = `/Client/${result.activeFirmId}/History`;
+                            updateHistoryActiveState(result.activeFirmId);
                         }
-                    } catch (error) {
-                        console.error('Error initializing History link:', error);
-                        // Fallback on error
+                    } catch (e) {
                         historyLink.href = '#';
                     }
                 }
             }
 
-            // Function to update History button active state based on current URL
             function updateHistoryActiveState(firmOrgId) {
                 const currentPath = window.location.pathname;
-                const historyPathPattern = new RegExp(`^/Client/${firmOrgId}/History`);
-                
-                if (historyPathPattern.test(currentPath)) {
+                if (currentPath.includes(`/Client/${firmOrgId}/History`)) {
                     historyLink.classList.add('active');
-                    // Ensure My Firm is not marked active when History is active
                     myFirmLink.classList.remove('active');
                 } else {
                     historyLink.classList.remove('active');
                 }
             }
 
-            // Function to initialize Clients link
-            async function initializeClientsLink() {
-                // Defer to idle time to not block page load
-                if ('requestIdleCallback' in window) {
-                    requestIdleCallback(doFetch);
-                } else {
-                    setTimeout(doFetch, 100);
-                }
-                
-                async function doFetch() {
-                    try {
-                        const response = await fetch('/Client/List', { credentials: 'include' });
-                        const result = await response.json();
-                        
-                        if (result.success && result.organizations) {
-                            // Find the user's firm organization (LawFirm type)
-                            const firmOrg = result.organizations.find(org => 
-                                org.organizationType === 'LawFirm'
-                            );
-                            
-                            if (firmOrg) {
-                                // Update "View All Clients" link
-                                const viewAllClientsLink = document.getElementById('viewAllClientsLink');
-                                if (viewAllClientsLink) {
-                                    viewAllClientsLink.href = `/Client/${firmOrg.organizationId}/Clients`;
-                                }
-                                
-                                // Check if current URL is the clients page and add active class
-                                await updateClientsActiveState(firmOrg.organizationId);
-                            }
-                        }
-                    } catch (error) {
-                        console.error('Error initializing Clients link:', error);
+            // --- Clients Functionality ---
+
+            function initializeClientsLink() {
+                clientsButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (clientsPopup.classList.contains('show')) {
+                        hideClientsPopup();
+                    } else {
+                        if (firmsPopup.classList.contains('show')) hideFirmsPopup();
+                        showClientsPopup();
                     }
-                }
+                });
+
+                clientsPopupClose.addEventListener('click', hideClientsPopup);
+
+                // Close popup when clicking outside (handles both popups)
+                document.addEventListener('click', function(e) {
+                    if (!clientsPopup.contains(e.target) && !clientsButton.contains(e.target) &&
+                        !firmsPopup.contains(e.target) && !myFirmLink.contains(e.target)) {
+                        hideClientsPopup();
+                        hideFirmsPopup();
+                    }
+                });
+
+                // Close popup on escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        if (clientsPopup.classList.contains('show')) hideClientsPopup();
+                        if (firmsPopup.classList.contains('show')) hideFirmsPopup();
+                    }
+                });
+
+                // Initial check for active state
+                updateClientsActiveState();
             }
 
-            // Function to update Clients button active state based on current URL
-            async function updateClientsActiveState(firmOrgId) {
+            async function showClientsPopup() {
+                clientsPopup.classList.add('show');
+                clientsButton.classList.add('active');
+                await populateClientsList();
+            }
+
+            function hideClientsPopup() {
+                clientsPopup.classList.remove('show');
+                updateClientsActiveState();
+            }
+
+            async function updateClientsActiveState() {
                 const currentPath = window.location.pathname;
-                const clientsPathPattern = new RegExp(`^/Client/${firmOrgId}/Clients`);
+                const clientsPathPattern = /^\/Client\/\d+\/Clients/;
                 
-                // Check if we're on the Clients page
                 if (clientsPathPattern.test(currentPath)) {
                     clientsButton.classList.add('active');
                     myFirmLink.classList.remove('active');
                     return;
                 }
                 
-                // Quick check: use meta tag if available (synchronous, no delay)
                 const orgTypeMeta = document.querySelector('meta[name="organization-type"]');
                 if (orgTypeMeta) {
                     const orgType = orgTypeMeta.getAttribute('content');
                     if (orgType && orgType !== 'LawFirm') {
-                        // We're viewing client-scoped data - make Clients button active immediately
                         clientsButton.classList.add('active');
                         myFirmLink.classList.remove('active');
                         return;
                     }
                 }
-                
-                // Fallback: Check if we're viewing client-scoped organization data (not firm-scoped)
-                try {
-                    const response = await fetch('/Client/List', { credentials: 'include' });
-                    const result = await response.json();
-                    
-                    if (result.success && result.organizations) {
-                        // Extract orgId from current URL path
-                        const urlMatch = currentPath.match(/^\/Client\/(\d+)/);
-                        if (urlMatch) {
-                            const currentOrgId = parseInt(urlMatch[1]);
-                            
-                            // Check if current orgId is a client organization (not the firm)
-                            const clientOrg = result.organizations.find(org => 
-                                org.organizationId === currentOrgId && 
-                                org.organizationType !== 'LawFirm'
-                            );
-                            
-                            if (clientOrg) {
-                                // We're viewing client-scoped data - make Clients button active
-                                clientsButton.classList.add('active');
-                                myFirmLink.classList.remove('active');
-                                return;
-                            }
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error checking client organization:', error);
-                }
-                
-                // Default: remove active state if not showing popup
+
                 if (!clientsPopup.classList.contains('show')) {
                     clientsButton.classList.remove('active');
                 }
@@ -904,62 +867,70 @@
             function getCurrentClientOrgId() {
                 const currentPath = window.location.pathname;
                 
-                // Quick check: use meta tag if available (synchronous, no delay)
                 const orgTypeMeta = document.querySelector('meta[name="organization-type"]');
                 if (orgTypeMeta) {
                     const orgType = orgTypeMeta.getAttribute('content');
                     if (orgType && orgType !== 'LawFirm') {
-                        // Extract orgId from current URL path
                         const urlMatch = currentPath.match(/^\/Client\/(\d+)/);
                         if (urlMatch) {
                             return parseInt(urlMatch[1]);
                         }
                     }
                 }
-                
-                // Fallback: Extract orgId from URL path pattern
-                const urlMatch = currentPath.match(/^\/Client\/(\d+)/);
-                if (urlMatch) {
-                    return parseInt(urlMatch[1]);
-                }
-                
                 return null;
             }
 
-            // Populate clients list
             async function populateClientsList() {
                 clientsList.innerHTML = '';
                 try {
+                    const storedFirmId = localStorage.getItem('activeFirmId');
                     const lastOpenedOrgId = getLastOpenedClientOrgId();
-                    const url = lastOpenedOrgId 
-                        ? `/Client/List?lastOpenedOrgId=${encodeURIComponent(lastOpenedOrgId)}`
-                        : '/Client/List';
+                    
+                    let url = '/Client/List';
+                    const params = new URLSearchParams();
+                    if (storedFirmId) params.append('firmOrgId', storedFirmId);
+                    if (lastOpenedOrgId) params.append('lastOpenedOrgId', lastOpenedOrgId);
+                    
+                    if (params.toString()) url += `?${params.toString()}`;
+
                     const response = await fetch(url, { credentials: 'include' });
                     const result = await response.json();
+                    
                     if (!result.success) {
-                        const msg = document.createElement('div');
-                        msg.className = 'client-item';
-                        msg.innerHTML = `<p class="client-status">${result.message || 'Unable to load clients.'}</p>`;
-                        clientsList.appendChild(msg);
+                        clientsList.innerHTML = `<div class="client-item"><p class="client-status">${result.message || 'Unable to load clients.'}</p></div>`;
                         return;
                     }
+
+                    // Update Firm Badge in "View All Clients" button
+                    const firmBadgeInitials = document.getElementById('firmBadgeInitials');
+                    const firmBadgeName = document.getElementById('firmBadgeName');
+                    const viewAllClientsLink = document.getElementById('viewAllClientsLink');
+                    
+                    if (result.activeFirmId && result.myFirms) {
+                        const activeFirm = result.myFirms.find(f => f.organizationId === result.activeFirmId);
+                        if (activeFirm) {
+                            if (firmBadgeInitials) firmBadgeInitials.textContent = getInitials(activeFirm.organizationName);
+                            if (firmBadgeName) firmBadgeName.textContent = activeFirm.organizationName;
+                            if (viewAllClientsLink) viewAllClientsLink.href = `/Client/${activeFirm.organizationId}/Clients`;
+                            
+                            // Store the confirmed active firm ID
+                            localStorage.setItem('activeFirmId', result.activeFirmId);
+                        }
+                    }
+
                     // Filter: Only show confirmed client organizations (not LawFirm, not pending)
+                    // Also filter by active firm if needed (backend should have handled this, but we can double check)
                     const orgs = (result.organizations || []).filter(o => 
                         o.organizationType !== 'LawFirm' && 
                         o.isConfirmed === true
                     );
+
                     if (orgs.length === 0) {
-                        const empty = document.createElement('div');
-                        empty.className = 'client-item';
-                        empty.innerHTML = `<p class="client-status">No clients yet. Start by navigating to the Clients page above.</p>`;
-                        clientsList.appendChild(empty);
+                        clientsList.innerHTML = `<div class="client-item"><p class="client-status">No clients found for this firm.</p></div>`;
                         return;
                     }
                     
-                    // Get current scoped client organization ID
                     const currentOrgId = getCurrentClientOrgId();
-                    
-                    // Verify currentOrgId is actually a client organization
                     let isCurrentOrgClient = false;
                     if (currentOrgId) {
                         const currentOrg = orgs.find(o => o.organizationId === currentOrgId);
@@ -967,7 +938,6 @@
                     }
                     
                     orgs.forEach(o => {
-                        // Use displayOwnerName if available, otherwise construct from ownerFirstName/ownerLastName
                         const ownerName = o.displayOwnerName || `${o.ownerFirstName} ${o.ownerLastName}`.trim();
                         const clientItem = document.createElement('div');
                         const isActive = isCurrentOrgClient && o.organizationId === currentOrgId;
@@ -978,26 +948,15 @@
                             <p class="client-status">${o.isPrimary ? 'Primary' : (o.isPersonal ? 'Personal' : 'Active')}</p>
                         `;
                         clientItem.addEventListener('click', () => {
-                            // Track last opened client organization
                             setLastOpenedClientOrgId(o.organizationId);
                             window.location.href = `/Client/${o.organizationId}/Dashboard`;
                         });
                         clientsList.appendChild(clientItem);
                     });
 
-                    // Update "View All Clients" link and active state
-                    const firmOrg = result.organizations.find(org => org.organizationType === 'LawFirm');
-                    const viewAllClientsLink = document.getElementById('viewAllClientsLink');
-                    if (viewAllClientsLink && firmOrg) {
-                        viewAllClientsLink.href = `/Client/${firmOrg.organizationId}/Clients`;
-                        // Update active state if on Clients page
-                        await updateClientsActiveState(firmOrg.organizationId);
-                    }
                 } catch (e) {
-                    const err = document.createElement('div');
-                    err.className = 'client-item';
-                    err.innerHTML = `<p class="client-status">Error loading clients.</p>`;
-                    clientsList.appendChild(err);
+                    console.error('Error loading clients:', e);
+                    clientsList.innerHTML = `<div class="client-item"><p class="client-status">Error loading clients.</p></div>`;
                 }
             }
 
@@ -1060,101 +1019,6 @@
                 }
             }
 
-            // Event listeners
-            clientsButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                if (clientsPopup.classList.contains('show')) {
-                    hideClientsPopup();
-                } else {
-                    showClientsPopup();
-                }
-            });
-
-            clientsPopupClose.addEventListener('click', function() {
-                hideClientsPopup();
-            });
-
-            // Close popup when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!clientsPopup.contains(e.target) && !clientsButton.contains(e.target)) {
-                    hideClientsPopup();
-                }
-            });
-
-            // Close popup on escape key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && clientsPopup.classList.contains('show')) {
-                    hideClientsPopup();
-                }
-            });
-
-            // Join Code Functionality
-            const joinCodeForm = document.getElementById('joinCodeForm');
-            const joinCodeInput = document.getElementById('joinCodeInput');
-            const joinCodeButton = document.getElementById('joinCodeButton');
-            const joinCodeMessage = document.getElementById('joinCodeMessage');
-
-            function showJoinCodeMessage(message, isError = false) {
-                joinCodeMessage.textContent = message;
-                joinCodeMessage.className = `join-code-message ${isError ? 'error' : 'success'}`;
-                joinCodeMessage.style.display = 'block';
-                
-                // Hide message after 5 seconds
-                setTimeout(() => {
-                    joinCodeMessage.style.display = 'none';
-                }, 5000);
-            }
-
-            function setJoinCodeLoading(loading) {
-                joinCodeButton.disabled = loading;
-                joinCodeButton.textContent = loading ? 'Applying...' : 'Apply Code';
-            }
-
-            joinCodeForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                const code = joinCodeInput.value.trim();
-                if (!code) {
-                    showJoinCodeMessage('Please enter a join code.', true);
-                    return;
-                }
-
-                setJoinCodeLoading(true);
-                joinCodeMessage.style.display = 'none';
-
-                try {
-                    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-                    const response = await fetch('/Home/ApplyJoinCode', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'RequestVerificationToken': token || ''
-                        },
-                        body: JSON.stringify({ 
-                            joinCode: code,
-                            __RequestVerificationToken: token 
-                        })
-                    });
-
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        showJoinCodeMessage(result.message || 'Successfully applied join code!');
-                        joinCodeInput.value = '';
-                        // Optionally refresh the clients list or redirect
-                        if (result.redirectUrl) {
-                            window.location.href = result.redirectUrl;
-                        }
-                    } else {
-                        showJoinCodeMessage(result.message || 'Failed to apply join code.', true);
-                    }
-                } catch (error) {
-                    console.error('Error applying join code:', error);
-                    showJoinCodeMessage('An error occurred while applying the join code.', true);
-                } finally {
-                    setJoinCodeLoading(false);
-                }
-            });
         });
     </script>
 
