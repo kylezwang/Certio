@@ -65,6 +65,10 @@
                     <i class="fas fa-credit-card"></i>
                     <span>Billing & Plan</span>
                 </a>
+                <a href="#joincode" class="settings-nav-item" data-tab="joincode">
+                    <i class="fas fa-key"></i>
+                    <span>Join Code</span>
+                </a>
             </nav>
         </div>
 
@@ -574,7 +578,37 @@
                             </div>
                         </div>
                     </div>
+                    </div>
+                </div>
+
+                <!-- Join Code Section -->
+                <div id="joincode-content" class="settings-tab-content">
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Join Organization</h3>
+                            <p>Enter a code to join an existing organization</p>
                         </div>
+                        <div class="settings-section-content">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <form id="joinCodeForm">
+                                        <div class="mb-3">
+                                            <label for="joinCodeInput" class="form-label">Join Code</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" id="joinCodeInput" placeholder="Enter your code" maxlength="20">
+                                                <button type="submit" class="btn btn-primary" id="joinCodeButton">
+                                                    Apply Code
+                                                </button>
+                                            </div>
+                                            <div class="form-text">Ask your organization administrator for this code.</div>
+                                        </div>
+                                        <div class="alert" id="joinCodeMessage" style="display: none;" role="alert"></div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -597,6 +631,9 @@
             
             // Initialize MFA toggle
             initializeMfaToggle();
+
+            // Initialize Join Code
+            initializeJoinCode();
             
             // Tab switching functionality
             const navItems = document.querySelectorAll('.settings-nav-item');
@@ -726,6 +763,85 @@
                     saveBtn.style.display = 'none';
                 }
             }
+        }
+
+        function initializeJoinCode() {
+            const joinCodeForm = document.getElementById('joinCodeForm');
+            const joinCodeInput = document.getElementById('joinCodeInput');
+            const joinCodeButton = document.getElementById('joinCodeButton');
+            const joinCodeMessage = document.getElementById('joinCodeMessage');
+
+            if (!joinCodeForm) return;
+
+            function showJoinCodeMessage(message, isError = false) {
+                joinCodeMessage.textContent = message;
+                joinCodeMessage.className = `alert ${isError ? 'alert-danger' : 'alert-success'}`;
+                joinCodeMessage.style.display = 'block';
+                
+                // Hide message after 5 seconds
+                setTimeout(() => {
+                    joinCodeMessage.style.display = 'none';
+                }, 5000);
+            }
+
+            function setJoinCodeLoading(loading) {
+                joinCodeButton.disabled = loading;
+                joinCodeButton.textContent = loading ? 'Applying...' : 'Apply Code';
+            }
+
+            joinCodeForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const code = joinCodeInput.value.trim();
+                if (!code) {
+                    showJoinCodeMessage('Please enter a join code.', true);
+                    return;
+                }
+
+                setJoinCodeLoading(true);
+                joinCodeMessage.style.display = 'none';
+
+                try {
+                    // Get token from a hidden input if available, or try to find it in the page
+                    // Since we are in a view, we might need to ensure the token is present.
+                    // Usually _Layout or the form helper adds it. 
+                    // Let's assume we can fetch it or it's not strictly required for this specific API if using cookie auth.
+                    // However, for safety, let's try to find it.
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                    
+                    const response = await fetch('/Home/ApplyJoinCode', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token || ''
+                        },
+                        body: JSON.stringify({ 
+                            joinCode: code,
+                            __RequestVerificationToken: token 
+                        })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showJoinCodeMessage(result.message || 'Successfully applied join code!');
+                        joinCodeInput.value = '';
+                        // Optionally refresh or redirect
+                        if (result.redirectUrl) {
+                            setTimeout(() => {
+                                window.location.href = result.redirectUrl;
+                            }, 1500);
+                        }
+                    } else {
+                        showJoinCodeMessage(result.message || 'Failed to apply join code.', true);
+                    }
+                } catch (error) {
+                    console.error('Error applying join code:', error);
+                    showJoinCodeMessage('An error occurred while applying the join code.', true);
+                } finally {
+                    setJoinCodeLoading(false);
+                }
+            });
         }
         
         async function initializeMfaToggle() {
