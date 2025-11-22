@@ -60,6 +60,7 @@ namespace Certio.Infrastructure.Data
         // Calendar Entities
         public DbSet<CalendarEvent> CalendarEvents => Set<CalendarEvent>();
         public DbSet<CalendarEventAttendee> CalendarEventAttendees => Set<CalendarEventAttendee>();
+        public DbSet<CalendarIntegration> CalendarIntegrations => Set<CalendarIntegration>();
         
         // Document Entities
         public DbSet<Document> Documents => Set<Document>();
@@ -617,6 +618,25 @@ namespace Certio.Infrastructure.Data
 
             builder.Entity<CalendarEventAttendee>()
                 .HasIndex(cea => cea.UserId);
+
+            // CalendarIntegration -> Organization relationship
+            builder.Entity<CalendarIntegration>()
+                .HasOne(ci => ci.Organization)
+                .WithMany()
+                .HasForeignKey(ci => ci.OrgId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // CalendarIntegration -> User relationship
+            builder.Entity<CalendarIntegration>()
+                .HasOne(ci => ci.User)
+                .WithMany()
+                .HasForeignKey(ci => ci.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Add index for calendar integrations
+            builder.Entity<CalendarIntegration>()
+                .HasIndex(ci => new { ci.OrgId, ci.UserId, ci.Provider })
+                .IsUnique();
         }
 
         private void ConfigureDocumentRelationships(ModelBuilder builder)

@@ -1981,5 +1981,222 @@
             initializeEventLocationSearch();
         }
     </script>
+
+    <script>
+        // Calendar Integration OAuth handling
+        (function() {
+            // Load calendar integrations status on page load
+            async function loadCalendarIntegrationsStatus() {
+                try {
+                    const url = orgId ? `/api/calendar-oauth/status?orgId=${orgId}` : '/api/calendar-oauth/status';
+                    const response = await fetch(url, {
+                        credentials: 'include'
+                    });
+                    const result = await response.json();
+                    
+                    if (result.success && result.integrations) {
+                        displayCalendarIntegrations(result.integrations);
+                    }
+                } catch (error) {
+                    console.error('Error loading calendar integrations:', error);
+                }
+            }
+
+            // Display calendar integration status
+            function displayCalendarIntegrations(integrations) {
+                const hasGoogle = integrations.some(i => i.provider === 'Google');
+                const hasOutlook = integrations.some(i => i.provider === 'Outlook');
+                const hasAnyConnection = hasGoogle || hasOutlook;
+
+                const notConnectedDiv = document.getElementById('calendarIntegrationsNotConnected');
+                const connectedDiv = document.getElementById('calendarIntegrationsConnected');
+                const googleStatus = document.getElementById('googleCalendarStatus');
+                const outlookStatus = document.getElementById('outlookCalendarStatus');
+                const googleConnectBtn = document.getElementById('connectGoogleCalendarBtnConnected');
+                const outlookConnectBtn = document.getElementById('connectOutlookCalendarBtnConnected');
+
+                // Move the Calendar Integrations card to the bottom if at least one is connected
+                const integrationsCard = document.getElementById('calendarIntegrationsCard');
+                const upcomingEventsCard = document.getElementById('upcomingEventsCard');
+                const sidebarContent = document.querySelector('.global-dashboard-content');
+                
+                if (hasAnyConnection && integrationsCard && upcomingEventsCard && sidebarContent) {
+                    // Move integrations card after upcoming events card and add top margin
+                    if (integrationsCard.nextElementSibling !== null) {
+                        sidebarContent.appendChild(integrationsCard);
+                        integrationsCard.style.marginTop = '1rem';
+                    }
+                } else if (!hasAnyConnection && integrationsCard && upcomingEventsCard && sidebarContent) {
+                    // Move integrations card before upcoming events card and remove top margin
+                    if (integrationsCard.nextElementSibling !== upcomingEventsCard) {
+                        sidebarContent.insertBefore(integrationsCard, upcomingEventsCard);
+                        integrationsCard.style.marginTop = '0';
+                    }
+                }
+
+                if (hasAnyConnection) {
+                    notConnectedDiv.style.display = 'none';
+                    connectedDiv.style.display = 'block';
+
+                    if (hasGoogle) {
+                        const googleIntegration = integrations.find(i => i.provider === 'Google');
+                        googleStatus.style.display = 'block';
+                        googleConnectBtn.style.display = 'none';
+                        document.getElementById('googleCalendarEmail').textContent = googleIntegration.email || '';
+                    } else {
+                        googleStatus.style.display = 'none';
+                        googleConnectBtn.style.display = 'block';
+                    }
+
+                    if (hasOutlook) {
+                        const outlookIntegration = integrations.find(i => i.provider === 'Outlook');
+                        outlookStatus.style.display = 'block';
+                        outlookConnectBtn.style.display = 'none';
+                        document.getElementById('outlookCalendarEmail').textContent = outlookIntegration.email || '';
+                    } else {
+                        outlookStatus.style.display = 'none';
+                        outlookConnectBtn.style.display = 'block';
+                    }
+                } else {
+                    notConnectedDiv.style.display = 'block';
+                    connectedDiv.style.display = 'none';
+                }
+            }
+
+            // Handle OAuth popup
+            function openOAuthPopup(provider) {
+                const endpoint = provider === 'Google' 
+                    ? '/api/calendar-oauth/google/authorize' 
+                    : '/api/calendar-oauth/outlook/authorize';
+
+                fetch(endpoint + `?orgId=${orgId}`, {
+                    credentials: 'include'
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success && result.authorizationUrl) {
+                        const width = 600;
+                        const height = 700;
+                        const left = (screen.width / 2) - (width / 2);
+                        const top = (screen.height / 2) - (height / 2);
+                        
+                        const popup = window.open(
+                            result.authorizationUrl,
+                            'CalendarOAuth',
+                            `width=${width},height=${height},top=${top},left=${left},toolbar=no,menubar=no`
+                        );
+
+                        if (!popup) {
+                            alert('Please allow popups for this site to connect your calendar');
+                        }
+                    } else {
+                        alert('Error initiating OAuth: ' + (result.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error starting OAuth:', error);
+                    alert('Error connecting calendar. Please try again.');
+                });
+            }
+
+            // Handle disconnect
+            async function disconnectCalendar(provider) {
+                if (!confirm(`Are you sure you want to disconnect your ${provider} Calendar?`)) {
+                    return;
+                }
+
+                try {
+                    const url = orgId ? `/api/calendar-oauth/disconnect?orgId=${orgId}` : '/api/calendar-oauth/disconnect';
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ provider: provider })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        await loadCalendarIntegrationsStatus();
+                        // Refresh the calendar to remove synced events
+                        await fetchAndRenderCalendar();
+                    } else {
+                        alert('Error disconnecting calendar: ' + (result.error || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Error disconnecting calendar:', error);
+                    alert('Error disconnecting calendar. Please try again.');
+                }
+            }
+
+            // Listen for OAuth completion messages
+            window.addEventListener('message', function(event) {
+                if (event.data && event.data.type === 'calendar-oauth-complete') {
+                    console.log('Calendar OAuth completed:', event.data);
+                    
+                    if (event.data.success) {
+                        // Reload integrations status
+                        loadCalendarIntegrationsStatus();
+                        // Refresh the calendar to show synced events
+                        fetchAndRenderCalendar();
+                    }
+                }
+            });
+
+            // Initialize event handlers
+            document.addEventListener('DOMContentLoaded', function() {
+                // Load integrations status
+                loadCalendarIntegrationsStatus();
+
+                // Connect buttons (not connected state)
+                const connectGoogleBtn = document.getElementById('connectGoogleCalendarBtn');
+                const connectOutlookBtn = document.getElementById('connectOutlookCalendarBtn');
+
+                if (connectGoogleBtn) {
+                    connectGoogleBtn.addEventListener('click', function() {
+                        openOAuthPopup('Google');
+                    });
+                }
+
+                if (connectOutlookBtn) {
+                    connectOutlookBtn.addEventListener('click', function() {
+                        openOAuthPopup('Outlook');
+                    });
+                }
+
+                // Connect buttons (connected state)
+                const connectGoogleBtnConnected = document.getElementById('connectGoogleCalendarBtnConnected');
+                const connectOutlookBtnConnected = document.getElementById('connectOutlookCalendarBtnConnected');
+
+                if (connectGoogleBtnConnected) {
+                    connectGoogleBtnConnected.addEventListener('click', function() {
+                        openOAuthPopup('Google');
+                    });
+                }
+
+                if (connectOutlookBtnConnected) {
+                    connectOutlookBtnConnected.addEventListener('click', function() {
+                        openOAuthPopup('Outlook');
+                    });
+                }
+
+                // Disconnect buttons
+                const disconnectGoogleBtn = document.getElementById('disconnectGoogleCalendarBtn');
+                const disconnectOutlookBtn = document.getElementById('disconnectOutlookCalendarBtn');
+
+                if (disconnectGoogleBtn) {
+                    disconnectGoogleBtn.addEventListener('click', function() {
+                        disconnectCalendar('Google');
+                    });
+                }
+
+                if (disconnectOutlookBtn) {
+                    disconnectOutlookBtn.addEventListener('click', function() {
+                        disconnectCalendar('Outlook');
+                    });
+                }
+            });
+        })();
+    </script>
 }
 
