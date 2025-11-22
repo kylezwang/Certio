@@ -36,6 +36,7 @@ namespace Certio.Infrastructure.Data
         public DbSet<Team> Teams => Set<Team>();
         public DbSet<TeamMembership> TeamMemberships => Set<TeamMembership>();
         public DbSet<UserDeletionRequest> UserDeletionRequests => Set<UserDeletionRequest>();
+        public DbSet<TrustedDevice> TrustedDevices => Set<TrustedDevice>();
         
         // Matter Entities
         public DbSet<Matter> Matters => Set<Matter>();

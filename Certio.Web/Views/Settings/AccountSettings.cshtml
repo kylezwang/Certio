@@ -203,41 +203,13 @@
                             <p>Manage your active login sessions</p>
                         </div>
                         <div class="settings-section-content">
-                            <div class="session-list">
-                                <div class="session-item">
+                            <div class="session-list" id="sessionsList">
+                                <div class="session-item session-placeholder">
                                     <div class="session-info">
-                                        <div class="session-icon">
-                                            <i class="fas fa-laptop"></i>
-                                        </div>
                                         <div class="session-details">
-                                            <h6 class="session-device">MacBook Pro</h6>
-                                            <p class="session-location">New York, US</p>
+                                            <h6 class="session-device">Loading your devices...</h6>
+                                            <p class="session-location text-muted">Please wait</p>
                                         </div>
-                                        <span class="badge bg-primary">Current</span>
-                                    </div>
-                                </div>
-                                <div class="session-item">
-                                    <div class="session-info">
-                                        <div class="session-icon">
-                                            <i class="fas fa-mobile-alt"></i>
-                                        </div>
-                                        <div class="session-details">
-                                            <h6 class="session-device">iPhone 15</h6>
-                                            <p class="session-location">New York, US</p>
-                                        </div>
-                                        <button class="btn btn-outline-secondary btn-sm">Revoke</button>
-                                    </div>
-                                </div>
-                                <div class="session-item">
-                                    <div class="session-info">
-                                        <div class="session-icon">
-                                            <i class="fas fa-desktop"></i>
-                                        </div>
-                                        <div class="session-details">
-                                            <h6 class="session-device">Chrome Browser</h6>
-                                            <p class="session-location">Chicago, IL</p>
-                                        </div>
-                                        <button class="btn btn-outline-secondary btn-sm">Revoke</button>
                                     </div>
                                 </div>
                             </div>
@@ -246,7 +218,7 @@
                                     <label class="settings-row-label">Sign Out All Devices</label>
                                     <p class="settings-row-description">End all active sessions except current</p>
                                 </div>
-                                <button class="btn btn-outline-danger btn-sm">Sign Out All</button>
+                                <button class="btn btn-outline-danger btn-sm" id="signOutAllDevicesBtn">Sign Out All</button>
                             </div>
                         </div>
                     </div>
@@ -633,6 +605,9 @@
 
             // Initialize Join Code
             initializeJoinCode();
+
+            // Load sessions and devices
+            initializeSessionsAndDevices();
             
             // Tab switching functionality
             const navItems = document.querySelectorAll('.settings-nav-item');
@@ -841,6 +816,222 @@
                     setJoinCodeLoading(false);
                 }
             });
+        }
+        
+        function initializeSessionsAndDevices() {
+            const sessionsList = document.getElementById('sessionsList');
+            const signOutAllBtn = document.getElementById('signOutAllDevicesBtn');
+            if (!sessionsList) return;
+
+            const renderLoading = (message = 'Loading your devices...') => {
+                sessionsList.innerHTML = `
+                    <div class="session-item session-placeholder">
+                        <div class="session-info">
+                            <div class="session-details">
+                                <h6 class="session-device">${message}</h6>
+                                <p class="session-location text-muted">Please wait</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            };
+
+            const renderEmpty = () => {
+                sessionsList.innerHTML = `
+                    <div class="session-item session-placeholder">
+                        <div class="session-info">
+                            <div class="session-details">
+                                <h6 class="session-device">No active sessions</h6>
+                                <p class="session-location text-muted">Sign in from another device to see it here.</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            };
+
+            const formatRelativeTime = (isoString) => {
+                if (!isoString) return 'Unknown';
+                const date = new Date(isoString);
+                if (Number.isNaN(date.getTime())) return 'Unknown';
+
+                const diffMs = Date.now() - date.getTime();
+                const diffSeconds = Math.floor(diffMs / 1000);
+                if (diffSeconds < 60) return 'Just now';
+
+                const diffMinutes = Math.floor(diffSeconds / 60);
+                if (diffMinutes < 60) return `${diffMinutes} minute${diffMinutes === 1 ? '' : 's'} ago`;
+
+                const diffHours = Math.floor(diffMinutes / 60);
+                if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
+
+                const diffDays = Math.floor(diffHours / 24);
+                if (diffDays < 7) return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
+
+                return date.toLocaleDateString(undefined, {
+                    month: 'short',
+                    day: 'numeric',
+                    year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+                });
+            };
+
+            const getSessionIcon = (session) => {
+                const type = (session.deviceType || '').toLowerCase();
+                if (type.includes('mobile') || session.deviceName?.toLowerCase().includes('iphone') || session.deviceName?.toLowerCase().includes('android')) {
+                    return 'fas fa-mobile-alt';
+                }
+                if (type.includes('tablet') || session.deviceName?.toLowerCase().includes('ipad')) {
+                    return 'fas fa-tablet-alt';
+                }
+                if ((session.browser || '').toLowerCase().includes('chrome')) {
+                    return 'fab fa-chrome';
+                }
+                if ((session.browser || '').toLowerCase().includes('safari')) {
+                    return 'fab fa-safari';
+                }
+                if ((session.browser || '').toLowerCase().includes('firefox')) {
+                    return 'fab fa-firefox-browser';
+                }
+                if ((session.browser || '').toLowerCase().includes('edge')) {
+                    return 'fab fa-edge';
+                }
+                return 'fas fa-laptop';
+            };
+
+            const renderSessions = (sessions) => {
+                if (!sessions || sessions.length === 0) {
+                    renderEmpty();
+                    return;
+                }
+
+                sessionsList.innerHTML = '';
+
+                sessions.forEach(session => {
+                    const iconClass = getSessionIcon(session);
+                    const isCurrent = !!session.isCurrent;
+                    const trustedBadge = session.isTrusted ? '<span class="badge bg-success ms-2">Trusted</span>' : '';
+                    const location = session.location || 'Unknown location';
+                    const lastSeen = formatRelativeTime(session.lastSeenAtUtc);
+                    const createdAt = formatRelativeTime(session.createdAtUtc);
+                    const revokeLabel = isCurrent ? 'Sign Out' : 'Revoke';
+
+                    const sessionItem = document.createElement('div');
+                    sessionItem.className = 'session-item';
+                    sessionItem.innerHTML = `
+                        <div class="session-info">
+                            <div class="session-icon">
+                                <i class="${iconClass}"></i>
+                            </div>
+                            <div class="session-details">
+                                <h6 class="session-device mb-1">${session.deviceName || 'Unknown Device'}${trustedBadge}</h6>
+                                <p class="session-location mb-1">${location}</p>
+                                <p class="session-metadata text-muted mb-0">
+                                    <span>${session.browser || 'Unknown Browser'} • ${session.operatingSystem || 'Unknown OS'}</span>
+                                    <span class="d-block">Last active ${lastSeen}</span>
+                                    <span class="d-block text-muted small">Signed in ${createdAt}${session.ipAddress ? ` • IP ${session.ipAddress}` : ''}</span>
+                                </p>
+                            </div>
+                            <div class="session-actions">
+                                ${isCurrent ? '<span class="badge bg-primary me-2">Current</span>' : ''}
+                                <button class="btn btn-outline-secondary btn-sm revoke-session-btn" data-session-id="${session.id}">${revokeLabel}</button>
+                            </div>
+                        </div>
+                    `;
+
+                    sessionsList.appendChild(sessionItem);
+                });
+
+                sessionsList.querySelectorAll('.revoke-session-btn').forEach(button => {
+                    button.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        const sessionId = button.getAttribute('data-session-id');
+                        if (!sessionId) return;
+
+                        const isCurrent = button.closest('.session-item')?.querySelector('.badge.bg-primary') !== null;
+                        const confirmMessage = isCurrent
+                            ? 'Signing out the current session will log you out immediately. Continue?'
+                            : 'Are you sure you want to revoke this session?';
+                        if (!confirm(confirmMessage)) return;
+
+                        try {
+                            const response = await fetch(`/api/account-security/sessions/${sessionId}`, {
+                                method: 'DELETE',
+                                credentials: 'same-origin'
+                            });
+                            if (response.status === 401) {
+                                window.location.href = '/Home/Index';
+                                return;
+                            }
+                            const result = await response.json();
+                            if (!response.ok || !result.success) {
+                                alert(result.error || 'Failed to revoke session.');
+                                return;
+                            }
+                            if (result.current) {
+                                window.location.href = '/Home/Index';
+                                return;
+                            }
+                            await refreshSessions();
+                        } catch (error) {
+                            console.error('Error revoking session:', error);
+                            alert('An error occurred while revoking the session.');
+                        }
+                    });
+                });
+            };
+
+            const refreshSessions = async () => {
+                try {
+                    const response = await fetch('/api/account-security/sessions', {
+                        credentials: 'same-origin'
+                    });
+                    if (response.status === 401) {
+                        window.location.href = '/Home/Index';
+                        return;
+                    }
+                    const result = await response.json();
+                    if (!response.ok || !result.success) {
+                        sessionsList.innerHTML = `<div class="session-item session-placeholder"><div class="session-info"><div class="session-details"><h6 class="session-device">Unable to load sessions</h6><p class="session-location text-muted">${result.error || 'Try refreshing the page.'}</p></div></div></div>`;
+                        return;
+                    }
+
+                    renderSessions(result.sessions || []);
+                } catch (error) {
+                    console.error('Error loading sessions:', error);
+                    sessionsList.innerHTML = `<div class="session-item session-placeholder"><div class="session-info"><div class="session-details"><h6 class="session-device">Unable to load sessions</h6><p class="session-location text-muted">Check your connection and try again.</p></div></div></div>`;
+                }
+            };
+
+            if (signOutAllBtn) {
+                signOutAllBtn.addEventListener('click', async () => {
+                    if (!confirm('Are you sure you want to sign out from all devices? This will also sign you out of this session.')) {
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch('/api/account-security/sessions/signout-all', {
+                            method: 'POST',
+                            credentials: 'same-origin'
+                        });
+                        if (response.status === 401) {
+                            window.location.href = '/Home/Index';
+                            return;
+                        }
+                        const result = await response.json();
+                        if (!response.ok || !result.success) {
+                            alert(result.error || 'Failed to sign out all sessions.');
+                            return;
+                        }
+
+                        window.location.href = result.redirectUrl || '/Home/Index';
+                    } catch (error) {
+                        console.error('Error signing out all sessions:', error);
+                        alert('An error occurred while signing out all sessions.');
+                    }
+                });
+            }
+
+            renderLoading();
+            refreshSessions();
         }
         
         async function initializeMfaToggle() {

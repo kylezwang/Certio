@@ -765,6 +765,7 @@ builder.Services.AddScoped<Certio.Web.Services.IUserDeletionService, Certio.Web.
 
 // 2FA Services
 builder.Services.AddScoped<Certio.Web.Services.ITwoFactorService, Certio.Web.Services.TwoFactorService>();
+builder.Services.AddScoped<Certio.Web.Services.ITrustedDeviceService, Certio.Web.Services.TrustedDeviceService>();
 
 // AI Service Configuration
 builder.Services.Configure<AIServiceOptions>(builder.Configuration.GetSection("AIService"));

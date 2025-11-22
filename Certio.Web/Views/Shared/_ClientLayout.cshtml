@@ -3381,8 +3381,12 @@
             document.addEventListener('touchend', dragEnd);
             
             function dragStart(e) {
-                // Don't drag when clicking on buttons
-                if (e.target.tagName === 'BUTTON' || e.target.tagName === 'I') {
+                // Allow dragging on toggle button, but not on timer control buttons
+                const isToggleButton = e.target.id === 'timerToggleBtn' || e.target.closest('#timerToggleBtn');
+                const isTimerButton = e.target.closest('#timerStartBtn, #timerStopBtn, #timerResetBtn');
+                
+                // Don't drag when clicking on timer control buttons (Start/Stop/Export)
+                if (isTimerButton) {
                     return;
                 }
                 

@@ -84,6 +84,7 @@ namespace Certio.Domain.Users
         public virtual ICollection<MatterAssignment> MatterAssignments { get; set; } = new List<MatterAssignment>();
         public virtual ICollection<ChatMessage> ChatMessages { get; set; } = new List<ChatMessage>();
         public virtual ICollection<OrganizationJoinCode> CreatedJoinCodes { get; set; } = new List<OrganizationJoinCode>();
+        public virtual ICollection<TrustedDevice> TrustedDevices { get; set; } = new List<TrustedDevice>();
 
         // Custom permissions (overrides default role permissions)
         public List<string> CustomPermissions { get; set; } = new();
