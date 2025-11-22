@@ -984,14 +984,17 @@
                         const isActive = isCurrentOrgClient && o.organizationId === currentOrgId;
                         clientItem.className = isActive ? 'client-item active' : 'client-item';
                         
-                        const initials = getInitials(ownerName);
-                        
-                        // Only External Contacts orgs should have #aaaaaa avatar color
+                        // Only External Contacts orgs should have #aaaaaa avatar color and use pending icon
                         const avatarColor = o.isExternalContacts ? '#aaaaaa' : '#69848C';
                         const avatarStyle = `style="background: ${avatarColor};"`;
                         
+                        // For External Contacts, use the pending invitation icon instead of initials
+                        const avatarContent = o.isExternalContacts 
+                            ? '<i class="fas fa-user-clock" style="font-size: 1rem;"></i>'
+                            : getInitials(ownerName);
+                        
                         clientItem.innerHTML = `
-                            <div class="client-avatar" ${avatarStyle}>${initials}</div>
+                            <div class="client-avatar" ${avatarStyle}>${avatarContent}</div>
                             <div class="client-item-content">
                                 <h5 class="client-name">${ownerName}</h5>
                                 <p class="client-company">${o.organizationName}</p>
