@@ -660,11 +660,14 @@
                             const isActive = firm.organizationId === activeFirmId;
                             firmItem.className = isActive ? 'client-item active' : 'client-item';
                             
+                            // Format role to add spaces before capital letters (e.g., "ManagingPartner" -> "Managing Partner")
+                            const formattedRole = firm.role ? firm.role.replace(/([A-Z])/g, ' $1').trim() : firm.role;
+                            
                             firmItem.innerHTML = `
                                 <div class="firm-avatar"><i class="fas fa-building-columns"></i></div>
                                 <div class="client-item-content">
                                     <h5 class="client-name">${firm.organizationName}</h5>
-                                    <p class="client-status">${firm.role} ${firm.isPrimary ? '• Primary' : ''}</p>
+                                    <p class="client-status">${formattedRole} ${firm.isPrimary ? '• Primary' : ''}</p>
                                 </div>
                             `;
                             
@@ -983,8 +986,12 @@
                         
                         const initials = getInitials(ownerName);
                         
+                        // Only External Contacts orgs should have #aaaaaa avatar color
+                        const avatarColor = o.isExternalContacts ? '#aaaaaa' : '#69848C';
+                        const avatarStyle = `style="background: ${avatarColor};"`;
+                        
                         clientItem.innerHTML = `
-                            <div class="client-avatar">${initials}</div>
+                            <div class="client-avatar" ${avatarStyle}>${initials}</div>
                             <div class="client-item-content">
                                 <h5 class="client-name">${ownerName}</h5>
                                 <p class="client-company">${o.organizationName}</p>
