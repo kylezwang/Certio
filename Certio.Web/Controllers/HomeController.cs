@@ -82,17 +82,19 @@ namespace Certio.Web.Controllers
             // If user is already logged in, redirect to their LawFirm organization dashboard
             if (isAuthenticated)
             {
-                // Resolve custom user and find their LawFirm organization
+                // Resolve custom user and find their LawFirm or EventPlanner organization
                 var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
                 if (customUser != null)
                 {
-                    // First try to find LawFirm organization
-                    var lawFirmOrg = customUser.UserOrganizations
-                        .FirstOrDefault(uo => uo.IsActive && uo.Organization != null && uo.Organization.Type == Certio.Domain.Organizations.OrganizationType.LawFirm);
+                    // First try to find LawFirm or EventPlanner organization
+                    var lawFirmOrEventPlannerOrg = customUser.UserOrganizations
+                        .FirstOrDefault(uo => uo.IsActive && uo.Organization != null && 
+                            (uo.Organization.Type == Certio.Domain.Organizations.OrganizationType.LawFirm ||
+                             uo.Organization.Type == Certio.Domain.Organizations.OrganizationType.EventPlanner));
                     
-                    if (lawFirmOrg != null)
+                    if (lawFirmOrEventPlannerOrg != null)
                     {
-                        return RedirectToAction("Dashboard", "Client", new { orgId = lawFirmOrg.OrganizationId });
+                        return RedirectToAction("Dashboard", "Client", new { orgId = lawFirmOrEventPlannerOrg.OrganizationId });
                     }
                     
                     // Fallback to primary organization dashboard
@@ -230,6 +232,18 @@ namespace Certio.Web.Controllers
                     // Continue with login - briefing is non-critical
                 }
                 
+                // Redirect EventPlanner and LawFirm users to their organization dashboard
+                var lawFirmOrEventPlannerOrg = customUser.UserOrganizations
+                    .FirstOrDefault(uo => uo.IsActive && uo.Organization != null && 
+                        (uo.Organization.Type == Certio.Domain.Organizations.OrganizationType.EventPlanner ||
+                         uo.Organization.Type == Certio.Domain.Organizations.OrganizationType.LawFirm));
+                
+                if (lawFirmOrEventPlannerOrg != null)
+                {
+                    return RedirectToAction("Dashboard", "Client", new { orgId = lawFirmOrEventPlannerOrg.OrganizationId });
+                }
+                
+                // Fallback to Matter index for client organizations
                 return RedirectToAction("Index", "Matter");
             }
 
