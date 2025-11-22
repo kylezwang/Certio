@@ -413,7 +413,11 @@ namespace Certio.Web.Controllers
                 _logger.LogDebug("Route organization {RouteOrgId} differed from resolved context {ContextOrgId}. Using route organization.", orgId, resolvedOrgId);
             }
 
-            SetViewContext(user, orgId);
+            // Get organization name for display in header
+            var organization = await _context.Organizations
+                .FirstOrDefaultAsync(o => o.Id == orgId);
+            
+            SetViewContext(user, orgId, organization?.Name);
 
             var viewModel = new MatterFormViewModel();
             await PopulateOrgMembersData(viewModel);
@@ -441,7 +445,11 @@ namespace Certio.Web.Controllers
                 _logger.LogDebug("Route organization {RouteOrgId} differed from resolved context {ContextOrgId} for matter creation POST. Using route organization.", orgId, resolvedOrgId);
             }
 
-            SetViewContext(user, orgId);
+            // Get organization name for display in header
+            var organization = await _context.Organizations
+                .FirstOrDefaultAsync(o => o.Id == orgId);
+            
+            SetViewContext(user, orgId, organization?.Name);
             
             // Debug logging for assignments
             _logger.LogInformation($"Matter/Create POST - Step: {model.Step}, Action: {action}");
