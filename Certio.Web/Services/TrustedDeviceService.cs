@@ -115,17 +115,23 @@ public class TrustedDeviceService : ITrustedDeviceService
             device.IpAddress = GetClientIp(httpContext);
             device.UserAgent = httpContext.Request.Headers.UserAgent.ToString();
 
-            if (rememberMe && device.IsTrusted && device.ExpiresAt.HasValue && device.ExpiresAt.Value < DateTime.UtcNow.AddDays(7))
+            // Update trust status if remember me is checked
+            if (rememberMe)
             {
-                device.ExpiresAt = DateTime.UtcNow.AddDays(30);
+                device.IsTrusted = true;
+                if (!device.ExpiresAt.HasValue || device.ExpiresAt.Value < DateTime.UtcNow.AddDays(7))
+                {
+                    device.ExpiresAt = DateTime.UtcNow.AddDays(30);
+                }
             }
 
-        await _context.SaveChangesAsync(cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
 
-        // Refresh cookie
-        if (rememberMe && GetDeviceCookie(httpContext) == null)
-        {
-            await RefreshDeviceCookieAsync(httpContext, device, rememberMe, token: null, cancellationToken);
+            // Always refresh cookie if rememberMe is checked to ensure persistence
+            // Or if we want to rotate the token for security
+            if (rememberMe)
+            {
+                await RefreshDeviceCookieAsync(httpContext, device, rememberMe, token: null, cancellationToken);
             }
 
             return device;
