@@ -2,6 +2,12 @@
 @{
     ViewData["Title"] = "Create Matter";
     Layout = "_ClientLayout";
+    var orgType = ViewBag.OrganizationType != null ? (Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType : Certio.Domain.Organizations.OrganizationType.LawFirm;
+    var mattersLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType);
+    var matterLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
+    var legalLabel = Certio.Web.Helpers.RoleDisplayHelper.GetLegalTerminology(orgType);
+    var attorneyLabel = orgType == Certio.Domain.Organizations.OrganizationType.EventPlanner ? "Coordinator" : "Attorney";
+    var attorneysLabel = orgType == Certio.Domain.Organizations.OrganizationType.EventPlanner ? "Coordinators" : "Attorneys";
 }
 
 <div class="min-h-screen py-8">
@@ -10,7 +16,7 @@
         <div class="mb-4">
             <a href="@Url.Action("Index", "Matter")" class="btn btn-ghost d-flex align-items-center gap-2 text-decoration-none">
                 <i class="fas fa-arrow-left"></i>
-                Back to Matters
+                Back to @mattersLabel
             </a>
         </div>
 
@@ -25,7 +31,7 @@
             <div class="progress-step @(Model.Step >= 2 ? "active" : "")">
                 2
             </div>
-            <div class="progress-step-label @(Model.Step >= 2 ? "active" : "")">Matter Settings</div>
+            <div class="progress-step-label @(Model.Step >= 2 ? "active" : "")">@matterLabel Settings</div>
             <div class="progress-line"></div>
             
             <div class="progress-step @(Model.Step >= 3 ? "active" : "")">
@@ -47,23 +53,23 @@
                     <div class="card-body p-4">
                         @if (Model.Step == 1)
                         {
-                            <h1 class="display-6 fw-bold text-dark mb-2">Create Your Legal Matter</h1>
-                            <p class="lead text-muted" style="font-size: 1.1rem;">Matters help your legal team stay organized, track progress, and manage tasks efficiently. Let's start with some basic information.</p>
+                            <h1 class="display-6 fw-bold text-dark mb-2">Create Your @(orgType == Certio.Domain.Organizations.OrganizationType.EventPlanner ? matterLabel : "Legal " + matterLabel)</h1>
+                            <p class="lead text-muted" style="font-size: 1.1rem;">@mattersLabel help your @legalLabel.ToLower() team stay organized, track progress, and manage tasks efficiently. Let's start with some basic information.</p>
                         }
                         else if (Model.Step == 2)
                         {
-                            <h1 class="display-6 fw-bold text-dark mb-2">Configure Matter Settings</h1>
-                            <p class="lead text-muted" style="font-size: 1.1rem;">Set the timeline, priority, and status for your matter to ensure proper tracking and organization.</p>
+                            <h1 class="display-6 fw-bold text-dark mb-2">Configure @matterLabel Settings</h1>
+                            <p class="lead text-muted" style="font-size: 1.1rem;">Set the timeline, priority, and status for your @matterLabel.ToLower() to ensure proper tracking and organization.</p>
                         }
                         else if (Model.Step == 3)
                         {
-                            <h1 class="display-6 fw-bold text-dark mb-2">Assign Relevant Attorneys & Contacts</h1>
-                            <p class="lead text-muted" style="font-size: 1.1rem;">Select the attorneys and staff members who will be working on this matter to ensure proper collaboration and communication.</p>
+                            <h1 class="display-6 fw-bold text-dark mb-2">Assign Relevant @attorneysLabel & Contacts</h1>
+                            <p class="lead text-muted" style="font-size: 1.1rem;">Select the @attorneysLabel.ToLower() and staff members who will be working on this @matterLabel.ToLower() to ensure proper collaboration and communication.</p>
                         }
                         else if (Model.Step == 4)
                         {
                             <h1 class="display-6 fw-bold text-dark mb-2">Review & Create</h1>
-                            <p class="lead text-muted" style="font-size: 1.1rem;">Review your matter details to finalize creation.</p>
+                            <p class="lead text-muted" style="font-size: 1.1rem;">Review your @matterLabel.ToLower() details to finalize creation.</p>
                         }
 
                         <form asp-action="Create"
@@ -153,7 +159,7 @@
                                     <div class="row">
                                         <div class="col-12 mb-4">
                                             <label asp-for="Title" class="form-label fw-bold text-dark">
-                                                Matter Title <span class="text-danger">*</span>
+                                                @matterLabel Title <span class="text-danger">*</span>
                                             </label>
                                             <input asp-for="Title" class="form-control form-control-lg" 
                                                    placeholder="e.g., Contract Review Automation" />
@@ -163,15 +169,15 @@
                                         <div class="col-12 mb-4">
                                             <label asp-for="Description" class="form-label fw-bold text-dark">Description</label>
                                             <textarea asp-for="Description" class="form-control" rows="4" 
-                                                      placeholder="Describe what this matter aims to accomplish..."></textarea>
+                                                      placeholder="Describe what this @matterLabel.ToLower() aims to accomplish..."></textarea>
                                             <span asp-validation-for="Description" class="text-danger"></span>
                                         </div>
                                     </div>
 
                                     <!-- Example Matter Names -->
                                     <div class="mt-4">
-                                        <h6 class="fw-bold mb-3" style="color: #3d1019;">Example matter names:</h6>
-                                        <p class="text-muted">Contract Review Automation, Client Portal Dashboard, Compliance Tracking System, Legal Research Assistant</p>
+                                        <h6 class="fw-bold mb-3" style="color: #3d1019;">Example @matterLabel.ToLower() names:</h6>
+                                        <p class="text-muted">@(orgType == Certio.Domain.Organizations.OrganizationType.EventPlanner ? "Corporate Gala, Product Launch Event, Annual Conference, Team Building Retreat" : "Contract Review Automation, Client Portal Dashboard, Compliance Tracking System, Legal Research Assistant")</p>
                                     </div>
                                 </div>
                             }
@@ -182,8 +188,8 @@
                                     <div class="d-flex align-items-center mb-4">
                                         <i class="fas fa-cog fs-4 me-3" style="color: #3d1019;"></i>
                                         <div>
-                                            <h3 class="fw-bold text-dark mb-1">Matter Settings</h3>
-                                            <p class="text-muted mb-0">Configure timeline, priority, and matter status.</p>
+                                            <h3 class="fw-bold text-dark mb-1">@matterLabel Settings</h3>
+                                            <p class="text-muted mb-0">Configure timeline, priority, and @matterLabel.ToLower() status.</p>
                                         </div>
                                     </div>
 
@@ -194,7 +200,7 @@
                                                 Status <span class="text-danger">*</span>
                                             </label>
                                             <select asp-for="Status" class="form-select form-select-lg">
-                                                <option value="">Select matter status</option>
+                                                <option value="">Select @matterLabel.ToLower() status</option>
                                                 @foreach (var status in Model.Statuses)
                                                 {
                                                     <option value="@status">@status</option>
@@ -261,8 +267,8 @@
 
                                     <!-- Matter Timeline Tips -->
                                     <div class="mt-4">
-                                        <h6 class="fw-bold mb-3" style="color: #3d1019;">Matter timeline tips:</h6>
-                                        <p class="text-muted">Set realistic deadlines based on matter complexity. High priority matters will be highlighted in the dashboard and receive more attention from the team.</p>
+                                        <h6 class="fw-bold mb-3" style="color: #3d1019;">@matterLabel timeline tips:</h6>
+                                        <p class="text-muted">Set realistic deadlines based on @matterLabel.ToLower() complexity. High priority @mattersLabel.ToLower() will be highlighted in the dashboard and receive more attention from the team.</p>
                                     </div>
                                 </div>
                             }
@@ -274,7 +280,7 @@
                                         <i class="fas fa-building-columns fs-4 me-3" style="color: #3d1019;"></i>
                                         <div>
                                             <h3 class="fw-bold text-dark mb-1">Firm assignments</h3>
-                                            <p class="text-muted mb-0">Assign attorneys and staff responsible for this matter.</p>
+                                            <p class="text-muted mb-0">Assign @attorneysLabel.ToLower() and staff responsible for this @matterLabel.ToLower().</p>
                                         </div>
                                     </div>
 
@@ -517,13 +523,13 @@
                                         <i class="fas fa-eye fs-4 me-3" style="color: #3d1019;"></i>
                                         <div>
                                             <h3 class="fw-bold text-dark mb-1">Review & Create</h3>
-                                            <p class="text-muted mb-0">Review your matter details and set permissions before creating.</p>
+                                            <p class="text-muted mb-0">Review your @matterLabel.ToLower() details and set permissions before creating.</p>
                                         </div>
                                     </div>
 
                                     <!-- Snapshot Container -->
                                     <div class="mb-5">
-                                        <h5 class="fw-bold text-dark mb-3">Matter Summary</h5>
+                                        <h5 class="fw-bold text-dark mb-3">@matterLabel Summary</h5>
                                         <div class="snapshot-container">
                                             <div class="snapshot-slider">
                                                 <!-- Page 1 Snapshot -->
@@ -534,7 +540,7 @@
                                                                 <i class="fas fa-file-alt fs-4 me-3" style="color: #3d1019;"></i>
                                                                 <div>
                                                                     <h6 class="fw-bold text-dark mb-1">Basic Information</h6>
-                                                                    <p class="text-muted mb-0 small">Essential matter details</p>
+                                                                    <p class="text-muted mb-0 small">Essential @matterLabel.ToLower() details</p>
                                                                 </div>
                                                             </div>
                                                             <div class="snapshot-content">
@@ -556,7 +562,7 @@
                                                             <div class="d-flex align-items-center mb-3">
                                                                 <i class="fas fa-cog fs-4 me-3" style="color: #3d1019;"></i>
                                                                 <div>
-                                                                    <h6 class="fw-bold text-dark mb-1">Matter Settings</h6>
+                                                                    <h6 class="fw-bold text-dark mb-1">@matterLabel Settings</h6>
                                                                     <p class="text-muted mb-0 small">Timeline and settings</p>
                                                                 </div>
                                                             </div>
@@ -599,10 +605,10 @@
                                                                     var responsibleStaff = Model.FirmAssignments.FirstOrDefault(fa => fa.AssignmentType == "ResponsibleStaff");
                                                                 }
                                                                 <div class="mb-2">
-                                                                    <strong>Originating Attorney:</strong> <span class="text-muted">@(originatingAttorney != null ? Model.OrgMembers.FirstOrDefault(m => m.Id == originatingAttorney.UserId)?.Name ?? "Not specified" : "Not specified")</span>
+                                                                    <strong>Originating @attorneyLabel:</strong> <span class="text-muted">@(originatingAttorney != null ? Model.OrgMembers.FirstOrDefault(m => m.Id == originatingAttorney.UserId)?.Name ?? "Not specified" : "Not specified")</span>
                                                                 </div>
                                                                 <div class="mb-2">
-                                                                    <strong>Responsible Attorney:</strong> <span class="text-muted">@(responsibleAttorney != null ? Model.OrgMembers.FirstOrDefault(m => m.Id == responsibleAttorney.UserId)?.Name ?? "Not specified" : "Not specified")</span>
+                                                                    <strong>Responsible @attorneyLabel:</strong> <span class="text-muted">@(responsibleAttorney != null ? Model.OrgMembers.FirstOrDefault(m => m.Id == responsibleAttorney.UserId)?.Name ?? "Not specified" : "Not specified")</span>
                                                                 </div>
                                                                 <div class="mb-2">
                                                                     <strong>Responsible Staff:</strong> <span class="text-muted">@(responsibleStaff != null ? Model.OrgMembers.FirstOrDefault(m => m.Id == responsibleStaff.UserId)?.Name ?? "Not specified" : "Not specified")</span>

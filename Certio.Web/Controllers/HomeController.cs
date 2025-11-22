@@ -717,14 +717,14 @@ namespace Certio.Web.Controllers
 
             // Validate organization type
             if (string.IsNullOrEmpty(organizationType) || 
-                (organizationType != "client" && organizationType != "lawfirm" && organizationType != "join"))
+                (organizationType != "client" && organizationType != "lawfirm" && organizationType != "eventplanner" && organizationType != "join"))
             {
                 TempData["Error"] = "Please select a valid organization type.";
                 return RedirectToAction("Register", new { step = 2 });
             }
 
             // Validate organization name for new organizations
-            if ((organizationType == "client" || organizationType == "lawfirm") && string.IsNullOrWhiteSpace(organizationName))
+            if ((organizationType == "client" || organizationType == "lawfirm" || organizationType == "eventplanner") && string.IsNullOrWhiteSpace(organizationName))
             {
                 TempData["Error"] = "Please enter an organization name.";
                 return RedirectToAction("Register", new { step = 2 });
@@ -1069,6 +1069,27 @@ namespace Certio.Web.Controllers
                     organizationId = org.Id;
                     userType = Certio.Domain.Users.UserTypes.LawFirm;
                     organizationRole = Certio.Domain.Users.OrganizationRoles.ManagingPartner; // Law firm creator is Managing Partner
+                }
+                else if (organizationType == "eventplanner")
+                {
+                    // Create new event planning organization
+                    // NOTE: EventPlanner orgs use LawFirm UserType internally (aliasing approach)
+                    // The OrganizationType.EventPlanner determines UI display (Managing Director, Director, etc.)
+                    var org = new Certio.Domain.Organizations.Organization
+                    {
+                        Name = organizationName ?? $"{firstName} {lastName}'s Event Planning Company",
+                        Description = "Event Planning Organization",
+                        OwnerId = customUser.Id,
+                        Type = Certio.Domain.Organizations.OrganizationType.EventPlanner,
+                        IsPersonal = false,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    _context.Organizations.Add(org);
+                    await _context.SaveChangesAsync();
+                    organizationId = org.Id;
+                    userType = Certio.Domain.Users.UserTypes.LawFirm; // Reuse LawFirm type (aliasing)
+                    organizationRole = Certio.Domain.Users.OrganizationRoles.ManagingPartner; // Stored as ManagingPartner, displays as Managing Director
                 }
                 else
                 {

@@ -65,7 +65,7 @@ namespace Certio.Web.Controllers
             }
 
             // 1. Get all LawFirm memberships for the user
-            var myFirms = await _db.UserOrganizations
+            var myFirmsQuery = await _db.UserOrganizations
                 .Include(uo => uo.Organization)
                 .Where(uo => 
                     uo.UserId == customUser.Id && 
@@ -75,10 +75,20 @@ namespace Certio.Web.Controllers
                 {
                     organizationId = uo.OrganizationId,
                     organizationName = uo.Organization.Name,
+                    organizationType = uo.Organization.Type, // Added org type
                     role = uo.Role,
                     isPrimary = uo.IsPrimary
                 })
                 .ToListAsync(ct);
+            
+            // Format roles based on organization type for frontend display
+            var myFirms = myFirmsQuery.Select(f => new {
+                f.organizationId,
+                f.organizationName,
+                organizationType = f.organizationType.ToString(), // Convert enum to string for consistent JSON serialization
+                role = Certio.Web.Helpers.RoleDisplayHelper.GetRoleDisplayName(f.role, f.organizationType), // Apply helper
+                f.isPrimary
+            }).ToList();
 
             // 2. Determine the active firm context
             int? activeFirmId = null;
@@ -132,7 +142,8 @@ namespace Certio.Web.Controllers
                 {
                     var relationships = firmOrg.OrganizationRelationships
                         .Where(or => or.IsValid() && 
-                                    or.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient)
+                                    (or.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient ||
+                                     or.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.EventPlannerClient))
                         .ToList();
 
                     // Check which relationships the user has access to
@@ -239,13 +250,14 @@ namespace Certio.Web.Controllers
                 }
             }
 
-            // Also include direct organization memberships (non-law firm)
+            // Also include direct organization memberships (non-law firm, non-event planner)
             var directOrgs = await _db.UserOrganizations
                 .Include(uo => uo.Organization)
                 .ThenInclude(o => o.UserOrganizations.Where(uo2 => uo2.IsActive))
                 .Where(uo => uo.UserId == customUser.Id && 
                              uo.IsActive && 
-                             uo.Organization.Type != Certio.Domain.Organizations.OrganizationType.LawFirm)
+                             uo.Organization.Type != Certio.Domain.Organizations.OrganizationType.LawFirm &&
+                             uo.Organization.Type != Certio.Domain.Organizations.OrganizationType.EventPlanner)
                 .Select(uo => uo.Organization)
                 .ToListAsync(ct);
 
@@ -309,7 +321,10 @@ namespace Certio.Web.Controllers
                     .Include(o => o.UserOrganizations)
                     .FirstOrDefaultAsync(o => o.Id == activeFirmId.Value, ct);
 
-                if (firmOrg != null)
+                // Only surface law firm organizations in the clients list.
+                // Event planner orgs reuse the LawFirm user type internally,
+                // but they should never appear alongside their own client roster.
+                if (firmOrg != null && firmOrg.Type == Certio.Domain.Organizations.OrganizationType.LawFirm)
                 {
                     var firmOrgUsers = firmOrg.UserOrganizations?.Where(uo => uo.IsActive).ToList() ?? new List<Certio.Domain.Users.UserOrganization>();
                     var firmOwnerMembership = firmOrgUsers.FirstOrDefault(uo => uo.UserId == firmOrg.OwnerId);

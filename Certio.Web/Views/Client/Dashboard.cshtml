@@ -2,6 +2,9 @@
 @{
     ViewData["Title"] = "Dashboard";
     Layout = "_ClientLayout";
+    var orgType = ViewBag.OrganizationType != null ? (Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType : Certio.Domain.Organizations.OrganizationType.LawFirm;
+    var mattersLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType);
+    var matterLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
 }
 
 <div class="global-dashboard-main">
@@ -217,7 +220,7 @@
                             <div class="quick-access-icon mb-2">
                                 <i class="fas fa-briefcase" style="color: #0b365e;"></i>
                             </div>
-                            <span class="fw-medium">Matters</span>
+                            <span class="fw-medium">@mattersLabel</span>
                         </div>
                     </a>
                 </div>

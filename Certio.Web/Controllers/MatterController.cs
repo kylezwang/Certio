@@ -417,6 +417,11 @@ namespace Certio.Web.Controllers
             var organization = await _context.Organizations
                 .FirstOrDefaultAsync(o => o.Id == orgId);
             
+            if (organization != null)
+            {
+                ViewBag.OrganizationType = organization.Type;
+            }
+            
             SetViewContext(user, orgId, organization?.Name);
 
             var viewModel = new MatterFormViewModel();
@@ -448,6 +453,11 @@ namespace Certio.Web.Controllers
             // Get organization name for display in header
             var organization = await _context.Organizations
                 .FirstOrDefaultAsync(o => o.Id == orgId);
+            
+            if (organization != null)
+            {
+                ViewBag.OrganizationType = organization.Type;
+            }
             
             SetViewContext(user, orgId, organization?.Name);
             
