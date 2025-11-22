@@ -675,8 +675,8 @@ public class CalendarOAuthController : Controller
                 OrgId = orgId,
                 UserId = userId,
                 Provider = provider,
-                AccessToken = EncryptToken(accessToken),
-                RefreshToken = refreshToken != null ? EncryptToken(refreshToken) : null,
+                AccessToken = accessToken,
+                RefreshToken = refreshToken,
                 TokenExpiresAt = tokenExpiresAt,
                 Scopes = string.Join(',', scopes),
                 Email = email,
@@ -688,8 +688,8 @@ public class CalendarOAuthController : Controller
         }
         else
         {
-            integration.AccessToken = EncryptToken(accessToken);
-            integration.RefreshToken = refreshToken != null ? EncryptToken(refreshToken) : integration.RefreshToken;
+            integration.AccessToken = accessToken;
+            integration.RefreshToken = refreshToken ?? integration.RefreshToken;
             integration.TokenExpiresAt = tokenExpiresAt;
             integration.Scopes = string.Join(',', scopes);
             integration.Email = email;

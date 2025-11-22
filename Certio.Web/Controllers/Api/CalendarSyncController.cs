@@ -173,21 +173,9 @@ namespace Certio.Web.Controllers.Api
 
         private async Task<string> SyncToGoogleCalendar(CalendarIntegration integration, CalendarEvent calendarEvent)
         {
-            // Decrypt the access token using secure helper
-            string accessToken;
-            try
-            {
-                accessToken = DecryptToken(integration.AccessToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to decrypt access token for integration {IntegrationId}", integration.Id);
-                throw new Exception("Failed to decrypt access token");
-            }
-
             using var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Authorization = 
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", integration.AccessToken);
 
             // Parse location if it's JSON, otherwise use as-is
             string locationString = calendarEvent.Location ?? "";
@@ -246,21 +234,9 @@ namespace Certio.Web.Controllers.Api
 
         private async Task<string> SyncToOutlookCalendar(CalendarIntegration integration, CalendarEvent calendarEvent)
         {
-            // Decrypt the access token using secure helper
-            string accessToken;
-            try
-            {
-                accessToken = DecryptToken(integration.AccessToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to decrypt access token for integration {IntegrationId}", integration.Id);
-                throw new Exception("Failed to decrypt access token");
-            }
-
             using var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Authorization = 
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", integration.AccessToken);
 
             // Parse location if it's JSON, otherwise use as-is
             string locationString = calendarEvent.Location ?? "";
