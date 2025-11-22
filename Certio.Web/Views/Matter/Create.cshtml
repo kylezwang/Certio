@@ -782,7 +782,7 @@
                                         @(string.IsNullOrEmpty(Model.Status) ? "Planning" : Model.Status)
                                     </span>
                                     <span class="badge bg-secondary category-badge" style="font-size: 0.7rem; padding: 0.25rem 0.5rem;">
-                                        @(string.IsNullOrEmpty(Model.PracticeArea) ? "PracticeArea" : Model.PracticeArea)
+                                        @(string.IsNullOrEmpty(Model.PracticeArea) ? "Practice Area" : Model.PracticeArea)
                                     </span>
                                 </div>
 
@@ -1208,7 +1208,7 @@
                 
                 // Update category
                 if (previewPracticeArea) {
-                    previewPracticeArea.textContent = currentValues.category || 'PracticeArea';
+                    previewPracticeArea.textContent = currentValues.category || 'Practice Area';
                 }
                 
                 // Update status
