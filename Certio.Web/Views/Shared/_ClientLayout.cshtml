@@ -1148,6 +1148,12 @@
     }
 </style>
 
+@{
+    var orgType = ViewBag.OrganizationType != null 
+        ? (Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType 
+        : Certio.Domain.Organizations.OrganizationType.LawFirm;
+}
+
 @if (ViewBag.OrganizationType != null)
 {
     <meta name="organization-type" content="@ViewBag.OrganizationType" />
@@ -1732,7 +1738,7 @@
                                 <!-- Active Matters -->
                                 <div class="mb-3">
                                     <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <span class="text-muted small">Active @Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology((Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType)</span>
+                                        <span class="text-muted small">Active @Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType)</span>
                                         <span class="fw-bold text-dark">8</span>
                                     </div>
                                     <div class="progress" style="height: 6px;">
@@ -1870,7 +1876,7 @@
                     <a href="/Client/@ViewBag.OrganizationId/Matter" 
                        class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Matter" || (ViewContext.RouteData.Values["controller"]?.ToString() == "Client" && ViewContext.RouteData.Values["action"]?.ToString() == "Matter") ? "active" : "")">
                         <i class="fas fa-briefcase"></i>
-                        <span>@Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology((Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType)</span>
+                        <span>@Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType)</span>
                     </a>
                 </div>
                 <div class="nav-item">
@@ -1905,7 +1911,7 @@
                     <a href="/Client/@ViewBag.OrganizationId/Settings" 
                        class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" ? "active" : "")">
                         <i class="fas fa-cog"></i>
-                        <span>@(ViewBag.OrganizationType == Certio.Domain.Organizations.OrganizationType.LawFirm ? "Firm Settings" : "Client Settings")</span>
+                        <span>@(orgType == Certio.Domain.Organizations.OrganizationType.LawFirm ? "Firm Settings" : "Client Settings")</span>
                     </a>
                 </div>
             </nav>
@@ -1955,7 +1961,7 @@
                                class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["action"]?.ToString() == "Matter" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")"
                                data-bs-dismiss="offcanvas">
                                 <i class="fas fa-briefcase fs-5"></i>
-                                <span class="fw-medium">@Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology((Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType)</span>
+                                <span class="fw-medium">@Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType)</span>
                             </a>
                         </li>
                         <li>
@@ -2011,7 +2017,7 @@
                                class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")"
                                data-bs-dismiss="offcanvas">
                                 <i class="fas fa-cog fs-5"></i>
-                                <span class="fw-medium">@(ViewBag.OrganizationType == Certio.Domain.Organizations.OrganizationType.LawFirm ? "Firm Settings" : "Client Settings")</span>
+                                <span class="fw-medium">@(orgType == Certio.Domain.Organizations.OrganizationType.LawFirm ? "Firm Settings" : "Client Settings")</span>
                             </a>
                         </li>
                     </ul>
