@@ -27,7 +27,7 @@
         <div>
             <h1 class="display-6 fw-bold mb-2">Teams</h1>
             <p class="lead text-muted">
-                Manage team members across all matter stakeholders
+                Manage team members across all @Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology((Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType).ToLower() stakeholders
             </p>
         </div>
         <a class="btn btn-primary d-flex align-items-center gap-2" asp-controller="Client" asp-action="AddPeople" asp-route-orgId="@ViewBag.OrganizationId">
@@ -75,16 +75,21 @@
     </div>
 
     <!-- Matters Section -->
+    @{
+        var orgType = (Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType;
+        var mattersLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType);
+        var matterLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
+    }
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <div class="d-flex align-items-center">
-                    <h5 class="fw-bold text-dark mb-0 me-2">Matters</h5>
+                    <h5 class="fw-bold text-dark mb-0 me-2">@mattersLabel</h5>
                     <i class="fas fa-chevron-down text-muted"></i>
                 </div>
                 <div class="search-container" style="max-width: 300px;">
                     <i class="fas fa-search"></i>
-                    <input type="text" class="form-control" placeholder="Search matters..." />
+                    <input type="text" class="form-control" placeholder="Search @mattersLabel.ToLower()..." />
                 </div>
             </div>
             <div class="matters-scroll-container" style="overflow-x: auto; overflow-y: hidden; margin: 0 -0.75rem; padding:0.75rem;">
@@ -137,7 +142,7 @@
                     else
                     {
                         <div class="text-center py-4 w-100">
-                            <p class="text-muted">No matters available</p>
+                            <p class="text-muted">No @mattersLabel.ToLower() available</p>
                         </div>
                     }
                 </div>
@@ -158,14 +163,14 @@
                             var teamIcon = teamType switch
                             {
                                 Certio.Web.ViewModels.TeamType.Client => "fas fa-users",
-                                Certio.Web.ViewModels.TeamType.Legal => "fa-solid fa-building-columns",
+                                Certio.Web.ViewModels.TeamType.Legal => Certio.Web.Helpers.RoleDisplayHelper.GetLegalTeamIcon(orgType),
                                 Certio.Web.ViewModels.TeamType.External => "fas fa-user",
                                 _ => "fas fa-users"
                             };
                             var teamTitle = teamType switch
                             {
                                 Certio.Web.ViewModels.TeamType.Client => "Client Team",
-                                Certio.Web.ViewModels.TeamType.Legal => "Legal Team",
+                                Certio.Web.ViewModels.TeamType.Legal => Certio.Web.Helpers.RoleDisplayHelper.GetLegalTeamTerminology(orgType),
                                 Certio.Web.ViewModels.TeamType.External => "External (Other Parties)",
                                 _ => ""
                             };

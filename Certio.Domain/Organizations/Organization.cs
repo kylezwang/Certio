@@ -131,6 +131,7 @@ namespace Certio.Domain.Organizations
     {
         Client,       // Client organization (default)
         LawFirm,      // Law firm organization
+        EventPlanner, // Event planning organization
         Government,   // Government agency
         NonProfit     // Non-profit organization
     }

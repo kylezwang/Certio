@@ -436,8 +436,8 @@
         <ul class="nav flex-column">
             <li class="nav-item">
                 <a class="global-nav-link" href="#" id="myFirmLink" title="My Firm">
-                    <i class="fa-solid fa-building-columns"></i>
-                    <span>My Firm</span>
+                    <i class="fa-solid fa-building-columns" id="myFirmIcon"></i>
+                    <span id="myFirmLabel">My Firm</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -533,7 +533,7 @@
     <!-- Firms Popup -->
     <div class="clients-popup" id="firmsPopup">
         <div class="clients-popup-header">
-            <h3 class="clients-popup-title">My Firms</h3>
+            <h3 class="clients-popup-title">My Organizations</h3>
             <button class="clients-popup-close" id="firmsPopupClose">
                 <i class="fas fa-times"></i>
             </button>
@@ -579,6 +579,9 @@
             // Initialize My Firm link
             initializeMyFirmLink();
             
+            // Update My Firm icon and label based on organization type
+            updateMyFirmDisplay();
+            
             // Initialize Calendar link
             initializeCalendarLink();
             
@@ -622,6 +625,55 @@
                 // Update active state based on URL
                 updateMyFirmActiveState();
             }
+            
+            function updateMyFirmDisplay() {
+                // Check if we have organization type info from meta tag or fetch from API
+                const orgTypeMeta = document.querySelector('meta[name="organization-type"]');
+                if (orgTypeMeta) {
+                    const orgType = orgTypeMeta.getAttribute('content');
+                    setMyFirmIconAndLabel(orgType);
+                } else {
+                    // Fallback: try to fetch from API
+                    fetch('/Client/List', { credentials: 'include' })
+                        .then(res => res.json())
+                        .then(result => {
+                            if (result.success && result.myFirms && result.myFirms.length > 0) {
+                                // Get the first (primary or active) firm's organization type
+                                const firm = result.myFirms[0];
+                                if (firm.organizationType) {
+                                    setMyFirmIconAndLabel(firm.organizationType);
+                                }
+                            }
+                        })
+                        .catch(err => console.error('Error updating My Firm display:', err));
+                }
+            }
+            
+            function setMyFirmIconAndLabel(orgType) {
+                const myFirmIcon = document.getElementById('myFirmIcon');
+                const myFirmLabel = document.getElementById('myFirmLabel');
+                const myFirmLink = document.getElementById('myFirmLink');
+                
+                if (!myFirmIcon || !myFirmLabel) return;
+                
+                const orgTypeLower = String(orgType || '').toLowerCase();
+                if (orgTypeLower === 'eventplanner' || orgTypeLower === '4') {
+                    // EventPlanner organization
+                    myFirmIcon.className = 'fa-solid fa-clipboard-list';
+                    myFirmLabel.textContent = 'My Org';
+                    myFirmLink.title = 'My Organization';
+                } else if (orgTypeLower === 'lawfirm' || orgTypeLower === '1') {
+                    // LawFirm organization
+                    myFirmIcon.className = 'fa-solid fa-building-columns';
+                    myFirmLabel.textContent = 'My Firm';
+                    myFirmLink.title = 'My Firm';
+                } else {
+                    // Default/Client organization
+                    myFirmIcon.className = 'fa-solid fa-building';
+                    myFirmLabel.textContent = 'My Org';
+                    myFirmLink.title = 'My Organization';
+                }
+            }
 
             async function showFirmsPopup() {
                 firmsPopup.classList.add('show');
@@ -660,14 +712,21 @@
                             const isActive = firm.organizationId === activeFirmId;
                             firmItem.className = isActive ? 'client-item active' : 'client-item';
                             
-                            // Format role to add spaces before capital letters (e.g., "ManagingPartner" -> "Managing Partner")
-                            const formattedRole = firm.role ? firm.role.replace(/([A-Z])/g, ' $1').trim() : firm.role;
+                            // Role is already formatted by server (RoleDisplayHelper)
+                            const displayRole = firm.role || 'Member';
+                            
+                            // Determine icon based on organization type (matching setMyFirmIconAndLabel logic)
+                            let iconClass = 'fa-solid fa-building-columns'; // Default for LawFirm
+                            const orgType = String(firm.organizationType || '').toLowerCase();
+                            if (orgType === 'eventplanner' || orgType === '4') {
+                                iconClass = 'fa-solid fa-clipboard-list';
+                            }
                             
                             firmItem.innerHTML = `
-                                <div class="firm-avatar"><i class="fas fa-building-columns"></i></div>
+                                <div class="firm-avatar"><i class="${iconClass}"></i></div>
                                 <div class="client-item-content">
                                     <h5 class="client-name">${firm.organizationName}</h5>
-                                    <p class="client-status">${formattedRole} ${firm.isPrimary ? '• Primary' : ''}</p>
+                                    <p class="client-status">${displayRole} ${firm.isPrimary ? '• Primary' : ''}</p>
                                 </div>
                             `;
                             
@@ -950,7 +1009,18 @@
                     if (result.activeFirmId && result.myFirms) {
                         const activeFirm = result.myFirms.find(f => f.organizationId === result.activeFirmId);
                         if (activeFirm) {
-                            // Icon is already set in HTML, no need to update
+                            // Update icon based on organization type (matching setMyFirmIconAndLabel logic)
+                            if (firmBadgeIcon) {
+                                const iconElement = firmBadgeIcon.querySelector('i');
+                                if (iconElement) {
+                                    const orgType = String(activeFirm.organizationType || '').toLowerCase();
+                                    if (orgType === 'eventplanner' || orgType === '4') {
+                                        iconElement.className = 'fa-solid fa-clipboard-list';
+                                    } else {
+                                        iconElement.className = 'fa-solid fa-building-columns';
+                                    }
+                                }
+                            }
                             if (firmBadgeName) firmBadgeName.textContent = activeFirm.organizationName;
                             if (viewAllClientsLink) viewAllClientsLink.href = `/Client/${activeFirm.organizationId}/Clients`;
                             

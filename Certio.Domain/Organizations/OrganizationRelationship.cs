@@ -74,6 +74,7 @@ namespace Certio.Domain.Organizations
     public static class RelationshipTypes
     {
         public const string LawFirmClient = "LawFirmClient";
+        public const string EventPlannerClient = "EventPlannerClient";
         public const string PartnerFirm = "PartnerFirm";
         public const string Subsidiary = "Subsidiary";
         public const string Vendor = "Vendor";

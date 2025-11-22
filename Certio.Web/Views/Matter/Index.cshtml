@@ -2,19 +2,23 @@
 @{
     ViewData["Title"] = "Matters";
     Layout = "_ClientLayout";
+    var orgType = (Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType;
+    var mattersLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType);
+    var matterLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
+    var legalLabel = Certio.Web.Helpers.RoleDisplayHelper.GetLegalTerminology(orgType);
 }
 
 <div class="matters-container">
     <!-- Header Section -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h1 class="display-6 fw-bold text-dark mb-2">Matters</h1>
-            <p class="lead text-muted">Manage and track your legal matters</p>
+            <h1 class="display-6 fw-bold text-dark mb-2">@mattersLabel</h1>
+            <p class="lead text-muted">Manage and track your @legalLabel.ToLower() @mattersLabel.ToLower()</p>
         </div>
         <a href="/Client/@ViewBag.OrganizationId/Matter/Create" 
            class="btn btn-primary d-flex align-items-center gap-2">
             <i class="fas fa-plus"></i>
-            New Matter
+            New @matterLabel
         </a>
     </div>
 
@@ -23,7 +27,7 @@
         <div class="col-md-8">
             <div class="search-container">
                 <i class="fas fa-search"></i>
-                <input type="text" class="form-control" id="matterSearchInput" placeholder="Search matters..." />
+                <input type="text" class="form-control" id="matterSearchInput" placeholder="Search @mattersLabel.ToLower()..." />
             </div>
         </div>
         <div class="col-md-4">
@@ -31,10 +35,10 @@
                 <div class="dropdown d-inline-block me-2">
                     <button class="filter-button dropdown-toggle" type="button" id="mattersFilterBtn" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-filter"></i>
-                        <span id="mattersFilterLabel">All Matters</span>
+                        <span id="mattersFilterLabel">All @mattersLabel</span>
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="mattersFilterBtn">
-                        <li><a class="dropdown-item matters-filter-option" href="#" data-filter="all">All Matters</a></li>
+                        <li><a class="dropdown-item matters-filter-option" href="#" data-filter="all">All @mattersLabel</a></li>
                         <li><a class="dropdown-item matters-filter-option" href="#" data-filter="planning">Planned</a></li>
                         <li><a class="dropdown-item matters-filter-option" href="#" data-filter="in-progress">In Progress</a></li>
                         <li><a class="dropdown-item matters-filter-option" href="#" data-filter="review">In Review</a></li>
@@ -83,7 +87,7 @@
                             <i class="fas fa-play-circle text-primary fs-4"></i>
                         </div>
                         <div>
-                            <p class="text-muted mb-1 small">Active Matters</p>
+                            <p class="text-muted mb-1 small">Active @mattersLabel</p>
                             <h3 class="fw-bold text-dark mb-0">@Model.ActiveMattersCount</h3>
                         </div>
                     </div>

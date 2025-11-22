@@ -1,0 +1,32 @@
+{
+  "user_id": 37,
+  "organization_id": 31,
+  "user_name": "Coby Kim",
+  "total_chunks": 1,
+  "last_synced": "2025-11-22T20:09:51.916630",
+  "module_summaries": {
+    "clients": {
+      "totalClients": 1,
+      "activeClients": 1
+    }
+  },
+  "chunks": [
+    {
+      "id": "7628ee9c-785c-41a4-97ed-123b3938efa7",
+      "module_name": "clients",
+      "entity_type": "User",
+      "entity_id": 37,
+      "title": "Coby Kim",
+      "content": "Client: Coby Kim\r\nEmail: kyle.shine.ent@gmail.com\r\n",
+      "metadata": {
+        "email": "kyle.shine.ent@gmail.com",
+        "phoneNumber": null,
+        "company": null,
+        "jobTitle": null
+      },
+      "created_at": "2025-11-22T18:37:35.7052704",
+      "modified_at": null,
+      "relevance_score": 0
+    }
+  ]
+}
