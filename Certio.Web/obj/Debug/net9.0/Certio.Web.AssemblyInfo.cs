@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Certio.Web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ed53c0fb88c398cd5b7656e76044bd5297d8c519")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0dfa20ffb5eab000292b717d52f0cea7b44a809f")]
 [assembly: System.Reflection.AssemblyProductAttribute("Certio.Web")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Certio.Web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

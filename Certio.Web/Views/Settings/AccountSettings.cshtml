@@ -61,13 +61,13 @@
                     <i class="fas fa-cog"></i>
                     <span>Preferences</span>
                 </a>
-                <a href="#billing" class="settings-nav-item" data-tab="billing">
-                    <i class="fas fa-credit-card"></i>
-                    <span>Billing & Plan</span>
-                </a>
                 <a href="#joincode" class="settings-nav-item" data-tab="joincode">
                     <i class="fas fa-key"></i>
                     <span>Join Code</span>
+                </a>
+                <a href="#billing" class="settings-nav-item" data-tab="billing">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Billing & Plan</span>
                 </a>
             </nav>
         </div>
@@ -558,29 +558,6 @@
                     </div>
                 </div>
 
-                <!-- Billing & Plan Section -->
-                <div id="billing-content" class="settings-tab-content">
-                    <div class="settings-section">
-                        <div class="settings-section-header">
-                            <h3>Billing & Plan</h3>
-                            <p>Manage your subscription and billing settings</p>
-                        </div>
-                        <div class="settings-section-content">
-                            <div class="settings-row">
-                                <div class="settings-row-content">
-                                    <label class="settings-row-label">Full Billing & Plan Settings</label>
-                                    <p class="settings-row-description">View and manage your subscription, payment methods, usage, and invoices</p>
-                                </div>
-                                <a href="/Client/@ViewBag.OrganizationId/Settings#billing" class="btn btn-primary btn-sm">
-                                    Firm Settings
-                                    <i class="fas fa-arrow-right ms-2"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    </div>
-                </div>
-
                 <!-- Join Code Section -->
                 <div id="joincode-content" class="settings-tab-content">
                     <div class="settings-section">
@@ -605,6 +582,28 @@
                                         <div class="alert" id="joinCodeMessage" style="display: none;" role="alert"></div>
                                     </form>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Billing & Plan Section -->
+                <div id="billing-content" class="settings-tab-content">
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Billing & Plan</h3>
+                            <p>Manage your subscription and billing settings</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Full Billing & Plan Settings</label>
+                                    <p class="settings-row-description">View and manage your subscription, payment methods, usage, and invoices</p>
+                                </div>
+                                <a href="/Client/@ViewBag.OrganizationId/Settings#billing" class="btn btn-primary btn-sm">
+                                    Firm Settings
+                                    <i class="fas fa-arrow-right ms-2"></i>
+                                </a>
                             </div>
                         </div>
                     </div>
