@@ -20,10 +20,10 @@ namespace Certio.Domain.Calendar
         public string Provider { get; set; } = ""; // "Google", "Outlook"
         
         [Required]
-        [StringLength(500)]
+        [StringLength(2000)]
         public string AccessToken { get; set; } = "";
         
-        [StringLength(500)]
+        [StringLength(2000)]
         public string? RefreshToken { get; set; }
         
         public DateTime? TokenExpiresAt { get; set; }
