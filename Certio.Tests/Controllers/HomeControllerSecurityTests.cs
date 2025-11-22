@@ -241,6 +241,7 @@ public class HomeControllerSecurityTests : IDisposable
         var twoFactorServiceMock = new Mock<ITwoFactorService>();
         var briefingServiceMock = new Mock<Certio.Web.Services.IBriefingMessageService>();
         var twoFactorSessionStoreMock = new Mock<ITwoFactorSessionStore>();
+        var trustedDeviceServiceMock = new Mock<Certio.Web.Services.ITrustedDeviceService>();
 
         var joinCodeService = new Mock<IJoinCodeService>();
         var channelManagementService = new Mock<IChannelManagementService>();
@@ -255,6 +256,7 @@ public class HomeControllerSecurityTests : IDisposable
             joinCodeService.Object,
             channelManagementService.Object,
             clientContextAccessor.Object,
+            trustedDeviceServiceMock.Object,
             twoFactorSessionStoreMock.Object);
 
         var httpContext = CreateHttpContextWithSession();
