@@ -382,6 +382,45 @@ if (!string.IsNullOrWhiteSpace(oneDriveRedirectUri))
     builder.Configuration["DocumentIntegration:OneDrive:RedirectUri"] = oneDriveRedirectUri;
 }
 
+// Map CalendarIntegration environment variables
+var googleCalendarClientId = Environment.GetEnvironmentVariable("GOOGLE_CALENDAR_CLIENT_ID");
+if (!string.IsNullOrWhiteSpace(googleCalendarClientId))
+{
+    builder.Configuration["CalendarIntegration:GoogleCalendar:ClientId"] = googleCalendarClientId;
+}
+
+var googleCalendarClientSecret = Environment.GetEnvironmentVariable("GOOGLE_CALENDAR_CLIENT_SECRET");
+if (!string.IsNullOrWhiteSpace(googleCalendarClientSecret))
+{
+    builder.Configuration["CalendarIntegration:GoogleCalendar:ClientSecret"] = googleCalendarClientSecret;
+}
+
+var googleCalendarRedirectUri = Environment.GetEnvironmentVariable("GOOGLE_CALENDAR_REDIRECT_URI");
+if (!string.IsNullOrWhiteSpace(googleCalendarRedirectUri))
+{
+    googleCalendarRedirectUri = googleCalendarRedirectUri.Trim().TrimStart('=');
+    builder.Configuration["CalendarIntegration:GoogleCalendar:RedirectUri"] = googleCalendarRedirectUri;
+}
+
+var outlookCalendarClientId = Environment.GetEnvironmentVariable("OUTLOOK_CALENDAR_CLIENT_ID");
+if (!string.IsNullOrWhiteSpace(outlookCalendarClientId))
+{
+    builder.Configuration["CalendarIntegration:OutlookCalendar:ClientId"] = outlookCalendarClientId;
+}
+
+var outlookCalendarClientSecret = Environment.GetEnvironmentVariable("OUTLOOK_CALENDAR_CLIENT_SECRET");
+if (!string.IsNullOrWhiteSpace(outlookCalendarClientSecret))
+{
+    builder.Configuration["CalendarIntegration:OutlookCalendar:ClientSecret"] = outlookCalendarClientSecret;
+}
+
+var outlookCalendarRedirectUri = Environment.GetEnvironmentVariable("OUTLOOK_CALENDAR_REDIRECT_URI");
+if (!string.IsNullOrWhiteSpace(outlookCalendarRedirectUri))
+{
+    outlookCalendarRedirectUri = outlookCalendarRedirectUri.Trim().TrimStart('=');
+    builder.Configuration["CalendarIntegration:OutlookCalendar:RedirectUri"] = outlookCalendarRedirectUri;
+}
+
 var documentIntelligenceEndpoint = Environment.GetEnvironmentVariable("AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT");
 if (!string.IsNullOrWhiteSpace(documentIntelligenceEndpoint))
 {
@@ -720,6 +759,16 @@ builder.Services.AddScoped<IDriveSyncService>(sp =>
     
     Func<string, string> decryptFunc = encryptedToken => protector.Unprotect(encryptedToken);
     return new DriveSyncService(dbContext, logger, httpClientFactory, decryptFunc, documentIndexerService, serviceScopeFactory);
+});
+
+builder.Services.AddScoped<ICalendarSyncService>(sp =>
+{
+    var dbContext = sp.GetRequiredService<ApplicationDbContext>();
+    var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+    var configuration = sp.GetRequiredService<IConfiguration>();
+    var logger = sp.GetRequiredService<ILogger<Certio.Application.Services.Calendar.CalendarSyncService>>();
+    
+    return new Certio.Application.Services.Calendar.CalendarSyncService(dbContext, httpClientFactory, configuration, logger);
 });
 
 builder.Services.AddScoped<IDocumentContentService>(sp =>
