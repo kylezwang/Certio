@@ -2293,28 +2293,6 @@ namespace Certio.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Logout()
         {
-            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
-            if (customUser != null)
-            {
-                var deviceCookie = _trustedDeviceService.GetDeviceCookie(HttpContext);
-                if (!string.IsNullOrWhiteSpace(deviceCookie))
-                {
-                    var parts = deviceCookie.Split(':', 2, StringSplitOptions.TrimEntries);
-                    if (parts.Length == 2 && Guid.TryParse(parts[0], out var deviceId))
-                    {
-                        await _trustedDeviceService.RevokeDeviceAsync(customUser.Id, deviceId, HttpContext);
-                    }
-                    else
-                    {
-                        Response.Cookies.Delete(TrustedDeviceService.DeviceCookieName);
-                    }
-                }
-            }
-            else
-            {
-                Response.Cookies.Delete(TrustedDeviceService.DeviceCookieName);
-            }
-
             // Sign out the user
             await _signInManager.SignOutAsync();
             
@@ -2344,28 +2322,6 @@ namespace Certio.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> ClearAuth()
         {
-            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
-            if (customUser != null)
-            {
-                var deviceCookie = _trustedDeviceService.GetDeviceCookie(HttpContext);
-                if (!string.IsNullOrWhiteSpace(deviceCookie))
-                {
-                    var parts = deviceCookie.Split(':', 2, StringSplitOptions.TrimEntries);
-                    if (parts.Length == 2 && Guid.TryParse(parts[0], out var deviceId))
-                    {
-                        await _trustedDeviceService.RevokeDeviceAsync(customUser.Id, deviceId, HttpContext);
-                    }
-                    else
-                    {
-                        Response.Cookies.Delete(TrustedDeviceService.DeviceCookieName);
-                    }
-                }
-            }
-            else
-            {
-                Response.Cookies.Delete(TrustedDeviceService.DeviceCookieName);
-            }
-
             // Sign out the user
             await _signInManager.SignOutAsync();
             

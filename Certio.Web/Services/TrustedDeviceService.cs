@@ -189,7 +189,7 @@ public class TrustedDeviceService : ITrustedDeviceService
         {
             HttpOnly = true,
             Secure = !isDevelopment, // Allow non-secure cookies on localhost HTTP
-            SameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.Strict,
+            SameSite = SameSiteMode.Lax, // Use Lax to allow cookie during redirects
             IsEssential = true,
             Path = "/"
         };
