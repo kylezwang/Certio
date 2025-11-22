@@ -461,16 +461,17 @@ namespace Certio.Web.Controllers
             var currentOrg = await _db.Organizations
                 .FirstOrDefaultAsync(o => o.Id == orgId, ct);
 
-            // Check if this is a LawFirm organization - if so, aggregate matters from all accessible clients
+            // Check if this is a LawFirm or EventPlanner organization - if so, aggregate matters from all accessible clients
             List<MatterDto> allMatters;
             
-            if (currentOrg?.Type == Certio.Domain.Organizations.OrganizationType.LawFirm)
+            if (currentOrg?.Type == Certio.Domain.Organizations.OrganizationType.LawFirm ||
+                currentOrg?.Type == Certio.Domain.Organizations.OrganizationType.EventPlanner)
             {
                 // Get all accessible client organizations for this user (respects user's access level and assignments)
                 var accessibleClients = await _firmRelationshipCache.GetAccessibleClientOrganizationsAsync(customUser.Id);
                 var clientOrgIds = accessibleClients.Select(c => c.Id).ToList();
                 
-                // Add the LawFirm organization's own ID to include its matters too
+                // Add the organization's own ID to include its matters too
                 clientOrgIds.Add(orgId);
                 
                 // Aggregate matters from all accessible organizations
@@ -559,7 +560,8 @@ namespace Certio.Web.Controllers
             };
 
             ViewBag.OrganizationId = orgId;
-            ViewBag.IsLawFirmView = currentOrg?.Type == Certio.Domain.Organizations.OrganizationType.LawFirm;
+            ViewBag.IsLawFirmView = currentOrg?.Type == Certio.Domain.Organizations.OrganizationType.LawFirm ||
+                                     currentOrg?.Type == Certio.Domain.Organizations.OrganizationType.EventPlanner;
             ViewBag.OrganizationName = currentOrg?.Name ?? "Client";
             ViewBag.OrganizationType = currentOrg?.Type ?? Certio.Domain.Organizations.OrganizationType.Client;
             
