@@ -239,8 +239,45 @@
             cursor: pointer;
             transition: background-color 0.2s ease, border-radius 0.2s ease;
             display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .client-item-content {
+            display: flex;
             flex-direction: column;
             gap: 0.25rem;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .client-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #69848C;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .firm-avatar {
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: 7px;
+            background: linear-gradient(135deg, #a32b43, #3d1019);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            font-weight: 600;
+            flex-shrink: 0;
         }
 
         .client-item:hover,
@@ -625,9 +662,14 @@
                             const isActive = firm.organizationId === activeFirmId;
                             firmItem.className = isActive ? 'client-item active' : 'client-item';
                             
+                            const initials = getInitials(firm.organizationName);
+                            
                             firmItem.innerHTML = `
-                                <h5 class="client-name">${firm.organizationName}</h5>
-                                <p class="client-status">${firm.role} ${firm.isPrimary ? '• Primary' : ''}</p>
+                                <div class="firm-avatar">${initials}</div>
+                                <div class="client-item-content">
+                                    <h5 class="client-name">${firm.organizationName}</h5>
+                                    <p class="client-status">${firm.role} ${firm.isPrimary ? '• Primary' : ''}</p>
+                                </div>
                             `;
                             
                             firmItem.addEventListener('click', () => {
@@ -942,10 +984,16 @@
                         const clientItem = document.createElement('div');
                         const isActive = isCurrentOrgClient && o.organizationId === currentOrgId;
                         clientItem.className = isActive ? 'client-item active' : 'client-item';
+                        
+                        const initials = getInitials(ownerName);
+                        
                         clientItem.innerHTML = `
-                            <h5 class="client-name">${ownerName}</h5>
-                            <p class="client-company">${o.organizationName}</p>
-                            <p class="client-status">${o.isPrimary ? 'Primary' : (o.isPersonal ? 'Personal' : 'Active')}</p>
+                            <div class="client-avatar">${initials}</div>
+                            <div class="client-item-content">
+                                <h5 class="client-name">${ownerName}</h5>
+                                <p class="client-company">${o.organizationName}</p>
+                                <p class="client-status">${o.isPrimary ? 'Primary' : (o.isPersonal ? 'Personal' : 'Active')}</p>
+                            </div>
                         `;
                         clientItem.addEventListener('click', () => {
                             setLastOpenedClientOrgId(o.organizationId);

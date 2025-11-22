@@ -4794,6 +4794,12 @@ body.communications-page .communications-layout {
   gap: 0.75rem;
 }
 
+.session-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .session-icon {
   width: 40px;
   height: 40px;
@@ -4818,9 +4824,25 @@ body.communications-page .communications-layout {
   font-size: 0.875rem;
 }
 
+.session-metadata {
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.session-metadata span + span {
+  margin-left: 0.5rem;
+}
+
+.session-placeholder {
+  border-style: dashed;
+  border-color: #d1d5db;
+  background: #f9fafb;
+}
+
 .session-location {
   color: #6b7280;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   margin: 0;
 }
 

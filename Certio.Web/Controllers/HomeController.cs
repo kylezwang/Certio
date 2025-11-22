@@ -28,6 +28,7 @@ namespace Certio.Web.Controllers
         private readonly IClientContextAccessor _clientContextAccessor;
         private readonly ILogger<HomeController> _logger;
         private readonly ITwoFactorSessionStore _twoFactorSessionStore;
+        private readonly ITrustedDeviceService _trustedDeviceService;
 
         public HomeController(
             SignInManager<IdentityUser> signInManager, 
@@ -38,6 +39,7 @@ namespace Certio.Web.Controllers
             IJoinCodeService joinCodeService,
             Certio.Web.Services.IChannelManagementService channelManagementService,
             IClientContextAccessor clientContextAccessor,
+            ITrustedDeviceService trustedDeviceService,
             ITwoFactorSessionStore twoFactorSessionStore,
             ILogger<HomeController>? logger = null)
         {
@@ -49,6 +51,7 @@ namespace Certio.Web.Controllers
             _joinCodeService = joinCodeService;
             _channelManagementService = channelManagementService;
             _clientContextAccessor = clientContextAccessor;
+            _trustedDeviceService = trustedDeviceService;
             _twoFactorSessionStore = twoFactorSessionStore;
             _logger = logger ?? NullLogger<HomeController>.Instance;
         }
@@ -174,10 +177,22 @@ namespace Certio.Web.Controllers
                 .Include(u => u.UserOrganizations)
                 .FirstOrDefaultAsync(u => u.Email == normalizedEmail);
             
-            // If 2FA is disabled, sign in directly
-            if (customUser != null && !customUser.Enable2FA)
+            TrustedDevice? existingDevice = null;
+            bool isTrustedDevice = false;
+            if (customUser != null)
             {
-                await _signInManager.SignInAsync(user, remember);
+                existingDevice = await _trustedDeviceService.ValidateDeviceAsync(HttpContext, customUser);
+                isTrustedDevice = existingDevice?.IsTrusted == true;
+            }
+
+            var shouldBypassTwoFactor = customUser != null && (!customUser.Enable2FA || isTrustedDevice);
+
+            if (shouldBypassTwoFactor && customUser != null)
+            {
+                var persistent = remember || isTrustedDevice;
+                
+                await _signInManager.SignInAsync(user, persistent);
+                await _trustedDeviceService.RegisterOrUpdateDeviceAsync(HttpContext, customUser, persistent, existingDevice);
                 
                 // Update last login date and session
                 customUser.LastLoginDate = DateTime.UtcNow;
@@ -380,6 +395,17 @@ namespace Certio.Web.Controllers
             var rememberMe = state.RememberMe;
             await _signInManager.SignInAsync(user, rememberMe);
 
+            var customUser = await _context.Users
+                .Include(u => u.UserOrganizations)
+                .FirstOrDefaultAsync(u => u.Email == user.Email);
+
+            if (customUser != null)
+            {
+                await _trustedDeviceService.RegisterOrUpdateDeviceAsync(HttpContext, customUser, rememberMe);
+                customUser.LastLoginDate = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+            }
+
             try
                     {
                         HttpContext.Session.SetString("UserId", user.Id);
@@ -398,10 +424,6 @@ namespace Certio.Web.Controllers
             // Queue daily briefing for dashboard - fire and forget, non-blocking
             try
             {
-                var customUser = await _context.Users
-                    .Include(u => u.UserOrganizations)
-                    .FirstOrDefaultAsync(u => u.Email == user.Email);
-                
                 if (customUser != null && customUser.UserOrganizations.Any())
                 {
                     var primaryOrg = customUser.UserOrganizations.FirstOrDefault(uo => uo.IsActive);
@@ -2271,6 +2293,28 @@ namespace Certio.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Logout()
         {
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser != null)
+            {
+                var deviceCookie = _trustedDeviceService.GetDeviceCookie(HttpContext);
+                if (!string.IsNullOrWhiteSpace(deviceCookie))
+                {
+                    var parts = deviceCookie.Split(':', 2, StringSplitOptions.TrimEntries);
+                    if (parts.Length == 2 && Guid.TryParse(parts[0], out var deviceId))
+                    {
+                        await _trustedDeviceService.RevokeDeviceAsync(customUser.Id, deviceId, HttpContext);
+                    }
+                    else
+                    {
+                        Response.Cookies.Delete(TrustedDeviceService.DeviceCookieName);
+                    }
+                }
+            }
+            else
+            {
+                Response.Cookies.Delete(TrustedDeviceService.DeviceCookieName);
+            }
+
             // Sign out the user
             await _signInManager.SignOutAsync();
             
@@ -2300,6 +2344,28 @@ namespace Certio.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> ClearAuth()
         {
+            var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+            if (customUser != null)
+            {
+                var deviceCookie = _trustedDeviceService.GetDeviceCookie(HttpContext);
+                if (!string.IsNullOrWhiteSpace(deviceCookie))
+                {
+                    var parts = deviceCookie.Split(':', 2, StringSplitOptions.TrimEntries);
+                    if (parts.Length == 2 && Guid.TryParse(parts[0], out var deviceId))
+                    {
+                        await _trustedDeviceService.RevokeDeviceAsync(customUser.Id, deviceId, HttpContext);
+                    }
+                    else
+                    {
+                        Response.Cookies.Delete(TrustedDeviceService.DeviceCookieName);
+                    }
+                }
+            }
+            else
+            {
+                Response.Cookies.Delete(TrustedDeviceService.DeviceCookieName);
+            }
+
             // Sign out the user
             await _signInManager.SignOutAsync();
             
