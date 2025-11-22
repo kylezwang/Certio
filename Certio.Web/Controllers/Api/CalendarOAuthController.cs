@@ -29,8 +29,8 @@ public class CalendarOAuthController : Controller
 {
     private static readonly string[] DefaultGoogleScopes =
     {
-        "https://www.googleapis.com/auth/calendar.readonly",
-        "https://www.googleapis.com/auth/calendar.events.readonly",
+        "https://www.googleapis.com/auth/calendar", // Full read/write access to calendars
+        "https://www.googleapis.com/auth/calendar.events", // Full read/write access to events
         "https://www.googleapis.com/auth/userinfo.email",
         "https://www.googleapis.com/auth/userinfo.profile"
     };
@@ -38,8 +38,7 @@ public class CalendarOAuthController : Controller
     private static readonly string[] DefaultOutlookScopes =
     {
         "offline_access",
-        "Calendars.Read",
-        "Calendars.ReadWrite",
+        "Calendars.ReadWrite", // Read and write access to calendars
         "User.Read"
     };
 
@@ -676,8 +675,8 @@ public class CalendarOAuthController : Controller
                 OrgId = orgId,
                 UserId = userId,
                 Provider = provider,
-                AccessToken = accessToken,
-                RefreshToken = refreshToken,
+                AccessToken = EncryptToken(accessToken),
+                RefreshToken = refreshToken != null ? EncryptToken(refreshToken) : null,
                 TokenExpiresAt = tokenExpiresAt,
                 Scopes = string.Join(',', scopes),
                 Email = email,
@@ -689,8 +688,8 @@ public class CalendarOAuthController : Controller
         }
         else
         {
-            integration.AccessToken = accessToken;
-            integration.RefreshToken = refreshToken ?? integration.RefreshToken;
+            integration.AccessToken = EncryptToken(accessToken);
+            integration.RefreshToken = refreshToken != null ? EncryptToken(refreshToken) : integration.RefreshToken;
             integration.TokenExpiresAt = tokenExpiresAt;
             integration.Scopes = string.Join(',', scopes);
             integration.Email = email;
@@ -702,6 +701,28 @@ public class CalendarOAuthController : Controller
 
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
+
+    #region Security Helpers
+
+    /// <summary>
+    /// Encrypts an OAuth token for secure storage
+    /// </summary>
+    private string EncryptToken(string token)
+    {
+        var protector = _dataProtectionProvider.CreateProtector("CalendarOAuthTokens");
+        return protector.Protect(token);
+    }
+
+    /// <summary>
+    /// Decrypts an OAuth token from storage
+    /// </summary>
+    private string DecryptToken(string encrypted)
+    {
+        var protector = _dataProtectionProvider.CreateProtector("CalendarOAuthTokens");
+        return protector.Unprotect(encrypted);
+    }
+
+    #endregion
 
     private IActionResult BuildCalendarOAuthView(bool success, string provider, string? email, string? error, string? errorDescription, int? orgId)
     {
