@@ -42,7 +42,7 @@ namespace Certio.Web.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            // Check if this is a LawFirm organization - if so, aggregate matters from all accessible clients
+            // Check if this is a LawFirm or EventPlanner organization - if so, aggregate matters from all accessible clients
             var currentOrg = await _context.Organizations
                 .FirstOrDefaultAsync(o => o.Id == orgId);
 
@@ -50,13 +50,14 @@ namespace Certio.Web.Controllers
             
             List<MatterDto> allMatters;
             
-            if (currentOrg?.Type == Certio.Domain.Organizations.OrganizationType.LawFirm)
+            if (currentOrg?.Type == Certio.Domain.Organizations.OrganizationType.LawFirm ||
+                currentOrg?.Type == Certio.Domain.Organizations.OrganizationType.EventPlanner)
             {
                 // Get all accessible client organizations for this user (respects user's access level and assignments)
                 var accessibleClients = await _firmRelationshipCache.GetAccessibleClientOrganizationsAsync(user.Id);
                 var clientOrgIds = accessibleClients.Select(c => c.Id).ToList();
                 
-                // Add the LawFirm organization's own ID to include its matters too
+                // Add the organization's own ID to include its matters too
                 clientOrgIds.Add(orgId);
                 
                 // Aggregate matters from all accessible organizations
