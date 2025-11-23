@@ -1713,35 +1713,37 @@ namespace Certio.Web.Controllers
                 return RedirectToAction("Clients", new { orgId });
             }
 
-            // Verify user is in a law firm organization
-            var lawFirmMembership = await _db.UserOrganizations
+            // Verify user is in a service provider organization (LawFirm or EventPlanner)
+            var serviceProviderMembership = await _db.UserOrganizations
                 .Include(uo => uo.Organization)
                 .FirstOrDefaultAsync(uo => uo.UserId == customUser.Id && 
                                              uo.IsActive && 
-                                             uo.Organization.Type == Certio.Domain.Organizations.OrganizationType.LawFirm);
+                                             (uo.Organization.Type == Certio.Domain.Organizations.OrganizationType.LawFirm ||
+                                              uo.Organization.Type == Certio.Domain.Organizations.OrganizationType.EventPlanner));
 
-            if (lawFirmMembership == null)
+            if (serviceProviderMembership == null)
             {
-                TempData["Error"] = "Only law firm users can create new client organizations.";
+                TempData["Error"] = "Only service provider users can create new client organizations.";
                 return RedirectToAction("Clients", new { orgId });
             }
 
-            var lawFirmOrgId = lawFirmMembership.OrganizationId;
-            var lawFirmOrgName = lawFirmMembership.Organization?.Name ?? "Law Firm";
+            var serviceProviderOrgId = serviceProviderMembership.OrganizationId;
+            var serviceProviderOrgName = serviceProviderMembership.Organization?.Name ?? "Organization";
 
             // Get external users from external organization relationships
-            var externalUsers = await GetExternalUsersAsync(lawFirmOrgId, CancellationToken.None);
+            var externalUsers = await GetExternalUsersAsync(serviceProviderOrgId, CancellationToken.None);
 
             var model = new NewClientFormViewModel
             {
-                LawFirmOrganizationId = lawFirmOrgId,
-                LawFirmOrganizationName = lawFirmOrgName,
+                LawFirmOrganizationId = serviceProviderOrgId,
+                LawFirmOrganizationName = serviceProviderOrgName,
                 AvailableExternalUsers = externalUsers
             };
 
             ViewBag.OrganizationId = orgId;
-            ViewBag.OrganizationName = lawFirmOrgName;
+            ViewBag.OrganizationName = serviceProviderOrgName;
             ViewBag.CurrentUserId = customUser.Id;
+            ViewBag.OrganizationType = serviceProviderMembership.Organization?.Type ?? Certio.Domain.Organizations.OrganizationType.LawFirm;
 
             return View("~/Views/Client/NewClient.cshtml", model);
         }
@@ -1762,22 +1764,24 @@ namespace Certio.Web.Controllers
             if (!ModelState.IsValid)
             {
                 // Reload available external users
-                var lawFirmMembership = await _db.UserOrganizations
+                var serviceProviderMembership = await _db.UserOrganizations
                     .Include(uo => uo.Organization)
                     .FirstOrDefaultAsync(uo => uo.UserId == customUser.Id && 
                                                  uo.IsActive && 
-                                                 uo.Organization.Type == Certio.Domain.Organizations.OrganizationType.LawFirm);
+                                                 (uo.Organization.Type == Certio.Domain.Organizations.OrganizationType.LawFirm ||
+                                                  uo.Organization.Type == Certio.Domain.Organizations.OrganizationType.EventPlanner));
 
-                if (lawFirmMembership != null)
+                if (serviceProviderMembership != null)
                 {
-                    var externalUsers = await GetExternalUsersAsync(lawFirmMembership.OrganizationId, ct);
+                    var externalUsers = await GetExternalUsersAsync(serviceProviderMembership.OrganizationId, ct);
                     model.AvailableExternalUsers = externalUsers;
-                    model.LawFirmOrganizationId = lawFirmMembership.OrganizationId;
-                    model.LawFirmOrganizationName = lawFirmMembership.Organization?.Name ?? "Law Firm";
+                    model.LawFirmOrganizationId = serviceProviderMembership.OrganizationId;
+                    model.LawFirmOrganizationName = serviceProviderMembership.Organization?.Name ?? "Organization";
                 }
 
                 ViewBag.OrganizationId = orgId;
                 ViewBag.CurrentUserId = customUser.Id;
+                ViewBag.OrganizationType = serviceProviderMembership?.Organization?.Type ?? Certio.Domain.Organizations.OrganizationType.LawFirm;
                 return View("~/Views/Client/NewClient.cshtml", model);
             }
 
@@ -1785,37 +1789,40 @@ namespace Certio.Web.Controllers
             if (!model.SelectedExternalUserId.HasValue)
             {
                 ModelState.AddModelError("SelectedExternalUserId", "Please select a primary client.");
-                var lawFirmMembershipReload = await _db.UserOrganizations
+                var serviceProviderMembershipReload = await _db.UserOrganizations
                     .Include(uo => uo.Organization)
                     .FirstOrDefaultAsync(uo => uo.UserId == customUser.Id && 
                                                  uo.IsActive && 
-                                                 uo.Organization.Type == Certio.Domain.Organizations.OrganizationType.LawFirm);
+                                                 (uo.Organization.Type == Certio.Domain.Organizations.OrganizationType.LawFirm ||
+                                                  uo.Organization.Type == Certio.Domain.Organizations.OrganizationType.EventPlanner));
 
-                if (lawFirmMembershipReload != null)
+                if (serviceProviderMembershipReload != null)
                 {
-                    var externalUsersReload = await GetExternalUsersAsync(lawFirmMembershipReload.OrganizationId, ct);
+                    var externalUsersReload = await GetExternalUsersAsync(serviceProviderMembershipReload.OrganizationId, ct);
                     model.AvailableExternalUsers = externalUsersReload;
-                    model.LawFirmOrganizationId = lawFirmMembershipReload.OrganizationId;
-                    model.LawFirmOrganizationName = lawFirmMembershipReload.Organization?.Name ?? "Law Firm";
+                    model.LawFirmOrganizationId = serviceProviderMembershipReload.OrganizationId;
+                    model.LawFirmOrganizationName = serviceProviderMembershipReload.Organization?.Name ?? "Organization";
                 }
                 ViewBag.OrganizationId = orgId;
+                ViewBag.OrganizationType = serviceProviderMembershipReload?.Organization?.Type ?? Certio.Domain.Organizations.OrganizationType.LawFirm;
                 return View("~/Views/Client/NewClient.cshtml", model);
             }
 
-            // Verify user is in a law firm organization
-            var lawFirmMembershipCheck = await _db.UserOrganizations
+            // Verify user is in a service provider organization (LawFirm or EventPlanner)
+            var serviceProviderMembershipCheck = await _db.UserOrganizations
                 .Include(uo => uo.Organization)
                 .FirstOrDefaultAsync(uo => uo.UserId == customUser.Id && 
                                              uo.IsActive && 
-                                             uo.Organization.Type == Certio.Domain.Organizations.OrganizationType.LawFirm);
+                                             (uo.Organization.Type == Certio.Domain.Organizations.OrganizationType.LawFirm ||
+                                              uo.Organization.Type == Certio.Domain.Organizations.OrganizationType.EventPlanner));
 
-            if (lawFirmMembershipCheck == null)
+            if (serviceProviderMembershipCheck == null)
             {
-                TempData["Error"] = "Only law firm users can create new client organizations.";
+                TempData["Error"] = "Only service provider users can create new client organizations.";
                 return RedirectToAction("Clients", new { orgId });
             }
 
-            var lawFirmOrgId = lawFirmMembershipCheck.OrganizationId;
+            var serviceProviderOrgId = serviceProviderMembershipCheck.OrganizationId;
 
             // Validate that the selected external user exists and is actually an external user
             var selectedExternalUser = await _db.Users
@@ -1824,11 +1831,12 @@ namespace Certio.Web.Controllers
             if (selectedExternalUser == null)
             {
                 TempData["Error"] = "Selected external user not found.";
-                var externalUsersReload = await GetExternalUsersAsync(lawFirmOrgId, ct);
+                var externalUsersReload = await GetExternalUsersAsync(serviceProviderOrgId, ct);
                 model.AvailableExternalUsers = externalUsersReload;
-                model.LawFirmOrganizationId = lawFirmOrgId;
-                model.LawFirmOrganizationName = lawFirmMembershipCheck.Organization?.Name ?? "Law Firm";
+                model.LawFirmOrganizationId = serviceProviderOrgId;
+                model.LawFirmOrganizationName = serviceProviderMembershipCheck.Organization?.Name ?? "Organization";
                 ViewBag.OrganizationId = orgId;
+                ViewBag.OrganizationType = serviceProviderMembershipCheck.Organization?.Type ?? Certio.Domain.Organizations.OrganizationType.LawFirm;
                 return View("~/Views/Client/NewClient.cshtml", model);
             }
 
@@ -1841,11 +1849,12 @@ namespace Certio.Web.Controllers
             if (!isExternalUser)
             {
                 TempData["Error"] = "Selected user is not an external user.";
-                var externalUsersReload = await GetExternalUsersAsync(lawFirmOrgId, ct);
+                var externalUsersReload = await GetExternalUsersAsync(serviceProviderOrgId, ct);
                 model.AvailableExternalUsers = externalUsersReload;
-                model.LawFirmOrganizationId = lawFirmOrgId;
-                model.LawFirmOrganizationName = lawFirmMembershipCheck.Organization?.Name ?? "Law Firm";
+                model.LawFirmOrganizationId = serviceProviderOrgId;
+                model.LawFirmOrganizationName = serviceProviderMembershipCheck.Organization?.Name ?? "Organization";
                 ViewBag.OrganizationId = orgId;
+                ViewBag.OrganizationType = serviceProviderMembershipCheck.Organization?.Type ?? Certio.Domain.Organizations.OrganizationType.LawFirm;
                 return View("~/Views/Client/NewClient.cshtml", model);
             }
 
@@ -1864,12 +1873,16 @@ namespace Certio.Web.Controllers
             _db.Organizations.Add(newClientOrg);
             await _db.SaveChangesAsync(ct);
 
-            // Create relationship between law firm and new client organization
+            // Create relationship between service provider and new client organization
+            var relationshipType = serviceProviderMembershipCheck.Organization?.Type == Certio.Domain.Organizations.OrganizationType.EventPlanner
+                ? Certio.Domain.Organizations.RelationshipTypes.EventPlannerClient
+                : Certio.Domain.Organizations.RelationshipTypes.LawFirmClient;
+            
             var relationship = new Certio.Domain.Organizations.OrganizationRelationship
             {
-                SourceOrganizationId = lawFirmOrgId,
+                SourceOrganizationId = serviceProviderOrgId,
                 TargetOrganizationId = newClientOrg.Id,
-                RelationshipType = Certio.Domain.Organizations.RelationshipTypes.LawFirmClient,
+                RelationshipType = relationshipType,
                 AccessLevel = Certio.Domain.Organizations.AccessLevels.FullAccess,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
@@ -1893,11 +1906,12 @@ namespace Certio.Web.Controllers
             if (!assignmentResult.Success)
             {
                 TempData["Error"] = $"Failed to assign client: {assignmentResult.ErrorMessage}";
-                var externalUsersReload = await GetExternalUsersAsync(lawFirmOrgId, ct);
+                var externalUsersReload = await GetExternalUsersAsync(serviceProviderOrgId, ct);
                 model.AvailableExternalUsers = externalUsersReload;
-                model.LawFirmOrganizationId = lawFirmOrgId;
-                model.LawFirmOrganizationName = lawFirmMembershipCheck.Organization?.Name ?? "Law Firm";
+                model.LawFirmOrganizationId = serviceProviderOrgId;
+                model.LawFirmOrganizationName = serviceProviderMembershipCheck.Organization?.Name ?? "Organization";
                 ViewBag.OrganizationId = orgId;
+                ViewBag.OrganizationType = serviceProviderMembershipCheck.Organization?.Type ?? Certio.Domain.Organizations.OrganizationType.LawFirm;
                 return View("~/Views/Client/NewClient.cshtml", model);
             }
 
@@ -1920,7 +1934,7 @@ namespace Certio.Web.Controllers
             TempData["JoinCode"] = join.Code;
             TempData["NewClientOrgId"] = newClientOrg.Id;
             ViewBag.OrganizationId = orgId;
-            ViewBag.OrganizationName = lawFirmMembershipCheck.Organization?.Name ?? "Law Firm";
+            ViewBag.OrganizationName = serviceProviderMembershipCheck.Organization?.Name ?? "Organization";
 
             // Redirect to show success with join code
             return RedirectToAction("Clients", new { orgId });

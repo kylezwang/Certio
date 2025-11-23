@@ -2,6 +2,9 @@
     Layout = null;
     var organizationId = ViewBag.OrganizationId ?? ViewContext.HttpContext.Items["CurrentOrganizationId"];
     var matterId = ViewBag.MatterId ?? ViewContext.HttpContext.Items["CurrentMatterId"];
+    var orgType = ViewBag.OrganizationType != null ? (Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType : Certio.Domain.Organizations.OrganizationType.LawFirm;
+    var matterLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
+    var mattersLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType);
 }
 
 <!-- Organization and Matter ID for JavaScript access -->
@@ -436,6 +439,10 @@
         // Use shorthand references to global state
         const state = window._matterCalendarState;
         
+        // Terminology variables from server
+        const selectMatterText = '@Html.Raw("Select a " + matterLabel)';
+        const viewAllMattersText = '@Html.Raw("View All " + mattersLabel)';
+        
         // Local constants (these don't change)
         const organizationId = document.querySelector('[data-organization-id]')?.getAttribute('data-organization-id'); // Matter's organization ID
         const matterId = document.querySelector('[data-matter-id]')?.getAttribute('data-matter-id');
@@ -617,9 +624,9 @@
         function populateMatterPopup() {
             const matterPopupList = document.getElementById('eventMatterPopupList');
             matterPopupList.innerHTML = `
-                <button type="button" class="event-matter-item" data-matter-id="" title="Select a Matter">
+                <button type="button" class="event-matter-item" data-matter-id="" title="Select a @matterLabel">
                     <i class="fas fa-folder-open"></i>
-                    <span class="event-matter-item-text">Select a Matter</span>
+                    <span class="event-matter-item-text">Select a @matterLabel</span>
                 </button>
             `;
             
@@ -1166,10 +1173,10 @@
                             if (selectedMatter) {
                                 document.getElementById('eventMatterSelectorText').textContent = selectedMatter.title;
                             } else {
-                                document.getElementById('eventMatterSelectorText').textContent = 'Select a Matter';
+                                document.getElementById('eventMatterSelectorText').textContent = selectMatterText;
                             }
                         } else {
-                            document.getElementById('eventMatterSelectorText').textContent = 'Select a Matter';
+                            document.getElementById('eventMatterSelectorText').textContent = selectMatterText;
                         }
                         
                         // Set location data using new function

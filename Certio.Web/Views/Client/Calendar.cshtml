@@ -2,6 +2,9 @@
     ViewData["Title"] = "Calendar";
     Layout = "_ClientLayout";
     ViewData["BodyClass"] = "calendar-page";
+    var orgType = ViewBag.OrganizationType != null ? (Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType : Certio.Domain.Organizations.OrganizationType.LawFirm;
+    var matterLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
+    var mattersLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType);
 }
 
 <!-- Include tasks.css for modal styling -->
@@ -449,6 +452,10 @@
 @section Scripts {
     <script>
         // Calendar state
+        // Terminology variables from server
+        const selectMatterText = '@Html.Raw("Select a " + matterLabel)';
+        const viewAllMattersText = '@Html.Raw("View All " + mattersLabel)';
+        
         let currentDate = new Date();
         const orgId = @ViewBag.OrganizationId;
         const currentUserId = @ViewBag.CurrentUserId;
@@ -613,9 +620,9 @@
         function populateMatterPopup() {
             const matterPopupList = document.getElementById('eventMatterPopupList');
             matterPopupList.innerHTML = `
-                <button type="button" class="event-matter-item" data-matter-id="" title="Select a Matter">
+                <button type="button" class="event-matter-item" data-matter-id="" title="Select a @matterLabel">
                     <i class="fas fa-folder-open"></i>
-                    <span class="event-matter-item-text">Select a Matter</span>
+                    <span class="event-matter-item-text">Select a @matterLabel</span>
                 </button>
             `;
             
@@ -1054,7 +1061,7 @@
             document.getElementById('eventDescriptionInput').value = '';
             document.getElementById('eventTypeField').value = 'Meeting';
             document.getElementById('eventMatterSelectorBtn').dataset.selectedMatterId = '';
-            document.getElementById('eventMatterSelectorText').textContent = 'Select a Matter';
+            document.getElementById('eventMatterSelectorText').textContent = selectMatterText;
             clearEventLocation(); // Clear location using new function
             document.getElementById('eventAllDayCheck').checked = false;
             document.getElementById('eventAttendeesList').innerHTML = '';
@@ -1089,10 +1096,10 @@
                             if (selectedMatter) {
                                 document.getElementById('eventMatterSelectorText').textContent = selectedMatter.title;
                             } else {
-                                document.getElementById('eventMatterSelectorText').textContent = 'Select a Matter';
+                                document.getElementById('eventMatterSelectorText').textContent = selectMatterText;
                             }
                         } else {
-                            document.getElementById('eventMatterSelectorText').textContent = 'Select a Matter';
+                            document.getElementById('eventMatterSelectorText').textContent = selectMatterText;
                         }
                         
                         // Set location data using new function
