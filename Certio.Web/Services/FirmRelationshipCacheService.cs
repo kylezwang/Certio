@@ -140,7 +140,7 @@ namespace Certio.Web.Services
                     .FirstOrDefault(rel => 
                         rel.TargetOrganizationId == targetOrganizationId && 
                         rel.IsValid() && 
-                        rel.RelationshipType == RelationshipTypes.LawFirmClient);
+                        RelationshipTypes.IsServiceProviderClient(rel.RelationshipType));
 
                 if (relationship == null)
                     return false;
@@ -216,7 +216,7 @@ namespace Certio.Web.Services
                                 string.Equals(role, OrganizationRoles.ManagingPartner, StringComparison.OrdinalIgnoreCase);
 
                 var relationships = lawFirmMembership.Organization.OrganizationRelationships
-                    .Where(rel => rel.IsValid() && rel.RelationshipType == RelationshipTypes.LawFirmClient)
+                    .Where(rel => rel.IsValid() && RelationshipTypes.IsServiceProviderClient(rel.RelationshipType))
                     .ToList();
 
                 var accessibleOrganizations = new HashSet<Organization>();
@@ -304,7 +304,7 @@ namespace Certio.Web.Services
                     .FirstOrDefault(rel => 
                         rel.TargetOrganizationId == targetOrganizationId && 
                         rel.IsValid() && 
-                        rel.RelationshipType == RelationshipTypes.LawFirmClient);
+                        RelationshipTypes.IsServiceProviderClient(rel.RelationshipType));
 
                 if (relationship == null)
                     return null;
@@ -370,7 +370,7 @@ namespace Certio.Web.Services
                     .FirstOrDefault(rel => 
                         rel.TargetOrganizationId == targetOrganizationId && 
                         rel.IsValid() && 
-                        rel.RelationshipType == RelationshipTypes.LawFirmClient);
+                        RelationshipTypes.IsServiceProviderClient(rel.RelationshipType));
 
                 if (relationship == null)
                 {

@@ -104,7 +104,7 @@ namespace Certio.Application.Services
                     rel.TargetOrganizationId == organizationId && 
                     rel.IsActive && 
                     !rel.IsDeleted &&
-                    rel.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient &&
+                    Certio.Domain.Organizations.RelationshipTypes.IsServiceProviderClient(rel.RelationshipType) &&
                     (!rel.ExpiresAt.HasValue || rel.ExpiresAt.Value > DateTime.UtcNow));
 
             return relationship;
@@ -358,7 +358,7 @@ namespace Certio.Application.Services
 
         public async Task<bool> HasFirmBasedAccessAsync(int userId, int organizationId)
         {
-            // Get user's law firm membership
+            // Get user's law firm or event planner membership
             var lawFirmMembership = await _context.UserOrganizations
                 .Include(uo => uo.Organization)
                     .ThenInclude(o => o.OrganizationRelationships)
@@ -378,7 +378,7 @@ namespace Certio.Application.Services
                     rel.TargetOrganizationId == organizationId && 
                     rel.IsActive && 
                     !rel.IsDeleted &&
-                    rel.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient &&
+                    Certio.Domain.Organizations.RelationshipTypes.IsServiceProviderClient(rel.RelationshipType) &&
                     (!rel.ExpiresAt.HasValue || rel.ExpiresAt.Value > DateTime.UtcNow));
 
             return hasRelationship;
@@ -411,7 +411,7 @@ namespace Certio.Application.Services
                     .Where(rel => 
                         rel.IsActive && 
                         !rel.IsDeleted &&
-                        rel.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient &&
+                        Certio.Domain.Organizations.RelationshipTypes.IsServiceProviderClient(rel.RelationshipType) &&
                         (!rel.ExpiresAt.HasValue || rel.ExpiresAt.Value > DateTime.UtcNow))
                     .Select(rel => rel.TargetOrganizationId)
                     .ToList();

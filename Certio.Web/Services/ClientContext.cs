@@ -113,7 +113,7 @@ namespace Certio.Web.Services
                 .FirstOrDefault(rel => 
                     rel.TargetOrganizationId == targetOrganizationId && 
                     rel.IsValid() && 
-                    rel.RelationshipType == RelationshipTypes.LawFirmClient);
+                    RelationshipTypes.IsServiceProviderClient(rel.RelationshipType));
 
             return relationship;
         }

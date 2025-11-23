@@ -1653,7 +1653,7 @@ namespace Certio.Web.Controllers
 
             // Get current organization to check if it's a law firm
             var currentOrg = await _context.Organizations.FindAsync(organizationId);
-            var isLawFirm = currentOrg?.Type == OrganizationType.LawFirm;
+            var isLawFirm = currentOrg?.Type is OrganizationType.LawFirm or OrganizationType.EventPlanner;
 
             List<ChannelCategory> channelCategories;
 
@@ -2076,7 +2076,7 @@ namespace Certio.Web.Controllers
                     .Include(or => or.TargetOrganization)
                     .Where(or => or.SourceOrganizationId == organizationId && 
                                  or.IsActive &&
-                                 or.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient)
+                                 Certio.Domain.Organizations.RelationshipTypes.ServiceProviderClientTypes.Contains(or.RelationshipType))
                     .ToListAsync();
 
                 Console.WriteLine($"[DEBUG] Found {clientRelationships.Count} client relationships");
