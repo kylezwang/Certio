@@ -825,7 +825,7 @@ namespace Certio.Web.Controllers
                     rel.TargetOrganizationId == orgId &&
                     rel.IsActive &&
                     !rel.IsDeleted &&
-                    rel.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient &&
+                    Certio.Domain.Organizations.RelationshipTypes.ServiceProviderClientTypes.Contains(rel.RelationshipType) &&
                     (!rel.ExpiresAt.HasValue || rel.ExpiresAt.Value > DateTime.UtcNow)))
                 .Select(uo => new OrgMemberOption
                 {
@@ -901,7 +901,7 @@ namespace Certio.Web.Controllers
                     rel.TargetOrganizationId == orgId &&
                     rel.IsActive &&
                     !rel.IsDeleted &&
-                    rel.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient &&
+                    Certio.Domain.Organizations.RelationshipTypes.ServiceProviderClientTypes.Contains(rel.RelationshipType) &&
                     (!rel.ExpiresAt.HasValue || rel.ExpiresAt.Value > DateTime.UtcNow)))
                 .Select(uo => new
                 {

@@ -104,7 +104,7 @@ namespace Certio.Application.Services
                     rel.TargetOrganizationId == organizationId && 
                     rel.IsActive && 
                     !rel.IsDeleted &&
-                    rel.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient &&
+                    Certio.Domain.Organizations.RelationshipTypes.IsServiceProviderClient(rel.RelationshipType) &&
                     (!rel.ExpiresAt.HasValue || rel.ExpiresAt.Value > DateTime.UtcNow));
 
             return relationship;
@@ -373,14 +373,12 @@ namespace Certio.Application.Services
             }
 
             // Check if there's a valid relationship to the target organization
-            // Support both LawFirmClient and EventPlannerClient relationships
             var hasRelationship = lawFirmMembership.Organization.OrganizationRelationships
                 .Any(rel => 
                     rel.TargetOrganizationId == organizationId && 
                     rel.IsActive && 
                     !rel.IsDeleted &&
-                    (rel.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient ||
-                     rel.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.EventPlannerClient) &&
+                    Certio.Domain.Organizations.RelationshipTypes.IsServiceProviderClient(rel.RelationshipType) &&
                     (!rel.ExpiresAt.HasValue || rel.ExpiresAt.Value > DateTime.UtcNow));
 
             return hasRelationship;
@@ -413,8 +411,7 @@ namespace Certio.Application.Services
                     .Where(rel => 
                         rel.IsActive && 
                         !rel.IsDeleted &&
-                        (rel.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient ||
-                         rel.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.EventPlannerClient) &&
+                        Certio.Domain.Organizations.RelationshipTypes.IsServiceProviderClient(rel.RelationshipType) &&
                         (!rel.ExpiresAt.HasValue || rel.ExpiresAt.Value > DateTime.UtcNow))
                     .Select(rel => rel.TargetOrganizationId)
                     .ToList();

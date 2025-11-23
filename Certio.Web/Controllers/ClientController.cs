@@ -802,7 +802,7 @@ namespace Certio.Web.Controllers
             {
                 var relationships = organization.OrganizationRelationships
                     .Where(or => or.IsValid() && 
-                                or.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient)
+                                Certio.Domain.Organizations.RelationshipTypes.IsServiceProviderClient(or.RelationshipType))
                     .ToList();
 
                 // Check which relationships the user has access to
