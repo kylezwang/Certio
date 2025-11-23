@@ -635,6 +635,9 @@ namespace Certio.Web.Controllers
                 return TeamType.Legal;
             }
 
+            // Get organization type for role display
+            var currentOrgType = orgResult.Success ? orgResult.Data!.Type : Certio.Domain.Organizations.OrganizationType.Client;
+
             // Map DTOs to view model
             var teamMembers = teamMemberDtos
                 .Select(dto =>
@@ -645,10 +648,15 @@ namespace Certio.Web.Controllers
                         ? dto.Avatar
                         : GetInitials(dto.FirstName, dto.LastName);
                     var color = !string.IsNullOrWhiteSpace(dto.Color) ? dto.Color : GetTeamColor(team);
-                    return new TeamMember
+                    
+                    // Apply RoleDisplayHelper for proper role formatting based on org type
+                    var displayRole = Certio.Web.Helpers.RoleDisplayHelper.GetRoleDisplayName(dto.Role, currentOrgType);
+                    
+                    var member = new TeamMember
                     {
                         Id = dto.UserId.ToString(),
                         Name = string.IsNullOrWhiteSpace(name) ? dto.Email : name,
+                        Email = dto.Email ?? string.Empty,
                         Initials = initials,
                         Role = dto.Role,
                         Department = dto.Department,
@@ -656,6 +664,13 @@ namespace Certio.Web.Controllers
                         Team = team,
                         Color = color
                     };
+                    
+                    // Override DisplayRole with the properly formatted role
+                    // We need to use reflection since DisplayRole has a private setter
+                    typeof(TeamMember).GetProperty(nameof(TeamMember.DisplayRole))!
+                        .SetValue(member, displayRole);
+                    
+                    return member;
                 })
                 .ToList();
 
@@ -689,7 +704,7 @@ namespace Certio.Web.Controllers
                 ClientTeamCount = teamMembers.Count(m => m.Team == TeamType.Client),
                 LegalTeamCount = teamMembers.Count(m => m.Team == TeamType.Legal),
                 ExternalTeamCount = teamMembers.Count(m => m.Team == TeamType.External),
-                TotalMembersCount = teamMembers.Count,
+                TotalMembersCount = teamMembers.Count(),
                 PendingInvitations = pendingJoinCodes
             };
 
