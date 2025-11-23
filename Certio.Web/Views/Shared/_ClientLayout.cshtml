@@ -1227,9 +1227,21 @@
                 var userInitials = "";
                 if (currentUser != null)
                 {
-                    var fullName = $"{currentUser.FirstName} {currentUser.LastName}";
-                    var parts = fullName.Split(' ');
-                    userInitials = parts.Length >= 2 ? $"{parts[0][0]}{parts[1][0]}" : fullName.Substring(0, Math.Min(2, fullName.Length));
+                    var fullName = $"{currentUser.FirstName} {currentUser.LastName}".Trim();
+                    var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    
+                    if (parts.Length >= 2 && parts[0].Length > 0 && parts[1].Length > 0)
+                    {
+                        userInitials = $"{parts[0][0]}{parts[1][0]}".ToUpper();
+                    }
+                    else if (fullName.Length > 0)
+                    {
+                        userInitials = fullName.Substring(0, Math.Min(2, fullName.Length)).ToUpper();
+                    }
+                    else
+                    {
+                        userInitials = "U";
+                    }
                 }
                 else
                 {
