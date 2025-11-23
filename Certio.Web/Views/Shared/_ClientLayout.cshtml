@@ -1152,6 +1152,8 @@
     var orgType = ViewBag.OrganizationType != null 
         ? (Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType 
         : Certio.Domain.Organizations.OrganizationType.LawFirm;
+    var matterLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
+    var mattersLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType);
 }
 
 @if (ViewBag.OrganizationType != null)
