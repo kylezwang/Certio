@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 using Certio.Domain.Users;
 
 namespace Certio.Domain.Organizations
@@ -79,6 +80,24 @@ namespace Certio.Domain.Organizations
         public const string Subsidiary = "Subsidiary";
         public const string Vendor = "Vendor";
         public const string Consultant = "Consultant";
+
+        // Relationship types where a service provider (law firm or event planner) serves a client organization.
+        public static readonly string[] ServiceProviderClientTypes = new[]
+        {
+            LawFirmClient,
+            EventPlannerClient
+        };
+
+        public static bool IsServiceProviderClient(string? relationshipType)
+        {
+            if (string.IsNullOrWhiteSpace(relationshipType))
+            {
+                return false;
+            }
+
+            // Case-sensitive comparison is sufficient because relationship strings are normalized when stored.
+            return ServiceProviderClientTypes.Contains(relationshipType);
+        }
     }
     
     public static class AccessLevels
