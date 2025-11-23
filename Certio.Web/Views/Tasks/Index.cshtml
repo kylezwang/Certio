@@ -2,6 +2,9 @@
 @{
     ViewData["Title"] = "Tasks";
     Layout = "_ClientLayout";
+    var orgType = ViewBag.OrganizationType != null ? (Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType : Certio.Domain.Organizations.OrganizationType.LawFirm;
+    var matterLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
+    var mattersLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType);
 }
 
 @functions {
@@ -116,7 +119,7 @@
             <div class="matter-selector-container">
                 <button class="matter-selector-btn" id="topMatterSelectorBtn">
                     <i class="fas fa-folder"></i>
-                    <span class="matter-selector-text" id="topMatterSelectorText">Select Matter</span>
+                    <span class="matter-selector-text" id="topMatterSelectorText">Select @matterLabel</span>
                     <i class="fas fa-chevron-down matter-selector-arrow"></i>
                 </button>
             </div>
@@ -1581,12 +1584,12 @@
     <!-- Matter Selector Popup (minimal) -->
     <div class="matter-popup" id="matterPopup" style="display: none;">
         <div class="matter-popup-inner">
-            <div class="matter-popup-title">Select Matter</div>
+            <div class="matter-popup-title">Select @matterLabel</div>
             <div class="matter-popup-list">
                 <!-- View All Matters Option -->
-                <button type="button" class="matter-item matter-item-all" data-matter-id="all" title="View All Matters">
+                <button type="button" class="matter-item matter-item-all" data-matter-id="all" title="View All @mattersLabel">
                     <i class="fas fa-globe"></i>
-                    <span class="matter-item-text">View All Matters</span>
+                    <span class="matter-item-text">View All @mattersLabel</span>
                 </button>
                 
                 @if (Model.Matters.Any())

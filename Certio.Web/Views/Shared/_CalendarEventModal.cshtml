@@ -1,3 +1,8 @@
+@{
+    var orgType = ViewBag.OrganizationType != null ? (Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType : Certio.Domain.Organizations.OrganizationType.LawFirm;
+    var matterLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
+    var mattersLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType);
+}
 <!-- Calendar Event Details Modal -->
 <div class="task-details-modal" id="calendarEventModal" style="display: none; border-radius: 12px;">
     
@@ -9,7 +14,7 @@
                 <div class="event-matter-selector-container">
                     <button class="event-matter-selector-btn" id="eventMatterSelectorBtn">
                         <i class="fas fa-folder"></i>
-                        <span class="event-matter-selector-text" id="eventMatterSelectorText">Select a Matter</span>
+                        <span class="event-matter-selector-text" id="eventMatterSelectorText">Select a @matterLabel</span>
                         <i class="fas fa-chevron-down event-matter-selector-arrow"></i>
                     </button>
                 </div>
@@ -258,12 +263,12 @@
 <!-- Matter Selector Popup -->
 <div class="event-matter-popup" id="eventMatterPopup" style="display: none;">
     <div class="event-matter-popup-inner">
-        <div class="event-matter-popup-title">Select a Matter</div>
+        <div class="event-matter-popup-title">Select a @matterLabel</div>
         <div class="event-matter-popup-list" id="eventMatterPopupList">
             <!-- "Select a Matter" Option -->
-            <button type="button" class="event-matter-item" data-matter-id="" title="Select a Matter">
+            <button type="button" class="event-matter-item" data-matter-id="" title="Select a @matterLabel">
                 <i class="fas fa-folder-open"></i>
-                <span class="event-matter-item-text">Select a Matter</span>
+                <span class="event-matter-item-text">Select a @matterLabel</span>
             </button>
             <!-- Matters will be populated dynamically -->
         </div>
