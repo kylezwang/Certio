@@ -183,7 +183,19 @@
                     <div class="row g-4">
                         @foreach (var member in teamMembers)
                         {
-                            <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 team-member-card" data-name="@member.Name.ToLower()" data-role="@((member.DisplayRole ?? string.Empty).ToLowerInvariant())" data-team="@member.Team.ToString().ToLower()">
+                            <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 team-member-card" 
+                                 data-name="@member.Name.ToLower()" 
+                                 data-role="@((member.DisplayRole ?? string.Empty).ToLowerInvariant())" 
+                                 data-team="@member.Team.ToString().ToLower()"
+                                 data-member-id="@member.Id"
+                                 data-member-name="@member.Name"
+                                 data-member-email="@member.Email"
+                                 data-member-initials="@member.Initials"
+                                 data-member-displayrole="@member.DisplayRole"
+                                 data-member-role="@member.Role"
+                                 data-member-department="@member.Department"
+                                 data-member-location="@member.Location"
+                                 onclick="showUserDetailsModal(this)">
                                 <div class="card h-100 border-0  hover-shadow transition-smooth cursor-pointer">
                                     <div class="card-body d-flex flex-column align-items-center text-center p-4">
                                         <!-- Avatar -->
@@ -1022,4 +1034,360 @@
     .view-join-code-btn:hover i {
         color: #3d1019;
     }
+
+    /* User Details Modal Styles */
+    #userDetailsModal.task-details-modal {
+        position: fixed;
+        top: 7vh;
+        left: 20vw;
+        right: 320px;
+        bottom: 0;
+        width: auto;
+        height: auto;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1050;
+        display: none;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 2rem 1rem;
+        border-radius: 20px 20px 0 0;
+    }
+
+    /* Adjust when sidebar is hidden */
+    .sidebar-hidden #userDetailsModal.task-details-modal {
+        left: calc(6vw + 1rem);
+    }
+
+    /* Adjust when chat is hidden */
+    .chat-hidden #userDetailsModal.task-details-modal {
+        right: 1rem;
+    }
+
+    #userDetailsModal .modal-dialog {
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    #userDetailsModal .task-details-content {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        max-height: calc(100vh - 10vh);
+        overflow-y: auto;
+        padding-bottom: 1rem;
+    }
+
+    #userDetailsModal .user-avatar-large {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: white;
+        margin: 0 auto;
+    }
+
+    /* Register.cshtml Form Styling */
+    #userDetailsModal .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    #userDetailsModal .form-label {
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    #userDetailsModal .form-control,
+    #userDetailsModal .form-select {
+        border: 1px solid rgba(61, 16, 25, 0.08);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        background-color: #ffffff !important;
+        color: #374151 !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
+        height: auto;
+        line-height: 1.5;
+    }
+    
+    #userDetailsModal .form-select {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 16px 12px;
+        padding-right: 2.5rem;
+    }
+
+    #userDetailsModal .form-control:focus,
+    #userDetailsModal .form-select:focus {
+        border-color: rgba(61, 16, 25, 0.08);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+        outline: none;
+    }
+    
+    /* Ensure form-control-lg and form-select-lg match */
+    #userDetailsModal .form-control-lg,
+    #userDetailsModal .form-select-lg {
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+        line-height: 1.5;
+    }
+    
+    #userDetailsModal .form-select-lg {
+        padding-right: 2.5rem;
+    }
+
+    #userDetailsModal .form-control::placeholder {
+        color: #9ca3af;
+    }
+
+    #userDetailsModal .form-text {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    #userDetailsModal .btn-primary {
+        background: #3d1019;
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        color: white;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(11, 54, 94, 0.3);
+    }
+
+    #userDetailsModal .btn-primary:hover {
+        box-shadow: 0 4px 8px rgba(11, 54, 94, 0.4);
+        color: white;
+    }
+
+    #userDetailsModal .btn-secondary {
+        background: #ffffff;
+        border: 1px solid rgba(61, 16, 25, 0.08);
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        color: #3d1019;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
+    }
+
+    #userDetailsModal .btn-secondary:hover {
+        background: #f8fafc;
+        border-color: #3d1019;
+        color: #3d1019;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+    }
 </style>
+
+<!-- User Details Modal -->
+<div class="task-details-modal" id="userDetailsModal">
+    <div class="modal-dialog">
+        <div class="task-details-content">
+            <!-- Modal Header -->
+            <div class="task-details-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
+                <div class="task-details-header-left" style="display: flex; align-items-center; gap: 0.75rem; flex: 1;">
+                    <i class="fa-solid fa-user" style="color: #3d1019; font-size: 1.25rem;"></i>
+                    <h2 class="task-title" style="cursor: default; margin: 0; font-size: 1.25rem; font-weight: 600; color: #3d1019;">Team Member Details</h2>
+                </div>
+                <button type="button" class="btn-close" onclick="closeUserDetailsModal()" aria-label="Close" style="margin: 0;"></button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="task-details-body" style="padding: 2rem; max-height: 70vh;">
+                <!-- User Avatar & Name -->
+                <div class="text-center mb-4">
+                    <div class="user-avatar-large" id="modalUserAvatar" style="background-color: #3d1019;">
+                        JD
+                    </div>
+                    <h3 class="fw-bold text-dark mt-3 mb-1" id="modalUserName">John Doe</h3>
+                    <p class="text-muted" id="modalUserRole">Managing Partner</p>
+                </div>
+
+                <!-- User Details Form - Matching Register.cshtml styling -->
+                <form id="userDetailsForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-4">
+                                <label for="modalInputFirstName" class="form-label fw-bold text-dark">First Name</label>
+                                <input type="text" class="form-control form-control-lg" id="modalInputFirstName" placeholder="Enter first name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-4">
+                                <label for="modalInputLastName" class="form-label fw-bold text-dark">Last Name</label>
+                                <input type="text" class="form-control form-control-lg" id="modalInputLastName" placeholder="Enter last name" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label for="modalInputEmail" class="form-label fw-bold text-dark">Email Address</label>
+                        <input type="email" class="form-control form-control-lg" id="modalInputEmail" placeholder="Enter email address" required>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label for="modalInputRole" class="form-label fw-bold text-dark">Role</label>
+                        <select class="form-select form-select-lg" id="modalInputRole">
+                            <option value="">Select a role</option>
+                            @{
+                                var roleOrgType = ViewBag.OrganizationType != null ? (Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType : Certio.Domain.Organizations.OrganizationType.LawFirm;
+                                var roles = new[] 
+                                { 
+                                    Certio.Domain.Users.OrganizationRoles.ManagingPartner,
+                                    Certio.Domain.Users.OrganizationRoles.Partner,
+                                    Certio.Domain.Users.OrganizationRoles.Associate,
+                                    Certio.Domain.Users.OrganizationRoles.Paralegal,
+                                    Certio.Domain.Users.OrganizationRoles.Staff,
+                                    Certio.Domain.Users.OrganizationRoles.Guest
+                                };
+                                
+                                foreach (var role in roles)
+                                {
+                                    var displayName = Certio.Web.Helpers.RoleDisplayHelper.GetRoleDisplayName(role, roleOrgType);
+                                    <option value="@role">@displayName</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label for="modalInputDepartment" class="form-label fw-bold text-dark">Department (Optional)</label>
+                        <input type="text" class="form-control form-control-lg" id="modalInputDepartment" placeholder="e.g., Litigation, Corporate">
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label for="modalInputLocation" class="form-label fw-bold text-dark">Location (Optional)</label>
+                        <input type="text" class="form-control form-control-lg" id="modalInputLocation" placeholder="e.g., New York, San Francisco">
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-secondary" onclick="closeUserDetailsModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // User Details Modal Functions
+    function showUserDetailsModal(element) {
+        const modal = document.getElementById('userDetailsModal');
+        if (!modal) return;
+
+        // Get data from the clicked card
+        const memberId = element.getAttribute('data-member-id');
+        const memberName = element.getAttribute('data-member-name');
+        const memberEmail = element.getAttribute('data-member-email');
+        const memberInitials = element.getAttribute('data-member-initials');
+        const memberDisplayRole = element.getAttribute('data-member-displayrole');
+        const memberRole = element.getAttribute('data-member-role');
+        const memberDepartment = element.getAttribute('data-member-department');
+        const memberLocation = element.getAttribute('data-member-location');
+
+        // Get the team color from the avatar in the card
+        const avatar = element.querySelector('.team-member-avatar');
+        const avatarColor = avatar ? window.getComputedStyle(avatar).backgroundColor : '#3d1019';
+
+        // Split name into first and last
+        const nameParts = (memberName || '').split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+
+        // Populate modal
+        document.getElementById('modalUserAvatar').textContent = memberInitials || 'JD';
+        document.getElementById('modalUserAvatar').style.backgroundColor = avatarColor;
+        document.getElementById('modalUserName').textContent = memberName || 'User';
+        document.getElementById('modalUserRole').textContent = memberDisplayRole || 'Team Member';
+        document.getElementById('modalInputFirstName').value = firstName;
+        document.getElementById('modalInputLastName').value = lastName;
+        document.getElementById('modalInputEmail').value = memberEmail || '';
+        document.getElementById('modalInputRole').value = memberRole || '';
+        document.getElementById('modalInputDepartment').value = memberDepartment || '';
+        document.getElementById('modalInputLocation').value = memberLocation || '';
+
+        // Show modal
+        modal.style.display = 'flex';
+        
+        // Add body class to handle sidebar adjustments
+        if (document.querySelector('.client-sidebar') && document.querySelector('.client-sidebar').style.transform === 'translateX(-100%)') {
+            document.body.classList.add('sidebar-hidden');
+        }
+        if (document.querySelector('.chat-panel') && document.querySelector('.chat-panel').style.display === 'none') {
+            document.body.classList.add('chat-hidden');
+        }
+    }
+
+    function closeUserDetailsModal() {
+        const modal = document.getElementById('userDetailsModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // Close modal on background click
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('userDetailsModal');
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeUserDetailsModal();
+                }
+            });
+        }
+
+        // Handle form submission
+        const form = document.getElementById('userDetailsForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const firstName = document.getElementById('modalInputFirstName').value;
+                const lastName = document.getElementById('modalInputLastName').value;
+                const email = document.getElementById('modalInputEmail').value;
+                const password = document.getElementById('modalInputPassword').value;
+                const confirmPassword = document.getElementById('modalInputConfirmPassword').value;
+                
+                // Validation matching Register.cshtml
+                if (!firstName || !lastName || !email) {
+                    alert('Please fill in all required fields');
+                    return;
+                }
+                
+                if (password && password !== confirmPassword) {
+                    alert('Passwords do not match');
+                    return;
+                }
+                
+                if (password && password.length < 6) {
+                    alert('Password must be at least 6 characters long');
+                    return;
+                }
+                
+                // TODO: Add save logic here - send to backend
+                console.log('Saving user details...', {
+                    firstName,
+                    lastName,
+                    email,
+                    password: password ? '***' : 'unchanged'
+                });
+                
+                closeUserDetailsModal();
+            });
+        }
+    });
+</script>

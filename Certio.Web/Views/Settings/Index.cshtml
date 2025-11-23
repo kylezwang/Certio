@@ -7,6 +7,11 @@
     var organizationId = ViewBag.OrganizationId ?? ViewContext.HttpContext.Items["CurrentOrganizationId"];
     var org = ViewBag.OrganizationDetails as OrganizationDto;
     var orgName = org?.Name ?? ViewBag.OrganizationName ?? "Organization";
+    var orgType = ViewBag.OrganizationType != null 
+        ? (Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType 
+        : Certio.Domain.Organizations.OrganizationType.LawFirm;
+    var mattersLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType);
+    var matterLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
 }
 
 <!-- Organization ID for JavaScript access -->
@@ -45,7 +50,7 @@
                 </a>
                 <a href="#matters" class="settings-nav-item" data-tab="matters">
                     <i class="fas fa-folder"></i>
-                    <span>Matters & Services</span>
+                    <span>@mattersLabel & Services</span>
                 </a>
                 <a href="#documents" class="settings-nav-item" data-tab="documents">
                     <i class="fas fa-file-alt"></i>
@@ -329,12 +334,12 @@
                     <div class="settings-section">
                         <div class="settings-section-header">
                             <h3>Required Metadata</h3>
-                            <p>Define mandatory fields for new matters</p>
+                            <p>Define mandatory fields for new @mattersLabel.ToLower()</p>
                         </div>
                         <div class="settings-section-content">
                             <div class="settings-row">
                                 <div class="settings-row-content">
-                                    <label class="settings-row-label">Matter number required</label>
+                                    <label class="settings-row-label">@matterLabel number required</label>
                                 </div>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="matterNumberRequired" checked>
@@ -707,7 +712,7 @@
                         <div class="settings-section-content">
                             <div class="settings-row">
                                 <div class="settings-row-content">
-                                    <label class="settings-row-label">Enable legal hold per matter</label>
+                                    <label class="settings-row-label">Enable legal hold per @matterLabel.ToLower()</label>
                                 </div>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="legalHoldPerMatter">

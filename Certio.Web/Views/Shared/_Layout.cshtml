@@ -854,6 +854,8 @@
                         if (result.success && result.activeFirmId) {
                             historyLink.href = `/Client/${result.activeFirmId}/History`;
                             updateHistoryActiveState(result.activeFirmId);
+                        } else {
+                            historyLink.href = '#';
                         }
                     } catch (e) {
                         historyLink.href = '#';
@@ -1073,7 +1075,19 @@
                         `;
                         clientItem.addEventListener('click', () => {
                             setLastOpenedClientOrgId(o.organizationId);
+                            // External Contacts should navigate to Clients list within the active firm context
+                            if (o.isExternalContacts) {
+                                const activeFirmId = localStorage.getItem('activeFirmId');
+                                if (activeFirmId) {
+                                    window.location.href = `/Client/${activeFirmId}/Clients`;
+                                } else {
+                                    // Fallback: try to use the current page's org ID if available
+                                    const currentOrgId = document.querySelector('[data-organization-id]')?.getAttribute('data-organization-id');
+                                    window.location.href = currentOrgId ? `/Client/${currentOrgId}/Clients` : '/';
+                                }
+                            } else {
                             window.location.href = `/Client/${o.organizationId}/Dashboard`;
+                            }
                         });
                         clientsList.appendChild(clientItem);
                     });
