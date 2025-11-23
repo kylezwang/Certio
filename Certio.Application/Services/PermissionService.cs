@@ -358,7 +358,7 @@ namespace Certio.Application.Services
 
         public async Task<bool> HasFirmBasedAccessAsync(int userId, int organizationId)
         {
-            // Get user's law firm membership
+            // Get user's law firm or event planner membership
             var lawFirmMembership = await _context.UserOrganizations
                 .Include(uo => uo.Organization)
                     .ThenInclude(o => o.OrganizationRelationships)
@@ -373,12 +373,14 @@ namespace Certio.Application.Services
             }
 
             // Check if there's a valid relationship to the target organization
+            // Support both LawFirmClient and EventPlannerClient relationships
             var hasRelationship = lawFirmMembership.Organization.OrganizationRelationships
                 .Any(rel => 
                     rel.TargetOrganizationId == organizationId && 
                     rel.IsActive && 
                     !rel.IsDeleted &&
-                    rel.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient &&
+                    (rel.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient ||
+                     rel.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.EventPlannerClient) &&
                     (!rel.ExpiresAt.HasValue || rel.ExpiresAt.Value > DateTime.UtcNow));
 
             return hasRelationship;
@@ -411,7 +413,8 @@ namespace Certio.Application.Services
                     .Where(rel => 
                         rel.IsActive && 
                         !rel.IsDeleted &&
-                        rel.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient &&
+                        (rel.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient ||
+                         rel.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.EventPlannerClient) &&
                         (!rel.ExpiresAt.HasValue || rel.ExpiresAt.Value > DateTime.UtcNow))
                     .Select(rel => rel.TargetOrganizationId)
                     .ToList();
