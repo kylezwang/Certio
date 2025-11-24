@@ -124,19 +124,25 @@
                                 <!-- DEBUG: Rendering hidden inputs for Step @Model.Step, FirmAssignments.Count = @Model.FirmAssignments.Count -->
                                 @for (int i = 0; i < Model.FirmAssignments.Count; i++)
                                 {
-                                    <!-- DEBUG: FirmAssignments[i] - Type: @Model.FirmAssignments[i].AssignmentType, UserId: @Model.FirmAssignments[i].UserId, Role: @Model.FirmAssignments[i].Role -->
-                                    <input type="hidden" name="FirmAssignments[@i].UserId" value="@Model.FirmAssignments[i].UserId" />
-                                    <input type="hidden" name="FirmAssignments[@i].AssignmentType" value="@Model.FirmAssignments[i].AssignmentType" />
-                                    <input type="hidden" name="FirmAssignments[@i].Role" value="@Model.FirmAssignments[i].Role" />
-                                    <input type="hidden" name="FirmAssignments[@i].IsNotifyRecipient" value="@Model.FirmAssignments[i].IsNotifyRecipient.ToString().ToLower()" />
+                                    @if (Model.FirmAssignments[i] != null)
+                                    {
+                                        <!-- DEBUG: FirmAssignments[i] - Type: @Model.FirmAssignments[i].AssignmentType, UserId: @Model.FirmAssignments[i].UserId, Role: @Model.FirmAssignments[i].Role -->
+                                        <input type="hidden" name="FirmAssignments[@i].UserId" value="@Model.FirmAssignments[i].UserId" />
+                                        <input type="hidden" name="FirmAssignments[@i].AssignmentType" value="@Model.FirmAssignments[i].AssignmentType" />
+                                        <input type="hidden" name="FirmAssignments[@i].Role" value="@Model.FirmAssignments[i].Role" />
+                                        <input type="hidden" name="FirmAssignments[@i].IsNotifyRecipient" value="@Model.FirmAssignments[i].IsNotifyRecipient.ToString().ToLower()" />
+                                    }
                                 }
                                 <!-- DEBUG: RelevantContacts.Count = @Model.RelevantContacts.Count -->
                                 @for (int i = 0; i < Model.RelevantContacts.Count; i++)
                                 {
-                                    <!-- DEBUG: RelevantContacts[i] - UserId: @Model.RelevantContacts[i].UserId, Involvement: @Model.RelevantContacts[i].Involvement -->
-                                    <input type="hidden" name="RelevantContacts[@i].UserId" value="@Model.RelevantContacts[i].UserId" />
-                                    <input type="hidden" name="RelevantContacts[@i].Involvement" value="@Model.RelevantContacts[i].Involvement" />
-                                    <input type="hidden" name="RelevantContacts[@i].IsNotifyRecipient" value="@Model.RelevantContacts[i].IsNotifyRecipient.ToString().ToLower()" />
+                                    @if (Model.RelevantContacts[i] != null)
+                                    {
+                                        <!-- DEBUG: RelevantContacts[i] - UserId: @Model.RelevantContacts[i].UserId, Involvement: @Model.RelevantContacts[i].Involvement -->
+                                        <input type="hidden" name="RelevantContacts[@i].UserId" value="@Model.RelevantContacts[i].UserId" />
+                                        <input type="hidden" name="RelevantContacts[@i].Involvement" value="@Model.RelevantContacts[i].Involvement" />
+                                        <input type="hidden" name="RelevantContacts[@i].IsNotifyRecipient" value="@Model.RelevantContacts[i].IsNotifyRecipient.ToString().ToLower()" />
+                                    }
                                 }
                             }
                             @if (Model.Step != 4)
