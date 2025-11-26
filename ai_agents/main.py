@@ -13,6 +13,8 @@ import re
 import time
 from collections import deque
 import secrets
+import base64
+import mimetypes
 from simplified_cost_optimization import (
     SimplifiedModelSelector, TaskComplexityAnalyzer, UsageTracker,
     ModelType, TaskComplexity
@@ -272,9 +274,16 @@ class ClarityExplanation(BaseModel):
     risk_level: str
     recommended_actions: List[str]
 
+class ImageAttachment(BaseModel):
+    """Represents an image attachment in a message"""
+    url: str  # Can be a URL or base64-encoded data URI
+    mime_type: Optional[str] = None
+    document_id: Optional[str] = None
+
 class AIAgentRequest(BaseModel):
     conversation_id: str
     messages: List[ChatMessage]
+    attachments: Optional[List[ImageAttachment]] = None
     user_type: Optional[str] = None
     text: Optional[str] = None
 
@@ -284,6 +293,45 @@ class AIAgentResponse(BaseModel):
     confidence: str
     metadata: Dict[str, Any]
     requires_review: bool
+
+# Helper functions for image/file processing
+def encode_image_to_base64(image_path: str) -> str:
+    """Encode an image file to base64 string"""
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode('utf-8')
+
+def get_image_mime_type(image_path: str) -> str:
+    """Get MIME type of an image file"""
+    mime_type, _ = mimetypes.guess_type(image_path)
+    return mime_type or "image/jpeg"
+
+def is_image_url(url: str) -> bool:
+    """Check if URL is an image"""
+    image_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.tiff', '.svg'}
+    return any(url.lower().endswith(ext) for ext in image_extensions) or url.startswith('data:image/')
+
+def prepare_vision_message(text: str, image_urls: List[str]) -> List[Dict[str, Any]]:
+    """Prepare message content for vision models (GPT-4 Vision)"""
+    content = []
+    
+    # Add text content
+    if text:
+        content.append({
+            "type": "text",
+            "text": text
+        })
+    
+    # Add image content
+    for img_url in image_urls:
+        content.append({
+            "type": "image_url",
+            "image_url": {
+                "url": img_url,
+                "detail": "high"  # Use "high" for detailed analysis, "low" for faster/cheaper processing
+            }
+        })
+    
+    return content
 
 # Enhanced AI Agent Classes with Agentic Capabilities
 class BaseAgent:
@@ -318,8 +366,12 @@ class BaseAgent:
             return chat_messages
         return messages
     
-    async def _call_openai(self, prompt: str, model: str = "gpt-3.5-turbo", max_tokens: int = 1000, temperature: float = 0.3, user_type: str = "Client") -> str:
-        """Enhanced OpenAI API call with intelligent model selection and cost optimization"""
+    async def _call_openai(self, prompt: str, model: str = "gpt-3.5-turbo", max_tokens: int = 1000, temperature: float = 0.3, user_type: str = "Client", image_urls: Optional[List[str]] = None) -> str:
+        """Enhanced OpenAI API call with intelligent model selection, cost optimization, and vision support"""
+        # If images are provided, use vision model
+        if image_urls:
+            return await self._call_openai_vision(prompt, image_urls, max_tokens, temperature)
+        
         # Analyze task complexity for optimal model selection
         task_complexity = task_analyzer.analyze_task(prompt, len(prompt), user_type)
         
@@ -371,6 +423,50 @@ class BaseAgent:
                     # Wait before retry with exponential backoff
                     wait_time = 2 ** attempt
                     logger.warning(f"OpenAI API call failed (attempt {attempt + 1}), retrying in {wait_time}s: {e}")
+                    await asyncio.sleep(wait_time)
+    
+    async def _call_openai_vision(self, prompt: str, image_urls: List[str], max_tokens: int = 2000, temperature: float = 0.3) -> str:
+        """Call OpenAI with vision model (GPT-4 Vision) for image analysis"""
+        # Use GPT-4o for vision tasks (supports vision natively)
+        vision_model = get_model_name(ModelType.GPT_4O) if os.getenv("AZURE_OPENAI_ENDPOINT") else "gpt-4o"
+        
+        logger.info(f"Using vision model: {vision_model} for {len(image_urls)} image(s)")
+        
+        # Prepare vision message content
+        message_content = prepare_vision_message(prompt, image_urls)
+        
+        # Wait for rate limiter before making request
+        await rate_limiter.wait_if_needed()
+        
+        for attempt in range(self.max_retries):
+            try:
+                response = client.chat.completions.create(
+                    model=vision_model,
+                    messages=[{
+                        "role": "user",
+                        "content": message_content
+                    }],
+                    max_tokens=max_tokens,
+                    temperature=temperature
+                )
+                
+                logger.info(f"Vision API call successful. Tokens used: {response.usage.total_tokens if hasattr(response, 'usage') else 'unknown'}")
+                
+                return response.choices[0].message.content
+            except Exception as e:
+                if "429" in str(e) or "rate limit" in str(e).lower():
+                    wait_time = min(60, 10 * (2 ** attempt))
+                    logger.warning(f"Rate limit hit on vision API, waiting {wait_time}s before retry {attempt + 1}")
+                    await asyncio.sleep(wait_time)
+                elif "quota" in str(e).lower() or "insufficient_quota" in str(e).lower():
+                    logger.error(f"OpenAI quota exceeded on vision API: {e}")
+                    raise Exception("OpenAI quota exceeded. Please check your billing and add credits.")
+                elif attempt == self.max_retries - 1:
+                    logger.error(f"Vision API call failed after {self.max_retries} attempts: {e}")
+                    raise
+                else:
+                    wait_time = 2 ** attempt
+                    logger.warning(f"Vision API call failed (attempt {attempt + 1}), retrying in {wait_time}s: {e}")
                     await asyncio.sleep(wait_time)
     
     def _extract_json_from_response(self, response: str) -> dict:
@@ -1930,6 +2026,22 @@ async def conversational_response(payload: dict, _: str = Depends(authenticate_r
         user_type = payload.get("user_type", "Client")
         document_context = payload.get("document_context", None)
         stream = payload.get("stream", False)  # Support streaming
+        attachments = payload.get("attachments", [])  # Image/file attachments
+        
+        # Extract image URLs from attachments
+        image_urls = []
+        if attachments:
+            for attachment in attachments:
+                if isinstance(attachment, dict):
+                    url = attachment.get("url", "")
+                    if url and is_image_url(url):
+                        image_urls.append(url)
+                        logger.info(f"Image attachment detected: {url[:100]}...")
+        
+        # Add note about images to user message if present
+        if image_urls:
+            user_message = f"{user_message}\n\n[Note: User has attached {len(image_urls)} image(s) for analysis]"
+            logger.info(f"Processing request with {len(image_urls)} image(s)")
         
         # Quick analysis for conversation context (no API call)
         conversation_analysis = _quick_conversation_analysis(messages, user_message, user_type)
@@ -1958,6 +2070,16 @@ Format your response as proper HTML with <p> tags."""
             else:
                 system_prompt = enhance_agent_prompt("ConversationalAI", base_simple_prompt, user_message, simple_context)
             
+            # For simple messages, include recent history (last 3-5 messages) so AI knows if this is a follow-up
+            history_messages = []
+            if messages:
+                recent_messages = messages[-5:]  # Last 5 messages
+                for msg in recent_messages:
+                    content = msg.get("content", "").strip() if isinstance(msg, dict) else msg.content.strip()
+                    if content:
+                        role = "assistant" if (msg.get("is_from_ai") if isinstance(msg, dict) else msg.is_from_ai) else "user"
+                        history_messages.append({"role": role, "content": content})
+            
             # Use GPT-4o-mini for simple responses
             selected_model = get_model_name(ModelType.GPT_4O_MINI) if os.getenv("AZURE_OPENAI_ENDPOINT") else "gpt-4o-mini"
             max_tokens = 200
@@ -1976,7 +2098,8 @@ Format your response as proper HTML with <p> tags."""
             # Build document context section if available
             doc_context_section = _build_document_context_section(document_context)
             
-            history_block, context_metadata = await _prepare_conversation_history(
+            # Prepare conversation history as proper message objects
+            history_messages, context_metadata = await _prepare_conversation_history_as_messages(
                 messages,
                 user_type,
                 conversation_analysis,
@@ -2001,10 +2124,12 @@ CONVERSATION CONTEXT:
 - Urgency: {conversation_analysis.get('urgency_level', 'Medium')}
 - Conversation Stage: {conversation_analysis.get('conversation_stage', 'Initial')}
 
-OPTIMIZED CONVERSATION HISTORY ({context_metadata.get('history_strategy', 'full')}):
-{history_block}
+NOTE: You will receive the full conversation history as separate messages. Pay attention to:
+- References like "that matter", "this task", "the second option" refer to previous messages
+- When user says "tell me more" or "what about X", look at the immediate previous context
+- Maintain continuity across the conversation
 
-CURRENT REQUEST: {user_message}{doc_context_section}"""  # Close the base prompt here
+{doc_context_section if doc_context_section else ''}"""
 
             # Enhance prompt with RAG context for Certio-specific knowledge
             conversation_context_payload = {
@@ -2062,6 +2187,14 @@ CURRENT REQUEST: {user_message}{doc_context_section}"""  # Close the base prompt
 5. If you don't have the specific information requested, say "I don't have access to that information in your data"
 6. Do NOT start responses with "Hello [Name]," - only greet in the first message of a conversation
 7. Pay attention to pronouns like "that matter", "this task" - they refer to the previous message
+
+🎯 TEMPORAL & CONTEXTUAL UNDERSTANDING:
+1. When user says "most recent", "recent", "latest", "last" - LOOK AT THE DATA and find the actual most recent items by date
+2. When user asks to "analyze" something specific - READ THE ACTUAL CONTENT and provide SPECIFIC analysis, NOT generic instructions
+3. When user says "tell me about X" - EXTRACT AND PRESENT the actual data about X, don't explain how they could look it up
+4. For "before/after" requests - SHOW ACTUAL CONTENT with specific improvements, not generic advice
+5. NEVER give "how-to" instructions when the user wants you to DO THE ANALYSIS YOURSELF
+6. If the data contains the answer, USE IT DIRECTLY - don't redirect the user to review it themselves
 
 RESPONSE REQUIREMENTS:
 1. Provide a helpful, conversational response to the user's request
@@ -2125,11 +2258,37 @@ Respond as an intelligent legal assistant:"""
         
         # If streaming is not requested, return complete response
         if not stream:
+            # Build proper message array with conversation history
+            api_messages = []
+            
+            # Add system message first
+            api_messages.append({"role": "system", "content": system_prompt})
+            
+            # Add conversation history messages (if not simple message)
+            if not is_simple_message and history_messages:
+                api_messages.extend(history_messages)
+            
+            # Add current user message (with images if present)
+            if image_urls:
+                # Use vision model for image analysis
+                logger.info(f"Using vision model with {len(image_urls)} image(s)")
+                vision_model = get_model_name(ModelType.GPT_4O) if os.getenv("AZURE_OPENAI_ENDPOINT") else "gpt-4o"
+                selected_model = vision_model
+                
+                # Prepare vision message content
+                vision_content = prepare_vision_message(user_message, image_urls)
+                api_messages.append({"role": "user", "content": vision_content})
+                max_tokens = max(max_tokens, 2000)  # Vision analysis may need more tokens
+            else:
+                # Standard text message
+                api_messages.append({"role": "user", "content": user_message})
+            
+            logger.info(f"Sending {len(api_messages)} messages to AI (including {len(history_messages) if history_messages else 0} history messages)")
+            
+            # Make API call with full conversation context
             response = client.chat.completions.create(
                 model=selected_model,
-                messages=[
-                    {"role": "system", "content": system_prompt}
-                ],
+                messages=api_messages,
                 max_tokens=max_tokens,
                 temperature=temperature
             )
@@ -2348,6 +2507,14 @@ CURRENT REQUEST: {user_message}{doc_context_section}"""
 5. If you don't have the specific information requested, say "I don't have access to that information in your data"
 6. Do NOT start responses with "Hello [Name]," - only greet in the first message of a conversation
 7. Pay attention to pronouns like "that matter", "this task" - they refer to the previous message
+
+🎯 TEMPORAL & CONTEXTUAL UNDERSTANDING:
+1. When user says "most recent", "recent", "latest", "last" - LOOK AT THE DATA and find the actual most recent items by date
+2. When user asks to "analyze" something specific - READ THE ACTUAL CONTENT and provide SPECIFIC analysis, NOT generic instructions
+3. When user says "tell me about X" - EXTRACT AND PRESENT the actual data about X, don't explain how they could look it up
+4. For "before/after" requests - SHOW ACTUAL CONTENT with specific improvements, not generic advice
+5. NEVER give "how-to" instructions when the user wants you to DO THE ANALYSIS YOURSELF
+6. If the data contains the answer, USE IT DIRECTLY - don't redirect the user to review it themselves
 
 RESPONSE REQUIREMENTS:
 1. Provide a helpful, conversational response to the user's request
@@ -2726,6 +2893,91 @@ def _quick_local_summary(messages: List[Dict[str, Any]]) -> ConversationSummary:
         suggested_actions=[]
     )
 
+async def _prepare_conversation_history_as_messages(
+    messages: List[Union[dict, ChatMessage]],
+    user_type: str,
+    conversation_analysis: Dict[str, Any],
+    token_budget: Optional[int] = None
+) -> Tuple[List[Dict[str, str]], Dict[str, Any]]:
+    """
+    Build conversation context as proper message objects for OpenAI API.
+    Returns list of message dicts with 'role' and 'content' keys.
+    """
+    if not messages:
+        return [], {
+            "history_strategy": "empty",
+            "original_token_estimate": 0,
+            "optimized_token_estimate": 0
+        }
+
+    normalized_messages = _normalize_messages(messages)
+    token_budget = token_budget or MAX_CONVERSATION_CONTEXT_TOKENS
+
+    # Convert to OpenAI message format
+    api_messages = []
+    total_tokens = 0
+    
+    for msg in normalized_messages:
+        content = (msg.get("content") or "").strip()
+        if not content:
+            continue
+        
+        # Determine role - AI messages are "assistant", user messages are "user"
+        role = "assistant" if msg.get("is_from_ai") else "user"
+        
+        api_messages.append({
+            "role": role,
+            "content": content
+        })
+        
+        total_tokens += _estimate_token_count_from_text(content)
+
+    history_metadata: Dict[str, Any] = {
+        "history_strategy": "full",
+        "original_token_estimate": total_tokens,
+        "token_budget": token_budget,
+        "message_count": len(api_messages)
+    }
+
+    # If under budget, return all messages
+    if total_tokens <= token_budget:
+        history_metadata["optimized_token_estimate"] = total_tokens
+        history_metadata["compression_applied"] = False
+        return api_messages, history_metadata
+
+    # If over budget, take most recent messages that fit
+    logger.info(f"Conversation history ({total_tokens} tokens) exceeds budget ({token_budget}), applying compression")
+    
+    compressed_messages = []
+    running_total = 0
+    
+    # Take messages from most recent backwards
+    for msg in reversed(api_messages):
+        msg_tokens = _estimate_token_count_from_text(msg["content"])
+        if running_total + msg_tokens > token_budget:
+            break
+        compressed_messages.insert(0, msg)  # Insert at beginning to maintain order
+        running_total += msg_tokens
+    
+    # If we dropped messages, add a summary at the beginning
+    if len(compressed_messages) < len(api_messages):
+        dropped_count = len(api_messages) - len(compressed_messages)
+        summary_msg = {
+            "role": "system",
+            "content": f"[Earlier conversation context: {dropped_count} earlier messages summarized - conversation involves {', '.join(conversation_analysis.get('legal_topics', []))}]"
+        }
+        compressed_messages.insert(0, summary_msg)
+    
+    history_metadata.update({
+        "history_strategy": "compressed",
+        "optimized_token_estimate": running_total,
+        "compression_applied": True,
+        "messages_kept": len(compressed_messages),
+        "messages_dropped": len(api_messages) - len(compressed_messages)
+    })
+    
+    return compressed_messages, history_metadata
+
 async def _prepare_conversation_history(
     messages: List[Union[dict, ChatMessage]],
     user_type: str,
@@ -2735,6 +2987,7 @@ async def _prepare_conversation_history(
     """
     Build conversation context with intelligent compression and summarization.
     Implements rolling history strategy to stay within token limits.
+    (Legacy version - returns string format)
     """
     if not messages:
         return "No previous conversation.", {

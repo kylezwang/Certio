@@ -2,8 +2,8 @@
   "user_id": 1,
   "organization_id": 1,
   "user_name": "Kyle Wang",
-  "total_chunks": 96,
-  "last_synced": "2025-11-23T11:09:46.133722",
+  "total_chunks": 145,
+  "last_synced": "2025-11-26T09:14:33.465747",
   "module_summaries": {
     "matters": {
       "totalMatters": 29,
@@ -38,9 +38,9 @@
       "highPriorityTasks": 14
     },
     "calendar": {
-      "totalEvents": 11,
+      "totalEvents": 10,
       "upcomingEvents": 0,
-      "todayEvents": 1,
+      "todayEvents": 0,
       "thisWeekEvents": 0
     },
     "communications": {
@@ -53,11 +53,22 @@
     "clients": {
       "totalClients": 3,
       "activeClients": 3
+    },
+    "documents": {
+      "totalDocuments": 50,
+      "documentsByType": {
+        "application/pdf": 16,
+        "application/vnd.google-apps.presentation": 22,
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation": 9,
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document": 2,
+        "image/jpeg": 1
+      },
+      "documentsWithContent": 50
     }
   },
   "chunks": [
     {
-      "id": "04bcff5d-3fd5-4aad-8db3-fd23d417fd9d",
+      "id": "5421f552-c9fa-485c-ba08-fe3244a22b16",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 16,
@@ -84,7 +95,7 @@
       "relevance_score": 0
     },
     {
-      "id": "52a550d2-e52b-40b6-a10a-e926d8b9703e",
+      "id": "1e95a7ba-2d35-44a6-ac21-8f7ec9d50030",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 5,
@@ -112,7 +123,7 @@
       "relevance_score": 0
     },
     {
-      "id": "aae8911d-1816-4cc2-b05b-e155d37ffbf4",
+      "id": "01a08592-2ec7-4656-9a03-b226a6d29925",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 30,
@@ -140,7 +151,7 @@
       "relevance_score": 0
     },
     {
-      "id": "52894002-e607-4435-b254-face6261fcb8",
+      "id": "488e3dbd-38aa-4173-9ca8-dd86d572f7af",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 29,
@@ -164,7 +175,7 @@
       "relevance_score": 0
     },
     {
-      "id": "fd143ff2-ee7e-497e-88a0-4a41692bbf99",
+      "id": "d43c6d4c-3786-44d5-922b-eee5efb7c548",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 28,
@@ -192,7 +203,7 @@
       "relevance_score": 0
     },
     {
-      "id": "fb03bcc6-b643-4953-a59d-1b7104c43e80",
+      "id": "dad0072d-24e5-4543-a2b7-ead53cd1404a",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 27,
@@ -220,7 +231,7 @@
       "relevance_score": 0
     },
     {
-      "id": "17babc4e-104d-451a-958b-4377cd570eeb",
+      "id": "ad46907a-9a7b-42c3-bded-36d069777d7d",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 26,
@@ -248,7 +259,7 @@
       "relevance_score": 0
     },
     {
-      "id": "b327ee74-bf6e-4ca7-8c73-b52a368fa89d",
+      "id": "ea5c02ea-acf3-4f39-a3a0-778b7c3cd812",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 25,
@@ -276,7 +287,7 @@
       "relevance_score": 0
     },
     {
-      "id": "6b510df5-6c75-4040-94ef-66c5fe78ef3f",
+      "id": "9590e2ba-22d5-40eb-9eea-3c306fa6c5b0",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 24,
@@ -304,7 +315,7 @@
       "relevance_score": 0
     },
     {
-      "id": "a9ae5c80-c273-435d-ae56-71e49ebc6a81",
+      "id": "5cc5eec6-6af6-4679-983a-37e9cd348275",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 23,
@@ -328,7 +339,7 @@
       "relevance_score": 0
     },
     {
-      "id": "c39b1929-32a3-4964-a68d-3c1fa544020b",
+      "id": "24c989d0-e26f-4c03-8f88-7fadb0992f92",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 22,
@@ -356,7 +367,7 @@
       "relevance_score": 0
     },
     {
-      "id": "b5afdfc8-babf-4f80-a647-834bac94a158",
+      "id": "7cc18de5-2f3b-450c-8421-5e9181cb75f9",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 21,
@@ -384,7 +395,7 @@
       "relevance_score": 0
     },
     {
-      "id": "a60a9d35-97b0-4249-adc4-9fb7de39138f",
+      "id": "a63ee6d0-47e5-4bfd-8d38-5deed80c7ce3",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 20,
@@ -412,7 +423,7 @@
       "relevance_score": 0
     },
     {
-      "id": "440a5d59-685e-4a52-a868-2d823f4bfb91",
+      "id": "e6c329a0-2470-4a18-8742-b26850ea001b",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 19,
@@ -440,7 +451,7 @@
       "relevance_score": 0
     },
     {
-      "id": "3cdf5d61-b8d5-40ed-974d-0d308cec99ff",
+      "id": "4e834c2b-056f-4010-b452-68ac060f0172",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 18,
@@ -468,7 +479,7 @@
       "relevance_score": 0
     },
     {
-      "id": "cae23f78-feea-4baf-b7c8-18688d6a0909",
+      "id": "6aabde4a-1902-4c62-aea0-896c55a7c7c5",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 17,
@@ -496,7 +507,7 @@
       "relevance_score": 0
     },
     {
-      "id": "0aedfcc5-aeb0-4e65-b2af-9541c5f386ef",
+      "id": "00367cd9-a8a5-41de-bd01-8bbece9b8c74",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 15,
@@ -520,7 +531,7 @@
       "relevance_score": 0
     },
     {
-      "id": "8496afe4-fe75-48e0-b1f8-bcc827eb9b25",
+      "id": "c82ddb4c-08b2-4489-a357-3c3a442513e7",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 14,
@@ -547,7 +558,7 @@
       "relevance_score": 0
     },
     {
-      "id": "4202e166-afeb-4aaa-b71a-f3fe22eac90b",
+      "id": "c58f6e11-fea4-4f16-945f-18674d3561ed",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 13,
@@ -571,7 +582,7 @@
       "relevance_score": 0
     },
     {
-      "id": "b8415a3f-1968-4f46-b5f4-5c641e5dd612",
+      "id": "8ee8e578-a5de-4cef-bba6-17fc7e994e94",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 12,
@@ -600,7 +611,7 @@
       "relevance_score": 0
     },
     {
-      "id": "7a1d16f7-18f8-44b0-ad0c-91da63160060",
+      "id": "77b6fa77-0fc8-47a8-8eda-1e6e9428aab5",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 11,
@@ -629,7 +640,7 @@
       "relevance_score": 0
     },
     {
-      "id": "b812c136-f170-4c0e-b7ad-fa33111ee3f1",
+      "id": "83e28545-1e50-4dd7-a351-ecfd8f3ba75f",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 10,
@@ -658,7 +669,7 @@
       "relevance_score": 0
     },
     {
-      "id": "a5c9cea5-d19b-4f9a-a8fc-a7cb838b29ca",
+      "id": "4a61f936-1cfc-4f85-9031-e1de4d349c11",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 9,
@@ -687,7 +698,7 @@
       "relevance_score": 0
     },
     {
-      "id": "4b39fa3c-6400-42c1-8730-d7d7641b6c2e",
+      "id": "6c505b3d-55e3-45ba-9186-bf35b89f18df",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 8,
@@ -716,7 +727,7 @@
       "relevance_score": 0
     },
     {
-      "id": "6e3fb657-02f7-4d0b-8221-48bfb89f4be7",
+      "id": "a94d0036-5c55-4925-a708-c28497d1b8b3",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 7,
@@ -745,7 +756,7 @@
       "relevance_score": 0
     },
     {
-      "id": "69f29f32-4ae9-47c4-859b-f8e37515eb4f",
+      "id": "221da60d-813a-448a-a58e-1505c539f3be",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 6,
@@ -774,7 +785,7 @@
       "relevance_score": 0
     },
     {
-      "id": "9a731600-2ddf-4a6b-be59-bb39afc4cbfb",
+      "id": "9fd393b9-4d17-4a51-98e7-d19d2dad820d",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 4,
@@ -803,7 +814,7 @@
       "relevance_score": 0
     },
     {
-      "id": "f61aa5a0-4d33-436c-aab6-3265735e2264",
+      "id": "28b65ec8-95a7-42c4-9044-bbcf29fcd995",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 2,
@@ -832,7 +843,7 @@
       "relevance_score": 0
     },
     {
-      "id": "5ef8a6b0-ed1e-4174-952e-51b89a867d82",
+      "id": "10a4b215-f655-47d0-b485-8554373ee946",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 1,
@@ -861,7 +872,7 @@
       "relevance_score": 0
     },
     {
-      "id": "20b02d6a-9e28-4a84-b505-a7806c0842cf",
+      "id": "a323a52c-8fb1-49ba-908a-3712616d222c",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 15,
@@ -882,7 +893,7 @@
       "relevance_score": 0
     },
     {
-      "id": "6cab311f-2ab2-4ad5-a6c7-10cce52457c5",
+      "id": "8a5d968e-af04-4519-a1bf-aa7dc81d22b5",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 21,
@@ -903,7 +914,7 @@
       "relevance_score": 0
     },
     {
-      "id": "b5aeb517-3344-4e37-ab63-1358ecbb31a2",
+      "id": "5fab9a48-757b-4ea0-a43f-9dbc4240d7a9",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 9,
@@ -925,7 +936,7 @@
       "relevance_score": 0
     },
     {
-      "id": "e97174f8-6acb-41e2-8209-c8c4b9f391d0",
+      "id": "a4353586-bd52-4308-a97b-dedc8c35d0bc",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 18,
@@ -946,7 +957,7 @@
       "relevance_score": 0
     },
     {
-      "id": "7664909e-b54e-4999-a803-15c0e503a729",
+      "id": "8db591f1-58f7-4daf-8db1-05017c3ef91e",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 19,
@@ -968,7 +979,7 @@
       "relevance_score": 0
     },
     {
-      "id": "9b3325c9-a87e-4e19-a583-2532eb92f0e6",
+      "id": "209d2e13-008e-44d1-81f2-91e192d082c1",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 12,
@@ -989,7 +1000,7 @@
       "relevance_score": 0
     },
     {
-      "id": "03d8dd25-0c1c-4f22-997b-c63763d4df10",
+      "id": "7e06991a-f033-446f-a839-d6179f5cd07e",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 14,
@@ -1011,7 +1022,7 @@
       "relevance_score": 0
     },
     {
-      "id": "4247f842-a133-4b84-830a-62430bdfb23b",
+      "id": "3f832a8c-5c8d-4eb0-9b40-0d7de62de67d",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 10,
@@ -1034,7 +1045,7 @@
       "relevance_score": 0
     },
     {
-      "id": "30abf50f-f438-4948-bb68-88140399e907",
+      "id": "70cb91c4-f986-4e13-a620-578a3e6061e5",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 23,
@@ -1056,7 +1067,7 @@
       "relevance_score": 0
     },
     {
-      "id": "31ce7086-ae09-48ef-b349-ed46a69c903a",
+      "id": "cfc53488-78ab-46d2-a28a-056cfc66d009",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 22,
@@ -1077,7 +1088,7 @@
       "relevance_score": 0
     },
     {
-      "id": "daec7bdb-4ba8-4d34-be45-f3da2453bc93",
+      "id": "908c3908-3e0e-4ca5-9ba8-f6de636dbcd0",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 4,
@@ -1096,7 +1107,7 @@
       "relevance_score": 0
     },
     {
-      "id": "3fe2e39e-83be-4067-aa3d-f67750242a55",
+      "id": "05002d00-3522-424a-a638-6755e93c531a",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 13,
@@ -1117,7 +1128,7 @@
       "relevance_score": 0
     },
     {
-      "id": "4a32ab44-d480-4b10-a7b0-ff0d4f2b2b41",
+      "id": "09f6a593-3d7c-49e2-bd62-cbf65c25789b",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 11,
@@ -1138,7 +1149,7 @@
       "relevance_score": 0
     },
     {
-      "id": "27aa9833-74e0-430e-a3f2-d09f7df61a79",
+      "id": "23d6bf6b-857b-42ce-95fc-cd062d74c75b",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 20,
@@ -1160,7 +1171,7 @@
       "relevance_score": 0
     },
     {
-      "id": "5435adea-25d3-407b-9222-36935ae569ea",
+      "id": "a8a78fe7-e115-4048-8f0d-6856dc0ca183",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 17,
@@ -1179,7 +1190,7 @@
       "relevance_score": 0
     },
     {
-      "id": "bfce1a96-c136-49a3-9a7f-3a97a60c9449",
+      "id": "ee5ecfb0-9857-4879-a9bd-41176d07d5c4",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 8,
@@ -1200,7 +1211,7 @@
       "relevance_score": 0
     },
     {
-      "id": "51100a72-7b3d-4938-8f34-ac8f641cb79f",
+      "id": "e3b8aeaf-552f-4e27-b9f5-e0fd97f2dba8",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 7,
@@ -1223,7 +1234,7 @@
       "relevance_score": 0
     },
     {
-      "id": "3f48e3a4-94ab-435b-ac80-9e9b3d9bbb3b",
+      "id": "75a0dea3-0537-4bed-b045-8187087d2c75",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 6,
@@ -1244,7 +1255,7 @@
       "relevance_score": 0
     },
     {
-      "id": "505a85ae-9008-4ac1-a413-c3b3d91f05f2",
+      "id": "b524a67a-bed8-426e-9145-6d01a253bf57",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 5,
@@ -1263,7 +1274,7 @@
       "relevance_score": 0
     },
     {
-      "id": "b7d0fb93-f6ea-4212-b0d4-7c4da01ffdc4",
+      "id": "df8231b2-86d4-45ac-8a1b-4fe6879ed887",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 3,
@@ -1282,7 +1293,7 @@
       "relevance_score": 0
     },
     {
-      "id": "9ed52c73-7a86-4ea9-b127-c66d755c54a1",
+      "id": "14e0e3c1-057b-4e0f-9a0b-fc0bfa567761",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 2,
@@ -1303,27 +1314,7 @@
       "relevance_score": 0
     },
     {
-      "id": "a51158a4-0716-4a06-b09c-fbc50caa7ac4",
-      "module_name": "calendar",
-      "entity_type": "CalendarEvent",
-      "entity_id": 14,
-      "title": "Real Visible Finale!!!",
-      "content": "Event: Real Visible Finale!!!\r\nType: Meeting\r\nStart: 2025-10-23 12:12\r\nEnd: 2025-10-23 13:12\r\nLocation: {\"name\":\"Finland\",\"address\":\"Finland\",\"formatted_address\":\"Finland\",\"place_id\":null,\"geometry\":null}\r\nDescription: Checking again to see if duplicate events are created.\r\n",
-      "metadata": {
-        "startDateTime": "2025-10-23T12:12:00",
-        "endDateTime": "2025-10-23T13:12:00",
-        "eventType": "Meeting",
-        "location": "{\"name\":\"Finland\",\"address\":\"Finland\",\"formatted_address\":\"Finland\",\"place_id\":null,\"geometry\":null}",
-        "isAllDay": false,
-        "attendees": [],
-        "matterId": 5
-      },
-      "created_at": "2025-10-21T22:13:37.939657",
-      "modified_at": "2025-10-22T00:41:29.9221482",
-      "relevance_score": 0
-    },
-    {
-      "id": "fe32fe78-fb3c-4bad-b239-57dbe8baf9b3",
+      "id": "c107c2fa-ac20-4cba-a41e-a51cadf92780",
       "module_name": "calendar",
       "entity_type": "CalendarEvent",
       "entity_id": 12,
@@ -1343,7 +1334,7 @@
       "relevance_score": 0
     },
     {
-      "id": "5e814e84-5251-4cde-8904-71411079f8a6",
+      "id": "2fae2b7e-3d40-4f6e-9f3b-f25d608519d1",
       "module_name": "calendar",
       "entity_type": "CalendarEvent",
       "entity_id": 16,
@@ -1365,7 +1356,7 @@
       "relevance_score": 0
     },
     {
-      "id": "b86d9471-2920-4e7c-a387-f7e5e5cd33a9",
+      "id": "e5823a40-ea1a-4d43-945b-095de613f8ec",
       "module_name": "calendar",
       "entity_type": "CalendarEvent",
       "entity_id": 8,
@@ -1385,7 +1376,7 @@
       "relevance_score": 0
     },
     {
-      "id": "ae683261-07d5-4ce4-b921-b1d20125e189",
+      "id": "ed71f30c-abe1-4565-828c-1db9743eaac8",
       "module_name": "calendar",
       "entity_type": "CalendarEvent",
       "entity_id": 20,
@@ -1408,7 +1399,7 @@
       "relevance_score": 0
     },
     {
-      "id": "3f25d85f-2dcd-4991-9530-a55bff78c3d4",
+      "id": "60db2bc1-84a3-4a1e-afc7-fe90cb9553a6",
       "module_name": "calendar",
       "entity_type": "CalendarEvent",
       "entity_id": 22,
@@ -1431,7 +1422,7 @@
       "relevance_score": 0
     },
     {
-      "id": "657ad871-9f45-481c-8ba8-d943daf989cf",
+      "id": "d3946848-01e4-4a1f-b098-4bfba4eac084",
       "module_name": "calendar",
       "entity_type": "CalendarEvent",
       "entity_id": 23,
@@ -1454,7 +1445,7 @@
       "relevance_score": 0
     },
     {
-      "id": "1934c65f-f4ed-4e3f-a3ee-9ebe17b9e53d",
+      "id": "56dd1f79-1430-4d89-8b6f-b64a993e5acd",
       "module_name": "calendar",
       "entity_type": "CalendarEvent",
       "entity_id": 3,
@@ -1477,7 +1468,7 @@
       "relevance_score": 0
     },
     {
-      "id": "0c65bfbc-e2d3-4b4a-871f-9f7246b216cc",
+      "id": "3ba53b1b-eb1c-424e-9f0f-b9b8a1402f57",
       "module_name": "calendar",
       "entity_type": "CalendarEvent",
       "entity_id": 21,
@@ -1500,7 +1491,7 @@
       "relevance_score": 0
     },
     {
-      "id": "55c4d730-6119-4c97-ab7c-51b78152ffd8",
+      "id": "1c460074-4562-4cd3-8783-ba3a3f2e19f9",
       "module_name": "calendar",
       "entity_type": "CalendarEvent",
       "entity_id": 19,
@@ -1522,7 +1513,7 @@
       "relevance_score": 0
     },
     {
-      "id": "9f8af9ca-b0b4-4faf-85db-54158e85e5bf",
+      "id": "922d1a63-b6fe-4283-b76f-b6a333616fc1",
       "module_name": "calendar",
       "entity_type": "CalendarEvent",
       "entity_id": 24,
@@ -1542,7 +1533,7 @@
       "relevance_score": 0
     },
     {
-      "id": "477ce7d7-ba8d-4acc-a488-ffd9fe5fc897",
+      "id": "a6a36249-ae76-405c-bfbe-9c35570a0484",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1558,10 +1549,10 @@
       },
       "created_at": "2025-10-15T21:17:42.9635538",
       "modified_at": "2025-11-17T03:01:14.6859457",
-      "relevance_score": 1.5
+      "relevance_score": 1.2
     },
     {
-      "id": "d01fe0fa-a695-444a-85aa-db8384fc4ead",
+      "id": "05099194-dfd3-44a2-9c59-c18588d9c0dc",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1580,7 +1571,7 @@
       "relevance_score": 1.2
     },
     {
-      "id": "4ce57c29-c729-4b8d-a55e-9af73d9c0311",
+      "id": "7dfd8c93-cf67-4e0f-9812-010cb3eaeca9",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 29,
@@ -1602,7 +1593,7 @@
       "relevance_score": 0
     },
     {
-      "id": "b67b1525-a8b4-4bcf-90ea-06ab0bfdcf89",
+      "id": "21920e7b-ae59-4920-b1b6-d450466246b6",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 44,
@@ -1623,7 +1614,7 @@
       "relevance_score": 0
     },
     {
-      "id": "77cdbe0b-8806-4e58-bb98-48eb45af813c",
+      "id": "78c51915-976c-416d-aa5b-1d13a0ccaa6a",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 55,
@@ -1645,7 +1636,7 @@
       "relevance_score": 0
     },
     {
-      "id": "35a8a267-501b-4a00-b964-39f1bc9ef716",
+      "id": "c2f7da0c-305f-407e-a6dd-8fa8e06948ce",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 28,
@@ -1667,7 +1658,7 @@
       "relevance_score": 0
     },
     {
-      "id": "5ee66663-efa6-4747-83ba-7bb8a635cc15",
+      "id": "967f608f-2ff3-41f1-83f4-ed44e61fade0",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 27,
@@ -1690,7 +1681,7 @@
       "relevance_score": 0
     },
     {
-      "id": "f9a9a59c-b176-4e90-977e-7196fe4e426e",
+      "id": "94f056ab-749d-431e-858a-2f771297b52c",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 52,
@@ -1713,7 +1704,7 @@
       "relevance_score": 0
     },
     {
-      "id": "42ccad31-4dbb-42b3-b7e9-069aeedff74f",
+      "id": "675f522f-29e7-4042-8799-182585b0be49",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 56,
@@ -1734,7 +1725,7 @@
       "relevance_score": 0
     },
     {
-      "id": "cd26ac89-92a5-414c-a180-d17c8afb253e",
+      "id": "5b4b5a3a-114c-43b6-8d9b-b0e06f01320c",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 59,
@@ -1755,7 +1746,7 @@
       "relevance_score": 0
     },
     {
-      "id": "65c1aed5-eec3-4554-be18-cf9833696777",
+      "id": "33f34f63-9426-4792-b319-80c61b9e60ba",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 43,
@@ -1777,7 +1768,7 @@
       "relevance_score": 0
     },
     {
-      "id": "a8157ec9-ed14-48a3-b530-b540b30c6534",
+      "id": "8ae2235d-11b3-4a4a-81b5-74c521221e5f",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 53,
@@ -1798,7 +1789,7 @@
       "relevance_score": 0
     },
     {
-      "id": "202a70a1-b622-4c38-a5a6-92f8816fa837",
+      "id": "f573a714-8cde-4be6-ab09-e10bbfca6e2e",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 54,
@@ -1819,7 +1810,7 @@
       "relevance_score": 0
     },
     {
-      "id": "727dc33e-c884-4c27-9d4b-c884333892cd",
+      "id": "53e03cbf-4264-4842-bec1-0062d9eade8d",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 45,
@@ -1842,7 +1833,7 @@
       "relevance_score": 0
     },
     {
-      "id": "1c641d2c-5ae6-4569-abdf-07504a9dc3dc",
+      "id": "c4072254-664d-4359-9be1-341f0eb1576f",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1861,7 +1852,7 @@
       "relevance_score": 0
     },
     {
-      "id": "1bdbefa8-3b1c-4a29-a03c-656b39010601",
+      "id": "74a3af98-2b0e-4f6a-9641-f8d6bc10b67a",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1880,7 +1871,7 @@
       "relevance_score": 0
     },
     {
-      "id": "1e13fc9f-d84b-4e69-8b64-7afd6aa68d14",
+      "id": "502ebda4-a389-4330-9b02-606a98c598cc",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1899,7 +1890,7 @@
       "relevance_score": 0
     },
     {
-      "id": "023835d1-da67-4d2d-9939-2710ac550b51",
+      "id": "a104ea23-f3b6-458e-aaca-954988c81b72",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1918,7 +1909,7 @@
       "relevance_score": 0
     },
     {
-      "id": "0b6de141-e5fa-4633-84d6-501a5a9bcf5e",
+      "id": "20634273-5b90-4f9f-8727-6225a729de15",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1937,7 +1928,7 @@
       "relevance_score": 0
     },
     {
-      "id": "4d1ae5a8-9300-45b3-b310-4d79cfa611c3",
+      "id": "fa09332f-9190-4752-a03b-171f2ebc5319",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1956,7 +1947,7 @@
       "relevance_score": 0
     },
     {
-      "id": "b9e93f53-9284-4813-b59c-769aa91818d6",
+      "id": "00121726-4ecc-410f-bc0b-be5bf6453334",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1975,7 +1966,7 @@
       "relevance_score": 0
     },
     {
-      "id": "e8b9c2b4-f54b-4857-a9fc-731fcda95029",
+      "id": "ea904a7f-f6c3-4c26-b53a-6db6929e708a",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1994,7 +1985,7 @@
       "relevance_score": 0
     },
     {
-      "id": "b7c3b118-0dec-49ce-af03-1a03bccacfc4",
+      "id": "bbeda60f-677d-4431-8f29-68f7e5efa05e",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2013,7 +2004,7 @@
       "relevance_score": 0
     },
     {
-      "id": "8918b4db-2544-4852-8479-fdea5f32d5ed",
+      "id": "b897bdb1-457b-4cc5-bbdc-f8bed417b655",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2032,7 +2023,7 @@
       "relevance_score": 0
     },
     {
-      "id": "22b6195f-d6b5-47eb-af6c-8e0ad9aa1e43",
+      "id": "44151616-2831-421e-8428-236f300c93c3",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2051,7 +2042,7 @@
       "relevance_score": 0
     },
     {
-      "id": "07fcf34b-9f2c-4a36-ab2b-acd0fe07c856",
+      "id": "f145475e-eb39-4a48-8c48-6e8aa4171669",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2070,7 +2061,7 @@
       "relevance_score": 0
     },
     {
-      "id": "fe97c246-dbd7-4241-88e3-792cccb89662",
+      "id": "19063115-5c07-4c1e-87e2-a8dc9c9fbe9f",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2089,7 +2080,7 @@
       "relevance_score": 0
     },
     {
-      "id": "a19c7c79-f3eb-4876-9941-dbad433891d4",
+      "id": "f50de497-b470-4576-81bd-263c09707f3e",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2108,7 +2099,7 @@
       "relevance_score": 0
     },
     {
-      "id": "72c1594c-8a76-4260-bd31-ad5d3cf812a7",
+      "id": "a78d93bb-065c-41ae-96b1-daa8ae82e96b",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2127,7 +2118,7 @@
       "relevance_score": 0
     },
     {
-      "id": "25ed26af-ee98-46bb-9715-ed97cf05226b",
+      "id": "a1a00bf5-14ab-4a94-a4d7-7f89b76ee465",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2146,7 +2137,7 @@
       "relevance_score": 0
     },
     {
-      "id": "2f0167ab-f95e-46fc-a3be-854c17def86c",
+      "id": "54f92c78-c837-4a7a-8efb-f0cdfd9ef556",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2165,7 +2156,7 @@
       "relevance_score": 0
     },
     {
-      "id": "7a1d3557-75ac-4c7f-9465-a6dfbede9489",
+      "id": "027dc224-b8d6-42f8-9388-db6262c8870e",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2184,7 +2175,7 @@
       "relevance_score": 0
     },
     {
-      "id": "065f9c8a-1a02-4bc3-a51f-ecb0bf09327f",
+      "id": "1baf920f-fd95-4e2f-9d0a-be26143a80c4",
       "module_name": "clients",
       "entity_type": "User",
       "entity_id": 1,
@@ -2201,7 +2192,7 @@
       "relevance_score": 0
     },
     {
-      "id": "e6c793cc-c1f3-4f9d-928f-60e5a566763c",
+      "id": "16f8132e-d8d0-4204-a219-20a9b6e28b17",
       "module_name": "clients",
       "entity_type": "User",
       "entity_id": 3,
@@ -2218,7 +2209,7 @@
       "relevance_score": 0
     },
     {
-      "id": "bd6c0b1f-569b-4cbe-bb71-02fc4cb85722",
+      "id": "95b2318e-138e-4fa7-8bc2-58357b6d0eb6",
       "module_name": "clients",
       "entity_type": "User",
       "entity_id": 5,
@@ -2232,6 +2223,1206 @@
       },
       "created_at": "2025-09-29T01:12:29.9320965",
       "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "4d035908-0552-424f-b12a-e92eae9181b6",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "Copy of Yim et al. (in press). Synchronous Collaborative Writing in Classroom.pdf",
+      "content": "=== DOCUMENT: Copy of Yim et al. (in press). Synchronous Collaborative Writing in Classroom.pdf ===\r\nDocument ID: abd4767c-5787-4a4a-a0f3-cd776667fd58\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: Copy of Yim et al. (in press). Synchronous Collaborative Writing in Classroom.pdf\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2020-01-07T23:27:14.9380000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 0B6on4w88ghe8TWJldUd1bkhUd3c\r\n- mimeType: application/pdf\r\n- ownerName: Viet Vu\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "abd4767c-5787-4a4a-a0f3-cd776667fd58",
+        "fileType": "application/pdf",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:57.2223574",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:08.9411935",
+      "modified_at": "2025-11-25T07:53:57.2223574",
+      "relevance_score": 1.5
+    },
+    {
+      "id": "b9b63883-ed5e-473a-947d-59d8ec96bd13",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "Design implications of generative AI systems for visual storytelling for young learners .pdf",
+      "content": "=== DOCUMENT: Design implications of generative AI systems for visual storytelling for young learners .pdf ===\r\nDocument ID: 9f2dccc0-e0c4-4283-97f0-921369ad035a\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: Design implications of generative AI systems for visual storytelling for young learners .pdf\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-08-28T18:02:35.3340000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1FojaJ51f4j9UQ2R4P-xCvDedcO6dzA7H\r\n- mimeType: application/pdf\r\n- ownerName: Viet Vu\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "9f2dccc0-e0c4-4283-97f0-921369ad035a",
+        "fileType": "application/pdf",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:58.4851418",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:06.8722284",
+      "modified_at": "2025-11-25T07:53:58.4851418",
+      "relevance_score": 0
+    },
+    {
+      "id": "e8204406-49bf-4fb4-8b5c-3f904acae9f8",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "Copy of Week 8 7LC Online Tutorial",
+      "content": "=== DOCUMENT: Copy of Week 8 7LC Online Tutorial ===\r\nDocument ID: 8de8814b-88a1-42c8-a669-6f95054ca886\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: Copy of Week 8 7LC Online Tutorial\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2022-11-18T22:13:42.2130000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1yO_SoEj590SHVAYGt-dxDnFSKdLOkhBpiucj5h3hISU\r\n- mimeType: application/vnd.google-apps.presentation\r\n- ownerName: Kyle Zonghao Wang\r\n- parentIds: 0ABwy9FlS1ZWnUk9PVA\r\n- parentFolderName: My Drive\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "8de8814b-88a1-42c8-a669-6f95054ca886",
+        "fileType": "application/vnd.google-apps.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:57.1911551",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:07.8461833",
+      "modified_at": "2025-11-25T07:53:57.1911551",
+      "relevance_score": 0
+    },
+    {
+      "id": "983a3027-3430-49dd-bba7-6145efed6fef",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "21st Century Dilemma_ Environmental Crisis.pdf",
+      "content": "=== DOCUMENT: 21st Century Dilemma_ Environmental Crisis.pdf ===\r\nDocument ID: 030b5237-daa7-4ea2-b116-052780693cba\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: 21st Century Dilemma_ Environmental Crisis.pdf\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-09-26T18:50:22.4500000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1G7LXHfHYN4HrEzy82YWyIe5ufoTjxN6d\r\n- mimeType: application/pdf\r\n- ownerName: Viet Vu\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "030b5237-daa7-4ea2-b116-052780693cba",
+        "fileType": "application/pdf",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:55.7188642",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:06.5043299",
+      "modified_at": "2025-11-25T07:53:55.7188642",
+      "relevance_score": 0
+    },
+    {
+      "id": "cb54bf5f-680e-4f35-a75c-0f10ca04ca1c",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "02_LogicOverview.pptx",
+      "content": "=== DOCUMENT: 02_LogicOverview.pptx ===\r\nDocument ID: 7a5caf5a-cb25-4d12-806d-dc9f78dfeb20\r\nType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: 02_LogicOverview.pptx\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2023-10-03T19:21:15.9580000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1uNKU_PfkrTzbdcdX3jdBDSnFnbcsSxTS\r\n- mimeType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\n- ownerName: Stanislaw Jarecki\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "7a5caf5a-cb25-4d12-806d-dc9f78dfeb20",
+        "fileType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:54.7660431",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:07.4660102",
+      "modified_at": "2025-11-25T07:53:54.7660431",
+      "relevance_score": 0
+    },
+    {
+      "id": "5d6d4cb9-1590-4240-8224-0f6a6fb38eb7",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "A Century of Work Teams in the Journal of Applied Psychology..pdf",
+      "content": "=== DOCUMENT: A Century of Work Teams in the Journal of Applied Psychology..pdf ===\r\nDocument ID: f83259e1-36da-47ef-8642-51eb1bbffbef\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: A Century of Work Teams in the Journal of Applied Psychology..pdf\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-08-30T20:25:50.4100000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 10EcZfjh4d6z8elIPJdqCHXNrsayurzyV\r\n- mimeType: application/pdf\r\n- ownerName: Viet Vu\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "f83259e1-36da-47ef-8642-51eb1bbffbef",
+        "fileType": "application/pdf",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:54.6621839",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:06.7330988",
+      "modified_at": "2025-11-25T07:53:54.6621839",
+      "relevance_score": 0
+    },
+    {
+      "id": "f035de29-b800-4ce1-ab2a-43e59f15e251",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "The effects of the 21st century skills curriculum on the development of students\u2019 creative thinking skills.pdf",
+      "content": "=== DOCUMENT: The effects of the 21st century skills curriculum on the development of students\u2019 creative thinking skills.pdf ===\r\nDocument ID: 8c5e432a-6d47-4f35-883b-6e5bbfd68eb0\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: The effects of the 21st century skills curriculum on the development of students\u2019 creative thinking skills.pdf\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-08-28T18:03:06.6810000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1FptovgQloi0kPvF4M3_pe4cy31qdmVav\r\n- mimeType: application/pdf\r\n- ownerName: Viet Vu\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "8c5e432a-6d47-4f35-883b-6e5bbfd68eb0",
+        "fileType": "application/pdf",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:53.5837127",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:06.844783",
+      "modified_at": "2025-11-25T07:53:53.5837127",
+      "relevance_score": 0
+    },
+    {
+      "id": "c97074e9-91e0-4c49-9f40-2a8bd7214278",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "sol5.pdf",
+      "content": "=== DOCUMENT: sol5.pdf ===\r\nDocument ID: 59991299-a001-4c19-a3a1-c75336535921\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: sol5.pdf\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2023-11-17T21:16:49.4890000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1zLtjQw0odfNfKxbNGJ_7guk7QFbfPrm4\r\n- mimeType: application/pdf\r\n- ownerName: Stanislaw Jarecki\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "59991299-a001-4c19-a3a1-c75336535921",
+        "fileType": "application/pdf",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:52.7376957",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:07.1762349",
+      "modified_at": "2025-11-25T07:53:52.7376957",
+      "relevance_score": 0
+    },
+    {
+      "id": "561823ef-3c7e-4130-88ea-0ae87306f223",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "what's on your phone?",
+      "content": "=== DOCUMENT: what's on your phone? ===\r\nDocument ID: bf72b6c2-d1ca-42bd-aad4-7ed921f1efc3\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: what's on your phone?\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-10-02T22:45:02.8150000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1Bx8wD1hRQcSaUde_53Rv0rmmEi285WLaXsyUvtjfNF4\r\n- mimeType: application/vnd.google-apps.presentation\r\n- ownerName: Xiao Lin\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "bf72b6c2-d1ca-42bd-aad4-7ed921f1efc3",
+        "fileType": "application/vnd.google-apps.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:52.7137834",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:06.2292056",
+      "modified_at": "2025-11-25T07:53:52.7137834",
+      "relevance_score": 0
+    },
+    {
+      "id": "4207769e-97c6-44cf-a248-69dcd1056a48",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "Icebreaker-4C",
+      "content": "=== DOCUMENT: Icebreaker-4C ===\r\nDocument ID: 2ddaf31b-0c12-4a93-9cb6-23f0da249aa7\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: Icebreaker-4C\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-10-02T22:21:44.0030000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1asSaNHD1LiQLl9k-O4l9K1v1mFDl_FqHQb8zVJhNKis\r\n- mimeType: application/vnd.google-apps.presentation\r\n- ownerName: Xiao Lin\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "2ddaf31b-0c12-4a93-9cb6-23f0da249aa7",
+        "fileType": "application/vnd.google-apps.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:52.2584541",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:06.2690554",
+      "modified_at": "2025-11-25T07:53:52.2584541",
+      "relevance_score": 0
+    },
+    {
+      "id": "ee73b247-5341-4fa1-8301-f64c1b8ad5a0",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "ED30 Week 2Lect1 AI Future of Work.pptx",
+      "content": "=== DOCUMENT: ED30 Week 2Lect1 AI Future of Work.pptx ===\r\nDocument ID: bcabdc80-7d50-4551-bff8-772494423a27\r\nType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: ED30 Week 2Lect1 AI Future of Work.pptx\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-10-14T19:52:56.5710000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1-3HJ594qfaPyORMSjNDVDIgasFWILzwG\r\n- mimeType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\n- ownerName: Viet Vu\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "bcabdc80-7d50-4551-bff8-772494423a27",
+        "fileType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:51.528702",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:04.8838563",
+      "modified_at": "2025-11-25T07:53:51.528702",
+      "relevance_score": 0
+    },
+    {
+      "id": "a81a057b-804d-4b6d-a344-d7f4e3e1a1bb",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "Week8 Ecodigital Storytelling",
+      "content": "=== DOCUMENT: Week8 Ecodigital Storytelling ===\r\nDocument ID: 8afa7e29-299a-4da2-9454-c7ba242d03b6\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:52\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: Week8 Ecodigital Storytelling\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-11-20T19:19:17.3280000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1zDE1DGHe2G3oki1pp7OOeIq3jRxBdE88POKJLr_kZfY\r\n- mimeType: application/vnd.google-apps.presentation\r\n- ownerName: Victoria Nguyen\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "8afa7e29-299a-4da2-9454-c7ba242d03b6",
+        "fileType": "application/vnd.google-apps.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:50.9961251",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:52:59.0641531",
+      "modified_at": "2025-11-25T07:53:50.9961251",
+      "relevance_score": 0
+    },
+    {
+      "id": "1a80c112-4a7b-4cac-94d7-63cdd77eae85",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "Embracing the future of Artificial Intelligence in the classroom: the relevance of AI literacy, prompt engineering, and critical thinking in modern education.pdf",
+      "content": "=== DOCUMENT: Embracing the future of Artificial Intelligence in the classroom: the relevance of AI literacy, prompt engineering, and critical thinking in modern education.pdf ===\r\nDocument ID: b75f6739-fa75-40cb-975f-fb0126c54726\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: Embracing the future of Artificial Intelligence in the classroom: the relevance of AI literacy, prompt engineering, and critical thinking in modern education.pdf\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-11-03T19:15:29.8090000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1FoGK6KgT30qAbWa6w6J_8ny4MhdNCW1y\r\n- mimeType: application/pdf\r\n- ownerName: Viet Vu\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "b75f6739-fa75-40cb-975f-fb0126c54726",
+        "fileType": "application/pdf",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:49.4130652",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:02.4747966",
+      "modified_at": "2025-11-25T07:53:49.4130652",
+      "relevance_score": 0
+    },
+    {
+      "id": "66dd69f2-33f8-4a77-b433-3b6bae9cacf9",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "EDUC 30 Air Pollution and Critical Thinking",
+      "content": "=== DOCUMENT: EDUC 30 Air Pollution and Critical Thinking ===\r\nDocument ID: fa15d744-d301-477e-9327-1e8ee92c60dd\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: EDUC 30 Air Pollution and Critical Thinking\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-11-07T07:40:15.4440000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1QcWZgSVa4_eqQJZlj5X4YXvuXDcj6zbWvIpsS_QF2E8\r\n- mimeType: application/vnd.google-apps.presentation\r\n- ownerName: Samantha Fong\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "fa15d744-d301-477e-9327-1e8ee92c60dd",
+        "fileType": "application/vnd.google-apps.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:49.3656783",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:01.343125",
+      "modified_at": "2025-11-25T07:53:49.3656783",
+      "relevance_score": 0
+    },
+    {
+      "id": "535a96bd-5b02-446c-bac8-ad8bad1578a7",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "Air Pollution in Orange County",
+      "content": "=== DOCUMENT: Air Pollution in Orange County ===\r\nDocument ID: f020af3c-61a1-471a-b4dd-0bbf6f2f5213\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: Air Pollution in Orange County\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-11-07T06:45:28.6180000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1TM8u_S8wKAoEtUkVL7jAeeh9CYGUC_bx2i-xH047EPc\r\n- mimeType: application/vnd.google-apps.presentation\r\n- ownerName: Molly Liu\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "f020af3c-61a1-471a-b4dd-0bbf6f2f5213",
+        "fileType": "application/vnd.google-apps.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:49.2095728",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:01.3611822",
+      "modified_at": "2025-11-25T07:53:49.2095728",
+      "relevance_score": 0
+    },
+    {
+      "id": "c0faa517-6125-46c2-a8a5-b47963a4bab7",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "EDUC 30 Midterm Study Guide.docx",
+      "content": "=== DOCUMENT: EDUC 30 Midterm Study Guide.docx ===\r\nDocument ID: 35651b32-9395-4911-ae63-f9c3ceffe723\r\nType: application/vnd.openxmlformats-officedocument.wordprocessingml.document\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: EDUC 30 Midterm Study Guide.docx\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-10-28T20:08:17.2930000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 10bMm8dGciCCBfcH33hUlAa54k0sp_2LI\r\n- mimeType: application/vnd.openxmlformats-officedocument.wordprocessingml.document\r\n- ownerName: Viet Vu\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "35651b32-9395-4911-ae63-f9c3ceffe723",
+        "fileType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:48.7892183",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:03.0734199",
+      "modified_at": "2025-11-25T07:53:48.7892183",
+      "relevance_score": 0
+    },
+    {
+      "id": "b1367c91-e8f2-4ecf-b256-12a6f367ef44",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "Week 7 EDUC 30: 21st Century Literacies",
+      "content": "=== DOCUMENT: Week 7 EDUC 30: 21st Century Literacies ===\r\nDocument ID: 6f99c577-9807-4aa1-8b21-d1a04b0f648d\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: Week 7 EDUC 30: 21st Century Literacies\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-11-11T19:24:00.4040000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1EvZy6J99Uw6EDz_5a4C49ENI9HR55bCgh1YbH_ohHVA\r\n- mimeType: application/vnd.google-apps.presentation\r\n- ownerName: Xiao Lin\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "6f99c577-9807-4aa1-8b21-d1a04b0f648d",
+        "fileType": "application/vnd.google-apps.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:47.4978776",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:01.037865",
+      "modified_at": "2025-11-25T07:53:47.4978776",
+      "relevance_score": 0
+    },
+    {
+      "id": "ba7408c1-2ef8-4066-a0c7-509b81041f5b",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "Untitled presentation",
+      "content": "=== DOCUMENT: Untitled presentation ===\r\nDocument ID: 13cfe833-2eba-45ff-a27d-b1be41ee57dd\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:52\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: Untitled presentation\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-11-28T07:53:38.4170000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1yykfcmljS0ZWft4_MrJdlcZ4r58J0PhCsanvrvM_Vvw\r\n- mimeType: application/vnd.google-apps.presentation\r\n- ownerName: Kyle Zonghao Wang\r\n- parentIds: 0ABwy9FlS1ZWnUk9PVA\r\n- parentFolderName: My Drive\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "13cfe833-2eba-45ff-a27d-b1be41ee57dd",
+        "fileType": "application/vnd.google-apps.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:46.9557542",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:52:57.990669",
+      "modified_at": "2025-11-25T07:53:46.9557542",
+      "relevance_score": 0
+    },
+    {
+      "id": "1eee6081-9225-499e-b6cc-053d21198424",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "Physics 7E.pdf",
+      "content": "=== DOCUMENT: Physics 7E.pdf ===\r\nDocument ID: 70b5e568-104b-4593-b023-52d1f529a88b\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: Physics 7E.pdf\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-08-12T21:33:41.6290000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1eZ51c1H9byvuWwC8sP_CIN4kUBlhE3bO\r\n- mimeType: application/pdf\r\n- ownerName: Adrian Wong\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "70b5e568-104b-4593-b023-52d1f529a88b",
+        "fileType": "application/pdf",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:46.6471496",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:07.0351665",
+      "modified_at": "2025-11-25T07:53:46.6471496",
+      "relevance_score": 0
+    },
+    {
+      "id": "f4ae12e1-f83e-471b-8c91-614ebcd10764",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "Week 8 EDUC 30: 21st Century Literacies Wed.",
+      "content": "=== DOCUMENT: Week 8 EDUC 30: 21st Century Literacies Wed. ===\r\nDocument ID: 72b97a0c-1c5b-4562-8395-2e91dc10b53a\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:52\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: Week 8 EDUC 30: 21st Century Literacies Wed.\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-11-21T01:08:33.8950000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1p6w_9gEs_rEjbBPORUishuYjbamNHggLMEYTJIqo1aQ\r\n- mimeType: application/vnd.google-apps.presentation\r\n- ownerName: Xiao Lin\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "72b97a0c-1c5b-4562-8395-2e91dc10b53a",
+        "fileType": "application/vnd.google-apps.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:44.9370908",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:52:58.6849813",
+      "modified_at": "2025-11-25T07:53:44.9370908",
+      "relevance_score": 0
+    },
+    {
+      "id": "db663109-ec8b-459b-932f-5b7f2df0920f",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "Week 9 EDUC 30: 21st Century Literacies",
+      "content": "=== DOCUMENT: Week 9 EDUC 30: 21st Century Literacies ===\r\nDocument ID: d7211580-545c-4e0b-9111-cde0479ca291\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:52\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: Week 9 EDUC 30: 21st Century Literacies\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-11-25T21:33:38.0900000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 15BUif2J_5n4dTvxYvKu1D3yzuWSFXPwprmpbnwOw5Vw\r\n- mimeType: application/vnd.google-apps.presentation\r\n- ownerName: Xiao Lin\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "d7211580-545c-4e0b-9111-cde0479ca291",
+        "fileType": "application/vnd.google-apps.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:44.5674715",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:52:58.1894303",
+      "modified_at": "2025-11-25T07:53:44.5674715",
+      "relevance_score": 0
+    },
+    {
+      "id": "12c46a8c-6b84-488f-b5cb-550899d7fc03",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "EDUC30 week 1-S2",
+      "content": "=== DOCUMENT: EDUC30 week 1-S2 ===\r\nDocument ID: 8893e057-c794-4984-a6e0-81c6684d16fd\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: EDUC30 week 1-S2\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-10-02T20:40:37.4430000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1HBeYvEsGAoV2Isxq6o940s8FV9mk3T4r1rmQdnklebg\r\n- mimeType: application/vnd.google-apps.presentation\r\n- ownerName: Xiao Lin\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "8893e057-c794-4984-a6e0-81c6684d16fd",
+        "fileType": "application/vnd.google-apps.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:42.4128359",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:06.2889338",
+      "modified_at": "2025-11-25T07:53:42.4128359",
+      "relevance_score": 0
+    },
+    {
+      "id": "40cd1f32-a1d1-4855-9d6d-58b4f839d869",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "California Wildfire",
+      "content": "=== DOCUMENT: California Wildfire ===\r\nDocument ID: f564fcb6-ca15-446d-baa1-a96d9c06df25\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: California Wildfire\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-10-24T05:07:40.6260000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1U9iz__epHAkADasGdkgMFC8zeupflJhP3CPy-aVbpPo\r\n- mimeType: application/vnd.google-apps.presentation\r\n- ownerName: Keyi Wang\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "f564fcb6-ca15-446d-baa1-a96d9c06df25",
+        "fileType": "application/vnd.google-apps.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:41.7911453",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:03.4090875",
+      "modified_at": "2025-11-25T07:53:41.7911453",
+      "relevance_score": 0
+    },
+    {
+      "id": "f1177be8-8cf9-4b88-b321-e633ec25214c",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "21st Century Literacies Overview.pdf",
+      "content": "=== DOCUMENT: 21st Century Literacies Overview.pdf ===\r\nDocument ID: e30228ce-dd53-435c-bc25-aab5a77519ea\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: 21st Century Literacies Overview.pdf\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-08-27T21:56:18.5480000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1FSaXGJ9zeG-sxfTJNZbk8IJMxaZuZlDL\r\n- mimeType: application/pdf\r\n- ownerName: Viet Vu\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "e30228ce-dd53-435c-bc25-aab5a77519ea",
+        "fileType": "application/pdf",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:41.7745527",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:07.0110642",
+      "modified_at": "2025-11-25T07:53:41.7745527",
+      "relevance_score": 0
+    },
+    {
+      "id": "94bc00f6-387b-4f60-b26b-2c00166ff882",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "EDUC30 week 1-S1",
+      "content": "=== DOCUMENT: EDUC30 week 1-S1 ===\r\nDocument ID: 9eed4d92-b23d-4fc6-ba6f-525fe9ac7aff\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: EDUC30 week 1-S1\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-09-29T06:31:12.6610000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1iXVyr08ncWXrnlRfsEAgHJ_FgQ9HMndSoPQCtMCuy0U\r\n- mimeType: application/vnd.google-apps.presentation\r\n- ownerName: Xiao Lin\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "9eed4d92-b23d-4fc6-ba6f-525fe9ac7aff",
+        "fileType": "application/vnd.google-apps.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:41.5900721",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:06.483314",
+      "modified_at": "2025-11-25T07:53:41.5900721",
+      "relevance_score": 0
+    },
+    {
+      "id": "0304a2c7-a634-4e14-8a23-2cf14500d69e",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "04_RecurrenceSummations.pptx",
+      "content": "=== DOCUMENT: 04_RecurrenceSummations.pptx ===\r\nDocument ID: 1b1d8828-09db-47db-9a54-d2b03e45cc1c\r\nType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: 04_RecurrenceSummations.pptx\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-10-15T03:20:38.5600000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1cFTnvpZU8_4BDV9aNcSdx0bVJmMtL_FB\r\n- mimeType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\n- ownerName: Stanislaw Jarecki\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "1b1d8828-09db-47db-9a54-d2b03e45cc1c",
+        "fileType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:41.1169847",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:04.8445212",
+      "modified_at": "2025-11-25T07:53:41.1169847",
+      "relevance_score": 0
+    },
+    {
+      "id": "99739518-debe-4211-a4cd-b742862a3bdf",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "Critical Thinking",
+      "content": "=== DOCUMENT: Critical Thinking ===\r\nDocument ID: ceeda2f6-c4b5-4c3e-8a91-ae1e8d6891d9\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: Critical Thinking\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-10-11T20:11:06.0420000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1nZTc7hD1HRlRLeujYGrDS-Ls1uCKUQjxrpO5gyrb2uM\r\n- mimeType: application/vnd.google-apps.presentation\r\n- ownerName: Wency Pi\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "ceeda2f6-c4b5-4c3e-8a91-ae1e8d6891d9",
+        "fileType": "application/vnd.google-apps.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:41.0981458",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:05.4094419",
+      "modified_at": "2025-11-25T07:53:41.0981458",
+      "relevance_score": 0
+    },
+    {
+      "id": "8cee0eee-c8dc-4f93-a28e-1be3ee426ead",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "ED30 Week1 Lect3 Other Frameworks.pptx",
+      "content": "=== DOCUMENT: ED30 Week1 Lect3 Other Frameworks.pptx ===\r\nDocument ID: ca55b204-c07a-427a-9053-e7545004fc07\r\nType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: ED30 Week1 Lect3 Other Frameworks.pptx\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-10-09T20:11:30.5000000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1vdUIFtVLbc5pLkzM_V8Vs3WW9egVcyLL\r\n- mimeType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\n- ownerName: Viet Vu\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "ca55b204-c07a-427a-9053-e7545004fc07",
+        "fileType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:41.0136738",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:05.6592416",
+      "modified_at": "2025-11-25T07:53:41.0136738",
+      "relevance_score": 0
+    },
+    {
+      "id": "5d616631-2b0f-49aa-a4a7-8c029bfb2328",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "03_SetsFunctions.pptx",
+      "content": "=== DOCUMENT: 03_SetsFunctions.pptx ===\r\nDocument ID: 5f6b3885-42cd-40c1-b326-a164b07b7e52\r\nType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: 03_SetsFunctions.pptx\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2021-04-09T00:21:36.7050000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1gWITVZT0IxZ5XGtdYdczZfURUDXgMFHm\r\n- mimeType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\n- ownerName: Stanislaw Jarecki\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "5f6b3885-42cd-40c1-b326-a164b07b7e52",
+        "fileType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:40.9459599",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:08.8256737",
+      "modified_at": "2025-11-25T07:53:40.9459599",
+      "relevance_score": 0
+    },
+    {
+      "id": "b9e01aef-1a31-452c-b10e-8c8f8f2a091a",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "Week 6 EDUC 30: 21st Century Literacies Mon.",
+      "content": "=== DOCUMENT: Week 6 EDUC 30: 21st Century Literacies Mon. ===\r\nDocument ID: b428315d-d68c-4418-848f-14d6b8d14f3f\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: Week 6 EDUC 30: 21st Century Literacies Mon.\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-11-04T23:51:34.9910000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1en6s2wJRYZs36LFJcFrkbObIXVLPwVGQ12CztyiqsAE\r\n- mimeType: application/vnd.google-apps.presentation\r\n- ownerName: Xiao Lin\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "b428315d-d68c-4418-848f-14d6b8d14f3f",
+        "fileType": "application/vnd.google-apps.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:40.9272827",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:02.4206848",
+      "modified_at": "2025-11-25T07:53:40.9272827",
+      "relevance_score": 0
+    },
+    {
+      "id": "ff6d39bf-8232-48e2-98f2-c7536ccfe083",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "Week 4 EDUC 30: 21st Century Literacies",
+      "content": "=== DOCUMENT: Week 4 EDUC 30: 21st Century Literacies ===\r\nDocument ID: 7a7d420b-a603-4051-ad56-5ce3894cd72e\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: Week 4 EDUC 30: 21st Century Literacies\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-10-25T06:12:28.7760000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1W6bks64zQz6F7ZuZI8Gij5-1kihTO_lSApF0mNrBiqA\r\n- mimeType: application/vnd.google-apps.presentation\r\n- ownerName: Xiao Lin\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "7a7d420b-a603-4051-ad56-5ce3894cd72e",
+        "fileType": "application/vnd.google-apps.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:40.9075277",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:03.143814",
+      "modified_at": "2025-11-25T07:53:40.9075277",
+      "relevance_score": 0
+    },
+    {
+      "id": "f2d5a8da-d919-4287-88f6-f3d9825e9038",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "Week 3 EDUC 30: 21st Century Literacies",
+      "content": "=== DOCUMENT: Week 3 EDUC 30: 21st Century Literacies ===\r\nDocument ID: 0c695dee-b52c-4dbf-8711-a255af7ae6bb\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: Week 3 EDUC 30: 21st Century Literacies\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-10-14T02:18:16.2580000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1Zi0mI9396Q9teHIGvcsoR_-80xg_ozdWMALVWR6KStU\r\n- mimeType: application/vnd.google-apps.presentation\r\n- ownerName: Xiao Lin\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "0c695dee-b52c-4dbf-8711-a255af7ae6bb",
+        "fileType": "application/vnd.google-apps.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:40.8888644",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:04.9291703",
+      "modified_at": "2025-11-25T07:53:40.8888644",
+      "relevance_score": 0
+    },
+    {
+      "id": "9d7d1c16-0288-4a5d-b034-9a02ab21e304",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "ED30 Week 5 Lect1 Midterm Review.pptx",
+      "content": "=== DOCUMENT: ED30 Week 5 Lect1 Midterm Review.pptx ===\r\nDocument ID: aa55809d-18ae-4277-963e-0ff552534d1a\r\nType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: ED30 Week 5 Lect1 Midterm Review.pptx\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-11-04T21:35:11.4870000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1-t0ZhNdGF2ZNXuX3KFoW02d7y1NrLSyX\r\n- mimeType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\n- ownerName: Viet Vu\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "aa55809d-18ae-4277-963e-0ff552534d1a",
+        "fileType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:40.8696517",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:02.4443877",
+      "modified_at": "2025-11-25T07:53:40.8696517",
+      "relevance_score": 0
+    },
+    {
+      "id": "259447b1-8e5c-498e-8e35-ba28b4e5d617",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "ED30 Week10 Lect1 Eco storytelling2",
+      "content": "=== DOCUMENT: ED30 Week10 Lect1 Eco storytelling2 ===\r\nDocument ID: e2ab9314-8b64-40f8-a027-3f46740ce608\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:52\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: ED30 Week10 Lect1 Eco storytelling2\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-12-11T19:23:46.0910000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1u6_lW1ppkEMLGQfTDgQWWMk7AmlQhYoy1xnx5FZUh_Q\r\n- mimeType: application/vnd.google-apps.presentation\r\n- ownerName: Viet Vu\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "e2ab9314-8b64-40f8-a027-3f46740ce608",
+        "fileType": "application/vnd.google-apps.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:40.8445716",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:52:57.0664445",
+      "modified_at": "2025-11-25T07:53:40.8445716",
+      "relevance_score": 0
+    },
+    {
+      "id": "f9ef8429-b6ff-410f-bb8a-45bcd0cb20c5",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "EDUC 30 Final Study Guide.docx",
+      "content": "=== DOCUMENT: EDUC 30 Final Study Guide.docx ===\r\nDocument ID: 8e10eec8-278b-4eb9-aa2c-6c09a2db8d6b\r\nType: application/vnd.openxmlformats-officedocument.wordprocessingml.document\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:52\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: EDUC 30 Final Study Guide.docx\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-12-09T18:21:48.0650000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1la1ZU7b5izHuVTEh1belTpYTBC5L1I5l\r\n- mimeType: application/vnd.openxmlformats-officedocument.wordprocessingml.document\r\n- ownerName: Xiao Lin\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "8e10eec8-278b-4eb9-aa2c-6c09a2db8d6b",
+        "fileType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:40.7775564",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:52:57.2460137",
+      "modified_at": "2025-11-25T07:53:40.7775564",
+      "relevance_score": 0
+    },
+    {
+      "id": "01e85687-c28f-4bae-8223-79bfbdeff917",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "Chapter09.pptx",
+      "content": "=== DOCUMENT: Chapter09.pptx ===\r\nDocument ID: ec8d775a-971d-431b-917b-564ef31aa675\r\nType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: Chapter09.pptx\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2022-11-07T08:05:32.7020000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 16S7BHhGbfVlHoaMDNHAS9Avw8QcwCWTN\r\n- mimeType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\n- ownerName: Kyle Zonghao Wang\r\n- parentIds: 0ABwy9FlS1ZWnUk9PVA\r\n- parentFolderName: My Drive\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "ec8d775a-971d-431b-917b-564ef31aa675",
+        "fileType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:40.7509858",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:08.0529999",
+      "modified_at": "2025-11-25T07:53:40.7509858",
+      "relevance_score": 0
+    },
+    {
+      "id": "2a76ae90-b632-403e-afce-ccb2e919c40c",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "P7LC Tutorial 1 - Publication v2020-01-28.pdf",
+      "content": "=== DOCUMENT: P7LC Tutorial 1 - Publication v2020-01-28.pdf ===\r\nDocument ID: c7450992-442e-49a3-95fd-5b6b4faf494d\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: P7LC Tutorial 1 - Publication v2020-01-28.pdf\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2022-09-29T00:56:22.0000000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1_hZ_A8TxkspX0SFY_-F8an0i3uuWYhXL\r\n- mimeType: application/pdf\r\n- ownerName: Kyle Zonghao Wang\r\n- parentIds: 0ABwy9FlS1ZWnUk9PVA\r\n- parentFolderName: My Drive\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "c7450992-442e-49a3-95fd-5b6b4faf494d",
+        "fileType": "application/pdf",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:40.7352833",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:08.5253611",
+      "modified_at": "2025-11-25T07:53:40.7352833",
+      "relevance_score": 0
+    },
+    {
+      "id": "542e35c5-8c89-42e3-9a8f-3a9d12b51a3d",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "ED30 Week9 Lect1 Communication",
+      "content": "=== DOCUMENT: ED30 Week9 Lect1 Communication ===\r\nDocument ID: 832a4fa9-dd45-4ade-ad22-e53ea30c7248\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:52\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: ED30 Week9 Lect1 Communication\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-11-27T17:17:25.6250000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1JGKjxJepkyIhv9DPMoIEpx7xowI44vtsQf2jB18E6MA\r\n- mimeType: application/vnd.google-apps.presentation\r\n- ownerName: Viet Vu\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "832a4fa9-dd45-4ade-ad22-e53ea30c7248",
+        "fileType": "application/vnd.google-apps.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:40.7158766",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:52:58.1687009",
+      "modified_at": "2025-11-25T07:53:40.7158766",
+      "relevance_score": 0
+    },
+    {
+      "id": "9c6d7b5e-9ad2-45e9-9887-a5afa592ed25",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "Artificial Intelligence & Creativity: A Manifesto for Collaboration - Vinchon - 2023 - The Journal o.pdf",
+      "content": "=== DOCUMENT: Artificial Intelligence & Creativity: A Manifesto for Collaboration - Vinchon - 2023 - The Journal o.pdf ===\r\nDocument ID: 594733c6-689c-4263-b8cc-6bc5c2bc1adc\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: Artificial Intelligence & Creativity: A Manifesto for Collaboration - Vinchon - 2023 - The Journal o.pdf\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-08-28T17:50:57.6410000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1FiLAdmC3RaFTGyqpZhewjf1HrsH09xNn\r\n- mimeType: application/pdf\r\n- ownerName: Viet Vu\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "594733c6-689c-4263-b8cc-6bc5c2bc1adc",
+        "fileType": "application/pdf",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:40.6757528",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:06.8997115",
+      "modified_at": "2025-11-25T07:53:40.6757528",
+      "relevance_score": 0
+    },
+    {
+      "id": "89bc02b5-efa8-49b6-938a-92b706691d6b",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "ThinkingTogetherandAlone.pdf",
+      "content": "=== DOCUMENT: ThinkingTogetherandAlone.pdf ===\r\nDocument ID: 0bef8550-3167-43a8-aed9-1a7420304af9\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: ThinkingTogetherandAlone.pdf\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-08-30T16:45:56.0560000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 106F1CJpmbEDIWrBm-jDrP8yaY8EO2L-s\r\n- mimeType: application/pdf\r\n- ownerName: Viet Vu\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "0bef8550-3167-43a8-aed9-1a7420304af9",
+        "fileType": "application/pdf",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:40.6581312",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:06.7953457",
+      "modified_at": "2025-11-25T07:53:40.6581312",
+      "relevance_score": 0
+    },
+    {
+      "id": "78242921-cc1b-494f-8c8d-02a568232f7c",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "Artificial intelligence literacy for technology education.pdf",
+      "content": "=== DOCUMENT: Artificial intelligence literacy for technology education.pdf ===\r\nDocument ID: b1aa7bdc-3dc6-4789-ba9a-09e82206e32d\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: Artificial intelligence literacy for technology education.pdf\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-08-27T22:15:13.6790000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1FQRswTdmNnbz5IxNnFthymVK3YSrhmfm\r\n- mimeType: application/pdf\r\n- ownerName: Viet Vu\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "b1aa7bdc-3dc6-4789-ba9a-09e82206e32d",
+        "fileType": "application/pdf",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:40.4724612",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:06.9670991",
+      "modified_at": "2025-11-25T07:53:40.4724612",
+      "relevance_score": 0
+    },
+    {
+      "id": "cf9fa891-c1cf-4bbc-9724-9a17cc4f1434",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "ED30 Week1 Lect2 P21 Framework.pptx",
+      "content": "=== DOCUMENT: ED30 Week1 Lect2 P21 Framework.pptx ===\r\nDocument ID: 72eb5737-15e6-4266-9612-de5041f67316\r\nType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: ED30 Week1 Lect2 P21 Framework.pptx\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-10-04T16:59:07.8170000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1G2ZRc15v6pqkrbUaTKNesJegOlvob__b\r\n- mimeType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\n- ownerName: Viet Vu\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "72eb5737-15e6-4266-9612-de5041f67316",
+        "fileType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:40.4575184",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:05.9550396",
+      "modified_at": "2025-11-25T07:53:40.4575184",
+      "relevance_score": 0
+    },
+    {
+      "id": "cc0dce58-35da-447e-990a-76a21933f0ec",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "Week 2 EDUC 30 Mon.",
+      "content": "=== DOCUMENT: Week 2 EDUC 30 Mon. ===\r\nDocument ID: 859ac157-44bb-48eb-a302-84b62f53424f\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: Week 2 EDUC 30 Mon.\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-10-11T01:19:34.3950000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1K4TxYo3zhTgTw3cMHGSjcxBwoAvzK4ORgi9lZSX2l2c\r\n- mimeType: application/vnd.google-apps.presentation\r\n- ownerName: Xiao Lin\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "859ac157-44bb-48eb-a302-84b62f53424f",
+        "fileType": "application/vnd.google-apps.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:40.4408968",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:05.4460257",
+      "modified_at": "2025-11-25T07:53:40.4408968",
+      "relevance_score": 0
+    },
+    {
+      "id": "75182c00-0774-4f37-91a5-2db09c8a8bfe",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "Ai and environmental issues.pdf",
+      "content": "=== DOCUMENT: Ai and environmental issues.pdf ===\r\nDocument ID: 85773b6a-2e36-4690-883e-b5b7c1ee1178\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: Ai and environmental issues.pdf\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-08-27T22:16:39.5290000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1-qLli0PgK3pkkoSGv1ZIIIC5F3OLNKI8\r\n- mimeType: application/pdf\r\n- ownerName: Viet Vu\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "85773b6a-2e36-4690-883e-b5b7c1ee1178",
+        "fileType": "application/pdf",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:40.4196047",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:06.919298",
+      "modified_at": "2025-11-25T07:53:40.4196047",
+      "relevance_score": 0
+    },
+    {
+      "id": "256ce224-2588-47b9-a1dc-64137d8b1dde",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "Generative_AI_and the future of work.pdf",
+      "content": "=== DOCUMENT: Generative_AI_and the future of work.pdf ===\r\nDocument ID: 0ca0e2b4-0176-431a-908e-d06a384d403e\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: Generative_AI_and the future of work.pdf\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-08-27T22:15:43.9860000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1FMeaeD1Ixe-ZP0d6bruFpyUuAKgL42eZ\r\n- mimeType: application/pdf\r\n- ownerName: Viet Vu\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "0ca0e2b4-0176-431a-908e-d06a384d403e",
+        "fileType": "application/pdf",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:40.3108323",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:06.9417224",
+      "modified_at": "2025-11-25T07:53:40.3108323",
+      "relevance_score": 0
+    },
+    {
+      "id": "6e9a79b8-fa99-41b9-a316-d8a9593d6f40",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "Week 5 EDUC 30: 21st Century Literacies",
+      "content": "=== DOCUMENT: Week 5 EDUC 30: 21st Century Literacies ===\r\nDocument ID: 55b3e4a4-b108-4b75-b1c1-4830bfce76a1\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:52\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: Week 5 EDUC 30: 21st Century Literacies\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-11-25T04:25:48.7250000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1t3zUQzXqIuWm0I5xqaMMXWfag0t8wyD7-3o7fEysiXw\r\n- mimeType: application/vnd.google-apps.presentation\r\n- ownerName: Xiao Lin\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "55b3e4a4-b108-4b75-b1c1-4830bfce76a1",
+        "fileType": "application/vnd.google-apps.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:40.2919056",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:52:58.2100286",
+      "modified_at": "2025-11-25T07:53:40.2919056",
+      "relevance_score": 0
+    },
+    {
+      "id": "e1220911-ac64-49a9-bd01-172ce98c1bc7",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "sol6.pdf",
+      "content": "=== DOCUMENT: sol6.pdf ===\r\nDocument ID: 39195a19-e966-4564-9b8e-b457bae13286\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: sol6.pdf\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2023-11-27T02:26:10.5320000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 124-KQiDloQ4rRrCpc0LitTwk7_SDIHXt\r\n- mimeType: application/pdf\r\n- ownerName: Stanislaw Jarecki\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "39195a19-e966-4564-9b8e-b457bae13286",
+        "fileType": "application/pdf",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:40.2065148",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:07.1323282",
+      "modified_at": "2025-11-25T07:53:40.2065148",
+      "relevance_score": 0
+    },
+    {
+      "id": "a6f196f6-3c53-44d8-b1ce-f1b11804b43b",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "ED30 Week10 Lect2 Framing in Facebook.pptx",
+      "content": "=== DOCUMENT: ED30 Week10 Lect2 Framing in Facebook.pptx ===\r\nDocument ID: 098e601d-8edd-402c-bde2-4eaa6a654b92\r\nType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:52\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: ED30 Week10 Lect2 Framing in Facebook.pptx\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-12-04T20:55:45.1540000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 117FD3dQeBkkUBrddpNriwcz73H3PXGK0\r\n- mimeType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\n- ownerName: Viet Vu\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "098e601d-8edd-402c-bde2-4eaa6a654b92",
+        "fileType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:40.1862592",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:52:57.2823222",
+      "modified_at": "2025-11-25T07:53:40.1862592",
+      "relevance_score": 0
+    },
+    {
+      "id": "22d682d7-e915-44c9-859d-1f477ea35b98",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "Week 8 EDUC 30: 21st Century Literacies Mon.",
+      "content": "=== DOCUMENT: Week 8 EDUC 30: 21st Century Literacies Mon. ===\r\nDocument ID: 81ebac14-ae29-4f8b-b874-ebfc54ab6f25\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:52\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: Week 8 EDUC 30: 21st Century Literacies Mon.\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2024-11-22T19:21:55.1600000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1CyvEe56jBwIuOhE3nZp9juZE9I8ULXBhNEz2QdHXSuY\r\n- mimeType: application/vnd.google-apps.presentation\r\n- ownerName: Xiao Lin\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "81ebac14-ae29-4f8b-b874-ebfc54ab6f25",
+        "fileType": "application/vnd.google-apps.presentation",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:40.166815",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:52:58.4766773",
+      "modified_at": "2025-11-25T07:53:40.166815",
+      "relevance_score": 0
+    },
+    {
+      "id": "74768338-e9f8-4ed1-822f-3617c469acb5",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "D975B02D-1473-4EAC-BE8B-6C38219C1BFB.jpeg",
+      "content": "=== DOCUMENT: D975B02D-1473-4EAC-BE8B-6C38219C1BFB.jpeg ===\r\nDocument ID: 3704f2b8-390d-4394-bb75-0953935801b5\r\nType: image/jpeg\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: D975B02D-1473-4EAC-BE8B-6C38219C1BFB.jpeg\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2023-10-24T19:11:04.0000000\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1abZ7P2nX0laY3n1fkbBfPUyF-S1fwg_N\r\n- mimeType: image/jpeg\r\n- ownerName: Kyle Zonghao Wang\r\n- parentIds: 0ABwy9FlS1ZWnUk9PVA\r\n- parentFolderName: My Drive\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n[Content unavailable \u2013 secure extraction returned no body]\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "3704f2b8-390d-4394-bb75-0953935801b5",
+        "fileType": "image/jpeg",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-11-25T07:53:40.0133245",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-25T07:53:07.4176561",
+      "modified_at": "2025-11-25T07:53:40.0133245",
       "relevance_score": 0
     }
   ]

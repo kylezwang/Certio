@@ -11,8 +11,32 @@ if exist .env (
     )
 )
 
+REM Start SQL Server (Docker)
+echo [1/4] Starting SQL Server...
+docker ps --filter "name=certio-sqlserver" --format "{{.Names}}" 2>nul | findstr /C:"certio-sqlserver" >nul
+if errorlevel 1 (
+    REM Container doesn't exist or isn't running
+    docker start certio-sqlserver 2>nul
+    if errorlevel 1 (
+        REM Container doesn't exist, create it via docker-compose
+        docker-compose up -d sqlserver 2>nul
+        if errorlevel 1 (
+            echo WARNING: Could not start SQL Server. Check Docker and docker-compose.yml
+        ) else (
+            echo SQL Server started: localhost:1433
+            echo Waiting for SQL Server to be ready...
+            timeout /t 10 /nobreak >nul
+        )
+    ) else (
+        echo SQL Server started: localhost:1433
+    )
+) else (
+    echo SQL Server already running: localhost:1433
+)
+echo.
+
 REM Start Redis (Docker)
-echo [1/3] Starting Redis cache...
+echo [2/4] Starting Redis cache...
 docker ps --filter "name=redis-certio" --format "{{.Names}}" 2>nul | findstr /C:"redis-certio" >nul
 if errorlevel 1 (
     REM Container doesn't exist or isn't running
@@ -34,7 +58,7 @@ if errorlevel 1 (
 echo.
 
 REM Start Python AI Service
-echo [2/3] Starting AI Service...
+echo [3/4] Starting AI Service...
 cd ai_agents
 call venv\Scripts\activate.bat
 pip install -r requirements-minimal.txt >nul 2>&1
@@ -47,7 +71,7 @@ REM Wait briefly for AI service to start
 timeout /t 2 /nobreak >nul
 
 REM Start ASP.NET Core Web Application
-echo [3/3] Starting Web Application...
+echo [4/4] Starting Web Application...
 cd Certio.Web
 start /B dotnet run
 cd ..
@@ -57,6 +81,7 @@ echo.
 echo ========================================
 echo All Services Started:
 echo ========================================
+echo SQL Server:   localhost:1433
 echo Redis Cache:  localhost:6379
 echo AI Service:   http://localhost:8000
 echo Web App:      http://localhost:5092

@@ -1113,6 +1113,7 @@
     .briefing-summary-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
         padding: 0.5rem 0;
     }
 
@@ -1122,11 +1123,13 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 1rem;
+        padding: 0.875rem 0.5rem;
         background: #f8f9fa;
         border-radius: 8px;
         text-align: center;
         transition: background-color 0.2s ease;
+        min-width: 0;
+        overflow: hidden;
     }
 
     .briefing-summary-item:hover {
@@ -1134,19 +1137,62 @@
     }
 
     .briefing-summary-count {
-        font-size: 2rem;
+        font-size: clamp(1.5rem, 4vw, 2rem);
         font-weight: 700;
         color: #3d1019;
         line-height: 1;
         margin-bottom: 0.5rem;
+        width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .briefing-summary-label {
-        font-size: 0.75rem;
+        font-size: clamp(0.625rem, 1.5vw, 0.75rem);
         color: #6c757d;
         font-weight: 500;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        width: 100%;
+        word-wrap: break-word;
+        hyphens: auto;
+        line-height: 1.2;
+    }
+
+    /* Responsive adjustments for smaller screens */
+    @@media (max-width: 1400px) {
+        .briefing-summary-item {
+            padding: 0.75rem 0.375rem;
+        }
+    }
+
+    @@media (max-width: 1200px) {
+        .briefing-summary-grid {
+            gap: 0.5rem;
+        }
+        
+        .briefing-summary-item {
+            padding: 0.625rem 0.25rem;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .briefing-summary-grid {
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+        
+        .briefing-summary-item {
+            padding: 1rem;
+        }
+        
+        .briefing-summary-count {
+            font-size: 2rem;
+        }
+        
+        .briefing-summary-label {
+            font-size: 0.75rem;
+        }
     }
 
     .daily-briefing-card.fullscreen .briefing-summary-grid {

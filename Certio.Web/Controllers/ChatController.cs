@@ -8,6 +8,8 @@ using System.Security.Claims;
 using Certio.Domain.Services;
 using Certio.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Azure;
+using Azure.AI.DocumentIntelligence;
 
 namespace Certio.Web.Controllers;
 
@@ -19,17 +21,20 @@ public class ChatController : Controller
     private readonly IOrganizationContextService _orgContextService;
     private readonly ILogger<ChatController> _logger;
     private readonly ApplicationDbContext _context;
+    private readonly DocumentIntelligenceClient? _documentIntelligenceClient;
 
     public ChatController(
         IChatService chatService,
         IOrganizationContextService orgContextService,
         ILogger<ChatController> logger,
-        ApplicationDbContext context)
+        ApplicationDbContext context,
+        DocumentIntelligenceClient? documentIntelligenceClient = null)
     {
         _chatService = chatService;
         _orgContextService = orgContextService;
         _logger = logger;
         _context = context;
+        _documentIntelligenceClient = documentIntelligenceClient;
     }
 
     [HttpGet("")]
@@ -149,6 +154,132 @@ public class ChatController : Controller
         {
             _logger.LogError(ex, "Error sending message to conversation {ConversationId}", conversationId);
             return Json(new { success = false, error = "An error occurred while sending the message." });
+        }
+    }
+
+    /// <summary>
+    /// Uploads a file attachment and extracts text content using Azure Document Intelligence.
+    /// Returns the extracted text that can be included in the AI conversation context.
+    /// </summary>
+    [HttpPost("UploadAttachment")]
+    public async Task<IActionResult> UploadAttachment(int orgId, IFormFile file)
+    {
+        try
+        {
+            if (file == null || file.Length == 0)
+            {
+                return Json(new { success = false, error = "No file provided." });
+            }
+
+            // Validate file size (max 10MB)
+            if (file.Length > 10 * 1024 * 1024)
+            {
+                return Json(new { success = false, error = "File size exceeds 10MB limit." });
+            }
+
+            // Validate file type
+            var allowedExtensions = new[] { ".pdf", ".doc", ".docx", ".txt", ".png", ".jpg", ".jpeg", ".xlsx", ".xls", ".pptx", ".ppt" };
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (!allowedExtensions.Contains(extension))
+            {
+                return Json(new { success = false, error = $"File type '{extension}' is not supported." });
+            }
+
+            _logger.LogInformation("Processing chat attachment: {FileName} ({Size} bytes)", file.FileName, file.Length);
+
+            string extractedContent;
+
+            // For text files, read directly
+            if (extension == ".txt")
+            {
+                using var reader = new StreamReader(file.OpenReadStream());
+                extractedContent = await reader.ReadToEndAsync();
+            }
+            else if (_documentIntelligenceClient != null)
+            {
+                // Use Azure Document Intelligence for PDFs, images, Office docs
+                extractedContent = await ExtractContentWithDocumentIntelligenceAsync(file);
+            }
+            else
+            {
+                _logger.LogWarning("Azure Document Intelligence not configured, returning file metadata only");
+                extractedContent = $"[Attached file: {file.FileName} ({file.Length / 1024.0:F1} KB) - Content extraction not available]";
+            }
+
+            // Truncate if too long (keep first 50K characters for context)
+            const int maxContentLength = 50000;
+            if (extractedContent.Length > maxContentLength)
+            {
+                extractedContent = extractedContent.Substring(0, maxContentLength) + "\n\n[Content truncated due to length...]";
+            }
+
+            _logger.LogInformation("Extracted {Length} characters from attachment {FileName}", extractedContent.Length, file.FileName);
+
+            return Json(new { 
+                success = true, 
+                fileName = file.FileName,
+                fileSize = file.Length,
+                extractedContent = extractedContent,
+                contentLength = extractedContent.Length
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing attachment {FileName}", file?.FileName);
+            return Json(new { success = false, error = "An error occurred while processing the attachment." });
+        }
+    }
+
+    private async Task<string> ExtractContentWithDocumentIntelligenceAsync(IFormFile file)
+    {
+        try
+        {
+            using var stream = file.OpenReadStream();
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            var fileBytes = memoryStream.ToArray();
+
+            var operation = await _documentIntelligenceClient!.AnalyzeDocumentAsync(
+                WaitUntil.Completed,
+                "prebuilt-read",
+                BinaryData.FromBytes(fileBytes));
+
+            var result = operation.Value;
+
+            // Extract all text content
+            var textBuilder = new System.Text.StringBuilder();
+            
+            if (result.Content != null)
+            {
+                textBuilder.AppendLine(result.Content);
+            }
+            else if (result.Pages != null)
+            {
+                foreach (var page in result.Pages)
+                {
+                    if (page.Lines != null)
+                    {
+                        foreach (var line in page.Lines)
+                        {
+                            textBuilder.AppendLine(line.Content);
+                        }
+                    }
+                }
+            }
+
+            var extractedText = textBuilder.ToString().Trim();
+            
+            if (string.IsNullOrWhiteSpace(extractedText))
+            {
+                return $"[Document '{file.FileName}' processed but no text content was extracted. This may be a scanned image or empty document.]";
+            }
+
+            return extractedText;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error extracting content with Document Intelligence for {FileName}", file.FileName);
+            return $"[Error extracting content from '{file.FileName}': {ex.Message}]";
         }
     }
 
@@ -435,7 +566,16 @@ public class ChatController : Controller
                 return;
             }
             
-            await foreach (var chunk in _chatService.GenerateAIResponseStreamAsync(request.ConversationId, request.UserMessage))
+            // Build the message with attachment context if provided
+            var messageWithContext = request.UserMessage;
+            if (!string.IsNullOrEmpty(request.AttachmentContent))
+            {
+                messageWithContext = $"[USER ATTACHED FILE: {request.AttachmentFileName ?? "document"}]\n\n--- ATTACHED FILE CONTENT ---\n{request.AttachmentContent}\n--- END OF ATTACHED FILE ---\n\nUser's message: {request.UserMessage}";
+                _logger.LogInformation("Including attachment content ({Length} chars) in AI context for conversation {ConversationId}", 
+                    request.AttachmentContent.Length, request.ConversationId);
+            }
+            
+            await foreach (var chunk in _chatService.GenerateAIResponseStreamAsync(request.ConversationId, messageWithContext))
             {
                 var data = $"data: {System.Text.Json.JsonSerializer.Serialize(new { content = chunk, done = false })}\n\n";
                 await Response.WriteAsync(data);
@@ -713,6 +853,8 @@ public class AIResponseRequest
 {
     public int ConversationId { get; set; }
     public string UserMessage { get; set; } = "";
+    public string? AttachmentContent { get; set; }
+    public string? AttachmentFileName { get; set; }
 }
 
 public class DashboardCardRequest

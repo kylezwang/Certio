@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Certio.Application.DTOs;
 using Certio.Application.Interfaces;
+using Certio.Application.Services.Documents;
 using Certio.Domain.Documents;
 using Certio.Domain.Matters;
 using Certio.Infrastructure.Data;
@@ -34,6 +35,7 @@ public class DocumentsApiController : ControllerBase
     private readonly IRagContextService _ragContextService;
     private readonly IDocumentIndexerService _documentIndexerService;
     private readonly IDocumentAuditService _documentAuditService;
+    private readonly IFileStorageService _fileStorageService;
     private readonly AuthorizationHelper _authorizationHelper;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IConfiguration _configuration;
@@ -45,6 +47,7 @@ public class DocumentsApiController : ControllerBase
         IRagContextService ragContextService,
         IDocumentIndexerService documentIndexerService,
         IDocumentAuditService documentAuditService,
+        IFileStorageService fileStorageService,
         IHttpClientFactory httpClientFactory,
         IConfiguration configuration,
         ILogger<DocumentsApiController> logger,
@@ -55,6 +58,7 @@ public class DocumentsApiController : ControllerBase
         _ragContextService = ragContextService;
         _documentIndexerService = documentIndexerService;
         _documentAuditService = documentAuditService;
+        _fileStorageService = fileStorageService;
         _httpClientFactory = httpClientFactory;
         _configuration = configuration;
         _logger = logger;
@@ -176,6 +180,7 @@ public class DocumentsApiController : ControllerBase
             return BadRequest("File exceeds 10 MB embedding limit");
         }
 
+        // Create document first to get the ID for storage
         var document = new Document
         {
             OrgId = request.OrgId,
@@ -193,25 +198,43 @@ public class DocumentsApiController : ControllerBase
             Metadata = new Dictionary<string, string?>
             {
                 { "originalFileName", request.File.FileName }
-            },
-            DownloadUrl = $"/api/documents/{Guid.NewGuid()}/download"
+            }
         };
 
         _dbContext.Documents.Add(document);
+        await _dbContext.SaveChangesAsync(cancellationToken); // Save to get document.Id
 
+        // Store the actual file content
+        string storagePath;
+        try
+        {
+            using var stream = request.File.OpenReadStream();
+            storagePath = await _fileStorageService.StoreFileAsync(stream, document.Id, request.File.FileName, cancellationToken);
+            _logger.LogInformation("Stored file for document {DocumentId} at path {StoragePath}", document.Id, storagePath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to store file for document {DocumentId}", document.Id);
+            return StatusCode(500, new { error = "Failed to store file content" });
+        }
+
+        // Update document with download URL
+        document.DownloadUrl = $"/api/documents/{document.Id}/download";
+
+        // Create version with actual storage path
         var version = new DocumentVersion
         {
             Document = document,
             VersionNumber = 1,
             ModifiedAt = document.ModifiedAt,
             ModifiedByUserId = Guid.Empty,
-            StorageUrl = document.DownloadUrl ?? string.Empty
+            StorageUrl = storagePath
         };
 
         _dbContext.DocumentVersions.Add(version);
-
         await _dbContext.SaveChangesAsync(cancellationToken);
 
+        // Queue for embedding and AI processing
         await _documentIndexerService.QueueEmbeddingAsync(document.Id, version.Id, cancellationToken);
 
         await _documentAuditService.LogAsync(new DocumentAuditEvent(
@@ -221,10 +244,84 @@ public class DocumentsApiController : ControllerBase
             version.Id,
             null,
             "Upload",
-            $"Document '{document.Title}' uploaded",
+            $"Document '{document.Title}' uploaded and stored",
             DateTime.UtcNow), cancellationToken);
 
-        return CreatedAtAction(nameof(Search), new { id = document.Id }, new { document.Id });
+        return CreatedAtAction(nameof(Search), new { id = document.Id }, new { document.Id, storagePath });
+    }
+
+    [HttpGet("{documentId:guid}/download")]
+    public async Task<IActionResult> Download(Guid documentId, CancellationToken cancellationToken)
+    {
+        int currentUserId;
+        try
+        {
+            currentUserId = GetCurrentUserId();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Unauthorized();
+        }
+
+        var document = await _dbContext.Documents
+            .AsNoTracking()
+            .Include(d => d.Versions)
+            .FirstOrDefaultAsync(d => d.Id == documentId && d.DeletedAt == null, cancellationToken);
+
+        if (document == null)
+        {
+            return NotFound(new { error = "Document not found" });
+        }
+
+        // Check organization access
+        var accessibleOrganizations = await _authorizationHelper.GetAccessibleOrganizationIdsAsync(currentUserId);
+        var hasOrganizationAccess = accessibleOrganizations
+            .Select(id => CreateDeterministicGuid("certio:organization", id))
+            .Contains(document.OrgId);
+
+        if (!hasOrganizationAccess)
+        {
+            _logger.LogWarning("SECURITY: User {UserId} attempted to download document {DocumentId} without organization access", currentUserId, documentId);
+            return NotFound();
+        }
+
+        // For internal uploads, retrieve from file storage
+        if (document.SourceType == DocumentSourceType.InternalUpload)
+        {
+            var latestVersion = document.Versions.OrderByDescending(v => v.VersionNumber).FirstOrDefault();
+            if (latestVersion == null || string.IsNullOrWhiteSpace(latestVersion.StorageUrl))
+            {
+                _logger.LogWarning("No storage path found for internal upload document {DocumentId}", documentId);
+                return NotFound(new { error = "File not found" });
+            }
+
+            try
+            {
+                var fileData = await _fileStorageService.RetrieveFileAsync(latestVersion.StorageUrl, cancellationToken);
+                var contentType = document.FileType ?? "application/octet-stream";
+                var fileName = document.Title ?? $"document_{documentId}";
+
+                return File(fileData, contentType, fileName);
+            }
+            catch (FileNotFoundException)
+            {
+                _logger.LogWarning("File not found at storage path {Path} for document {DocumentId}", latestVersion.StorageUrl, documentId);
+                return NotFound(new { error = "File not found in storage" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve file for document {DocumentId}", documentId);
+                return StatusCode(500, new { error = "Failed to retrieve file" });
+            }
+        }
+
+        // For external documents, redirect to their download URLs
+        if (!string.IsNullOrWhiteSpace(document.DownloadUrl))
+        {
+            return Redirect(document.DownloadUrl);
+        }
+
+        return NotFound(new { error = "No download method available for this document" });
     }
 
     [HttpPost("reindex/{orgId:guid}")]
