@@ -593,6 +593,9 @@
         border-radius: 16px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
         transition: all 0.3s ease;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
     }
 
     .input-container:hover {
@@ -746,6 +749,9 @@
         margin-bottom: 0.5rem;
         align-items: center;
         gap: 0.5rem;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
     }
 
     .attachment-preview.active {
@@ -755,11 +761,13 @@
     .attachment-preview-icon {
         color: #3d1019;
         font-size: 1.25rem;
+        flex-shrink: 0;
     }
 
     .attachment-preview-info {
         flex: 1;
         min-width: 0;
+        overflow: hidden;
     }
 
     .attachment-preview-name {
@@ -769,6 +777,7 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        max-width: 100%;
     }
 
     .attachment-preview-size {
@@ -784,6 +793,7 @@
         padding: 0.25rem;
         border-radius: 4px;
         transition: all 0.2s ease;
+        flex-shrink: 0;
     }
 
     .attachment-preview-remove:hover {
@@ -1414,7 +1424,7 @@
                             
                             <!-- Timer Display -->
                             <div class="session-timer-display text-center mb-3" style="padding: 0rem 0.5rem;">
-                                <div id="sessionTimerDisplay" style="font-family: 'SF Mono', 'Consolas', 'Monaco', monospace; font-size: 2.25rem; font-weight: 700; color: #1a202c; letter-spacing: 0.05em;">
+                                <div id="sessionTimerDisplay" style="font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, 'DejaVu Sans Mono', monospace; font-size: clamp(1.75rem, 4vw, 2.25rem); font-weight: 700; color: #1a202c; letter-spacing: 0.05em; font-feature-settings: 'tnum' 1, 'zero' 1;">
                                     00:00:00
                                 </div>
                             </div>
@@ -2070,19 +2080,20 @@
             gap: 0.5rem;
             transition: all 0.3s ease;
             cursor: move;
-            min-width: 260px;
-            max-width: 260px;
+            min-width: clamp(220px, 30vw, 260px);
+            max-width: clamp(220px, 30vw, 260px);
         ">
             <!-- Timer Display and Controls -->
             <div style="display: flex; align-items: center; gap: 0.5rem; justify-content: space-between; min-width: 0; width: 100%;">
                 <div id="timerDisplay" style="
-                    font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
-                    font-size: 1.33rem;
+                    font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+                    font-size: clamp(1.125rem, 2.5vw, 1.33rem);
                     font-weight: 600;
                     color: #1f2937;
                     flex-shrink: 0;
                     white-space: nowrap;
                     letter-spacing: 0.1em;
+                    font-feature-settings: 'tnum' 1, 'zero' 1;
                 ">
                     00:00:00
                 </div>

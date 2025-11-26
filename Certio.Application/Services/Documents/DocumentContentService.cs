@@ -30,6 +30,7 @@ public sealed class DocumentContentService : IDocumentContentService
     private readonly SecureDocumentExtractionOptions _extractionOptions;
     private readonly DocumentIntegrationOptions _integrationOptions;
     private readonly DocumentIntelligenceClient? _documentIntelligenceClient;
+    private readonly IFileStorageService _fileStorageService;
     private readonly ILogger<DocumentContentService> _logger;
 
     public DocumentContentService(
@@ -40,6 +41,7 @@ public sealed class DocumentContentService : IDocumentContentService
         IOptions<SecureDocumentExtractionOptions> extractionOptions,
         IOptions<DocumentIntegrationOptions> integrationOptions,
         DocumentIntelligenceClient? documentIntelligenceClient,
+        IFileStorageService fileStorageService,
         ILogger<DocumentContentService> logger)
     {
         _dbContext = dbContext;
@@ -49,6 +51,7 @@ public sealed class DocumentContentService : IDocumentContentService
         _extractionOptions = extractionOptions.Value;
         _integrationOptions = integrationOptions.Value;
         _documentIntelligenceClient = documentIntelligenceClient;
+        _fileStorageService = fileStorageService;
         _logger = logger;
     }
 
@@ -65,7 +68,7 @@ public sealed class DocumentContentService : IDocumentContentService
             {
                 DocumentSourceType.GoogleDrive => await FetchFromGoogleDriveAsync(document, cancellationToken).ConfigureAwait(false),
                 DocumentSourceType.OneDrive => await FetchFromOneDriveAsync(document, cancellationToken).ConfigureAwait(false),
-                DocumentSourceType.InternalUpload => DocumentContentResult.Empty("internal_upload_not_supported"),
+                DocumentSourceType.InternalUpload => await FetchFromInternalUploadAsync(document, versionId, cancellationToken).ConfigureAwait(false),
                 _ => DocumentContentResult.Empty("unsupported_source")
             };
         }
@@ -73,6 +76,64 @@ public sealed class DocumentContentService : IDocumentContentService
         {
             _logger.LogWarning(ex, "Failed to extract content for document {DocumentId}", document.Id);
             return DocumentContentResult.Empty("extraction_error");
+        }
+    }
+
+    private async Task<DocumentContentResult> FetchFromInternalUploadAsync(Document document, Guid? versionId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Get the version to find the storage path
+            DocumentVersion? version;
+            if (versionId.HasValue)
+            {
+                version = await _dbContext.DocumentVersions
+                    .FirstOrDefaultAsync(v => v.Id == versionId.Value && v.DocumentId == document.Id, cancellationToken);
+            }
+            else
+            {
+                version = await _dbContext.DocumentVersions
+                    .Where(v => v.DocumentId == document.Id)
+                    .OrderByDescending(v => v.VersionNumber)
+                    .FirstOrDefaultAsync(cancellationToken);
+            }
+
+            if (version == null || string.IsNullOrWhiteSpace(version.StorageUrl))
+            {
+                _logger.LogWarning("No file storage path found for internal upload document {DocumentId}", document.Id);
+                return DocumentContentResult.Empty("no_storage_path");
+            }
+
+            // Check if file exists
+            var fileExists = await _fileStorageService.FileExistsAsync(version.StorageUrl, cancellationToken);
+            if (!fileExists)
+            {
+                _logger.LogWarning("File not found at storage path {Path} for document {DocumentId}", version.StorageUrl, document.Id);
+                return DocumentContentResult.Empty("file_not_found");
+            }
+
+            // Retrieve file content
+            var fileData = await _fileStorageService.RetrieveFileAsync(version.StorageUrl, cancellationToken);
+            
+            _logger.LogInformation("Retrieved {Size} bytes for internal upload document {DocumentId}", fileData.Length, document.Id);
+
+            // Process with Azure Document Intelligence
+            var metadata = new Dictionary<string, string?>
+            {
+                { "source", "internal_upload" },
+                { "contentType", document.FileType }
+            };
+            return await ExtractContentAsync(fileData, document.FileType ?? "application/octet-stream", "internal_upload", metadata, cancellationToken);
+        }
+        catch (FileNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "File not found for internal upload document {DocumentId}", document.Id);
+            return DocumentContentResult.Empty("file_not_found");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to fetch content from internal upload for document {DocumentId}", document.Id);
+            return DocumentContentResult.Empty("fetch_error");
         }
     }
 

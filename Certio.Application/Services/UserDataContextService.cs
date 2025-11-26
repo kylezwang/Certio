@@ -47,7 +47,7 @@ public class UserDataContextService : IUserDataContextService
         var moduleData = new Dictionary<string, UserModuleData>();
         var modules = request.IncludeModules ?? new List<string> 
         { 
-            "matters", "tasks", "calendar", "communications", "clients", "teams"
+            "matters", "tasks", "calendar", "communications", "clients", "teams", "documents"
         };
 
         // Build context from each module based on user permissions
@@ -63,6 +63,7 @@ public class UserDataContextService : IUserDataContextService
                     "communications" => await BuildCommunicationsContextAsync(request, cancellationToken),
                     "clients" => await BuildClientsContextAsync(request, cancellationToken),
                     "teams" => await BuildTeamsContextAsync(request, cancellationToken),
+                    "documents" => await BuildDocumentsContextAsync(request, cancellationToken),
                     _ => null
                 };
 
@@ -603,6 +604,152 @@ public class UserDataContextService : IUserDataContextService
         return new UserModuleData("teams", teams.Count, chunks, summary);
     }
 
+    private async Task<UserModuleData> BuildDocumentsContextAsync(
+        UserDataContextRequest request,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("BuildDocumentsContextAsync: Starting for User {UserId} Org {OrgId}", request.UserId, request.OrganizationId);
+        
+        // Get accessible organization IDs (include client orgs for law firms)
+        var accessibleOrgIds = await GetAccessibleOrganizationIdsAsync(request.OrganizationId, cancellationToken);
+        
+        // Convert int org IDs to Guid format used by Documents
+        var accessibleOrgGuids = accessibleOrgIds
+            .Select(id => CreateDeterministicGuid("certio:organization", id))
+            .ToList();
+        
+        _logger.LogInformation("BuildDocumentsContextAsync: Searching for documents with OrgIds: {OrgGuids}", string.Join(", ", accessibleOrgGuids.Take(5)));
+        
+        // Debug: Check total documents in DB
+        var totalDocs = await _dbContext.Documents.CountAsync(cancellationToken);
+        var deletedDocs = await _dbContext.Documents.CountAsync(d => d.DeletedAt != null, cancellationToken);
+        var sampleOrgIds = await _dbContext.Documents
+            .AsNoTracking()
+            .GroupBy(d => d.OrgId)
+            .OrderByDescending(g => g.Count())
+            .Select(g => new { OrgId = g.Key, Count = g.Count() })
+            .Take(5)
+            .ToListAsync(cancellationToken);
+        _logger.LogInformation("BuildDocumentsContextAsync: Total docs in DB: {Total}, Deleted: {Deleted}, TopOrgIds: {OrgCounts}",
+            totalDocs,
+            deletedDocs,
+            string.Join("; ", sampleOrgIds.Select(x => $"{x.OrgId}:{x.Count}")));
+
+        var documents = await _dbContext.Documents
+            .AsNoTracking()
+            .Include(d => d.Versions)
+            .Where(d => accessibleOrgGuids.Contains(d.OrgId) && d.DeletedAt == null)
+            .OrderByDescending(d => d.ModifiedAt)
+            .Take(50)  // Recent documents
+            .ToListAsync(cancellationToken);
+        
+        _logger.LogInformation("BuildDocumentsContextAsync: Found {Count} documents for {OrgCount} orgs", documents.Count, accessibleOrgGuids.Count);
+
+        // If matter-specific request, also get documents linked to that matter
+        if (request.MatterId.HasValue)
+        {
+            var matterGuid = CreateDeterministicGuid("certio:matter", request.MatterId.Value);
+            var matterDocs = await _dbContext.Documents
+                .AsNoTracking()
+                .Include(d => d.Versions)
+                .Where(d => d.MatterId == matterGuid && d.DeletedAt == null)
+                .OrderByDescending(d => d.ModifiedAt)
+                .Take(20)
+                .ToListAsync(cancellationToken);
+            
+            documents = documents.Union(matterDocs, new DocumentComparer()).ToList();
+        }
+
+        var chunks = new List<UserDataChunk>();
+        
+        // Also try to get document vector content if available (contains extracted text)
+        foreach (var doc in documents)
+        {
+            // Get extracted content from vector store if available
+            var extractedContent = await GetDocumentExtractedContentAsync(doc.Id, cancellationToken);
+            _logger.LogDebug("Document {DocId} ({Title}): ExtractedContent={HasContent} ({Length} chars)", 
+                doc.Id, doc.Title, !string.IsNullOrEmpty(extractedContent), extractedContent?.Length ?? 0);
+            var content = BuildDocumentContent(doc, extractedContent);
+            
+            chunks.Add(new UserDataChunk(
+                Id: Guid.NewGuid(),
+                ModuleName: "documents",
+                EntityType: "Document",
+                EntityId: 0, // Guid-based ID, use 0 as placeholder
+                Title: doc.Title,
+                Content: content,
+                Metadata: new Dictionary<string, object?>
+                {
+                    ["documentId"] = doc.Id.ToString(),
+                    ["fileType"] = doc.FileType,
+                    ["category"] = doc.Category,
+                    ["status"] = doc.Status.ToString(),
+                    ["sourceType"] = doc.SourceType.ToString(),
+                    ["hasExtractedContent"] = !string.IsNullOrEmpty(extractedContent),
+                    ["matterId"] = doc.MatterId?.ToString(),
+                    ["modifiedAt"] = doc.ModifiedAt,
+                    ["tags"] = doc.Tags
+                },
+                CreatedAt: doc.CreatedAt,
+                ModifiedAt: doc.ModifiedAt
+            ));
+        }
+
+        var summary = new Dictionary<string, object?>
+        {
+            ["totalDocuments"] = documents.Count,
+            ["documentsByType"] = documents.GroupBy(d => d.FileType).ToDictionary(g => g.Key ?? "unknown", g => g.Count()),
+            ["documentsWithContent"] = chunks.Count(c => c.Metadata.ContainsKey("hasExtractedContent") && (bool)c.Metadata["hasExtractedContent"]!)
+        };
+
+        _logger.LogInformation("BuildDocumentsContextAsync: Returning {ChunkCount} document chunks, {WithContent} with extracted content", chunks.Count, summary["documentsWithContent"]);
+        
+        return new UserModuleData("documents", documents.Count, chunks, summary);
+    }
+
+    private async Task<string?> GetDocumentExtractedContentAsync(Guid documentId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Get document vectors which contain extracted/chunked content
+            var vectors = await _dbContext.DocumentVectors
+                .AsNoTracking()
+                .Where(v => v.DocumentId == documentId)
+                .OrderBy(v => v.ChunkIndex)
+                .Take(10) // First 10 chunks to limit size
+                .ToListAsync(cancellationToken);
+
+            if (vectors.Any())
+            {
+                // Combine chunk content
+                return string.Join("\n\n", vectors.Select(v => v.ContentChunk));
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Could not retrieve extracted content for document {DocumentId}", documentId);
+        }
+        
+        return null;
+    }
+
+    private static Guid CreateDeterministicGuid(string prefix, int id)
+    {
+        var input = $"{prefix}:{id}";
+        using var sha256 = SHA256.Create();
+        var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+        Span<byte> guidBytes = stackalloc byte[16];
+        hash.AsSpan(0, 16).CopyTo(guidBytes);
+        guidBytes[6] = (byte)((guidBytes[6] & 0x0F) | 0x40); // version 4
+        guidBytes[8] = (byte)((guidBytes[8] & 0x3F) | 0x80); // RFC 4122 variant
+        return new Guid(guidBytes);
+    }
+
+    private class DocumentComparer : IEqualityComparer<Certio.Domain.Documents.Document>
+    {
+        public bool Equals(Certio.Domain.Documents.Document? x, Certio.Domain.Documents.Document? y) => x?.Id == y?.Id;
+        public int GetHashCode(Certio.Domain.Documents.Document obj) => obj.Id.GetHashCode();
+    }
 
     #region Content Builders
 
@@ -690,6 +837,48 @@ public class UserDataContextService : IUserDataContextService
         if (task.TaskAssignments.Any())
         {
             sb.AppendLine($"Assigned to: {string.Join(", ", task.TaskAssignments.Select(a => $"{a.User?.FirstName} {a.User?.LastName}"))}");
+        }
+        
+        return sb.ToString();
+    }
+
+    private string BuildDocumentContent(Certio.Domain.Documents.Document doc, string? extractedContent)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"=== DOCUMENT: {doc.Title} ===");
+        sb.AppendLine($"Document ID: {doc.Id}");
+        sb.AppendLine($"Type: {doc.FileType}");
+        sb.AppendLine($"Source: {doc.SourceType}");
+        sb.AppendLine($"Status: {doc.Status}");
+        
+        if (!string.IsNullOrEmpty(doc.Category))
+            sb.AppendLine($"Category: {doc.Category}");
+        
+        if (doc.Metadata.TryGetValue("description", out var descriptionValue) && !string.IsNullOrWhiteSpace(descriptionValue))
+            sb.AppendLine($"Description: {descriptionValue}");
+        
+        if (doc.Tags != null && doc.Tags.Any())
+            sb.AppendLine($"Tags: {string.Join(", ", doc.Tags)}");
+        
+        sb.AppendLine($"Created: {doc.CreatedAt:yyyy-MM-dd HH:mm}");
+        sb.AppendLine($"Last Modified: {doc.ModifiedAt:yyyy-MM-dd HH:mm}");
+        
+        // Include the actual extracted content if available
+        if (!string.IsNullOrEmpty(extractedContent))
+        {
+            sb.AppendLine("");
+            sb.AppendLine("=== DOCUMENT CONTENT ===");
+            // Limit content to prevent token explosion but include meaningful amount
+            var contentToInclude = extractedContent.Length > 8000 
+                ? extractedContent.Substring(0, 8000) + "\n[... content truncated ...]" 
+                : extractedContent;
+            sb.AppendLine(contentToInclude);
+            sb.AppendLine("=== END CONTENT ===");
+        }
+        else
+        {
+            sb.AppendLine("");
+            sb.AppendLine("[Document content not yet extracted - request specific document analysis to trigger extraction]");
         }
         
         return sb.ToString();

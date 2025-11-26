@@ -693,6 +693,7 @@ builder.Services.AddSingleton<Certio.Web.Services.IUserPresenceService, Certio.W
 // Unified Document System Services
 builder.Services.Configure<SecureDocumentExtractionOptions>(builder.Configuration.GetSection("DocumentExtraction"));
 builder.Services.Configure<DocumentIntegrationOptions>(builder.Configuration.GetSection("DocumentIntegration"));
+builder.Services.Configure<FileStorageOptions>(builder.Configuration.GetSection("FileStorage"));
 
 // Azure Document Intelligence (optional - only if configured)
 builder.Services.AddSingleton<DocumentIntelligenceClient?>(sp =>
@@ -784,8 +785,10 @@ builder.Services.AddScoped<IDocumentContentService>(sp =>
 
     Func<string, string> decryptFunc = encrypted => protector.Unprotect(encrypted);
     Func<string, string> encryptFunc = plain => protector.Protect(plain);
-    return new DocumentContentService(dbContext, httpClientFactory, decryptFunc, encryptFunc, options, integrationOptions, documentIntelligenceClient, logger);
+    var fileStorageService = sp.GetRequiredService<IFileStorageService>();
+    return new DocumentContentService(dbContext, httpClientFactory, decryptFunc, encryptFunc, options, integrationOptions, documentIntelligenceClient, fileStorageService, logger);
 });
+builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 builder.Services.AddScoped<IDocumentIndexerService, DocumentIndexerService>();
 builder.Services.AddScoped<IVectorStoreService, VectorStoreService>();
 builder.Services.AddScoped<IRagContextService, RagContextService>();

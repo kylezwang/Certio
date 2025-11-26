@@ -288,7 +288,7 @@ function generateTitleFromMessage(message) {
 }
 
 // Create a new conversation from a message
-async function createNewConversationFromMessage(message) {
+async function createNewConversationFromMessage(message, fileInfo = null, capturedFile = null) {
     const orgId = getCurrentOrganizationId();
     if (!orgId) {
         console.error('Organization ID not found');
@@ -332,8 +332,8 @@ async function createNewConversationFromMessage(message) {
                 // Create a new tab for this conversation
                 await addConversationTab(data.conversationId, title);
                 
-                // Now send the message to the new conversation
-                await sendMessageToConversation(message, data.conversationId);
+                // Now send the message to the new conversation (pass fileInfo and capturedFile for background processing)
+                await sendMessageInternal(message, data.conversationId, fileInfo, capturedFile);
 
                 // Safeguard: ensure the input is cleared after send
                 const messageInput = document.getElementById('messageInput');
@@ -409,12 +409,76 @@ async function sendMessageToConversation(message, conversationId) {
     return await sendMessageInternal(message, conversationId);
 }
 
+// Pending attachment state
+let pendingAttachment = null;
+
+// Upload and extract content from attachment
+async function uploadAttachment(file) {
+    const orgId = getCurrentOrganizationId();
+    if (!orgId) {
+        console.error('Organization ID not found');
+        return null;
+    }
+    
+    // Set uploading flag
+    window._uploadingAttachment = true;
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+        const response = await fetch(`/Client/${orgId}/Chat/UploadAttachment`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            console.log(`Attachment processed: ${data.fileName} (${data.contentLength} chars extracted)`);
+            window._uploadingAttachment = false;
+            return {
+                fileName: data.fileName,
+                fileSize: data.fileSize,
+                extractedContent: data.extractedContent
+            };
+        } else {
+            console.error('Failed to process attachment:', data.error);
+            window._uploadingAttachment = false;
+            alert('Failed to process attachment: ' + data.error);
+            return null;
+        }
+    } catch (error) {
+        console.error('Error uploading attachment:', error);
+        window._uploadingAttachment = false;
+        alert('Error uploading attachment. Please try again.');
+        return null;
+    }
+}
+
 // Send message
 async function sendMessage() {
     const messageInput = document.getElementById('messageInput');
+    const fileInput = document.getElementById('fileInput');
+    const attachmentPreview = document.getElementById('attachmentPreview');
+    const attachFileBtn = document.getElementById('attachFileBtn');
     const message = messageInput.value.trim();
     
-    if (!message) return;
+    // Check if there's a file attached
+    const hasAttachment = fileInput && fileInput.files && fileInput.files.length > 0;
+    
+    if (!message && !hasAttachment) return;
+    
+    // Capture file and file info before clearing
+    let capturedFile = null;
+    let fileInfo = null;
+    if (hasAttachment) {
+        capturedFile = fileInput.files[0];
+        fileInfo = {
+            name: capturedFile.name,
+            size: capturedFile.size
+        };
+    }
     
     // Clear input immediately to avoid duplicate text lingering
     messageInput.value = '';
@@ -435,13 +499,26 @@ async function sendMessage() {
         sendButton.disabled = true;
     }
     
+    // Clear attachment preview immediately
+    if (attachmentPreview) {
+        attachmentPreview.classList.remove('active');
+    }
+    if (attachFileBtn) {
+        attachFileBtn.classList.remove('active');
+    }
+    
+    // Clear the file input immediately
+    if (fileInput) {
+        fileInput.value = '';
+    }
+    
     // If we don't have a conversation ID, create a new one first
     if (!currentConversationId) {
-        await createNewConversationFromMessage(message);
+        await createNewConversationFromMessage(message || 'Analyzing attached document...', fileInfo, capturedFile);
         return;
     }
     
-    await sendMessageInternal(message, currentConversationId);
+    await sendMessageInternal(message || 'Please analyze this document.', currentConversationId, fileInfo, capturedFile);
 }
 
 // Generate AI response with streaming
@@ -493,15 +570,37 @@ async function generateAIResponse(userMessage) {
             chatMessages.addEventListener('scroll', handleScroll);
         }
         
+        // Build request body with optional attachment content
+        const requestBody = {
+            conversationId: parseInt(currentConversationId),
+            userMessage: userMessage
+        };
+        
+        // Wait for pendingAttachment if it's still being processed (max 30 seconds)
+        if (pendingAttachment === null && window._uploadingAttachment) {
+            console.log('Waiting for attachment upload to complete...');
+            const maxWait = 30000; // 30 seconds
+            const startWait = Date.now();
+            while (pendingAttachment === null && window._uploadingAttachment && (Date.now() - startWait) < maxWait) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+        }
+        
+        // Include attachment content if present
+        if (pendingAttachment) {
+            requestBody.attachmentContent = pendingAttachment.extractedContent;
+            requestBody.attachmentFileName = pendingAttachment.fileName;
+            console.log(`Including attachment in AI request: ${pendingAttachment.fileName}`);
+            // Clear pending attachment after including it
+            pendingAttachment = null;
+        }
+        
         const response = await fetch(`/Client/${orgId}/Chat/GenerateAIResponseStream`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                conversationId: parseInt(currentConversationId),
-                userMessage: userMessage
-            })
+            body: JSON.stringify(requestBody)
         });
         
         if (!response.ok) {
@@ -701,12 +800,21 @@ function createStreamingAIMessagePlaceholder() {
 }
 
 // Internal function to handle message sending logic
-async function sendMessageInternal(message, conversationId) {
+async function sendMessageInternal(message, conversationId, fileInfo = null, capturedFile = null) {
     try {
-        // Add user message to chat immediately
-        addUserMessageToChat(message);
+        // Build attachment info from pendingAttachment or fileInfo
+        const attachmentInfo = pendingAttachment ? {
+            fileName: pendingAttachment.fileName,
+            fileSize: pendingAttachment.fileSize
+        } : (fileInfo ? {
+            fileName: fileInfo.name,
+            fileSize: fileInfo.size || fileInfo.fileSize
+        } : null);
         
-        // Show intelligent AI thinking indicator
+        // Add user message to chat immediately (with attachment indicator if present)
+        addUserMessageToChat(message, attachmentInfo);
+        
+        // Show intelligent AI thinking indicator immediately
         showIntelligentAIThinkingIndicator(message);
         
         // Send to server
@@ -715,6 +823,20 @@ async function sendMessageInternal(message, conversationId) {
             console.error('Organization ID not found');
             hideAIThinkingIndicator();
             return false;
+        }
+        
+        // If we have a file to process and haven't processed it yet, do it in background
+        if (capturedFile && !pendingAttachment) {
+            console.log('Processing attachment in background:', capturedFile.name);
+            // Start upload but don't await - let it run in parallel with message send
+            uploadAttachment(capturedFile).then(result => {
+                if (result) {
+                    pendingAttachment = result;
+                    console.log('Background file processing complete');
+                }
+            }).catch(err => {
+                console.error('Background file processing failed:', err);
+            });
         }
         
         const response = await fetch(`/Client/${orgId}/Chat/SendMessage`, {
@@ -729,7 +851,7 @@ async function sendMessageInternal(message, conversationId) {
         
         if (data.success) {
             console.log('Message sent successfully');
-            // Generate intelligent AI response
+            // Generate intelligent AI response (will include attachment content if pendingAttachment is set)
             await generateAIResponse(message);
             return true;
         } else {
@@ -765,14 +887,42 @@ function isMeaningfulMessage(content) {
     return true;
 }
 
-// Add user message to chat
-function addUserMessageToChat(message) {
+// Add user message to chat (with optional attachment indicator)
+function addUserMessageToChat(message, attachmentInfo = null) {
     const chatMessages = document.getElementById('chatMessages');
     const welcomeMessage = document.getElementById('welcomeMessage');
     
     // Hide welcome message when first real message arrives
     if (welcomeMessage) {
         welcomeMessage.style.display = 'none';
+    }
+    
+    // Build attachment HTML if present
+    let attachmentHtml = '';
+    if (attachmentInfo) {
+        const fileSizeKb = (attachmentInfo.fileSize / 1024).toFixed(1);
+        attachmentHtml = `
+            <div class="message-attachment" style="
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.5rem 0.75rem;
+                background: rgba(199, 183, 163, 0.15);
+                border-radius: 8px;
+                margin-bottom: 0.5rem;
+                border: 1px solid rgba(199, 183, 163, 0.3);
+                max-width: 100%;
+                box-sizing: border-box;
+                overflow: hidden;
+            ">
+                <i class="fas fa-file-alt" style="color: #c7b7a3; flex-shrink: 0;"></i>
+                <div style="flex: 1; min-width: 0; overflow: hidden;">
+                    <div style="font-weight: 500; font-size: 0.875rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">${attachmentInfo.fileName}</div>
+                    <div style="font-size: 0.75rem; color: #6c757d;">${fileSizeKb} KB</div>
+                </div>
+                <i class="fas fa-check-circle" style="color: #28a745; font-size: 0.875rem; flex-shrink: 0;" title="Content extracted"></i>
+            </div>
+        `;
     }
     
     const messageDiv = document.createElement('div');
@@ -783,6 +933,7 @@ function addUserMessageToChat(message) {
             <div class="message-header">
                 <span class="timestamp">${new Date().toLocaleTimeString()}</span>
             </div>
+            ${attachmentHtml}
             <div class="message-text">${message}</div>
         </div>
     `;
@@ -2109,11 +2260,17 @@ function showIntelligentAIThinkingIndicator(userMessage) {
     let thinkingMessage = "AI is thinking...";
     const messageLower = userMessage.toLowerCase();
     
-    if (messageLower.includes("document review") || messageLower.includes("review")) {
+    // Check if there's a pending attachment or if message is about documents/files
+    if (pendingAttachment || window._uploadingAttachment || 
+        messageLower.includes("document") || messageLower.includes("file") || 
+        messageLower.includes("summarize") || messageLower.includes("analyze") ||
+        messageLower.includes("pdf") || messageLower.includes("attachment")) {
+        thinkingMessage = "Analyzing document...";
+    } else if (messageLower.includes("document review") || messageLower.includes("review")) {
         thinkingMessage = "Analyzing document requirements...";
     } else if (messageLower.includes("contract") || messageLower.includes("agreement")) {
         thinkingMessage = "Reviewing contract details...";
-    } else if (messageLower.includes("hello") || messageLower.includes("hi")) {
+    } else if (messageLower.includes("hello") || messageLower.includes("hi") || messageLower.includes("hey")) {
         thinkingMessage = "Preparing personalized greeting...";
     } else if (messageLower.includes("help") || messageLower.includes("assistance")) {
         thinkingMessage = "Identifying best assistance approach...";
