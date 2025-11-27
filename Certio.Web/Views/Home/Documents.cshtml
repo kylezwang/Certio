@@ -95,7 +95,7 @@
         <div class="col-md-6 col-lg-7">
             <div class="search-container">
                 <i class="fas fa-search"></i>
-                <input type="text" class="form-control" placeholder="Search documents..." />
+                <input type="text" class="form-control" id="documentSearchInput" placeholder="Search documents..." />
             </div>
         </div>
         <div class="col-md-6 col-lg-5">
@@ -446,7 +446,7 @@
                         }
                     }
                     
-                    <a href="javascript:void(0);" onclick="navigateToDocument(event, '/Client/@ViewBag.OrganizationId/Documents/@doc.Id');" class="text-decoration-none" style="color: inherit;" data-document-entry="true">
+                    <a href="javascript:void(0);" onclick="navigateToDocument(event, '/Client/@ViewBag.OrganizationId/Documents/@doc.Id');" class="text-decoration-none document-item" style="color: inherit;" data-document-entry="true" data-document-name="@doc.Name?.ToLowerInvariant()">
                         <div class="card document-card border-0 mb-3 @(doc.SourceType == Certio.Domain.Documents.DocumentSourceType.GoogleDrive || doc.SourceType == Certio.Domain.Documents.DocumentSourceType.OneDrive ? "draggable-document" : "")" 
                              style="cursor: pointer;"
                              draggable="@(doc.SourceType == Certio.Domain.Documents.DocumentSourceType.GoogleDrive || doc.SourceType == Certio.Domain.Documents.DocumentSourceType.OneDrive ? "true" : "false")"
@@ -603,6 +603,22 @@
     <script>
         // Horizontal scroll on mouse wheel for matters container
         document.addEventListener('DOMContentLoaded', function() {
+            // Document Search Functionality
+            const documentSearchInput = document.getElementById('documentSearchInput');
+            const documentItems = Array.from(document.querySelectorAll('.document-item'));
+            
+            if (documentSearchInput) {
+                documentSearchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    
+                    documentItems.forEach(item => {
+                        const documentName = item.dataset.documentName || '';
+                        const matches = !searchTerm || documentName.includes(searchTerm);
+                        item.style.display = matches ? '' : 'none';
+                    });
+                });
+            }
+            
             const mattersContainer = document.querySelector('.matters-scroll-container');
             if (mattersContainer) {
                 mattersContainer.addEventListener('wheel', function(e) {

@@ -89,7 +89,7 @@
                 </div>
                 <div class="search-container" style="max-width: 300px;">
                     <i class="fas fa-search"></i>
-                    <input type="text" class="form-control" placeholder="Search @mattersLabel.ToLower()..." />
+                    <input type="text" class="form-control" id="mattersSearchInput" placeholder="Search @mattersLabel.ToLower()..." />
                 </div>
             </div>
             <div class="matters-scroll-container" style="overflow-x: auto; overflow-y: hidden; margin: 0 -0.75rem; padding:0.75rem;">
@@ -507,11 +507,26 @@
                 }, { passive: false });
             }
 
-            // Search functionality
+            // Search functionality for team members
             if (searchInput) {
                 searchInput.addEventListener('input', function() {
                     currentTeamSearchTerm = this.value.toLowerCase();
                     updateTeamVisibility();
+                });
+            }
+            
+            // Search functionality for matters
+            const mattersSearchInput = document.getElementById('mattersSearchInput');
+            if (mattersSearchInput) {
+                mattersSearchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    const matterCards = document.querySelectorAll('[data-matter-title]');
+                    
+                    matterCards.forEach(card => {
+                        const matterTitle = card.dataset.matterTitle || '';
+                        const matches = !searchTerm || matterTitle.includes(searchTerm);
+                        card.style.display = matches ? '' : 'none';
+                    });
                 });
             }
 
