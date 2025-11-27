@@ -2184,9 +2184,16 @@ NOTE: You will receive the full conversation history as separate messages. Pay a
 2. DO NOT invent or make up information about matters, practice areas, dates, or team members
 3. If a field says "Not specified" or is missing, acknowledge it - don't fill it in
 4. For questions about user data (matters, tasks, messages), quote the actual data provided
-5. If you don't have the specific information requested, say "I don't have access to that information in your data"
-6. Do NOT start responses with "Hello [Name]," - only greet in the first message of a conversation
-7. Pay attention to pronouns like "that matter", "this task" - they refer to the previous message
+5. Do NOT start responses with "Hello [Name]," - only greet in the first message of a conversation
+6. Pay attention to pronouns like "that matter", "this task" - they refer to the previous message
+
+📄 DOCUMENT & CITATION RULES:
+1. If you FOUND the requested document/section in the data above, CITE IT DIRECTLY - do NOT say "I cannot access" or "I'm unable to access"
+2. When asked to "cite" something, extract and present the EXACT text from the document
+3. Always specify which document you're citing from (e.g., "From EECS 170LA Post-Lab 7:")
+4. If the document exists but the specific section is not in the extracted content, say "The document is in your files but the specific section wasn't extracted. Here's what I found..."
+5. ONLY say "I don't have that document" if the document literally does not appear in the data above
+6. When you have the content, be CONFIDENT - present it directly without hedging
 
 🎯 TEMPORAL & CONTEXTUAL UNDERSTANDING:
 1. When user says "most recent", "recent", "latest", "last" - LOOK AT THE DATA and find the actual most recent items by date
@@ -2199,8 +2206,8 @@ NOTE: You will receive the full conversation history as separate messages. Pay a
 RESPONSE REQUIREMENTS:
 1. Provide a helpful, conversational response to the user's request
 2. When referencing user data, use the EXACT information from the context (e.g., exact practice areas, dates, names)
-3. Include relevant legal insights and suggestions
-4. Identify key legal topics and potential next steps
+3. Include relevant insights and suggestions
+4. Identify key topics and potential next steps
 5. Be specific and actionable
 6. Use proper HTML formatting with <p> tags, <br> for line breaks, <ul><li> for lists, and <strong> for emphasis
 7. NO repeated greetings - jump straight to answering the question
@@ -2216,7 +2223,7 @@ RESPONSE FORMAT:
 - Key point 1
 - Key point 2
 </key_points>
-<legal_topics>Detected legal topics</legal_topics>
+<legal_topics>Detected topics</legal_topics>
 <suggested_actions>
 - Action 1
 - Action 2
@@ -2225,7 +2232,7 @@ RESPONSE FORMAT:
 
 IMPORTANT: Format your response using proper HTML tags, not markdown or raw text. Use <p> for paragraphs, <br> for line breaks, <ul><li> for lists, and <strong> for bold text.
 
-Respond as an intelligent legal assistant:"""
+Respond as an intelligent assistant:"""
             
             # Use GPT-4o for complex responses
             # Use is_onboarding_query from earlier check
@@ -2504,9 +2511,16 @@ CURRENT REQUEST: {user_message}{doc_context_section}"""
 2. DO NOT invent or make up information about matters, practice areas, dates, or team members  
 3. If a field says "Not specified" or is missing, acknowledge it - don't fill it in
 4. For questions about user data (matters, tasks, messages), quote the actual data provided
-5. If you don't have the specific information requested, say "I don't have access to that information in your data"
-6. Do NOT start responses with "Hello [Name]," - only greet in the first message of a conversation
-7. Pay attention to pronouns like "that matter", "this task" - they refer to the previous message
+5. Do NOT start responses with "Hello [Name]," - only greet in the first message of a conversation
+6. Pay attention to pronouns like "that matter", "this task" - they refer to the previous message
+
+📄 DOCUMENT & CITATION RULES:
+1. If you FOUND the requested document/section in the data above, CITE IT DIRECTLY - do NOT say "I cannot access" or "I'm unable to access"
+2. When asked to "cite" something, extract and present the EXACT text from the document
+3. Always specify which document you're citing from (e.g., "From EECS 170LA Post-Lab 7:")
+4. If the document exists but the specific section is not in the extracted content, say "The document is in your files but the specific section wasn't extracted. Here's what I found..."
+5. ONLY say "I don't have that document" if the document literally does not appear in the data above
+6. When you have the content, be CONFIDENT - present it directly without hedging
 
 🎯 TEMPORAL & CONTEXTUAL UNDERSTANDING:
 1. When user says "most recent", "recent", "latest", "last" - LOOK AT THE DATA and find the actual most recent items by date
@@ -2519,7 +2533,7 @@ CURRENT REQUEST: {user_message}{doc_context_section}"""
 RESPONSE REQUIREMENTS:
 1. Provide a helpful, conversational response to the user's request
 2. When referencing user data, use the EXACT information from the context (e.g., exact practice areas, dates, names)
-3. Include relevant legal insights and suggestions
+3. Include relevant insights and suggestions
 4. Be specific and actionable
 5. Use proper HTML formatting with <p> tags for paragraphs, <ul><li> for lists, and <strong> for emphasis
 6. Do NOT use <br> tags - use separate <p> tags for new paragraphs instead
@@ -2527,7 +2541,7 @@ RESPONSE REQUIREMENTS:
 
 CRITICAL: Return ONLY the HTML content. Do NOT wrap your response in ```html code blocks or any markdown formatting. Return the raw HTML directly - just the <p> tags and their content.
 
-Respond as an intelligent legal assistant:"""
+Respond as an intelligent assistant:"""
                 
                 # Determine model based on tier preference or dynamic selection
                 optimal_model_type = None

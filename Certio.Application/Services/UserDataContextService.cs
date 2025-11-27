@@ -663,12 +663,24 @@ public class UserDataContextService : IUserDataContextService
         var chunks = new List<UserDataChunk>();
         
         // Also try to get document vector content if available (contains extracted text)
+        var docsWithContent = 0;
+        var docsWithFailedExtraction = 0;
+        
         foreach (var doc in documents)
         {
             // Get extracted content from vector store if available
             var extractedContent = await GetDocumentExtractedContentAsync(doc.Id, cancellationToken);
-            _logger.LogDebug("Document {DocId} ({Title}): ExtractedContent={HasContent} ({Length} chars)", 
-                doc.Id, doc.Title, !string.IsNullOrEmpty(extractedContent), extractedContent?.Length ?? 0);
+            
+            // Check if content is actually usable (not a failure message)
+            var hasUsableContent = !string.IsNullOrEmpty(extractedContent) 
+                && !extractedContent.Contains("[Content unavailable")
+                && !extractedContent.Contains("secure extraction returned no body");
+            
+            if (hasUsableContent) docsWithContent++;
+            else if (!string.IsNullOrEmpty(extractedContent)) docsWithFailedExtraction++;
+            
+            _logger.LogDebug("Document {DocId} ({Title}): HasUsableContent={HasContent} ({Length} chars)", 
+                doc.Id, doc.Title, hasUsableContent, extractedContent?.Length ?? 0);
             var content = BuildDocumentContent(doc, extractedContent);
             
             chunks.Add(new UserDataChunk(
@@ -685,7 +697,7 @@ public class UserDataContextService : IUserDataContextService
                     ["category"] = doc.Category,
                     ["status"] = doc.Status.ToString(),
                     ["sourceType"] = doc.SourceType.ToString(),
-                    ["hasExtractedContent"] = !string.IsNullOrEmpty(extractedContent),
+                    ["hasExtractedContent"] = hasUsableContent,
                     ["matterId"] = doc.MatterId?.ToString(),
                     ["modifiedAt"] = doc.ModifiedAt,
                     ["tags"] = doc.Tags
@@ -694,15 +706,22 @@ public class UserDataContextService : IUserDataContextService
                 ModifiedAt: doc.ModifiedAt
             ));
         }
+        
+        if (docsWithFailedExtraction > 0)
+        {
+            _logger.LogWarning("BuildDocumentsContextAsync: {Count} documents have failed content extraction. Consider reconnecting external integrations.", docsWithFailedExtraction);
+        }
 
         var summary = new Dictionary<string, object?>
         {
             ["totalDocuments"] = documents.Count,
             ["documentsByType"] = documents.GroupBy(d => d.FileType).ToDictionary(g => g.Key ?? "unknown", g => g.Count()),
-            ["documentsWithContent"] = chunks.Count(c => c.Metadata.ContainsKey("hasExtractedContent") && (bool)c.Metadata["hasExtractedContent"]!)
+            ["documentsWithContent"] = docsWithContent,
+            ["documentsWithFailedExtraction"] = docsWithFailedExtraction
         };
 
-        _logger.LogInformation("BuildDocumentsContextAsync: Returning {ChunkCount} document chunks, {WithContent} with extracted content", chunks.Count, summary["documentsWithContent"]);
+        _logger.LogInformation("BuildDocumentsContextAsync: Returning {ChunkCount} document chunks, {WithContent} with usable content, {Failed} with failed extraction", 
+            chunks.Count, docsWithContent, docsWithFailedExtraction);
         
         return new UserModuleData("documents", documents.Count, chunks, summary);
     }
@@ -863,13 +882,27 @@ public class UserDataContextService : IUserDataContextService
         sb.AppendLine($"Created: {doc.CreatedAt:yyyy-MM-dd HH:mm}");
         sb.AppendLine($"Last Modified: {doc.ModifiedAt:yyyy-MM-dd HH:mm}");
         
-        // Include the actual extracted content if available
-        if (!string.IsNullOrEmpty(extractedContent))
+        // Add document metadata that can help with search
+        foreach (var kvp in doc.Metadata)
+        {
+            if (!string.IsNullOrWhiteSpace(kvp.Value) && kvp.Key != "description")
+            {
+                sb.AppendLine($"Metadata:\n- {kvp.Key}: {kvp.Value}");
+            }
+        }
+        
+        // Check if content is actually usable (not a failure message)
+        var hasUsableContent = !string.IsNullOrEmpty(extractedContent) 
+            && !extractedContent.Contains("[Content unavailable")
+            && !extractedContent.Contains("secure extraction returned no body");
+        
+        // Include the actual extracted content if available and usable
+        if (hasUsableContent)
         {
             sb.AppendLine("");
             sb.AppendLine("=== DOCUMENT CONTENT ===");
             // Limit content to prevent token explosion but include meaningful amount
-            var contentToInclude = extractedContent.Length > 8000 
+            var contentToInclude = extractedContent!.Length > 8000 
                 ? extractedContent.Substring(0, 8000) + "\n[... content truncated ...]" 
                 : extractedContent;
             sb.AppendLine(contentToInclude);
@@ -878,7 +911,7 @@ public class UserDataContextService : IUserDataContextService
         else
         {
             sb.AppendLine("");
-            sb.AppendLine("[Document content not yet extracted - request specific document analysis to trigger extraction]");
+            sb.AppendLine($"[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your {doc.SourceType} integration.]");
         }
         
         return sb.ToString();
