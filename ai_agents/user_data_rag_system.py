@@ -273,43 +273,76 @@ class UserDataRAGSystem:
     
     async def _keyword_search(self, chunks: List[UserDataChunk], query: str, 
                              top_k: int) -> tuple[List[UserDataChunk], List[float]]:
-        """Keyword-based search fallback"""
+        """Keyword-based search with enhanced exact matching for numbered documents"""
+        import re
+        
         query_lower = query.lower()
         query_words = set(query_lower.split())
+        
+        # Extract numbers from query for precise matching (e.g., "Post-Lab 7" -> ["7"])
+        query_numbers = set(re.findall(r'\b\d+\b', query_lower))
+        
+        # Extract key phrases that should be matched exactly (e.g., "Post-Lab 7", "Lab 3")
+        # Pattern matches things like "post-lab 7", "lab 3", "chapter 5", "section 2"
+        key_phrases = re.findall(r'(?:post-?lab|lab|chapter|section|part|experiment|hw|homework|assignment)\s*\d+', query_lower)
         
         scored_chunks = []
         
         for chunk in chunks:
             content_lower = f"{chunk.title} {chunk.content}".lower()
             content_words = set(content_lower.split())
+            title_lower = chunk.title.lower()
             
-            # Calculate overlap score
+            # Calculate base overlap score
             overlap = len(query_words.intersection(content_words))
             total = len(query_words.union(content_words))
             score = overlap / total if total > 0 else 0.0
             
-            # STRONG boost for title matches (any word from query in title)
-            title_lower = chunk.title.lower()
-            for word in query_words:
-                if len(word) > 2 and word in title_lower:  # Skip short words like "my", "the"
-                    score += 0.5  # Increased from 0.3
+            # CRITICAL: Check for exact key phrase matches (e.g., "Post-Lab 7" in title)
+            # This is the most important signal for numbered documents
+            for phrase in key_phrases:
+                # Normalize the phrase for matching (handle "post-lab" vs "postlab" vs "post lab")
+                normalized_phrase = phrase.replace('-', '').replace(' ', '')
+                normalized_title = title_lower.replace('-', '').replace(' ', '')
+                
+                if normalized_phrase in normalized_title:
+                    score += 5.0  # VERY strong boost for exact numbered phrase match
+                    logger.debug(f"Exact phrase match '{phrase}' in '{chunk.title}' (+5.0)")
             
-            # Boost for exact multi-word phrase matches in title
+            # Check for number mismatches - PENALIZE if query has a number but title has DIFFERENT number
+            title_numbers = set(re.findall(r'\b\d+\b', title_lower))
+            if query_numbers and title_numbers:
+                # If query asks for "7" but title has "1", penalize heavily
+                if query_numbers.isdisjoint(title_numbers):
+                    # Numbers in query don't match numbers in title - reduce score
+                    score *= 0.3  # Heavy penalty for number mismatch
+                    logger.debug(f"Number mismatch: query has {query_numbers}, title '{chunk.title}' has {title_numbers}")
+                elif query_numbers.intersection(title_numbers):
+                    # At least one number matches - boost
+                    score += 2.0
+                    logger.debug(f"Number match: {query_numbers.intersection(title_numbers)} in '{chunk.title}'")
+            
+            # Boost for title word matches (but less than exact phrase)
+            for word in query_words:
+                if len(word) > 2 and word in title_lower:
+                    score += 0.3
+            
+            # Boost for exact full query match in title
             if query_lower in title_lower:
-                score += 1.0
+                score += 3.0
             
             # Boost for content matches
             content_match_count = sum(1 for word in query_words if word in content_lower and len(word) > 2)
             score += content_match_count * 0.1
             
-            # Boost recent items
+            # Boost recent items (smaller boost)
             try:
                 created = datetime.fromisoformat(chunk.created_at.replace('Z', '+00:00'))
                 days_old = (datetime.now() - created).days
                 if days_old < 7:
-                    score *= 1.3
-                elif days_old < 30:
                     score *= 1.1
+                elif days_old < 30:
+                    score *= 1.05
             except:
                 pass
             
@@ -319,9 +352,9 @@ class UserDataRAGSystem:
         scored_chunks.sort(key=lambda x: x[1], reverse=True)
         
         # Log top results for debugging
-        logger.debug(f"Top 3 search results:")
+        logger.info(f"🔍 Top 3 search results for query '{query}':")
         for i, (chunk, score) in enumerate(scored_chunks[:3], 1):
-            logger.debug(f"  {i}. [{score:.3f}] {chunk.module_name} - {chunk.title}")
+            logger.info(f"  {i}. [{score:.3f}] {chunk.module_name} - {chunk.title}")
         
         # Get top-k
         top_chunks = scored_chunks[:top_k]
@@ -484,6 +517,13 @@ class UserDataRAGSystem:
         context_parts.append("5. If data is missing or 'Not specified', say so - don't invent it")
         context_parts.append("6. When showing matter/task details, ONLY show what was explicitly asked for")
         context_parts.append("")
+        context_parts.append("📄 DOCUMENT CITATION RULES:")
+        context_parts.append("1. When you FIND the requested document in the data below, CITE IT DIRECTLY")
+        context_parts.append("2. DO NOT say 'I cannot access' or 'I'm unable to access' if you found the content")
+        context_parts.append("3. Quote the exact text from the document when asked to cite or reference it")
+        context_parts.append("4. For 'cite my discussion section' requests, extract and present the EXACT text")
+        context_parts.append("5. Always specify which document you're citing from (e.g., 'From EECS 170LA Post-Lab 7:')")
+        context_parts.append("")
         
         # Add module breakdown
         module_breakdown = defaultdict(int)
@@ -543,9 +583,12 @@ class UserDataRAGSystem:
         context_parts.append("END OF USER'S ACTUAL DATA")
         context_parts.append("=" * 80)
         context_parts.append("")
-        context_parts.append("⚠️ REMINDER: Use ONLY the information above. If you don't have the data, say so.")
-        context_parts.append("DO NOT make assumptions or fill in missing information with generic answers.")
-        context_parts.append("When asked about a specific matter/task/message, search the data above for exact matches.")
+        context_parts.append("⚠️ REMINDER:")
+        context_parts.append("- Use ONLY the information above - do NOT make up or hallucinate data")
+        context_parts.append("- If you FOUND the document/content above, CITE IT DIRECTLY and confidently")
+        context_parts.append("- Do NOT say 'I cannot access' if the content is in the data above")
+        context_parts.append("- Only say 'I don't have that' if the item is truly NOT in the data above")
+        context_parts.append("- When asked to cite, quote the EXACT text from the document")
         context_parts.append("")
         
         return "\n".join(context_parts)
