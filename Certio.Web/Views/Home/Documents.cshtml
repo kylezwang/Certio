@@ -603,14 +603,15 @@
     <script>
         // Horizontal scroll on mouse wheel for matters container
         document.addEventListener('DOMContentLoaded', function() {
-            // Document Search Functionality
+            // Document Search Functionality (works with dynamically loaded documents)
             const documentSearchInput = document.getElementById('documentSearchInput');
-            const documentItems = Array.from(document.querySelectorAll('.document-item'));
             
             if (documentSearchInput) {
                 documentSearchInput.addEventListener('input', function() {
                     const searchTerm = this.value.toLowerCase();
                     
+                    // Query fresh each time to catch dynamically loaded documents
+                    const documentItems = document.querySelectorAll('.document-item');
                     documentItems.forEach(item => {
                         const documentName = item.dataset.documentName || '';
                         const matches = !searchTerm || documentName.includes(searchTerm);
@@ -1742,7 +1743,7 @@
             const draggableAttr = isDraggable ? 'true' : 'false';
             
             card.innerHTML = `
-                <a href="javascript:void(0);" onclick="navigateToDocument(event, '/Client/${orgId}/Documents/${doc.id}');" class="text-decoration-none" style="color: inherit;">
+                <a href="javascript:void(0);" onclick="navigateToDocument(event, '/Client/${orgId}/Documents/${doc.id}');" class="text-decoration-none document-item" style="color: inherit;" data-document-name="${escapeHtml((doc.title || doc.name || '').toLowerCase())}">
                     <div class="card document-card border-0 mb-3 ${draggableClass}" 
                          style="cursor: pointer;"
                          draggable="${draggableAttr}"
