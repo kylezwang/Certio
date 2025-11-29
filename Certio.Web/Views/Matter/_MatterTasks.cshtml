@@ -772,308 +772,146 @@
         <!-- Resizer between Inbox and Planner -->
         <div class="view-resizer" id="inboxPlannerResizer" data-left-view="inboxView" data-right-view="plannerView"></div>
         
-        <!-- Planner View -->
-        <div class="view-container d-none" id="plannerView">
-            <div class="planner-container">
-                <!-- Calendar Navigation Header -->
-                <div class="calendar-header">
-                    <div class="calendar-nav-left">
-                        <button class="month-year-selector">
-                            <i class="fa-solid fa-calendar-day"></i>
-                            <span class="month-year">Oct 2025</span>
-                            <i class="fas fa-chevron-down"></i>
-                        </button>
-                        <button class="nav-btn" id="prevWeekBtn">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <button class="today-btn" id="todayBtn">Today</button>
-                        <button class="nav-btn" id="nextWeekBtn">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
+        <!-- Planner View (Full Calendar) -->
+        <div class="view-container d-none" id="plannerView" style="position: relative;">
+            <div class="planner-calendar-container">
+                <!-- Calendar Header with Month/Year and Navigation -->
+                <div class="planner-header-bar">
+                    <div class="planner-month-label" id="plannerMonthLabel">Loading...</div>
+                    <div class="d-flex align-items-center">
+                        <div class="planner-nav-controls ms-3">
+                            <button class="btn btn-sm" id="plannerPrevBtn">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button class="btn btn-sm" id="plannerNextBtn">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
                     </div>
-                    <div class="calendar-nav-right">
-                        <div class="premium-badge">PREMIUM</div>
-                        <button class="calendar-selector">
-                            <span>1 calendar</span>
-                            <i class="bi bi-gear"></i>
-                        </button>
+                    <div class="planner-create-section">
+                        <!-- Notalize Button -->
+                        <div class="position-relative me-3">
+                            <button class="btn notalize-btn qa-card" type="button" id="plannerNotalizeBtn" title="Sync Notal events to your connected calendar">
+                                <img src="~/images/Notal_Logo.png" alt="Notal Logo" style="width: 24px; height: 24px; object-fit: contain;" />
+                            </button>
+                            <div class="notalize-badge" id="plannerNotalizeBadge" style="display: none;">
+                                <span id="plannerNotalizeBadgeCount">0</span>
+                            </div>
+                        </div>
+                        
+                        <div class="dropdown me-3">
+                            <button class="btn planner-view-btn qa-card" type="button" id="plannerViewToggleBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span id="plannerViewToggleLabel">Week</span>
+                                <i class="fas fa-chevron-down ms-2 dropdown-arrow"></i>
+                            </button>
+                            <ul class="dropdown-menu planner-dropdown" id="plannerViewDropdown">
+                                <li><a class="dropdown-item planner-view-option" href="#" data-view="day"><i class="fas fa-calendar-day me-2"></i>Day</a></li>
+                                <li><a class="dropdown-item planner-view-option active" href="#" data-view="week"><i class="fas fa-calendar-week me-2"></i>Week</a></li>
+                                <li><a class="dropdown-item planner-view-option" href="#" data-view="month"><i class="fas fa-calendar me-2"></i>Month</a></li>
+                            </ul>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn planner-create-btn qa-card" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-plus me-2"></i>
+                                <span>Create</span>
+                                <i class="fas fa-chevron-down ms-2 dropdown-arrow"></i>
+                            </button>
+                            <ul class="dropdown-menu planner-dropdown">
+                                <li><a class="dropdown-item" href="#" id="plannerCreateTaskBtn"><i class="fa-solid fa-bars-progress me-2"></i>Task</a></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Calendar Grid -->
-                <div class="calendar-grid">
-                    <!-- Days Header -->
-                    <div class="calendar-days-header">
-                        <div class="day-header">Sun</div>
-                        <div class="day-header">Mon</div>
-                        <div class="day-header">Tue</div>
-                        <div class="day-header">Wed</div>
-                        <div class="day-header">Thu</div>
-                        <div class="day-header">Fri</div>
-                        <div class="day-header">Sat</div>
-                    </div>
+                <!-- Month View Calendar Grid -->
+                <div class="planner-month-grid" id="plannerMonthGrid">
+                    <!-- Day Headers -->
+                    <div class="planner-day-header">SUN</div>
+                    <div class="planner-day-header">MON</div>
+                    <div class="planner-day-header">TUE</div>
+                    <div class="planner-day-header">WED</div>
+                    <div class="planner-day-header">THU</div>
+                    <div class="planner-day-header">FRI</div>
+                    <div class="planner-day-header">SAT</div>
+                    <!-- Calendar cells will be dynamically generated by JavaScript -->
+                </div>
 
-                    <!-- Dates Header -->
-                    <div class="calendar-dates-header">
-                        <div class="date-cell">28</div>
-                        <div class="date-cell">29</div>
-                        <div class="date-cell">30</div>
-                        <div class="date-cell active">1</div>
-                        <div class="date-cell">2</div>
-                        <div class="date-cell">3</div>
-                        <div class="date-cell">4</div>
-                    </div>
+                <!-- Day/Week Planner View -->
+                <div class="planner-dayweek-container week-view" id="plannerDayWeekContainer">
+                    <div class="planner-container">
+                        <!-- Planner Grid -->
+                        <div class="calendar-grid planner-grid">
+                            <!-- Days Header (Week View) -->
+                            <div class="calendar-days-header" id="plannerDaysHeader">
+                                <div class="day-header time-header"></div>
+                                <div class="day-header">Sun</div>
+                                <div class="day-header">Mon</div>
+                                <div class="day-header">Tue</div>
+                                <div class="day-header">Wed</div>
+                                <div class="day-header">Thu</div>
+                                <div class="day-header">Fri</div>
+                                <div class="day-header">Sat</div>
+                            </div>
 
-                    <!-- Single Day Header for Multi-view -->
-                    <div class="calendar-days-header single-day-header d-none">
-                        <div class="day-header">Wed</div>
-                    </div>
+                            <!-- Dates Header -->
+                            <div class="calendar-dates-header" id="plannerDatesHeader">
+                                <div class="date-cell time-header"></div>
+                                <div class="date-cell" data-day="0">1</div>
+                                <div class="date-cell" data-day="1">2</div>
+                                <div class="date-cell" data-day="2">3</div>
+                                <div class="date-cell" data-day="3">4</div>
+                                <div class="date-cell" data-day="4">5</div>
+                                <div class="date-cell" data-day="5">6</div>
+                                <div class="date-cell" data-day="6">7</div>
+                            </div>
 
-                    <!-- Single Date Header for Multi-view -->
-                    <div class="calendar-dates-header single-date-header d-none">
-                        <div class="date-cell active">1</div>
-                    </div>
+                            <!-- All Day Row -->
+                            <div class="all-day-row" id="plannerAllDayRow">
+                                <div class="all-day-time-column">
+                                    <div class="time-slot all-day">All day</div>
+                                </div>
+                                <div class="all-day-calendar-columns" id="plannerAllDayColumns">
+                                    <div class="calendar-column" data-day="0"><div class="time-cell all-day-cell"></div></div>
+                                    <div class="calendar-column" data-day="1"><div class="time-cell all-day-cell"></div></div>
+                                    <div class="calendar-column" data-day="2"><div class="time-cell all-day-cell"></div></div>
+                                    <div class="calendar-column" data-day="3"><div class="time-cell all-day-cell"></div></div>
+                                    <div class="calendar-column" data-day="4"><div class="time-cell all-day-cell"></div></div>
+                                    <div class="calendar-column" data-day="5"><div class="time-cell all-day-cell"></div></div>
+                                    <div class="calendar-column" data-day="6"><div class="time-cell all-day-cell"></div></div>
+                                </div>
+                            </div>
 
-                    <!-- All Day Row (Fixed) -->
-                    <div class="all-day-row">
-                        <div class="all-day-time-column">
-                            <div class="time-slot all-day">All day</div>
-                        </div>
-                        <div class="all-day-calendar-columns">
-                            <div class="calendar-column">
-                                <div class="time-cell all-day-cell"></div>
-                            </div>
-                            <div class="calendar-column">
-                                <div class="time-cell all-day-cell"></div>
-                            </div>
-                            <div class="calendar-column">
-                                <div class="time-cell all-day-cell"></div>
-                            </div>
-                            <div class="calendar-column">
-                                <div class="time-cell all-day-cell"></div>
-                            </div>
-                            <div class="calendar-column">
-                                <div class="time-cell all-day-cell"></div>
-                            </div>
-                            <div class="calendar-column">
-                                <div class="time-cell all-day-cell"></div>
-                            </div>
-                            <div class="calendar-column">
-                                <div class="time-cell all-day-cell"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Time Grid (Scrollable) -->
-                    <div class="calendar-time-grid">
-                        <div class="time-column">
-                            <div class="time-slot">12 am</div>
-                            <div class="time-slot">1 am</div>
-                            <div class="time-slot">2 am</div>
-                            <div class="time-slot">3 am</div>
-                            <div class="time-slot">4 am</div>
-                            <div class="time-slot">5 am</div>
-                            <div class="time-slot">6 am</div>
-                            <div class="time-slot">7 am</div>
-                            <div class="time-slot">8 am</div>
-                            <div class="time-slot">9 am</div>
-                            <div class="time-slot">10 am</div>
-                            <div class="time-slot">11 am</div>
-                            <div class="time-slot">12 pm</div>
-                            <div class="time-slot">1 pm</div>
-                            <div class="time-slot">2 pm</div>
-                            <div class="time-slot">3 pm</div>
-                            <div class="time-slot">4 pm</div>
-                            <div class="time-slot">5 pm</div>
-                            <div class="time-slot">6 pm</div>
-                            <div class="time-slot">7 pm</div>
-                            <div class="time-slot">8 pm</div>
-                            <div class="time-slot">9 pm</div>
-                            <div class="time-slot">10 pm</div>
-                            <div class="time-slot">11 pm</div>
-                        </div>
-                        <div class="calendar-columns">
-                            <div class="calendar-column">
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                            </div>
-                            <div class="calendar-column">
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                            </div>
-                            <div class="calendar-column">
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                            </div>
-                            <div class="calendar-column">
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                            </div>
-                            <div class="calendar-column">
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                            </div>
-                            <div class="calendar-column">
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                            </div>
-                            <div class="calendar-column">
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
-                                <div class="time-cell"></div>
+                            <!-- Time Grid (Scrollable) -->
+                            <div class="calendar-time-grid" id="plannerTimeGrid">
+                                <div class="time-column">
+                                    <div class="time-slot">12 am</div>
+                                    <div class="time-slot">1 am</div>
+                                    <div class="time-slot">2 am</div>
+                                    <div class="time-slot">3 am</div>
+                                    <div class="time-slot">4 am</div>
+                                    <div class="time-slot">5 am</div>
+                                    <div class="time-slot">6 am</div>
+                                    <div class="time-slot">7 am</div>
+                                    <div class="time-slot">8 am</div>
+                                    <div class="time-slot">9 am</div>
+                                    <div class="time-slot">10 am</div>
+                                    <div class="time-slot">11 am</div>
+                                    <div class="time-slot">12 pm</div>
+                                    <div class="time-slot">1 pm</div>
+                                    <div class="time-slot">2 pm</div>
+                                    <div class="time-slot">3 pm</div>
+                                    <div class="time-slot">4 pm</div>
+                                    <div class="time-slot">5 pm</div>
+                                    <div class="time-slot">6 pm</div>
+                                    <div class="time-slot">7 pm</div>
+                                    <div class="time-slot">8 pm</div>
+                                    <div class="time-slot">9 pm</div>
+                                    <div class="time-slot">10 pm</div>
+                                    <div class="time-slot">11 pm</div>
+                                </div>
+                                <div class="calendar-columns" id="plannerColumns">
+                                    <!-- Columns will be dynamically generated by JavaScript -->
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -5272,6 +5110,696 @@
                 });
             }
         }, 200);
+        
+        // ==========================================
+        // Full Calendar Planner View (Day/Week/Month)
+        // ==========================================
+        
+        // Planner state
+        let plannerCurrentView = 'week'; // 'day', 'week', or 'month'
+        let plannerCurrentDate = new Date();
+        let plannerViewDate = new Date();
+        const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                          'July', 'August', 'September', 'October', 'November', 'December'];
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        
+        function initializePlannerView() {
+            const viewOptions = document.querySelectorAll('.planner-view-option');
+            viewOptions.forEach(option => {
+                option.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const newView = this.dataset.view;
+                    viewOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    const viewLabels = { 'day': 'Day', 'week': 'Week', 'month': 'Month' };
+                    document.getElementById('plannerViewToggleLabel').textContent = viewLabels[newView];
+                    switchPlannerView(newView);
+                });
+            });
+            
+            document.getElementById('plannerPrevBtn')?.addEventListener('click', navigatePlannerPrev);
+            document.getElementById('plannerNextBtn')?.addEventListener('click', navigatePlannerNext);
+            document.getElementById('plannerCreateTaskBtn')?.addEventListener('click', function(e) {
+                e.preventDefault();
+                openTaskModal(null, 'Pending');
+            });
+            
+            // Notalize button
+            document.getElementById('plannerNotalizeBtn')?.addEventListener('click', handlePlannerNotalizeClick);
+            
+            // Load unsynced events count
+            loadPlannerUnsyncedEventsCount();
+            
+            setInterval(updateCurrentTimeIndicator, 60000);
+            updatePlannerViewOptions();
+            const initialView = isMultiViewMode() ? 'day' : 'week';
+            plannerCurrentView = initialView;
+            // Update dropdown label before switching view
+            const viewLabels = { 'day': 'Day', 'week': 'Week', 'month': 'Month' };
+            document.getElementById('plannerViewToggleLabel').textContent = viewLabels[initialView];
+            switchPlannerView(initialView);
+        }
+        
+        // Load unsynced events count for planner
+        async function loadPlannerUnsyncedEventsCount() {
+            try {
+                const matterId = '@ViewBag.MatterId';
+                const response = await fetch(`/api/calendar-sync/unsynced-count?matterId=${matterId}`, {
+                    credentials: 'include'
+                });
+                const result = await response.json();
+                
+                if (result.success && result.hasIntegrations) {
+                    updatePlannerNotalizeBadge(result.count);
+                } else {
+                    updatePlannerNotalizeBadge(0);
+                }
+            } catch (error) {
+                console.error('Error loading unsynced events count:', error);
+                updatePlannerNotalizeBadge(0);
+            }
+        }
+        
+        // Update planner notalize badge
+        function updatePlannerNotalizeBadge(count) {
+            const badge = document.getElementById('plannerNotalizeBadge');
+            const badgeCount = document.getElementById('plannerNotalizeBadgeCount');
+            
+            if (badge && badgeCount) {
+                if (count > 0) {
+                    badgeCount.textContent = count;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+        
+        // Handle planner notalize button click
+        async function handlePlannerNotalizeClick() {
+            const notalizeBtn = document.getElementById('plannerNotalizeBtn');
+            if (!notalizeBtn) return;
+            
+            // Disable button and show loading state
+            notalizeBtn.disabled = true;
+            const originalContent = notalizeBtn.innerHTML;
+            notalizeBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size: 24px;"></i>';
+            
+            try {
+                const matterId = '@ViewBag.MatterId';
+                const response = await fetch('/api/calendar-sync/sync', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ matterId })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Show success message
+                    alert(result.message);
+                    
+                    // Update badge count
+                    updatePlannerNotalizeBadge(0);
+                    
+                    // Refresh planner to show synced events
+                    renderPlannerTasks();
+                    if (plannerCurrentView === 'month') {
+                        renderMonthView();
+                    }
+                } else {
+                    alert(result.error || 'Failed to sync calendar events');
+                }
+            } catch (error) {
+                console.error('Error syncing calendar events:', error);
+                alert('Failed to sync calendar events. Please try again.');
+            } finally {
+                // Re-enable button and restore original content
+                notalizeBtn.disabled = false;
+                notalizeBtn.innerHTML = originalContent;
+            }
+        }
+        
+        function isMultiViewMode() {
+            const views = ['inboxView', 'plannerView', 'boardView'];
+            const visibleCount = views.filter(id => {
+                const el = document.getElementById(id);
+                return el && !el.classList.contains('d-none');
+            }).length;
+            return visibleCount > 1;
+        }
+        
+        function updatePlannerViewOptions() {
+            const views = ['inboxView', 'plannerView', 'boardView'];
+            const visibleCount = views.filter(id => {
+                const el = document.getElementById(id);
+                return el && !el.classList.contains('d-none');
+            }).length;
+            
+            const viewToggleBtn = document.getElementById('plannerViewToggleBtn');
+            const viewToggleContainer = viewToggleBtn?.closest('.dropdown');
+            const weekOption = document.querySelector('.planner-view-option[data-view="week"]');
+            const monthOption = document.querySelector('.planner-view-option[data-view="month"]');
+            
+            if (visibleCount === 3) {
+                // All 3 views visible - hide dropdown completely
+                if (viewToggleContainer) viewToggleContainer.style.display = 'none';
+                
+                // Ensure we're in day view
+                if (plannerCurrentView !== 'day') {
+                    switchPlannerView('day');
+                }
+                
+                // Abbreviate day/month names
+                abbreviatePlannerLabels(true);
+            } else if (visibleCount === 2) {
+                // 2 views visible - show dropdown with Day only (not Week)
+                if (viewToggleContainer) viewToggleContainer.style.display = '';
+                if (weekOption) weekOption.closest('li').style.display = 'none';
+                if (monthOption) monthOption.closest('li').style.display = 'none';
+                
+                // Force day view when 2 views are visible
+                if (plannerCurrentView !== 'day') {
+                    switchPlannerView('day');
+                }
+                
+                // Abbreviate day/month names
+                abbreviatePlannerLabels(true);
+            } else {
+                // Single view - show all options
+                if (viewToggleContainer) viewToggleContainer.style.display = '';
+                if (weekOption) weekOption.closest('li').style.display = '';
+                if (monthOption) monthOption.closest('li').style.display = '';
+                
+                // Use full names
+                abbreviatePlannerLabels(false);
+            }
+        }
+        
+        function abbreviatePlannerLabels(abbreviate) {
+            if (abbreviate) {
+                const monthLabel = document.getElementById('plannerMonthLabel');
+                if (monthLabel && monthLabel.textContent) {
+                    let text = monthLabel.textContent;
+                    monthNames.forEach((fullName) => {
+                        const abbrev = fullName.substring(0, 3);
+                        text = text.replace(fullName, abbrev);
+                    });
+                    // Remove year if present (format: ", 2025" or " 2025")
+                    text = text.replace(/,?\s+\d{4}/g, '');
+                    monthLabel.textContent = text;
+                }
+                const dayHeaders = document.querySelectorAll('#plannerDaysHeader .day-header:not(.time-header)');
+                dayHeaders.forEach((header, index) => {
+                    if (header.textContent.length > 3) {
+                        header.textContent = dayNames[index % 7];
+                    }
+                });
+            }
+        }
+        
+        function switchPlannerView(view) {
+            plannerCurrentView = view;
+            const monthGrid = document.getElementById('plannerMonthGrid');
+            const dayWeekContainer = document.getElementById('plannerDayWeekContainer');
+            
+            // Update dropdown label
+            const viewLabels = { 'day': 'Day', 'week': 'Week', 'month': 'Month' };
+            const labelElement = document.getElementById('plannerViewToggleLabel');
+            if (labelElement) {
+                labelElement.textContent = viewLabels[view];
+            }
+            
+            // Update active state in dropdown
+            document.querySelectorAll('.planner-view-option').forEach(opt => {
+                opt.classList.remove('active');
+                if (opt.dataset.view === view) {
+                    opt.classList.add('active');
+                }
+            });
+            
+            if (view === 'month') {
+                // Preserve the date when switching to month view
+                plannerCurrentDate = new Date(plannerViewDate);
+                
+                monthGrid.classList.add('active');
+                dayWeekContainer.classList.add('d-none');
+                renderMonthView();
+            } else {
+                monthGrid.classList.remove('active');
+                dayWeekContainer.classList.remove('d-none');
+                
+                // Set view class
+                dayWeekContainer.classList.remove('day-view', 'week-view');
+                dayWeekContainer.classList.add(view + '-view');
+                
+                // Preserve the date when switching from month view
+                if (plannerCurrentView === 'month' || !plannerViewDate) {
+                    plannerViewDate = new Date(plannerCurrentDate);
+                }
+                
+                initializePlannerColumns();
+                updatePlannerHeader();
+                renderPlannerTasks();
+                updateCurrentTimeIndicator();
+                scrollToCurrentTime();
+            }
+        }
+        
+        function navigatePlannerPrev() {
+            if (plannerCurrentView === 'month') {
+                plannerCurrentDate.setMonth(plannerCurrentDate.getMonth() - 1);
+                renderMonthView();
+            } else if (plannerCurrentView === 'week') {
+                plannerViewDate.setDate(plannerViewDate.getDate() - 7);
+                updatePlannerHeader();
+                renderPlannerTasks();
+                updateCurrentTimeIndicator();
+            } else if (plannerCurrentView === 'day') {
+                plannerViewDate.setDate(plannerViewDate.getDate() - 1);
+                updatePlannerHeader();
+                renderPlannerTasks();
+                updateCurrentTimeIndicator();
+            }
+        }
+        
+        function navigatePlannerNext() {
+            if (plannerCurrentView === 'month') {
+                plannerCurrentDate.setMonth(plannerCurrentDate.getMonth() + 1);
+                renderMonthView();
+            } else if (plannerCurrentView === 'week') {
+                plannerViewDate.setDate(plannerViewDate.getDate() + 7);
+                updatePlannerHeader();
+                renderPlannerTasks();
+                updateCurrentTimeIndicator();
+            } else if (plannerCurrentView === 'day') {
+                plannerViewDate.setDate(plannerViewDate.getDate() + 1);
+                updatePlannerHeader();
+                renderPlannerTasks();
+                updateCurrentTimeIndicator();
+            }
+        }
+        
+        function renderMonthView() {
+            const year = plannerCurrentDate.getFullYear();
+            const month = plannerCurrentDate.getMonth();
+            
+            // Check if all 3 views are visible
+            const views = ['inboxView', 'plannerView', 'boardView'];
+            const visibleCount = views.filter(id => {
+                const el = document.getElementById(id);
+                return el && !el.classList.contains('d-none');
+            }).length;
+            const hideYear = visibleCount === 3;
+            
+            let labelText = monthNames[month];
+            if (!hideYear) {
+                labelText += ` ${year}`;
+            }
+            document.getElementById('plannerMonthLabel').textContent = labelText;
+            
+            const gridContainer = document.getElementById('plannerMonthGrid');
+            const dayHeaders = gridContainer.querySelectorAll('.planner-day-header');
+            gridContainer.innerHTML = '';
+            dayHeaders.forEach(header => gridContainer.appendChild(header.cloneNode(true)));
+            
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const prevLastDay = new Date(year, month, 0);
+            const firstDayOfWeek = firstDay.getDay();
+            const daysInMonth = lastDay.getDate();
+            const daysInPrevMonth = prevLastDay.getDate();
+            const tasks = window.tasksData?.allTasks || [];
+            
+            let dayCounter = 1;
+            let nextMonthCounter = 1;
+            
+            for (let week = 0; week < 6; week++) {
+                for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
+                    const cellIndex = week * 7 + dayOfWeek;
+                    const dayCell = document.createElement('div');
+                    dayCell.classList.add('planner-day-cell');
+                    
+                    let currentDayDate;
+                    
+                    if (cellIndex < firstDayOfWeek) {
+                        const day = daysInPrevMonth - firstDayOfWeek + cellIndex + 1;
+                        dayCell.classList.add('other-month');
+                        dayCell.innerHTML = `<div class="day-number">${day}</div>`;
+                        currentDayDate = new Date(year, month - 1, day);
+                    } else if (dayCounter <= daysInMonth) {
+                        const isToday = year === new Date().getFullYear() && month === new Date().getMonth() && dayCounter === new Date().getDate();
+                        if (isToday) dayCell.classList.add('today');
+                        const dayLabel = dayCounter === 1 ? `${monthNames[month].substring(0, 3)} 1` : dayCounter;
+                        dayCell.innerHTML = `<div class="day-number">${dayLabel}</div>`;
+                        currentDayDate = new Date(year, month, dayCounter);
+                        dayCounter++;
+                    } else {
+                        dayCell.classList.add('other-month');
+                        const dayLabel = nextMonthCounter === 1 ? `${monthNames[(month + 1) % 12].substring(0, 3)} 1` : nextMonthCounter;
+                        dayCell.innerHTML = `<div class="day-number">${dayLabel}</div>`;
+                        currentDayDate = new Date(year, month + 1, nextMonthCounter);
+                        nextMonthCounter++;
+                    }
+                    
+                    const dayTasks = tasks.filter(task => {
+                        if (!task.dueDate) return false;
+                        const taskDate = new Date(task.dueDate);
+                        return taskDate.toDateString() === currentDayDate.toDateString();
+                    });
+                    
+                    dayTasks.forEach(task => {
+                        const taskEl = createMonthTaskElement(task);
+                        dayCell.appendChild(taskEl);
+                    });
+                    
+                    const cellDate = new Date(currentDayDate);
+                    dayCell.addEventListener('click', function(e) {
+                        if (!e.target.closest('.month-task-item')) {
+                            openTaskModal(null, 'Pending');
+                            setTimeout(() => {
+                                const dueDateInput = document.getElementById('dueDateField');
+                                if (dueDateInput) dueDateInput.value = cellDate.toISOString().slice(0, 10);
+                            }, 100);
+                        }
+                    });
+                    
+                    gridContainer.appendChild(dayCell);
+                }
+            }
+        }
+        
+        function createMonthTaskElement(task) {
+            const taskEl = document.createElement('div');
+            taskEl.classList.add('month-task-item');
+            taskEl.setAttribute('data-task-id', task.id);
+            const priorityColors = { 'Critical': '#dc3545', 'High': '#fd7e14', 'Medium': '#0d6efd', 'Low': '#6c757d' };
+            taskEl.style.cssText = `font-size: 0.75rem; padding: 2px 6px; margin-bottom: 2px; border-left: 3px solid ${priorityColors[task.priority] || priorityColors['Medium']}; background: #f8f9fa; border-radius: 3px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;`;
+            
+            if (task.dueDate && task.dueDate.indexOf('T') !== -1) {
+                const taskDate = new Date(task.dueDate);
+                if (taskDate.getHours() !== 0 || taskDate.getMinutes() !== 0) {
+                    const timeFormatter = new Intl.DateTimeFormat('en-US', { timeZone: userTimeZone, hour: 'numeric', minute: '2-digit', hour12: true });
+                    taskEl.innerHTML = `<i class="fa-solid fa-bars-progress" style="font-size: 0.6rem; margin-right: 4px;"></i>${timeFormatter.format(taskDate)} ${task.title}`;
+                } else {
+                    taskEl.innerHTML = `<i class="fa-solid fa-bars-progress" style="font-size: 0.6rem; margin-right: 4px;"></i>${task.title}`;
+                }
+            } else {
+                taskEl.innerHTML = `<i class="fa-solid fa-bars-progress" style="font-size: 0.6rem; margin-right: 4px;"></i>${task.title}`;
+            }
+            
+            taskEl.addEventListener('click', function(e) { e.stopPropagation(); openTaskModal(task.id); });
+            return taskEl;
+        }
+        
+        function initializePlannerColumns() {
+            const columnsContainer = document.getElementById('plannerColumns');
+            if (!columnsContainer) return;
+            columnsContainer.innerHTML = '';
+            const numColumns = plannerCurrentView === 'day' ? 1 : 7;
+            
+            for (let i = 0; i < numColumns; i++) {
+                const column = document.createElement('div');
+                column.className = 'calendar-column';
+                column.dataset.day = i;
+                
+                for (let hour = 0; hour < 24; hour++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'time-cell';
+                    cell.dataset.hour = hour;
+                    cell.dataset.day = i;
+                    cell.addEventListener('click', function() {
+                        const date = getPlannerDateForColumn(i);
+                        const dueDate = new Date(date);
+                        dueDate.setHours(hour, 0, 0, 0);
+                        openTaskModal(null, 'Pending');
+                        setTimeout(() => {
+                            const dueDateInput = document.getElementById('dueDateField');
+                            if (dueDateInput) dueDateInput.value = dueDate.toISOString().slice(0, 16);
+                        }, 100);
+                    });
+                    column.appendChild(cell);
+                }
+                columnsContainer.appendChild(column);
+            }
+        }
+        
+        function getPlannerDateForColumn(columnIndex) {
+            if (plannerCurrentView === 'day') return new Date(plannerViewDate);
+            const weekStart = getPlannerWeekStart(plannerViewDate);
+            const date = new Date(weekStart);
+            date.setDate(date.getDate() + columnIndex);
+            return date;
+        }
+        
+        function getPlannerWeekStart(date) {
+            const d = new Date(date);
+            d.setDate(d.getDate() - d.getDay());
+            d.setHours(0, 0, 0, 0);
+            return d;
+        }
+        
+        function updatePlannerHeader() {
+            const dateLabel = document.getElementById('plannerMonthLabel');
+            const daysHeader = document.getElementById('plannerDaysHeader');
+            const datesHeader = document.getElementById('plannerDatesHeader');
+            
+            // Check if all 3 views are visible
+            const views = ['inboxView', 'plannerView', 'boardView'];
+            const visibleCount = views.filter(id => {
+                const el = document.getElementById(id);
+                return el && !el.classList.contains('d-none');
+            }).length;
+            const hideYear = visibleCount === 3;
+            
+            if (plannerCurrentView === 'day') {
+                const options = { weekday: 'long', month: 'long', day: 'numeric' };
+                if (!hideYear) {
+                    options.year = 'numeric';
+                }
+                if (dateLabel) dateLabel.textContent = plannerViewDate.toLocaleDateString('en-US', options);
+                if (daysHeader) {
+                    const dayHeaders = daysHeader.querySelectorAll('.day-header:not(.time-header)');
+                    if (dayHeaders[0]) dayHeaders[0].textContent = dayNames[plannerViewDate.getDay()];
+                }
+                if (datesHeader) {
+                    const dateCells = datesHeader.querySelectorAll('.date-cell:not(.time-header)');
+                    if (dateCells[0]) {
+                        dateCells[0].textContent = plannerViewDate.getDate();
+                        dateCells[0].classList.toggle('today', isPlannerToday(plannerViewDate));
+                    }
+                }
+            } else if (plannerCurrentView === 'week') {
+                const weekStart = getPlannerWeekStart(plannerViewDate);
+                const weekEnd = new Date(weekStart);
+                weekEnd.setDate(weekEnd.getDate() + 6);
+                
+                // Check if all 3 views are visible
+                const views = ['inboxView', 'plannerView', 'boardView'];
+                const visibleCount = views.filter(id => {
+                    const el = document.getElementById(id);
+                    return el && !el.classList.contains('d-none');
+                }).length;
+                const hideYear = visibleCount === 3;
+                
+                let labelText;
+                if (weekStart.getMonth() === weekEnd.getMonth()) {
+                    labelText = monthNames[weekStart.getMonth()];
+                    if (!hideYear) {
+                        labelText += ` ${weekStart.getFullYear()}`;
+                    }
+                } else {
+                    labelText = `${monthNames[weekStart.getMonth()].substring(0, 3)} - ${monthNames[weekEnd.getMonth()].substring(0, 3)}`;
+                    if (!hideYear) {
+                        labelText += ` ${weekEnd.getFullYear()}`;
+                    }
+                }
+                if (dateLabel) dateLabel.textContent = labelText;
+                
+                if (daysHeader) {
+                    const dayHeaders = daysHeader.querySelectorAll('.day-header:not(.time-header)');
+                    for (let i = 0; i < 7; i++) { if (dayHeaders[i]) dayHeaders[i].textContent = dayNames[i]; }
+                }
+                if (datesHeader) {
+                    const dateCells = datesHeader.querySelectorAll('.date-cell:not(.time-header)');
+                    for (let i = 0; i < 7; i++) {
+                        const date = new Date(weekStart);
+                        date.setDate(date.getDate() + i);
+                        if (dateCells[i]) {
+                            dateCells[i].textContent = date.getDate();
+                            dateCells[i].classList.toggle('today', isPlannerToday(date));
+                        }
+                    }
+                }
+            }
+        }
+        
+        function isPlannerToday(date) {
+            const today = new Date();
+            return date.getFullYear() === today.getFullYear() && date.getMonth() === today.getMonth() && date.getDate() === today.getDate();
+        }
+        
+        function isPlannerSameDay(date1, date2) {
+            return date1.getFullYear() === date2.getFullYear() && date1.getMonth() === date2.getMonth() && date1.getDate() === date2.getDate();
+        }
+        
+        function renderPlannerTasks() {
+            document.querySelectorAll('.planner-task-card, .planner-all-day-task').forEach(el => el.remove());
+            const allDayColumns = document.getElementById('plannerAllDayColumns');
+            const plannerColumns = document.getElementById('plannerColumns');
+            if (!window.tasksData?.allTasks || !plannerColumns) return;
+            
+            window.tasksData.allTasks.forEach(task => {
+                if (!task.dueDate) return;
+                const taskDueDate = new Date(task.dueDate);
+                let columnIndex = -1;
+                
+                if (plannerCurrentView === 'day') {
+                    if (isPlannerSameDay(taskDueDate, plannerViewDate)) columnIndex = 0;
+                } else {
+                    const weekStart = getPlannerWeekStart(plannerViewDate);
+                    for (let i = 0; i < 7; i++) {
+                        const columnDate = new Date(weekStart);
+                        columnDate.setDate(columnDate.getDate() + i);
+                        if (isPlannerSameDay(taskDueDate, columnDate)) { columnIndex = i; break; }
+                    }
+                }
+                
+                if (columnIndex === -1) return;
+                const hasTime = task.dueDate && task.dueDate.indexOf('T') !== -1;
+                const hour = taskDueDate.getHours();
+                const minutes = taskDueDate.getMinutes();
+                
+                if (!hasTime || (hour === 0 && minutes === 0)) {
+                    const allDayCell = allDayColumns?.querySelector(`.calendar-column[data-day="${columnIndex}"] .all-day-cell`);
+                    if (allDayCell) allDayCell.appendChild(createPlannerAllDayTaskElement(task));
+                } else {
+                    const column = plannerColumns.querySelector(`.calendar-column[data-day="${columnIndex}"]`);
+                    if (column) column.appendChild(createPlannerTaskCard(task, taskDueDate));
+                }
+            });
+        }
+        
+        function createPlannerAllDayTaskElement(task) {
+            const taskEl = document.createElement('div');
+            taskEl.className = 'planner-all-day-task';
+            taskEl.dataset.taskId = task.id;
+            taskEl.textContent = task.title;
+            const priorityColors = { 'Critical': '#dc3545', 'High': '#fd7e14', 'Medium': '#0d6efd', 'Low': '#6c757d' };
+            taskEl.style.cssText = `border-left: 3px solid ${priorityColors[task.priority] || priorityColors['Medium']}; background-color: #f8f9fa; padding: 2px 6px; border-radius: 3px; font-size: 0.75rem; cursor: pointer; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;`;
+            taskEl.addEventListener('click', (e) => { e.stopPropagation(); openTaskModal(task.id); });
+            return taskEl;
+        }
+        
+        function createPlannerTaskCard(task, dueDate) {
+            const taskEl = document.createElement('div');
+            taskEl.className = 'planner-task-card';
+            taskEl.dataset.taskId = task.id;
+            const startHour = dueDate.getHours() + dueDate.getMinutes() / 60;
+            const priorityColors = { 'Critical': { bg: '#fee2e2', border: '#dc3545' }, 'High': { bg: '#fef3c7', border: '#fd7e14' }, 'Medium': { bg: '#dbeafe', border: '#0d6efd' }, 'Low': { bg: '#f3f4f6', border: '#6c757d' } };
+            const colors = priorityColors[task.priority] || priorityColors['Medium'];
+            taskEl.style.cssText = `position: absolute; top: ${startHour * 60}px; height: 60px; left: 2px; right: 2px; z-index: 5; cursor: pointer; background-color: ${colors.bg}; border-left: 3px solid ${colors.border}; border-radius: 4px; padding: 4px 6px; font-size: 0.75rem; overflow: hidden;`;
+            const timeFormatter = new Intl.DateTimeFormat('en-US', { timeZone: userTimeZone, hour: 'numeric', minute: '2-digit', hour12: true });
+            taskEl.innerHTML = `<div style="font-size: 0.65rem; color: #666; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-bars-progress" style="font-size: 0.6rem;"></i>${timeFormatter.format(dueDate)}</div><div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${task.title}</div>`;
+            taskEl.addEventListener('click', (e) => { e.stopPropagation(); openTaskModal(task.id); });
+            return taskEl;
+        }
+        
+        function updateCurrentTimeIndicator() {
+            document.querySelectorAll('.planner-time-indicator').forEach(el => el.remove());
+            
+            if (plannerCurrentView === 'month') return;
+            
+            const now = new Date();
+            let columnIndex = -1;
+            
+            if (plannerCurrentView === 'day') {
+                if (isPlannerToday(plannerViewDate)) columnIndex = 0;
+            } else {
+                const weekStart = getPlannerWeekStart(plannerViewDate);
+                for (let i = 0; i < 7; i++) {
+                    const columnDate = new Date(weekStart);
+                    columnDate.setDate(columnDate.getDate() + i);
+                    if (isPlannerToday(columnDate)) {
+                        columnIndex = i;
+                        break;
+                    }
+                }
+            }
+            
+            if (columnIndex === -1) return;
+            
+            const column = document.getElementById('plannerColumns')?.querySelector(`.calendar-column[data-day="${columnIndex}"]`);
+            if (!column) return;
+            
+            // Get the first time cell to verify column structure
+            const firstTimeCell = column.querySelector('.time-cell:not(.all-day-cell)');
+            if (!firstTimeCell) return;
+            
+            // Calculate position: each hour is 60px, account for minutes
+            // The time cells start from hour 0 (midnight) at top: 0
+            const currentHour = now.getHours();
+            const currentMinutes = now.getMinutes();
+            const timeSlotHeight = 60; // Each time slot is 60px tall
+            const topPosition = (currentHour * timeSlotHeight) + (currentMinutes / 60 * timeSlotHeight);
+            
+            const indicator = document.createElement('div');
+            indicator.className = 'planner-time-indicator';
+            indicator.style.cssText = `position: absolute; left: 0; right: 0; top: ${topPosition}px; height: 2px; background: #ef4444; z-index: 10; pointer-events: none;`;
+            
+            const circle = document.createElement('div');
+            circle.style.cssText = `position: absolute; left: -4px; top: -3px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%;`;
+            indicator.appendChild(circle);
+            
+            column.appendChild(indicator);
+        }
+        
+        function scrollToCurrentTime() {
+            const timeGrid = document.getElementById('plannerTimeGrid');
+            if (!timeGrid || plannerCurrentView === 'month') return;
+            const now = new Date();
+            let todayInView = false;
+            if (plannerCurrentView === 'day') todayInView = isPlannerToday(plannerViewDate);
+            else { const weekStart = getPlannerWeekStart(plannerViewDate); for (let i = 0; i < 7; i++) { const date = new Date(weekStart); date.setDate(date.getDate() + i); if (isPlannerToday(date)) { todayInView = true; break; } } }
+            timeGrid.scrollTop = (todayInView ? Math.max(0, now.getHours() - 1) : 8) * 60;
+        }
+        
+        function refreshPlannerView() {
+            if (plannerCurrentView === 'month') renderMonthView();
+            else { renderPlannerTasks(); updateCurrentTimeIndicator(); }
+        }
+        
+        setTimeout(() => {
+            initializePlannerView();
+            
+            // Observe visibility changes for planner and other views
+            const viewsToObserve = ['inboxView', 'plannerView', 'boardView'];
+            viewsToObserve.forEach(viewId => {
+                const viewEl = document.getElementById(viewId);
+                if (viewEl) {
+                    const observer = new MutationObserver(function(mutations) {
+                        mutations.forEach(function(mutation) {
+                            if (mutation.attributeName === 'class') {
+                                // Update view options when any view visibility changes
+                                updatePlannerViewOptions();
+                                
+                                // Re-render planner if it's visible
+                                if (viewId === 'plannerView' && !viewEl.classList.contains('d-none')) {
+                                    switchPlannerView(plannerCurrentView);
+                                }
+                            }
+                        });
+                    });
+                    observer.observe(viewEl, { attributes: true });
+                }
+            });
+        }, 300);
+        
+        window.refreshPlannerView = refreshPlannerView;
         
 })(); // End of IIFE
 </script>

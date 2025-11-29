@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Certio.Application")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+058ff96ea1c5240c178a42a4f14e33e10f413a8c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f1e10d438a2bd86ae84c21e7b19cb1f002fb838a")]
 [assembly: System.Reflection.AssemblyProductAttribute("Certio.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Certio.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
