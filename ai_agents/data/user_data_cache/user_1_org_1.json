@@ -2,8 +2,8 @@
   "user_id": 1,
   "organization_id": 1,
   "user_name": "Kyle Wang",
-  "total_chunks": 145,
-  "last_synced": "2025-11-29T08:40:45.297795",
+  "total_chunks": 144,
+  "last_synced": "2025-11-30T22:04:09.785590",
   "module_summaries": {
     "matters": {
       "totalMatters": 29,
@@ -38,9 +38,9 @@
       "highPriorityTasks": 14
     },
     "calendar": {
-      "totalEvents": 10,
+      "totalEvents": 9,
       "upcomingEvents": 0,
-      "todayEvents": 1,
+      "todayEvents": 0,
       "thisWeekEvents": 0
     },
     "communications": {
@@ -57,19 +57,16 @@
     "documents": {
       "totalDocuments": 50,
       "documentsByType": {
-        "application/pdf": 16,
-        "application/vnd.google-apps.presentation": 22,
-        "application/vnd.openxmlformats-officedocument.presentationml.presentation": 9,
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document": 2,
-        "image/jpeg": 1
+        "application/octet-stream": 48,
+        "image/png": 2
       },
-      "documentsWithContent": 0,
-      "documentsWithFailedExtraction": 50
+      "documentsWithContent": 1,
+      "documentsWithFailedExtraction": 49
     }
   },
   "chunks": [
     {
-      "id": "475cfc54-79b3-4b79-8d74-77e98ce9cc91",
+      "id": "0ba43ff8-d9b7-4d89-8612-2a6ec6269e13",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 16,
@@ -96,7 +93,7 @@
       "relevance_score": 0
     },
     {
-      "id": "2e4f9f63-dea7-4fe2-a17b-d56aac122c15",
+      "id": "4c672b90-aad2-4dc5-8d74-75478d3420be",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 5,
@@ -124,7 +121,7 @@
       "relevance_score": 0
     },
     {
-      "id": "7a586689-20de-43e2-9e82-f10d18fb31fd",
+      "id": "13ec2dc0-66d7-4bb7-82b6-bca14d183f36",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 30,
@@ -152,7 +149,7 @@
       "relevance_score": 0
     },
     {
-      "id": "af12011f-e2b7-408c-ae36-9971d7ba17cc",
+      "id": "7fd34b25-4547-4130-9aaf-c48f18290ba2",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 29,
@@ -176,7 +173,7 @@
       "relevance_score": 0
     },
     {
-      "id": "ea72462b-0919-4bd9-a788-8a862c6d3b7e",
+      "id": "b164f7f5-f76c-49d7-ae3c-b838464aabe2",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 28,
@@ -204,7 +201,7 @@
       "relevance_score": 0
     },
     {
-      "id": "ea6f58bd-66cd-41e9-a5a6-e515f0d4be76",
+      "id": "bba7fbe9-d38f-46ad-b201-ac3acbcfe928",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 27,
@@ -232,7 +229,7 @@
       "relevance_score": 0
     },
     {
-      "id": "31ad903d-76fc-40d4-841f-d46ca25da6fb",
+      "id": "272c71f7-6ee6-4c34-adb8-b6c3b824887b",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 26,
@@ -260,7 +257,7 @@
       "relevance_score": 0
     },
     {
-      "id": "9073b426-5fdb-4827-b2ab-f34e0ba1f532",
+      "id": "6eac8b7c-d937-43c2-b5ab-e0932f0ad869",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 25,
@@ -288,7 +285,7 @@
       "relevance_score": 0
     },
     {
-      "id": "f0c89fc7-89c6-44dc-af50-25cb8dc0699f",
+      "id": "acb47350-1beb-40c1-80d9-50046ca3294f",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 24,
@@ -316,7 +313,7 @@
       "relevance_score": 0
     },
     {
-      "id": "6bcfcaad-059e-4756-8575-392d5a73dd9f",
+      "id": "533a884c-b3cb-46bf-b61b-ee6d27c251cc",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 23,
@@ -340,7 +337,7 @@
       "relevance_score": 0
     },
     {
-      "id": "2c2f4215-f24d-43e2-bc76-6f13803c08b8",
+      "id": "d8804104-49ac-491f-91f4-bcd0331dbbe5",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 22,
@@ -368,7 +365,7 @@
       "relevance_score": 0
     },
     {
-      "id": "b33442c9-7918-49ec-8adb-c35e83ff20fe",
+      "id": "292ac28a-891f-4e0a-9a63-914a676277ee",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 21,
@@ -396,7 +393,7 @@
       "relevance_score": 0
     },
     {
-      "id": "8b318ac5-0b3d-4e40-8a5d-6b88f5cc599b",
+      "id": "17b2c068-0f3f-46b3-9f3f-fe55c142906a",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 20,
@@ -424,7 +421,7 @@
       "relevance_score": 0
     },
     {
-      "id": "aa1e755a-9254-444d-859c-e390af6c4976",
+      "id": "b339b733-9a04-4262-bb8c-9ec9c4611c4e",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 19,
@@ -452,7 +449,7 @@
       "relevance_score": 0
     },
     {
-      "id": "1464472a-3934-4d8d-9a34-bbe63bb2db67",
+      "id": "cbbb167a-d9a7-4a9c-b0ff-06f65b9f4434",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 18,
@@ -480,7 +477,7 @@
       "relevance_score": 0
     },
     {
-      "id": "b5d68888-d0cd-4c81-807e-88f4e76fb93f",
+      "id": "2399ea3d-949d-4628-aba4-2627f4ced1b9",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 17,
@@ -508,7 +505,7 @@
       "relevance_score": 0
     },
     {
-      "id": "6fb02d5a-4e34-4922-bb0f-d1f854c63dc9",
+      "id": "05cb33f1-d864-4361-a969-d88b6968cdf4",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 15,
@@ -532,7 +529,7 @@
       "relevance_score": 0
     },
     {
-      "id": "c18cdadc-ddba-4015-9b81-819c816be6dd",
+      "id": "4ed0ec22-a4c6-4574-a358-4510b2035137",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 14,
@@ -559,7 +556,7 @@
       "relevance_score": 0
     },
     {
-      "id": "a2ed979f-59b1-4b22-8c5d-c5b86ecceb71",
+      "id": "5033eedc-17f2-4552-a653-a2e1432fca84",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 13,
@@ -583,7 +580,7 @@
       "relevance_score": 0
     },
     {
-      "id": "95ba069a-e65e-4e36-826d-709d0ccc1219",
+      "id": "a2711d78-913e-437c-881e-ae6a7283563c",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 12,
@@ -612,7 +609,7 @@
       "relevance_score": 0
     },
     {
-      "id": "c20503c3-b3a7-494e-b73b-ccd35eca0717",
+      "id": "1a6dd447-a012-4a82-85a0-7b4f5f757e87",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 11,
@@ -641,7 +638,7 @@
       "relevance_score": 0
     },
     {
-      "id": "1e294358-ab25-429d-b82b-708ca2911dc1",
+      "id": "f6459954-bf08-4d24-8189-76c0f25ca0da",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 10,
@@ -670,7 +667,7 @@
       "relevance_score": 0
     },
     {
-      "id": "4702e3fb-abad-4262-9d23-fb5493ebb8a6",
+      "id": "6942fb63-15ba-4937-95b3-59f95ca01017",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 9,
@@ -699,7 +696,7 @@
       "relevance_score": 0
     },
     {
-      "id": "b3a23857-4590-4502-aef3-7a6fd0ef081b",
+      "id": "2c8d4f3c-10b9-41b1-ada7-3f0c5a8bb7a9",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 8,
@@ -728,7 +725,7 @@
       "relevance_score": 0
     },
     {
-      "id": "f929394a-7c8a-476e-9d37-82fe1d44ee75",
+      "id": "7becb93e-e4ab-4728-8a24-9ba2b7a09485",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 7,
@@ -757,7 +754,7 @@
       "relevance_score": 0
     },
     {
-      "id": "53380db3-f46e-4843-8e54-0445beb35c98",
+      "id": "c098b3a8-1eab-44cd-8cbb-2f1c08c4ed8e",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 6,
@@ -786,7 +783,7 @@
       "relevance_score": 0
     },
     {
-      "id": "2dc1fb8f-d29d-4153-b5df-0a44ece43dd1",
+      "id": "8ccd0c9f-3120-4023-95ff-c40b844d397a",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 4,
@@ -815,7 +812,7 @@
       "relevance_score": 0
     },
     {
-      "id": "8d6f367e-569e-463e-bf57-4aa1565cf0f2",
+      "id": "9b4e784b-95bb-4e65-b14e-23a66f859c51",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 2,
@@ -844,7 +841,7 @@
       "relevance_score": 0
     },
     {
-      "id": "36d7c2c2-5858-4d2b-a11c-538bd9102e14",
+      "id": "c67fc655-968c-40af-88c0-a0f739fe5bcf",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 1,
@@ -873,7 +870,7 @@
       "relevance_score": 0
     },
     {
-      "id": "a7f85b44-3048-4b6c-b13a-2c24125f3b88",
+      "id": "55573faf-8823-404f-abcf-6d86b6c7758f",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 15,
@@ -894,7 +891,7 @@
       "relevance_score": 0
     },
     {
-      "id": "27f3d66e-e508-4684-ad2a-0ff572550c60",
+      "id": "6d1ebcab-04a7-4dd9-9354-a1e690893f31",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 21,
@@ -915,7 +912,7 @@
       "relevance_score": 0
     },
     {
-      "id": "8156ff78-0abd-4e16-9e95-db9ee5c4f6b0",
+      "id": "00e79607-0b4b-408a-a904-06e845a81356",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 9,
@@ -937,7 +934,7 @@
       "relevance_score": 0
     },
     {
-      "id": "9f599644-6384-429d-bcb5-b2b377e641c1",
+      "id": "54b8a2da-804f-42f1-a922-e79520628b37",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 18,
@@ -958,7 +955,7 @@
       "relevance_score": 0
     },
     {
-      "id": "0f0d3097-d747-4eee-ad3f-838d411ef8e9",
+      "id": "1326c8a8-9312-4dd7-8779-50ab6441dccf",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 19,
@@ -980,7 +977,7 @@
       "relevance_score": 0
     },
     {
-      "id": "a0adeeb4-aef9-459c-a25d-cd924f4d94e2",
+      "id": "d538eebb-3524-43ca-9c86-fe6ebbed0fb8",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 12,
@@ -1001,7 +998,7 @@
       "relevance_score": 0
     },
     {
-      "id": "31565ad6-a129-4882-9c61-18d6682cbf7a",
+      "id": "726da9d0-8b0a-4ba7-b231-d4279616d8d0",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 14,
@@ -1023,7 +1020,7 @@
       "relevance_score": 0
     },
     {
-      "id": "d9b77ff1-226e-4619-b9bc-94a6d64dce57",
+      "id": "bc9161e1-9681-4f44-b107-312998753f43",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 10,
@@ -1046,7 +1043,7 @@
       "relevance_score": 0
     },
     {
-      "id": "82ec16e0-952a-438f-a390-b5754dad4f51",
+      "id": "5f891fee-2e49-4f78-a02c-e0be8ab3f271",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 23,
@@ -1068,7 +1065,7 @@
       "relevance_score": 0
     },
     {
-      "id": "9188d13f-3fc0-4892-a139-089cd22f36da",
+      "id": "59e901e6-484e-42f1-8e3a-f04ca6e4e533",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 22,
@@ -1089,7 +1086,7 @@
       "relevance_score": 0
     },
     {
-      "id": "5c148813-8675-47de-b9e5-59f6de13009f",
+      "id": "92a33b18-92b2-4ec5-8c39-b06e05c71f1d",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 4,
@@ -1108,7 +1105,7 @@
       "relevance_score": 0
     },
     {
-      "id": "2ea43e85-d675-4ce6-959b-41ce7c5a3def",
+      "id": "5beae07c-2769-4fc4-be1b-dc2a584f45e0",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 13,
@@ -1129,7 +1126,7 @@
       "relevance_score": 0
     },
     {
-      "id": "d05ca3ff-f776-43d0-9958-74004d80818d",
+      "id": "17bd4496-84c3-49f1-bfdf-562b55bea4c5",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 11,
@@ -1150,7 +1147,7 @@
       "relevance_score": 0
     },
     {
-      "id": "f1b84595-4b89-411c-81c4-36a33f416f22",
+      "id": "eb494b65-ab81-4cdb-884c-06c390c47369",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 20,
@@ -1172,7 +1169,7 @@
       "relevance_score": 0
     },
     {
-      "id": "eb705332-c7e9-4292-a078-05fff60735f4",
+      "id": "738d28a2-8bb6-4aec-84ca-8c2b7d6ad542",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 17,
@@ -1191,7 +1188,7 @@
       "relevance_score": 0
     },
     {
-      "id": "d64b957f-1632-48bf-960d-613783a7a0a6",
+      "id": "73a0570d-065f-47bb-87fb-694bb61d6e44",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 8,
@@ -1212,7 +1209,7 @@
       "relevance_score": 0
     },
     {
-      "id": "9f7c9238-3f5d-4241-a796-06040a7c0a9e",
+      "id": "f8f518b5-4119-47a5-8ebe-8f106e8ed4f4",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 7,
@@ -1235,7 +1232,7 @@
       "relevance_score": 0
     },
     {
-      "id": "05455824-79b8-4567-95a4-72cae908999b",
+      "id": "8c331137-e258-40db-9e8f-7ea1ff4d4678",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 6,
@@ -1256,7 +1253,7 @@
       "relevance_score": 0
     },
     {
-      "id": "5d798a2e-b543-473b-aac2-2e0cf488e5e4",
+      "id": "56719d2f-3917-4121-ac29-76d997dc18c2",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 5,
@@ -1275,7 +1272,7 @@
       "relevance_score": 0
     },
     {
-      "id": "da9d0de7-7cf7-43f1-bee7-f66321f6a947",
+      "id": "6e1cd5fe-0e77-4e3b-a877-5a747ed2c39e",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 3,
@@ -1294,7 +1291,7 @@
       "relevance_score": 0
     },
     {
-      "id": "3688c56c-32c4-4c55-aa85-8db93c0d064b",
+      "id": "b1c6d305-218c-4b90-a7f2-f8b5735f317c",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 2,
@@ -1315,29 +1312,7 @@
       "relevance_score": 0
     },
     {
-      "id": "dca6f868-d0ee-48c6-b339-b4c76cfe796e",
-      "module_name": "calendar",
-      "entity_type": "CalendarEvent",
-      "entity_id": 16,
-      "title": "FINALE",
-      "content": "Event: FINALE\r\nType: CourtDate\r\nStart: 2025-10-29 09:30\r\nEnd: 2025-10-29 10:30\r\nLocation: {\"name\":\"Finale Court\",\"address\":\"Finale Ct, Menifee, CA 92584, USA\",\"formatted_address\":\"Finale Ct, Menifee, CA 92584, USA\",\"place_id\":null,\"geometry\":null}\r\nDescription: Create now works and doesn't create duplicates.\r\nAttendees: John Marshall\r\n",
-      "metadata": {
-        "startDateTime": "2025-10-29T09:30:00",
-        "endDateTime": "2025-10-29T10:30:00",
-        "eventType": "CourtDate",
-        "location": "{\"name\":\"Finale Court\",\"address\":\"Finale Ct, Menifee, CA 92584, USA\",\"formatted_address\":\"Finale Ct, Menifee, CA 92584, USA\",\"place_id\":null,\"geometry\":null}",
-        "isAllDay": false,
-        "attendees": [
-          "John Marshall"
-        ],
-        "matterId": 5
-      },
-      "created_at": "2025-10-21T22:29:32.6800872",
-      "modified_at": "2025-10-22T00:24:47.6979848",
-      "relevance_score": 0
-    },
-    {
-      "id": "e026ab41-ef2d-4933-9283-fedb8e2f4874",
+      "id": "d30a59b7-53cd-4d7a-93e7-920e2a4d1c2e",
       "module_name": "calendar",
       "entity_type": "CalendarEvent",
       "entity_id": 8,
@@ -1357,7 +1332,7 @@
       "relevance_score": 0
     },
     {
-      "id": "3fd3ee23-b499-47fb-9d6a-037bbe0adc51",
+      "id": "a309f3cf-5446-4774-bc9d-eea3e3146c9a",
       "module_name": "calendar",
       "entity_type": "CalendarEvent",
       "entity_id": 20,
@@ -1380,7 +1355,7 @@
       "relevance_score": 0
     },
     {
-      "id": "2f0b4b5e-70ea-402e-8c32-bf7029c2ccc4",
+      "id": "06d5ed4c-c976-46b9-ae7c-31b31fe5a889",
       "module_name": "calendar",
       "entity_type": "CalendarEvent",
       "entity_id": 22,
@@ -1403,7 +1378,7 @@
       "relevance_score": 0
     },
     {
-      "id": "26dc38be-7c3c-4b51-8540-1f26f5dbad02",
+      "id": "1f59f865-6374-4ff8-99cb-de88d94e3130",
       "module_name": "calendar",
       "entity_type": "CalendarEvent",
       "entity_id": 23,
@@ -1426,7 +1401,7 @@
       "relevance_score": 0
     },
     {
-      "id": "a3b33c05-8177-4e20-91f0-49e272c98089",
+      "id": "1582d8b4-c7c2-4f34-8d88-c735a80ac611",
       "module_name": "calendar",
       "entity_type": "CalendarEvent",
       "entity_id": 3,
@@ -1449,7 +1424,7 @@
       "relevance_score": 0
     },
     {
-      "id": "6ae0c895-d95a-480c-80c0-f8a3736ec344",
+      "id": "9b55e323-ba15-4c3b-bad4-c88f3bb05b33",
       "module_name": "calendar",
       "entity_type": "CalendarEvent",
       "entity_id": 21,
@@ -1472,7 +1447,7 @@
       "relevance_score": 0
     },
     {
-      "id": "f02a5db3-10ae-4f78-b7c4-321927fd9402",
+      "id": "df4e7050-04a4-4185-8488-d4176df0cdf3",
       "module_name": "calendar",
       "entity_type": "CalendarEvent",
       "entity_id": 19,
@@ -1494,7 +1469,7 @@
       "relevance_score": 0
     },
     {
-      "id": "4e0c2320-9b70-4fb4-8fe1-a1ac97dfda77",
+      "id": "4f17c6ae-3a0f-4e8c-8a1c-3507955cb8bc",
       "module_name": "calendar",
       "entity_type": "CalendarEvent",
       "entity_id": 24,
@@ -1514,7 +1489,7 @@
       "relevance_score": 0
     },
     {
-      "id": "ff5fff71-dc3b-49a4-9807-1d694abf31f3",
+      "id": "d8031b52-2b80-41c2-980a-e6d06120583b",
       "module_name": "calendar",
       "entity_type": "CalendarEvent",
       "entity_id": 25,
@@ -1536,7 +1511,7 @@
       "relevance_score": 0
     },
     {
-      "id": "eb55ceeb-298a-45ea-9f98-2098f3675cfe",
+      "id": "57a4f231-0b6f-41fb-a667-6c599b11dd96",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1555,7 +1530,7 @@
       "relevance_score": 1.2
     },
     {
-      "id": "302bcee8-ef1e-4f5c-b4f2-5b10abc0db3b",
+      "id": "4b4aa24e-f467-4367-bd44-6fc2cd120c0c",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1574,7 +1549,7 @@
       "relevance_score": 1.2
     },
     {
-      "id": "70ecf09b-54f3-484c-988c-b0837bfbf3fc",
+      "id": "5727e5ca-6cc7-4b96-92ae-911c29567cbd",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 29,
@@ -1596,7 +1571,7 @@
       "relevance_score": 0
     },
     {
-      "id": "efe981e8-cdd0-49eb-b9a6-8961ce984c44",
+      "id": "64ac70cf-da36-4e85-bdb4-9be7a604d06a",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 44,
@@ -1617,7 +1592,7 @@
       "relevance_score": 0
     },
     {
-      "id": "f9050935-32cf-4cd3-ad96-80c7412a1906",
+      "id": "d2a55a9d-3a47-4dbc-a3f7-672006dcbf27",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 55,
@@ -1639,7 +1614,7 @@
       "relevance_score": 0
     },
     {
-      "id": "840bb02e-bee4-4e25-ad68-c5ec517d155f",
+      "id": "c83ce1e8-3c5d-4f48-b0b5-2eb6d544028f",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 28,
@@ -1661,7 +1636,7 @@
       "relevance_score": 0
     },
     {
-      "id": "d49c63bc-846f-47f8-9c40-70d9b7fa6b58",
+      "id": "1e3109e3-3b5f-4f5b-81ae-dea1653da15a",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 27,
@@ -1684,7 +1659,7 @@
       "relevance_score": 0
     },
     {
-      "id": "486fedd7-eca4-40bf-b126-056db8ea6846",
+      "id": "ec4e5c2e-627a-4fc4-a9e0-60e6aaa2b213",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 52,
@@ -1707,7 +1682,7 @@
       "relevance_score": 0
     },
     {
-      "id": "1ec6d9f9-c0bc-4f3a-a078-e9888d8d6e73",
+      "id": "527e06a9-73ba-4e3e-9af2-4a4b49d74f9e",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 56,
@@ -1728,7 +1703,7 @@
       "relevance_score": 0
     },
     {
-      "id": "0adba0dd-cd93-41f6-85d7-22bd6dfa9232",
+      "id": "7fcc0ae3-4f5e-475d-8de8-9ce3730a55f1",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 59,
@@ -1749,7 +1724,7 @@
       "relevance_score": 0
     },
     {
-      "id": "11cf1645-b9cf-4664-a113-150baa28a873",
+      "id": "4f056fa4-b9db-45d9-ba99-efec2b1ce6e6",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 43,
@@ -1771,7 +1746,7 @@
       "relevance_score": 0
     },
     {
-      "id": "4c8e13cf-7bad-4986-92e8-78f3901f34a9",
+      "id": "77dfbff7-c70e-40fd-b2c2-8cf775fdaca0",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 53,
@@ -1792,7 +1767,7 @@
       "relevance_score": 0
     },
     {
-      "id": "d751a82c-0135-44db-8526-894d864030ea",
+      "id": "36396b11-b97b-4150-b7e2-292dd23d774c",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 54,
@@ -1813,7 +1788,7 @@
       "relevance_score": 0
     },
     {
-      "id": "be37fc1a-b24c-4d39-8699-232b2d2bacbc",
+      "id": "812b8421-7072-43e2-8fed-766bb8bf75d8",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 45,
@@ -1836,7 +1811,7 @@
       "relevance_score": 0
     },
     {
-      "id": "034c6c70-b2d9-4bb8-a7ef-af39e8449941",
+      "id": "45e926c8-0841-4b7c-bd18-80cc162d8d87",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1855,7 +1830,7 @@
       "relevance_score": 0
     },
     {
-      "id": "b8dc7ee7-891d-4135-98ff-3f78d12ff218",
+      "id": "56d38f89-211a-4dcc-8658-63924a2a210b",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1874,7 +1849,7 @@
       "relevance_score": 0
     },
     {
-      "id": "7f727a28-2344-4e25-96f2-225ad5d96810",
+      "id": "4adc248a-1622-40db-9523-ece8fbb2172a",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1893,7 +1868,7 @@
       "relevance_score": 0
     },
     {
-      "id": "dfbc8844-269b-441a-b910-178763dbcd6a",
+      "id": "9d7a7abf-de61-4b37-97a6-d9d251bf4200",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1912,7 +1887,7 @@
       "relevance_score": 0
     },
     {
-      "id": "72468b19-93e6-43b9-87d9-ad5dd7e4da7f",
+      "id": "30379357-fbb5-42ae-8763-34d6db3357cc",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1931,7 +1906,7 @@
       "relevance_score": 0
     },
     {
-      "id": "44d8d625-359f-4168-a94d-04f10a9c80d4",
+      "id": "fc2738cb-4efb-4a86-a4d7-6014d914b753",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1950,7 +1925,7 @@
       "relevance_score": 0
     },
     {
-      "id": "f526bb60-dfb8-4d9f-b151-b7cadc04631c",
+      "id": "acdb0e49-2b24-476b-80d4-4b133ef7efa1",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1969,7 +1944,7 @@
       "relevance_score": 0
     },
     {
-      "id": "19916883-2b39-452e-8d3a-31a384bbce05",
+      "id": "89b20caa-e4dd-4f69-9341-1de9d3f379f5",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1988,7 +1963,7 @@
       "relevance_score": 0
     },
     {
-      "id": "197bb105-e964-461a-8276-71a2462982da",
+      "id": "d1600371-f4c7-4e10-bc7c-cb0f4732f0bd",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2007,7 +1982,7 @@
       "relevance_score": 0
     },
     {
-      "id": "146b95bc-cc76-4694-ae84-76c9515a5417",
+      "id": "8a272e2e-7a47-43a3-aec9-e18019cc9d4a",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2026,7 +2001,7 @@
       "relevance_score": 0
     },
     {
-      "id": "85bc233f-ab50-4eb6-ad6d-345c1408b9db",
+      "id": "dc831795-6e90-48c8-b7ff-062900130766",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2045,7 +2020,7 @@
       "relevance_score": 0
     },
     {
-      "id": "1ef82960-0262-4699-8c73-4e2047b227de",
+      "id": "11d1527c-42e4-4245-a539-69f6ac9b4c01",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2064,7 +2039,7 @@
       "relevance_score": 0
     },
     {
-      "id": "b879f92c-f814-4a08-9d0e-062a299d711d",
+      "id": "cc537e86-b88c-46c2-aff6-5feca32516a5",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2083,7 +2058,7 @@
       "relevance_score": 0
     },
     {
-      "id": "191add91-6712-4e00-98ba-a5bf8077a09e",
+      "id": "9b9cdfff-e20b-47be-add9-af0032a87866",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2102,7 +2077,7 @@
       "relevance_score": 0
     },
     {
-      "id": "1f476220-4530-457f-b83a-b40144d000e8",
+      "id": "a970871c-f8fa-4a51-bd0c-369e2ed2479c",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2121,7 +2096,7 @@
       "relevance_score": 0
     },
     {
-      "id": "59064119-184c-406f-b545-0d52f6c38852",
+      "id": "2a779a87-4ef1-480a-bf7a-34133e610f04",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2140,7 +2115,7 @@
       "relevance_score": 0
     },
     {
-      "id": "fbc26888-7291-4539-a27d-e8dfb332d7c2",
+      "id": "df7f18cc-2d60-493f-82bd-6b0d3139aaf6",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2159,7 +2134,7 @@
       "relevance_score": 0
     },
     {
-      "id": "3c617062-7a2d-4ba3-acea-f6b84131589f",
+      "id": "5f198928-a070-4980-a9c6-9846e9141004",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2178,7 +2153,7 @@
       "relevance_score": 0
     },
     {
-      "id": "24b9f248-df11-476b-8cae-dac4141e01af",
+      "id": "b9dbd997-9ffc-4f82-b846-366a0bf4d6de",
       "module_name": "clients",
       "entity_type": "User",
       "entity_id": 1,
@@ -2195,7 +2170,7 @@
       "relevance_score": 0
     },
     {
-      "id": "5e48a220-eec2-4183-b3af-83f96578953b",
+      "id": "a39ff787-345d-4d4f-8394-7efdbb54c4d2",
       "module_name": "clients",
       "entity_type": "User",
       "entity_id": 3,
@@ -2212,7 +2187,7 @@
       "relevance_score": 0
     },
     {
-      "id": "ab97bce0-947c-4eb7-a8eb-70eba7479fb4",
+      "id": "e427a3e0-bc0e-4858-be32-13a626c399af",
       "module_name": "clients",
       "entity_type": "User",
       "entity_id": 5,
@@ -2229,1203 +2204,1203 @@
       "relevance_score": 0
     },
     {
-      "id": "90ecbb06-1a92-40e4-86ef-352c4445f27b",
+      "id": "b762801f-e1f4-4fdd-8f5b-737056a2abde",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "Copy of Yim et al. (in press). Synchronous Collaborative Writing in Classroom.pdf",
-      "content": "=== DOCUMENT: Copy of Yim et al. (in press). Synchronous Collaborative Writing in Classroom.pdf ===\r\nDocument ID: abd4767c-5787-4a4a-a0f3-cd776667fd58\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 0B6on4w88ghe8TWJldUd1bkhUd3c\r\nMetadata:\n- mimeType: application/pdf\r\nMetadata:\n- ownerName: Viet Vu\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "24140ea66e0c5726000d7b2ff773ec5197e0f0",
+      "content": "=== DOCUMENT: 24140ea66e0c5726000d7b2ff773ec5197e0f0 ===\r\nDocument ID: 7d519b8f-dd6d-4b51-8ffc-e468d20c7935\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1vwO1MPI2IDbez6Z2m5G32rn2dpeNxTiM\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1yyXJh_g_WxmxHmc37D3joXPoRUBsTK2r\r\nMetadata:\n- parentFolderName: 3b\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "abd4767c-5787-4a4a-a0f3-cd776667fd58",
-        "fileType": "application/pdf",
+        "documentId": "7d519b8f-dd6d-4b51-8ffc-e468d20c7935",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:57.2223574",
+        "modifiedAt": "2025-11-30T21:58:46.3823925",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:08.9411935",
-      "modified_at": "2025-11-25T07:53:57.2223574",
-      "relevance_score": 1.5
-    },
-    {
-      "id": "61f2d3a0-69c4-4430-b9f7-49558f58fe71",
-      "module_name": "documents",
-      "entity_type": "Document",
-      "entity_id": 0,
-      "title": "Design implications of generative AI systems for visual storytelling for young learners .pdf",
-      "content": "=== DOCUMENT: Design implications of generative AI systems for visual storytelling for young learners .pdf ===\r\nDocument ID: 9f2dccc0-e0c4-4283-97f0-921369ad035a\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1FojaJ51f4j9UQ2R4P-xCvDedcO6dzA7H\r\nMetadata:\n- mimeType: application/pdf\r\nMetadata:\n- ownerName: Viet Vu\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
-      "metadata": {
-        "documentId": "9f2dccc0-e0c4-4283-97f0-921369ad035a",
-        "fileType": "application/pdf",
-        "category": "General",
-        "status": "Draft",
-        "sourceType": "GoogleDrive",
-        "hasExtractedContent": false,
-        "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:58.4851418",
-        "tags": [
-          "Google Drive"
-        ]
-      },
-      "created_at": "2025-11-25T07:53:06.8722284",
-      "modified_at": "2025-11-25T07:53:58.4851418",
+      "created_at": "2025-11-08T20:43:27.5131203",
+      "modified_at": "2025-11-30T21:58:46.3823925",
       "relevance_score": 0
     },
     {
-      "id": "ac08239e-b688-4d71-8817-d28fcab513d1",
+      "id": "39409150-0dc7-490e-92f6-18c1fc5dcabc",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "Copy of Week 8 7LC Online Tutorial",
-      "content": "=== DOCUMENT: Copy of Week 8 7LC Online Tutorial ===\r\nDocument ID: 8de8814b-88a1-42c8-a669-6f95054ca886\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1yO_SoEj590SHVAYGt-dxDnFSKdLOkhBpiucj5h3hISU\r\nMetadata:\n- mimeType: application/vnd.google-apps.presentation\r\nMetadata:\n- ownerName: Kyle Zonghao Wang\r\nMetadata:\n- parentIds: 0ABwy9FlS1ZWnUk9PVA\r\nMetadata:\n- parentFolderName: My Drive\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "84ec01a8d945eac69e368466f1bd8c4293bd7d",
+      "content": "=== DOCUMENT: 84ec01a8d945eac69e368466f1bd8c4293bd7d ===\r\nDocument ID: 5c9787c9-2489-460e-9d4c-7115cd4c5067\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1JI2Vo2IKNaUfksu9ujvPJtdzZaBzBve5\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1k53ix_84lGzuzxiuJXdTNKJSJHlezQnC\r\nMetadata:\n- parentFolderName: fd\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "8de8814b-88a1-42c8-a669-6f95054ca886",
-        "fileType": "application/vnd.google-apps.presentation",
+        "documentId": "5c9787c9-2489-460e-9d4c-7115cd4c5067",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:57.1911551",
+        "modifiedAt": "2025-11-30T21:58:46.2706076",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:07.8461833",
-      "modified_at": "2025-11-25T07:53:57.1911551",
+      "created_at": "2025-11-08T20:43:26.7744277",
+      "modified_at": "2025-11-30T21:58:46.2706076",
       "relevance_score": 0
     },
     {
-      "id": "4bc31839-68df-4cd9-be86-49cc64d37535",
+      "id": "969b3067-59e1-4862-bae3-c48186f9b37e",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "21st Century Dilemma_ Environmental Crisis.pdf",
-      "content": "=== DOCUMENT: 21st Century Dilemma_ Environmental Crisis.pdf ===\r\nDocument ID: 030b5237-daa7-4ea2-b116-052780693cba\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1G7LXHfHYN4HrEzy82YWyIe5ufoTjxN6d\r\nMetadata:\n- mimeType: application/pdf\r\nMetadata:\n- ownerName: Viet Vu\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "4910553b9ac75568d3d85f6a91f4bf69ecac4e",
+      "content": "=== DOCUMENT: 4910553b9ac75568d3d85f6a91f4bf69ecac4e ===\r\nDocument ID: 3b45ea8e-635b-4bd8-8af6-124336ec35b8\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1DvtECxgBDOxziQ-DypGHtqfLPlbds64k\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 13c1j6OY7Y0xFcvmhdMiB-uj-JdoZphLu\r\nMetadata:\n- parentFolderName: 78\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "030b5237-daa7-4ea2-b116-052780693cba",
-        "fileType": "application/pdf",
+        "documentId": "3b45ea8e-635b-4bd8-8af6-124336ec35b8",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:55.7188642",
+        "modifiedAt": "2025-11-30T21:58:46.216132",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:06.5043299",
-      "modified_at": "2025-11-25T07:53:55.7188642",
+      "created_at": "2025-11-08T20:43:27.3210022",
+      "modified_at": "2025-11-30T21:58:46.216132",
       "relevance_score": 0
     },
     {
-      "id": "3a9320d0-4a34-49da-b397-ec4ccf6f05e5",
+      "id": "c5957f82-1fae-4971-bfc6-8b29f39ed077",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "02_LogicOverview.pptx",
-      "content": "=== DOCUMENT: 02_LogicOverview.pptx ===\r\nDocument ID: 7a5caf5a-cb25-4d12-806d-dc9f78dfeb20\r\nType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1uNKU_PfkrTzbdcdX3jdBDSnFnbcsSxTS\r\nMetadata:\n- mimeType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\nMetadata:\n- ownerName: Stanislaw Jarecki\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "b7ac18890f9eb5f8c49904db95387a8b09a797",
+      "content": "=== DOCUMENT: b7ac18890f9eb5f8c49904db95387a8b09a797 ===\r\nDocument ID: 5619a976-7094-468d-a4d7-c9f1acbcfc6d\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1hFjPb8UzhV1XA4p-qK2qtCEBCtxtvqmV\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 14D71njZI3vbSuuunOX7seltekg9n5LDT\r\nMetadata:\n- parentFolderName: 00\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "7a5caf5a-cb25-4d12-806d-dc9f78dfeb20",
-        "fileType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "documentId": "5619a976-7094-468d-a4d7-c9f1acbcfc6d",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:54.7660431",
+        "modifiedAt": "2025-11-30T21:58:46.1248646",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:07.4660102",
-      "modified_at": "2025-11-25T07:53:54.7660431",
+      "created_at": "2025-11-08T20:43:26.4216383",
+      "modified_at": "2025-11-30T21:58:46.1248646",
       "relevance_score": 0
     },
     {
-      "id": "cd3d342b-c188-4e23-a795-1d75dc9e15ac",
+      "id": "a7aba34e-8cc1-45df-bedc-e66a961a2640",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "A Century of Work Teams in the Journal of Applied Psychology..pdf",
-      "content": "=== DOCUMENT: A Century of Work Teams in the Journal of Applied Psychology..pdf ===\r\nDocument ID: f83259e1-36da-47ef-8642-51eb1bbffbef\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 10EcZfjh4d6z8elIPJdqCHXNrsayurzyV\r\nMetadata:\n- mimeType: application/pdf\r\nMetadata:\n- ownerName: Viet Vu\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "aa68d9f915ada828fab8d03e1153a4c3dcbd24",
+      "content": "=== DOCUMENT: aa68d9f915ada828fab8d03e1153a4c3dcbd24 ===\r\nDocument ID: 14c420b8-2c2c-4a7d-bb42-72b898ceabec\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 19tEJZ-OoZKypW4uUZwH7BYmH-O-xNerN\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1o_eWFRrQKx-uR5-fp1nhihJFMjzjQD9c\r\nMetadata:\n- parentFolderName: 28\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "f83259e1-36da-47ef-8642-51eb1bbffbef",
-        "fileType": "application/pdf",
+        "documentId": "14c420b8-2c2c-4a7d-bb42-72b898ceabec",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:54.6621839",
+        "modifiedAt": "2025-11-30T21:58:46.04784",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:06.7330988",
-      "modified_at": "2025-11-25T07:53:54.6621839",
+      "created_at": "2025-11-08T20:43:27.1283779",
+      "modified_at": "2025-11-30T21:58:46.04784",
       "relevance_score": 0
     },
     {
-      "id": "e38ba011-e965-44ba-a47a-7a90ddf8babe",
+      "id": "bfba557a-e359-4d77-87a1-44e7c76a5986",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "The effects of the 21st century skills curriculum on the development of students\u2019 creative thinking skills.pdf",
-      "content": "=== DOCUMENT: The effects of the 21st century skills curriculum on the development of students\u2019 creative thinking skills.pdf ===\r\nDocument ID: 8c5e432a-6d47-4f35-883b-6e5bbfd68eb0\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1FptovgQloi0kPvF4M3_pe4cy31qdmVav\r\nMetadata:\n- mimeType: application/pdf\r\nMetadata:\n- ownerName: Viet Vu\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "7bf1d2b13a5645eaa5a90006a49a0e5ab385b4",
+      "content": "=== DOCUMENT: 7bf1d2b13a5645eaa5a90006a49a0e5ab385b4 ===\r\nDocument ID: 61c31e08-895a-474f-b9ac-00f75db32c40\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 10_udz8QQp5greSLxF7cT-t-mEBl5VmVc\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1C8MGSww0MSJDTPvD9zn8g8FloLX8WLW0\r\nMetadata:\n- parentFolderName: b9\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "8c5e432a-6d47-4f35-883b-6e5bbfd68eb0",
-        "fileType": "application/pdf",
+        "documentId": "61c31e08-895a-474f-b9ac-00f75db32c40",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:53.5837127",
+        "modifiedAt": "2025-11-30T21:58:46.0060616",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:06.844783",
-      "modified_at": "2025-11-25T07:53:53.5837127",
+      "created_at": "2025-11-08T20:43:26.6072298",
+      "modified_at": "2025-11-30T21:58:46.0060616",
       "relevance_score": 0
     },
     {
-      "id": "7dac3d0b-eb8d-49ed-ab45-48f0b2e472e7",
+      "id": "9e6ae15e-2b07-434f-87ff-d2efdd5f550f",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "sol5.pdf",
-      "content": "=== DOCUMENT: sol5.pdf ===\r\nDocument ID: 59991299-a001-4c19-a3a1-c75336535921\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1zLtjQw0odfNfKxbNGJ_7guk7QFbfPrm4\r\nMetadata:\n- mimeType: application/pdf\r\nMetadata:\n- ownerName: Stanislaw Jarecki\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "6f9e603da59ef8599fd3b236ff451ca16d5ab9",
+      "content": "=== DOCUMENT: 6f9e603da59ef8599fd3b236ff451ca16d5ab9 ===\r\nDocument ID: 905c460e-ef10-49e1-8431-081d462dd124\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1_13G80YLvEfg7IZ1YZg1-n0XYeSaoMYS\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1cR41hppg2K_365kaj6ynbGjPJ7_l1ELG\r\nMetadata:\n- parentFolderName: 4f\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "59991299-a001-4c19-a3a1-c75336535921",
-        "fileType": "application/pdf",
+        "documentId": "905c460e-ef10-49e1-8431-081d462dd124",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:52.7376957",
+        "modifiedAt": "2025-11-30T21:58:45.8780286",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:07.1762349",
-      "modified_at": "2025-11-25T07:53:52.7376957",
+      "created_at": "2025-11-08T20:43:26.9463846",
+      "modified_at": "2025-11-30T21:58:45.8780286",
       "relevance_score": 0
     },
     {
-      "id": "c1f949b0-c13e-4b9b-bc8e-3a4753f03942",
+      "id": "5ec0c65e-cc04-4b2e-87ab-58e90348f790",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "what's on your phone?",
-      "content": "=== DOCUMENT: what's on your phone? ===\r\nDocument ID: bf72b6c2-d1ca-42bd-aad4-7ed921f1efc3\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1Bx8wD1hRQcSaUde_53Rv0rmmEi285WLaXsyUvtjfNF4\r\nMetadata:\n- mimeType: application/vnd.google-apps.presentation\r\nMetadata:\n- ownerName: Xiao Lin\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "1a1f15d8cbd0db06082cc80af684bebfbf1484",
+      "content": "=== DOCUMENT: 1a1f15d8cbd0db06082cc80af684bebfbf1484 ===\r\nDocument ID: b89cbd98-a5ef-4c41-8e66-7d7c01761a26\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1NTQpJN0q6-qcyfhz6le98VQaCVmTWaIO\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1Rgg0erIQtT_uCUFLb85qOShT54u5vQbX\r\nMetadata:\n- parentFolderName: 97\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "bf72b6c2-d1ca-42bd-aad4-7ed921f1efc3",
-        "fileType": "application/vnd.google-apps.presentation",
+        "documentId": "b89cbd98-a5ef-4c41-8e66-7d7c01761a26",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:52.7137834",
+        "modifiedAt": "2025-11-30T21:58:45.8251115",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:06.2292056",
-      "modified_at": "2025-11-25T07:53:52.7137834",
+      "created_at": "2025-11-08T20:43:26.0132104",
+      "modified_at": "2025-11-30T21:58:45.8251115",
       "relevance_score": 0
     },
     {
-      "id": "d2d5d0d7-7c1d-46de-8ec8-6b019d0fe1aa",
+      "id": "f8c81b54-3576-427f-af8c-aade574e1487",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "Icebreaker-4C",
-      "content": "=== DOCUMENT: Icebreaker-4C ===\r\nDocument ID: 2ddaf31b-0c12-4a93-9cb6-23f0da249aa7\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1asSaNHD1LiQLl9k-O4l9K1v1mFDl_FqHQb8zVJhNKis\r\nMetadata:\n- mimeType: application/vnd.google-apps.presentation\r\nMetadata:\n- ownerName: Xiao Lin\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "9a1a62a816e5e45fe98ecba2082675d2ed7c4d",
+      "content": "=== DOCUMENT: 9a1a62a816e5e45fe98ecba2082675d2ed7c4d ===\r\nDocument ID: 2adf4afb-202f-43b2-967a-47d3f1c4fd53\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1DUnTlKDcrtHH_xNZblSBCw0I0JCRaALO\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1ZeirWtbSk1bd5SjsvP3aZBqB6H_MZmTZ\r\nMetadata:\n- parentFolderName: a1\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "2ddaf31b-0c12-4a93-9cb6-23f0da249aa7",
-        "fileType": "application/vnd.google-apps.presentation",
+        "documentId": "2adf4afb-202f-43b2-967a-47d3f1c4fd53",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:52.2584541",
+        "modifiedAt": "2025-11-30T21:58:45.7194142",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:06.2690554",
-      "modified_at": "2025-11-25T07:53:52.2584541",
+      "created_at": "2025-11-08T20:43:25.7920152",
+      "modified_at": "2025-11-30T21:58:45.7194142",
       "relevance_score": 0
     },
     {
-      "id": "a709b261-feb2-4d4c-b323-9cb44e52e4a1",
+      "id": "ab45466b-3846-4866-8891-9e3f8dd8471f",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "ED30 Week 2Lect1 AI Future of Work.pptx",
-      "content": "=== DOCUMENT: ED30 Week 2Lect1 AI Future of Work.pptx ===\r\nDocument ID: bcabdc80-7d50-4551-bff8-772494423a27\r\nType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1-3HJ594qfaPyORMSjNDVDIgasFWILzwG\r\nMetadata:\n- mimeType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\nMetadata:\n- ownerName: Viet Vu\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "c0a70efcc43f14ba227c47b7541ed024f01aa8",
+      "content": "=== DOCUMENT: c0a70efcc43f14ba227c47b7541ed024f01aa8 ===\r\nDocument ID: 2a54f256-cc34-4589-ba08-964f2b08c9fd\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1ekPzUqjlhp6y8iaRUIWuosNYEWrvRvAh\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1rhri-xl2ArsjVEgftOQNGT55kexy9XgM\r\nMetadata:\n- parentFolderName: c9\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "bcabdc80-7d50-4551-bff8-772494423a27",
-        "fileType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "documentId": "2a54f256-cc34-4589-ba08-964f2b08c9fd",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:51.528702",
+        "modifiedAt": "2025-11-30T21:58:45.7003282",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:04.8838563",
-      "modified_at": "2025-11-25T07:53:51.528702",
+      "created_at": "2025-11-08T20:43:26.2248678",
+      "modified_at": "2025-11-30T21:58:45.7003282",
       "relevance_score": 0
     },
     {
-      "id": "0d400236-d745-4cab-8913-2d598ed65ae5",
+      "id": "23496e2a-65b6-4eac-b6c6-150e13c59f69",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "Week8 Ecodigital Storytelling",
-      "content": "=== DOCUMENT: Week8 Ecodigital Storytelling ===\r\nDocument ID: 8afa7e29-299a-4da2-9454-c7ba242d03b6\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:52\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1zDE1DGHe2G3oki1pp7OOeIq3jRxBdE88POKJLr_kZfY\r\nMetadata:\n- mimeType: application/vnd.google-apps.presentation\r\nMetadata:\n- ownerName: Victoria Nguyen\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "4832d31a41bb76b785e82a937a55433a33dae3",
+      "content": "=== DOCUMENT: 4832d31a41bb76b785e82a937a55433a33dae3 ===\r\nDocument ID: 14f20c94-aa56-47e7-8c92-410b4f2fa445\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1v5BrV_WVJXbWSiNY-5TTJFYNSuywqHzj\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1uMGwHKPdfUG7o5DgjHufRSiqDjns2xSQ\r\nMetadata:\n- parentFolderName: e2\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "8afa7e29-299a-4da2-9454-c7ba242d03b6",
-        "fileType": "application/vnd.google-apps.presentation",
+        "documentId": "14f20c94-aa56-47e7-8c92-410b4f2fa445",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:50.9961251",
+        "modifiedAt": "2025-11-30T21:58:45.3481646",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:52:59.0641531",
-      "modified_at": "2025-11-25T07:53:50.9961251",
+      "created_at": "2025-11-08T20:43:25.5688004",
+      "modified_at": "2025-11-30T21:58:45.3481646",
       "relevance_score": 0
     },
     {
-      "id": "1d6a6be1-df44-4fc7-9f85-179b9df7d10d",
+      "id": "ff5d12de-3395-42b9-b3b9-2dd3f68f4d78",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "Embracing the future of Artificial Intelligence in the classroom: the relevance of AI literacy, prompt engineering, and critical thinking in modern education.pdf",
-      "content": "=== DOCUMENT: Embracing the future of Artificial Intelligence in the classroom: the relevance of AI literacy, prompt engineering, and critical thinking in modern education.pdf ===\r\nDocument ID: b75f6739-fa75-40cb-975f-fb0126c54726\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1FoGK6KgT30qAbWa6w6J_8ny4MhdNCW1y\r\nMetadata:\n- mimeType: application/pdf\r\nMetadata:\n- ownerName: Viet Vu\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "seedLogo.png",
+      "content": "=== DOCUMENT: seedLogo.png ===\r\nDocument ID: cc1fda23-a8e7-4676-b7eb-f3ec6f642f39\r\nType: image/png\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1Hhm_-iTgsxTpMLcG0NqmWitqsH9CgvfB\r\nMetadata:\n- mimeType: image/png\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1RmtGeN12t1F1J5ZM3Ao0n9046ABr63Oo\r\nMetadata:\n- parentFolderName: images\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "b75f6739-fa75-40cb-975f-fb0126c54726",
-        "fileType": "application/pdf",
+        "documentId": "cc1fda23-a8e7-4676-b7eb-f3ec6f642f39",
+        "fileType": "image/png",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:49.4130652",
+        "modifiedAt": "2025-11-30T21:58:45.3271597",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:02.4747966",
-      "modified_at": "2025-11-25T07:53:49.4130652",
+      "created_at": "2025-11-08T20:43:04.572143",
+      "modified_at": "2025-11-30T21:58:45.3271597",
       "relevance_score": 0
     },
     {
-      "id": "f427fe3c-9dac-448c-8264-072ccec4863e",
+      "id": "9f0e1d71-b15b-4953-b8cb-f848a339a4ba",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "EDUC 30 Air Pollution and Critical Thinking",
-      "content": "=== DOCUMENT: EDUC 30 Air Pollution and Critical Thinking ===\r\nDocument ID: fa15d744-d301-477e-9327-1e8ee92c60dd\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1QcWZgSVa4_eqQJZlj5X4YXvuXDcj6zbWvIpsS_QF2E8\r\nMetadata:\n- mimeType: application/vnd.google-apps.presentation\r\nMetadata:\n- ownerName: Samantha Fong\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "0ee30bde7aa8f2ec60a6a0c2a08cdf8138b6ce",
+      "content": "=== DOCUMENT: 0ee30bde7aa8f2ec60a6a0c2a08cdf8138b6ce ===\r\nDocument ID: 14d7e47f-91fb-4c43-a8e0-fdc95d5747b3\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1Lxg9TpVxKGacbq9rHoGGWSafyF-8yb1-\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1g0qOIHLx2dBTrf8kdm8xrKARIGYHIjBB\r\nMetadata:\n- parentFolderName: 7b\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "fa15d744-d301-477e-9327-1e8ee92c60dd",
-        "fileType": "application/vnd.google-apps.presentation",
+        "documentId": "14d7e47f-91fb-4c43-a8e0-fdc95d5747b3",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:49.3656783",
+        "modifiedAt": "2025-11-30T21:58:45.2474851",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:01.343125",
-      "modified_at": "2025-11-25T07:53:49.3656783",
+      "created_at": "2025-11-08T20:43:25.3921577",
+      "modified_at": "2025-11-30T21:58:45.2474851",
       "relevance_score": 0
     },
     {
-      "id": "335cf049-eb89-497c-af17-ae0847d0ebdd",
+      "id": "2aa2c564-a1ad-4f5d-bf75-423b598aadf5",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "Air Pollution in Orange County",
-      "content": "=== DOCUMENT: Air Pollution in Orange County ===\r\nDocument ID: f020af3c-61a1-471a-b4dd-0bbf6f2f5213\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1TM8u_S8wKAoEtUkVL7jAeeh9CYGUC_bx2i-xH047EPc\r\nMetadata:\n- mimeType: application/vnd.google-apps.presentation\r\nMetadata:\n- ownerName: Molly Liu\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "8ef7fa31287cbe870237e26576339b67a9d916",
+      "content": "=== DOCUMENT: 8ef7fa31287cbe870237e26576339b67a9d916 ===\r\nDocument ID: edbf6992-a163-43b9-8324-ff80cf14d2c5\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1cTLeOBblQVRGxJD0mVH2BUcGHpO99Qb1\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1MlZAvyDnT7B2m2Fd_TtND6UddCLwmPC2\r\nMetadata:\n- parentFolderName: 46\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "f020af3c-61a1-471a-b4dd-0bbf6f2f5213",
-        "fileType": "application/vnd.google-apps.presentation",
+        "documentId": "edbf6992-a163-43b9-8324-ff80cf14d2c5",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:49.2095728",
+        "modifiedAt": "2025-11-30T21:58:45.2065656",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:01.3611822",
-      "modified_at": "2025-11-25T07:53:49.2095728",
+      "created_at": "2025-11-08T20:43:25.1966618",
+      "modified_at": "2025-11-30T21:58:45.2065656",
       "relevance_score": 0
     },
     {
-      "id": "4cf323ef-1ba4-4f73-8fb2-2abd9e2e9127",
+      "id": "cd67a49a-41ff-4a45-8051-a55a976dcfe8",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "EDUC 30 Midterm Study Guide.docx",
-      "content": "=== DOCUMENT: EDUC 30 Midterm Study Guide.docx ===\r\nDocument ID: 35651b32-9395-4911-ae63-f9c3ceffe723\r\nType: application/vnd.openxmlformats-officedocument.wordprocessingml.document\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 10bMm8dGciCCBfcH33hUlAa54k0sp_2LI\r\nMetadata:\n- mimeType: application/vnd.openxmlformats-officedocument.wordprocessingml.document\r\nMetadata:\n- ownerName: Viet Vu\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "974d41be9e78f54515ae79df4feb69926c219c",
+      "content": "=== DOCUMENT: 974d41be9e78f54515ae79df4feb69926c219c ===\r\nDocument ID: 52126248-0a31-41a1-8878-9faf985980f4\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1R18lsMp4FknfP74HT2VvAei-aU0RaEEB\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1MlZAvyDnT7B2m2Fd_TtND6UddCLwmPC2\r\nMetadata:\n- parentFolderName: 46\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "35651b32-9395-4911-ae63-f9c3ceffe723",
-        "fileType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "documentId": "52126248-0a31-41a1-8878-9faf985980f4",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:48.7892183",
+        "modifiedAt": "2025-11-30T21:58:45.1540561",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:03.0734199",
-      "modified_at": "2025-11-25T07:53:48.7892183",
+      "created_at": "2025-11-08T20:43:25.024711",
+      "modified_at": "2025-11-30T21:58:45.1540561",
       "relevance_score": 0
     },
     {
-      "id": "d077df3e-101b-44f0-ad1e-76f26563c4c9",
+      "id": "481f6de0-0ca7-4763-a19a-7435201ac4fb",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "Week 7 EDUC 30: 21st Century Literacies",
-      "content": "=== DOCUMENT: Week 7 EDUC 30: 21st Century Literacies ===\r\nDocument ID: 6f99c577-9807-4aa1-8b21-d1a04b0f648d\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1EvZy6J99Uw6EDz_5a4C49ENI9HR55bCgh1YbH_ohHVA\r\nMetadata:\n- mimeType: application/vnd.google-apps.presentation\r\nMetadata:\n- ownerName: Xiao Lin\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "81078c737c9d7eab3a480746fbd1168fbfe925",
+      "content": "=== DOCUMENT: 81078c737c9d7eab3a480746fbd1168fbfe925 ===\r\nDocument ID: 8a914780-3c4a-48e7-bc4f-313cfc9c1247\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1JzJL-4Ac0yqtaLVCAGkBFiORexhsOgwa\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1pGerrFQaMxVQehkkpBY-7FHPXESmACrv\r\nMetadata:\n- parentFolderName: 73\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "6f99c577-9807-4aa1-8b21-d1a04b0f648d",
-        "fileType": "application/vnd.google-apps.presentation",
+        "documentId": "8a914780-3c4a-48e7-bc4f-313cfc9c1247",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:47.4978776",
+        "modifiedAt": "2025-11-30T21:58:44.7554123",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:01.037865",
-      "modified_at": "2025-11-25T07:53:47.4978776",
+      "created_at": "2025-11-08T20:43:24.8428276",
+      "modified_at": "2025-11-30T21:58:44.7554123",
       "relevance_score": 0
     },
     {
-      "id": "037e82b6-a8fc-4d4a-b9ce-b7cecd7e75a5",
+      "id": "51b9ce73-a680-4d2c-b3c1-4b83df4d4e28",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "Untitled presentation",
-      "content": "=== DOCUMENT: Untitled presentation ===\r\nDocument ID: 13cfe833-2eba-45ff-a27d-b1be41ee57dd\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:52\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1yykfcmljS0ZWft4_MrJdlcZ4r58J0PhCsanvrvM_Vvw\r\nMetadata:\n- mimeType: application/vnd.google-apps.presentation\r\nMetadata:\n- ownerName: Kyle Zonghao Wang\r\nMetadata:\n- parentIds: 0ABwy9FlS1ZWnUk9PVA\r\nMetadata:\n- parentFolderName: My Drive\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "a48cece106a7cad739d245146153647a49d836",
+      "content": "=== DOCUMENT: a48cece106a7cad739d245146153647a49d836 ===\r\nDocument ID: c770d79c-825b-451e-9d12-6194450a3a36\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 19QYy24YGAaTt2ySgSRTzacMdeasa8nvz\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1NnI4vPV_WD4Od_siULB1p0ku5fIWrdir\r\nMetadata:\n- parentFolderName: 79\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "13cfe833-2eba-45ff-a27d-b1be41ee57dd",
-        "fileType": "application/vnd.google-apps.presentation",
+        "documentId": "c770d79c-825b-451e-9d12-6194450a3a36",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:46.9557542",
+        "modifiedAt": "2025-11-30T21:58:44.5949183",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:52:57.990669",
-      "modified_at": "2025-11-25T07:53:46.9557542",
+      "created_at": "2025-11-08T20:43:24.5334929",
+      "modified_at": "2025-11-30T21:58:44.5949183",
       "relevance_score": 0
     },
     {
-      "id": "df100719-7617-4b4b-a3c9-be760402be40",
+      "id": "a053c03b-4ef9-4c93-87d2-ae5e563f2c6c",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "Physics 7E.pdf",
-      "content": "=== DOCUMENT: Physics 7E.pdf ===\r\nDocument ID: 70b5e568-104b-4593-b023-52d1f529a88b\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1eZ51c1H9byvuWwC8sP_CIN4kUBlhE3bO\r\nMetadata:\n- mimeType: application/pdf\r\nMetadata:\n- ownerName: Adrian Wong\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "761b9e01b24100f778ca4d3bb9e5ef1366ff0e",
+      "content": "=== DOCUMENT: 761b9e01b24100f778ca4d3bb9e5ef1366ff0e ===\r\nDocument ID: e4a7a3b4-9543-4c4c-9110-ccb89c30f8a4\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 19DamVM9ErOUzqZUjCieH2h8_q7rYlAnu\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1rMWyUubcRLm5ON6EVOmrOaBjMnzgmmLW\r\nMetadata:\n- parentFolderName: 84\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "70b5e568-104b-4593-b023-52d1f529a88b",
-        "fileType": "application/pdf",
+        "documentId": "e4a7a3b4-9543-4c4c-9110-ccb89c30f8a4",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:46.6471496",
+        "modifiedAt": "2025-11-30T21:58:44.5064486",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:07.0351665",
-      "modified_at": "2025-11-25T07:53:46.6471496",
+      "created_at": "2025-11-08T20:43:24.6893402",
+      "modified_at": "2025-11-30T21:58:44.5064486",
       "relevance_score": 0
     },
     {
-      "id": "64138d3c-8677-4c98-b067-17f26c2accd5",
+      "id": "c410f735-2bea-4d7b-8879-92bfee451d49",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "Week 8 EDUC 30: 21st Century Literacies Wed.",
-      "content": "=== DOCUMENT: Week 8 EDUC 30: 21st Century Literacies Wed. ===\r\nDocument ID: 72b97a0c-1c5b-4562-8395-2e91dc10b53a\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:52\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1p6w_9gEs_rEjbBPORUishuYjbamNHggLMEYTJIqo1aQ\r\nMetadata:\n- mimeType: application/vnd.google-apps.presentation\r\nMetadata:\n- ownerName: Xiao Lin\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "3c0d7a08362d3c1f7c6418c8a658134b09c7cb",
+      "content": "=== DOCUMENT: 3c0d7a08362d3c1f7c6418c8a658134b09c7cb ===\r\nDocument ID: d85a33e3-dbd3-4248-b02f-b882b1ce16f7\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1NsO87nQ7t80U8-bSJWML_DivmvOOIsV-\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1dCKVBjw39Nfy6CIkRQuhaBfT7E__ulGU\r\nMetadata:\n- parentFolderName: ac\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "72b97a0c-1c5b-4562-8395-2e91dc10b53a",
-        "fileType": "application/vnd.google-apps.presentation",
+        "documentId": "d85a33e3-dbd3-4248-b02f-b882b1ce16f7",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:44.9370908",
+        "modifiedAt": "2025-11-30T21:58:43.9587173",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:52:58.6849813",
-      "modified_at": "2025-11-25T07:53:44.9370908",
+      "created_at": "2025-11-08T20:43:24.3671062",
+      "modified_at": "2025-11-30T21:58:43.9587173",
       "relevance_score": 0
     },
     {
-      "id": "50ab408f-ebc7-4702-bd2c-5721302798f9",
+      "id": "56ff0944-23de-4835-8258-58e3cb12e57e",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "Week 9 EDUC 30: 21st Century Literacies",
-      "content": "=== DOCUMENT: Week 9 EDUC 30: 21st Century Literacies ===\r\nDocument ID: d7211580-545c-4e0b-9111-cde0479ca291\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:52\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 15BUif2J_5n4dTvxYvKu1D3yzuWSFXPwprmpbnwOw5Vw\r\nMetadata:\n- mimeType: application/vnd.google-apps.presentation\r\nMetadata:\n- ownerName: Xiao Lin\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "8a6458d9fffc848839fe74d8b1f4bf33fa9902",
+      "content": "=== DOCUMENT: 8a6458d9fffc848839fe74d8b1f4bf33fa9902 ===\r\nDocument ID: 24c58cb4-912f-4947-9a9e-8c8dcbf0509c\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1EX384SHvO3d7Pmi50DLCAqSXicWmbujS\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1Yfrs47GGB09QcBGFtpTOfs4mWnPSQvdu\r\nMetadata:\n- parentFolderName: 88\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "d7211580-545c-4e0b-9111-cde0479ca291",
-        "fileType": "application/vnd.google-apps.presentation",
+        "documentId": "24c58cb4-912f-4947-9a9e-8c8dcbf0509c",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:44.5674715",
+        "modifiedAt": "2025-11-30T21:58:43.8752677",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:52:58.1894303",
-      "modified_at": "2025-11-25T07:53:44.5674715",
+      "created_at": "2025-11-08T20:43:24.2078869",
+      "modified_at": "2025-11-30T21:58:43.8752677",
       "relevance_score": 0
     },
     {
-      "id": "4856d14f-cc47-44d4-b36a-c2b966b8c41d",
+      "id": "e6f5afed-47a7-41d8-b29d-7efc07e26312",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "EDUC30 week 1-S2",
-      "content": "=== DOCUMENT: EDUC30 week 1-S2 ===\r\nDocument ID: 8893e057-c794-4984-a6e0-81c6684d16fd\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1HBeYvEsGAoV2Isxq6o940s8FV9mk3T4r1rmQdnklebg\r\nMetadata:\n- mimeType: application/vnd.google-apps.presentation\r\nMetadata:\n- ownerName: Xiao Lin\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "4ce6c555f6f5fd0f1c3b04e0a749a54a03a022",
+      "content": "=== DOCUMENT: 4ce6c555f6f5fd0f1c3b04e0a749a54a03a022 ===\r\nDocument ID: 84636f1d-377e-4324-a2e6-4cecf27c29f4\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1D5OBnrg5mg9KiX_9ZTzM17Kp4h9MbHyp\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1TObFLvMZ6qXDZaJapVD3gPhT6GTyNYti\r\nMetadata:\n- parentFolderName: fc\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "8893e057-c794-4984-a6e0-81c6684d16fd",
-        "fileType": "application/vnd.google-apps.presentation",
+        "documentId": "84636f1d-377e-4324-a2e6-4cecf27c29f4",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:42.4128359",
+        "modifiedAt": "2025-11-30T21:58:43.8208006",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:06.2889338",
-      "modified_at": "2025-11-25T07:53:42.4128359",
+      "created_at": "2025-11-08T20:43:23.8749979",
+      "modified_at": "2025-11-30T21:58:43.8208006",
       "relevance_score": 0
     },
     {
-      "id": "244ad9e9-3af7-4ade-89c9-e87e2e562487",
+      "id": "44ce8fde-9732-44a7-a7e0-c73164d65d03",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "California Wildfire",
-      "content": "=== DOCUMENT: California Wildfire ===\r\nDocument ID: f564fcb6-ca15-446d-baa1-a96d9c06df25\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1U9iz__epHAkADasGdkgMFC8zeupflJhP3CPy-aVbpPo\r\nMetadata:\n- mimeType: application/vnd.google-apps.presentation\r\nMetadata:\n- ownerName: Keyi Wang\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "44a5e4ba27ccabb31bfff046e2876ea038b778",
+      "content": "=== DOCUMENT: 44a5e4ba27ccabb31bfff046e2876ea038b778 ===\r\nDocument ID: 2bba2396-42be-4f1f-8ef8-99150cf40ffc\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1WppkBUd4NfC4Q_x8hKgdDcPizikHYg37\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1R9XsbYakx9Rm0XShHnrL74IWaK-z_8Sh\r\nMetadata:\n- parentFolderName: 7f\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "f564fcb6-ca15-446d-baa1-a96d9c06df25",
-        "fileType": "application/vnd.google-apps.presentation",
+        "documentId": "2bba2396-42be-4f1f-8ef8-99150cf40ffc",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:41.7911453",
+        "modifiedAt": "2025-11-30T21:58:43.7975404",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:03.4090875",
-      "modified_at": "2025-11-25T07:53:41.7911453",
+      "created_at": "2025-11-08T20:43:24.0447118",
+      "modified_at": "2025-11-30T21:58:43.7975404",
       "relevance_score": 0
     },
     {
-      "id": "a2b99804-0f00-486d-95b1-c04609b204aa",
+      "id": "1039c1ab-1bc4-4e1d-ac32-8ca20f0a0f99",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "21st Century Literacies Overview.pdf",
-      "content": "=== DOCUMENT: 21st Century Literacies Overview.pdf ===\r\nDocument ID: e30228ce-dd53-435c-bc25-aab5a77519ea\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1FSaXGJ9zeG-sxfTJNZbk8IJMxaZuZlDL\r\nMetadata:\n- mimeType: application/pdf\r\nMetadata:\n- ownerName: Viet Vu\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "386cccae1bc7b5c22cb1adbc28186dc37e5e1e",
+      "content": "=== DOCUMENT: 386cccae1bc7b5c22cb1adbc28186dc37e5e1e ===\r\nDocument ID: 4a96d922-1ae2-4349-b4a5-9397bac0ae55\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1ZWL69CXb8m0p1pcSbMzPQncNxDRNYZqa\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1xiFAOPQZxPG9RY8hB_joLuA_9YJreTe7\r\nMetadata:\n- parentFolderName: 89\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "e30228ce-dd53-435c-bc25-aab5a77519ea",
-        "fileType": "application/pdf",
+        "documentId": "4a96d922-1ae2-4349-b4a5-9397bac0ae55",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:41.7745527",
+        "modifiedAt": "2025-11-30T21:58:43.4312197",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:07.0110642",
-      "modified_at": "2025-11-25T07:53:41.7745527",
+      "created_at": "2025-11-08T20:43:23.7089576",
+      "modified_at": "2025-11-30T21:58:43.4312197",
       "relevance_score": 0
     },
     {
-      "id": "617cbc8d-4547-4aa7-8e28-7a5659501c38",
+      "id": "6d2eba0d-47cd-4b22-a2c9-284716b46c99",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "EDUC30 week 1-S1",
-      "content": "=== DOCUMENT: EDUC30 week 1-S1 ===\r\nDocument ID: 9eed4d92-b23d-4fc6-ba6f-525fe9ac7aff\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1iXVyr08ncWXrnlRfsEAgHJ_FgQ9HMndSoPQCtMCuy0U\r\nMetadata:\n- mimeType: application/vnd.google-apps.presentation\r\nMetadata:\n- ownerName: Xiao Lin\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "00b2eb93793aa41b501258e5c9dd15f1979ddc",
+      "content": "=== DOCUMENT: 00b2eb93793aa41b501258e5c9dd15f1979ddc ===\r\nDocument ID: c5c9cfd8-4858-4004-90d3-6ee4cd202934\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1VmHysykRu89G8x05gORgm71YYWnuMaSK\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1Xsq5FZcMTpfSWYW4525EYb8SoqITfCxD\r\nMetadata:\n- parentFolderName: b3\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "9eed4d92-b23d-4fc6-ba6f-525fe9ac7aff",
-        "fileType": "application/vnd.google-apps.presentation",
+        "documentId": "c5c9cfd8-4858-4004-90d3-6ee4cd202934",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:41.5900721",
+        "modifiedAt": "2025-11-30T21:58:43.1832363",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:06.483314",
-      "modified_at": "2025-11-25T07:53:41.5900721",
+      "created_at": "2025-11-08T20:43:23.5437843",
+      "modified_at": "2025-11-30T21:58:43.1832363",
       "relevance_score": 0
     },
     {
-      "id": "e2aa6706-b160-407e-aa6a-a0e77a042bab",
+      "id": "53b86ee6-59bf-4610-a4b8-ffda09fb96e8",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "04_RecurrenceSummations.pptx",
-      "content": "=== DOCUMENT: 04_RecurrenceSummations.pptx ===\r\nDocument ID: 1b1d8828-09db-47db-9a54-d2b03e45cc1c\r\nType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1cFTnvpZU8_4BDV9aNcSdx0bVJmMtL_FB\r\nMetadata:\n- mimeType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\nMetadata:\n- ownerName: Stanislaw Jarecki\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "4d3b5f452d6448920f19ea9094f6c3200cd546",
+      "content": "=== DOCUMENT: 4d3b5f452d6448920f19ea9094f6c3200cd546 ===\r\nDocument ID: 59be50cb-e3de-40cb-8338-8b1c4cfbeb85\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1H4xWlNPWgdf1o0N0x8-Se5nQ5MwD0rL6\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1m8potg2DWpzo2gA3WOArkiM3Ap5TLofb\r\nMetadata:\n- parentFolderName: 83\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "1b1d8828-09db-47db-9a54-d2b03e45cc1c",
-        "fileType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "documentId": "59be50cb-e3de-40cb-8338-8b1c4cfbeb85",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:41.1169847",
+        "modifiedAt": "2025-11-30T21:58:43.0138643",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:04.8445212",
-      "modified_at": "2025-11-25T07:53:41.1169847",
+      "created_at": "2025-11-08T20:43:23.3711486",
+      "modified_at": "2025-11-30T21:58:43.0138643",
       "relevance_score": 0
     },
     {
-      "id": "454c10d5-7f4c-40f0-bb71-1216153708ec",
+      "id": "a8adad32-211c-4aa8-b813-111f17f8f57d",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "Critical Thinking",
-      "content": "=== DOCUMENT: Critical Thinking ===\r\nDocument ID: ceeda2f6-c4b5-4c3e-8a91-ae1e8d6891d9\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1nZTc7hD1HRlRLeujYGrDS-Ls1uCKUQjxrpO5gyrb2uM\r\nMetadata:\n- mimeType: application/vnd.google-apps.presentation\r\nMetadata:\n- ownerName: Wency Pi\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "1ab5b06044ec49bd77b2175e83d7d0bf7d43b2",
+      "content": "=== DOCUMENT: 1ab5b06044ec49bd77b2175e83d7d0bf7d43b2 ===\r\nDocument ID: 969853ac-f7bc-4a55-80d7-d469a1267743\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1930DH5EZdlTzEOMP6F_3IaLTzom7jfnQ\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 169j4zxwzBAH93TjYJ09PvBRAQrHShjqJ\r\nMetadata:\n- parentFolderName: 19\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "ceeda2f6-c4b5-4c3e-8a91-ae1e8d6891d9",
-        "fileType": "application/vnd.google-apps.presentation",
+        "documentId": "969853ac-f7bc-4a55-80d7-d469a1267743",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:41.0981458",
+        "modifiedAt": "2025-11-30T21:58:42.9819958",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:05.4094419",
-      "modified_at": "2025-11-25T07:53:41.0981458",
+      "created_at": "2025-11-08T20:43:23.2085307",
+      "modified_at": "2025-11-30T21:58:42.9819958",
       "relevance_score": 0
     },
     {
-      "id": "18b26647-d32c-4b5c-958c-9ca6760b7eed",
+      "id": "0c0d5e53-22dc-4626-8647-1439ee4178be",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "ED30 Week1 Lect3 Other Frameworks.pptx",
-      "content": "=== DOCUMENT: ED30 Week1 Lect3 Other Frameworks.pptx ===\r\nDocument ID: ca55b204-c07a-427a-9053-e7545004fc07\r\nType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1vdUIFtVLbc5pLkzM_V8Vs3WW9egVcyLL\r\nMetadata:\n- mimeType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\nMetadata:\n- ownerName: Viet Vu\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "e9504aa8674e75889113ee0473357ad19b525b",
+      "content": "=== DOCUMENT: e9504aa8674e75889113ee0473357ad19b525b ===\r\nDocument ID: b1d42c48-a980-4f8e-a9d8-7184eacdb4e3\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1NJ83XPdM0U7euyFdxuS6AXe9dX1TRlwG\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1uaN-16yyefx6L-n2GbxzV-gikYdsf1Tz\r\nMetadata:\n- parentFolderName: 0c\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "ca55b204-c07a-427a-9053-e7545004fc07",
-        "fileType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "documentId": "b1d42c48-a980-4f8e-a9d8-7184eacdb4e3",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:41.0136738",
+        "modifiedAt": "2025-11-30T21:58:42.7119519",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:05.6592416",
-      "modified_at": "2025-11-25T07:53:41.0136738",
+      "created_at": "2025-11-08T20:43:23.0438401",
+      "modified_at": "2025-11-30T21:58:42.7119519",
       "relevance_score": 0
     },
     {
-      "id": "178723f0-3f05-4932-86c0-9d4e7aa327fd",
+      "id": "ee941ea8-8e84-48ba-81f4-7d47d6c65cfa",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "03_SetsFunctions.pptx",
-      "content": "=== DOCUMENT: 03_SetsFunctions.pptx ===\r\nDocument ID: 5f6b3885-42cd-40c1-b326-a164b07b7e52\r\nType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1gWITVZT0IxZ5XGtdYdczZfURUDXgMFHm\r\nMetadata:\n- mimeType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\nMetadata:\n- ownerName: Stanislaw Jarecki\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "04866ed0d14d0b6d6067549a2a590b6632e318",
+      "content": "=== DOCUMENT: 04866ed0d14d0b6d6067549a2a590b6632e318 ===\r\nDocument ID: b7ea203f-b718-4549-9e43-bc79152d9ac2\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1tWh4MyyWQ8_jpsDEcQ0oA2_JWhVLk_x9\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1u2wZaLTSno6A8xwo5MsEPxOV01-bk0PW\r\nMetadata:\n- parentFolderName: 55\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "5f6b3885-42cd-40c1-b326-a164b07b7e52",
-        "fileType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "documentId": "b7ea203f-b718-4549-9e43-bc79152d9ac2",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:40.9459599",
+        "modifiedAt": "2025-11-30T21:58:42.6659302",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:08.8256737",
-      "modified_at": "2025-11-25T07:53:40.9459599",
+      "created_at": "2025-11-08T20:43:22.8664055",
+      "modified_at": "2025-11-30T21:58:42.6659302",
       "relevance_score": 0
     },
     {
-      "id": "c1f2f9df-22ad-45be-ac2b-02535da1e008",
+      "id": "ab77e302-7604-4372-9a5f-a1e9668290c3",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "Week 6 EDUC 30: 21st Century Literacies Mon.",
-      "content": "=== DOCUMENT: Week 6 EDUC 30: 21st Century Literacies Mon. ===\r\nDocument ID: b428315d-d68c-4418-848f-14d6b8d14f3f\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1en6s2wJRYZs36LFJcFrkbObIXVLPwVGQ12CztyiqsAE\r\nMetadata:\n- mimeType: application/vnd.google-apps.presentation\r\nMetadata:\n- ownerName: Xiao Lin\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "3d7c842586037842a6b83131835ad78edf3a07",
+      "content": "=== DOCUMENT: 3d7c842586037842a6b83131835ad78edf3a07 ===\r\nDocument ID: daf90b1c-c5d9-4b5f-b477-51e3eabf6b71\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1QCUiKH33tISWL6o-RmXkNXEEH6JdjinA\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1f_YQd0nAl99uQ1yB43ZXvkc8-O4fykKk\r\nMetadata:\n- parentFolderName: e7\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "b428315d-d68c-4418-848f-14d6b8d14f3f",
-        "fileType": "application/vnd.google-apps.presentation",
+        "documentId": "daf90b1c-c5d9-4b5f-b477-51e3eabf6b71",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:40.9272827",
+        "modifiedAt": "2025-11-30T21:58:42.5738917",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:02.4206848",
-      "modified_at": "2025-11-25T07:53:40.9272827",
+      "created_at": "2025-11-08T20:43:22.3440519",
+      "modified_at": "2025-11-30T21:58:42.5738917",
       "relevance_score": 0
     },
     {
-      "id": "c59dba95-2627-4cea-a80a-9994af238e16",
+      "id": "6400a112-c3e6-4e69-83f3-49d18f40d98b",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "Week 4 EDUC 30: 21st Century Literacies",
-      "content": "=== DOCUMENT: Week 4 EDUC 30: 21st Century Literacies ===\r\nDocument ID: 7a7d420b-a603-4051-ad56-5ce3894cd72e\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1W6bks64zQz6F7ZuZI8Gij5-1kihTO_lSApF0mNrBiqA\r\nMetadata:\n- mimeType: application/vnd.google-apps.presentation\r\nMetadata:\n- ownerName: Xiao Lin\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "bc6e5cbd713d76246bf70698496c15217590d8",
+      "content": "=== DOCUMENT: bc6e5cbd713d76246bf70698496c15217590d8 ===\r\nDocument ID: ae443f94-21a2-42d9-a5e0-4cda549503f5\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1VE4m6jqFB9U15b14ljq-Nch47yqjZNFe\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 11ipPCxtiAWodhg5BBBiZBcFUAbM3zDDd\r\nMetadata:\n- parentFolderName: 02\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "7a7d420b-a603-4051-ad56-5ce3894cd72e",
-        "fileType": "application/vnd.google-apps.presentation",
+        "documentId": "ae443f94-21a2-42d9-a5e0-4cda549503f5",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:40.9075277",
+        "modifiedAt": "2025-11-30T21:58:42.5200386",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:03.143814",
-      "modified_at": "2025-11-25T07:53:40.9075277",
+      "created_at": "2025-11-08T20:43:22.6872294",
+      "modified_at": "2025-11-30T21:58:42.5200386",
       "relevance_score": 0
     },
     {
-      "id": "82380aed-be48-48b6-a0a3-6ff5c4d05a81",
+      "id": "ecc1693f-66b4-4047-ab61-a2f6440ab0e5",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "Week 3 EDUC 30: 21st Century Literacies",
-      "content": "=== DOCUMENT: Week 3 EDUC 30: 21st Century Literacies ===\r\nDocument ID: 0c695dee-b52c-4dbf-8711-a255af7ae6bb\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1Zi0mI9396Q9teHIGvcsoR_-80xg_ozdWMALVWR6KStU\r\nMetadata:\n- mimeType: application/vnd.google-apps.presentation\r\nMetadata:\n- ownerName: Xiao Lin\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "03a9138f042a7c6655b8c6d0268b2b5b92429c",
+      "content": "=== DOCUMENT: 03a9138f042a7c6655b8c6d0268b2b5b92429c ===\r\nDocument ID: 3a9bd2ad-986f-4bf0-b885-e508266c48f6\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1C4_Mddtrgx7HkZSmDIX4DpOz51AUeCTO\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1aHVsk-7aijvj6BLeotXmiEfiXpjuEliz\r\nMetadata:\n- parentFolderName: 6e\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "0c695dee-b52c-4dbf-8711-a255af7ae6bb",
-        "fileType": "application/vnd.google-apps.presentation",
+        "documentId": "3a9bd2ad-986f-4bf0-b885-e508266c48f6",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:40.8888644",
+        "modifiedAt": "2025-11-30T21:58:42.3108358",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:04.9291703",
-      "modified_at": "2025-11-25T07:53:40.8888644",
+      "created_at": "2025-11-08T20:43:22.5140908",
+      "modified_at": "2025-11-30T21:58:42.3108358",
       "relevance_score": 0
     },
     {
-      "id": "4872d5ac-5ff0-4bb4-84fc-3ef7c7cd0023",
+      "id": "9737f2d3-e4ff-496b-bb4d-3c586cd495cc",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "ED30 Week 5 Lect1 Midterm Review.pptx",
-      "content": "=== DOCUMENT: ED30 Week 5 Lect1 Midterm Review.pptx ===\r\nDocument ID: aa55809d-18ae-4277-963e-0ff552534d1a\r\nType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1-t0ZhNdGF2ZNXuX3KFoW02d7y1NrLSyX\r\nMetadata:\n- mimeType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\nMetadata:\n- ownerName: Viet Vu\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "5d2d06e8d0886097d9af3650c2abc1ff93fab4",
+      "content": "=== DOCUMENT: 5d2d06e8d0886097d9af3650c2abc1ff93fab4 ===\r\nDocument ID: 5fb5ded1-1a69-4a57-ba69-cd6ea7372be2\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1t8CV-PP3ZdZxq2Ghddi_1yVmpsGSPuy9\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1de_vs92WNQVBGuCYr2GOAJPK3zJ6NFC1\r\nMetadata:\n- parentFolderName: 5f\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "aa55809d-18ae-4277-963e-0ff552534d1a",
-        "fileType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "documentId": "5fb5ded1-1a69-4a57-ba69-cd6ea7372be2",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:40.8696517",
+        "modifiedAt": "2025-11-30T21:58:42.2145404",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:02.4443877",
-      "modified_at": "2025-11-25T07:53:40.8696517",
+      "created_at": "2025-11-08T20:43:21.9738791",
+      "modified_at": "2025-11-30T21:58:42.2145404",
       "relevance_score": 0
     },
     {
-      "id": "b3223290-0dfc-46ec-b400-1ace45348f0d",
+      "id": "544d3564-3d65-4adc-a95b-26e7177f432e",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "ED30 Week10 Lect1 Eco storytelling2",
-      "content": "=== DOCUMENT: ED30 Week10 Lect1 Eco storytelling2 ===\r\nDocument ID: e2ab9314-8b64-40f8-a027-3f46740ce608\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:52\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1u6_lW1ppkEMLGQfTDgQWWMk7AmlQhYoy1xnx5FZUh_Q\r\nMetadata:\n- mimeType: application/vnd.google-apps.presentation\r\nMetadata:\n- ownerName: Viet Vu\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "ClientPortalImage.png",
+      "content": "=== DOCUMENT: ClientPortalImage.png ===\r\nDocument ID: 859a41c5-2c4d-4392-9bbe-b1c7ea2a4fde\r\nType: image/png\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:42\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1G1_Wp2oPZr5uCNASrKEvApXulC1CvQA4\r\nMetadata:\n- mimeType: image/png\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1Fbevil3QND-9F8AV3KkDN_s3eV6weOQN\r\nMetadata:\n- parentFolderName: images\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: ClientPortalImage.png\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2025-11-30T21:58:17.3627738\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1G1_Wp2oPZr5uCNASrKEvApXulC1CvQA4\r\n- mimeType: image/png\r\n- ownerName: Kyle Wang\r\n- parentIds: 1Fbevil3QND-9F8AV3KkDN_s3eV6weOQN\r\n- parentFolderName: images\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\nLAW\r\n\r\n=== END CONTENT ===\r\n",
       "metadata": {
-        "documentId": "e2ab9314-8b64-40f8-a027-3f46740ce608",
-        "fileType": "application/vnd.google-apps.presentation",
+        "documentId": "859a41c5-2c4d-4392-9bbe-b1c7ea2a4fde",
+        "fileType": "image/png",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
-        "hasExtractedContent": false,
+        "hasExtractedContent": true,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:40.8445716",
+        "modifiedAt": "2025-11-30T21:58:42.0927981",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:52:57.0664445",
-      "modified_at": "2025-11-25T07:53:40.8445716",
+      "created_at": "2025-11-08T20:42:55.2382985",
+      "modified_at": "2025-11-30T21:58:42.0927981",
       "relevance_score": 0
     },
     {
-      "id": "f91f5a18-fef0-428d-b409-34a5826ccc05",
+      "id": "a87e0e64-6059-459f-bff1-6b206526d5fa",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "EDUC 30 Final Study Guide.docx",
-      "content": "=== DOCUMENT: EDUC 30 Final Study Guide.docx ===\r\nDocument ID: 8e10eec8-278b-4eb9-aa2c-6c09a2db8d6b\r\nType: application/vnd.openxmlformats-officedocument.wordprocessingml.document\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:52\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1la1ZU7b5izHuVTEh1belTpYTBC5L1I5l\r\nMetadata:\n- mimeType: application/vnd.openxmlformats-officedocument.wordprocessingml.document\r\nMetadata:\n- ownerName: Xiao Lin\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "59286c131932c79081f27852e0e299108d6772",
+      "content": "=== DOCUMENT: 59286c131932c79081f27852e0e299108d6772 ===\r\nDocument ID: 288f164b-997f-453c-a8a5-e6794e7156d6\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1l1ihOdFqUyjAxtTxCaOpJFj2yUwfWKWx\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1zDMDRia7ARpcSYs5gCZf38wAqWoF4Fgy\r\nMetadata:\n- parentFolderName: bd\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "8e10eec8-278b-4eb9-aa2c-6c09a2db8d6b",
-        "fileType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "documentId": "288f164b-997f-453c-a8a5-e6794e7156d6",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:40.7775564",
+        "modifiedAt": "2025-11-30T21:58:41.8406172",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:52:57.2460137",
-      "modified_at": "2025-11-25T07:53:40.7775564",
+      "created_at": "2025-11-08T20:43:22.165216",
+      "modified_at": "2025-11-30T21:58:41.8406172",
       "relevance_score": 0
     },
     {
-      "id": "2b7a8fb1-9444-430f-9f5a-e86c4c4bbc09",
+      "id": "a8c4ecc8-06e8-4dac-890b-b4f0eb2b3e65",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "Chapter09.pptx",
-      "content": "=== DOCUMENT: Chapter09.pptx ===\r\nDocument ID: ec8d775a-971d-431b-917b-564ef31aa675\r\nType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 16S7BHhGbfVlHoaMDNHAS9Avw8QcwCWTN\r\nMetadata:\n- mimeType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\nMetadata:\n- ownerName: Kyle Zonghao Wang\r\nMetadata:\n- parentIds: 0ABwy9FlS1ZWnUk9PVA\r\nMetadata:\n- parentFolderName: My Drive\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "db955be5ab04c3047d9defbe7a1ca36eec80d4",
+      "content": "=== DOCUMENT: db955be5ab04c3047d9defbe7a1ca36eec80d4 ===\r\nDocument ID: 94d4a0ec-22c0-485b-a0e3-9dedd3096e7b\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1mVizZgpqKfPgf3aHV3oRKa9cfeKxLLBp\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1MIaQko_K7Ce0Dir9iEAddj3gcFG49KZN\r\nMetadata:\n- parentFolderName: a2\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "ec8d775a-971d-431b-917b-564ef31aa675",
-        "fileType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "documentId": "94d4a0ec-22c0-485b-a0e3-9dedd3096e7b",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:40.7509858",
+        "modifiedAt": "2025-11-30T21:58:41.5158839",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:08.0529999",
-      "modified_at": "2025-11-25T07:53:40.7509858",
+      "created_at": "2025-11-08T20:43:21.7941768",
+      "modified_at": "2025-11-30T21:58:41.5158839",
       "relevance_score": 0
     },
     {
-      "id": "93f4a750-9077-448a-9429-4d93fd00bdf3",
+      "id": "cf466ee9-09f7-4d18-8b26-f23249087aa6",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "P7LC Tutorial 1 - Publication v2020-01-28.pdf",
-      "content": "=== DOCUMENT: P7LC Tutorial 1 - Publication v2020-01-28.pdf ===\r\nDocument ID: c7450992-442e-49a3-95fd-5b6b4faf494d\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1_hZ_A8TxkspX0SFY_-F8an0i3uuWYhXL\r\nMetadata:\n- mimeType: application/pdf\r\nMetadata:\n- ownerName: Kyle Zonghao Wang\r\nMetadata:\n- parentIds: 0ABwy9FlS1ZWnUk9PVA\r\nMetadata:\n- parentFolderName: My Drive\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "c81373be6197a4cf38568ed30d9e5cb581ef18",
+      "content": "=== DOCUMENT: c81373be6197a4cf38568ed30d9e5cb581ef18 ===\r\nDocument ID: fcb4013d-920d-4eda-99ec-e3c1021a7394\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 149qCPY_RL_EMw97YSV58hsocjf41v4Ei\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 11ukjtKa-XpE9MPsFbGC0EJsXvrzHRwVV\r\nMetadata:\n- parentFolderName: 13\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "c7450992-442e-49a3-95fd-5b6b4faf494d",
-        "fileType": "application/pdf",
+        "documentId": "fcb4013d-920d-4eda-99ec-e3c1021a7394",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:40.7352833",
+        "modifiedAt": "2025-11-30T21:58:41.4202764",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:08.5253611",
-      "modified_at": "2025-11-25T07:53:40.7352833",
+      "created_at": "2025-11-08T20:43:21.605515",
+      "modified_at": "2025-11-30T21:58:41.4202764",
       "relevance_score": 0
     },
     {
-      "id": "ff38f7be-ed5f-4aa6-baa9-68c0839d2721",
+      "id": "276cbe31-2b3e-489f-8f68-ba6ae15ceb07",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "ED30 Week9 Lect1 Communication",
-      "content": "=== DOCUMENT: ED30 Week9 Lect1 Communication ===\r\nDocument ID: 832a4fa9-dd45-4ade-ad22-e53ea30c7248\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:52\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1JGKjxJepkyIhv9DPMoIEpx7xowI44vtsQf2jB18E6MA\r\nMetadata:\n- mimeType: application/vnd.google-apps.presentation\r\nMetadata:\n- ownerName: Viet Vu\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "c60319a7d862c7820d2b762381972cdc9ebc61",
+      "content": "=== DOCUMENT: c60319a7d862c7820d2b762381972cdc9ebc61 ===\r\nDocument ID: ffa40b91-a44b-4d2c-be3e-75a667cd782e\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1vrfZKbJd7OhbuXBPFeII3A-sUV006sMb\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1e87I03RI8AqIFaKdgMNdtIoKZFgJYSNd\r\nMetadata:\n- parentFolderName: 5d\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "832a4fa9-dd45-4ade-ad22-e53ea30c7248",
-        "fileType": "application/vnd.google-apps.presentation",
+        "documentId": "ffa40b91-a44b-4d2c-be3e-75a667cd782e",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:40.7158766",
+        "modifiedAt": "2025-11-30T21:58:41.204418",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:52:58.1687009",
-      "modified_at": "2025-11-25T07:53:40.7158766",
+      "created_at": "2025-11-08T20:43:20.8991353",
+      "modified_at": "2025-11-30T21:58:41.204418",
       "relevance_score": 0
     },
     {
-      "id": "4dbea698-38c0-49e1-8c95-35f78b3f985e",
+      "id": "9ccbd8b6-b396-4c06-871c-a7681d314fc5",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "Artificial Intelligence & Creativity: A Manifesto for Collaboration - Vinchon - 2023 - The Journal o.pdf",
-      "content": "=== DOCUMENT: Artificial Intelligence & Creativity: A Manifesto for Collaboration - Vinchon - 2023 - The Journal o.pdf ===\r\nDocument ID: 594733c6-689c-4263-b8cc-6bc5c2bc1adc\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1FiLAdmC3RaFTGyqpZhewjf1HrsH09xNn\r\nMetadata:\n- mimeType: application/pdf\r\nMetadata:\n- ownerName: Viet Vu\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "7239217cce19aad8586e561f18a9b6b32b536e",
+      "content": "=== DOCUMENT: 7239217cce19aad8586e561f18a9b6b32b536e ===\r\nDocument ID: a120e1cb-b110-4414-8221-8de22478e468\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1RZeH_E_tdM-htRxfb3SqeTaZcEnzXsVk\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1AF4MlcjHtiv0gUtgmUxU0u-a_NriUjPM\r\nMetadata:\n- parentFolderName: 37\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "594733c6-689c-4263-b8cc-6bc5c2bc1adc",
-        "fileType": "application/pdf",
+        "documentId": "a120e1cb-b110-4414-8221-8de22478e468",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:40.6757528",
+        "modifiedAt": "2025-11-30T21:58:41.111159",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:06.8997115",
-      "modified_at": "2025-11-25T07:53:40.6757528",
+      "created_at": "2025-11-08T20:43:21.4234172",
+      "modified_at": "2025-11-30T21:58:41.111159",
       "relevance_score": 0
     },
     {
-      "id": "22874be7-0a2a-4ae6-9dfd-713702990dad",
+      "id": "24decf54-9503-4876-9d91-02d2a7f77c83",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "ThinkingTogetherandAlone.pdf",
-      "content": "=== DOCUMENT: ThinkingTogetherandAlone.pdf ===\r\nDocument ID: 0bef8550-3167-43a8-aed9-1a7420304af9\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 106F1CJpmbEDIWrBm-jDrP8yaY8EO2L-s\r\nMetadata:\n- mimeType: application/pdf\r\nMetadata:\n- ownerName: Viet Vu\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "f78ecf2c646cc644b344cbb6b4d27e5fa3a1fb",
+      "content": "=== DOCUMENT: f78ecf2c646cc644b344cbb6b4d27e5fa3a1fb ===\r\nDocument ID: aacd0919-9db1-4879-88ed-b4033a0212e5\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1AniaqIqUk1c63Ubbzju3sDxLKMi3j0Ox\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1kkwf9QPCQXvLBBHCygVwRiy9H58cIsSe\r\nMetadata:\n- parentFolderName: 63\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "0bef8550-3167-43a8-aed9-1a7420304af9",
-        "fileType": "application/pdf",
+        "documentId": "aacd0919-9db1-4879-88ed-b4033a0212e5",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:40.6581312",
+        "modifiedAt": "2025-11-30T21:58:40.8398433",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:06.7953457",
-      "modified_at": "2025-11-25T07:53:40.6581312",
+      "created_at": "2025-11-08T20:43:21.1363765",
+      "modified_at": "2025-11-30T21:58:40.8398433",
       "relevance_score": 0
     },
     {
-      "id": "d734546c-8a67-4e47-9226-52a26c4b8745",
+      "id": "0034c3d5-19fa-4937-a563-19c0945593ba",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "Artificial intelligence literacy for technology education.pdf",
-      "content": "=== DOCUMENT: Artificial intelligence literacy for technology education.pdf ===\r\nDocument ID: b1aa7bdc-3dc6-4789-ba9a-09e82206e32d\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1FQRswTdmNnbz5IxNnFthymVK3YSrhmfm\r\nMetadata:\n- mimeType: application/pdf\r\nMetadata:\n- ownerName: Viet Vu\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "65220872484f3fcb147087f2491828b41d06aa",
+      "content": "=== DOCUMENT: 65220872484f3fcb147087f2491828b41d06aa ===\r\nDocument ID: b3983d76-01b4-4746-b77f-617b75024033\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1JkBOWpva3pwhYC0wEPL9sGboQl0550Vl\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1yhGpCKP0aISf9YV-bmzKUwMNpNmNibnZ\r\nMetadata:\n- parentFolderName: 4a\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "b1aa7bdc-3dc6-4789-ba9a-09e82206e32d",
-        "fileType": "application/pdf",
+        "documentId": "b3983d76-01b4-4746-b77f-617b75024033",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:40.4724612",
+        "modifiedAt": "2025-11-30T21:58:40.6640687",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:06.9670991",
-      "modified_at": "2025-11-25T07:53:40.4724612",
+      "created_at": "2025-11-08T20:43:20.3543694",
+      "modified_at": "2025-11-30T21:58:40.6640687",
       "relevance_score": 0
     },
     {
-      "id": "1f78c3bb-8c3c-4e9e-a519-4d5cdaab3ae4",
+      "id": "041f0e11-c3aa-4c01-af7f-df78da81171d",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "ED30 Week1 Lect2 P21 Framework.pptx",
-      "content": "=== DOCUMENT: ED30 Week1 Lect2 P21 Framework.pptx ===\r\nDocument ID: 72eb5737-15e6-4266-9612-de5041f67316\r\nType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1G2ZRc15v6pqkrbUaTKNesJegOlvob__b\r\nMetadata:\n- mimeType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\nMetadata:\n- ownerName: Viet Vu\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "7d914431321c3e1f2ab80d1612600dcb02a1c7",
+      "content": "=== DOCUMENT: 7d914431321c3e1f2ab80d1612600dcb02a1c7 ===\r\nDocument ID: e171689c-5f3d-48a6-80e2-0d81e50ea785\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1bVZeGlBrO2ZI_C_BD8JfIUR1G9Dh4vMx\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1VIsmjeh8kR0u20tT-6N-wJoc9a65Q6yh\r\nMetadata:\n- parentFolderName: b1\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "72eb5737-15e6-4266-9612-de5041f67316",
-        "fileType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "documentId": "e171689c-5f3d-48a6-80e2-0d81e50ea785",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:40.4575184",
+        "modifiedAt": "2025-11-30T21:58:40.5487886",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:05.9550396",
-      "modified_at": "2025-11-25T07:53:40.4575184",
+      "created_at": "2025-11-08T20:43:20.7262299",
+      "modified_at": "2025-11-30T21:58:40.5487886",
       "relevance_score": 0
     },
     {
-      "id": "00d7c2c7-23ab-4be3-b899-253ec45bd2a4",
+      "id": "fdcdc203-b252-4cfc-96f9-0325f2f5ad37",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "Week 2 EDUC 30 Mon.",
-      "content": "=== DOCUMENT: Week 2 EDUC 30 Mon. ===\r\nDocument ID: 859ac157-44bb-48eb-a302-84b62f53424f\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1K4TxYo3zhTgTw3cMHGSjcxBwoAvzK4ORgi9lZSX2l2c\r\nMetadata:\n- mimeType: application/vnd.google-apps.presentation\r\nMetadata:\n- ownerName: Xiao Lin\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "c4f2b597ec75a502f73f7352307484b2517f54",
+      "content": "=== DOCUMENT: c4f2b597ec75a502f73f7352307484b2517f54 ===\r\nDocument ID: 06a71de7-180a-4480-9466-a7c38d21f93e\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 17sx0W4qfWqkHa48vFL68_BRm4-MuoRLH\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1eZq-z5gZHsAD1_0-x9upt2ndoNj-2Z9o\r\nMetadata:\n- parentFolderName: 1c\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "859ac157-44bb-48eb-a302-84b62f53424f",
-        "fileType": "application/vnd.google-apps.presentation",
+        "documentId": "06a71de7-180a-4480-9466-a7c38d21f93e",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:40.4408968",
+        "modifiedAt": "2025-11-30T21:58:40.4232575",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:05.4460257",
-      "modified_at": "2025-11-25T07:53:40.4408968",
+      "created_at": "2025-11-08T20:43:20.1858992",
+      "modified_at": "2025-11-30T21:58:40.4232575",
       "relevance_score": 0
     },
     {
-      "id": "139c8b39-5a10-44ab-bb36-e8e74d9a3d6b",
+      "id": "2fb1c239-b80a-4690-8dfd-612b0d1e7a14",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "Ai and environmental issues.pdf",
-      "content": "=== DOCUMENT: Ai and environmental issues.pdf ===\r\nDocument ID: 85773b6a-2e36-4690-883e-b5b7c1ee1178\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1-qLli0PgK3pkkoSGv1ZIIIC5F3OLNKI8\r\nMetadata:\n- mimeType: application/pdf\r\nMetadata:\n- ownerName: Viet Vu\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "2c46fdeef7979a75e80a51d01aee5c8f0a3f09",
+      "content": "=== DOCUMENT: 2c46fdeef7979a75e80a51d01aee5c8f0a3f09 ===\r\nDocument ID: 06aba330-77fb-4322-8ecf-8afbdedade5b\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1sko81T2ZzxfjGmKeX-M4dLyvrlStll4_\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1tdK9FkPqrdm2rchTJ7NxEalexxXwGa5o\r\nMetadata:\n- parentFolderName: 1a\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "85773b6a-2e36-4690-883e-b5b7c1ee1178",
-        "fileType": "application/pdf",
+        "documentId": "06aba330-77fb-4322-8ecf-8afbdedade5b",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:40.4196047",
+        "modifiedAt": "2025-11-30T21:58:40.2717971",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:06.919298",
-      "modified_at": "2025-11-25T07:53:40.4196047",
+      "created_at": "2025-11-08T20:43:20.5384991",
+      "modified_at": "2025-11-30T21:58:40.2717971",
       "relevance_score": 0
     },
     {
-      "id": "49a3e1d4-0131-497b-a1d1-6109834a0c32",
+      "id": "caca15a7-df7a-4a5b-bb40-22ce9e580bcd",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "Generative_AI_and the future of work.pdf",
-      "content": "=== DOCUMENT: Generative_AI_and the future of work.pdf ===\r\nDocument ID: 0ca0e2b4-0176-431a-908e-d06a384d403e\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1FMeaeD1Ixe-ZP0d6bruFpyUuAKgL42eZ\r\nMetadata:\n- mimeType: application/pdf\r\nMetadata:\n- ownerName: Viet Vu\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "87a1edfe985e7f62430e09419cbadbf3f58e91",
+      "content": "=== DOCUMENT: 87a1edfe985e7f62430e09419cbadbf3f58e91 ===\r\nDocument ID: 115a4360-a3c3-4cdf-8998-1d2d92b7e38b\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1XnG2-tu6_UTPETUHbiVBMtzMUswZBBkS\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1QLfl00_9tmrSr7G7xtC2atwjHqk-7feG\r\nMetadata:\n- parentFolderName: 5a\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "0ca0e2b4-0176-431a-908e-d06a384d403e",
-        "fileType": "application/pdf",
+        "documentId": "115a4360-a3c3-4cdf-8998-1d2d92b7e38b",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:40.3108323",
+        "modifiedAt": "2025-11-30T21:58:39.7886559",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:06.9417224",
-      "modified_at": "2025-11-25T07:53:40.3108323",
+      "created_at": "2025-11-08T20:43:19.4531377",
+      "modified_at": "2025-11-30T21:58:39.7886559",
       "relevance_score": 0
     },
     {
-      "id": "e87f7237-9209-40f0-baca-e4d4c8d5da18",
+      "id": "be6aabf1-b1c3-4f40-b12d-02e7e5590b50",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "Week 5 EDUC 30: 21st Century Literacies",
-      "content": "=== DOCUMENT: Week 5 EDUC 30: 21st Century Literacies ===\r\nDocument ID: 55b3e4a4-b108-4b75-b1c1-4830bfce76a1\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:52\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1t3zUQzXqIuWm0I5xqaMMXWfag0t8wyD7-3o7fEysiXw\r\nMetadata:\n- mimeType: application/vnd.google-apps.presentation\r\nMetadata:\n- ownerName: Xiao Lin\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "b329ae84b396b06b20d7bb31b70f1f6f778330",
+      "content": "=== DOCUMENT: b329ae84b396b06b20d7bb31b70f1f6f778330 ===\r\nDocument ID: b83bad44-ec40-4214-9350-124eb9896edb\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1sEqQ8YSi9ZAQeErnSsgL4h4ikFIFgnL6\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1BNKMFp9E2o9v_M2qoXH3gt1hhMR0E4HP\r\nMetadata:\n- parentFolderName: 87\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "55b3e4a4-b108-4b75-b1c1-4830bfce76a1",
-        "fileType": "application/vnd.google-apps.presentation",
+        "documentId": "b83bad44-ec40-4214-9350-124eb9896edb",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:40.2919056",
+        "modifiedAt": "2025-11-30T21:58:39.7447912",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:52:58.2100286",
-      "modified_at": "2025-11-25T07:53:40.2919056",
+      "created_at": "2025-11-08T20:43:19.9796008",
+      "modified_at": "2025-11-30T21:58:39.7447912",
       "relevance_score": 0
     },
     {
-      "id": "249c0fba-ce01-455c-b5c7-3642154d8acc",
+      "id": "72b50c3a-72c6-4ab0-96fc-154d0a056805",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "sol6.pdf",
-      "content": "=== DOCUMENT: sol6.pdf ===\r\nDocument ID: 39195a19-e966-4564-9b8e-b457bae13286\r\nType: application/pdf\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 124-KQiDloQ4rRrCpc0LitTwk7_SDIHXt\r\nMetadata:\n- mimeType: application/pdf\r\nMetadata:\n- ownerName: Stanislaw Jarecki\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "eec389ff635978c902e8e3cd02cda1672a40b3",
+      "content": "=== DOCUMENT: eec389ff635978c902e8e3cd02cda1672a40b3 ===\r\nDocument ID: 9c4d0e3a-1026-4dee-8ab3-206d7522aa14\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1z7TVTbrtvSzRSeCbdpVKWx7G3YFtrVyV\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1bMr6cZSXUANuoTMZMv-sKDrJYfuMQyYC\r\nMetadata:\n- parentFolderName: 93\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "39195a19-e966-4564-9b8e-b457bae13286",
-        "fileType": "application/pdf",
+        "documentId": "9c4d0e3a-1026-4dee-8ab3-206d7522aa14",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:40.2065148",
+        "modifiedAt": "2025-11-30T21:58:39.6729005",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:07.1323282",
-      "modified_at": "2025-11-25T07:53:40.2065148",
+      "created_at": "2025-11-08T20:43:19.6283398",
+      "modified_at": "2025-11-30T21:58:39.6729005",
       "relevance_score": 0
     },
     {
-      "id": "9f9fc35c-3c64-4a16-ae55-15a86bb22226",
+      "id": "a8a39f9a-caa0-4125-b456-85562b09f90a",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "ED30 Week10 Lect2 Framing in Facebook.pptx",
-      "content": "=== DOCUMENT: ED30 Week10 Lect2 Framing in Facebook.pptx ===\r\nDocument ID: 098e601d-8edd-402c-bde2-4eaa6a654b92\r\nType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:52\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 117FD3dQeBkkUBrddpNriwcz73H3PXGK0\r\nMetadata:\n- mimeType: application/vnd.openxmlformats-officedocument.presentationml.presentation\r\nMetadata:\n- ownerName: Viet Vu\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "f6e55342994926972950522c86e4e567834fbb",
+      "content": "=== DOCUMENT: f6e55342994926972950522c86e4e567834fbb ===\r\nDocument ID: df8de1a5-11a6-4d96-951f-aae216503a6f\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1Ri2uz2Xtv4CnhPeBYhoa-M4j5rT728fd\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1oPeoCfnbnP_yBoUBRE7h47m_lRtfNLZt\r\nMetadata:\n- parentFolderName: b4\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "098e601d-8edd-402c-bde2-4eaa6a654b92",
-        "fileType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "documentId": "df8de1a5-11a6-4d96-951f-aae216503a6f",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:40.1862592",
+        "modifiedAt": "2025-11-30T21:58:39.5479312",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:52:57.2823222",
-      "modified_at": "2025-11-25T07:53:40.1862592",
+      "created_at": "2025-11-08T20:43:19.8056015",
+      "modified_at": "2025-11-30T21:58:39.5479312",
       "relevance_score": 0
     },
     {
-      "id": "87f229c3-9cc0-4e89-8074-db1ae4a4c1b6",
+      "id": "2d20369b-1497-4c09-b0d3-64610e9c14e9",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "Week 8 EDUC 30: 21st Century Literacies Mon.",
-      "content": "=== DOCUMENT: Week 8 EDUC 30: 21st Century Literacies Mon. ===\r\nDocument ID: 81ebac14-ae29-4f8b-b874-ebfc54ab6f25\r\nType: application/vnd.google-apps.presentation\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:52\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1CyvEe56jBwIuOhE3nZp9juZE9I8ULXBhNEz2QdHXSuY\r\nMetadata:\n- mimeType: application/vnd.google-apps.presentation\r\nMetadata:\n- ownerName: Xiao Lin\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "f5348bdcc8a1d3a0056786d270c7d7064140cd",
+      "content": "=== DOCUMENT: f5348bdcc8a1d3a0056786d270c7d7064140cd ===\r\nDocument ID: 8f375b3a-b4fe-4986-b053-37b64d7ae533\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1xkXbsp-F5c3rh2QlYidrPyC0LQI8DlSa\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1MVGGMS7x6rJL2lwTh0DFU3b6tEYk6iHh\r\nMetadata:\n- parentFolderName: 96\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "81ebac14-ae29-4f8b-b874-ebfc54ab6f25",
-        "fileType": "application/vnd.google-apps.presentation",
+        "documentId": "8f375b3a-b4fe-4986-b053-37b64d7ae533",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:40.166815",
+        "modifiedAt": "2025-11-30T21:58:39.196277",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:52:58.4766773",
-      "modified_at": "2025-11-25T07:53:40.166815",
+      "created_at": "2025-11-08T20:43:19.1108311",
+      "modified_at": "2025-11-30T21:58:39.196277",
       "relevance_score": 0
     },
     {
-      "id": "714fb00f-22d8-45ca-81ee-7889dce45513",
+      "id": "d3e791f6-f1b6-4484-bf19-e5cb35ab2109",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
-      "title": "D975B02D-1473-4EAC-BE8B-6C38219C1BFB.jpeg",
-      "content": "=== DOCUMENT: D975B02D-1473-4EAC-BE8B-6C38219C1BFB.jpeg ===\r\nDocument ID: 3704f2b8-390d-4394-bb75-0953935801b5\r\nType: image/jpeg\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-25 07:53\r\nLast Modified: 2025-11-25 07:53\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1abZ7P2nX0laY3n1fkbBfPUyF-S1fwg_N\r\nMetadata:\n- mimeType: image/jpeg\r\nMetadata:\n- ownerName: Kyle Zonghao Wang\r\nMetadata:\n- parentIds: 0ABwy9FlS1ZWnUk9PVA\r\nMetadata:\n- parentFolderName: My Drive\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "title": "fab92e76c353fa33dc6304b58c8b6376930c69",
+      "content": "=== DOCUMENT: fab92e76c353fa33dc6304b58c8b6376930c69 ===\r\nDocument ID: fbbbad17-d17b-48be-9181-a1c8a79eedc5\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1Hm2XzxTtAvGt-Vm7d68PfqGuaDOQlvjU\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1tXp3HSUAEeW4o_fAssLxiQCIctRmAO-c\r\nMetadata:\n- parentFolderName: fe\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
       "metadata": {
-        "documentId": "3704f2b8-390d-4394-bb75-0953935801b5",
-        "fileType": "image/jpeg",
+        "documentId": "fbbbad17-d17b-48be-9181-a1c8a79eedc5",
+        "fileType": "application/octet-stream",
         "category": "General",
         "status": "Draft",
         "sourceType": "GoogleDrive",
         "hasExtractedContent": false,
         "matterId": null,
-        "modifiedAt": "2025-11-25T07:53:40.0133245",
+        "modifiedAt": "2025-11-30T21:58:39.1131277",
         "tags": [
           "Google Drive"
         ]
       },
-      "created_at": "2025-11-25T07:53:07.4176561",
-      "modified_at": "2025-11-25T07:53:40.0133245",
+      "created_at": "2025-11-08T20:43:19.2882098",
+      "modified_at": "2025-11-30T21:58:39.1131277",
+      "relevance_score": 0
+    },
+    {
+      "id": "9ff50e1f-e407-4760-847c-95da3b4e6528",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "790ca6edc6726ed0b58bcbbb9cb9cfe61566bf",
+      "content": "=== DOCUMENT: 790ca6edc6726ed0b58bcbbb9cb9cfe61566bf ===\r\nDocument ID: 741cb327-16a9-4ba7-8d9b-08034bb38dce\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-08 20:43\r\nLast Modified: 2025-11-30 21:58\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1uYVkC1H-4NarU6dsTwsBfut6e1ZQ8ZUV\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1iWsrsCFM2nd0nT1K3wTXUjZ8sOSAIwdk\r\nMetadata:\n- parentFolderName: d6\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "741cb327-16a9-4ba7-8d9b-08034bb38dce",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-11-30T21:58:39.0449589",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-08T20:43:18.8985708",
+      "modified_at": "2025-11-30T21:58:39.0449589",
       "relevance_score": 0
     }
   ]

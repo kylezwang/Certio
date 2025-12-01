@@ -131,7 +131,7 @@ public class ChatController : Controller
     }
 
     [HttpPost("SendMessage")]
-    public async Task<IActionResult> SendMessage(int orgId, int conversationId, string content, string messageType = "Text")
+    public async Task<IActionResult> SendMessage(int orgId, int conversationId, string content, string messageType = "Text", string? attachmentFileName = null, long? attachmentFileSize = null)
     {
         try
     {
@@ -147,7 +147,19 @@ public class ChatController : Controller
                 return Json(new { success = false, error = "Access denied." });
             }
         
-        await _chatService.SendMessageAsync(conversationId, userId, userType, content, messageType);
+        // Prepare metadata with attachment info if present
+        string? metadata = null;
+        if (!string.IsNullOrEmpty(attachmentFileName) && attachmentFileSize.HasValue)
+        {
+            var metadataObj = new
+            {
+                attachmentFileName,
+                attachmentFileSize = attachmentFileSize.Value
+            };
+            metadata = System.Text.Json.JsonSerializer.Serialize(metadataObj);
+        }
+        
+        await _chatService.SendMessageAsync(conversationId, userId, userType, content, messageType, metadata);
         return Json(new { success = true });
         }
         catch (Exception ex)

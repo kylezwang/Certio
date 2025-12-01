@@ -62,8 +62,24 @@
                         </div>
                         <h2 class="text-center mb-4 fs-2 fw-semibold text-dark">What can I help with?</h2>
                         
+                        <!-- Attachment Preview for Landing View (hidden by default) -->
+                        <div class="attachment-preview landing-attachment-preview" id="landingAttachmentPreview" style="display: none; max-width: 600px; margin: 0 auto 1rem auto;">
+                            <i class="fas fa-paperclip attachment-preview-icon"></i>
+                            <div class="attachment-preview-info">
+                                <div class="attachment-preview-name" id="landingAttachmentName">Document.pdf</div>
+                                <div class="attachment-preview-size" id="landingAttachmentSize">2.4 MB</div>
+                            </div>
+                            <button class="attachment-preview-remove" id="landingRemoveAttachment" title="Remove attachment">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
                         <div class="search-container-large" id="searchContainer">
-                            <i class="fas fa-plus"></i>
+                            <div class="search-plus-container">
+                                <button class="btn btn-link text-muted" id="dashboardPlusBtn" type="button" title="Add attachment">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
                             <input type="text" class="form-control form-control-lg" id="dashboardSearchInput" placeholder="Ask anything" />
                             <div class="search-actions">
                                 <button class="btn btn-link text-muted">
@@ -778,11 +794,43 @@
         color: #6c757d;
     }
 
-    .search-container-large i.fa-plus {
+    .search-plus-container {
         position: absolute;
+        left: 0.5rem;
         top: 50%;
         transform: translateY(-50%);
+        display: flex;
+        align-items: center;
+        z-index: 10;
+    }
+
+    .search-plus-container .btn {
+        padding: 0;
+        border: none;
+        background: transparent;
+        transition: all 0.2s ease;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none !important;
+    }
+
+    .search-plus-container .btn:hover,
+    .search-plus-container .btn:focus {
+        background-color: rgba(0, 0, 0, 0.05);
+        text-decoration: none !important;
+    }
+
+    .search-plus-container .btn i {
+        font-size: 1.1rem;
         color: #6b7280;
+    }
+
+    .search-plus-container .btn:hover i {
+        color: #9d5252;
     }
 
     .search-actions {
@@ -1128,7 +1176,6 @@
     .briefing-summary-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 0.75rem;
         padding: 0.5rem 0;
     }
 
@@ -1249,6 +1296,10 @@
     }
     
     <script>
+        // Pending attachment state for dashboard
+        let dashboardPendingAttachment = null;
+        window._dashboardUploadingAttachment = false;
+
         // Load upcoming deadlines for dashboard
         document.addEventListener('DOMContentLoaded', async function () {
             await loadDashboardUpcomingDeadlines();
@@ -1258,6 +1309,8 @@
             initializeAiChatActivation();
             initializeAiClose();
             initializeNewNoteButton();
+            initializeDashboardPlusButton();
+            initializeDashboardFileUpload();
             await loadDashboardConversations();
             await streamDashboardBriefingCards();
         });
@@ -1270,8 +1323,8 @@
 
             // Handle click on search container to activate
             searchContainer.addEventListener('click', function(e) {
-                // Don't activate if clicking on action buttons
-                if (e.target.closest('.search-actions') || e.target.closest('.btn')) {
+                // Don't activate if clicking on action buttons or plus button
+                if (e.target.closest('.search-actions') || e.target.closest('.search-plus-container')) {
                     return;
                 }
                 
@@ -1295,6 +1348,135 @@
                         aiCard.classList.add('activated');
                     }
                 });
+            }
+        }
+
+        function initializeDashboardPlusButton() {
+            const plusBtn = document.getElementById('dashboardPlusBtn');
+            if (plusBtn) {
+                plusBtn.addEventListener('click', showDashboardAttachmentMenu);
+            }
+        }
+
+        // Initialize dashboard file upload functionality
+        function initializeDashboardFileUpload() {
+            const fileInput = document.getElementById('dashboardFileInput');
+            const attachFileBtn = document.getElementById('dashboardAttachFileBtn');
+            const attachmentPreview = document.getElementById('dashboardAttachmentPreview');
+            const removeAttachment = document.getElementById('dashboardRemoveAttachment');
+            const landingAttachmentPreview = document.getElementById('landingAttachmentPreview');
+            const landingRemoveAttachment = document.getElementById('landingRemoveAttachment');
+
+            // Attach file button click handler
+            if (attachFileBtn && fileInput) {
+                attachFileBtn.addEventListener('click', function() {
+                    fileInput.click();
+                });
+            }
+
+            // File input change handler
+            if (fileInput) {
+                fileInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        // Show attachment preview
+                        const fileName = file.name;
+                        const fileSize = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+
+                        // Determine which view is active
+                        const landingView = document.getElementById('dashboardLandingView');
+                        const conversationView = document.getElementById('dashboardConversationView');
+                        const isLandingView = landingView && landingView.style.display !== 'none';
+
+                        if (isLandingView && landingAttachmentPreview) {
+                            // Show in landing view
+                            const landingAttachmentName = document.getElementById('landingAttachmentName');
+                            const landingAttachmentSize = document.getElementById('landingAttachmentSize');
+
+                            if (landingAttachmentName) landingAttachmentName.textContent = fileName;
+                            if (landingAttachmentSize) landingAttachmentSize.textContent = fileSize;
+
+                            landingAttachmentPreview.style.display = 'flex';
+                        } else if (attachmentPreview) {
+                            // Show in conversation view
+                            const attachmentName = document.getElementById('dashboardAttachmentName');
+                            const attachmentSize = document.getElementById('dashboardAttachmentSize');
+
+                            if (attachmentName) attachmentName.textContent = fileName;
+                            if (attachmentSize) attachmentSize.textContent = fileSize;
+
+                            attachmentPreview.style.display = 'flex';
+                            if (attachFileBtn) {
+                                attachFileBtn.classList.add('active');
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Remove attachment handler for conversation view
+            if (removeAttachment && fileInput && attachmentPreview) {
+                removeAttachment.addEventListener('click', function() {
+                    fileInput.value = '';
+                    attachmentPreview.style.display = 'none';
+                    dashboardPendingAttachment = null;
+                    if (attachFileBtn) {
+                        attachFileBtn.classList.remove('active');
+                    }
+                });
+            }
+
+            // Remove attachment handler for landing view
+            if (landingRemoveAttachment && fileInput && landingAttachmentPreview) {
+                landingRemoveAttachment.addEventListener('click', function() {
+                    fileInput.value = '';
+                    landingAttachmentPreview.style.display = 'none';
+                    dashboardPendingAttachment = null;
+                });
+            }
+        }
+
+        // Upload and extract content from attachment (dashboard version)
+        async function uploadDashboardAttachment(file) {
+            const orgId = @ViewBag.OrganizationId;
+            if (!orgId) {
+                console.error('Organization ID not found');
+                return null;
+            }
+
+            // Set uploading flag
+            window._dashboardUploadingAttachment = true;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch(`/Client/${orgId}/Chat/UploadAttachment`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    console.log(`Dashboard attachment processed: ${data.fileName} (${data.contentLength} chars extracted)`);
+                    window._dashboardUploadingAttachment = false;
+                    return {
+                        fileName: data.fileName,
+                        fileSize: data.fileSize,
+                        extractedContent: data.extractedContent
+                    };
+                } else {
+                    console.error('Failed to process attachment:', data.error);
+                    window._dashboardUploadingAttachment = false;
+                    alert('Failed to process attachment: ' + data.error);
+                    return null;
+                }
+            } catch (error) {
+                console.error('Error uploading attachment:', error);
+                window._dashboardUploadingAttachment = false;
+                alert('Error uploading attachment. Please try again.');
+                return null;
             }
         }
 
@@ -1327,6 +1509,99 @@
             contextMenu.style.top = event.pageY + 'px';
 
             document.body.appendChild(contextMenu);
+        }
+
+        // Show attachment menu popup for dashboard plus button
+        function showDashboardAttachmentMenu(event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            // Remove existing attachment menu if any
+            const existingMenu = document.getElementById('dashboardAttachmentMenu');
+            if (existingMenu) {
+                existingMenu.remove();
+                return;
+            }
+
+            const plusBtn = document.getElementById('dashboardPlusBtn');
+            if (!plusBtn) return;
+
+            // Get button position
+            const rect = plusBtn.getBoundingClientRect();
+            const menuWidth = 220; // Approximate menu width
+            const menuHeight = 120; // Approximate menu height (3 items)
+
+            // Create attachment menu
+            const attachmentMenu = document.createElement('div');
+            attachmentMenu.id = 'dashboardAttachmentMenu';
+            attachmentMenu.className = 'conversation-context-menu';
+            attachmentMenu.innerHTML = `
+                <div class="context-menu-item" onclick="handleAddPhotosFiles()">
+                    <i class="fas fa-paperclip"></i> Add photos & files
+                </div>
+                <div class="context-menu-item" onclick="handleAddFromGoogleDrive()">
+                    <i class="fab fa-google" style="color: #4285f4; width: auto; font-size: 14px;"></i> Add from Google Drive
+                </div>
+                <div class="context-menu-item" onclick="handleAddFromOneDrive()">
+                    <i class="fab fa-windows" style="color: #0078d4; width: auto; font-size: 14px;"></i> Add from Microsoft OneDrive
+                </div>
+            `;
+
+            document.body.appendChild(attachmentMenu);
+
+            // Get actual menu dimensions after rendering
+            const menuRect = attachmentMenu.getBoundingClientRect();
+            const actualMenuWidth = menuRect.width;
+            const actualMenuHeight = menuRect.height;
+
+            // Position the menu above the button, left-aligned with button's left edge
+            const leftPosition = rect.left;
+            const topPosition = rect.top - actualMenuHeight - 8; // 8px gap above button
+
+            attachmentMenu.style.left = leftPosition + 'px';
+            attachmentMenu.style.top = topPosition + 'px';
+
+            // Close menu when clicking outside
+            setTimeout(() => {
+                document.addEventListener('click', function closeMenu(e) {
+                    if (!attachmentMenu.contains(e.target) && e.target !== plusBtn && !plusBtn.contains(e.target)) {
+                        attachmentMenu.remove();
+                        document.removeEventListener('click', closeMenu);
+                    }
+                });
+            }, 0);
+        }
+
+        // Handle Add photos & files
+        function handleAddPhotosFiles() {
+            const fileInput = document.getElementById('dashboardFileInput');
+            if (fileInput) {
+                fileInput.click();
+            }
+            const menu = document.getElementById('dashboardAttachmentMenu');
+            if (menu) {
+                menu.remove();
+            }
+        }
+
+        // Handle Add from Google Drive
+        function handleAddFromGoogleDrive() {
+            // TODO: Implement Google Drive integration
+            console.log('Add from Google Drive');
+            const menu = document.getElementById('dashboardAttachmentMenu');
+            if (menu) {
+                menu.remove();
+            }
+        }
+
+        // Handle Add from Microsoft OneDrive
+        function handleAddFromOneDrive() {
+            // TODO: Implement OneDrive integration
+            console.log('Add from Microsoft OneDrive');
+            const menu = document.getElementById('dashboardAttachmentMenu');
+            if (menu) {
+                menu.remove();
+            }
         }
 
         // Dashboard rename conversation
@@ -2073,8 +2348,8 @@
             }
         }
 
-        // Add message to dashboard chat
-        function addDashboardMessageToChat(message) {
+        // Add message to dashboard chat (with optional attachment indicator)
+        function addDashboardMessageToChat(message, attachmentInfo = null) {
             const chatMessages = document.getElementById('dashboardChatMessages');
             if (!chatMessages) return;
             
@@ -2086,6 +2361,46 @@
             
             // Use content directly as HTML (like sidebar does) - AI returns HTML-formatted content
             let formattedContent = message.content || '';
+            
+            // Parse attachment info from message metadata if not provided directly (check both camelCase and PascalCase)
+            const metadataStr = message.metadata || message.Metadata;
+            if (!attachmentInfo && metadataStr) {
+                try {
+                    const metadata = JSON.parse(metadataStr);
+                    if (metadata.attachmentFileName && metadata.attachmentFileSize) {
+                        attachmentInfo = {
+                            fileName: metadata.attachmentFileName,
+                            fileSize: metadata.attachmentFileSize
+                        };
+                    }
+                } catch (e) {
+                    // Ignore JSON parse errors
+                }
+            }
+            
+            // Build attachment HTML if present
+            let attachmentHtml = '';
+            if (attachmentInfo) {
+                const fileSizeKb = (attachmentInfo.fileSize / 1024).toFixed(1);
+                attachmentHtml = `
+                    <div class="message-attachment" style="
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        padding: 0.5rem 0.75rem;
+                        background: rgba(61, 16, 25, 0.05);
+                        border-radius: 8px;
+                        margin-bottom: 0.5rem;
+                        border: 1px solid rgba(61, 16, 25, 0.1);
+                    ">
+                        <i class="fas fa-paperclip" style="color: #3d1019; font-size: 0.875rem;"></i>
+                        <div style="flex: 1; min-width: 0; overflow: hidden;">
+                            <div style="font-weight: 500; font-size: 0.875rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">${attachmentInfo.fileName}</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">${fileSizeKb} KB</div>
+                        </div>
+                    </div>
+                `;
+            }
             
             if (isAI) {
                 messageDiv.innerHTML = `
@@ -2111,6 +2426,7 @@
                         <div class="message-header">
                             <span class="timestamp">${timestamp}</span>
                         </div>
+                        ${attachmentHtml}
                         <div class="message-text">${formattedContent}</div>
                     </div>
                 `;
@@ -2134,40 +2450,94 @@
             // Send message handler
             const sendMessage = async () => {
                 const input = document.getElementById('dashboardMessageInput');
+                const fileInput = document.getElementById('dashboardFileInput');
+                const attachmentPreview = document.getElementById('dashboardAttachmentPreview');
+                const attachFileBtn = document.getElementById('dashboardAttachFileBtn');
                 const message = input.value.trim();
                 
-                if (!message || !window.dashboardCurrentConversationId) return;
+                // Check if there's a file attached
+                const hasAttachment = fileInput && fileInput.files && fileInput.files.length > 0;
+                
+                if (!message && !hasAttachment) return;
+                if (!window.dashboardCurrentConversationId) return;
+                
+                // Capture file and file info before clearing
+                let capturedFile = null;
+                let fileInfo = null;
+                if (hasAttachment) {
+                    capturedFile = fileInput.files[0];
+                    fileInfo = {
+                        name: capturedFile.name,
+                        size: capturedFile.size
+                    };
+                }
                 
                 // Clear input
                 input.value = '';
                 updateDashboardCharCounter();
                 
-                // Add user message immediately
+                // Clear attachment preview immediately
+                if (attachmentPreview) {
+                    attachmentPreview.style.display = 'none';
+                }
+                if (attachFileBtn) {
+                    attachFileBtn.classList.remove('active');
+                }
+                
+                // Clear the file input immediately
+                if (fileInput) {
+                    fileInput.value = '';
+                }
+                
+                // Build attachment info for display
+                const attachmentInfo = dashboardPendingAttachment ? {
+                    fileName: dashboardPendingAttachment.fileName,
+                    fileSize: dashboardPendingAttachment.fileSize
+                } : (fileInfo ? { fileName: fileInfo.name, fileSize: fileInfo.size } : null);
+                
+                // Add user message immediately (with attachment indicator if present)
                 addDashboardMessageToChat({
-                    content: message,
+                    content: message || 'Please analyze this document.',
                     isFromAI: false,
                     createdAt: new Date().toISOString()
-                });
+                }, attachmentInfo);
                 
                 // Show intelligent AI thinking indicator
-                showDashboardAIThinkingIndicator(message);
+                showDashboardAIThinkingIndicator(message || 'Analyzing attached document...');
+                
+                // If we have a file but haven't uploaded yet, upload it now
+                if (capturedFile && !dashboardPendingAttachment) {
+                    console.log('Processing attachment in background:', capturedFile.name);
+                    const uploadedAttachment = await uploadDashboardAttachment(capturedFile);
+                    if (uploadedAttachment) {
+                        dashboardPendingAttachment = uploadedAttachment;
+                    }
+                }
                 
                 // Send to server
                 try {
                     const orgId = @ViewBag.OrganizationId;
+                    
+                    // Build request body with attachment metadata if present
+                    let requestBody = `conversationId=${window.dashboardCurrentConversationId}&content=${encodeURIComponent(message || 'Please analyze this document.')}&messageType=Text`;
+                    
+                    if (fileInfo) {
+                        requestBody += `&attachmentFileName=${encodeURIComponent(fileInfo.name)}&attachmentFileSize=${fileInfo.size}`;
+                    }
+                    
                     const response = await fetch(`/Client/${orgId}/Chat/SendMessage`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
                         },
-                        body: `conversationId=${window.dashboardCurrentConversationId}&content=${encodeURIComponent(message)}&messageType=Text`
+                        body: requestBody
                     });
                     
                     const data = await response.json();
                     
                     if (data.success) {
-                        // Generate streaming AI response
-                        await generateDashboardAIResponse(message);
+                        // Generate streaming AI response (will include attachment content if dashboardPendingAttachment is set)
+                        await generateDashboardAIResponse(message || 'Please analyze this document.');
                     } else {
                         console.error('Failed to send message:', data.error);
                         hideDashboardAIThinkingIndicator();
@@ -2216,7 +2586,11 @@
             let thinkingMessage = "AI is thinking...";
             const messageLower = userMessage.toLowerCase();
             
-            if (messageLower.includes("document review") || messageLower.includes("review")) {
+            // Check if there's a pending attachment - show document analysis message
+            if (dashboardPendingAttachment || messageLower.includes("analyze this document") || 
+                messageLower.includes("pdf") || messageLower.includes("attachment")) {
+                thinkingMessage = "Analyzing document content...";
+            } else if (messageLower.includes("document review") || messageLower.includes("review")) {
                 thinkingMessage = "Analyzing document requirements...";
             } else if (messageLower.includes("contract") || messageLower.includes("agreement")) {
                 thinkingMessage = "Reviewing contract details...";
@@ -2338,15 +2712,35 @@
                     chatMessages.addEventListener('scroll', handleScroll);
                 }
                 
+                // Build request body with optional attachment content
+                const requestBody = {
+                    conversationId: parseInt(window.dashboardCurrentConversationId),
+                    userMessage: userMessage
+                };
+
+                // Wait for attachment upload to complete if still uploading
+                if (window._dashboardUploadingAttachment) {
+                    console.log('Waiting for attachment upload to complete...');
+                    while (window._dashboardUploadingAttachment) {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                }
+
+                // Include attachment content if present
+                if (dashboardPendingAttachment) {
+                    requestBody.attachmentContent = dashboardPendingAttachment.extractedContent;
+                    requestBody.attachmentFileName = dashboardPendingAttachment.fileName;
+                    console.log(`Including attachment in dashboard AI request: ${dashboardPendingAttachment.fileName}`);
+                    // Clear pending attachment after including it
+                    dashboardPendingAttachment = null;
+                }
+
                 const response = await fetch(`/Client/${orgId}/Chat/GenerateAIResponseStream`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        conversationId: parseInt(window.dashboardCurrentConversationId),
-                        userMessage: userMessage
-                    })
+                    body: JSON.stringify(requestBody)
                 });
                 
                 if (!response.ok) {
@@ -2499,10 +2893,25 @@
             if (searchSendBtn && searchInput) {
                 searchSendBtn.addEventListener('click', async function() {
                     const message = searchInput.value.trim();
-                    if (!message) return;
+                    const fileInput = document.getElementById('dashboardFileInput');
+                    const hasAttachment = fileInput && fileInput.files && fileInput.files.length > 0;
+                    
+                    if (!message && !hasAttachment) return;
                     
                     // Check if we have a conversation selected
                     const savedConversationId = localStorage.getItem('dashboardSelectedConversation');
+                    
+                    // Use default message if only attachment is present
+                    const effectiveMessage = message || (hasAttachment ? 'Please analyze this document.' : '');
+                    
+                    // Clear the search input
+                    searchInput.value = '';
+                    
+                    // Clear the landing attachment preview
+                    const landingAttachmentPreview = document.getElementById('landingAttachmentPreview');
+                    if (landingAttachmentPreview) {
+                        landingAttachmentPreview.style.display = 'none';
+                    }
                     
                     if (savedConversationId) {
                         // Use existing conversation
@@ -2513,7 +2922,7 @@
                         setTimeout(() => {
                             const dashboardInput = document.getElementById('dashboardMessageInput');
                             if (dashboardInput) {
-                                dashboardInput.value = message;
+                                dashboardInput.value = effectiveMessage;
                                 document.getElementById('dashboardSendButton').click();
                             }
                         }, 100);
@@ -2521,12 +2930,13 @@
                         // Create new conversation
                         try {
                             const orgId = @ViewBag.OrganizationId;
+                            const conversationTitle = hasAttachment ? 'Document Analysis' : 'New Chat';
                             const response = await fetch(`/Client/${orgId}/Chat/CreateConversation`, {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/x-www-form-urlencoded',
                                 },
-                                body: `title=New Chat&description=${encodeURIComponent(message)}`
+                                body: `title=${encodeURIComponent(conversationTitle)}&description=${encodeURIComponent(effectiveMessage)}`
                             });
                             
                             const data = await response.json();
@@ -2543,7 +2953,7 @@
                                 setTimeout(() => {
                                     const dashboardInput = document.getElementById('dashboardMessageInput');
                                     if (dashboardInput) {
-                                        dashboardInput.value = message;
+                                        dashboardInput.value = effectiveMessage;
                                         document.getElementById('dashboardSendButton').click();
                                     }
                                 }, 200);
