@@ -839,12 +839,19 @@ async function sendMessageInternal(message, conversationId, fileInfo = null, cap
             });
         }
         
+        // Build request body with attachment metadata if present
+        let requestBody = `conversationId=${conversationId}&content=${encodeURIComponent(message)}&messageType=Text`;
+        
+        if (attachmentInfo) {
+            requestBody += `&attachmentFileName=${encodeURIComponent(attachmentInfo.fileName)}&attachmentFileSize=${attachmentInfo.fileSize}`;
+        }
+        
         const response = await fetch(`/Client/${orgId}/Chat/SendMessage`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: `conversationId=${conversationId}&content=${encodeURIComponent(message)}&messageType=Text`
+            body: requestBody
         });
         
         const data = await response.json();
@@ -1089,6 +1096,38 @@ function addMessageToChat(message) {
             </div>
         `;
     } else {
+        // Parse attachment info from message metadata if present (check both camelCase and PascalCase)
+        let attachmentHtml = '';
+        const metadataStr = message.metadata || message.Metadata;
+        if (metadataStr) {
+            try {
+                const metadata = JSON.parse(metadataStr);
+                if (metadata.attachmentFileName && metadata.attachmentFileSize) {
+                    const fileSizeKb = (metadata.attachmentFileSize / 1024).toFixed(1);
+                    attachmentHtml = `
+                        <div class="message-attachment" style="
+                            display: flex;
+                            align-items: center;
+                            gap: 0.5rem;
+                            padding: 0.5rem 0.75rem;
+                            background: rgba(61, 16, 25, 0.05);
+                            border-radius: 8px;
+                            margin-bottom: 0.5rem;
+                            border: 1px solid rgba(61, 16, 25, 0.1);
+                        ">
+                            <i class="fas fa-paperclip" style="color: #3d1019; font-size: 0.875rem;"></i>
+                            <div style="flex: 1; min-width: 0; overflow: hidden;">
+                                <div style="font-weight: 500; font-size: 0.875rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">${metadata.attachmentFileName}</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">${fileSizeKb} KB</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (e) {
+                // Ignore JSON parse errors
+            }
+        }
+        
         messageDiv.className = 'user-message-bubble';
         messageDiv.innerHTML = `
             <div class="message-content">
@@ -1096,6 +1135,7 @@ function addMessageToChat(message) {
                     <span class="sender-name">${currentUserName} <span class="you-label">(You)</span></span>
                     <span class="timestamp">${new Date(message.createdAt).toLocaleTimeString()}</span>
                 </div>
+                ${attachmentHtml}
                 <div class="message-text">${message.content}</div>
             </div>
         `;

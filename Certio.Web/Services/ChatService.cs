@@ -260,7 +260,7 @@ public class ChatService : IChatService
         return conversation;
     }
 
-    public async Task<ChatMessage> SendMessageAsync(int conversationId, int? userId, string userType, string content, string messageType = "Text")
+    public async Task<ChatMessage> SendMessageAsync(int conversationId, int? userId, string userType, string content, string messageType = "Text", string? metadata = null)
     {
         // Defense-in-depth: Verify conversation exists and user has access
         var conversation = await _context.Conversations
@@ -291,7 +291,8 @@ public class ChatService : IChatService
             Content = content,
             MessageType = messageType,
             IsFromAI = false,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            Metadata = metadata // Store attachment metadata
         };
 
         _context.ChatMessages.Add(message);

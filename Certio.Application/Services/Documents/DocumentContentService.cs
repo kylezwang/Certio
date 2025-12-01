@@ -32,6 +32,13 @@ public sealed class DocumentContentService : IDocumentContentService
     private readonly DocumentIntelligenceClient? _documentIntelligenceClient;
     private readonly IFileStorageService _fileStorageService;
     private readonly ILogger<DocumentContentService> _logger;
+    
+    // Rate limiting for Azure Document Intelligence
+    private static readonly SemaphoreSlim _extractionSemaphore = new(2, 2); // Max 2 concurrent extractions
+    private static DateTime _rateLimitedUntil = DateTime.MinValue;
+    private static int _consecutiveTimeouts = 0;
+    private static int _consecutiveErrors = 0;
+    private const int MaxConsecutiveErrors = 5; // Stop logging warnings after this many consecutive errors
 
     public DocumentContentService(
         ApplicationDbContext dbContext,
@@ -573,14 +580,29 @@ public sealed class DocumentContentService : IDocumentContentService
             return DocumentContentResult.Empty("azure_document_intelligence_not_configured");
         }
 
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        if (_extractionOptions.OperationTimeout > TimeSpan.Zero)
+        // Check if we're currently rate limited
+        if (DateTime.UtcNow < _rateLimitedUntil)
         {
-            linkedCts.CancelAfter(_extractionOptions.OperationTimeout);
+            var waitTime = (_rateLimitedUntil - DateTime.UtcNow).TotalSeconds;
+            _logger.LogDebug("Skipping extraction - rate limited for {Seconds} more seconds", waitTime);
+            return DocumentContentResult.Empty("rate_limited");
+        }
+
+        // Use semaphore to limit concurrent extractions
+        if (!await _extractionSemaphore.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken))
+        {
+            _logger.LogDebug("Extraction semaphore timeout - too many concurrent extractions");
+            return DocumentContentResult.Empty("extraction_queue_full");
         }
 
         try
         {
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            if (_extractionOptions.OperationTimeout > TimeSpan.Zero)
+            {
+                linkedCts.CancelAfter(_extractionOptions.OperationTimeout);
+            }
+
             var analyzeOperation = await _documentIntelligenceClient.AnalyzeDocumentAsync(
                 WaitUntil.Completed,
                 _extractionOptions.ModelId,
@@ -608,17 +630,64 @@ public sealed class DocumentContentService : IDocumentContentService
                 baseMetadata["confidence"] = avgConfidence.ToString("0.000");
             }
 
+            // Reset error counters on success
+            Interlocked.Exchange(ref _consecutiveTimeouts, 0);
+            Interlocked.Exchange(ref _consecutiveErrors, 0);
+
             return new DocumentContentResult(sanitized, isPartial, baseMetadata);
         }
         catch (OperationCanceledException)
         {
-            _logger.LogWarning("Document intelligence extraction timed out for provider {Provider}", provider);
+            Interlocked.Increment(ref _consecutiveTimeouts);
+            // Only log warning for first few timeouts to reduce spam
+            if (_consecutiveTimeouts <= MaxConsecutiveErrors)
+            {
+                _logger.LogWarning("Document intelligence extraction timed out for provider {Provider} (timeout #{Count})", provider, _consecutiveTimeouts);
+            }
+            else if (_consecutiveTimeouts == MaxConsecutiveErrors + 1)
+            {
+                _logger.LogWarning("Document intelligence extraction continues to timeout for provider {Provider}. Suppressing further timeout warnings.", provider);
+            }
             return DocumentContentResult.Empty("analysis_timeout");
         }
         catch (RequestFailedException ex)
         {
-            _logger.LogWarning(ex, "Document intelligence request failed with status {Status}", ex.Status);
+            Interlocked.Increment(ref _consecutiveErrors);
+            
+            // Handle rate limiting (429) - respect Retry-After header
+            if (ex.Status == 429)
+            {
+                // Parse Retry-After header if available, default to 60 seconds
+                var retryAfterSeconds = 60;
+                if (ex.GetRawResponse()?.Headers.TryGetValue("Retry-After", out var retryAfterHeader) == true
+                    && int.TryParse(retryAfterHeader, out var parsedSeconds))
+                {
+                    retryAfterSeconds = parsedSeconds;
+                }
+                
+                _rateLimitedUntil = DateTime.UtcNow.AddSeconds(retryAfterSeconds + 5); // Add buffer
+                
+                if (_consecutiveErrors <= MaxConsecutiveErrors)
+                {
+                    _logger.LogWarning("Azure Document Intelligence rate limited. Will retry after {Seconds} seconds.", retryAfterSeconds);
+                }
+                return DocumentContentResult.Empty("rate_limited");
+            }
+            
+            // Only log warning for first few errors to reduce spam
+            if (_consecutiveErrors <= MaxConsecutiveErrors)
+            {
+                _logger.LogWarning(ex, "Document intelligence request failed with status {Status} (error #{Count})", ex.Status, _consecutiveErrors);
+            }
+            else if (_consecutiveErrors == MaxConsecutiveErrors + 1)
+            {
+                _logger.LogWarning("Document intelligence continues to fail. Suppressing further error warnings until success.");
+            }
             return DocumentContentResult.Empty("analysis_failed");
+        }
+        finally
+        {
+            _extractionSemaphore.Release();
         }
     }
 
