@@ -216,7 +216,8 @@ namespace Certio.Tests.Hubs
                     actualUser.Id, // Should use actual user ID, not client-provided
                     It.IsAny<string>(),
                     "Test message",
-                    "Text"))
+                    "Text",
+                    It.IsAny<string?>()))
                 .ReturnsAsync(message);
 
             var hub = CreateHubWithUser(actualUser.Id);
@@ -231,7 +232,8 @@ namespace Certio.Tests.Hubs
                     actualUser.Id, // Actual user ID
                     It.IsAny<string>(), 
                     "Test message", 
-                    "Text"),
+                    "Text",
+                    It.IsAny<string?>()),
                 Times.Once);
             
             // Verify it was NOT called with the impersonated user ID
@@ -241,7 +243,8 @@ namespace Certio.Tests.Hubs
                     impersonatedUser.Id, // Should never use this
                     It.IsAny<string>(), 
                     It.IsAny<string>(), 
-                    It.IsAny<string>()),
+                    It.IsAny<string>(),
+                    It.IsAny<string?>()),
                 Times.Never);
         }
 
