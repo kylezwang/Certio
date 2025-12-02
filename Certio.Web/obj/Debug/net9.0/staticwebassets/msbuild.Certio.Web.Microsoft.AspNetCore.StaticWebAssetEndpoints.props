@@ -220,13 +220,13 @@
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\chat.js'))</AssetFile>
       <Selectors><![CDATA[[]]]></Selectors>
       <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"05u3x9euf5"},{"Name":"integrity","Value":"sha256-VKDhG9seh8lBeIC/jPxlycM22maO\u002BxI7z6JzbReezE8="},{"Name":"label","Value":"_content/Certio.Web/js/chat.js"}]]]></EndpointProperties>
-      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"129403"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u0022VKDhG9seh8lBeIC/jPxlycM22maO\u002BxI7z6JzbReezE8=\u0022"},{"Name":"Last-Modified","Value":"Sun, 30 Nov 2025 21:56:35 GMT"}]]]></ResponseHeaders>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"129403"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u0022VKDhG9seh8lBeIC/jPxlycM22maO\u002BxI7z6JzbReezE8=\u0022"},{"Name":"Last-Modified","Value":"Mon, 01 Dec 2025 02:01:55 GMT"}]]]></ResponseHeaders>
     </StaticWebAssetEndpoint>
     <StaticWebAssetEndpoint Include="_content/Certio.Web/js/chat.js">
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\chat.js'))</AssetFile>
       <Selectors><![CDATA[[]]]></Selectors>
       <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-VKDhG9seh8lBeIC/jPxlycM22maO\u002BxI7z6JzbReezE8="}]]]></EndpointProperties>
-      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"129403"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u0022VKDhG9seh8lBeIC/jPxlycM22maO\u002BxI7z6JzbReezE8=\u0022"},{"Name":"Last-Modified","Value":"Sun, 30 Nov 2025 21:56:35 GMT"}]]]></ResponseHeaders>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"129403"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u0022VKDhG9seh8lBeIC/jPxlycM22maO\u002BxI7z6JzbReezE8=\u0022"},{"Name":"Last-Modified","Value":"Mon, 01 Dec 2025 02:01:55 GMT"}]]]></ResponseHeaders>
     </StaticWebAssetEndpoint>
     <StaticWebAssetEndpoint Include="_content/Certio.Web/js/communications-sidebar.6rr65kno7a.js">
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\communications-sidebar.js'))</AssetFile>

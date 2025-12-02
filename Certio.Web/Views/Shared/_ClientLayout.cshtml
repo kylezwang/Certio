@@ -13,7 +13,7 @@
     }
 }
 
-<!-- Critical CSS for instant page render - prevents white flash -->
+<!-- Critical CSS for instant page render - prevents white flash and flickering -->
 <style>
     /* Prevent white flash by setting background immediately */
     body {
@@ -25,7 +25,27 @@
     .main-content.client-main-content {
         background-color: #ffffff;
     }
+    
+    /* CRITICAL: Disable animations on page load to prevent flickering */
+    /* This prevents the "opacity: 0" fadeIn animations from causing white flash */
+    .page-loading .matter-card,
+    .page-loading .document-card,
+    .page-loading .stats-card,
+    .page-loading .gd-card,
+    .page-loading .qa-card,
+    .page-loading .card,
+    .page-loading .tab-content-section {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
 </style>
+
+<!-- Critical Script: Add page-loading class IMMEDIATELY to prevent flicker -->
+<script>
+    // This runs synchronously before any content renders
+    document.documentElement.classList.add('page-loading');
+</script>
 
 <style>
     /* Logo image styling */
@@ -2716,6 +2736,14 @@
 <script src="~/js/chat.js" defer></script>
 
 <script>
+        // Remove 'page-loading' class after page is fully loaded to re-enable animations for dynamic content
+        window.addEventListener('load', function() {
+            // Small delay to ensure everything is rendered
+            setTimeout(function() {
+                document.documentElement.classList.remove('page-loading');
+            }, 100);
+        });
+        
         // Initialize conversations on all pages
         document.addEventListener('DOMContentLoaded', function() {
             
