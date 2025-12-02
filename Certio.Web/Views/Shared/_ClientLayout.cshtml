@@ -11,9 +11,166 @@
     {
         @RenderSection("PageStyles", required: false)
     }
+    
+    <!-- Critical CSS for instant page render - MUST be in head to prevent flicker -->
+    <style>
+        /* Prevent white flash by setting background immediately */
+        body {
+            background-color: #C7B7A340;
+        }
+        
+        /* Critical positioning styles - must load before body renders */
+        .min-h-screen {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .page-header {
+            position: fixed;
+            top: 0;
+            left: 6vw;
+            right: 0;
+            height: 7vh;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            transition: left 0.3s ease;
+        }
+        
+        .client-main-content-wrapper {
+            position: fixed;
+            top: 7vh;
+            left: 20vw;
+            right: 320px;
+            bottom: 0;
+            overflow: hidden;
+            z-index: 200;
+            border-radius: 20px 20px 0px 0px;
+            background-color: rgba(11, 54, 94, 0.085);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+        }
+        
+        .client-main-content-wrapper.global-dashboard-layout {
+            left: 23vw;
+        }
+        
+        .main-content.client-main-content {
+            min-height: 100%;
+            height: 100%;
+            padding: 1rem;
+            overflow-y: auto;
+            border-radius: 20px 20px 0px 0px;
+            background-color: #ffffff;
+        }
+        
+        .client-sidebar {
+            position: fixed;
+            top: 7vh;
+            left: 6vw;
+            width: 14vw;
+            height: calc(100vh - 7vh);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem 0.75rem;
+        }
+        
+        .global-dashboard-sidebar {
+            position: fixed;
+            top: 7vh;
+            left: 6vw;
+            width: 16.5vw;
+            height: calc(100vh - 7vh);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            padding: 0rem 0.5rem 0rem 1rem;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+        
+        /* Sidebar hidden states - support both html.sidebar-hidden and body.sidebar-hidden */
+        .sidebar-hidden .client-sidebar,
+        .sidebar-hidden .global-dashboard-sidebar,
+        html.sidebar-hidden .client-sidebar,
+        html.sidebar-hidden .global-dashboard-sidebar {
+            transform: translateX(-100%);
+        }
+        
+        .sidebar-hidden .client-main-content-wrapper,
+        .sidebar-hidden .client-main-content-wrapper.global-dashboard-layout,
+        html.sidebar-hidden .client-main-content-wrapper,
+        html.sidebar-hidden .client-main-content-wrapper.global-dashboard-layout {
+            left: calc(6vw + 1rem);
+        }
+        
+        /* Chat panel and hidden states - support both html and body selectors */
+        .chat-hidden .client-main-content-wrapper,
+        html.chat-hidden .client-main-content-wrapper {
+            right: 1rem;
+        }
+        
+        .chat-panel {
+            position: fixed;
+            right: 0;
+            top: 7vh;
+            width: 320px;
+            height: calc(100vh - 7vh);
+            z-index: 40;
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+    
+    <!-- Inline script to set initial sidebar state BEFORE page renders - prevents layout flicker -->
+    <script>
+        (function() {
+            var css = '';
+            
+            // Handle RIGHT sidebar (chat/notifications panel) state
+            var activeSidebar = localStorage.getItem('activeSidebar');
+            var savedWidth = '320';
+            
+            // Determine the saved panel width based on active sidebar
+            if (activeSidebar === 'ai') {
+                savedWidth = localStorage.getItem('chatPanelWidth') || '320';
+            } else if (activeSidebar === 'comms' || activeSidebar === 'notifications') {
+                savedWidth = localStorage.getItem('notificationsPanelWidth') || '320';
+            }
+            
+            if (activeSidebar === 'none' || !activeSidebar || activeSidebar === '') {
+                // Right sidebar is hidden - expand content to the right
+                css += '.client-main-content-wrapper { right: 1rem !important; }';
+                document.documentElement.classList.add('chat-hidden', 'no-sidebars');
+            } else {
+                // Right sidebar is visible - set correct width
+                css += '.client-main-content-wrapper { right: ' + savedWidth + 'px !important; }';
+            }
+            
+            // Handle LEFT sidebar (navigation sidebar) state
+            var isMatterDetails = window.location.pathname.includes('/Matter/Details');
+            var wasManuallyHidden = localStorage.getItem('sidebarHiddenManual') === 'true';
+            var sidebarWasHidden = localStorage.getItem('sidebarHidden') === 'true';
+            
+            // Check if left sidebar should be hidden
+            if (isMatterDetails || (wasManuallyHidden && sidebarWasHidden)) {
+                document.documentElement.classList.add('sidebar-hidden');
+            }
+            
+            // Add CSS rules immediately
+            if (css) {
+                var styleEl = document.createElement('style');
+                styleEl.id = 'initial-sidebar-state';
+                styleEl.textContent = css;
+                document.head.appendChild(styleEl);
+            }
+        })();
+    </script>
 }
 
-<!-- Critical CSS for instant page render - prevents white flash and flickering -->
+<!-- Critical CSS for instant page render - prevents white flash -->
 <style>
     /* Prevent white flash by setting background immediately */
     body {
@@ -25,27 +182,7 @@
     .main-content.client-main-content {
         background-color: #ffffff;
     }
-    
-    /* CRITICAL: Disable animations on page load to prevent flickering */
-    /* This prevents the "opacity: 0" fadeIn animations from causing white flash */
-    .page-loading .matter-card,
-    .page-loading .document-card,
-    .page-loading .stats-card,
-    .page-loading .gd-card,
-    .page-loading .qa-card,
-    .page-loading .card,
-    .page-loading .tab-content-section {
-        animation: none !important;
-        opacity: 1 !important;
-        transform: none !important;
-    }
 </style>
-
-<!-- Critical Script: Add page-loading class IMMEDIATELY to prevent flicker -->
-<script>
-    // This runs synchronously before any content renders
-    document.documentElement.classList.add('page-loading');
-</script>
 
 <style>
     /* Logo image styling */
@@ -2736,14 +2873,6 @@
 <script src="~/js/chat.js" defer></script>
 
 <script>
-        // Remove 'page-loading' class after page is fully loaded to re-enable animations for dynamic content
-        window.addEventListener('load', function() {
-            // Small delay to ensure everything is rendered
-            setTimeout(function() {
-                document.documentElement.classList.remove('page-loading');
-            }, 100);
-        });
-        
         // Initialize conversations on all pages
         document.addEventListener('DOMContentLoaded', function() {
             
