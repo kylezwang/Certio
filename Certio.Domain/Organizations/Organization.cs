@@ -138,9 +138,10 @@ namespace Certio.Domain.Organizations
 
     public enum AIModelTier
     {
-        Auto = 0,      // Dynamic selection based on complexity (current behavior)
-        Basic = 1,     // gpt-4o-mini
-        Advanced = 2,  // gpt-4o
-        Premium = 3    // gpt-5
+        Auto = 0,         // Dynamic selection based on complexity (current behavior)
+        Basic = 1,        // gpt-4o-mini
+        Intermediate = 2, // gpt-4.1-mini (o1-mini)
+        Advanced = 3,     // gpt-4o
+        Premium = 4       // gpt-4.1 (o1-preview) / gpt-5
     }
 }

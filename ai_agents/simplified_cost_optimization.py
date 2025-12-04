@@ -16,9 +16,12 @@ import hashlib
 logger = logging.getLogger(__name__)
 
 class ModelType(Enum):
-    """Simplified model selection - only the most cost-effective models"""
-    GPT_4O_MINI = "gpt-4o-mini"  # For simple tasks (98% cost savings)
-    GPT_4O = "gpt-4o"            # For complex tasks (50% cost savings)
+    """Model selection with tiered complexity support"""
+    GPT_4O_MINI = "gpt-4o-mini"  # For simple tasks - Basic tier
+    GPT_4_1_MINI = "gpt-4.1-mini"  # For intermediate tasks - Intermediate tier (o1-mini)
+    GPT_4O = "gpt-4o"            # For complex tasks - Advanced tier
+    GPT_4_1 = "gpt-4.1"          # For highest complexity tasks - Premium tier (o1-preview)
+    GPT_5 = "gpt-5"              # For highest complexity tasks - Premium tier (future)
 
 @dataclass
 class ModelInfo:
@@ -51,9 +54,9 @@ class SimplifiedModelSelector:
         self.cache_manager = IntelligentCacheManager()
         
     def _initialize_models(self) -> Dict[ModelType, ModelInfo]:
-        """Initialize only the most cost-effective models"""
+        """Initialize models with tiered complexity support"""
         return {
-            # GPT-4o Mini - For simple tasks (98% cost savings)
+            # GPT-4o Mini - For simple tasks - Basic tier
             ModelType.GPT_4O_MINI: ModelInfo(
                 name="GPT-4o Mini",
                 cost_per_1k_tokens_input=0.00015,  # $0.15 per 1M tokens
@@ -62,9 +65,20 @@ class SimplifiedModelSelector:
                 context_window=128000,
                 capabilities=["analysis", "creativity", "code_generation"],
                 speed_tier=1,
-                quality_tier=2
+                quality_tier=4
             ),
-            # GPT-4o - For complex tasks (50% cost savings vs GPT-4 Turbo)
+            # GPT-4.1 Mini (o1-mini) - For intermediate tasks - Intermediate tier
+            ModelType.GPT_4_1_MINI: ModelInfo(
+                name="GPT-4.1 Mini",
+                cost_per_1k_tokens_input=0.003,  # $3.00 per 1M tokens
+                cost_per_1k_tokens_output=0.012,  # $12.00 per 1M tokens
+                max_tokens=65536,
+                context_window=128000,
+                capabilities=["reasoning", "analysis", "creativity", "code_generation", "o1_reasoning"],
+                speed_tier=1,
+                quality_tier=3
+            ),
+            # GPT-4o - For complex tasks (50% cost savings vs GPT-4 Turbo) - Advanced tier
             ModelType.GPT_4O: ModelInfo(
                 name="GPT-4o",
                 cost_per_1k_tokens_input=0.005,  # $5.00 per 1M tokens
@@ -73,6 +87,28 @@ class SimplifiedModelSelector:
                 context_window=128000,
                 capabilities=["reasoning", "analysis", "creativity", "code_generation", "multimodal"],
                 speed_tier=1,
+                quality_tier=2
+            ),
+            # GPT-4.1 (o1-preview) - For highest complexity tasks - Premium tier
+            ModelType.GPT_4_1: ModelInfo(
+                name="GPT-4.1",
+                cost_per_1k_tokens_input=0.015,  # $15.00 per 1M tokens
+                cost_per_1k_tokens_output=0.06,  # $60.00 per 1M tokens
+                max_tokens=32768,
+                context_window=128000,
+                capabilities=["advanced_reasoning", "analysis", "creativity", "code_generation", "multimodal", "o1_reasoning"],
+                speed_tier=2,
+                quality_tier=1
+            ),
+            # GPT-5 - For highest complexity tasks - Premium tier (future)
+            ModelType.GPT_5: ModelInfo(
+                name="GPT-5",
+                cost_per_1k_tokens_input=0.01,  # $10.00 per 1M tokens (estimated)
+                cost_per_1k_tokens_output=0.03,  # $30.00 per 1M tokens (estimated)
+                max_tokens=8192,
+                context_window=200000,  # Expected larger context window
+                capabilities=["advanced_reasoning", "analysis", "creativity", "code_generation", "multimodal", "agentic"],
+                speed_tier=2,
                 quality_tier=1
             )
         }
@@ -104,13 +140,16 @@ class SimplifiedModelSelector:
             logger.info("Using cached response for cost optimization")
             return ModelType.GPT_4O_MINI, 0.0  # Cached responses are free
         
-        # Simplified selection logic
-        if task_complexity.complexity_score < 0.5:
-            # Simple tasks: Use GPT-4o Mini (98% cost savings)
+        # Three-tier complexity selection logic
+        if task_complexity.complexity_score < 0.4:
+            # Simple tasks: Use GPT-4o Mini (most cost-effective)
             selected_model = ModelType.GPT_4O_MINI
-        else:
-            # Complex tasks: Use GPT-4o (50% cost savings vs GPT-4 Turbo)
+        elif task_complexity.complexity_score < 0.7:
+            # Complex tasks: Use GPT-4o (balanced performance)
             selected_model = ModelType.GPT_4O
+        else:
+            # Highest complexity: Use GPT-4.1 (premium quality)
+            selected_model = ModelType.GPT_4_1
         
         # Calculate estimated cost
         estimated_cost = self._estimate_cost(selected_model, task_complexity)
