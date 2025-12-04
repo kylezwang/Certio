@@ -379,6 +379,13 @@
                                required />
                         <small class="form-text text-muted">We sent a verification code to @Model.Email</small>
                     </div>
+                    
+                    <div class="form-check" style="margin-bottom: 1.5rem;">
+                        <input class="form-check-input" type="checkbox" id="rememberMe" name="RememberMe" value="true" @(Model.RememberMe ? "checked" : "")>
+                        <label class="form-check-label" for="rememberMe" style="font-size: 0.875rem; color: #374151;">
+                            Remember me
+                        </label>
+                    </div>
 
                     <button type="submit" class="btn btn-signin">
                         Verify Code
