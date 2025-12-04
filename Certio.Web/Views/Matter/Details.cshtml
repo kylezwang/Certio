@@ -2,6 +2,16 @@
 @{
     ViewData["Title"] = Model.Matter.Title;
     Layout = "_ClientLayout";
+    
+    // Get organization entity for custom terminology
+    var orgType = ViewBag.OrganizationType as Certio.Domain.Organizations.OrganizationType? ?? Certio.Domain.Organizations.OrganizationType.Client;
+    var orgEntity = ViewBag.OrganizationEntity as Certio.Domain.Organizations.Organization;
+    var matterLabel = orgEntity != null 
+        ? Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgEntity) 
+        : Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
+    var mattersLabel = orgEntity != null 
+        ? Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgEntity) 
+        : Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType);
 }
 
 <meta name="organization-id" content="@ViewBag.OrganizationId" />
@@ -282,8 +292,8 @@
                                             <div class="d-flex align-items-center mb-3" style="margin-left:0.25rem;">
                                                 <i class="fas fa-cog fs-5 me-2" style="color: #3d1019; font-size: 1.35rem;"></i>
                                                 <div>
-                                                    <h6 class="fw-bold text-dark mb-1" style="font-size: 1rem;">Matter Settings</h6>
-                                                    <p class="text-muted mb-0 small" style="font-size: 0.8rem;">Configure timeline, priority, and matter status.</p>
+                                                    <h6 class="fw-bold text-dark mb-1" style="font-size: 1rem;">@matterLabel Settings</h6>
+                                                    <p class="text-muted mb-0 small" style="font-size: 0.8rem;">Configure timeline, priority, and @matterLabel.ToLower() status.</p>
                                                 </div>
                                             </div>
                                             <div class="container-fluid px-0">
@@ -494,20 +504,20 @@
                                                 <div class="mb-3" style="padding: 0rem 0.5rem;">
                                                     <div class="d-flex align-items-center mb-2" style="margin-left:0.25rem;">
                                                         <i class="fas fa-shield-alt fs-6 me-2" style="color: #3d1019; font-size: 1.125rem;"></i>
-                                                        <h6 class="fw-bold text-dark mb-1" style="font-size: 0.9rem;">Matter Permissions</h6>
+                                                        <h6 class="fw-bold text-dark mb-1" style="font-size: 0.9rem;">@matterLabel Permissions</h6>
                                                     </div>
                                                     <div class="form-check mb-2" style="margin: 1rem 0.5rem 0.5rem;">
                                                         <input class="form-check-input" style="margin-top:0.35rem;" type="radio" disabled @(Model.Matter.AccessLevel == "Everyone" ? "checked" : "")>
                                                         <label class="form-check-label">
                                                             <span class="fw-bold" style="font-size: 0.9rem;">Everyone</span>
-                                                            <small class="text-muted d-block">All organization members can view this matter</small>
+                                                            <small class="text-muted d-block">All organization members can view this @matterLabel.ToLower()</small>
                                                         </label>
                                                     </div>
                                                     <div class="form-check" style="margin: 0rem 0.5rem;">
                                                         <input class="form-check-input" style="margin-top:0.35rem;" type="radio" disabled @(Model.Matter.AccessLevel == "Specific" ? "checked" : "")>
                                                         <label class="form-check-label">
                                                             <span class="fw-bold" style="font-size: 0.9rem;">Specific users or groups</span>
-                                                            <small class="text-muted d-block">Only selected users and groups can view this matter</small>
+                                                            <small class="text-muted d-block">Only selected users and groups can view this @matterLabel.ToLower()</small>
                                                         </label>
                                                     </div>
                                                 </div>
@@ -755,8 +765,8 @@
             <div class="container-fluid px-4 py-4">
                 <div class="text-center py-5">
                     <i class="fas fa-stream text-muted mb-3" style="font-size: 3rem;"></i>
-                    <h4 class="text-dark mb-2">Matter Timeline</h4>
-                    <p class="text-muted">This section will display a timeline of events and milestones for this matter.</p>
+                    <h4 class="text-dark mb-2">@matterLabel Timeline</h4>
+                    <p class="text-muted">This section will display a timeline of events and milestones for this @matterLabel.ToLower().</p>
                     <p class="text-muted small">(To be implemented in a future phase)</p>
                 </div>
             </div>
@@ -777,8 +787,8 @@
             <div class="container-fluid px-4 py-4">
                 <div class="text-center py-5">
                     <i class="fas fa-folder text-muted mb-3" style="font-size: 3rem;"></i>
-                    <h4 class="text-dark mb-2">Matter Documents</h4>
-                    <p class="text-muted">This section will display all documents and files associated with this matter.</p>
+                    <h4 class="text-dark mb-2">@matterLabel Documents</h4>
+                    <p class="text-muted">This section will display all documents and files associated with this @matterLabel.ToLower().</p>
                     <p class="text-muted small">(To be implemented in a future phase)</p>
                 </div>
             </div>
@@ -789,8 +799,8 @@
             <div class="container-fluid px-4 py-4">
                 <div class="text-center py-5">
                     <i class="fas fa-credit-card text-muted mb-3" style="font-size: 3rem;"></i>
-                    <h4 class="text-dark mb-2">Matter Billing</h4>
-                    <p class="text-muted">This section will display billing information and time tracking for this matter.</p>
+                    <h4 class="text-dark mb-2">@matterLabel Billing</h4>
+                    <p class="text-muted">This section will display billing information and time tracking for this @matterLabel.ToLower().</p>
                     <p class="text-muted small">(To be implemented in a future phase)</p>
                 </div>
             </div>
@@ -801,8 +811,8 @@
             <div class="container-fluid px-4 py-4">
                 <div class="text-center py-5">
                     <i class="fas fa-history text-muted mb-3" style="font-size: 3rem;"></i>
-                    <h4 class="text-dark mb-2">Matter History</h4>
-                    <p class="text-muted">This section will display the change history and audit log for this matter.</p>
+                    <h4 class="text-dark mb-2">@matterLabel History</h4>
+                    <p class="text-muted">This section will display the change history and audit log for this @matterLabel.ToLower().</p>
                     <p class="text-muted small">(To be implemented in a future phase)</p>
                 </div>
             </div>

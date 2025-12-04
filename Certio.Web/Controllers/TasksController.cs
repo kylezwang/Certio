@@ -79,10 +79,10 @@ namespace Certio.Web.Controllers
                 .FirstOrDefaultAsync();
             ViewBag.OrganizationName = org?.Name ?? "Client";
             ViewBag.OrganizationType = org?.Type ?? Certio.Domain.Organizations.OrganizationType.Client;
+            ViewBag.OrganizationEntity = org; // For custom terminology
 
             // Check if this is a LawFirm organization - if so, aggregate tasks/matters from all accessible clients
-            var currentOrg = await _context.Organizations
-                .FirstOrDefaultAsync(o => o.Id == organizationId);
+            var currentOrg = org;
             
             List<TaskDto> allTasks;
             List<MatterDto> allMatters;
@@ -236,10 +236,10 @@ namespace Certio.Web.Controllers
                 .FirstOrDefaultAsync();
             ViewBag.OrganizationName = org?.Name ?? "Client";
             ViewBag.OrganizationType = org?.Type ?? Certio.Domain.Organizations.OrganizationType.Client;
+            ViewBag.OrganizationEntity = org; // For custom terminology
 
             // Check if this is a LawFirm organization - if so, aggregate tasks from all accessible clients
-            var currentOrg = await _context.Organizations
-                .FirstOrDefaultAsync(o => o.Id == orgId);
+            var currentOrg = org;
             
             List<TaskDto> allTasks;
             

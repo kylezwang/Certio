@@ -77,7 +77,12 @@
         var orgType = ViewBag.OrganizationType != null 
             ? (Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType 
             : Certio.Domain.Organizations.OrganizationType.LawFirm;
+        var orgEntity = ViewBag.OrganizationEntity as Certio.Domain.Organizations.Organization;
         var legalLabel = Certio.Web.Helpers.RoleDisplayHelper.GetLegalTerminology(orgType);
+        // Use custom terminology if available, otherwise fall back to type-based default
+        var matterLabel = orgEntity != null 
+            ? Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgEntity) 
+            : Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
     }
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
@@ -140,9 +145,6 @@
     </div>
 
     <!-- Matter Folders Section -->
-    @{
-        var matterLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
-    }
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex align-items-center justify-content-between mb-3">

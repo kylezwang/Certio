@@ -10,8 +10,14 @@
     var orgType = ViewBag.OrganizationType != null 
         ? (Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType 
         : Certio.Domain.Organizations.OrganizationType.LawFirm;
-    var mattersLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType);
-    var matterLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
+    var orgEntity = ViewBag.OrganizationEntity as Certio.Domain.Organizations.Organization;
+    // Use custom terminology if available, otherwise fall back to type-based default
+    var mattersLabel = orgEntity != null 
+        ? Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgEntity) 
+        : Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType);
+    var matterLabel = orgEntity != null 
+        ? Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgEntity) 
+        : Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
 }
 
 <!-- Organization ID for JavaScript access -->
@@ -314,6 +320,33 @@
 
                 <!-- Matters Settings -->
                 <div id="matters-content" class="settings-tab-content">
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Terminology Customization</h3>
+                            <p>Customize how you refer to @mattersLabel.ToLower() in your organization</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="matterSingular" class="form-label">Singular Term</label>
+                                    <input type="text" class="form-control" id="matterSingular" placeholder="e.g., Matter, Case, Project, Event">
+                                    <small class="text-muted">Used for "Create @matterLabel", "@matterLabel Details", etc.</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="matterPlural" class="form-label">Plural Term</label>
+                                    <input type="text" class="form-control" id="matterPlural" placeholder="e.g., Matters, Cases, Projects, Events">
+                                    <small class="text-muted">Used for "All @mattersLabel", "Search @mattersLabel", etc.</small>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-primary" id="saveMatterTerminology">
+                                <i class="fas fa-save me-2"></i>Save Terminology
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary ms-2" id="resetMatterTerminology">
+                                <i class="fas fa-undo me-2"></i>Reset to Default
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="settings-section">
                         <div class="settings-section-header">
                             <h3>Default Templates</h3>
@@ -1207,6 +1240,82 @@
             // Get organization ID from page
             const orgIdElement = document.querySelector('[data-organization-id]');
             const orgId = orgIdElement ? parseInt(orgIdElement.getAttribute('data-organization-id')) : null;
+            
+            // Matter Terminology Functionality
+            const matterSingularInput = document.getElementById('matterSingular');
+            const matterPluralInput = document.getElementById('matterPlural');
+            const saveMatterTerminologyBtn = document.getElementById('saveMatterTerminology');
+            const resetMatterTerminologyBtn = document.getElementById('resetMatterTerminology');
+
+            // Load current terminology
+            if (orgId && matterSingularInput && matterPluralInput) {
+                fetch(`/Client/${orgId}/Settings/GetMatterTerminology`)
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success && result.data) {
+                            matterSingularInput.value = result.data.singular;
+                            matterPluralInput.value = result.data.plural;
+                        }
+                    })
+                    .catch(error => console.error('Error loading matter terminology:', error));
+            }
+
+            // Save terminology
+            if (saveMatterTerminologyBtn && orgId) {
+                saveMatterTerminologyBtn.addEventListener('click', async function() {
+                    const singular = matterSingularInput.value.trim();
+                    const plural = matterPluralInput.value.trim();
+
+                    if (!singular || !plural) {
+                        alert('Please enter both singular and plural terms');
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(`/Client/${orgId}/Settings/UpdateMatterTerminology`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ singular, plural })
+                        });
+
+                        const result = await response.json();
+                        if (result.success) {
+                            const successMsg = document.createElement('div');
+                            successMsg.className = 'alert alert-success alert-dismissible fade show mt-2';
+                            successMsg.style.position = 'fixed';
+                            successMsg.style.top = '20px';
+                            successMsg.style.right = '20px';
+                            successMsg.style.zIndex = '9999';
+                            successMsg.innerHTML = '<i class="fas fa-check-circle me-2" style="font-weight:500;"></i>Matter terminology updated! Please refresh the page to see changes.<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                            document.body.appendChild(successMsg);
+                            setTimeout(() => {
+                                successMsg.remove();
+                                window.location.reload();
+                            }, 2000);
+                        } else {
+                            alert(result.error || 'Failed to update matter terminology');
+                        }
+                    } catch (error) {
+                        console.error('Error saving matter terminology:', error);
+                        alert('Failed to update matter terminology. Please try again.');
+                    }
+                });
+            }
+
+            // Reset terminology
+            if (resetMatterTerminologyBtn && orgId) {
+                resetMatterTerminologyBtn.addEventListener('click', async function() {
+                    if (!confirm('Are you sure you want to reset to the default terminology?')) {
+                        return;
+                    }
+
+                    // Reset to default based on org type (Matter/Matters)
+                    matterSingularInput.value = 'Matter';
+                    matterPluralInput.value = 'Matters';
+                });
+            }
             
             // AI Model Tier functionality
             const aiModelTierSelect = document.getElementById('aiModelTier');

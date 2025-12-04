@@ -3,6 +3,18 @@
     ViewData["Title"] = "Teams";
     Layout = "_ClientLayout";
     
+    // Custom terminology support
+    var orgType = ViewBag.OrganizationType != null 
+        ? (Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType 
+        : Certio.Domain.Organizations.OrganizationType.LawFirm;
+    var orgEntity = ViewBag.OrganizationEntity as Certio.Domain.Organizations.Organization;
+    var mattersLabel = orgEntity != null 
+        ? Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgEntity) 
+        : Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType);
+    var matterLabel = orgEntity != null 
+        ? Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgEntity) 
+        : Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
+    
     var generatedJoinCode = TempData["JoinCode"] as string;
     var generatedJoinCodeEmail = TempData["JoinCodeEmail"] as string;
     var joinCodeInviteeName = TempData["JoinCodeInviteeName"] as string;
@@ -27,7 +39,7 @@
         <div>
             <h1 class="display-6 fw-bold mb-2">Teams</h1>
             <p class="lead text-muted">
-                Manage team members across all @Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology((Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType).ToLower() stakeholders
+                Manage team members across all @matterLabel.ToLower() stakeholders
             </p>
         </div>
         <a class="btn btn-primary d-flex align-items-center gap-2" asp-controller="Client" asp-action="AddPeople" asp-route-orgId="@ViewBag.OrganizationId" style="font-weight: 500;">
@@ -75,11 +87,6 @@
     </div>
 
     <!-- Matters Section -->
-    @{
-        var orgType = (Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType;
-        var mattersLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType);
-        var matterLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
-    }
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex align-items-center justify-content-between mb-3">

@@ -6,6 +6,16 @@
     var user = ViewBag.User as User;
     var fullName = $"{user?.FirstName ?? ""} {user?.LastName ?? ""}".Trim();
     var initials = $"{user?.FirstName?.Substring(0, 1) ?? ""}{user?.LastName?.Substring(0, 1) ?? ""}".ToUpper();
+    
+    // Get organization entity for custom terminology
+    var orgType = ViewBag.OrganizationType as Certio.Domain.Organizations.OrganizationType? ?? Certio.Domain.Organizations.OrganizationType.Client;
+    var orgEntity = ViewBag.OrganizationEntity as Certio.Domain.Organizations.Organization;
+    var matterLabel = orgEntity != null 
+        ? Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgEntity) 
+        : Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
+    var mattersLabel = orgEntity != null 
+        ? Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgEntity) 
+        : Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType);
 }
 
 <div class="settings-container">
@@ -340,7 +350,7 @@
                             <div class="settings-row">
                                 <div class="settings-row-content">
                                     <label class="settings-row-label">Status changes</label>
-                                    <p class="settings-row-description">Matter and case updates</p>
+                                    <p class="settings-row-description">@matterLabel and case updates</p>
                                 </div>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="statusChanges">
@@ -485,7 +495,7 @@
                             <div class="settings-row">
                                 <div class="settings-row-content">
                                     <label class="settings-row-label">Status changes</label>
-                                    <p class="settings-row-description">Matter and case updates</p>
+                                    <p class="settings-row-description">@matterLabel and case updates</p>
                                 </div>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="prefStatusChanges">

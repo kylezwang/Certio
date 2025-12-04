@@ -1,11 +1,19 @@
 @model Certio.Web.ViewModels.MattersViewModel
 @{
-    ViewData["Title"] = "Matters";
     Layout = "_ClientLayout";
-    var orgType = (Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType;
-    var mattersLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType);
-    var matterLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
+    var orgType = ViewBag.OrganizationType != null 
+        ? (Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType 
+        : Certio.Domain.Organizations.OrganizationType.LawFirm;
+    var orgEntity = ViewBag.OrganizationEntity as Certio.Domain.Organizations.Organization;
+    // Use custom terminology if available, otherwise fall back to type-based default
+    var mattersLabel = orgEntity != null 
+        ? Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgEntity) 
+        : Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType);
+    var matterLabel = orgEntity != null 
+        ? Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgEntity) 
+        : Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
     var legalLabel = Certio.Web.Helpers.RoleDisplayHelper.GetLegalTerminology(orgType);
+    ViewData["Title"] = mattersLabel;
 }
 
 <div class="matters-container">
@@ -254,7 +262,7 @@
             const statsCards = document.querySelectorAll('.stats-filter-card');
 
             const statusLabels = {
-                'all': 'All Matters',
+                'all': 'All @mattersLabel',
                 'planning': 'Planned',
                 'in-progress': 'In Progress',
                 'review': 'In Review',

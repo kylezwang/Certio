@@ -1181,8 +1181,14 @@
     var orgType = ViewBag.OrganizationType != null 
         ? (Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType 
         : Certio.Domain.Organizations.OrganizationType.LawFirm;
-    var matterLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
-    var mattersLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType);
+    var orgEntity = ViewBag.OrganizationEntity as Certio.Domain.Organizations.Organization;
+    // Use custom terminology if available, otherwise fall back to type-based default
+    var matterLabel = orgEntity != null 
+        ? Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgEntity) 
+        : Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
+    var mattersLabel = orgEntity != null 
+        ? Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgEntity) 
+        : Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType);
 }
 
 @if (ViewBag.OrganizationType != null)
@@ -1786,7 +1792,7 @@
                                 <!-- Active Matters -->
                                 <div class="mb-3">
                                     <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <span class="text-muted small">Active @Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType)</span>
+                                        <span class="text-muted small">Active @mattersLabel</span>
                                         <span class="fw-bold text-dark">8</span>
                                     </div>
                                     <div class="progress" style="height: 6px;">
@@ -1924,7 +1930,7 @@
                     <a href="/Client/@ViewBag.OrganizationId/Matter" 
                        class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Matter" || (ViewContext.RouteData.Values["controller"]?.ToString() == "Client" && ViewContext.RouteData.Values["action"]?.ToString() == "Matter") ? "active" : "")">
                         <i class="fas fa-briefcase"></i>
-                        <span>@Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType)</span>
+                        <span>@mattersLabel</span>
                     </a>
                 </div>
                 <div class="nav-item">
@@ -2009,7 +2015,7 @@
                                class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["action"]?.ToString() == "Matter" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")"
                                data-bs-dismiss="offcanvas">
                                 <i class="fas fa-briefcase fs-5"></i>
-                                <span class="fw-medium">@Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType)</span>
+                                <span class="fw-medium">@mattersLabel</span>
                             </a>
                         </li>
                         <li>
@@ -3100,7 +3106,7 @@
             const timeStr = now.toLocaleTimeString();
             
             // Create CSV content
-            const headers = ['Date', 'Time', 'Matter', 'Duration (HH:MM:SS)', 'Duration (Seconds)'];
+            const headers = ['Date', 'Time', '@matterLabel', 'Duration (HH:MM:SS)', 'Duration (Seconds)'];
             const rows = [[
                 dateStr,
                 timeStr,
@@ -4209,7 +4215,7 @@
                 const description = result.description && result.description.trim() ? 
                     `<div style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem; line-height: 1.3;">${escapeHtml(result.description)}</div>` : '';
                 const matterInfo = result.matterTitle && result.matterTitle.trim() ? 
-                    `<div style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem; line-height: 1.3;">Matter: ${escapeHtml(result.matterTitle)}</div>` : '';
+                    `<div style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem; line-height: 1.3;">@matterLabel: ${escapeHtml(result.matterTitle)}</div>` : '';
                 
                 return `
                     <button type="button" class="matter-item search-result-item" data-url="${escapeHtml(result.url)}" data-type="${escapeHtml(result.type)}" style="align-items: flex-start !important;">
