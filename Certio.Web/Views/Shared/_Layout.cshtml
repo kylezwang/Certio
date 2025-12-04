@@ -435,9 +435,9 @@
         
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="global-nav-link" href="#" id="myFirmLink" title="My Firm">
+                <a class="global-nav-link" href="#" id="myFirmLink" title="Home">
                     <i class="fa-solid fa-building-columns" id="myFirmIcon"></i>
-                    <span id="myFirmLabel">My Firm</span>
+                    <span id="myFirmLabel">Home</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -512,7 +512,7 @@
                                     </div>
                                     <div style="min-width: 0; flex: 1; margin-top: 0;">
                                         <h6 class="mb-0 fw-bold text-dark" style="font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="firmBadgeName">
-                                            Loading Firm...
+                                            Loading Home...
                                         </h6>
                                     </div>
                                 </div>
@@ -645,7 +645,7 @@
                                 }
                             }
                         })
-                        .catch(err => console.error('Error updating My Firm display:', err));
+                        .catch(err => console.error('Error updating Home display:', err));
                 }
             }
             
@@ -665,8 +665,8 @@
                 } else if (orgTypeLower === 'lawfirm' || orgTypeLower === '1') {
                     // LawFirm organization
                     myFirmIcon.className = 'fa-solid fa-building-columns';
-                    myFirmLabel.textContent = 'My Firm';
-                    myFirmLink.title = 'My Firm';
+                    myFirmLabel.textContent = 'Home';
+                    myFirmLink.title = 'Home';
                 } else {
                     // Default/Client organization
                     myFirmIcon.className = 'fa-solid fa-building';

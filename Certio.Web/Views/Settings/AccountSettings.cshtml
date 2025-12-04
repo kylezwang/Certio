@@ -74,6 +74,16 @@
 
         <!-- Content Area -->
         <div class="settings-content">
+            <!-- Search Bar -->
+            <div class="settings-search-container" style="margin-right: 0.5rem; margin-top: 0.5rem; display: flex; justify-content: flex-end;">
+                <div class="settings-search-wrapper" style="position: relative; width: 320px;">
+                    <input type="text" id="settingsSearch" class="form-control" placeholder="Search settings..." style="padding-left: 2.5rem; border: 1px solid #e5e7eb; border-radius: 8px; background: white;">
+                    <i class="fas fa-search" style="position: absolute; left: 0.875rem; top: 50%; transform: translateY(-50%); color: #9ca3af; pointer-events: none;"></i>
+                    <button id="clearSearch" class="btn btn-sm" style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); border: none; background: transparent; color: #9ca3af; display: none; padding: 0.25rem 0.5rem;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
             <div class="settings-content-inner">
                 <!-- Account Settings -->
                 <div id="account-content" class="settings-tab-content active">
@@ -573,7 +583,7 @@
                                     <p class="settings-row-description">View and manage your subscription, payment methods, usage, and invoices</p>
                                 </div>
                                 <a href="/Client/@ViewBag.OrganizationId/Settings#billing" class="btn btn-primary btn-sm">
-                                    Firm Settings
+                                    Organization Settings
                                     <i class="fas fa-arrow-right ms-2"></i>
                                 </a>
                             </div>
@@ -642,6 +652,89 @@
 
             handleHashChange();
             window.addEventListener('hashchange', handleHashChange);
+
+            // Settings Search Functionality
+            const searchInput = document.getElementById('settingsSearch');
+            const clearSearchBtn = document.getElementById('clearSearch');
+            const settingsSections = document.querySelectorAll('.settings-section');
+            const settingsRows = document.querySelectorAll('.settings-row');
+            
+            function performSearch(searchTerm) {
+                const term = searchTerm.toLowerCase().trim();
+                
+                if (!term) {
+                    // Show all sections and rows
+                    settingsSections.forEach(section => {
+                        section.style.display = 'block';
+                    });
+                    settingsRows.forEach(row => {
+                        row.style.display = 'flex';
+                    });
+                    clearSearchBtn.style.display = 'none';
+                    return;
+                }
+                
+                clearSearchBtn.style.display = 'block';
+                let hasResults = false;
+                
+                // Search through all settings sections
+                settingsSections.forEach(section => {
+                    const sectionHeader = section.querySelector('.settings-section-header');
+                    const sectionTitle = sectionHeader ? sectionHeader.textContent.toLowerCase() : '';
+                    let sectionHasMatch = sectionTitle.includes(term);
+                    let visibleRowsInSection = 0;
+                    
+                    // Check rows within section
+                    const rowsInSection = section.querySelectorAll('.settings-row');
+                    rowsInSection.forEach(row => {
+                        const label = row.querySelector('.settings-row-label');
+                        const description = row.querySelector('.settings-row-description');
+                        const labelText = label ? label.textContent.toLowerCase() : '';
+                        const descText = description ? description.textContent.toLowerCase() : '';
+                        
+                        if (labelText.includes(term) || descText.includes(term) || sectionHasMatch) {
+                            row.style.display = 'flex';
+                            visibleRowsInSection++;
+                            hasResults = true;
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                    
+                    // Show section if it has matches or visible rows
+                    if (sectionHasMatch || visibleRowsInSection > 0) {
+                        section.style.display = 'block';
+                    } else {
+                        section.style.display = 'none';
+                    }
+                });
+                
+                // Show no results message if needed
+                if (!hasResults) {
+                    console.log('No settings found matching: ' + term);
+                }
+            }
+            
+            if (searchInput) {
+                searchInput.addEventListener('input', function(e) {
+                    performSearch(e.target.value);
+                });
+                
+                searchInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        searchInput.value = '';
+                        performSearch('');
+                    }
+                });
+            }
+            
+            if (clearSearchBtn) {
+                clearSearchBtn.addEventListener('click', function() {
+                    searchInput.value = '';
+                    performSearch('');
+                    searchInput.focus();
+                });
+            }
 
             // Dark Mode Toggle
             const darkModeSwitch = document.getElementById('darkModeSwitch');
