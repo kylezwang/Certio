@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Certio.Application.Interfaces;
 using Certio.Infrastructure.Data;
+using Certio.Web.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Certio.Web.Controllers
@@ -11,13 +12,16 @@ namespace Certio.Web.Controllers
     {
         private readonly IOrganizationService _organizationService;
         private readonly ApplicationDbContext _context;
+        private readonly IAIUsageService _aiUsageService;
 
         public SettingsController(
             IOrganizationService organizationService, 
-            ApplicationDbContext context)
+            ApplicationDbContext context,
+            IAIUsageService aiUsageService)
         {
             _organizationService = organizationService;
             _context = context;
+            _aiUsageService = aiUsageService;
         }
 
         [HttpGet("/Client/{orgId:int}/Settings")]
@@ -143,6 +147,81 @@ namespace Certio.Web.Controllers
         public IActionResult AI()
         {
             return View();
+        }
+
+        /// <summary>
+        /// Gets AI usage chart data for the current user
+        /// </summary>
+        [HttpGet("/Client/{orgId:int}/Settings/AIUsage")]
+        public async Task<IActionResult> GetAIUsage(int orgId, [FromQuery] int days = 30, CancellationToken ct = default)
+        {
+            try
+            {
+                var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+                if (customUser == null)
+                {
+                    return Json(new { success = false, error = "User not authenticated" });
+                }
+
+                var chartData = await _aiUsageService.GetUsageChartDataAsync(customUser.Id, orgId, days, ct);
+                
+                return Json(new { 
+                    success = true, 
+                    data = new {
+                        dataPoints = chartData.DataPoints.Select(dp => new {
+                            date = dp.Date.ToString("yyyy-MM-dd"),
+                            cost = dp.Cost,
+                            calls = dp.Calls,
+                            tokens = dp.Tokens
+                        }),
+                        totalCost = chartData.TotalCost,
+                        totalCalls = chartData.TotalCalls,
+                        totalTokens = chartData.TotalTokens,
+                        costByModel = chartData.CostByModel,
+                        startDate = chartData.StartDate.ToString("yyyy-MM-dd"),
+                        endDate = chartData.EndDate.ToString("yyyy-MM-dd")
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Gets organization-wide AI usage statistics
+        /// </summary>
+        [HttpGet("/Client/{orgId:int}/Settings/AIUsage/Organization")]
+        public async Task<IActionResult> GetOrganizationAIUsage(int orgId, [FromQuery] int days = 30, CancellationToken ct = default)
+        {
+            try
+            {
+                var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+                if (customUser == null)
+                {
+                    return Json(new { success = false, error = "User not authenticated" });
+                }
+
+                var stats = await _aiUsageService.GetOrganizationUsageStatsAsync(orgId, days, ct);
+                
+                return Json(new { 
+                    success = true, 
+                    data = new {
+                        totalCost = stats.TotalCost,
+                        totalCalls = stats.TotalCalls,
+                        totalTokens = stats.TotalTokens,
+                        averageDailyCost = stats.AverageDailyCost,
+                        uniqueUsers = stats.UniqueUsers,
+                        startDate = stats.StartDate.ToString("yyyy-MM-dd"),
+                        endDate = stats.EndDate.ToString("yyyy-MM-dd")
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
         }
     }
 

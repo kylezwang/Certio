@@ -94,6 +94,10 @@ namespace Certio.Infrastructure.Data
         public DbSet<ReplySuggestion> ReplySuggestions => Set<ReplySuggestion>();
         public DbSet<ClarityExplanation> ClarityExplanations => Set<ClarityExplanation>();
         
+        // AI Usage Tracking Entities
+        public DbSet<AIUsage> AIUsages => Set<AIUsage>();
+        public DbSet<AIUsageDaily> AIUsageDailies => Set<AIUsageDaily>();
+        
         // Workflow Entities
         public DbSet<Workflow> Workflows => Set<Workflow>();
         public DbSet<WorkflowInstance> WorkflowInstances => Set<WorkflowInstance>();
@@ -143,6 +147,7 @@ namespace Certio.Infrastructure.Data
             ConfigureDirectMessageRelationships(builder);
             ConfigureEmailIntegrationRelationships(builder);
             ConfigureAIAgentRelationships(builder);
+            ConfigureAIUsageRelationships(builder);
             ConfigureWorkflowRelationships(builder);
             ConfigureNotificationRelationships(builder);
             ConfigureUserDeletionRequestRelationships(builder);
@@ -1049,6 +1054,55 @@ namespace Certio.Infrastructure.Data
                 .WithMany()
                 .HasForeignKey(ce => ce.ConversationId)
                 .OnDelete(DeleteBehavior.SetNull);
+        }
+
+        private void ConfigureAIUsageRelationships(ModelBuilder builder)
+        {
+            // AIUsage -> User relationship
+            builder.Entity<AIUsage>()
+                .HasOne(au => au.User)
+                .WithMany()
+                .HasForeignKey(au => au.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // AIUsage -> Organization relationship
+            builder.Entity<AIUsage>()
+                .HasOne(au => au.Organization)
+                .WithMany()
+                .HasForeignKey(au => au.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // AIUsageDaily -> User relationship
+            builder.Entity<AIUsageDaily>()
+                .HasOne(aud => aud.User)
+                .WithMany()
+                .HasForeignKey(aud => aud.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // AIUsageDaily -> Organization relationship
+            builder.Entity<AIUsageDaily>()
+                .HasOne(aud => aud.Organization)
+                .WithMany()
+                .HasForeignKey(aud => aud.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Add indexes for performance
+            builder.Entity<AIUsage>()
+                .HasIndex(au => new { au.UserId, au.CreatedAt });
+            
+            builder.Entity<AIUsage>()
+                .HasIndex(au => new { au.OrganizationId, au.CreatedAt });
+            
+            builder.Entity<AIUsage>()
+                .HasIndex(au => au.ModelName);
+
+            // Unique constraint for daily aggregates (one per user per day)
+            builder.Entity<AIUsageDaily>()
+                .HasIndex(aud => new { aud.UserId, aud.OrganizationId, aud.Date })
+                .IsUnique();
+            
+            builder.Entity<AIUsageDaily>()
+                .HasIndex(aud => new { aud.OrganizationId, aud.Date });
         }
 
         private void ConfigureWorkflowRelationships(ModelBuilder builder)

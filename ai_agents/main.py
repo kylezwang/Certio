@@ -113,14 +113,20 @@ def get_model_name(model_type):
         # Use Azure deployment names
         azure_mapping = {
             ModelType.GPT_4O: os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT4O", "gpt-4o"),
-            ModelType.GPT_4O_MINI: os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT4O_MINI", "gpt-4o-mini")
+            ModelType.GPT_4O_MINI: os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT4O_MINI", "gpt-4o-mini"),
+            ModelType.GPT_4_1_MINI: os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT4_1_MINI", "gpt-4.1-mini"),
+            ModelType.GPT_4_1: os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT4_1", "gpt-4.1"),
+            ModelType.GPT_5: os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT5", "gpt-5")
         }
         return azure_mapping.get(model_type, "gpt-4o-mini")
     else:
         # Use regular OpenAI model names
         regular_mapping = {
             ModelType.GPT_4O: "gpt-4o",
-            ModelType.GPT_4O_MINI: "gpt-4o-mini"
+            ModelType.GPT_4O_MINI: "gpt-4o-mini",
+            ModelType.GPT_4_1_MINI: "o1-mini",
+            ModelType.GPT_4_1: "o1-preview",
+            ModelType.GPT_5: "gpt-5"
         }
         return regular_mapping.get(model_type, "gpt-4o-mini")
 
@@ -2393,12 +2399,20 @@ async def conversational_response_stream(payload: dict, _: str = Depends(authent
                 logger.info("Dashboard card detected - forcing gpt-4o-mini for cost optimization")
             elif ai_model_tier == "Basic":
                 force_model_type = ModelType.GPT_4O_MINI
+            elif ai_model_tier == "Intermediate":
+                force_model_type = ModelType.GPT_4_1_MINI
             elif ai_model_tier == "Advanced":
                 force_model_type = ModelType.GPT_4O
             elif ai_model_tier == "Premium":
-                # For Premium tier, use gpt-5 (or fallback to gpt-4o if not available)
-                force_model_type = ModelType.GPT_4O  # Will override with gpt-5 name below
-            # else: Auto - use dynamic selection
+                # For Premium tier, use GPT-4.1 (o1-preview) - will auto-upgrade to GPT-5 when available
+                gpt5_deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT5", "")
+                if gpt5_deployment:
+                    force_model_type = ModelType.GPT_5
+                    logger.info("Premium tier using GPT-5")
+                else:
+                    force_model_type = ModelType.GPT_4_1
+                    logger.info("Premium tier using GPT-4.1 (o1-preview)")
+            # else: Auto - use dynamic selection (3-tier complexity)
             
             if is_simple_message:
                 # Simple response for greetings and short messages - enhanced with RAG
@@ -2429,9 +2443,6 @@ IMPORTANT: Return ONLY the HTML content with <p> tags and <br> for line breaks. 
                 # Use GPT-4o-mini for simple responses (unless tier forces different model)
                 if force_model_type:
                     selected_model = get_model_name(force_model_type)
-                    if ai_model_tier == "Premium":
-                        # For Premium tier, use gpt-5
-                        selected_model = os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT5", "gpt-5") if os.getenv("AZURE_OPENAI_ENDPOINT") else "gpt-5"
                 else:
                     selected_model = get_model_name(ModelType.GPT_4O_MINI)
                 max_tokens = 200
@@ -2550,13 +2561,18 @@ Respond as an intelligent assistant:"""
                 if force_model_type:
                     # Tier preference overrides dynamic selection
                     optimal_model_type = force_model_type
-                    if ai_model_tier == "Premium":
-                        # For Premium tier, use gpt-5
-                        selected_model = os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT5", "gpt-5") if os.getenv("AZURE_OPENAI_ENDPOINT") else "gpt-5"
-                        estimated_cost = 0.01  # Higher cost estimate for premium model
+                    selected_model = get_model_name(optimal_model_type)
+                    # Set cost estimates based on model type
+                    if optimal_model_type == ModelType.GPT_5:
+                        estimated_cost = 0.01  # GPT-5 cost estimate
+                    elif optimal_model_type == ModelType.GPT_4_1:
+                        estimated_cost = 0.02  # GPT-4.1 (o1-preview) cost estimate
+                    elif optimal_model_type == ModelType.GPT_4O:
+                        estimated_cost = 0.003
+                    elif optimal_model_type == ModelType.GPT_4_1_MINI:
+                        estimated_cost = 0.005  # GPT-4.1-mini (o1-mini) cost estimate
                     else:
-                        selected_model = get_model_name(optimal_model_type)
-                        estimated_cost = 0.003 if optimal_model_type == ModelType.GPT_4O else 0.0003
+                        estimated_cost = 0.0003
                 else:
                     # Auto mode: Use dynamic selection based on complexity
                     # Analyze task complexity for cost optimization

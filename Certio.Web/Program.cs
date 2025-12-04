@@ -674,6 +674,9 @@ builder.Services.AddHttpClient("AIAgentService", client =>
 builder.Services.AddScoped<Certio.Application.Interfaces.IChatService, Certio.Web.Services.ChatService>();
 builder.Services.AddSingleton<Certio.Web.Services.AIBackgroundService>();
 
+// AI Usage Tracking Service
+builder.Services.AddScoped<Certio.Web.Services.IAIUsageService, Certio.Web.Services.AIUsageService>();
+
 // Direct Message Services
 builder.Services.AddScoped<Certio.Application.Interfaces.IDirectMessageService, Certio.Web.Services.DirectMessageService>();
 
