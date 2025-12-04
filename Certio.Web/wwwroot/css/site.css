@@ -218,8 +218,24 @@ body {
   z-index: 10;
 }
 
-.search-container input {
+.search-container input,
+.search-container input.form-control {
+  padding: 0.5rem 1rem;
   padding-left: 2.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+.search-container input:focus,
+.search-container input.form-control:focus {
+  outline: none;
+  border-color: #d1d5db;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
 /* Page Header Search Bar Focus State - Match Email Inbox */
@@ -329,20 +345,22 @@ body {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid #e5e7eb;
   background-color: white;
   color: #374151;
-  border-radius: 0.5rem;
+  border-radius: 8px;
   font-size: 0.875rem;
   font-weight: 500;
   transition: all 0.2s ease;
   text-decoration: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
 }
 
 .filter-button:hover {
   background-color: #f9fafb;
   border-color: #3d1019;
   color: #3d1019;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
 /* Modern Chat Styles */
