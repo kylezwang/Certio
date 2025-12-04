@@ -1126,11 +1126,15 @@
         display: flex;
         flex-direction: column;
         max-height: 700px;
+        min-width: 550px;
     }
     
     #universalSearchPopup .matter-popup-title {
         flex-shrink: 0;
-        padding: 1rem 1.5rem 0;
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
     
     #universalSearchPopup .matter-popup-list {
@@ -1213,9 +1217,9 @@
             <!-- Universal Search Results Popup -->
             <div class="matter-popup" id="universalSearchPopup" style="display: none; position: fixed; z-index: 2000;">
                 <div class="matter-popup-inner">
-                    <div class="matter-popup-title" style="position: relative;">
+                    <div class="matter-popup-title">
                         <span>Search Results</span>
-                        <button id="closeSearchPopup" type="button" style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: #6b7280; cursor: pointer; padding: 0.25rem 0.5rem; border-radius: 4px; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='#f3f4f6'; this.style.color='#111827';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#6b7280';">
+                        <button id="closeSearchPopup" type="button" style="background: transparent; border: none; color: #6b7280; cursor: pointer; padding: 0.25rem 0.5rem; border-radius: 4px; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.backgroundColor='#f3f4f6'; this.style.color='#111827';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#6b7280';">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>

@@ -302,7 +302,8 @@ namespace Certio.Web.Controllers
             {
                 Email = MaskEmail(state.Email),
                 VerificationMethod = state.VerificationMethod,
-                Token = token
+                Token = token,
+                RememberMe = state.RememberMe
             };
 
             ViewBag.Info = TempData.ContainsKey("TwoFactorInfo")
@@ -406,7 +407,8 @@ namespace Certio.Web.Controllers
                 await _userManager.SetTwoFactorEnabledAsync(user, true);
             }
 
-            var rememberMe = state.RememberMe;
+            // Use the RememberMe value from the form if provided, otherwise fall back to state
+            var rememberMe = model.RememberMe;
             await _signInManager.SignInAsync(user, rememberMe);
 
             var customUser = await _context.Users

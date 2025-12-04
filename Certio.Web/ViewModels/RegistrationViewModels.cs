@@ -27,6 +27,7 @@ namespace Certio.Web.ViewModels
         public string Email { get; set; } = "";
         public string PhoneNumber { get; set; } = "";
         public string VerificationMethod { get; set; } = "email"; // email or sms
+        public bool RememberMe { get; set; } = false;
     }
 
     /// <summary>
