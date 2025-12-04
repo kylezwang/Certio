@@ -1,6 +1,6 @@
 @using Certio.Application.DTOs
 @{
-    ViewData["Title"] = "Firm Settings";
+    ViewData["Title"] = "Organization Settings";
     ViewData["BodyClass"] = "settings-page";
     Layout = "_ClientLayout";
     var isLawFirm = ViewBag.OrganizationType != null && ViewBag.OrganizationType.ToString() == "LawFirm";
@@ -21,7 +21,7 @@
     <!-- Header -->
     <div class="settings-header">
         <div>
-            <h1 class="settings-title">@(isLawFirm ? "Firm Settings" : "Organization Settings")</h1>
+            <h1 class="settings-title">Organization Settings</h1>
             <p class="settings-subtitle">
                 Manage your organization and application preferences
             </p>
@@ -36,7 +36,7 @@
                     @if (isLawFirm)
                     {
                         <i class="fa-solid fa-building-columns"></i>
-                        <span>My Firm</span>
+                        <span>Home</span>
                     }
                     else
                     {
@@ -77,6 +77,16 @@
 
         <!-- Content Area -->
         <div class="settings-content">
+            <!-- Search Bar -->
+            <div class="settings-search-container" style="margin-right: 0.5rem; margin-top: 0.5rem; display: flex; justify-content: flex-end;">
+                <div class="settings-search-wrapper" style="position: relative; width: 320px;">
+                    <input type="text" id="settingsSearch" class="form-control" placeholder="Search settings..." style="padding-left: 2.5rem; border: 1px solid #e5e7eb; border-radius: 8px; background: white;">
+                    <i class="fas fa-search" style="position: absolute; left: 0.875rem; top: 50%; transform: translateY(-50%); color: #9ca3af; pointer-events: none;"></i>
+                    <button id="clearSearch" class="btn btn-sm" style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); border: none; background: transparent; color: #9ca3af; display: none; padding: 0.25rem 0.5rem;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
             <div class="settings-content-inner">
                 <!-- Organization Settings -->
                 <div id="organization-content" class="settings-tab-content active">
@@ -792,65 +802,9 @@
                 <div id="ai-content" class="settings-tab-content">
                     <div class="settings-section">
                         <div class="settings-section-header">
-                            <h3>AI Content Access</h3>
-                            <p>Control what AI can analyze</p>
-                        </div>
-                        <div class="settings-section-content">
-                            <div class="settings-row">
-                                <div class="settings-row-content">
-                                    <label class="settings-row-label">Allow AI to read client content</label>
-                                    <p class="settings-row-description">Enable AI analysis of documents and communications</p>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="aiContentAccess" checked>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="settings-section">
-                        <div class="settings-section-header">
-                            <h3>Redaction Rules</h3>
-                            <p>Automatically protect sensitive information</p>
-                        </div>
-                        <div class="settings-section-content">
-                            <div class="settings-row">
-                                <div class="settings-row-content">
-                                    <label class="settings-row-label">Mask email addresses</label>
-                                    <p class="settings-row-description">Hide emails in AI processing</p>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="maskEmails" checked>
-                                </div>
-                            </div>
-                            <div class="settings-row">
-                                <div class="settings-row-content">
-                                    <label class="settings-row-label">Mask SSN by default</label>
-                                    <p class="settings-row-description">Automatically redact social security numbers</p>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="maskSSN" checked>
-                                </div>
-                            </div>
-                            <div class="settings-row">
-                                <div class="settings-row-content">
-                                    <label class="settings-row-label">Mask phone numbers</label>
-                                    <p class="settings-row-description">Hide phone numbers from AI</p>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="maskPhones">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="settings-section">
-                        <div class="settings-section-header">
                             <h3>Azure AI Model Selection</h3>
                             <p>Choose the sophistication level of Azure model you would like to use for your organization</p>
-                            <ul style="list-style: none; padding-left: 0; margin-bottom: 0;">
-                                <li><em>Note:</em> The more sophisticated the model, the more expensive it will be to use and we may need to rotate your subscription cycle early for heavy use of premium models.</li>
-                            </ul>
+                            <p style="margin-bottom: 0;"><em>Note:</em> The more sophisticated the model, the more expensive it will be to use and we may need to rotate your subscription cycle early for heavy use of premium and advanced models.</p>
                         </div>
                         <div class="settings-section-content">
                             <div class="settings-row">
@@ -946,6 +900,60 @@
                             <div class="ai-usage-model-breakdown" id="modelBreakdown" style="margin-top: 1rem; display: none;">
                                 <div style="font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.75rem;">Cost by Model</div>
                                 <div id="modelBreakdownContent" style="display: flex; gap: 1rem; flex-wrap: wrap;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>AI Content Access</h3>
+                            <p>Control what AI can analyze</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Allow AI to read client content</label>
+                                    <p class="settings-row-description">Enable AI analysis of documents and communications</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="aiContentAccess" checked>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Redaction Rules</h3>
+                            <p>Automatically protect sensitive information</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Mask email addresses</label>
+                                    <p class="settings-row-description">Hide emails in AI processing</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="maskEmails" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Mask SSN by default</label>
+                                    <p class="settings-row-description">Automatically redact social security numbers</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="maskSSN" checked>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Mask phone numbers</label>
+                                    <p class="settings-row-description">Hide phone numbers from AI</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="maskPhones">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1099,6 +1107,89 @@
 
             // Listen for hash changes
             window.addEventListener('hashchange', handleHashChange);
+
+            // Settings Search Functionality
+            const searchInput = document.getElementById('settingsSearch');
+            const clearSearchBtn = document.getElementById('clearSearch');
+            const settingsSections = document.querySelectorAll('.settings-section');
+            const settingsRows = document.querySelectorAll('.settings-row');
+            
+            function performSearch(searchTerm) {
+                const term = searchTerm.toLowerCase().trim();
+                
+                if (!term) {
+                    // Show all sections and rows
+                    settingsSections.forEach(section => {
+                        section.style.display = 'block';
+                    });
+                    settingsRows.forEach(row => {
+                        row.style.display = 'flex';
+                    });
+                    clearSearchBtn.style.display = 'none';
+                    return;
+                }
+                
+                clearSearchBtn.style.display = 'block';
+                let hasResults = false;
+                
+                // Search through all settings sections
+                settingsSections.forEach(section => {
+                    const sectionHeader = section.querySelector('.settings-section-header');
+                    const sectionTitle = sectionHeader ? sectionHeader.textContent.toLowerCase() : '';
+                    let sectionHasMatch = sectionTitle.includes(term);
+                    let visibleRowsInSection = 0;
+                    
+                    // Check rows within section
+                    const rowsInSection = section.querySelectorAll('.settings-row');
+                    rowsInSection.forEach(row => {
+                        const label = row.querySelector('.settings-row-label');
+                        const description = row.querySelector('.settings-row-description');
+                        const labelText = label ? label.textContent.toLowerCase() : '';
+                        const descText = description ? description.textContent.toLowerCase() : '';
+                        
+                        if (labelText.includes(term) || descText.includes(term) || sectionHasMatch) {
+                            row.style.display = 'flex';
+                            visibleRowsInSection++;
+                            hasResults = true;
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                    
+                    // Show section if it has matches or visible rows
+                    if (sectionHasMatch || visibleRowsInSection > 0) {
+                        section.style.display = 'block';
+                    } else {
+                        section.style.display = 'none';
+                    }
+                });
+                
+                // Show no results message if needed
+                if (!hasResults) {
+                    console.log('No settings found matching: ' + term);
+                }
+            }
+            
+            if (searchInput) {
+                searchInput.addEventListener('input', function(e) {
+                    performSearch(e.target.value);
+                });
+                
+                searchInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        searchInput.value = '';
+                        performSearch('');
+                    }
+                });
+            }
+            
+            if (clearSearchBtn) {
+                clearSearchBtn.addEventListener('click', function() {
+                    searchInput.value = '';
+                    performSearch('');
+                    searchInput.focus();
+                });
+            }
 
             // Integration buttons - Load connection status
             loadIntegrationStatus();

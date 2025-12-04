@@ -62,15 +62,15 @@ namespace Certio.Web.Helpers
         }
         
         /// <summary>
-        /// Gets the label for "My Firm" / "My Org" based on organization type.
+        /// Gets the label for "Home" based on organization type.
         /// </summary>
         public static string GetMyOrgLabel(OrganizationType orgType)
         {
             return orgType switch
             {
-                OrganizationType.LawFirm => "My Firm",
-                OrganizationType.EventPlanner => "My Company",
-                _ => "My Org"
+                OrganizationType.LawFirm => "Home",
+                OrganizationType.EventPlanner => "Home",
+                _ => "Home"
             };
         }
         
