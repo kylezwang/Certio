@@ -125,6 +125,95 @@ namespace Certio.Domain.Organizations
             settings["AIModelTier"] = tier.ToString();
             Settings = JsonSerializer.Serialize(settings);
         }
+
+        // Custom Matter Terminology helpers
+        public string GetMatterTerminology()
+        {
+            if (string.IsNullOrWhiteSpace(Settings))
+                return GetDefaultMatterTerminology();
+
+            try
+            {
+                var settings = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(Settings);
+                if (settings != null && settings.TryGetValue("MatterSingular", out var matterElement))
+                {
+                    if (matterElement.ValueKind == JsonValueKind.String)
+                    {
+                        var matterTerm = matterElement.GetString();
+                        if (!string.IsNullOrWhiteSpace(matterTerm))
+                            return matterTerm;
+                    }
+                }
+            }
+            catch
+            {
+                // If parsing fails, return default
+            }
+
+            return GetDefaultMatterTerminology();
+        }
+
+        public string GetMattersTerminology()
+        {
+            if (string.IsNullOrWhiteSpace(Settings))
+                return GetDefaultMattersTerminology();
+
+            try
+            {
+                var settings = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(Settings);
+                if (settings != null && settings.TryGetValue("MatterPlural", out var mattersElement))
+                {
+                    if (mattersElement.ValueKind == JsonValueKind.String)
+                    {
+                        var mattersTerm = mattersElement.GetString();
+                        if (!string.IsNullOrWhiteSpace(mattersTerm))
+                            return mattersTerm;
+                    }
+                }
+            }
+            catch
+            {
+                // If parsing fails, return default
+            }
+
+            return GetDefaultMattersTerminology();
+        }
+
+        public void SetMatterTerminology(string singular, string plural)
+        {
+            Dictionary<string, object> settings;
+            
+            if (string.IsNullOrWhiteSpace(Settings))
+            {
+                settings = new Dictionary<string, object>();
+            }
+            else
+            {
+                try
+                {
+                    settings = JsonSerializer.Deserialize<Dictionary<string, object>>(Settings) 
+                        ?? new Dictionary<string, object>();
+                }
+                catch
+                {
+                    settings = new Dictionary<string, object>();
+                }
+            }
+
+            settings["MatterSingular"] = singular;
+            settings["MatterPlural"] = plural;
+            Settings = JsonSerializer.Serialize(settings);
+        }
+
+        private string GetDefaultMatterTerminology()
+        {
+            return Type == OrganizationType.EventPlanner ? "Event" : "Matter";
+        }
+
+        private string GetDefaultMattersTerminology()
+        {
+            return Type == OrganizationType.EventPlanner ? "Events" : "Matters";
+        }
     }
     
     public enum OrganizationType

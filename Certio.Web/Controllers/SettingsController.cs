@@ -48,9 +48,10 @@ namespace Certio.Web.Controllers
             var orgDetailsResult = await _organizationService.GetOrganizationAsync(orgId, customUser.Id);
             ViewBag.OrganizationDetails = orgDetailsResult.Success ? orgDetailsResult.Data : null;
 
-            // Get organization entity to access Settings for AI tier
+            // Get organization entity to access Settings for AI tier and terminology
             var orgEntity = await _context.Organizations.FindAsync(new object[] { orgId }, ct);
             ViewBag.AIModelTier = orgEntity?.GetAIModelTier() ?? Certio.Domain.Organizations.AIModelTier.Auto;
+            ViewBag.OrganizationEntity = orgEntity; // Pass full entity for custom terminology
 
             return View();
         }
@@ -112,6 +113,77 @@ namespace Certio.Web.Controllers
                 await _context.SaveChangesAsync();
 
                 return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        [HttpPost("/Client/{orgId:int}/Settings/UpdateMatterTerminology")]
+        public async Task<IActionResult> UpdateMatterTerminology(int orgId, [FromBody] UpdateMatterTerminologyRequest request)
+        {
+            try
+            {
+                var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+                if (customUser == null)
+                {
+                    return Json(new { success = false, error = "User not authenticated" });
+                }
+
+                // Validate inputs
+                if (string.IsNullOrWhiteSpace(request.Singular) || string.IsNullOrWhiteSpace(request.Plural))
+                {
+                    return Json(new { success = false, error = "Both singular and plural terms are required" });
+                }
+
+                // Get organization
+                var org = await _context.Organizations.FindAsync(new object[] { orgId });
+                if (org == null)
+                {
+                    return Json(new { success = false, error = "Organization not found" });
+                }
+
+                // Update terminology
+                org.SetMatterTerminology(request.Singular.Trim(), request.Plural.Trim());
+                org.ModifiedAt = DateTime.UtcNow;
+                org.ModifiedById = customUser.Id;
+
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        [HttpGet("/Client/{orgId:int}/Settings/GetMatterTerminology")]
+        public async Task<IActionResult> GetMatterTerminology(int orgId)
+        {
+            try
+            {
+                var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+                if (customUser == null)
+                {
+                    return Json(new { success = false, error = "User not authenticated" });
+                }
+
+                // Get organization
+                var org = await _context.Organizations.FindAsync(new object[] { orgId });
+                if (org == null)
+                {
+                    return Json(new { success = false, error = "Organization not found" });
+                }
+
+                return Json(new { 
+                    success = true, 
+                    data = new {
+                        singular = org.GetMatterTerminology(),
+                        plural = org.GetMattersTerminology()
+                    }
+                });
             }
             catch (Exception ex)
             {
@@ -228,5 +300,11 @@ namespace Certio.Web.Controllers
     public class UpdateAIModelTierRequest
     {
         public string Tier { get; set; } = "";
+    }
+
+    public class UpdateMatterTerminologyRequest
+    {
+        public string Singular { get; set; } = "";
+        public string Plural { get; set; } = "";
     }
 }

@@ -7,6 +7,7 @@ using Certio.Domain.Matters;
 using Certio.Infrastructure.Data;
 using Certio.Web.ViewModels;
 using Certio.Web.Services;
+using Certio.Web.Helpers;
 using Certio.Application.Interfaces;
 
 namespace Certio.Web.Controllers
@@ -46,9 +47,10 @@ namespace Certio.Web.Controllers
         public async Task<IActionResult> Index(int orgId)
         {
             ViewBag.OrganizationId = orgId;
-            var org = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync();
+            var org = await _db.Organizations.FindAsync(orgId);
             ViewBag.OrganizationName = org?.Name ?? "Client";
             ViewBag.OrganizationType = org?.Type ?? Certio.Domain.Organizations.OrganizationType.Client;
+            ViewBag.OrganizationEntity = org; // For custom terminology
             
             // Set user info for JavaScript
             var customUser = HttpContext.Items["CustomUser"] as User;
@@ -621,9 +623,10 @@ namespace Certio.Web.Controllers
             // Add Firm Matters as a subcategory under the law firm
             if (firmMatterChannels.Any())
             {
+                var mattersLabel = RoleDisplayHelper.GetMattersTerminology(org);
                 firmSubcategories.Add(new ChannelSubcategory
                 {
-                    Name = "FIRM MATTERS",
+                    Name = $"{mattersLabel.ToUpperInvariant()}",
                     Channels = firmMatterChannels
                 });
             }
@@ -844,12 +847,15 @@ namespace Certio.Web.Controllers
                 Subcategories = new List<ChannelSubcategory>()
             };
 
-            // FIRM MATTER: Add current matter channel under "CURRENT MATTER" subcategory
+            // FIRM MATTER: Add current matter channel under "CURRENT {MATTER}" subcategory
             if (isFirmMatter && matterChannelWithUnread != null)
             {
+                // Get the organization to use custom terminology
+                var matterOrg = await _db.Organizations.FindAsync(orgId);
+                var matterLabel = RoleDisplayHelper.GetMatterTerminology(matterOrg);
                 firmCategory.Subcategories.Add(new ChannelSubcategory
                 {
-                    Name = "CURRENT MATTER",
+                    Name = $"CURRENT {matterLabel.ToUpperInvariant()}",
                     Channels = new List<Channel> { matterChannelWithUnread }
                 });
             }

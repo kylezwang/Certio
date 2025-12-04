@@ -93,6 +93,30 @@ namespace Certio.Web.Helpers
         }
         
         /// <summary>
+        /// Gets terminology for "Matter" with custom organization settings support.
+        /// Checks custom settings first, then falls back to organization type defaults.
+        /// </summary>
+        public static string GetMatterTerminology(Organization org)
+        {
+            if (org == null)
+                return "Matter";
+                
+            return org.GetMatterTerminology();
+        }
+        
+        /// <summary>
+        /// Gets plural terminology for "Matters" with custom organization settings support.
+        /// Checks custom settings first, then falls back to organization type defaults.
+        /// </summary>
+        public static string GetMattersTerminology(Organization org)
+        {
+            if (org == null)
+                return "Matters";
+                
+            return org.GetMattersTerminology();
+        }
+        
+        /// <summary>
         /// Gets terminology for "Legal" based on organization type.
         /// EventPlanner orgs use "Events" instead of "Legal".
         /// </summary>

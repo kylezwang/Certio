@@ -403,6 +403,9 @@ namespace Certio.Web.Controllers
             ViewBag.OrganizationId = orgId;
             ViewBag.OrganizationName = orgResult.Success ? orgResult.Data!.Name : "Client";
             ViewBag.OrganizationType = orgResult.Success ? orgResult.Data!.Type : Certio.Domain.Organizations.OrganizationType.Client;
+            // Fetch full organization entity for custom terminology
+            var orgEntity = await _db.Organizations.FindAsync(orgId);
+            ViewBag.OrganizationEntity = orgEntity;
             ViewBag.CurrentUserId = customUser.Id;
             ViewBag.CurrentUserName = $"{customUser.FirstName} {customUser.LastName}".Trim();
 
@@ -444,9 +447,10 @@ namespace Certio.Web.Controllers
             return View(viewModel);
         }
 
-        // GET /Client/{orgId}/Matter
-        [Authorize(Policy = "OrgMember")]
-        [HttpGet("/Client/{orgId:int}/Matter")]
+        // NOTE: Route removed to avoid conflict with MatterController.Index
+        // The convention route in Program.cs handles /Client/{orgId}/Matter -> MatterController.Index
+        // This action is kept but not routed - use MatterController.Index instead
+        [NonAction]
         public async Task<IActionResult> Matter(int orgId, CancellationToken ct)
         {
             var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
@@ -596,6 +600,9 @@ namespace Certio.Web.Controllers
             var orgResult = await _organizationService.GetOrganizationBasicInfoAsync(orgId, customUser.Id);
             ViewBag.OrganizationName = orgResult.Success ? orgResult.Data!.Name : "Client";
             ViewBag.OrganizationType = orgResult.Success ? orgResult.Data!.Type : Certio.Domain.Organizations.OrganizationType.Client;
+            // Fetch full organization entity for custom terminology
+            var orgEntity = await _db.Organizations.FindAsync(orgId);
+            ViewBag.OrganizationEntity = orgEntity;
 
             // Use team service to get team members
             var teamMembersResult = await _teamService.GetTeamMembersAsync(orgId, customUser.Id);
@@ -789,6 +796,9 @@ namespace Certio.Web.Controllers
             var orgResult = await _organizationService.GetOrganizationBasicInfoAsync(orgId, customUser.Id);
             ViewBag.OrganizationName = orgResult.Success ? orgResult.Data!.Name : "Organization";
             ViewBag.OrganizationType = orgResult.Success ? orgResult.Data!.Type : Certio.Domain.Organizations.OrganizationType.Client;
+            // Fetch full organization entity for custom terminology
+            var orgEntity = await _db.Organizations.FindAsync(orgId);
+            ViewBag.OrganizationEntity = orgEntity;
             ViewBag.CurrentUserId = customUser.Id;
             ViewBag.CurrentUserName = $"{customUser.FirstName} {customUser.LastName}".Trim();
             ViewBag.CurrentUserInitials = GetInitials(customUser.FirstName, customUser.LastName);
@@ -986,9 +996,10 @@ namespace Certio.Web.Controllers
             
             ViewBag.OrganizationId = orgId;
             ViewBag.User = user;
-            var org = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync();
+            var org = await _db.Organizations.FindAsync(orgId);
             ViewBag.OrganizationName = org?.Name ?? "Client";
             ViewBag.OrganizationType = org?.Type ?? Certio.Domain.Organizations.OrganizationType.Client;
+            ViewBag.OrganizationEntity = org; // For custom terminology
             return View("~/Views/Settings/AccountSettings.cshtml");
         }
         

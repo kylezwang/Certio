@@ -42,11 +42,10 @@ namespace Certio.Web.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            // Check if this is a LawFirm or EventPlanner organization - if so, aggregate matters from all accessible clients
-            var currentOrg = await _context.Organizations
-                .FirstOrDefaultAsync(o => o.Id == orgId);
+            // Load the organization entity to access Settings for custom terminology
+            var currentOrg = await _context.Organizations.FindAsync(orgId);
 
-            SetViewContext(user, orgId, currentOrg?.Name);
+            SetViewContext(user, orgId, currentOrg?.Name, currentOrg);
             
             List<MatterDto> allMatters;
             
@@ -125,7 +124,14 @@ namespace Certio.Web.Controllers
                     AssignmentType = a.AssignmentType,
                     Role = a.Role,
                     IsNotifyRecipient = a.IsNotifyRecipient,
-                    AssignedAt = a.AssignedAt
+                    AssignedAt = a.AssignedAt,
+                    User = a.User != null ? new Certio.Domain.Users.User
+                    {
+                        Id = a.User.Id,
+                        FirstName = a.User.FirstName,
+                        LastName = a.User.LastName,
+                        Email = a.User.Email
+                    } : null!
                 }).ToList()
             }).ToList();
 
@@ -369,12 +375,7 @@ namespace Certio.Web.Controllers
             var displayOrgId = dto.OrganizationId != orgId ? dto.OrganizationId : orgId;
             var displayOrg = await _context.Organizations
                 .FirstOrDefaultAsync(o => o.Id == displayOrgId);
-            if (displayOrg != null)
-            {
-                ViewBag.OrganizationType = displayOrg.Type;
-            }
-
-            SetViewContext(user, dto.OrganizationId, displayOrg?.Name);
+            SetViewContext(user, dto.OrganizationId, displayOrg?.Name, displayOrg);
             
             return View(viewModel);
         }
@@ -418,12 +419,7 @@ namespace Certio.Web.Controllers
             var organization = await _context.Organizations
                 .FirstOrDefaultAsync(o => o.Id == orgId);
             
-            if (organization != null)
-            {
-                ViewBag.OrganizationType = organization.Type;
-            }
-            
-            SetViewContext(user, orgId, organization?.Name);
+            SetViewContext(user, orgId, organization?.Name, organization);
 
             var viewModel = new MatterFormViewModel();
             await PopulateOrgMembersData(viewModel);
@@ -455,12 +451,7 @@ namespace Certio.Web.Controllers
             var organization = await _context.Organizations
                 .FirstOrDefaultAsync(o => o.Id == orgId);
             
-            if (organization != null)
-            {
-                ViewBag.OrganizationType = organization.Type;
-            }
-            
-            SetViewContext(user, orgId, organization?.Name);
+            SetViewContext(user, orgId, organization?.Name, organization);
             
             // Debug logging for assignments
             _logger.LogInformation($"Matter/Create POST - Step: {model.Step}, Action: {action}");
@@ -1020,8 +1011,10 @@ namespace Certio.Web.Controllers
             }
 
             var dto = result.Data!;
-
-            SetViewContext(user, dto.OrganizationId);
+            
+            // Get organization for terminology customization
+            var organization = await _context.Organizations.FindAsync(dto.OrganizationId);
+            SetViewContext(user, dto.OrganizationId, organization?.Name, organization);
 
             var viewModel = new MatterFormViewModel
             {
@@ -1075,7 +1068,9 @@ namespace Certio.Web.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            SetViewContext(user, orgId);
+            // Get organization for terminology customization
+            var organization = await _context.Organizations.FindAsync(orgId);
+            SetViewContext(user, orgId, organization?.Name, organization);
 
             // Validate input
             if (!InputValidator.IsValidString(model.Title, InputValidator.MAX_TITLE_LENGTH, required: true))
@@ -1218,7 +1213,9 @@ namespace Certio.Web.Controllers
                 CreatedAt = dto.CreatedAt
             };
 
-            SetViewContext(user, dto.OrganizationId);
+            // Get organization for terminology customization
+            var organization = await _context.Organizations.FindAsync(dto.OrganizationId);
+            SetViewContext(user, dto.OrganizationId, organization?.Name, organization);
             return View(matter);
         }
 
@@ -1265,7 +1262,7 @@ namespace Certio.Web.Controllers
         // HELPER METHODS
         // ============================================================
 
-        private void SetViewContext(User? user, int organizationId, string? organizationName = null)
+        private void SetViewContext(User? user, int organizationId, string? organizationName = null, Certio.Domain.Organizations.Organization? organization = null)
         {
             ViewBag.OrganizationId = organizationId;
             ViewBag.CurrentUserId = user?.Id;
@@ -1275,6 +1272,13 @@ namespace Certio.Web.Controllers
 
             ViewBag.OrganizationName = string.IsNullOrWhiteSpace(organizationName) ? null : organizationName;
             ViewBag.UserTimeZone = user?.TimeZone ?? "America/New_York";
+            
+            // Set organization entity and type for terminology customization
+            if (organization != null)
+            {
+                ViewBag.OrganizationType = organization.Type;
+                ViewBag.OrganizationEntity = organization;
+            }
         }
 
         /// <summary>

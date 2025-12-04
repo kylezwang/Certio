@@ -74,6 +74,7 @@ namespace Certio.Web.Controllers
             var org = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync();
             ViewBag.OrganizationName = org?.Name ?? "Client";
             ViewBag.OrganizationType = org?.Type ?? OrganizationType.Client;
+            ViewBag.OrganizationEntity = org; // For custom terminology
             
             // Get the document orgId (convert from int to Guid)
             var documentOrgId = CreateDeterministicGuid("certio:organization", orgId);
@@ -326,9 +327,10 @@ namespace Certio.Web.Controllers
             }
 
             ViewBag.OrganizationId = orgId;
-            var org = await _db.Organizations.Where(o => o.Id == orgId).FirstOrDefaultAsync();
+            var org = await _db.Organizations.FindAsync(orgId);
             ViewBag.OrganizationName = org?.Name ?? "Client";
             ViewBag.OrganizationType = org?.Type ?? OrganizationType.Client;
+            ViewBag.OrganizationEntity = org; // For custom terminology
 
             // Get the document orgId (convert from int to Guid)
             var documentOrgId = CreateDeterministicGuid("certio:organization", orgId);

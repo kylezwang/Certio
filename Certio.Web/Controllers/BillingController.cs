@@ -50,6 +50,7 @@ namespace Certio.Web.Controllers
                 .FirstOrDefaultAsync();
             ViewBag.OrganizationName = org?.Name ?? "Client";
             ViewBag.OrganizationType = org?.Type ?? Certio.Domain.Organizations.OrganizationType.Client;
+            ViewBag.OrganizationEntity = org; // For custom terminology
 
             return View();
         }

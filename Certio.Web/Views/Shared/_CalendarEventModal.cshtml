@@ -1,7 +1,15 @@
 @{
-    var orgType = ViewBag.OrganizationType != null ? (Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType : Certio.Domain.Organizations.OrganizationType.LawFirm;
-    var matterLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
-    var mattersLabel = Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType);
+    var orgType = ViewBag.OrganizationType != null 
+        ? (Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType 
+        : Certio.Domain.Organizations.OrganizationType.LawFirm;
+    var orgEntity = ViewBag.OrganizationEntity as Certio.Domain.Organizations.Organization;
+    // Use custom terminology if available, otherwise fall back to type-based default
+    var matterLabel = orgEntity != null 
+        ? Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgEntity) 
+        : Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
+    var mattersLabel = orgEntity != null 
+        ? Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgEntity) 
+        : Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType);
 }
 <!-- Calendar Event Details Modal -->
 <div class="task-details-modal" id="calendarEventModal" style="display: none; border-radius: 12px;">
