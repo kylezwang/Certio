@@ -31,16 +31,14 @@
     </div>
 
     <!-- Search and Filters -->
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <div class="search-container">
+    <div class="d-flex align-items-center gap-2 mb-4" style="flex-wrap: nowrap;">
+        <div class="search-container" style="flex: 1 1 auto; min-width: 0;">
                 <i class="fas fa-search"></i>
                 <input type="text" class="form-control" id="matterSearchInput" placeholder="Search @mattersLabel.ToLower()..." />
-            </div>
+            <span class="search-placeholder-text" style="position: absolute; left: 2.5rem; top: 50%; transform: translateY(-50%); color: #6c757d; pointer-events: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; right: 1rem;">Search @mattersLabel.ToLower()...</span>
         </div>
-        <div class="col-md-4">
-            <div class="filter-buttons">
-                <div class="dropdown d-inline-block me-2">
+        <div class="filter-buttons" style="flex: 0 0 auto; display: flex; gap: 0.5rem; flex-wrap: nowrap;">
+            <div class="dropdown">
                     <button class="filter-button dropdown-toggle" type="button" id="mattersFilterBtn" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-filter"></i>
                         <span id="mattersFilterLabel">All @mattersLabel</span>
@@ -53,7 +51,7 @@
                         <li><a class="dropdown-item matters-filter-option" href="#" data-filter="completed">Completed</a></li>
                     </ul>
                 </div>
-                <div class="dropdown d-inline-block">
+            <div class="dropdown">
                     <button class="filter-button dropdown-toggle" type="button" id="mattersDateFilterBtn" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-calendar"></i>
                         <span id="mattersDateFilterLabel">All Time</span>
@@ -67,7 +65,36 @@
                 </div>
             </div>
         </div>
-    </div>
+    
+    <style>
+        /* Responsive search bar that shrinks and hides text */
+        .search-container {
+            position: relative;
+        }
+        
+        .search-container input::placeholder {
+            opacity: 0;
+        }
+        
+        .search-container input:focus ~ .search-placeholder-text,
+        .search-container input:not(:placeholder-shown) ~ .search-placeholder-text {
+            display: none;
+        }
+        
+        /* Hide text when search bar is small */
+        @@media (max-width: 768px) {
+            .search-placeholder-text {
+                display: none !important;
+            }
+        }
+        
+        /* Show text only when there's enough space */
+        @@container (min-width: 400px) {
+            .search-placeholder-text {
+                display: block;
+            }
+        }
+    </style>
 
     <!-- Stats Cards -->
     <div class="row mb-3">
@@ -462,3 +489,57 @@
         display: none;
     }
 </style>
+
+<script>
+    // Handle responsive search placeholder
+    function updateSearchPlaceholder() {
+        const searchContainer = document.querySelector('.search-container');
+        const searchInput = document.getElementById('matterSearchInput');
+        const placeholderText = document.querySelector('.search-placeholder-text');
+        
+        if (!searchContainer || !searchInput || !placeholderText) return;
+        
+        // Get the width of the search container
+        const containerWidth = searchContainer.offsetWidth;
+        
+        // Hide text when container is too small (less than 200px)
+        if (containerWidth < 200) {
+            placeholderText.style.display = 'none';
+        } else {
+            // Only show if input is empty and not focused
+            if (!searchInput.value && document.activeElement !== searchInput) {
+                placeholderText.style.display = 'block';
+            }
+        }
+    }
+    
+    // Run on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        updateSearchPlaceholder();
+        
+        // Update on window resize
+        window.addEventListener('resize', updateSearchPlaceholder);
+        
+        // Handle input focus/blur
+        const searchInput = document.getElementById('matterSearchInput');
+        const placeholderText = document.querySelector('.search-placeholder-text');
+        
+        if (searchInput && placeholderText) {
+            searchInput.addEventListener('focus', function() {
+                placeholderText.style.display = 'none';
+            });
+            
+            searchInput.addEventListener('blur', function() {
+                if (!searchInput.value) {
+                    updateSearchPlaceholder();
+                }
+            });
+            
+            searchInput.addEventListener('input', function() {
+                if (searchInput.value) {
+                    placeholderText.style.display = 'none';
+                }
+            });
+        }
+    });
+</script>
