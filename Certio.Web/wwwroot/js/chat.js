@@ -2702,6 +2702,12 @@ function initializeResizeHandle() {
                 mainContentWrapper.style.right = newWidth + 'px';
             }
             
+            // Update task details modal to make space for sidebar
+            const taskDetailsModal = document.querySelector('.task-details-modal');
+            if (taskDetailsModal) {
+                taskDetailsModal.style.right = newWidth + 'px';
+            }
+            
             // Update floating timer overlay position
             const floatingTimerOverlay = document.getElementById('floatingTimerOverlay');
             if (floatingTimerOverlay) {

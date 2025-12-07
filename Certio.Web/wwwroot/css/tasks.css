@@ -807,6 +807,7 @@
     flex-direction: column;
     padding: 1rem 0.6rem 5rem 1rem;
     overflow-y: auto;
+    overflow-x: hidden;
     border-radius: 12px;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
     margin-top: 1rem; /* Add top margin to compensate for removed page padding */
@@ -939,34 +940,41 @@
 .task-details-modal {
     position: fixed;
     top: 7vh; /* Start below header */
-    left: 20vw; /* Start after sidebar */
-    right: 320px; /* Leave space for chat panel */
-    bottom: 2rem;
+    left: 20vw; /* Match client-main-content-wrapper default position */
+    right: 320px; /* Default chat panel width */
+    bottom: 0 !important;
     z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: center;
     background-color: rgba(0, 0, 0, 0.5);
-    pointer-events: auto; /* Allow clicks on backdrop for closing */
+    pointer-events: auto;
+    border-radius: 20px 20px 0 0;
+    transition: left 0.3s ease, right 0.3s ease; /* Smooth transition when sidebars toggle */
 }
 
 .task-details-modal .modal-dialog {
-    max-width: 90%;
     width: 50rem;
-    margin: 0;
-    max-height: 90%;
-    border-radius: 12px;
-    pointer-events: auto; /* Ensure modal content captures clicks */
+    max-width: 90%;
+    margin: 1.5rem;
+    max-height: calc(100% - 3rem);
+    border-radius: 16px;
+    pointer-events: auto;
     position: relative;
-    z-index: 1001; /* Above backdrop */
+    z-index: 1001;
+    background-color: white;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 12px 24px -8px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .task-details-content {
     border: none;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    border-radius: 16px;
+    box-shadow: none;
     background: white;
-    max-height: 100%;
+    height: 100%;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -975,19 +983,44 @@
 .task-details-body {
     display: flex;
     gap: 1rem;
-    padding: 0 1.5rem 0.75rem;
+    padding: 1.5rem 2rem 2rem;
     flex: 1;
     overflow-y: auto;
-    max-height: 50vh;
+    overflow-x: hidden;
     min-height: 0;
+}
+
+/* Custom Scrollbar for Task Details Modal Body */
+.task-details-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.task-details-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.task-details-body::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+.task-details-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.35);
+}
+
+/* Firefox scrollbar for Task Details Modal Body */
+.task-details-body {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
 }
 
 .task-details-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.5rem 1.5rem 0rem 1.5rem;
+    padding: 1rem 2rem 0 2rem;
     flex-shrink: 0;
+    position: relative;
 }
 
 .task-details-header-left {
@@ -1550,21 +1583,19 @@
 
 /* Responsive Design */
 @media (max-width: 1200px) {
-    .task-details-modal {
-        left: 6vw; /* Only global navbar offset */
-        right: 0; /* Full width on smaller screens */
+    .task-details-modal .modal-dialog {
+        width: 85%;
     }
 }
 
 @media (max-width: 768px) {
     .task-details-modal {
-        left: 0; /* Full width on mobile */
+        left: 0;
         right: 0;
     }
     
     .task-details-modal .modal-dialog {
-        max-width: 95vw;
-        margin: 0.5rem auto;
+        width: 95%;
     }
     
     .task-details-body {
@@ -1587,12 +1618,29 @@
 
 /* Adjust for hidden sidebar */
 .sidebar-hidden .task-details-modal {
-    left: calc(6vw + 1rem); /* Move back to just after global navbar + space */
+    left: calc(6vw + 1rem) !important; /* Move back to just after global navbar + space */
 }
 
 /* Adjust for hidden chat panel */
 .chat-hidden .task-details-modal {
     right: 1rem !important; /* Same leftover padding as sidebar toggle */
+}
+
+/* Adjust for both sidebars hidden */
+.sidebar-hidden.chat-hidden .task-details-modal {
+    left: calc(6vw + 1rem) !important;
+    right: 1rem !important;
+}
+
+/* Adjust for global dashboard layout */
+.client-main-content-wrapper.global-dashboard-layout ~ .task-details-modal,
+body:has(.client-main-content-wrapper.global-dashboard-layout) .task-details-modal {
+    left: 23vw;
+}
+
+.sidebar-hidden .client-main-content-wrapper.global-dashboard-layout ~ .task-details-modal,
+.sidebar-hidden body:has(.client-main-content-wrapper.global-dashboard-layout) .task-details-modal {
+    left: calc(6vw + 1rem) !important;
 }
 
 /* Task Cards Container */
@@ -1775,6 +1823,7 @@
     gap: 0.75rem;
     padding: 0.3rem 1rem 0.6rem 1rem;
     min-height: 48px;
+    overflow: hidden;
 }
 
 .task-checkbox-column {
