@@ -158,7 +158,9 @@ namespace Certio.Web.Controllers.Api
                 return Ok(new
                 {
                     success = true,
-                    message = $"Synced {syncedCount} event(s) to your connected calendar(s)",
+                    message = syncedCount == 0 
+                        ? $"Synced {syncedCount} event(s) to your connected calendar(s). If you don't see the event(s) in your calendar, please reconnect your Google or Outlook calendar and retry."
+                        : $"Synced {syncedCount} event(s) to your connected calendar(s).",
                     syncedCount,
                     failedCount,
                     errors = errors.Any() ? errors : null
@@ -167,7 +169,7 @@ namespace Certio.Web.Controllers.Api
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error syncing calendar events for org {OrgId}", request.OrgId);
-                return StatusCode(500, new { success = false, error = "Failed to sync calendar events" });
+                return StatusCode(500, new { success = false, error = "Failed to sync calendar events, please reconnect your Google or Outlook calendar." });
             }
         }
 
