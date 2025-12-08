@@ -248,21 +248,20 @@
 
                 <!-- Email Integration - Will be reordered by JavaScript -->
                 <div id="emailIntegrationSection" class="email-integration-section" style="padding: 1rem 1rem 0 1rem; background: #f8f9fa; border-radius: 8px;">
-                    <h4 style="font-size: 0.9em; font-weight: 600; margin-bottom: 12px; color: #333;">Gmail & Outlook Integration</h4>
+                    <h4 style="font-size: 0.9em; font-weight: 600; margin-bottom: 12px; color: #333;">Email Integration</h4>
                     <div id="emailAccountStatus">
-                        <div id="emailConnected" style="display: none;">
-                            <!-- G icon and (Gmail) tag on same row -->
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                                <i class="fab fa-google" style="font-size: 1.2em; color: #4285f4;"></i>
-                                <span id="connectedProvider" style="font-size: 0.75em; color: #999;">(Gmail)</span>
-                            </div>
-                            <!-- Email address on its own line -->
-                            <div style="margin-bottom: 8px;">
-                                    <span id="connectedEmailAddress" style="font-size: 0.85em; color: #666;"></span>
+                        <div id="emailConnected" style="display: none; padding: 0.75rem 0; background: #f8f9fa; border-radius: 6px;">
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <!-- Icon and Provider Name - matching Calendar style -->
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <i id="connectedProviderIcon" class="fab fa-google" style="color: #4285f4; font-size: 1.2em;"></i>
+                                    <div style="display: flex; flex-direction: column; gap: 0.125rem;">
+                                        <span id="connectedProviderName" style="font-size: 0.9em; font-weight: 500;">Gmail</span>
+                                        <span id="connectedEmailAddress" style="font-size: 0.85em; font-weight: 400; color: #666;"></span>
+                                    </div>
                                 </div>
-                            <!-- Disconnect button on row below email -->
-                            <div>
-                                <button id="disconnectEmailBtn" class="btn btn-sm btn-outline-danger" style="font-size: 0.75em; padding: 4px 8px;">
+                                <!-- Disconnect Button -->
+                                <button id="disconnectEmailBtn" class="btn btn-sm btn-outline-danger" style="font-size: 0.75em; padding: 4px 8px; align-self: flex-start;">
                                     Disconnect
                                 </button>
                             </div>

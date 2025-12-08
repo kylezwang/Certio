@@ -58,12 +58,13 @@ function updateEmailStatusUI() {
         if (inboxSection) inboxSection.style.display = 'block';
         
         const emailAddr = document.getElementById('connectedEmailAddress');
-        const provider = document.getElementById('connectedProvider');
+        const providerName = document.getElementById('connectedProviderName');
+        const providerIcon = document.getElementById('connectedProviderIcon');
+        
         if (emailAddr) emailAddr.textContent = emailAccountStatus.emailAddress;
-        if (provider) provider.textContent = `(${emailAccountStatus.provider})`;
+        if (providerName) providerName.textContent = emailAccountStatus.provider;
         
         // Update provider icon based on provider type
-        const providerIcon = connectedDiv?.querySelector('.fab');
         if (providerIcon) {
             if (emailAccountStatus.provider === 'Gmail') {
                 providerIcon.className = 'fab fa-google';
@@ -1862,7 +1863,6 @@ async function updateInboxCount() {
             if (badge) {
                 if (result.unreadCount > 0) {
                     badge.textContent = result.unreadCount;
-                    badge.style.display = 'inline-block';
                 } else {
                     badge.style.display = 'none';
                 }

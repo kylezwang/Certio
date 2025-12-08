@@ -257,7 +257,7 @@
             padding: 0.75rem 1rem;
             border-bottom: 1px solid #f3f4f6;
             cursor: pointer;
-            transition: background-color 0.2s ease, border-radius 0.2s ease;
+            transition: background-color 0.2s ease, border-radius 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
             display: flex;
             flex-direction: row;
             align-items: center;
@@ -299,10 +299,16 @@
             flex-shrink: 0;
         }
 
-        .client-item:hover,
         .client-item.active {
             background-color: #eef1f3;
             border-radius: 12px;
+        }
+
+        .client-item:hover {
+            background-color: #eef1f3;
+            border-radius: 12px;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
         }
 
         .client-item:last-child {
