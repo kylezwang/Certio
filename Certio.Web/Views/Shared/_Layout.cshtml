@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Katibeh&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Katibeh&family=Figtree:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Certio.Web.styles.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
@@ -147,6 +147,26 @@
         body {
             margin: 0;
             padding: 0;
+            font-family: 'Figtree', sans-serif;
+        }
+        
+        /* Figtree for card headers and subtitles (feature text) */
+        .matter-card .card-header .card-title,
+        .card-header p {
+            font-family: 'Figtree', sans-serif;
+        }
+        
+        /* System font for user-inputted content (not UI elements) */
+        .user-content,
+        .task-title-label,
+        .task-title,
+        .task-description-textarea {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+        
+        /* User content in matter cards uses system font */
+        .matter-card .card-body .card-text {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
         }
 
         /* Clients Popup Styles */
@@ -533,7 +553,7 @@
     <!-- Firms Popup -->
     <div class="clients-popup" id="firmsPopup">
         <div class="clients-popup-header">
-            <h3 class="clients-popup-title">My Organizations</h3>
+            <h3 class="clients-popup-title">Home</h3>
             <button class="clients-popup-close" id="firmsPopupClose">
                 <i class="fas fa-times"></i>
             </button>
@@ -660,8 +680,8 @@
                 if (orgTypeLower === 'eventplanner' || orgTypeLower === '4') {
                     // EventPlanner organization
                     myFirmIcon.className = 'fa-solid fa-clipboard-list';
-                    myFirmLabel.textContent = 'My Org';
-                    myFirmLink.title = 'My Organization';
+                    myFirmLabel.textContent = 'Home';
+                    myFirmLink.title = 'Home';
                 } else if (orgTypeLower === 'lawfirm' || orgTypeLower === '1') {
                     // LawFirm organization
                     myFirmIcon.className = 'fa-solid fa-building-columns';
@@ -669,9 +689,9 @@
                     myFirmLink.title = 'Home';
                 } else {
                     // Default/Client organization
-                    myFirmIcon.className = 'fa-solid fa-building';
-                    myFirmLabel.textContent = 'My Org';
-                    myFirmLink.title = 'My Organization';
+                    myFirmIcon.className = 'fa-solid fa-building-columns';
+                    myFirmLabel.textContent = 'Home';
+                    myFirmLink.title = 'Home';
                 }
             }
 

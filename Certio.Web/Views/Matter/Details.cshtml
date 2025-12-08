@@ -844,7 +844,7 @@
         };
 
         // Initialize change detection for all carousel inputs
-        document.addEventListener('DOMContentLoaded', function() {
+        function initializeCarouselInputs() {
             const carouselInputs = document.querySelectorAll('.matter-carousel-input');
             carouselInputs.forEach(input => {
                 const fieldName = input.dataset.field;
@@ -876,7 +876,15 @@
                     }
                 });
             });
-        });
+        }
+
+        // Initialize on DOMContentLoaded or immediately if already loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeCarouselInputs);
+        } else {
+            // DOM is already loaded, run initialization immediately
+            initializeCarouselInputs();
+        }
 
         // Function to show save indicator
         function showSaveIndicator() {

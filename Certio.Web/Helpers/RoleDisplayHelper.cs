@@ -57,7 +57,7 @@ namespace Certio.Web.Helpers
                 OrganizationType.Client => "fa-solid fa-user",
                 OrganizationType.Government => "fa-solid fa-landmark",
                 OrganizationType.NonProfit => "fa-solid fa-hand-holding-heart",
-                _ => "fa-solid fa-building"
+                _ => "fa-solid fa-building-columns"
             };
         }
         

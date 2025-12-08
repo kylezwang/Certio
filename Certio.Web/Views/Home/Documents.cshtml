@@ -68,6 +68,111 @@
             border-color: #adb5bd;
             color: #495057;
         }
+
+        /* New Button - Match Search and Filters Row Shadow */
+        #newDocumentBtn {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
+        }
+
+        /* New Document Dropdown - Profile Dropdown Style */
+        .new-document-dropdown {
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.25);
+            padding: 0;
+            min-width: 280px;
+            z-index: 1000;
+            display: none;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .new-document-dropdown.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .new-document-dropdown-menu {
+            padding: 0.5rem 0;
+        }
+
+        .new-document-dropdown-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            gap: 0.75rem;
+        }
+
+        .new-doc-provider-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .new-doc-provider-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.125rem;
+            min-width: 0;
+        }
+
+        .new-doc-provider-name {
+            font-weight: 500;
+            color: #111827;
+            font-size: 0.9rem;
+        }
+
+        .new-doc-provider-email {
+            font-size: 0.75rem;
+            color: #6b7280;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .new-document-dropdown-divider {
+            height: 1px;
+            background-color: #e5e7eb;
+            margin: 0.25rem 0;
+        }
+
+        /* Open Button - Grey Style */
+        .new-doc-open-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            background: #6b7280;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 0.4rem 1rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+            min-height: 34px;
+            white-space: nowrap;
+        }
+
+        .new-doc-open-btn:hover {
+            background: #4b5563;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .new-doc-open-btn i {
+            font-size: 0.75rem;
+        }
     </style>
 }
 
@@ -87,12 +192,62 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h1 class="display-6 fw-bold text-dark mb-2">Documents</h1>
-            <p class="lead text-muted">Manage and organize your @legalLabel.ToLower() documents</p>
+            <p class="lead text-muted">Manage and organize your documents & spreadsheets</p>
         </div>
-        <button class="btn btn-primary d-flex align-items-center gap-2" style="font-weight: 500;">
-            <i class="fas fa-upload"></i>
-            Upload Document
-        </button>
+        <div class="new-document-container" style="position: relative;">
+            <button id="newDocumentBtn" class="btn btn-primary d-flex align-items-center gap-2" style="font-weight: 500;">
+                <i class="fas fa-plus"></i>
+                New
+            </button>
+            <!-- New Document Dropdown -->
+            <div class="new-document-dropdown" id="newDocumentDropdown">
+                <div class="new-document-dropdown-menu">
+                    <!-- Google Drive Item -->
+                    <div class="new-document-dropdown-item" id="newDocGoogleItem">
+                        <div class="new-doc-provider-info">
+                            <i class="fab fa-google" style="color: #4285f4; font-size: 1.2em;"></i>
+                            <div class="new-doc-provider-details">
+                                <span class="new-doc-provider-name">Google Drive</span>
+                                <span class="new-doc-provider-email" id="newDocGoogleEmail"></span>
+                            </div>
+                        </div>
+                        <!-- Not Connected State -->
+                        <button id="newDocConnectGoogleBtn" class="oauth-connect-btn" style="padding: 0.4rem 1rem; font-size: 0.85rem; min-height: 34px;">
+                            <i class="fab fa-google"></i>
+                            <span style="margin-left: 0.5rem;">Connect</span>
+                        </button>
+                        <!-- Connected State -->
+                        <button id="newDocOpenGoogleBtn" class="new-doc-open-btn" style="display: none;">
+                            <i class="fas fa-external-link-alt"></i>
+                            <span>Open</span>
+                        </button>
+                    </div>
+                    
+                    <div class="new-document-dropdown-divider"></div>
+                    
+                    <!-- OneDrive Item -->
+                    <div class="new-document-dropdown-item" id="newDocOneDriveItem">
+                        <div class="new-doc-provider-info">
+                            <i class="fab fa-windows" style="color: #0078d4; font-size: 1.2em;"></i>
+                            <div class="new-doc-provider-details">
+                                <span class="new-doc-provider-name">OneDrive</span>
+                                <span class="new-doc-provider-email" id="newDocOneDriveEmail"></span>
+                            </div>
+                        </div>
+                        <!-- Not Connected State -->
+                        <button id="newDocConnectOneDriveBtn" class="oauth-connect-btn" style="padding: 0.4rem 1rem; font-size: 0.85rem; min-height: 34px;">
+                            <i class="fab fa-windows"></i>
+                            <span style="margin-left: 0.5rem;">Connect</span>
+                        </button>
+                        <!-- Connected State -->
+                        <button id="newDocOpenOneDriveBtn" class="new-doc-open-btn" style="display: none;">
+                            <i class="fas fa-external-link-alt"></i>
+                            <span>Open</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Search and Filters -->
@@ -708,10 +863,58 @@
                 if (notConnectedDiv) notConnectedDiv.style.display = 'block';
                 if (connectedDiv) connectedDiv.style.display = 'none';
             }
+
+            // Update New Document Dropdown state
+            updateNewDocumentDropdownUI(status);
+        }
+
+        // Update New Document Dropdown UI
+        function updateNewDocumentDropdownUI(status) {
+            const googleConnected = status.googleDrive?.connected || false;
+            const oneDriveConnected = status.oneDrive?.connected || false;
+
+            // Google Drive elements in dropdown
+            const newDocConnectGoogleBtn = document.getElementById('newDocConnectGoogleBtn');
+            const newDocOpenGoogleBtn = document.getElementById('newDocOpenGoogleBtn');
+            const newDocGoogleEmail = document.getElementById('newDocGoogleEmail');
+
+            // OneDrive elements in dropdown
+            const newDocConnectOneDriveBtn = document.getElementById('newDocConnectOneDriveBtn');
+            const newDocOpenOneDriveBtn = document.getElementById('newDocOpenOneDriveBtn');
+            const newDocOneDriveEmail = document.getElementById('newDocOneDriveEmail');
+
+            // Update Google Drive state
+            if (googleConnected) {
+                if (newDocConnectGoogleBtn) newDocConnectGoogleBtn.style.display = 'none';
+                if (newDocOpenGoogleBtn) newDocOpenGoogleBtn.style.display = 'flex';
+                if (newDocGoogleEmail && status.googleDrive?.email) {
+                    newDocGoogleEmail.textContent = status.googleDrive.email;
+                }
+            } else {
+                if (newDocConnectGoogleBtn) newDocConnectGoogleBtn.style.display = 'flex';
+                if (newDocOpenGoogleBtn) newDocOpenGoogleBtn.style.display = 'none';
+                if (newDocGoogleEmail) newDocGoogleEmail.textContent = '';
+            }
+
+            // Update OneDrive state
+            if (oneDriveConnected) {
+                if (newDocConnectOneDriveBtn) newDocConnectOneDriveBtn.style.display = 'none';
+                if (newDocOpenOneDriveBtn) newDocOpenOneDriveBtn.style.display = 'flex';
+                if (newDocOneDriveEmail && status.oneDrive?.email) {
+                    newDocOneDriveEmail.textContent = status.oneDrive.email;
+                }
+            } else {
+                if (newDocConnectOneDriveBtn) newDocConnectOneDriveBtn.style.display = 'flex';
+                if (newDocOpenOneDriveBtn) newDocOpenOneDriveBtn.style.display = 'none';
+                if (newDocOneDriveEmail) newDocOneDriveEmail.textContent = '';
+            }
         }
 
         // Setup document OAuth event listeners
         function setupDocumentOAuthListeners() {
+            // Setup New Document Dropdown
+            setupNewDocumentDropdown();
+
             // Connect buttons (not connected state)
             const connectGoogleDriveBtn = document.getElementById('connectGoogleDriveBtn');
             const connectOneDriveBtn = document.getElementById('connectOneDriveBtn');
@@ -885,6 +1088,74 @@
                     }
                 }
                 alert('Failed to refresh documents. Please try again.');
+            }
+        }
+
+        // Setup New Document Dropdown
+        function setupNewDocumentDropdown() {
+            const newDocBtn = document.getElementById('newDocumentBtn');
+            const dropdown = document.getElementById('newDocumentDropdown');
+
+            if (!newDocBtn || !dropdown) return;
+
+            // Toggle dropdown on button click
+            newDocBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropdown.classList.toggle('show');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!dropdown.contains(e.target) && e.target !== newDocBtn) {
+                    dropdown.classList.remove('show');
+                }
+            });
+
+            // Connect Google Drive button in dropdown
+            const newDocConnectGoogleBtn = document.getElementById('newDocConnectGoogleBtn');
+            if (newDocConnectGoogleBtn) {
+                newDocConnectGoogleBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropdown.classList.remove('show');
+                    connectDocumentProvider('google');
+                });
+            }
+
+            // Connect OneDrive button in dropdown
+            const newDocConnectOneDriveBtn = document.getElementById('newDocConnectOneDriveBtn');
+            if (newDocConnectOneDriveBtn) {
+                newDocConnectOneDriveBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropdown.classList.remove('show');
+                    connectDocumentProvider('onedrive');
+                });
+            }
+
+            // Open Google Drive button - opens drive.google.com/drive/my-drive
+            const newDocOpenGoogleBtn = document.getElementById('newDocOpenGoogleBtn');
+            if (newDocOpenGoogleBtn) {
+                newDocOpenGoogleBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropdown.classList.remove('show');
+                    // Open Google Drive in new tab - the /u/0/new path opens the New menu
+                    window.open('https://drive.google.com/drive/my-drive', '_blank');
+                });
+            }
+
+            // Open OneDrive button - opens onedrive.live.com
+            const newDocOpenOneDriveBtn = document.getElementById('newDocOpenOneDriveBtn');
+            if (newDocOpenOneDriveBtn) {
+                newDocOpenOneDriveBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropdown.classList.remove('show');
+                    // Open OneDrive in new tab
+                    window.open('https://onedrive.live.com/', '_blank');
+                });
             }
         }
 
