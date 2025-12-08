@@ -74,6 +74,121 @@
         background-color: #fafafa !important;
         border-color: #cbd5e1 !important;
     }
+    
+    /* Task Matter Selector in Task Details Modal */
+    .task-title-container {
+        position: relative;
+    }
+    
+    .task-matter-selector-container {
+        position: absolute;
+        right: 1.25rem;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        align-items: center;
+    }
+    
+    .task-matter-selector-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 1rem;
+        background: white;
+        border-bottom: 1px solid #e5e7eb;
+        border-radius: 0 0 12px 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        min-width: 200px;
+        font-size: 0.875rem;
+        color: #374151;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+        border-right: 1px solid #e5e7eb;
+        border-left: 1px solid #e5e7eb;
+        border-top: transparent;
+    }
+    
+    .task-matter-selector-btn:hover {
+        background-color: #f9fafb;
+        border-color: #d1d5db;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .task-matter-selector-text {
+        flex: 1;
+        text-align: left;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-weight: 500;
+    }
+    
+    .task-matter-selector-arrow {
+        font-size: 0.75rem;
+        color: #6b7280;
+        flex-shrink: 0;
+    }
+    
+    /* Task Matter Popup */
+    .task-matter-popup {
+        position: fixed;
+        z-index: 1102;
+        display: none;
+    }
+    
+    .task-matter-popup-inner {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        width: 360px;
+        max-height: 360px;
+        overflow: hidden;
+    }
+    
+    .task-matter-popup-title {
+        font-weight: 600;
+        font-size: 0.95rem;
+        padding: 0.75rem 1rem;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .task-matter-popup-list {
+        max-height: 300px;
+        overflow-y: auto;
+        padding: 0.5rem;
+    }
+    
+    .task-matter-item {
+        width: 100%;
+        text-align: left;
+        padding: 0.6rem 0.75rem;
+        border: none;
+        background: transparent;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        color: #111827;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+    }
+    
+    .task-matter-item:hover {
+        background: #f3f4f6;
+    }
+    
+    .task-matter-item i {
+        color: #6b7280;
+    }
+    
+    .task-matter-item-text {
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 </style>
 
 <div class="matter-tasks-content tasks-content" style="position: relative;">
@@ -1049,6 +1164,13 @@
                         <div class="task-title-container">
                             <i class="fa-solid fa-circle-question task-title-icon" id="taskTitleIcon"></i>
                             <h2 class="task-title" contenteditable="true" data-placeholder="Enter task title...">Draft Founder Agreement & IP Assignment (4-yr vest, 1-yr cliff)</h2>
+                            <div class="task-matter-selector-container">
+                                <button class="task-matter-selector-btn" id="taskMatterSelectorBtn">
+                                    <i class="fas fa-folder"></i>
+                                    <span class="task-matter-selector-text" id="taskMatterSelectorText">Select Matter</span>
+                                    <i class="fas fa-chevron-down task-matter-selector-arrow"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -1069,7 +1191,7 @@
                         <button class="btn btn-sm btn-outline-secondary task-action-btn" id="scroll-attachment-btn" style="font-size: 0.875rem; border-radius: 0.5rem;">
                             <i class="fas fa-paperclip"></i> Attachments
                         </button>
-                        <button class="btn btn-sm btn-outline-secondary task-action-btn" id="scroll-location-btn" style="border-radius: 0.5rem;">
+                        <button class="btn btn-sm btn-outline-secondary task-action-btn" id="scroll-location-btn" style="font-size: 0.875rem; border-radius: 0.5rem;">
                             <i class="fas fa-map-marker-alt"></i> Location
                         </button>
                     </div>
@@ -1341,7 +1463,7 @@
                                     <textarea class="form-control comment-input" id="commentInput" placeholder="Write a comment..."></textarea>
                                     <div class="mt-2 d-flex align-items-center">
                                         <small class="text-muted" style="margin-right: 0.8rem; margin-left: 0.3rem; font-size: 0.8rem;">Type &#64; to mention users</small>
-                                        <button class="btn btn-sm btn-primary" id="postCommentBtn"><i class="fas fa-paper-plane"></i> Post</button>
+                                        <button class="btn btn-sm btn-primary" id="postCommentBtn" style="font-weight: 600;"><i class="fas fa-paper-plane"></i> Post</button>
                                     </div>
                                 </div>
                                 <div class="activity-log" id="commentsList">
@@ -1394,6 +1516,31 @@
                 else
                 {
                     <div class="text-center text-muted py-2">No matters available</div>
+                }
+            </div>
+        </div>
+    </div>
+    
+    <!-- Task Matter Selector Popup (for task details modal) -->
+    <div class="task-matter-popup" id="taskMatterPopup" style="display: none;">
+        <div class="task-matter-popup-inner">
+            <div class="task-matter-popup-title">Select Matter</div>
+            <div class="task-matter-popup-list" id="taskMatterPopupList">
+                <!-- "Select a Matter" Option -->
+                <button type="button" class="task-matter-item" data-matter-id="" title="Select a Matter">
+                    <i class="fas fa-folder-open"></i>
+                    <span class="task-matter-item-text">Select a Matter</span>
+                </button>
+                <!-- Matters will be populated dynamically -->
+                @if (Model.Matters.Any())
+                {
+                    @foreach (var matter in Model.Matters)
+                    {
+                        <button type="button" class="task-matter-item" data-matter-id="@matter.Id" title="@matter.Title">
+                            <i class="fas fa-folder"></i>
+                            <span class="task-matter-item-text">@matter.Title</span>
+                        </button>
+                    }
                 }
             </div>
         </div>
@@ -2049,6 +2196,88 @@
             });
         }
         
+        // Initialize task matter selector (only once)
+        let taskMatterSelectorInitialized = false;
+        
+        function initializeTaskMatterSelector() {
+            const taskMatterBtn = document.getElementById('taskMatterSelectorBtn');
+            const taskMatterPopup = document.getElementById('taskMatterPopup');
+            
+            if (!taskMatterBtn || !taskMatterPopup) return;
+            
+            // Only initialize once
+            if (taskMatterSelectorInitialized) return;
+            taskMatterSelectorInitialized = true;
+            
+            // Button click handler
+            taskMatterBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const isVisible = taskMatterPopup.style.display === 'block';
+                
+                if (!isVisible) {
+                    // Position the popup relative to the button
+                    const buttonRect = taskMatterBtn.getBoundingClientRect();
+                    const popupWidth = 360; // matches CSS width
+                    taskMatterPopup.style.top = (buttonRect.bottom + 8) + 'px';
+                    taskMatterPopup.style.left = (buttonRect.right - popupWidth) + 'px';
+                    taskMatterPopup.style.display = 'block';
+                } else {
+                    taskMatterPopup.style.display = 'none';
+                }
+            });
+            
+            // Add click handlers to matter items
+            document.querySelectorAll('.task-matter-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const selectedMatterId = this.dataset.matterId;
+                    const matterText = this.querySelector('.task-matter-item-text').textContent;
+                    
+                    // Update button text
+                    document.getElementById('taskMatterSelectorText').textContent = matterText;
+                    
+                    // Store selected matter ID
+                    taskMatterBtn.dataset.selectedMatterId = selectedMatterId;
+                    currentTaskMatterId = selectedMatterId ? parseInt(selectedMatterId) : null;
+                    
+                    // Hide popup
+                    taskMatterPopup.style.display = 'none';
+                });
+            });
+            
+            // Close popup when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!taskMatterPopup || !taskMatterBtn) return;
+                const clickInsidePopup = taskMatterPopup.contains(e.target);
+                const clickOnButton = taskMatterBtn.contains(e.target);
+                if (!clickInsidePopup && !clickOnButton) {
+                    taskMatterPopup.style.display = 'none';
+                }
+            });
+        }
+        
+        // Update task matter selector display
+        function updateTaskMatterSelector(matterId) {
+            const taskMatterBtn = document.getElementById('taskMatterSelectorBtn');
+            const taskMatterText = document.getElementById('taskMatterSelectorText');
+            
+            if (!taskMatterBtn || !taskMatterText) return;
+            
+            if (matterId && window.tasksData && window.tasksData.matters) {
+                const matter = window.tasksData.matters.find(m => m.id == matterId || m.Id == matterId);
+                if (matter) {
+                    taskMatterText.textContent = matter.title || matter.Title;
+                    taskMatterBtn.dataset.selectedMatterId = matterId;
+                } else {
+                    taskMatterText.textContent = 'Select Matter';
+                    taskMatterBtn.dataset.selectedMatterId = '';
+                }
+            } else {
+                taskMatterText.textContent = 'Select Matter';
+                taskMatterBtn.dataset.selectedMatterId = '';
+            }
+        }
+        
         // Open task modal for create or edit
         window.openTaskModal = function(taskId = null, defaultStatus = 'Pending') {
             const taskDetailsModal = document.getElementById('taskDetailsModal');
@@ -2092,6 +2321,12 @@
             
             // Show modal
             taskDetailsModal.style.display = 'flex';
+            
+            // Initialize task matter selector
+            initializeTaskMatterSelector();
+            
+            // Update matter selector display
+            updateTaskMatterSelector(currentTaskMatterId);
             
             // Initialize subtasks functionality
             initializeSubtasks();
@@ -2302,6 +2537,9 @@
             
             // Store task's matter ID for assignment filtering
             currentTaskMatterId = getProp(task, ['matterId','MatterId'], null);
+            
+            // Update matter selector display
+            updateTaskMatterSelector(currentTaskMatterId);
             
             // Set description
             const descriptionField = document.querySelector('.task-description-textarea');
@@ -2551,6 +2789,7 @@
                 saveBtn.className = 'btn btn-sm btn-primary me-2';
                 saveBtn.innerHTML = '<i class="fas fa-save me-1"></i> Save';
                 saveBtn.style.marginRight = '0.5rem';
+                saveBtn.style.fontWeight = '600';
                 
                 // Insert before the close button
                 const closeBtn = document.getElementById('closeTaskModal');
@@ -2625,11 +2864,12 @@
             // Send simple string for backend compatibility, but store full data in a hidden field
             const locationString = locationData ? `${locationData.name}, ${locationData.address}` : null;
             
-            // Get matter ID (for now, use first matter from the list or require selection)
-            // Use selected matter if available (but not 'all')
-            const matterId = (currentMatterId && currentMatterId !== 'all') 
-                ? currentMatterId 
-                : (window.tasksData?.matters?.[0]?.Id || window.tasksData?.matters?.[0]?.id || null);
+            // Get matter ID - prioritize task-specific matter selector, then fall back to global matter filter
+            const matterId = currentTaskMatterId 
+                ? currentTaskMatterId 
+                : ((currentMatterId && currentMatterId !== 'all') 
+                    ? currentMatterId 
+                    : (window.tasksData?.matters?.[0]?.Id || window.tasksData?.matters?.[0]?.id || null));
             
             if (!matterId) {
                 alert('No matter found. Please ensure you have at least one matter.');
@@ -2725,7 +2965,7 @@
             })
             .catch(error => {
                 console.error('Error saving task:', error);
-                alert('An error occurred while saving the task');
+                alert('An error occurred while saving the task. Please check that you have a matter selected.');
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = originalText;
             });
