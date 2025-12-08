@@ -428,13 +428,15 @@ public sealed class DriveSyncService : IDriveSyncService
 
     public async Task<Guid> UpsertMetadataAsync(ProviderFileMetadata metadata, CancellationToken cancellationToken = default)
     {
-        const int maxRetries = 3;
+        const int maxRetries = 5;
         int retryCount = 0;
+        var random = new Random();
 
         while (retryCount < maxRetries)
         {
             try
     {
+        // Use a fresh query each time to avoid stale data
         var document = await _dbContext.Documents
             .Include(d => d.Versions)
             .FirstOrDefaultAsync(d => d.OrgId == metadata.OrgId
@@ -541,25 +543,26 @@ public sealed class DriveSyncService : IDriveSyncService
 
         return document.Id;
             }
-            catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException ex)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException)
             {
                 retryCount++;
                 if (retryCount >= maxRetries)
                 {
-                    // Only log at warning level if all retries failed, but don't throw to allow sync to continue
-                    _logger.LogWarning("Failed to upsert metadata after {Retries} retries for file {FileId}: {Error}", 
-                        maxRetries, metadata.ExternalFileId, ex.Message);
+                    // Log at debug level - these are expected during parallel sync operations
+                    _logger.LogDebug("Skipping file {FileId} after {Retries} concurrency retries - will sync on next run", 
+                        metadata.ExternalFileId, maxRetries);
                     return Guid.Empty; // Return empty instead of throwing to allow sync to continue
                 }
                 
-                // Clear the change tracker and retry (silently, no logging to reduce spam)
+                // Clear the change tracker and retry with exponential backoff + jitter
                 _dbContext.ChangeTracker.Clear();
-                await Task.Delay(50 * retryCount, cancellationToken); // Small delay before retry
+                var delay = (100 * (int)Math.Pow(2, retryCount)) + random.Next(0, 100);
+                await Task.Delay(delay, cancellationToken);
             }
             catch (Exception ex)
             {
-                // Log other exceptions but don't break the sync
-                _logger.LogWarning(ex, "Unexpected error upserting metadata for file {FileId}", metadata.ExternalFileId);
+                // Log other exceptions at debug level - don't break the sync
+                _logger.LogDebug(ex, "Skipping file {FileId} due to error - will sync on next run", metadata.ExternalFileId);
                 return Guid.Empty;
             }
         }

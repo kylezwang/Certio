@@ -2,8 +2,8 @@
   "user_id": 1,
   "organization_id": 4,
   "user_name": "Kyle Wang",
-  "total_chunks": 26,
-  "last_synced": "2025-11-19T23:03:03.313606",
+  "total_chunks": 22,
+  "last_synced": "2025-12-08T04:09:16.639978",
   "module_summaries": {
     "matters": {
       "totalMatters": 8,
@@ -26,12 +26,6 @@
       "completedTasks": 2,
       "highPriorityTasks": 6
     },
-    "calendar": {
-      "totalEvents": 4,
-      "upcomingEvents": 0,
-      "todayEvents": 0,
-      "thisWeekEvents": 0
-    },
     "communications": {
       "totalChannels": 5,
       "totalChannelMessages": 15,
@@ -46,7 +40,7 @@
   },
   "chunks": [
     {
-      "id": "fc166fed-1f94-46a1-9496-42b9b081194c",
+      "id": "6462e44a-7a54-468e-b0ec-f301f840a2d3",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 16,
@@ -73,7 +67,7 @@
       "relevance_score": 0
     },
     {
-      "id": "b40ca1e8-7268-40e3-9d9d-908a0d596a21",
+      "id": "cfe83ee8-7130-47a2-b45c-0380ef6a990a",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 5,
@@ -101,7 +95,7 @@
       "relevance_score": 0
     },
     {
-      "id": "ee48cdc3-cb78-4b58-9b0b-c165100689de",
+      "id": "8b11ece5-92a6-4e10-993d-1a4a48d00f0f",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 28,
@@ -129,7 +123,7 @@
       "relevance_score": 0
     },
     {
-      "id": "80704112-9de4-4c86-96f0-c1af19e21823",
+      "id": "b905f406-d304-4482-985a-9be7d323a467",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 25,
@@ -157,7 +151,7 @@
       "relevance_score": 0
     },
     {
-      "id": "f952c12e-e0f6-4afc-aa90-556c2de7941a",
+      "id": "757ef50a-e57c-4098-88b9-5102895c3cfb",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 19,
@@ -185,7 +179,7 @@
       "relevance_score": 0
     },
     {
-      "id": "573bbabd-a2a4-435e-b5b6-b5a320ead960",
+      "id": "d4be1969-4fff-4e7c-be9c-0cce37915b50",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 17,
@@ -213,7 +207,7 @@
       "relevance_score": 0
     },
     {
-      "id": "02418a97-c69e-4e00-b117-51dc2e2fd5fc",
+      "id": "a7dc577e-ed6e-48c1-92ce-b5eccdcd8749",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 15,
@@ -237,7 +231,7 @@
       "relevance_score": 0
     },
     {
-      "id": "c4a84403-34ed-4b1e-86ee-51055772d0bd",
+      "id": "5ea82aff-893c-496f-88c2-3978e9ffb178",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 14,
@@ -264,7 +258,7 @@
       "relevance_score": 0
     },
     {
-      "id": "0463eb7d-e095-4c58-a4e5-33f8c5982b3a",
+      "id": "ce8dea7c-6489-44c3-b4a2-504ab28b6150",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 15,
@@ -285,7 +279,7 @@
       "relevance_score": 0
     },
     {
-      "id": "1f10bd94-4c58-4e16-8f0f-5d01534f85d0",
+      "id": "6ce7ae9b-0f65-4112-8a0f-e3345e4800f7",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 21,
@@ -306,7 +300,7 @@
       "relevance_score": 0
     },
     {
-      "id": "f2fd5a0d-042f-46f1-9b7c-552d72e95681",
+      "id": "994c5228-12ac-4e8d-a459-ac4334be6df2",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 9,
@@ -328,7 +322,7 @@
       "relevance_score": 0
     },
     {
-      "id": "572d38af-29b3-4022-90ab-eecee510da61",
+      "id": "71780e44-a282-431f-99a4-51eeb96d988d",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 18,
@@ -349,7 +343,7 @@
       "relevance_score": 0
     },
     {
-      "id": "7521662b-c625-4b06-8d50-9341ebaae610",
+      "id": "832ff769-4033-42c1-ad82-f9a95d178c18",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 19,
@@ -371,7 +365,7 @@
       "relevance_score": 0
     },
     {
-      "id": "15e48fbd-1e05-4265-848c-d6efb23c2362",
+      "id": "a4195176-8708-4a2b-a55b-007288dac810",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 10,
@@ -394,7 +388,7 @@
       "relevance_score": 0
     },
     {
-      "id": "b3fbd58a-2072-49be-8f02-431eccc219a4",
+      "id": "76376bec-1631-486b-a449-14b6514100dd",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 17,
@@ -413,92 +407,7 @@
       "relevance_score": 0
     },
     {
-      "id": "cbb5abb8-1eef-436f-a860-be2f945ac17b",
-      "module_name": "calendar",
-      "entity_type": "CalendarEvent",
-      "entity_id": 14,
-      "title": "Real Visible Finale!!!",
-      "content": "Event: Real Visible Finale!!!\r\nType: Meeting\r\nStart: 2025-10-23 12:12\r\nEnd: 2025-10-23 13:12\r\nLocation: {\"name\":\"Finland\",\"address\":\"Finland\",\"formatted_address\":\"Finland\",\"place_id\":null,\"geometry\":null}\r\nDescription: Checking again to see if duplicate events are created.\r\n",
-      "metadata": {
-        "startDateTime": "2025-10-23T12:12:00",
-        "endDateTime": "2025-10-23T13:12:00",
-        "eventType": "Meeting",
-        "location": "{\"name\":\"Finland\",\"address\":\"Finland\",\"formatted_address\":\"Finland\",\"place_id\":null,\"geometry\":null}",
-        "isAllDay": false,
-        "attendees": [],
-        "matterId": 5
-      },
-      "created_at": "2025-10-21T22:13:37.939657",
-      "modified_at": "2025-10-22T00:41:29.9221482",
-      "relevance_score": 0
-    },
-    {
-      "id": "b9476526-dae7-4c62-be5e-d7451cd2e360",
-      "module_name": "calendar",
-      "entity_type": "CalendarEvent",
-      "entity_id": 12,
-      "title": "VFER Relocation",
-      "content": "Event: VFER Relocation\r\nType: Conference\r\nStart: 2025-10-26 16:06\r\nEnd: 2025-10-26 18:06\r\nLocation: {\"name\":\"Vista\",\"address\":\"Vista, CA, USA\",\"formatted_address\":\"Vista, CA, USA\",\"place_id\":null,\"geometry\":null}\r\nDescription: Testing if Matter Details Calendar event creation is properly assigning matter and org ID's.\r\n",
-      "metadata": {
-        "startDateTime": "2025-10-26T16:06:00",
-        "endDateTime": "2025-10-26T18:06:00",
-        "eventType": "Conference",
-        "location": "{\"name\":\"Vista\",\"address\":\"Vista, CA, USA\",\"formatted_address\":\"Vista, CA, USA\",\"place_id\":null,\"geometry\":null}",
-        "isAllDay": false,
-        "attendees": [],
-        "matterId": 5
-      },
-      "created_at": "2025-10-21T22:08:18.7273029",
-      "modified_at": "2025-10-22T00:39:46.4155596",
-      "relevance_score": 0
-    },
-    {
-      "id": "67ca4962-0b18-48e2-949f-46a89c134990",
-      "module_name": "calendar",
-      "entity_type": "CalendarEvent",
-      "entity_id": 16,
-      "title": "FINALE",
-      "content": "Event: FINALE\r\nType: CourtDate\r\nStart: 2025-10-29 09:30\r\nEnd: 2025-10-29 10:30\r\nLocation: {\"name\":\"Finale Court\",\"address\":\"Finale Ct, Menifee, CA 92584, USA\",\"formatted_address\":\"Finale Ct, Menifee, CA 92584, USA\",\"place_id\":null,\"geometry\":null}\r\nDescription: Create now works and doesn't create duplicates.\r\nAttendees: John Marshall\r\n",
-      "metadata": {
-        "startDateTime": "2025-10-29T09:30:00",
-        "endDateTime": "2025-10-29T10:30:00",
-        "eventType": "CourtDate",
-        "location": "{\"name\":\"Finale Court\",\"address\":\"Finale Ct, Menifee, CA 92584, USA\",\"formatted_address\":\"Finale Ct, Menifee, CA 92584, USA\",\"place_id\":null,\"geometry\":null}",
-        "isAllDay": false,
-        "attendees": [
-          "John Marshall"
-        ],
-        "matterId": 5
-      },
-      "created_at": "2025-10-21T22:29:32.6800872",
-      "modified_at": "2025-10-22T00:24:47.6979848",
-      "relevance_score": 0
-    },
-    {
-      "id": "3c370c82-d214-402e-9917-c6da7c60348b",
-      "module_name": "calendar",
-      "entity_type": "CalendarEvent",
-      "entity_id": 22,
-      "title": "New Visible Event",
-      "content": "Event: New Visible Event\r\nType: Meeting\r\nStart: 2025-11-07 11:00\r\nEnd: 2025-11-07 12:48\r\nLocation: {\"name\":\"The White House\",\"address\":\"1600 Pennsylvania Ave NW, Washington, DC 20500, USA\",\"formatted_address\":\"1600 Pennsylvania Ave NW, Washington, DC 20500, USA\",\"place_id\":null,\"geometry\":null}\r\nAttendees: Kyle Wang, John Marshall\r\n",
-      "metadata": {
-        "startDateTime": "2025-11-07T11:00:00",
-        "endDateTime": "2025-11-07T12:48:00",
-        "eventType": "Meeting",
-        "location": "{\"name\":\"The White House\",\"address\":\"1600 Pennsylvania Ave NW, Washington, DC 20500, USA\",\"formatted_address\":\"1600 Pennsylvania Ave NW, Washington, DC 20500, USA\",\"place_id\":null,\"geometry\":null}",
-        "isAllDay": false,
-        "attendees": [
-          "Kyle Wang",
-          "John Marshall"
-        ],
-        "matterId": 5
-      },
-      "created_at": "2025-11-05T23:49:20.169736",
-      "modified_at": "2025-11-11T02:05:12.6089806",
-      "relevance_score": 0
-    },
-    {
-      "id": "b737a065-e58c-4cc9-818e-6d03f9ffe6b9",
+      "id": "cf2da241-542a-421f-b01a-9605c7507171",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 52,
@@ -521,7 +430,7 @@
       "relevance_score": 0
     },
     {
-      "id": "dbe381b3-c6a1-47ae-9267-080c82880962",
+      "id": "c64ac82b-bd23-476d-86c8-24b473d27db8",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 56,
@@ -542,7 +451,7 @@
       "relevance_score": 0
     },
     {
-      "id": "581163f2-6be1-44b2-9e8b-b2166fbbb3f5",
+      "id": "1803182d-14af-416b-8882-9425bf982c84",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 53,
@@ -563,7 +472,7 @@
       "relevance_score": 0
     },
     {
-      "id": "8449962e-7913-4372-b55f-e98cbce638d3",
+      "id": "2cc7519c-bc73-4749-873d-4195f6eb7e37",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 54,
@@ -584,7 +493,7 @@
       "relevance_score": 0
     },
     {
-      "id": "1acc9050-b6e0-4ca7-95ab-109cc515ab7c",
+      "id": "8e426fec-fed9-4d0c-8ac8-c2eff7a25979",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 45,
@@ -607,7 +516,7 @@
       "relevance_score": 0
     },
     {
-      "id": "2ea368f8-673e-4f8b-9bd6-101bec32d6da",
+      "id": "58c591e6-1276-4bf4-ad01-7062dbc12930",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -626,7 +535,7 @@
       "relevance_score": 0
     },
     {
-      "id": "683e0771-9a87-49a6-8d35-cae5072655db",
+      "id": "15151a64-d22f-41d2-8bb5-2a4fa120b050",
       "module_name": "clients",
       "entity_type": "User",
       "entity_id": 6,

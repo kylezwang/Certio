@@ -168,9 +168,19 @@ public sealed class DocumentContentService : IDocumentContentService
             _logger.LogWarning("Google Drive content download failed for document {DocumentId}: {Message}", document.Id, ex.Message);
             return DocumentContentResult.Empty(ex.Message);
         }
+        catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
+        {
+            _logger.LogDebug("Google Drive download timed out for document {DocumentId} - file may be too large", document.Id);
+            return DocumentContentResult.Empty("google_download_timeout");
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogDebug(ex, "Network error downloading Google Drive content for document {DocumentId}", document.Id);
+            return DocumentContentResult.Empty("google_network_error");
+        }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Unexpected error downloading Google Drive content for document {DocumentId}", document.Id);
+            _logger.LogDebug(ex, "Error downloading Google Drive content for document {DocumentId}", document.Id);
             return DocumentContentResult.Empty("google_download_exception");
         }
     }
@@ -199,9 +209,19 @@ public sealed class DocumentContentService : IDocumentContentService
             _logger.LogWarning("OneDrive content download failed for document {DocumentId}: {Message}", document.Id, ex.Message);
             return DocumentContentResult.Empty(ex.Message);
         }
+        catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
+        {
+            _logger.LogDebug("OneDrive download timed out for document {DocumentId} - file may be too large", document.Id);
+            return DocumentContentResult.Empty("onedrive_download_timeout");
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogDebug(ex, "Network error downloading OneDrive content for document {DocumentId}", document.Id);
+            return DocumentContentResult.Empty("onedrive_network_error");
+        }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Error downloading OneDrive content for document {DocumentId}", document.Id);
+            _logger.LogDebug(ex, "Error downloading OneDrive content for document {DocumentId}", document.Id);
             return DocumentContentResult.Empty("onedrive_download_exception");
         }
     }
@@ -224,7 +244,7 @@ public sealed class DocumentContentService : IDocumentContentService
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             httpClient.DefaultRequestHeaders.Accept.Clear();
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
-            httpClient.Timeout = TimeSpan.FromSeconds(30);
+            httpClient.Timeout = TimeSpan.FromMinutes(2); // Increased for large files
 
             HttpResponseMessage response;
             string? effectiveMime;
@@ -286,7 +306,7 @@ public sealed class DocumentContentService : IDocumentContentService
 
             using var httpClient = _httpClientFactory.CreateClient();
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-            httpClient.Timeout = TimeSpan.FromSeconds(30);
+            httpClient.Timeout = TimeSpan.FromMinutes(2); // Increased for large files
 
             var response = await httpClient.GetAsync(itemUrl, cancellationToken).ConfigureAwait(false);
             if (response.IsSuccessStatusCode)
@@ -299,8 +319,7 @@ public sealed class DocumentContentService : IDocumentContentService
 
             if (response.StatusCode == HttpStatusCode.Unauthorized && attempt == 0)
             {
-                var errorContent = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-                _logger.LogWarning("OneDrive returned unauthorized for document {DocumentId}: {Error}. Attempting token refresh.", document.Id, errorContent);
+                _logger.LogDebug("OneDrive returned unauthorized for document {DocumentId}, attempting token refresh", document.Id);
                 continue;
             }
 

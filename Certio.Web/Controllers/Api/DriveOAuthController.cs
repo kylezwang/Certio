@@ -611,6 +611,127 @@ public class DriveOAuthController : Controller
 
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
+    
+    private async Task<string?> FetchGoogleEmailAsync(string accessToken, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var httpClient = _httpClientFactory.CreateClient();
+            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+            var response = await httpClient.GetAsync("https://www.googleapis.com/oauth2/v2/userinfo", cancellationToken);
+            if (response.IsSuccessStatusCode)
+            {
+                var userInfo = await response.Content.ReadFromJsonAsync<GoogleUserInfo>(cancellationToken: cancellationToken);
+                return userInfo?.Email;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to fetch Google Drive user email");
+        }
+        return null;
+    }
+    
+    private async Task<string?> FetchMicrosoftEmailAsync(string accessToken, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var httpClient = _httpClientFactory.CreateClient();
+            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+            var response = await httpClient.GetAsync("https://graph.microsoft.com/v1.0/me", cancellationToken);
+            if (response.IsSuccessStatusCode)
+            {
+                var userInfo = await response.Content.ReadFromJsonAsync<MicrosoftUserInfo>(cancellationToken: cancellationToken);
+                return userInfo?.Mail ?? userInfo?.UserPrincipalName;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to fetch OneDrive user email");
+        }
+        return null;
+    }
+    
+    private async Task<string?> RefreshGoogleTokenAsync(ExternalConnection connection, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var clientId = GetRequiredConfigurationValue("DocumentIntegration:GoogleDrive:ClientId", "Google Drive client ID is not configured");
+            var clientSecret = GetRequiredConfigurationValue("DocumentIntegration:GoogleDrive:ClientSecret", "Google Drive client secret is not configured");
+            var refreshToken = DecryptToken(connection.RefreshToken);
+            
+            using var client = _httpClientFactory.CreateClient();
+            var content = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["client_id"] = clientId,
+                ["client_secret"] = clientSecret,
+                ["refresh_token"] = refreshToken,
+                ["grant_type"] = "refresh_token"
+            });
+            
+            var response = await client.PostAsync("https://oauth2.googleapis.com/token", content, cancellationToken);
+            if (response.IsSuccessStatusCode)
+            {
+                var tokenResponse = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken: cancellationToken);
+                var newAccessToken = tokenResponse.GetProperty("access_token").GetString();
+                var expiresIn = tokenResponse.GetProperty("expires_in").GetInt32();
+                
+                // Update the connection with new token
+                connection.AccessToken = EncryptToken(newAccessToken!);
+                connection.TokenExpiry = DateTime.UtcNow.AddSeconds(expiresIn);
+                connection.UpdatedAt = DateTime.UtcNow;
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                
+                return newAccessToken;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to refresh Google token");
+        }
+        return null;
+    }
+    
+    private async Task<string?> RefreshMicrosoftTokenAsync(ExternalConnection connection, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var clientId = GetRequiredConfigurationValue("DocumentIntegration:OneDrive:ClientId", "Microsoft client ID is not configured");
+            var clientSecret = GetRequiredConfigurationValue("DocumentIntegration:OneDrive:ClientSecret", "Microsoft client secret is not configured");
+            var refreshToken = DecryptToken(connection.RefreshToken);
+            
+            using var client = _httpClientFactory.CreateClient();
+            var content = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["client_id"] = clientId,
+                ["client_secret"] = clientSecret,
+                ["refresh_token"] = refreshToken,
+                ["grant_type"] = "refresh_token",
+                ["scope"] = string.Join(' ', connection.Scopes)
+            });
+            
+            var response = await client.PostAsync("https://login.microsoftonline.com/common/oauth2/v2.0/token", content, cancellationToken);
+            if (response.IsSuccessStatusCode)
+            {
+                var tokenResponse = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken: cancellationToken);
+                var newAccessToken = tokenResponse.GetProperty("access_token").GetString();
+                var expiresIn = tokenResponse.GetProperty("expires_in").GetInt32();
+                
+                // Update the connection with new token
+                connection.AccessToken = EncryptToken(newAccessToken!);
+                connection.TokenExpiry = DateTime.UtcNow.AddSeconds(expiresIn);
+                connection.UpdatedAt = DateTime.UtcNow;
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                
+                return newAccessToken;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to refresh Microsoft token");
+        }
+        return null;
+    }
 
     private async Task<TokenExchangeResult> ExchangeCodeForTokensAsync(string tokenEndpoint, Dictionary<string, string> formValues, CancellationToken cancellationToken)
     {
@@ -853,8 +974,8 @@ public class DriveOAuthController : Controller
             var documentOrgId = ResolveDocumentOrgId(orgId);
             var documentUserId = GetDocumentUserId();
 
+            // Get connections with tracking so we can update tokens if needed
             var connections = await _dbContext.ExternalConnections
-                .AsNoTracking()
                 .Where(ec => ec.OrgId == documentOrgId && ec.UserId == documentUserId)
                 .ToListAsync(cancellationToken);
 
@@ -864,51 +985,39 @@ public class DriveOAuthController : Controller
             string? googleEmail = null;
             string? microsoftEmail = null;
 
-            // Fetch email addresses from providers
+            // Fetch email addresses - refresh token if expired
             if (googleConnection != null)
             {
-                try
+                var accessToken = DecryptToken(googleConnection.AccessToken);
+                
+                // If token is expired or expiring soon, refresh it
+                if (googleConnection.TokenExpiry <= DateTime.UtcNow.AddMinutes(5))
                 {
-                    var accessToken = DecryptToken(googleConnection.AccessToken);
-                    if (googleConnection.TokenExpiry > DateTime.UtcNow.AddMinutes(5))
+                    var newToken = await RefreshGoogleTokenAsync(googleConnection, cancellationToken);
+                    if (newToken != null)
                     {
-                        using var httpClient = _httpClientFactory.CreateClient();
-                        httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
-                        var response = await httpClient.GetAsync("https://www.googleapis.com/oauth2/v2/userinfo", cancellationToken);
-                        if (response.IsSuccessStatusCode)
-                        {
-                            var userInfo = await response.Content.ReadFromJsonAsync<GoogleUserInfo>(cancellationToken: cancellationToken);
-                            googleEmail = userInfo?.Email;
-                        }
+                        accessToken = newToken;
                     }
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to fetch Google Drive user email");
-                }
+                
+                googleEmail = await FetchGoogleEmailAsync(accessToken, cancellationToken);
             }
 
             if (microsoftConnection != null)
             {
-                try
+                var accessToken = DecryptToken(microsoftConnection.AccessToken);
+                
+                // If token is expired or expiring soon, refresh it
+                if (microsoftConnection.TokenExpiry <= DateTime.UtcNow.AddMinutes(5))
                 {
-                    var accessToken = DecryptToken(microsoftConnection.AccessToken);
-                    if (microsoftConnection.TokenExpiry > DateTime.UtcNow.AddMinutes(5))
+                    var newToken = await RefreshMicrosoftTokenAsync(microsoftConnection, cancellationToken);
+                    if (newToken != null)
                     {
-                        using var httpClient = _httpClientFactory.CreateClient();
-                        httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
-                        var response = await httpClient.GetAsync("https://graph.microsoft.com/v1.0/me", cancellationToken);
-                        if (response.IsSuccessStatusCode)
-                        {
-                            var userInfo = await response.Content.ReadFromJsonAsync<MicrosoftUserInfo>(cancellationToken: cancellationToken);
-                            microsoftEmail = userInfo?.Mail ?? userInfo?.UserPrincipalName;
-                        }
+                        accessToken = newToken;
                     }
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to fetch OneDrive user email");
-                }
+                
+                microsoftEmail = await FetchMicrosoftEmailAsync(accessToken, cancellationToken);
             }
 
             return Ok(new

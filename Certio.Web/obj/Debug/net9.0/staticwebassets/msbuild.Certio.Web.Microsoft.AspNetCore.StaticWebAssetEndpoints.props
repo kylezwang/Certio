@@ -264,17 +264,17 @@
       <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-BDvzR0gLeTa698UzPMQu4xTWeD49EHr9018KkZUJf9U="}]]]></EndpointProperties>
       <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"26979"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u0022BDvzR0gLeTa698UzPMQu4xTWeD49EHr9018KkZUJf9U=\u0022"},{"Name":"Last-Modified","Value":"Mon, 17 Nov 2025 02:59:58 GMT"}]]]></ResponseHeaders>
     </StaticWebAssetEndpoint>
-    <StaticWebAssetEndpoint Include="_content/Certio.Web/js/email-integration.czwogdpkow.js">
-      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\email-integration.js'))</AssetFile>
-      <Selectors><![CDATA[[]]]></Selectors>
-      <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"czwogdpkow"},{"Name":"integrity","Value":"sha256-CE9snF550XfoljVwCKA0G0AEmda0OJ9QXEUvvjc\u002B\u002BVc="},{"Name":"label","Value":"_content/Certio.Web/js/email-integration.js"}]]]></EndpointProperties>
-      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"78967"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u0022CE9snF550XfoljVwCKA0G0AEmda0OJ9QXEUvvjc\u002B\u002BVc=\u0022"},{"Name":"Last-Modified","Value":"Mon, 17 Nov 2025 01:41:49 GMT"}]]]></ResponseHeaders>
-    </StaticWebAssetEndpoint>
     <StaticWebAssetEndpoint Include="_content/Certio.Web/js/email-integration.js">
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\email-integration.js'))</AssetFile>
       <Selectors><![CDATA[[]]]></Selectors>
-      <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-CE9snF550XfoljVwCKA0G0AEmda0OJ9QXEUvvjc\u002B\u002BVc="}]]]></EndpointProperties>
-      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"78967"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u0022CE9snF550XfoljVwCKA0G0AEmda0OJ9QXEUvvjc\u002B\u002BVc=\u0022"},{"Name":"Last-Modified","Value":"Mon, 17 Nov 2025 01:41:49 GMT"}]]]></ResponseHeaders>
+      <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-1axAOZrFLX2oPvcl7rUS6Ogo6E9ZBGEvvhfIu7xIF98="}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"78940"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u00221axAOZrFLX2oPvcl7rUS6Ogo6E9ZBGEvvhfIu7xIF98=\u0022"},{"Name":"Last-Modified","Value":"Mon, 08 Dec 2025 05:55:36 GMT"}]]]></ResponseHeaders>
+    </StaticWebAssetEndpoint>
+    <StaticWebAssetEndpoint Include="_content/Certio.Web/js/email-integration.rwtb3ha267.js">
+      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\email-integration.js'))</AssetFile>
+      <Selectors><![CDATA[[]]]></Selectors>
+      <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"rwtb3ha267"},{"Name":"integrity","Value":"sha256-1axAOZrFLX2oPvcl7rUS6Ogo6E9ZBGEvvhfIu7xIF98="},{"Name":"label","Value":"_content/Certio.Web/js/email-integration.js"}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"78940"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u00221axAOZrFLX2oPvcl7rUS6Ogo6E9ZBGEvvhfIu7xIF98=\u0022"},{"Name":"Last-Modified","Value":"Mon, 08 Dec 2025 05:55:36 GMT"}]]]></ResponseHeaders>
     </StaticWebAssetEndpoint>
     <StaticWebAssetEndpoint Include="_content/Certio.Web/js/matter-details.4znj0zq7ex.js">
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\matter-details.js'))</AssetFile>

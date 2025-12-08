@@ -1792,7 +1792,6 @@ async function updateInboxCount() {
             if (badge) {
                 if (result.unreadCount > 0) {
                     badge.textContent = result.unreadCount;
-                    badge.style.display = 'inline-block';
                 } else {
                     badge.style.display = 'none';
                 }
