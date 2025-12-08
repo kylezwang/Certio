@@ -1299,6 +1299,9 @@
                         nextMonthCounter++;
                     }
                     
+                    // Store the date on the cell for later use
+                    dayCell.dataset.cellDate = currentDayDate.toISOString();
+                    
                     // Add events for this day
                     if (events && events.length > 0) {
                         const dayEvents = events.filter(event => {
@@ -1315,11 +1318,15 @@
                     // Add click handler for day cell
                     dayCell.addEventListener('click', function(e) {
                         if (!e.target.closest('.event-item')) {
-                            // Clicked on empty space, could open create event modal
-                            // For now, just select the day
+                            // Clicked on empty space, select the day and open create event modal
                             document.querySelectorAll('.calendar-day-cell.selected').forEach(el => 
                                 el.classList.remove('selected'));
                             this.classList.add('selected');
+                            
+                            // Open create event modal with the selected date
+                            const cellDate = new Date(this.dataset.cellDate);
+                            cellDate.setHours(9, 0, 0, 0); // Default to 9 AM
+                            openEventModal(null, cellDate);
                         }
                     });
                     
