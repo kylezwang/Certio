@@ -1952,7 +1952,13 @@
         }
 
         // Initialize modal handlers
+        let modalHandlersInitialized = false;
         function initializeModalHandlers() {
+            // Prevent multiple initializations
+            if (modalHandlersInitialized) {
+                return;
+            }
+            
             const modal = document.getElementById('calendarEventModal');
             const closeBtn = document.getElementById('closeEventModal');
             const saveBtn = document.getElementById('saveEventBtn');
@@ -1974,6 +1980,8 @@
 
             // Save event
             if (saveBtn) saveBtn.addEventListener('click', saveEvent);
+            
+            modalHandlersInitialized = true;
 
             // Delete event
             if (headerDeleteBtn) headerDeleteBtn.addEventListener('click', deleteEvent);
@@ -2293,7 +2301,14 @@
         }
 
         // Save event (create or update)
+        let isSavingEvent = false;
         async function saveEvent() {
+            // Prevent duplicate submissions
+            if (isSavingEvent) {
+                console.log('Event save already in progress...');
+                return;
+            }
+            
             // Get values
             const title = document.getElementById('eventTitleInput').textContent.trim();
             const description = document.getElementById('eventDescriptionInput').value;
@@ -2338,6 +2353,8 @@
                 attendeeUserIds: eventAttendees.map(a => a.userId)
             };
             
+            isSavingEvent = true;
+            
             try {
                 let response;
                 if (currentEventId) {
@@ -2369,6 +2386,8 @@
             } catch (error) {
                 console.error('Error saving event:', error);
                 alert('Error saving event. Please try again.');
+            } finally {
+                isSavingEvent = false;
             }
         }
 
