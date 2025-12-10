@@ -530,31 +530,44 @@ namespace Certio.Web.Controllers
             return RedirectToAction(nameof(LoginTwoFactor), new { token });
         }
 
-        public IActionResult Register(int? step)
+        public IActionResult Register(int? step, bool oauth = false)
         {
             // Check if we're on a specific step
             if (step.HasValue)
             {
                 ViewBag.Step = step.Value;
                 
+                // Check if this is an OAuth registration
+                var isOAuthFromTempData = TempData.Peek("OAuthFirstName") != null;
+                if (oauth || isOAuthFromTempData)
+                {
+                    ViewBag.IsOAuth = true;
+                    ViewBag.OAuthEmail = TempData.Peek("RegistrationEmail")?.ToString();
+                    ViewBag.OAuthFirstName = TempData.Peek("OAuthFirstName")?.ToString();
+                    ViewBag.OAuthLastName = TempData.Peek("OAuthLastName")?.ToString();
+                }
+                
                 // Pass registration data to the view for JavaScript
                 if (step.Value == 2)
                 {
-                    var email = TempData["RegistrationEmail"]?.ToString();
-                    if (!string.IsNullOrEmpty(email))
+                    var regEmail = TempData["RegistrationEmail"]?.ToString();
+                    if (!string.IsNullOrEmpty(regEmail))
                     {
-                        ViewBag.RegistrationEmail = email;
+                        ViewBag.RegistrationEmail = regEmail;
                         // Keep the data for the next request
                         TempData.Keep("RegistrationEmail");
+                        TempData.Keep("OAuthFirstName");
+                        TempData.Keep("OAuthLastName");
+                        TempData.Keep("IsVerified");
                     }
                 }
                 else if (step.Value == 3)
                 {
-                    var email = TempData["RegistrationEmail"]?.ToString();
+                    var regEmail = TempData["RegistrationEmail"]?.ToString();
                     var phone = TempData["RegistrationPhone"]?.ToString();
-                    if (!string.IsNullOrEmpty(email))
+                    if (!string.IsNullOrEmpty(regEmail))
                     {
-                        ViewBag.RegistrationEmail = email;
+                        ViewBag.RegistrationEmail = regEmail;
                         // Keep the data for the next request
                         TempData.Keep("RegistrationEmail");
                         TempData.Keep("VerificationCode");
@@ -563,11 +576,11 @@ namespace Certio.Web.Controllers
                 }
                 else if (step.Value == 4)
                 {
-                    var email = TempData["RegistrationEmail"]?.ToString();
+                    var regEmail = TempData["RegistrationEmail"]?.ToString();
                     var phone = TempData["RegistrationPhone"]?.ToString();
-                    if (!string.IsNullOrEmpty(email))
+                    if (!string.IsNullOrEmpty(regEmail))
                     {
-                        ViewBag.RegistrationEmail = email;
+                        ViewBag.RegistrationEmail = regEmail;
                     }
                     if (!string.IsNullOrEmpty(phone))
                     {
@@ -784,7 +797,190 @@ namespace Certio.Web.Controllers
             TempData.Keep("OrganizationName");
             TempData.Keep("JoinCode");
 
+            // Check if this is an OAuth user (already verified and has account)
+            var isOAuth = TempData.Peek("OAuthFirstName") != null;
+            var isVerified = TempData.Peek("IsVerified") != null;
+            
+            if (isOAuth && isVerified)
+            {
+                // OAuth users skip verification - complete registration directly
+                TempData.Keep("OAuthFirstName");
+                TempData.Keep("OAuthLastName");
+                TempData.Keep("IsVerified");
+                return RedirectToAction("CompleteOAuthRegistration");
+            }
+
             return RedirectToAction("Register", new { step = 3 });
+        }
+
+        /// <summary>
+        /// Completes OAuth user registration (organization setup only, user already created)
+        /// </summary>
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> CompleteOAuthRegistration()
+        {
+            var email = User.Identity?.Name;
+            if (string.IsNullOrEmpty(email))
+            {
+                TempData["Error"] = "Authentication session expired. Please sign in again.";
+                return RedirectToAction("Index");
+            }
+
+            // Get organization selection data from TempData
+            var organizationType = TempData["OrganizationType"]?.ToString();
+            var organizationName = TempData["OrganizationName"]?.ToString();
+            var joinCode = TempData["JoinCode"]?.ToString();
+            var firstName = TempData["OAuthFirstName"]?.ToString();
+            var lastName = TempData["OAuthLastName"]?.ToString();
+
+            if (string.IsNullOrEmpty(organizationType))
+            {
+                TempData["Error"] = "Registration session expired. Please start over.";
+                return RedirectToAction("Index");
+            }
+
+            try
+            {
+                // Get the custom User record (already created by AccountController)
+                var customUser = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
+
+                if (customUser == null)
+                {
+                    TempData["Error"] = "User account not found. Please try registering again.";
+                    return RedirectToAction("Index");
+                }
+
+                // Handle join code if provided
+                Certio.Domain.Organizations.OrganizationJoinCode? validJoin = null;
+                if (organizationType == "join" && !string.IsNullOrWhiteSpace(joinCode))
+                {
+                    var joinSvc = HttpContext.RequestServices.GetService<Certio.Web.Services.IJoinCodeService>();
+                    if (joinSvc != null)
+                    {
+                        validJoin = await joinSvc.GetValidAsync(joinCode);
+                        if (validJoin == null)
+                        {
+                            TempData["Error"] = "Invalid or expired join code.";
+                            return RedirectToAction("Register", new { step = 2, oauth = true });
+                        }
+                    }
+                }
+
+                // Determine organization and role based on selection
+                int organizationId = 0;
+                var userType = Certio.Domain.Users.UserTypes.Client;
+                var organizationRole = Certio.Domain.Users.OrganizationRoles.Member;
+
+                if (validJoin != null)
+                {
+                    // Joining existing organization
+                    organizationId = validJoin.OrganizationId;
+                    userType = validJoin.InvitedUserType;
+                    organizationRole = validJoin.InvitedRole;
+
+                    // Consume the join code
+                    var joinSvc = HttpContext.RequestServices.GetService<Certio.Web.Services.IJoinCodeService>();
+                    if (joinSvc != null)
+                    {
+                        await joinSvc.ConsumeAsync(validJoin.Code);
+                    }
+                }
+                else if (organizationType == "lawfirm")
+                {
+                    // Create new law firm organization
+                    var org = new Certio.Domain.Organizations.Organization
+                    {
+                        Name = organizationName ?? $"{firstName} {lastName}'s Law Firm",
+                        Description = "Law Firm Organization",
+                        OwnerId = customUser.Id,
+                        Type = Certio.Domain.Organizations.OrganizationType.LawFirm,
+                        IsPersonal = false,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    _context.Organizations.Add(org);
+                    await _context.SaveChangesAsync();
+                    organizationId = org.Id;
+                    userType = Certio.Domain.Users.UserTypes.LawFirm;
+                    organizationRole = Certio.Domain.Users.OrganizationRoles.ManagingPartner;
+                }
+                else if (organizationType == "eventplanner")
+                {
+                    // Create new event planning organization
+                    var org = new Certio.Domain.Organizations.Organization
+                    {
+                        Name = organizationName ?? $"{firstName} {lastName}'s Event Planning Company",
+                        Description = "Event Planning Organization",
+                        OwnerId = customUser.Id,
+                        Type = Certio.Domain.Organizations.OrganizationType.EventPlanner,
+                        IsPersonal = false,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    _context.Organizations.Add(org);
+                    await _context.SaveChangesAsync();
+                    organizationId = org.Id;
+                    userType = Certio.Domain.Users.UserTypes.LawFirm; // Reuse LawFirm type
+                    organizationRole = Certio.Domain.Users.OrganizationRoles.ManagingPartner;
+                }
+                else
+                {
+                    // Create client organization (default)
+                    var org = new Certio.Domain.Organizations.Organization
+                    {
+                        Name = organizationName ?? $"{firstName} {lastName}'s Organization",
+                        Description = "Client Organization",
+                        OwnerId = customUser.Id,
+                        Type = Certio.Domain.Organizations.OrganizationType.Client,
+                        IsPersonal = false,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    _context.Organizations.Add(org);
+                    await _context.SaveChangesAsync();
+                    organizationId = org.Id;
+                    userType = Certio.Domain.Users.UserTypes.Client;
+                    organizationRole = Certio.Domain.Users.OrganizationRoles.Owner;
+                }
+
+                // Add user to organization
+                var userOrg = new Certio.Domain.Users.UserOrganization
+                {
+                    UserId = customUser.Id,
+                    OrganizationId = organizationId,
+                    UserType = userType,
+                    Role = organizationRole,
+                    IsPrimary = true,
+                    IsActive = true,
+                    JoinedAt = DateTime.UtcNow
+                };
+                _context.UserOrganizations.Add(userOrg);
+
+                // Set user color based on organization type
+                if (string.IsNullOrEmpty(customUser.Color))
+                {
+                    customUser.Color = GetColorForUserType(userType);
+                    _context.Users.Update(customUser);
+                }
+
+                await _context.SaveChangesAsync();
+
+                // Clear TempData
+                TempData.Clear();
+
+                _logger.LogInformation("OAuth user {Email} completed registration, redirecting to dashboard", email);
+
+                // Redirect to dashboard
+                return RedirectToAction("Dashboard", "Client", new { orgId = organizationId });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error completing OAuth registration for {Email}", email);
+                TempData["Error"] = "An error occurred during registration. Please try again.";
+                return RedirectToAction("Register", new { step = 2, oauth = true });
+            }
         }
 
         /// <summary>
