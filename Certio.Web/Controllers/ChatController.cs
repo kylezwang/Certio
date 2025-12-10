@@ -587,6 +587,18 @@ public class ChatController : Controller
                     request.AttachmentContent.Length, request.ConversationId);
             }
             
+            // Add AI mode context for agent mode
+            var aiMode = request.AiMode ?? "agent";
+            var aiModelTier = request.AiModel ?? "Auto"; // This is now the tier, not specific model
+            _logger.LogInformation("AI Request - Mode: {Mode}, ModelTier: {ModelTier}, Conversation: {ConversationId}", aiMode, aiModelTier, request.ConversationId);
+            
+            // Pass AI mode and model as metadata in the message context
+            var metadataPrefix = aiMode == "agent" 
+                ? "[AI_MODE:AGENT] You are in Agent mode. When the user asks you to perform actions like creating tasks, adding notes, navigating to pages, or modifying data, you MUST include action commands in your response using this format:\n[ACTION:ActionType]{\"property\":\"value\"}[/ACTION]\n\nSupported actions: CreateTask, AttachFile, AddNote, StartTimer, NavigateTo\n\nExample for creating a task:\n[ACTION:CreateTask]{\"title\":\"Review contract\",\"description\":\"Review the employment contract\",\"priority\":\"High\",\"dueDate\":\"2024-12-15\"}[/ACTION]\n\nAlways explain what you're doing and include the action command. "
+                : "[AI_MODE:ASK] You are in Ask mode. Provide helpful information and guidance, but do NOT perform any automated actions. If the user wants to perform an action, explain how they can do it manually.\n\n";
+            
+            messageWithContext = metadataPrefix + messageWithContext;
+            
             await foreach (var chunk in _chatService.GenerateAIResponseStreamAsync(request.ConversationId, messageWithContext))
             {
                 var data = $"data: {System.Text.Json.JsonSerializer.Serialize(new { content = chunk, done = false })}\n\n";
@@ -867,6 +879,8 @@ public class AIResponseRequest
     public string UserMessage { get; set; } = "";
     public string? AttachmentContent { get; set; }
     public string? AttachmentFileName { get; set; }
+    public string? AiMode { get; set; } = "agent"; // 'agent' or 'ask'
+    public string? AiModel { get; set; } = "Auto"; // Model tier: Auto, Basic, Intermediate, Advanced, Premium
 }
 
 public class DashboardCardRequest

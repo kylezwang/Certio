@@ -16,6 +16,8 @@ using Certio.Domain.Audit;
 using Certio.Domain.Organizations;
 using Certio.Domain.Tasks;
 using Certio.Domain.Calendar;
+using Certio.Domain.AgentActions;
+using Certio.Domain.UnifiedInbox;
 
 namespace Certio.Infrastructure.Data
 {
@@ -109,6 +111,13 @@ namespace Certio.Infrastructure.Data
         
         // Audit Entities
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+        
+        // Agent Action Entities
+        public DbSet<AgentAction> AgentActions => Set<AgentAction>();
+        
+        // Unified Inbox Entities
+        public DbSet<InboxItem> InboxItems => Set<InboxItem>();
+        public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -151,6 +160,8 @@ namespace Certio.Infrastructure.Data
             ConfigureWorkflowRelationships(builder);
             ConfigureNotificationRelationships(builder);
             ConfigureUserDeletionRequestRelationships(builder);
+            ConfigureAgentActionRelationships(builder);
+            ConfigureUnifiedInboxRelationships(builder);
         }
 
         private void ConfigureOrganizationRelationships(ModelBuilder builder)
@@ -1178,6 +1189,158 @@ namespace Certio.Infrastructure.Data
 
             builder.Entity<UserDeletionRequest>()
                 .HasIndex(udr => udr.RequestedAt);
+        }
+
+        private void ConfigureAgentActionRelationships(ModelBuilder builder)
+        {
+            var jsonSerializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+            
+            var stringListConverter = new ValueConverter<List<string>, string>(
+                v => JsonSerializer.Serialize(v, jsonSerializerOptions),
+                v => string.IsNullOrWhiteSpace(v) ? new List<string>() : JsonSerializer.Deserialize<List<string>>(v, jsonSerializerOptions) ?? new List<string>());
+
+            // AgentAction -> Organization relationship
+            builder.Entity<AgentAction>()
+                .HasOne(aa => aa.Organization)
+                .WithMany()
+                .HasForeignKey(aa => aa.OrganizationId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // AgentAction -> Matter relationship (optional)
+            builder.Entity<AgentAction>()
+                .HasOne(aa => aa.Matter)
+                .WithMany()
+                .HasForeignKey(aa => aa.MatterId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // AgentAction -> ProposedBy relationship
+            builder.Entity<AgentAction>()
+                .HasOne(aa => aa.ProposedBy)
+                .WithMany()
+                .HasForeignKey(aa => aa.ProposedById)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // AgentAction -> ApprovedBy relationship
+            builder.Entity<AgentAction>()
+                .HasOne(aa => aa.ApprovedBy)
+                .WithMany()
+                .HasForeignKey(aa => aa.ApprovedById)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // AgentAction -> RejectedBy relationship
+            builder.Entity<AgentAction>()
+                .HasOne(aa => aa.RejectedBy)
+                .WithMany()
+                .HasForeignKey(aa => aa.RejectedById)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // AgentAction -> RolledBackBy relationship
+            builder.Entity<AgentAction>()
+                .HasOne(aa => aa.RolledBackBy)
+                .WithMany()
+                .HasForeignKey(aa => aa.RolledBackById)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Indexes for performance
+            builder.Entity<AgentAction>()
+                .HasIndex(aa => aa.RunId)
+                .IsUnique();
+
+            builder.Entity<AgentAction>()
+                .HasIndex(aa => aa.CorrelationId);
+
+            builder.Entity<AgentAction>()
+                .HasIndex(aa => new { aa.OrganizationId, aa.Status, aa.CreatedAt });
+
+            builder.Entity<AgentAction>()
+                .HasIndex(aa => new { aa.Status, aa.CreatedAt });
+
+            builder.Entity<AgentAction>()
+                .HasIndex(aa => aa.MatterId);
+
+            builder.Entity<AgentAction>()
+                .HasIndex(aa => aa.ActionType);
+        }
+
+        private void ConfigureUnifiedInboxRelationships(ModelBuilder builder)
+        {
+            var jsonSerializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+            
+            var stringListConverter = new ValueConverter<List<string>, string>(
+                v => JsonSerializer.Serialize(v, jsonSerializerOptions),
+                v => string.IsNullOrWhiteSpace(v) ? new List<string>() : JsonSerializer.Deserialize<List<string>>(v, jsonSerializerOptions) ?? new List<string>());
+
+            var stringListComparer = new ValueComparer<List<string>>(
+                (c1, c2) => ReferenceEquals(c1, c2) || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
+                c => (c ?? new List<string>()).Aggregate(0, (a, v) => HashCode.Combine(a, v == null ? 0 : v.GetHashCode())),
+                c => c == null ? new List<string>() : c.ToList());
+
+            // InboxItem -> Organization relationship
+            builder.Entity<InboxItem>()
+                .HasOne(ii => ii.Organization)
+                .WithMany()
+                .HasForeignKey(ii => ii.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // InboxItem -> Matter relationship (optional)
+            builder.Entity<InboxItem>()
+                .HasOne(ii => ii.Matter)
+                .WithMany()
+                .HasForeignKey(ii => ii.MatterId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // InboxItem -> User relationship (optional)
+            builder.Entity<InboxItem>()
+                .HasOne(ii => ii.User)
+                .WithMany()
+                .HasForeignKey(ii => ii.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // InboxItem -> Messages relationship
+            builder.Entity<InboxItem>()
+                .HasMany(ii => ii.Messages)
+                .WithOne(im => im.InboxItem)
+                .HasForeignKey(im => im.InboxItemId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // InboxItem Labels conversion
+            builder.Entity<InboxItem>()
+                .Property(ii => ii.Labels)
+                .HasConversion(stringListConverter)
+                .Metadata.SetValueComparer(stringListComparer);
+
+            // InboxMessage -> SenderUser relationship
+            builder.Entity<InboxMessage>()
+                .HasOne(im => im.SenderUser)
+                .WithMany()
+                .HasForeignKey(im => im.SenderUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Indexes for InboxItem
+            builder.Entity<InboxItem>()
+                .HasIndex(ii => new { ii.OrganizationId, ii.Status, ii.LastMessageAt });
+
+            builder.Entity<InboxItem>()
+                .HasIndex(ii => new { ii.OrganizationId, ii.Source, ii.LastMessageAt });
+
+            builder.Entity<InboxItem>()
+                .HasIndex(ii => ii.ThreadId);
+
+            builder.Entity<InboxItem>()
+                .HasIndex(ii => ii.ExternalId);
+
+            builder.Entity<InboxItem>()
+                .HasIndex(ii => ii.MatterId);
+
+            builder.Entity<InboxItem>()
+                .HasIndex(ii => new { ii.IsDeleted, ii.LastMessageAt });
+
+            // Indexes for InboxMessage
+            builder.Entity<InboxMessage>()
+                .HasIndex(im => new { im.InboxItemId, im.CreatedAt });
+
+            builder.Entity<InboxMessage>()
+                .HasIndex(im => im.ExternalMessageId);
         }
 
         // Query optimization for active users

@@ -150,16 +150,56 @@
                                 
                                 <!-- Action Buttons Row -->
                                 <div class="input-actions-row">
-                                    <button class="input-action-btn" id="dashboardAttachFileBtn" title="Attach file">
-                                        <i class="fas fa-paperclip"></i>
-                                    </button>
-                                    <button class="input-action-btn" id="dashboardEmojiBtn" title="Add emoji">
-                                        <i class="fas fa-smile"></i>
-                                    </button>
-                                    <button class="input-action-btn" id="dashboardMicBtn" title="Voice message">
-                                        <i class="fas fa-microphone"></i>
-                                    </button>
-                                    <div class="input-action-btn-group">
+                                    <div class="input-actions-left">
+                                        <button class="input-action-btn" id="dashboardAttachFileBtn" title="Attach file">
+                                            <i class="fas fa-paperclip"></i>
+                                        </button>
+                                        <button class="input-action-btn" id="dashboardEmojiBtn" title="Add emoji">
+                                            <i class="fas fa-smile"></i>
+                                        </button>
+                                        <button class="input-action-btn" id="dashboardMicBtn" title="Voice message">
+                                            <i class="fas fa-microphone"></i>
+                                        </button>
+                                        
+                                        <!-- Agent/Ask Mode Selector -->
+                                        <div class="ai-mode-selector" id="dashboardAiModeSelector" title="Select AI mode">
+                                            <i class="fas fa-infinity mode-icon"></i>
+                                            <span class="mode-label" id="dashboardCurrentModeLabel">Agent</span>
+                                            <i class="fas fa-chevron-down mode-chevron"></i>
+                                            <span class="agent-mode-badge" id="dashboardAgentModeBadge"></span>
+                                            
+                                            <!-- Mode Dropdown -->
+                                            <div class="ai-mode-dropdown" id="dashboardAiModeDropdown">
+                                                <div class="ai-mode-option selected" data-mode="agent">
+                                                    <span class="option-icon"><i class="fas fa-infinity"></i></span>
+                                                    <span class="option-text">Agent</span>
+                                                    <span class="option-check"><i class="fas fa-check"></i></span>
+                                                </div>
+                                                <div class="ai-mode-option" data-mode="ask">
+                                                    <span class="option-icon"><i class="fas fa-comment-dots"></i></span>
+                                                    <span class="option-text">Ask</span>
+                                                    <span class="option-check"><i class="fas fa-check"></i></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Model Tier Selector (syncs with AI Settings) -->
+                                        <div class="model-selector" id="dashboardModelSelector" title="Select AI model tier">
+                                            <span id="dashboardCurrentModelLabel">Auto</span>
+                                            <i class="fas fa-chevron-down model-chevron"></i>
+                                            
+                                            <!-- Model Tier Dropdown -->
+                                            <div class="model-dropdown" id="dashboardModelDropdown">
+                                                <div class="model-option selected" data-model="Auto">Auto (Recommended)</div>
+                                                <div class="model-option" data-model="Basic">Basic (Fast)</div>
+                                                <div class="model-option" data-model="Intermediate">Intermediate</div>
+                                                <div class="model-option" data-model="Advanced">Advanced</div>
+                                                <div class="model-option" data-model="Premium">Premium (GPT-4.1)</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="input-actions-right">
                                         <button class="input-action-btn" id="dashboardCodeBtn" title="Character Count">
                                             <i class="fas fa-code"></i>
                                         </button>
@@ -2725,6 +2765,13 @@
                     conversationId: parseInt(window.dashboardCurrentConversationId),
                     userMessage: userMessage
                 };
+                
+                // Include AI mode and model if AgentActions is available
+                if (typeof window.AgentActions !== 'undefined') {
+                    requestBody.aiMode = window.AgentActions.getMode();
+                    requestBody.aiModel = window.AgentActions.getModel();
+                    console.log('[AgentActions] Dashboard sending with mode:', requestBody.aiMode, 'model:', requestBody.aiModel);
+                }
 
                 // Wait for attachment upload to complete if still uploading
                 if (window._dashboardUploadingAttachment) {
@@ -2807,8 +2854,32 @@
                                         aiMessageDiv.classList.remove('streaming');
                                     }
                                     if (messageTextDiv) {
-                                        // Use content directly as HTML (like sidebar does) - AI returns HTML-formatted content
-                                        messageTextDiv.innerHTML = fullContent || 'No response generated.';
+                                        // Clean the content for display - replace action commands with nice action cards
+                                        let displayContent = fullContent;
+                                        if (typeof window.AgentActions !== 'undefined') {
+                                            // Use replaceWithCards to show animated action cards
+                                            if (window.AgentActions.replaceWithCards) {
+                                                displayContent = window.AgentActions.replaceWithCards(fullContent);
+                                            } else if (window.AgentActions.stripActionCommands) {
+                                                // Fallback: strip if replaceWithCards not available
+                                                displayContent = window.AgentActions.stripActionCommands(fullContent);
+                                            }
+                                        }
+                                        // Use content directly as HTML - AI returns HTML-formatted content
+                                        messageTextDiv.innerHTML = displayContent || 'No response generated.';
+                                    }
+                                    
+                                    // 🤖 Agent Actions: Check for action commands in AI response
+                                    if (typeof window.AgentActions !== 'undefined') {
+                                        try {
+                                            const detectedActions = window.AgentActions.parseResponse(fullContent);
+                                            if (detectedActions && detectedActions.length > 0) {
+                                                console.log('[AgentActions] Detected actions in dashboard AI response:', detectedActions);
+                                                window.AgentActions.processActions(detectedActions, window.dashboardCurrentConversationId);
+                                            }
+                                        } catch (agentError) {
+                                            console.error('[AgentActions] Error processing dashboard actions:', agentError);
+                                        }
                                     }
                                     
                                     // Remove scroll listener

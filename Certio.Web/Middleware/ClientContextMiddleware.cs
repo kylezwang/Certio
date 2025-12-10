@@ -28,13 +28,20 @@ namespace Certio.Web.Middleware
                     orgId = parsedOrgId;
                 }
             }
-            // Also check for API routes with orgId query parameter (e.g., /api/dm/threads?orgId=1)
+            // Also check for API routes with orgId query parameter or X-Organization-Id header
             else if (path.StartsWith("/api/", StringComparison.OrdinalIgnoreCase))
             {
+                // First try query parameter (e.g., /api/dm/threads?orgId=1)
                 if (context.Request.Query.TryGetValue("orgId", out var orgIdValue) && 
                     int.TryParse(orgIdValue.FirstOrDefault(), out var parsedOrgId))
                 {
                     orgId = parsedOrgId;
+                }
+                // Then try X-Organization-Id header (for agent actions API)
+                else if (context.Request.Headers.TryGetValue("X-Organization-Id", out var headerOrgId) && 
+                    int.TryParse(headerOrgId.FirstOrDefault(), out var parsedHeaderOrgId))
+                {
+                    orgId = parsedHeaderOrgId;
                 }
             }
 

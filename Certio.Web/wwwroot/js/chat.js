@@ -576,6 +576,13 @@ async function generateAIResponse(userMessage) {
             userMessage: userMessage
         };
         
+        // Include AI mode and model if AgentActions is available
+        if (typeof window.AgentActions !== 'undefined') {
+            requestBody.aiMode = window.AgentActions.getMode();
+            requestBody.aiModel = window.AgentActions.getModel();
+            console.log('[AgentActions] Sending with mode:', requestBody.aiMode, 'model:', requestBody.aiModel);
+        }
+        
         // Wait for pendingAttachment if it's still being processed (max 30 seconds)
         if (pendingAttachment === null && window._uploadingAttachment) {
             console.log('Waiting for attachment upload to complete...');
@@ -653,7 +660,19 @@ async function generateAIResponse(userMessage) {
                             console.log('✅ Stream done signal received');
                             // Stream complete - remove streaming class and cursor
                             aiMessageDiv.classList.remove('streaming');
-                            messageTextDiv.innerHTML = fullContent || 'No response generated.';
+                            
+                            // Clean the content for display - replace action commands with nice action cards
+                            let displayContent = fullContent;
+                            if (typeof window.AgentActions !== 'undefined') {
+                                // Use replaceWithCards to show animated action cards instead of raw commands
+                                if (window.AgentActions.replaceWithCards) {
+                                    displayContent = window.AgentActions.replaceWithCards(fullContent);
+                                } else if (window.AgentActions.stripActionCommands) {
+                                    // Fallback: strip if replaceWithCards not available
+                                    displayContent = window.AgentActions.stripActionCommands(fullContent);
+                                }
+                            }
+                            messageTextDiv.innerHTML = displayContent || 'No response generated.';
                             
                             // Create a proper message object for tracking
                             const aiMessage = {
@@ -670,6 +689,19 @@ async function generateAIResponse(userMessage) {
                             
                             // Reinitialize sticky message after streaming is complete
                             initializeStickyMessage();
+                            
+                            // 🤖 Agent Actions: Check for action commands in AI response
+                            if (typeof window.AgentActions !== 'undefined') {
+                                try {
+                                    const detectedActions = window.AgentActions.parseResponse(fullContent);
+                                    if (detectedActions && detectedActions.length > 0) {
+                                        console.log('[AgentActions] Detected actions in AI response:', detectedActions);
+                                        window.AgentActions.processActions(detectedActions, currentConversationId);
+                                    }
+                                } catch (agentError) {
+                                    console.error('[AgentActions] Error processing actions:', agentError);
+                                }
+                            }
                             
                             // Load AI insights after a short delay
                             setTimeout(() => {

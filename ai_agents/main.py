@@ -108,17 +108,42 @@ client = create_openai_client()
 
 # Global function to get model name (Azure deployment names if using Azure)
 def get_model_name(model_type):
-    """Get the appropriate model name for Azure or regular OpenAI"""
+    """Get the appropriate model name for Azure or regular OpenAI.
+    Falls back to available models if premium deployments don't exist."""
     if os.getenv("AZURE_OPENAI_ENDPOINT"):
-        # Use Azure deployment names
+        # Check which deployments are actually configured
+        gpt4o = os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT4O", "gpt-4o")
+        gpt4o_mini = os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT4O_MINI", "gpt-4o-mini")
+        gpt4_1_mini = os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT4_1_MINI", "")  # Default empty - not all have this
+        gpt4_1 = os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT4_1", "")  # Default empty - not all have this
+        gpt5 = os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT5", "")  # Default empty - not all have this
+        
+        # Build mapping with fallbacks for unavailable premium models
         azure_mapping = {
-            ModelType.GPT_4O: os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT4O", "gpt-4o"),
-            ModelType.GPT_4O_MINI: os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT4O_MINI", "gpt-4o-mini"),
-            ModelType.GPT_4_1_MINI: os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT4_1_MINI", "gpt-4.1-mini"),
-            ModelType.GPT_4_1: os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT4_1", "gpt-4.1"),
-            ModelType.GPT_5: os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT5", "gpt-5")
+            ModelType.GPT_4O: gpt4o,
+            ModelType.GPT_4O_MINI: gpt4o_mini,
+            # GPT-4.1-mini falls back to GPT-4o if not configured
+            ModelType.GPT_4_1_MINI: gpt4_1_mini if gpt4_1_mini else gpt4o,
+            # GPT-4.1 falls back to GPT-4o if not configured
+            ModelType.GPT_4_1: gpt4_1 if gpt4_1 else gpt4o,
+            # GPT-5 falls back to GPT-4.1, then GPT-4o if not configured
+            ModelType.GPT_5: gpt5 if gpt5 else (gpt4_1 if gpt4_1 else gpt4o)
         }
-        return azure_mapping.get(model_type, "gpt-4o-mini")
+        
+        result = azure_mapping.get(model_type, gpt4o_mini)
+        
+        # Log fallback info for debugging
+        if model_type in [ModelType.GPT_4_1, ModelType.GPT_4_1_MINI, ModelType.GPT_5]:
+            original_env = {
+                ModelType.GPT_4_1: "AZURE_OPENAI_DEPLOYMENT_GPT4_1",
+                ModelType.GPT_4_1_MINI: "AZURE_OPENAI_DEPLOYMENT_GPT4_1_MINI",
+                ModelType.GPT_5: "AZURE_OPENAI_DEPLOYMENT_GPT5"
+            }
+            env_var = original_env.get(model_type, "")
+            if not os.getenv(env_var):
+                logger.info(f"Model {model_type.value} not configured ({env_var} not set), using fallback: {result}")
+        
+        return result
     else:
         # Use regular OpenAI model names
         regular_mapping = {
