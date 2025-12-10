@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Certio.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cc3c106de79d9910ffe1f42384c5b885259cad91")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6e35e617a8a440a359745c03b71bb576057ccdfb")]
 [assembly: System.Reflection.AssemblyProductAttribute("Certio.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Certio.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -518,7 +518,52 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => {
     options.Lockout.AllowedForNewUsers = true;
 
     options.User.RequireUniqueEmail = true;
-}).AddEntityFrameworkStores<ApplicationDbContext>();
+})
+.AddSignInManager()
+.AddEntityFrameworkStores<ApplicationDbContext>();
+
+// Configure external OAuth providers (Google & Microsoft)
+var authBuilder = builder.Services.AddAuthentication();
+
+// Google OAuth
+var googleClientId = builder.Configuration["Authentication:Google:ClientId"] ?? Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
+var googleClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET");
+if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientSecret))
+{
+    authBuilder.AddGoogle(options =>
+    {
+        options.ClientId = googleClientId;
+        options.ClientSecret = googleClientSecret;
+        options.CallbackPath = "/signin-google";
+        options.Scope.Add("email");
+        options.Scope.Add("profile");
+        options.SaveTokens = true;
+    });
+    Console.WriteLine("[OAuth] Google authentication configured");
+}
+else
+{
+    Console.WriteLine("[OAuth] Google authentication not configured - missing ClientId or ClientSecret");
+}
+
+// Microsoft OAuth
+var microsoftClientId = builder.Configuration["Authentication:Microsoft:ClientId"] ?? Environment.GetEnvironmentVariable("MICROSOFT_CLIENT_ID");
+var microsoftClientSecret = builder.Configuration["Authentication:Microsoft:ClientSecret"] ?? Environment.GetEnvironmentVariable("MICROSOFT_CLIENT_SECRET");
+if (!string.IsNullOrEmpty(microsoftClientId) && !string.IsNullOrEmpty(microsoftClientSecret))
+{
+    authBuilder.AddMicrosoftAccount(options =>
+    {
+        options.ClientId = microsoftClientId;
+        options.ClientSecret = microsoftClientSecret;
+        options.CallbackPath = "/signin-microsoft";
+        options.SaveTokens = true;
+    });
+    Console.WriteLine("[OAuth] Microsoft authentication configured");
+}
+else
+{
+    Console.WriteLine("[OAuth] Microsoft authentication not configured - missing ClientId or ClientSecret");
+}
 
 // Configure authentication cookies with maximum security
 builder.Services.ConfigureApplicationCookie(options =>
@@ -630,6 +675,10 @@ builder.Services.AddScoped<Certio.Application.Interfaces.ICalendarService, Certi
 builder.Services.AddScoped<Certio.Application.Interfaces.IOrganizationService, Certio.Application.Services.OrganizationService>();
 builder.Services.AddScoped<Certio.Application.Interfaces.ITeamService, Certio.Application.Services.TeamService>();
 builder.Services.AddScoped<Certio.Application.Interfaces.IOrganizationRelationshipService, Certio.Application.Services.OrganizationRelationshipService>();
+
+// AGENT ACTIONS AND UNIFIED INBOX (Phase 1 Agentic AI Workflows)
+builder.Services.AddScoped<Certio.Application.Interfaces.IAgentActionService, Certio.Application.Services.AgentActionService>();
+builder.Services.AddScoped<Certio.Application.Interfaces.IUnifiedInboxService, Certio.Application.Services.UnifiedInboxService>();
 
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(options =>

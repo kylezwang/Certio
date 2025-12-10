@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="~/css/communications-sidebar.css" />
     <link rel="stylesheet" href="~/css/notifications-sidebar.css" />
     <link rel="stylesheet" href="~/css/communications.css" />
+    <link rel="stylesheet" href="~/css/agent-actions.css" />
     @if (IsSectionDefined("PageStyles"))
     {
         @RenderSection("PageStyles", required: false)
@@ -2591,16 +2592,56 @@
                     
                     <!-- Action Buttons Row -->
                     <div class="input-actions-row">
-                        <button class="input-action-btn" id="attachFileBtn" title="Attach file">
-                            <i class="fas fa-paperclip"></i>
-                        </button>
-                        <button class="input-action-btn" id="emojiBtn" title="Add emoji">
-                            <i class="fas fa-smile"></i>
-                        </button>
-                        <button class="input-action-btn" id="micBtn" title="Voice message">
-                            <i class="fas fa-microphone"></i>
-                        </button>
-                        <div class="input-action-btn-group">
+                        <div class="input-actions-left">
+                            <button class="input-action-btn" id="attachFileBtn" title="Attach file">
+                                <i class="fas fa-paperclip"></i>
+                            </button>
+                            <button class="input-action-btn" id="emojiBtn" title="Add emoji">
+                                <i class="fas fa-smile"></i>
+                            </button>
+                            <button class="input-action-btn" id="micBtn" title="Voice message">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                            
+                            <!-- Agent/Ask Mode Selector -->
+                            <div class="ai-mode-selector" id="aiModeSelector" title="Select AI mode">
+                                <i class="fas fa-infinity mode-icon"></i>
+                                <span class="mode-label" id="currentModeLabel">Agent</span>
+                                <i class="fas fa-chevron-down mode-chevron"></i>
+                                <span class="agent-mode-badge" id="agentModeBadge"></span>
+                                
+                                <!-- Mode Dropdown -->
+                                <div class="ai-mode-dropdown" id="aiModeDropdown">
+                                    <div class="ai-mode-option selected" data-mode="agent">
+                                        <span class="option-icon"><i class="fas fa-infinity"></i></span>
+                                        <span class="option-text">Agent</span>
+                                        <span class="option-check"><i class="fas fa-check"></i></span>
+                                    </div>
+                                    <div class="ai-mode-option" data-mode="ask">
+                                        <span class="option-icon"><i class="fas fa-comment-dots"></i></span>
+                                        <span class="option-text">Ask</span>
+                                        <span class="option-check"><i class="fas fa-check"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Model Tier Selector (syncs with AI Settings) -->
+                            <div class="model-selector" id="modelSelector" title="Select AI model tier">
+                                <span id="currentModelLabel">Auto</span>
+                                <i class="fas fa-chevron-down model-chevron"></i>
+                                
+                                <!-- Model Tier Dropdown -->
+                                <div class="model-dropdown" id="modelDropdown">
+                                    <div class="model-option selected" data-model="Auto">Auto (Recommended)</div>
+                                    <div class="model-option" data-model="Basic">Basic</div>
+                                    <div class="model-option" data-model="Intermediate">Intermediate</div>
+                                    <div class="model-option" data-model="Advanced">Advanced</div>
+                                    <div class="model-option" data-model="Premium">Premium</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="input-actions-right">
                             <button class="input-action-btn" id="codeBtn" title="Character Count">
                                 <i class="fas fa-code"></i>
                             </button>
@@ -2745,6 +2786,7 @@
 {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js" defer></script>
 <script src="~/js/chat.js" defer></script>
+<script src="~/js/agent-actions.js" defer></script>
 
 <script>
         // Initialize conversations on all pages

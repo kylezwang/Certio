@@ -343,7 +343,17 @@ public enum Permission
     // System permissions
     ViewAuditLogs,
     ManageSystemSettings,
-    AccessAdminPanel
+    AccessAdminPanel,
+    
+    // Agent action permissions (Phase 1)
+    ViewAgentActions,
+    ProposeAgentActions,
+    ApproveAgentActions,
+    RollbackAgentActions,
+    
+    // Unified inbox permissions
+    ViewInbox,
+    ManageInbox
 }
 
 public static class PermissionSets
@@ -357,7 +367,10 @@ public static class PermissionSets
         Permission.DeleteMatters, Permission.ManageMatterSettings,
         Permission.InviteUsers, Permission.RemoveUsers, Permission.ManageUserPermissions,
         Permission.ViewMessages, Permission.SendMessages, Permission.DeleteMessages,
-        Permission.ManageThreads
+        Permission.ManageThreads,
+        // Agent & Inbox
+        Permission.ViewAgentActions, Permission.ProposeAgentActions, Permission.ApproveAgentActions, Permission.RollbackAgentActions,
+        Permission.ViewInbox, Permission.ManageInbox
     };
 
     // Client Manager - Full access to assigned matters
@@ -367,7 +380,10 @@ public static class PermissionSets
         Permission.CommentOnDocuments,
         Permission.ViewMatters, Permission.EditMatters, Permission.ManageMatterSettings,
         Permission.InviteUsers, Permission.RemoveUsers,
-        Permission.ViewMessages, Permission.SendMessages, Permission.ManageThreads
+        Permission.ViewMessages, Permission.SendMessages, Permission.ManageThreads,
+        // Agent & Inbox
+        Permission.ViewAgentActions, Permission.ProposeAgentActions, Permission.ApproveAgentActions,
+        Permission.ViewInbox, Permission.ManageInbox
     };
 
     // Client Member - Full self-service access
@@ -377,7 +393,10 @@ public static class PermissionSets
         Permission.DeleteDocuments, Permission.CommentOnDocuments,
         Permission.ViewMatters, Permission.CreateMatters, Permission.EditMatters,
         Permission.DeleteMatters, Permission.ManageMatterSettings,
-        Permission.ViewMessages, Permission.SendMessages, Permission.ManageThreads
+        Permission.ViewMessages, Permission.SendMessages, Permission.ManageThreads,
+        // Agent & Inbox
+        Permission.ViewAgentActions, Permission.ProposeAgentActions,
+        Permission.ViewInbox
     };
 
     // Client Lawyer - Oversight role for legal work
@@ -438,7 +457,10 @@ public static class PermissionSets
         Permission.InviteUsers, Permission.RemoveUsers, Permission.ManageUserPermissions,
         Permission.ViewMessages, Permission.SendMessages, Permission.DeleteMessages,
         Permission.ManageThreads,
-        Permission.ViewAuditLogs, Permission.ManageSystemSettings, Permission.AccessAdminPanel
+        Permission.ViewAuditLogs, Permission.ManageSystemSettings, Permission.AccessAdminPanel,
+        // Agent & Inbox - Full access
+        Permission.ViewAgentActions, Permission.ProposeAgentActions, Permission.ApproveAgentActions, Permission.RollbackAgentActions,
+        Permission.ViewInbox, Permission.ManageInbox
     };
 
     // Certio Matter Manager - Matter management access
@@ -482,7 +504,10 @@ public static class PermissionSets
         Permission.DeleteMatters, Permission.ManageMatterSettings,
         Permission.InviteUsers, Permission.RemoveUsers, Permission.ManageUserPermissions,
         Permission.ViewMessages, Permission.SendMessages, Permission.DeleteMessages,
-        Permission.ManageThreads, Permission.ViewAuditLogs
+        Permission.ManageThreads, Permission.ViewAuditLogs,
+        // Agent & Inbox - Full access
+        Permission.ViewAgentActions, Permission.ProposeAgentActions, Permission.ApproveAgentActions, Permission.RollbackAgentActions,
+        Permission.ViewInbox, Permission.ManageInbox
     };
 
     // Partner - Full access to firm and client matters
@@ -494,7 +519,10 @@ public static class PermissionSets
         Permission.DeleteMatters, Permission.ManageMatterSettings,
         Permission.InviteUsers, Permission.RemoveUsers, Permission.ManageUserPermissions,
         Permission.ViewMessages, Permission.SendMessages, Permission.DeleteMessages,
-        Permission.ManageThreads, Permission.ViewAuditLogs
+        Permission.ManageThreads, Permission.ViewAuditLogs,
+        // Agent & Inbox
+        Permission.ViewAgentActions, Permission.ProposeAgentActions, Permission.ApproveAgentActions,
+        Permission.ViewInbox, Permission.ManageInbox
     };
 
     // Associate - Access to assigned matters
@@ -504,7 +532,10 @@ public static class PermissionSets
         Permission.CommentOnDocuments,
         Permission.ViewMatters, Permission.EditMatters, Permission.ManageMatterSettings,
         Permission.ViewMessages, Permission.SendMessages, Permission.ManageThreads,
-        Permission.ViewAuditLogs
+        Permission.ViewAuditLogs,
+        // Agent & Inbox
+        Permission.ViewAgentActions, Permission.ProposeAgentActions,
+        Permission.ViewInbox
     };
 
     // Paralegal - Document and matter support access
@@ -513,7 +544,10 @@ public static class PermissionSets
         Permission.ViewDocuments, Permission.DownloadDocuments, Permission.UploadDocuments,
         Permission.CommentOnDocuments,
         Permission.ViewMatters, Permission.EditMatters,
-        Permission.ViewMessages, Permission.SendMessages, Permission.ManageThreads
+        Permission.ViewMessages, Permission.SendMessages, Permission.ManageThreads,
+        // Agent & Inbox
+        Permission.ViewAgentActions, Permission.ProposeAgentActions,
+        Permission.ViewInbox
     };
 
     // Staff - Basic access for administrative staff
@@ -521,7 +555,10 @@ public static class PermissionSets
     {
         Permission.ViewDocuments, Permission.DownloadDocuments,
         Permission.ViewMatters,
-        Permission.ViewMessages, Permission.SendMessages
+        Permission.ViewMessages, Permission.SendMessages,
+        // Agent & Inbox - View only
+        Permission.ViewAgentActions,
+        Permission.ViewInbox
     };
 }
 }

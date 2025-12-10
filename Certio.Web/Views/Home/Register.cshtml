@@ -345,6 +345,87 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
         }
 
+        /* OAuth Separator */
+        .oauth-separator {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 1.25rem 0;
+            color: #9ca3af;
+            font-size: 0.875rem;
+        }
+
+        .oauth-separator::before,
+        .oauth-separator::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e5e7eb;
+        }
+
+        .oauth-separator span {
+            padding: 0 1rem;
+            white-space: nowrap;
+        }
+
+        /* OAuth Buttons */
+        .oauth-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .oauth-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border: 2px solid #d1d5db;
+            border-radius: 12px;
+            background: white;
+            color: #1e1e1e;
+            font-weight: 500;
+            font-size: 0.875rem;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .oauth-btn:hover {
+            border-color: #9ca3af;
+            background: #f9fafb;
+            text-decoration: none;
+            color: #1e1e1e;
+        }
+
+        .oauth-btn:active {
+            transform: scale(0.98);
+        }
+
+        .oauth-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        /* OAuth pre-filled indicator */
+        .oauth-provider-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, rgba(163, 43, 67, 0.1), rgba(61, 16, 25, 0.1));
+            border-radius: 8px;
+            font-size: 0.8125rem;
+            color: #3d1019;
+            margin-bottom: 1rem;
+        }
+
+        .oauth-provider-badge i {
+            color: #3d1019;
+        }
+
         /* Responsive adjustments */
         @@media (max-width: 480px) {
             .login-container {
@@ -370,6 +451,16 @@
             .organization-icon {
                 margin-right: 0;
                 margin-bottom: 1rem;
+            }
+
+            .oauth-btn {
+                font-size: 0.8125rem;
+                padding: 0.625rem 0.875rem;
+            }
+
+            .oauth-icon {
+                width: 18px;
+                height: 18px;
             }
         }
     </style>
@@ -406,10 +497,41 @@
                 
                 <!-- Step 1: Email Input -->
                 <div id="step-1" class="registration-step">
+                    @if (ViewBag.OAuthProvider == null)
+                    {
+                        <!-- OAuth Buttons (Quick Registration) - hidden until we check availability -->
+                        <div class="oauth-buttons" id="oauthButtons" style="display: none;">
+                            <button type="button" class="oauth-btn oauth-btn-google" id="googleRegisterBtn" style="display: none;" onclick="openOAuthPopup('Google')">
+                                <svg class="oauth-icon" viewBox="0 0 24 24">
+                                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                                </svg>
+                                Continue with Google
+                            </button>
+                            
+                            <button type="button" class="oauth-btn oauth-btn-microsoft" id="microsoftRegisterBtn" style="display: none;" onclick="openOAuthPopup('Microsoft')">
+                                <svg class="oauth-icon" viewBox="0 0 23 23">
+                                    <path fill="#f25022" d="M0 0h11v11H0z" />
+                                    <path fill="#00a4ef" d="M12 0h11v11H12z" />
+                                    <path fill="#7fba00" d="M0 12h11v11H0z" />
+                                    <path fill="#ffb900" d="M12 12h11v11H12z" />
+                                </svg>
+                                Continue with Microsoft
+                            </button>
+                        </div>
+                        
+                        <!-- Separator -->
+                        <div class="oauth-separator" id="oauthSeparator" style="display: none;">
+                            <span>or with email</span>
+                        </div>
+                    }
+                    
                     <form method="post" action="@Url.Action("StartRegistration", "Home")">
                         <div class="form-group">
                             <label for="email" class="form-label">Email Address</label>
-                            <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email address" required>
+                            <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email address" required value="@(ViewBag.OAuthEmail ?? "")">
                         </div>
                         
                         <button type="submit" class="btn btn-signin">
@@ -823,6 +945,82 @@
             // In a real implementation, this would call the server to resend the code
             alert('Verification code resent!');
         }
+        
+        // Check which OAuth providers are available
+        async function checkOAuthProviders() {
+            try {
+                const response = await fetch('/api/auth/providers');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const hasAny = result.hasGoogle || result.hasMicrosoft;
+                    
+                    if (hasAny) {
+                        const separator = document.getElementById('oauthSeparator');
+                        const buttons = document.getElementById('oauthButtons');
+                        if (separator) separator.style.display = 'flex';
+                        if (buttons) buttons.style.display = 'flex';
+                    }
+                    
+                    if (result.hasGoogle) {
+                        const googleBtn = document.getElementById('googleRegisterBtn');
+                        if (googleBtn) googleBtn.style.display = 'flex';
+                    }
+                    if (result.hasMicrosoft) {
+                        const msBtn = document.getElementById('microsoftRegisterBtn');
+                        if (msBtn) msBtn.style.display = 'flex';
+                    }
+                }
+            } catch (error) {
+                console.log('OAuth providers not available:', error);
+            }
+        }
+        
+        // Open OAuth popup window
+        function openOAuthPopup(provider) {
+            const width = 500;
+            const height = 600;
+            const left = (screen.width / 2) - (width / 2);
+            const top = (screen.height / 2) - (height / 2);
+            
+            const url = `/Account/ExternalLogin?provider=${provider}&popup=true`;
+            
+            const popup = window.open(
+                url,
+                'OAuthRegister',
+                `width=${width},height=${height},top=${top},left=${left},toolbar=no,menubar=no,scrollbars=yes`
+            );
+            
+            if (!popup) {
+                alert('Please allow popups for this site to continue with ' + provider);
+            }
+        }
+        
+        // Handle OAuth result from popup
+        function handleOAuthResult(result) {
+            if (result.success) {
+                if (result.needsRegistration && result.redirectUrl) {
+                    // Redirect to complete registration
+                    window.location.href = result.redirectUrl;
+                } else if (result.redirectUrl) {
+                    // Already has account, redirect to dashboard
+                    window.location.href = result.redirectUrl;
+                }
+            } else {
+                alert(result.error || 'Authentication failed. Please try again.');
+            }
+        }
+        
+        // Listen for OAuth popup results
+        window.addEventListener('message', function(event) {
+            if (event.origin !== window.location.origin) return;
+            if (event.data && event.data.type === 'OAUTH_LOGIN_RESULT') {
+                handleOAuthResult(event.data);
+            }
+        });
+        
+        // Check for OAuth providers on page load
+        checkOAuthProviders();
     </script>
 </body>
 </html>

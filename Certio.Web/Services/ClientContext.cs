@@ -7,6 +7,7 @@ namespace Certio.Web.Services
 {
     public sealed class ClientContext : IClientContext
     {
+        public int UserId { get; private set; }
         public int? OrganizationId { get; private set; }
         public string? OrganizationName { get; private set; }
         public UserOrganization? Membership { get; private set; }
@@ -38,6 +39,8 @@ namespace Certio.Web.Services
             {
                 return context;
             }
+
+            context.UserId = customUser.Id;
 
             // First, try direct membership
             var membership = await db.UserOrganizations

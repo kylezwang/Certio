@@ -5,6 +5,7 @@ namespace Certio.Web.Services
 {
     public interface IClientContext
     {
+        int UserId { get; }
         int? OrganizationId { get; }
         string? OrganizationName { get; }
         UserOrganization? Membership { get; }

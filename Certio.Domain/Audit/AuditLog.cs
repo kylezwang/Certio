@@ -97,6 +97,20 @@ namespace Certio.Domain.Audit
         public const string AIRejected = "AIRejected";
         public const string DocumentSigned = "DocumentSigned";
         public const string DocumentShared = "DocumentShared";
+        
+        // Agent Action audit actions
+        public const string AgentActionProposed = "AgentActionProposed";
+        public const string AgentActionApproved = "AgentActionApproved";
+        public const string AgentActionRejected = "AgentActionRejected";
+        public const string AgentActionStarted = "AgentActionStarted";
+        public const string AgentActionCompleted = "AgentActionCompleted";
+        public const string AgentActionFailed = "AgentActionFailed";
+        public const string AgentActionRolledBack = "AgentActionRolledBack";
+        
+        // Inbox actions
+        public const string InboxItemCreated = "InboxItemCreated";
+        public const string InboxItemRead = "InboxItemRead";
+        public const string InboxItemArchived = "InboxItemArchived";
     }
     
     /// <summary>
