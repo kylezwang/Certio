@@ -181,7 +181,7 @@ namespace Certio.Web.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            // User does not have an account - redirect to OAuth registration
+            // User does not have an account - auto-create account with OAuth info
             var userEmail = info.Principal.FindFirstValue(ClaimTypes.Email);
             var firstName = info.Principal.FindFirstValue(ClaimTypes.GivenName) ?? "";
             var lastName = info.Principal.FindFirstValue(ClaimTypes.Surname) ?? "";
@@ -195,30 +195,97 @@ namespace Certio.Web.Controllers
                 lastName = nameParts.Length > 1 ? nameParts[1] : "";
             }
 
-            // Store OAuth info in session for registration
-            HttpContext.Session.SetString("OAuthProvider", info.LoginProvider);
-            HttpContext.Session.SetString("OAuthProviderKey", info.ProviderKey);
-            HttpContext.Session.SetString("OAuthEmail", userEmail ?? "");
-            HttpContext.Session.SetString("OAuthFirstName", firstName);
-            HttpContext.Session.SetString("OAuthLastName", lastName);
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                _logger.LogError("OAuth email is null for provider {Provider}", info.LoginProvider);
+                if (popup)
+                {
+                    return View("OAuthPopupResult", new OAuthPopupResult { 
+                        Success = false, 
+                        Error = "Email not provided by OAuth provider." 
+                    });
+                }
+                TempData["Error"] = "Email not provided by OAuth provider.";
+                return RedirectToAction("Index", "Home");
+            }
 
-            _logger.LogInformation("OAuth user {Email} needs to complete registration", userEmail);
+            _logger.LogInformation("Auto-creating account for OAuth user {Email}", userEmail);
 
-            // For popup mode, redirect to registration in the popup
-            var registerUrl = Url.Action("Register", "Home", new { 
-                oauth = true, 
-                email = userEmail,
-                firstName = firstName,
-                lastName = lastName,
-                provider = info.LoginProvider
-            }, Request.Scheme);
+            // Create new Identity user (no password for OAuth users)
+            var newIdentityUser = new IdentityUser
+            {
+                UserName = userEmail,
+                Email = userEmail,
+                EmailConfirmed = true // OAuth providers verify email
+            };
+
+            var createUserResult = await _userManager.CreateAsync(newIdentityUser);
+            if (!createUserResult.Succeeded)
+            {
+                var errors = string.Join(", ", createUserResult.Errors.Select(e => e.Description));
+                _logger.LogError("Failed to create Identity user for OAuth: {Errors}", errors);
+                if (popup)
+                {
+                    return View("OAuthPopupResult", new OAuthPopupResult { 
+                        Success = false, 
+                        Error = $"Failed to create account: {errors}" 
+                    });
+                }
+                TempData["Error"] = $"Failed to create account: {errors}";
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Link OAuth login to the new user
+            var addLoginResult = await _userManager.AddLoginAsync(newIdentityUser, info);
+            if (!addLoginResult.Succeeded)
+            {
+                await _userManager.DeleteAsync(newIdentityUser);
+                var errors = string.Join(", ", addLoginResult.Errors.Select(e => e.Description));
+                _logger.LogError("Failed to link OAuth login: {Errors}", errors);
+                if (popup)
+                {
+                    return View("OAuthPopupResult", new OAuthPopupResult { 
+                        Success = false, 
+                        Error = "Failed to link OAuth login." 
+                    });
+                }
+                TempData["Error"] = "Failed to link OAuth login.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Create custom User record
+            var newCustomUser = new User
+            {
+                Email = userEmail,
+                FirstName = firstName,
+                LastName = lastName,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Users.Add(newCustomUser);
+            await _context.SaveChangesAsync();
+
+            // Sign in the user
+            await _signInManager.SignInAsync(newIdentityUser, isPersistent: false);
+
+            _logger.LogInformation("OAuth account created successfully for {Email}, redirecting to organization setup", userEmail);
+
+            // Redirect to organization setup (step 2)
+            var orgSetupUrl = Url.Action("Register", "Home", new { step = 2, oauth = true }, Request.Scheme);
+            
+            // Store user info in TempData for organization setup
+            TempData["RegistrationEmail"] = userEmail;
+            TempData["OAuthFirstName"] = firstName;
+            TempData["OAuthLastName"] = lastName;
+            TempData["IsVerified"] = true;
 
             if (popup)
             {
                 return View("OAuthPopupResult", new OAuthPopupResult { 
                     Success = true, 
                     NeedsRegistration = true,
-                    RedirectUrl = registerUrl,
+                    RedirectUrl = orgSetupUrl,
                     Email = userEmail,
                     FirstName = firstName,
                     LastName = lastName,
@@ -226,7 +293,7 @@ namespace Certio.Web.Controllers
                 });
             }
 
-            return Redirect(registerUrl!);
+            return Redirect(orgSetupUrl!);
         }
         
         /// <summary>
