@@ -1913,7 +1913,13 @@
             const topMatterSelectorBtn = document.getElementById('topMatterSelectorBtn');
 
             // Load saved matter from localStorage or default to "View All Matters"
-            const savedMatterId = localStorage.getItem('certio_selected_matter_id');
+            const orgId = window.location.pathname.match(/\/Client\/(\d+)\//)?.[1];
+            const scopedKey = orgId ? `certio_selected_matter_id:${orgId}` : 'certio_selected_matter_id';
+            const legacy = localStorage.getItem('certio_selected_matter_id');
+            const savedMatterId = localStorage.getItem(scopedKey) ?? legacy;
+            if (orgId && legacy && !localStorage.getItem(scopedKey)) {
+                try { localStorage.setItem(scopedKey, legacy); } catch (e) { /* ignore */ }
+            }
             
             // If there's only one matter in context (matter details view), auto-select it
             if (window.tasksData && window.tasksData.matters && window.tasksData.matters.length === 1) {
@@ -2029,7 +2035,9 @@
             
             if (matterId === 'all') {
                 currentMatterId = 'all';
-                localStorage.setItem('certio_selected_matter_id', 'all');
+                const orgId = window.location.pathname.match(/\/Client\/(\d+)\//)?.[1];
+                const scopedKey = orgId ? `certio_selected_matter_id:${orgId}` : 'certio_selected_matter_id';
+                localStorage.setItem(scopedKey, 'all');
                 
                 // Show matter badges when viewing all matters
                 document.querySelectorAll('.task-matter-badge').forEach(badge => {
@@ -2053,7 +2061,9 @@
                 return;
             }
             currentMatterId = matterId;
-            localStorage.setItem('certio_selected_matter_id', matterId);
+            const orgId = window.location.pathname.match(/\/Client\/(\d+)\//)?.[1];
+            const scopedKey = orgId ? `certio_selected_matter_id:${orgId}` : 'certio_selected_matter_id';
+            localStorage.setItem(scopedKey, matterId);
             
             // Hide matter badges when viewing specific matter
             document.querySelectorAll('.task-matter-badge').forEach(badge => {

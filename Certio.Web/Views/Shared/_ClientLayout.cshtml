@@ -3691,7 +3691,7 @@
             }
             
             // Restore resize handle and sizing for AI chat
-            const savedWidth = localStorage.getItem('chatPanelWidth') || '320';
+            const savedWidth = localStorage.getItem('rightSidebarWidth') || localStorage.getItem('chatPanelWidth') || localStorage.getItem('notificationsPanelWidth') || '320';
             const chatPanel = document.getElementById('chatPanel');
             const resizeHandle = document.getElementById('resizeHandle');
             const mainContentWrapper = document.querySelector('.client-main-content-wrapper');
@@ -3752,6 +3752,7 @@
             window.currentSidebarTarget = 'ai';
             
             localStorage.setItem('activeSidebar', 'ai');
+            localStorage.setItem('rightSidebarWidth', savedWidth);
             
             // Recalculate and save action buttons position after transition completes
             setTimeout(() => {
@@ -3780,8 +3781,8 @@
             // Show communications panel
             commsSidebarPanel.style.display = 'flex';
             
-            // Apply saved width or default (shares width with notifications)
-            const savedWidth = localStorage.getItem('notificationsPanelWidth') || '320';
+            // Apply shared saved width or default
+            const savedWidth = localStorage.getItem('rightSidebarWidth') || localStorage.getItem('notificationsPanelWidth') || localStorage.getItem('chatPanelWidth') || '320';
             commsSidebarPanel.style.width = savedWidth + 'px';
             
             // Position resize handle
@@ -3842,6 +3843,7 @@
             window.currentSidebarTarget = 'comms';
             
             localStorage.setItem('activeSidebar', 'comms');
+            localStorage.setItem('rightSidebarWidth', savedWidth);
             
             // Recalculate and save action buttons position after transition completes
             setTimeout(() => {
@@ -3923,7 +3925,7 @@
         const activeSidebar = localStorage.getItem('activeSidebar') || 'notifications';
         if (activeSidebar === 'ai') {
             const chatPanel = document.getElementById('chatPanel');
-            const savedWidth = localStorage.getItem('chatPanelWidth') || '320';
+            const savedWidth = localStorage.getItem('rightSidebarWidth') || localStorage.getItem('chatPanelWidth') || localStorage.getItem('notificationsPanelWidth') || '320';
             if (chatPanel) {
                 chatPanel.style.width = savedWidth + 'px';
             }

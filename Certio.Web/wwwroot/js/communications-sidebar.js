@@ -25,7 +25,13 @@ function initializeCommsSidebar() {
     
     // Restore saved width immediately to prevent overflow on reload
     const commsSidebarPanel = document.getElementById('commsSidebarPanel');
-    const savedWidth = localStorage.getItem('notificationsPanelWidth') || '320';
+    const savedWidth = parseInt(
+        localStorage.getItem('rightSidebarWidth') ||
+        localStorage.getItem('notificationsPanelWidth') ||
+        localStorage.getItem('chatPanelWidth') ||
+        '320',
+        10
+    ) || 320;
     if (commsSidebarPanel) {
         commsSidebarPanel.style.width = savedWidth + 'px';
     }
@@ -37,7 +43,7 @@ function initializeCommsSidebar() {
         const mainContentWrapper = document.querySelector('.client-main-content-wrapper');
         
         if (resizeHandle) {
-            resizeHandle.style.right = (parseInt(savedWidth) - 12) + 'px';
+            resizeHandle.style.right = (savedWidth - 12) + 'px';
             resizeHandle.style.display = 'flex';
         }
         if (mainContentWrapper) {
@@ -47,7 +53,7 @@ function initializeCommsSidebar() {
         // Update floating timer overlay position
         const floatingTimerOverlay = document.getElementById('floatingTimerOverlay');
         if (floatingTimerOverlay && !localStorage.getItem('timerPosition')) {
-            floatingTimerOverlay.style.right = (parseInt(savedWidth) + 24) + 'px';
+            floatingTimerOverlay.style.right = (savedWidth + 24) + 'px';
         }
     }
     
@@ -188,7 +194,13 @@ function openCommsSidebar() {
     }
     
     // Set the width from localStorage or default (shares width with notifications)
-    const savedWidth = localStorage.getItem('notificationsPanelWidth') || '320';
+    const savedWidth = parseInt(
+        localStorage.getItem('rightSidebarWidth') ||
+        localStorage.getItem('notificationsPanelWidth') ||
+        localStorage.getItem('chatPanelWidth') ||
+        '320',
+        10
+    ) || 320;
     const panel = document.getElementById('commsSidebarPanel');
     if (panel) {
         panel.style.width = savedWidth + 'px';

@@ -151,15 +151,15 @@
                                 <!-- Action Buttons Row -->
                                 <div class="input-actions-row">
                                     <div class="input-actions-left">
-                                        <button class="input-action-btn" id="dashboardAttachFileBtn" title="Attach file">
-                                            <i class="fas fa-paperclip"></i>
-                                        </button>
-                                        <button class="input-action-btn" id="dashboardEmojiBtn" title="Add emoji">
-                                            <i class="fas fa-smile"></i>
-                                        </button>
-                                        <button class="input-action-btn" id="dashboardMicBtn" title="Voice message">
-                                            <i class="fas fa-microphone"></i>
-                                        </button>
+                                    <button class="input-action-btn" id="dashboardAttachFileBtn" title="Attach file">
+                                        <i class="fas fa-paperclip"></i>
+                                    </button>
+                                    <button class="input-action-btn" id="dashboardEmojiBtn" title="Add emoji">
+                                        <i class="fas fa-smile"></i>
+                                    </button>
+                                    <button class="input-action-btn" id="dashboardMicBtn" title="Voice message">
+                                        <i class="fas fa-microphone"></i>
+                                    </button>
                                         
                                         <!-- Agent/Ask Mode Selector -->
                                         <div class="ai-mode-selector" id="dashboardAiModeSelector" title="Select AI mode">
@@ -2407,8 +2407,21 @@
             
             const timestamp = new Date(message.createdAt || Date.now()).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
             
-            // Use content directly as HTML (like sidebar does) - AI returns HTML-formatted content
+            // Use content directly as HTML (like sidebar does) - AI returns HTML-formatted content.
+            // Also: never show raw [ACTION:...] blocks in dashboard chat (match sidebar behavior).
             let formattedContent = message.content || '';
+            if (isAI) {
+                try {
+                    if (typeof window.AgentActions !== 'undefined' && window.AgentActions.replaceWithCards) {
+                        formattedContent = window.AgentActions.replaceWithCards(formattedContent);
+                    } else {
+                        formattedContent = formattedContent.replace(/\[ACTION:\w+\][\s\S]*?\[\/ACTION\]/g, '');
+                    }
+                    formattedContent = formattedContent.replace(/\[ACTION:[\s\S]*$/g, '').trim();
+                } catch (e) {
+                    // ignore
+                }
+            }
             
             // Parse attachment info from message metadata if not provided directly (check both camelCase and PascalCase)
             const metadataStr = message.metadata || message.Metadata;
@@ -2911,6 +2924,22 @@
                                         let displayText = fullContent
                                             .replace(/<[^>]*$/g, '')  // Remove incomplete tag at the end (e.g., "<p" or "<stro")
                                             .trim();
+
+                                        // Match sidebar streaming behavior: replace complete action blocks with action cards,
+                                        // and hide any in-progress trailing action block (no raw [ACTION] text).
+                                        if (typeof window.AgentActions !== 'undefined') {
+                                            if (window.AgentActions.replaceWithCardsStreaming) {
+                                                displayText = window.AgentActions.replaceWithCardsStreaming(displayText);
+                                            } else if (window.AgentActions.replaceWithCards) {
+                                                displayText = window.AgentActions.replaceWithCards(displayText);
+                                                displayText = displayText.replace(/\[ACTION:[\s\S]*$/g, '').trim();
+                                            } else if (window.AgentActions.stripActionCommands) {
+                                                displayText = window.AgentActions.stripActionCommands(displayText);
+                                                displayText = displayText.replace(/\[ACTION:[\s\S]*$/g, '').trim();
+                                            }
+                                        } else {
+                                            displayText = displayText.replace(/\[ACTION:[\s\S]*$/g, '').trim();
+                                        }
                                         
                                         // Update using innerHTML to preserve HTML formatting during streaming (like sidebar)
                                         const tempDiv = document.createElement('div');

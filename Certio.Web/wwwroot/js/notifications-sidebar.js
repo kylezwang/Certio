@@ -19,7 +19,13 @@
         if (!notificationsPanel) return;
 
         // Restore saved width immediately to prevent overflow on reload
-        const savedWidth = localStorage.getItem('notificationsPanelWidth') || '320';
+        const savedWidth = parseInt(
+            localStorage.getItem('rightSidebarWidth') ||
+            localStorage.getItem('notificationsPanelWidth') ||
+            localStorage.getItem('chatPanelWidth') ||
+            '320',
+            10
+        ) || 320;
         notificationsPanel.style.width = savedWidth + 'px';
         
         // If notifications sidebar is active, apply sizing immediately
@@ -27,7 +33,7 @@
         if (activeSidebar === 'notifications') {
             // Apply saved width to all relevant elements
             if (resizeHandle) {
-                resizeHandle.style.right = (parseInt(savedWidth) - 12) + 'px';
+                resizeHandle.style.right = (savedWidth - 12) + 'px';
                 resizeHandle.style.display = 'flex';
             }
             if (mainContentWrapper) {
@@ -37,7 +43,7 @@
             // Update floating timer overlay position
             const floatingTimerOverlay = document.getElementById('floatingTimerOverlay');
             if (floatingTimerOverlay && !localStorage.getItem('timerPosition')) {
-                floatingTimerOverlay.style.right = (parseInt(savedWidth) + 24) + 'px';
+                floatingTimerOverlay.style.right = (savedWidth + 24) + 'px';
             }
         } else {
             notificationsPanel.style.display = 'none';
@@ -75,13 +81,19 @@
         // Show notifications panel
         notificationsPanel.style.display = 'flex';
         
-        // Apply saved width or default (notifications shares width key with communications)
-        const savedWidth = localStorage.getItem('notificationsPanelWidth') || '320';
+        // Apply shared saved width or default
+        const savedWidth = parseInt(
+            localStorage.getItem('rightSidebarWidth') ||
+            localStorage.getItem('notificationsPanelWidth') ||
+            localStorage.getItem('chatPanelWidth') ||
+            '320',
+            10
+        ) || 320;
         notificationsPanel.style.width = savedWidth + 'px';
         
         // Position resize handle
         if (resizeHandle) {
-            resizeHandle.style.right = (parseInt(savedWidth) - 12) + 'px';
+            resizeHandle.style.right = (savedWidth - 12) + 'px';
             resizeHandle.style.display = 'flex';
         }
         

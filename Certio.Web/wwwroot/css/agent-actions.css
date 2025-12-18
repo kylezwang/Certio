@@ -224,8 +224,8 @@
 /* Agent Mode Indicator Badge */
 .agent-mode-badge {
     position: absolute;
-    top: -4px;
-    right: -4px;
+    top: -1px;
+    right: -1px;
     width: 8px;
     height: 8px;
     background: #10b981;
@@ -409,7 +409,8 @@
     background: white;
     border-radius: 12px;
     padding: 0.75rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    /* Minimal shadow (match popup card feel) */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
@@ -421,7 +422,7 @@
 }
 
 .action-tracker-card:hover {
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
 }
 
 /* ===== Action Tracker Header ===== */
@@ -503,12 +504,12 @@
 
 /* Keep Button - Green gradient */
 .action-keep-btn {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
+    background: #c7b7a3;
+    color: #3d1019;
 }
 
 .action-keep-btn:hover:not(:disabled) {
-    background: linear-gradient(135deg, #34d399, #10b981);
+    background: #ede0d0;
 }
 
 /* Undo Button - Light gray with red accent */
@@ -779,7 +780,7 @@
 .action-tracker-toggle {
     width: 40px;
     height: 40px;
-    background: linear-gradient(135deg, #a32b43, #3d1019);
+    background: #3d1019;
     border: none;
     border-radius: 10px;
     color: white;
@@ -795,6 +796,11 @@
 .action-tracker-toggle:hover {
     transform: scale(1.05);
     box-shadow: 0 6px 16px rgba(61, 16, 25, 0.45);
+}
+
+.action-tracker-toggle:focus-visible {
+    outline: 2px solid rgba(61, 16, 25, 0.35);
+    outline-offset: 2px;
 }
 
 .action-tracker-toggle:active {
@@ -891,6 +897,81 @@
     background: linear-gradient(135deg, rgba(61, 16, 25, 0.03), rgba(61, 16, 25, 0.08));
     border-radius: 8px;
     border-left: 3px solid #a32b43;
+}
+
+/* ===== In-chat Agent Action Container (match Clients popup card style) ===== */
+.agent-action-attachment {
+    padding: 0.9rem 1rem; /* more vertical padding */
+    cursor: default;
+    transition: background-color 0.2s ease, border-radius 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid rgba(61, 16, 25, 0.10);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15); /* same minimal shadow used on client popup hover */
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    margin: 0.65rem 0;
+}
+
+.agent-action-attachment:hover {
+    background-color: #eef1f3;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.agent-action-attachment .agent-action-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(61, 16, 25, 0.08);
+    color: #3d1019;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1rem;
+}
+
+.agent-action-attachment .agent-action-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.agent-action-attachment .agent-action-title {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 0.95rem;
+    margin: 0;
+    line-height: 1.15;
+}
+
+.agent-action-attachment .agent-action-detail {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+.agent-action-attachment .agent-action-badge {
+    padding: 0.25rem 0.7rem;
+    background: rgba(61, 16, 25, 0.08);
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #3d1019;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .message-action-block .action-header {

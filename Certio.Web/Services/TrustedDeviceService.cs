@@ -284,11 +284,21 @@ public class TrustedDeviceService : ITrustedDeviceService
             var first = forwarded.Split(',').FirstOrDefault();
             if (!string.IsNullOrWhiteSpace(first))
             {
-                return first.Trim();
+                return NormalizeIp(first.Trim());
             }
         }
 
-        return context.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+        return NormalizeIp(context.Connection.RemoteIpAddress?.ToString() ?? "Unknown");
+    }
+
+    private static string NormalizeIp(string ip)
+    {
+        // Avoid duplicate "sessions" caused by loopback presenting as IPv6 vs IPv4 on localhost
+        // (e.g. ::1 vs 127.0.0.1).
+        if (string.Equals(ip, "::1", StringComparison.OrdinalIgnoreCase))
+            return "127.0.0.1";
+
+        return ip;
     }
 
     private static (string deviceName, string deviceType, string operatingSystem, string browser) ParseUserAgent(string userAgent)

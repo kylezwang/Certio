@@ -766,7 +766,7 @@ public class ChatService : IChatService
         }
     }
 
-    public async IAsyncEnumerable<string> GenerateAIResponseStreamAsync(int conversationId, string userMessage)
+    public async IAsyncEnumerable<string> GenerateAIResponseStreamAsync(int conversationId, string userMessage, string? aiMode = null)
     {
         // Get conversation history
         var messages = await GetConversationMessagesAsync(conversationId);
@@ -793,7 +793,11 @@ public class ChatService : IChatService
         var fullResponse = new System.Text.StringBuilder();
         
         await foreach (var chunk in _aiAgentService.GenerateConversationalResponseStreamAsync(
-            conversationId.ToString(), messages, userMessage, aiModelTier: aiModelTier))
+            conversationId.ToString(),
+            messages,
+            userMessage,
+            aiModelTier: aiModelTier,
+            aiMode: aiMode))
         {
             fullResponse.Append(chunk);
             yield return chunk;

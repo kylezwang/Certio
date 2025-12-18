@@ -207,12 +207,12 @@ namespace Certio.Domain.Organizations
 
         private string GetDefaultMatterTerminology()
         {
-            return Type == OrganizationType.EventPlanner ? "Event" : "Matter";
+            return "Event";
         }
 
         private string GetDefaultMattersTerminology()
         {
-            return Type == OrganizationType.EventPlanner ? "Events" : "Matters";
+            return "Events";
         }
     }
     
