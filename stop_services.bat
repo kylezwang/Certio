@@ -2,6 +2,9 @@
 echo Stopping Certio services...
 echo.
 
+set "NO_PAUSE=0"
+if /I "%1"=="--no-pause" set "NO_PAUSE=1"
+
 REM Stop .NET web application
 echo [1/3] Stopping Web Application (port 5092)...
 for /f "tokens=5" %%a in ('netstat -ano ^| findstr :5092') do (
@@ -37,4 +40,4 @@ echo ========================================
 echo All services stopped.
 echo ========================================
 echo.
-pause
+if "%NO_PAUSE%"=="0" pause

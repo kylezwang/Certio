@@ -417,7 +417,9 @@ namespace Certio.Web.Controllers
 
             if (customUser != null)
             {
-                await _trustedDeviceService.RegisterOrUpdateDeviceAsync(HttpContext, customUser, rememberMe);
+                // Reuse existing device cookie when present to avoid creating a new "session" entry on every login.
+                var existingDevice = await _trustedDeviceService.ValidateDeviceAsync(HttpContext, customUser);
+                await _trustedDeviceService.RegisterOrUpdateDeviceAsync(HttpContext, customUser, rememberMe, existingDevice);
                 customUser.LastLoginDate = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
             }
@@ -893,7 +895,7 @@ namespace Certio.Web.Controllers
                     var org = new Certio.Domain.Organizations.Organization
                     {
                         Name = organizationName ?? $"{firstName} {lastName}'s Law Firm",
-                        Description = "Law Firm Organization",
+                        Description = "Event Planning Organization",
                         OwnerId = customUser.Id,
                         Type = Certio.Domain.Organizations.OrganizationType.LawFirm,
                         IsPersonal = false,
@@ -1269,7 +1271,7 @@ namespace Certio.Web.Controllers
                     var org = new Certio.Domain.Organizations.Organization
                     {
                         Name = organizationName ?? $"{firstName} {lastName}'s Law Firm",
-                        Description = "Law Firm Organization",
+                        Description = "Event Planning Organization",
                         OwnerId = customUser.Id,
                         Type = Certio.Domain.Organizations.OrganizationType.LawFirm,
                         IsPersonal = false,

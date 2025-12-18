@@ -118,6 +118,124 @@ function initializeModeSelectorUI() {
     syncModeToUI();
 }
 
+// ==========================
+// Dropdown "portal" rendering
+// ==========================
+// The dashboard + sidebar composer rows use overflow clipping, so absolute-position dropdowns can be hidden.
+// We "portal" dropdowns to <body> and position them with position:fixed near the trigger.
+const _dropdownPortalState = new WeakMap();
+
+function closeDropdownPortal(dropdownEl) {
+    if (!dropdownEl) return;
+    const state = _dropdownPortalState.get(dropdownEl);
+    if (!state) {
+        dropdownEl.classList.remove('show');
+        dropdownEl.style.position = '';
+        dropdownEl.style.left = '';
+        dropdownEl.style.top = '';
+        dropdownEl.style.bottom = '';
+        dropdownEl.style.right = '';
+        dropdownEl.style.zIndex = '';
+        dropdownEl.style.minWidth = '';
+        dropdownEl.style.display = '';
+        return;
+    }
+
+    window.removeEventListener('resize', state.onReposition, true);
+    window.removeEventListener('scroll', state.onReposition, true);
+
+    dropdownEl.classList.remove('show');
+    dropdownEl.style.position = '';
+    dropdownEl.style.left = '';
+    dropdownEl.style.top = '';
+    dropdownEl.style.bottom = '';
+    dropdownEl.style.right = '';
+    dropdownEl.style.zIndex = '';
+    dropdownEl.style.minWidth = '';
+    dropdownEl.style.display = '';
+
+    try {
+        if (state.nextSibling && state.nextSibling.parentNode === state.originalParent) {
+            state.originalParent.insertBefore(dropdownEl, state.nextSibling);
+        } else {
+            state.originalParent.appendChild(dropdownEl);
+        }
+    } catch (e) {
+        // ignore
+    }
+
+    _dropdownPortalState.delete(dropdownEl);
+}
+
+function openDropdownPortal(selectorEl, dropdownEl, { align = 'left' } = {}) {
+    if (!selectorEl || !dropdownEl) return;
+
+    // If already open, close it
+    if (_dropdownPortalState.has(dropdownEl) || dropdownEl.classList.contains('show')) {
+        closeDropdownPortal(dropdownEl);
+        selectorEl.classList.remove('open');
+        return;
+    }
+
+    // Close any other open dropdowns
+    document.querySelectorAll('.ai-mode-dropdown.show, .model-dropdown.show').forEach(d => {
+        closeDropdownPortal(d);
+    });
+    document.querySelectorAll('.ai-mode-selector.open').forEach(s => s.classList.remove('open'));
+
+    // Record original placement so we can restore it
+    const originalParent = dropdownEl.parentNode;
+    const nextSibling = dropdownEl.nextSibling;
+
+    // Portal to body
+    document.body.appendChild(dropdownEl);
+
+    // Ensure visible for measurement
+    dropdownEl.classList.add('show');
+    dropdownEl.style.display = 'block';
+    dropdownEl.style.position = 'fixed';
+    dropdownEl.style.zIndex = '20000';
+
+    const reposition = () => {
+        const rect = selectorEl.getBoundingClientRect();
+
+        // Measure dropdown (it is displayed)
+        const ddRect = dropdownEl.getBoundingClientRect();
+        const ddW = ddRect.width || 180;
+        const ddH = ddRect.height || 140;
+
+        const padding = 10;
+        const gap = 8;
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+
+        // If there isn't enough room below and there is more room above, open above; else below.
+        const openAbove = (spaceBelow < ddH + gap) && (spaceAbove > spaceBelow);
+
+        let top = openAbove ? (rect.top - ddH - gap) : (rect.bottom + gap);
+        let left = align === 'right' ? (rect.right - ddW) : rect.left;
+
+        // Clamp to viewport
+        top = Math.max(padding, Math.min(top, window.innerHeight - ddH - padding));
+        left = Math.max(padding, Math.min(left, window.innerWidth - ddW - padding));
+
+        dropdownEl.style.top = `${top}px`;
+        dropdownEl.style.left = `${left}px`;
+        dropdownEl.style.right = 'auto';
+        dropdownEl.style.bottom = 'auto';
+    };
+
+    // Save portal state + listeners
+    const onReposition = () => reposition();
+    _dropdownPortalState.set(dropdownEl, { originalParent, nextSibling, onReposition });
+    window.addEventListener('resize', onReposition, true);
+    window.addEventListener('scroll', onReposition, true);
+
+    // Position now (and again next frame in case fonts/layout shift)
+    reposition();
+    requestAnimationFrame(reposition);
+}
+
 // Initialize a single mode selector
 function initializeSingleModeSelector(selectorId, dropdownId, labelId, badgeId) {
     const selector = document.getElementById(selectorId);
@@ -130,18 +248,9 @@ function initializeSingleModeSelector(selectorId, dropdownId, labelId, badgeId) 
     // Toggle dropdown on click
     selector.addEventListener('click', function(e) {
         e.stopPropagation();
-        
-        // Close other dropdowns
-        document.querySelectorAll('.ai-mode-dropdown.show, .model-dropdown.show').forEach(d => {
-            if (d.id !== dropdownId) d.classList.remove('show');
-        });
-        document.querySelectorAll('.ai-mode-selector.open').forEach(s => {
-            if (s.id !== selectorId) s.classList.remove('open');
-        });
-        
-        // Toggle this dropdown
-        dropdown.classList.toggle('show');
+
         selector.classList.toggle('open');
+        openDropdownPortal(selector, dropdown, { align: 'left' });
     });
     
     // Handle mode option clicks
@@ -158,7 +267,7 @@ function initializeSingleModeSelector(selectorId, dropdownId, labelId, badgeId) 
             syncModeToUI();
             
             // Close dropdown
-            dropdown.classList.remove('show');
+            closeDropdownPortal(dropdown);
             selector.classList.remove('open');
             
             console.log('[AgentActions] Mode changed to:', mode);
@@ -177,17 +286,9 @@ function initializeSingleModelSelector(selectorId, dropdownId, labelId) {
     // Toggle dropdown on click
     selector.addEventListener('click', function(e) {
         e.stopPropagation();
-        
-        // Close other dropdowns
-        document.querySelectorAll('.ai-mode-dropdown.show, .model-dropdown.show').forEach(d => {
-            if (d.id !== dropdownId) d.classList.remove('show');
-        });
-        document.querySelectorAll('.ai-mode-selector.open').forEach(s => {
-            s.classList.remove('open');
-        });
-        
-        // Toggle this dropdown
-        dropdown.classList.toggle('show');
+
+        document.querySelectorAll('.ai-mode-selector.open').forEach(s => s.classList.remove('open'));
+        openDropdownPortal(selector, dropdown, { align: 'right' });
     });
     
     // Handle model tier option clicks
@@ -204,7 +305,7 @@ function initializeSingleModelSelector(selectorId, dropdownId, labelId) {
             syncModelToUI();
             
             // Close dropdown
-            dropdown.classList.remove('show');
+            closeDropdownPortal(dropdown);
             
             // Also update the organization's setting if we have access
             await updateOrgModelTier(tier);
@@ -292,12 +393,29 @@ function syncModelToUI() {
 document.addEventListener('click', function(e) {
     if (!e.target.closest('.ai-mode-selector') && !e.target.closest('.model-selector')) {
         document.querySelectorAll('.ai-mode-dropdown.show, .model-dropdown.show').forEach(d => {
-            d.classList.remove('show');
+            closeDropdownPortal(d);
         });
         document.querySelectorAll('.ai-mode-selector.open').forEach(s => {
             s.classList.remove('open');
         });
     }
+});
+
+// Close the Actions panel when clicking outside (Cursor-style popup behavior)
+document.addEventListener('click', function(e) {
+    const tracker = document.getElementById('agentActionTracker');
+    const actionsLink = document.getElementById('actionsLink');
+    if (!tracker || !actionsLink) return;
+    if (!AgentActionsState.isVisible) return;
+    if (e.target.closest('#agentActionTracker') || e.target.closest('#actionsLink')) return;
+    closeActionTrackerPanel();
+});
+
+// Close on Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key !== 'Escape') return;
+    if (!AgentActionsState.isVisible) return;
+    closeActionTrackerPanel();
 });
 
 // Get current AI mode
@@ -400,10 +518,6 @@ function initializeActionTrackerUI() {
                 </div>
             </div>
             
-            <!-- Toggle Button -->
-            <button id="actionTrackerToggle" class="action-tracker-toggle" title="Toggle Actions Tracker">
-                <i class="fas fa-robot"></i>
-            </button>
         </div>
     `;
     
@@ -441,13 +555,10 @@ function setupAgentActionListeners() {
     // Undo All button
     document.getElementById('undoAllBtn')?.addEventListener('click', undoAllActions);
     
-    // Toggle button
-    document.getElementById('actionTrackerToggle')?.addEventListener('click', toggleTrackerVisibility);
-    
     // Global Actions navbar button
     document.getElementById('actionsLink')?.addEventListener('click', function(e) {
         e.preventDefault();
-        toggleActionTracker();
+        toggleActionTracker({ anchorToActionsButton: true });
     });
     
     // Button hover effects
@@ -455,10 +566,22 @@ function setupAgentActionListeners() {
 }
 
 // Toggle action tracker visibility
-function toggleActionTracker() {
+function toggleActionTracker(options = {}) {
     const tracker = document.getElementById('agentActionTracker');
     if (!tracker) {
         initializeActionTrackerUI();
+    }
+
+    // If opened from the Actions navbar item, anchor it like other nav popups (unless user dragged/saved a position)
+    if (options.anchorToActionsButton) {
+        anchorTrackerToActionsButton();
+    }
+
+    // Clicking the Actions button should always toggle open/close (even in empty state).
+    const isOpen = (tracker.style.display !== 'none') && AgentActionsState.isVisible;
+    if (isOpen) {
+        closeActionTrackerPanel();
+        return;
     }
     
     if (AgentActionsState.actions.length === 0) {
@@ -469,12 +592,51 @@ function toggleActionTracker() {
         showActionTracker();
         updateTrackerDisplay();
     } else {
-        // Toggle minimize
-        const card = document.getElementById('actionTrackerCard');
-        if (card) {
-            card.style.display = card.style.display === 'none' ? 'flex' : 'none';
-        }
+        // Cursor-like: clicking Actions again closes the panel (does not clear pending actions)
+        closeActionTrackerPanel();
     }
+}
+
+// Close the tracker panel UI without clearing pending actions from session
+function closeActionTrackerPanel() {
+    const tracker = document.getElementById('agentActionTracker');
+    if (tracker) {
+        tracker.style.display = 'none';
+        AgentActionsState.isVisible = false;
+    }
+}
+
+// Position the tracker to the right of the global Actions nav button (like other popups),
+// but keep the current tracker shape.
+function anchorTrackerToActionsButton() {
+    const tracker = document.getElementById('agentActionTracker');
+        const card = document.getElementById('actionTrackerCard');
+    const actionsLink = document.getElementById('actionsLink');
+    if (!tracker || !card || !actionsLink) return;
+
+    // Ensure visible for measurement
+    const prevDisplay = tracker.style.display;
+    tracker.style.display = 'flex';
+
+    const linkRect = actionsLink.getBoundingClientRect();
+    const cardRect = card.getBoundingClientRect();
+
+    // Default: right of the button, vertically centered
+    let left = linkRect.right + 12;
+    let top = linkRect.top + (linkRect.height / 2) - (cardRect.height / 2);
+
+    // Clamp to viewport
+    const padding = 12;
+    left = Math.max(padding, Math.min(left, window.innerWidth - cardRect.width - padding));
+    top = Math.max(padding, Math.min(top, window.innerHeight - cardRect.height - padding));
+
+    tracker.style.left = `${left}px`;
+    tracker.style.top = `${top}px`;
+    tracker.style.right = 'auto';
+    tracker.style.bottom = 'auto';
+    tracker.style.transform = 'none';
+
+    tracker.style.display = prevDisplay;
 }
 
 // Show empty state when no actions
@@ -491,7 +653,8 @@ function showEmptyState() {
     if (descEl) descEl.textContent = 'Agent actions will appear here when you ask the AI to do something';
     if (iconEl) {
         iconEl.innerHTML = '<i class="fas fa-check-circle"></i>';
-        iconEl.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+        // Match Dashboard Quick Access Calendar green (Bootstrap text-success)
+        iconEl.style.background = '#198754';
     }
     if (counterDiv) counterDiv.style.display = 'none';
     if (controlsDiv) controlsDiv.style.display = 'none';
@@ -628,20 +791,17 @@ function makeTrackerDraggable() {
 function restoreTrackerPosition() {
     const tracker = document.getElementById('agentActionTracker');
     if (!tracker) return;
-    
-    const savedPosition = localStorage.getItem('actionTrackerPosition');
-    if (savedPosition) {
-        const position = JSON.parse(savedPosition);
-        tracker.style.left = position.left;
-        tracker.style.top = position.top;
-        tracker.style.right = '';
-        tracker.style.bottom = '';
-    } else {
-        // Default position: below the timer, left side
-        tracker.style.left = '10vw';
-        tracker.style.bottom = '8rem';
-        tracker.style.transform = 'translateX(-50%)';
-    }
+
+    // Cursor-like UX: this panel behaves like a navbar popup (anchored to Actions),
+    // not a floating widget. Ignore any old saved drag position.
+    try { localStorage.removeItem('actionTrackerPosition'); } catch (e) { /* ignore */ }
+
+    // Anchor positioning is applied when the tracker is shown (needs DOM measurement).
+    tracker.style.left = '';
+    tracker.style.top = '';
+    tracker.style.right = '';
+    tracker.style.bottom = '';
+    tracker.style.transform = 'none';
 }
 
 // Show the action tracker
@@ -650,6 +810,12 @@ function showActionTracker() {
     if (tracker) {
         tracker.style.display = 'flex';
         AgentActionsState.isVisible = true;
+
+        // Always keep the tracker anchored to the Actions navbar button (popup behavior).
+        // Defer one frame so layout is settled (correct card height for vertical centering).
+        requestAnimationFrame(() => {
+            try { anchorTrackerToActionsButton(); } catch (e) { /* ignore */ }
+        });
     }
 }
 
@@ -715,6 +881,11 @@ function updateTrackerDisplay() {
     
     // Update dots
     updateActionDots();
+
+    // Re-anchor after content updates (card height can change).
+    requestAnimationFrame(() => {
+        try { anchorTrackerToActionsButton(); } catch (e) { /* ignore */ }
+    });
 }
 
 // Update action preview with current action details
@@ -1176,7 +1347,9 @@ async function approveAction(actionId) {
     });
     
     if (!response.ok) {
-        throw new Error(`Failed to approve action: ${response.status}`);
+        const errorText = await response.text().catch(() => '');
+        console.error('[AgentActions] Approve failed:', response.status, errorText);
+        throw new Error(`Failed to approve action: ${response.status} ${errorText}`);
     }
     
     return await response.json();
@@ -1213,7 +1386,9 @@ async function executeAction(actionId) {
     });
     
     if (!response.ok) {
-        throw new Error(`Failed to execute action: ${response.status}`);
+        const errorText = await response.text().catch(() => '');
+        console.error('[AgentActions] Execute failed:', response.status, errorText);
+        throw new Error(`Failed to execute action: ${response.status} ${errorText}`);
     }
     
     return await response.json();
@@ -1331,13 +1506,33 @@ function parseAIResponseForActions(content) {
         }
     }
     
-    // Also look for natural language action indicators (fallback detection)
-    if (actions.length === 0) {
-        const nlActions = parseNaturalLanguageActions(content);
-        actions.push(...nlActions);
+    return actions;
+}
+
+// Replace action commands in content with action cards (streaming-safe)
+// - Completed blocks become full cards
+// - In-progress / partial trailing block becomes a placeholder card (no raw [ACTION] text ever shown)
+function replaceActionCommandsWithCardsStreaming(content) {
+    if (!content) return content;
+    
+    // Replace fully-formed action blocks first
+    let result = replaceActionCommandsWithCards(content);
+    
+    // If an action block is currently being streamed and hasn't closed yet, replace the tail with a placeholder card
+    const start = result.lastIndexOf('[ACTION:');
+    if (start !== -1) {
+        const tail = result.substring(start);
+        const typeMatch = tail.match(/\[ACTION:(\w+)\]/);
+        if (typeMatch && typeMatch[1]) {
+            const actionType = typeMatch[1];
+            result = result.substring(0, start) + createActionCardHTML(actionType, {});
+        } else {
+            // Unknown/partial tag, just hide it
+            result = result.substring(0, start);
+        }
     }
     
-    return actions;
+    return result;
 }
 
 // Strip action commands from content for display
@@ -1490,6 +1685,9 @@ async function processDetectedActions(actions, conversationId) {
     if (!AgentActionsState.orgId) {
         AgentActionsState.orgId = getCurrentOrganizationId();
     }
+
+    // Best-effort matter context (Cursor-style: actions should be contextual to the page when possible)
+    const contextMatterId = getCurrentMatterId();
     
     AgentActionsState.conversationId = conversationId;
     AgentActionsState.currentIndex = 0;
@@ -1503,11 +1701,83 @@ async function processDetectedActions(actions, conversationId) {
             console.log('[AgentActions] Proposing action:', actionData.actionType, actionData.payload);
             
             // Propose the action
+            const payloadMatterId = actionData?.payload?.matterId || actionData?.payload?.MatterId;
+
+            // Normalize payload for server-side DTO parsing:
+            // - Ensure CreateTask has assigneeIds (default to current user)
+            // - Ensure dueDate is ISO (YYYY-MM-DD or full ISO) so System.Text.Json can parse DateTime?
+            let normalizedPayload = actionData.payload;
+            if (actionData.actionType === AgentActionTypes.CreateTask && actionData.payload && typeof actionData.payload === 'object') {
+                normalizedPayload = { ...actionData.payload };
+
+                // Default assigneeIds to current user if omitted
+                const hasAssignees = ('assigneeIds' in normalizedPayload) || ('AssigneeIds' in normalizedPayload);
+                if (!hasAssignees) {
+                    const userId = (function getCurrentUserIdFromContext() {
+                        const ctx = document.getElementById('appContext');
+                        const raw = ctx?.getAttribute('data-current-user-id');
+                        const n = raw ? parseInt(raw, 10) : NaN;
+                        return Number.isFinite(n) && n > 0 ? n : null;
+                    })();
+                    if (userId) {
+                        normalizedPayload.assigneeIds = [userId];
+                    }
+                }
+
+                // Normalize dueDate if provided as a human string like "December 25, 2025"
+                const due = normalizedPayload.dueDate ?? normalizedPayload.DueDate;
+                if (typeof due === 'string' && due.trim().length > 0) {
+                    const raw = due.trim();
+
+                    // If already YYYY-MM-DD, keep it.
+                    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+                        normalizedPayload.dueDate = raw;
+                        delete normalizedPayload.DueDate;
+                    } else {
+                        // Prefer a month-name parse without timezone drift
+                        const monthMap = {
+                            january: 0, february: 1, march: 2, april: 3, may: 4, june: 5,
+                            july: 6, august: 7, september: 8, october: 9, november: 10, december: 11
+                        };
+                        const m = raw.match(/^([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})$/);
+                        if (m) {
+                            const monthIdx = monthMap[m[1].toLowerCase()];
+                            const day = parseInt(m[2], 10);
+                            const year = parseInt(m[3], 10);
+                            if (Number.isFinite(monthIdx) && day > 0 && year > 1900) {
+                                const dLocal = new Date(year, monthIdx, day);
+                                const yyyy = dLocal.getFullYear();
+                                const mm = String(dLocal.getMonth() + 1).padStart(2, '0');
+                                const dd = String(dLocal.getDate()).padStart(2, '0');
+                                normalizedPayload.dueDate = `${yyyy}-${mm}-${dd}`;
+                                delete normalizedPayload.DueDate;
+                            }
+                        } else {
+                            // Fallback: Date.parse sometimes interprets date-only strings as UTC.
+                            // Use UTC components to avoid off-by-one in negative timezones.
+                            const parsed = Date.parse(raw);
+                            if (!Number.isNaN(parsed)) {
+                                const d = new Date(parsed);
+                                const yyyy = d.getUTCFullYear();
+                                const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+                                const dd = String(d.getUTCDate()).padStart(2, '0');
+                                normalizedPayload.dueDate = `${yyyy}-${mm}-${dd}`;
+                                delete normalizedPayload.DueDate;
+                            } else {
+                                // If we can't parse it reliably, omit it (DueDate is optional server-side)
+                                delete normalizedPayload.dueDate;
+                                delete normalizedPayload.DueDate;
+                            }
+                        }
+                    }
+                }
+            }
             const result = await proposeAction(
                 actionData.actionType,
-                actionData.payload,
+                normalizedPayload,
                 {
-                    description: actionData.description || getActionDescription({ actionType: actionData.actionType, payload: actionData.payload })
+                    matterId: payloadMatterId || contextMatterId,
+                    description: actionData.description || getActionDescription({ actionType: actionData.actionType, payload: normalizedPayload })
                 }
             );
             
@@ -1518,7 +1788,7 @@ async function processDetectedActions(actions, conversationId) {
             AgentActionsState.actions.push({
                 id: action.id || action.Id,
                 actionType: actionData.actionType,
-                payload: actionData.payload,
+                payload: normalizedPayload,
                 description: action.description || actionData.description,
                 status: action.status || AgentActionStatus.Pending,
                 runId: action.runId
@@ -1542,6 +1812,59 @@ async function processDetectedActions(actions, conversationId) {
     
     // Update display
     updateTrackerDisplay();
+}
+
+// Try to infer current matter context from URL/querystring
+function getCurrentMatterId() {
+    try {
+        const orgId = AgentActionsState.orgId || getCurrentOrganizationId?.() || null;
+        const scopedKey = orgId ? `certio_selected_matter_id:${orgId}` : null;
+
+        // Common patterns:
+        // - /Client/{orgId}/Matter/Details/{matterId}
+        // - /Client/{orgId}/Matter/{matterId}
+        const path = window.location.pathname || '';
+        const match = path.match(/\/Matter\/(?:Details\/)?(\d+)(?:\/|$)/i);
+        if (match && match[1]) {
+            const id = parseInt(match[1], 10);
+            if (!Number.isNaN(id) && id > 0) return id;
+        }
+
+        // Querystring fallback (e.g. ?matterId=123)
+        const params = new URLSearchParams(window.location.search || '');
+        const qs = params.get('matterId');
+        if (qs) {
+            const id = parseInt(qs, 10);
+            if (!Number.isNaN(id) && id > 0) return id;
+        }
+
+        // Tasks page / global selection fallback:
+        // The Tasks UI persists a selected matter in localStorage even when URL is not matter-scoped.
+        // IMPORTANT: scope by org to avoid cross-org stale IDs causing "Failed to propose".
+        let selected = null;
+        if (scopedKey) selected = localStorage.getItem(scopedKey);
+        if (!selected) selected = localStorage.getItem('certio_selected_matter_id'); // legacy key
+        // Migrate legacy -> scoped key when possible
+        if (scopedKey && selected) {
+            try { localStorage.setItem(scopedKey, selected); } catch { /* ignore */ }
+        }
+        if (selected && selected !== 'all') {
+            const id = parseInt(selected, 10);
+            if (!Number.isNaN(id) && id > 0) return id;
+        }
+
+        // Final fallback: if the page has `window.tasksData.matters`, pick the first available matter
+        // (Cursor-style "best effort" context when the AI didn't specify a matter).
+        const firstMatter = window.tasksData?.matters?.[0];
+        const firstId = firstMatter?.id ?? firstMatter?.Id;
+        if (firstId) {
+            const id = parseInt(firstId, 10);
+            if (!Number.isNaN(id) && id > 0) return id;
+        }
+    } catch (e) {
+        // Ignore
+    }
+    return null;
 }
 
 // Save current actions to sessionStorage
@@ -1639,104 +1962,47 @@ function navigateToPage(pageName) {
 // Create an animated action card HTML to display in chat instead of raw action commands
 function createActionCardHTML(actionType, payload) {
     const iconMap = {
-        'CreateTask': 'fa-tasks',
-        'AttachFile': 'fa-paperclip',
-        'AddNote': 'fa-sticky-note',
-        'StartTimer': 'fa-clock',
-        'NavigateTo': 'fa-external-link-alt'
+        // Match the client navbar Tasks icon exactly
+        CreateTask: 'fa-solid fa-bars-progress',
+        AttachFile: 'fas fa-paperclip',
+        AddNote: 'fas fa-sticky-note',
+        StartTimer: 'fas fa-clock',
+        NavigateTo: 'fas fa-external-link-alt'
     };
-    
-    const colorMap = {
-        'CreateTask': '#3b82f6',
-        'AttachFile': '#8b5cf6',
-        'AddNote': '#f59e0b',
-        'StartTimer': '#10b981',
-        'NavigateTo': '#a32b43'
-    };
-    
+
     const labelMap = {
-        'CreateTask': 'Creating Task',
-        'AttachFile': 'Attaching File',
-        'AddNote': 'Adding Note',
-        'StartTimer': 'Starting Timer',
-        'NavigateTo': 'Navigating'
+        CreateTask: 'Creating task...',
+        AttachFile: 'Attaching file...',
+        AddNote: 'Adding note...',
+        StartTimer: 'Starting timer...',
+        NavigateTo: 'Navigating...'
     };
-    
-    const icon = iconMap[actionType] || 'fa-cog';
-    const color = colorMap[actionType] || '#6b7280';
+
+    const iconClass = iconMap[actionType] || 'fas fa-cog';
     const label = labelMap[actionType] || 'Processing';
-    
-    // Get specific detail from payload
+
+    // Detail line (title/target) if available
     let detail = '';
-    if (actionType === 'CreateTask' && payload.title) {
-        detail = payload.title;
+    if (actionType === 'CreateTask' && (payload.title || payload.Title)) {
+        detail = payload.title || payload.Title;
     } else if (actionType === 'NavigateTo' && (payload.pageName || payload.url)) {
         detail = payload.pageName || payload.url;
     } else if (actionType === 'AddNote' && payload.content) {
-        detail = payload.content.substring(0, 50) + (payload.content.length > 50 ? '...' : '');
+        detail = payload.content.substring(0, 60) + (payload.content.length > 60 ? '...' : '');
     } else if (actionType === 'StartTimer' && payload.description) {
         detail = payload.description;
     }
-    
+
     return `
-        <div class="agent-action-card" style="
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            background: linear-gradient(135deg, ${color}15, ${color}08);
-            border: 1px solid ${color}30;
-            border-radius: 12px;
-            margin: 12px 0;
-            animation: actionCardSlideIn 0.4s ease-out;
-        ">
-            <div class="action-icon-wrapper" style="
-                width: 40px;
-                height: 40px;
-                border-radius: 10px;
-                background: ${color};
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-shrink: 0;
-                animation: actionIconPulse 2s ease-in-out infinite;
-            ">
-                <i class="fas ${icon}" style="color: white; font-size: 16px;"></i>
+        <div class="agent-action-attachment">
+            <div class="agent-action-icon">
+                <i class="${iconClass}"></i>
             </div>
-            <div class="action-info" style="flex: 1; min-width: 0;">
-                <div style="
-                    font-size: 13px;
-                    font-weight: 600;
-                    color: ${color};
-                    margin-bottom: 2px;
-                    display: flex;
-                    align-items: center;
-                    gap: 6px;
-                ">
-                    <span class="action-spinner" style="
-                        width: 12px;
-                        height: 12px;
-                        border: 2px solid ${color}40;
-                        border-top-color: ${color};
-                        border-radius: 50%;
-                        animation: spin 0.8s linear infinite;
-                        display: inline-block;
-                    "></span>
-                    ${label}...
-                </div>
-                ${detail ? `<div style="font-size: 14px; color: #374151; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${detail}</div>` : ''}
+            <div class="agent-action-content">
+                <div class="agent-action-title">${label}</div>
+                ${detail ? `<div class="agent-action-detail">${detail}</div>` : ''}
             </div>
-            <div class="action-badge" style="
-                padding: 4px 10px;
-                background: ${color}20;
-                border-radius: 20px;
-                font-size: 11px;
-                font-weight: 600;
-                color: ${color};
-                white-space: nowrap;
-            ">
-                Pending Approval
-            </div>
+            <div class="agent-action-badge">Pending</div>
         </div>
     `;
 }
@@ -1790,6 +2056,7 @@ window.AgentActions = {
     isAgentMode: isAgentMode,
     stripActionCommands: stripActionCommandsFromContent,
     replaceWithCards: replaceActionCommandsWithCards,
+    replaceWithCardsStreaming: replaceActionCommandsWithCardsStreaming,
     createActionCard: createActionCardHTML,
     syncModelTier: syncOrgModelTier,
     restoreFromSession: restoreActionsFromSession,

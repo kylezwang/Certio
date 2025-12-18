@@ -18,6 +18,11 @@
     var matterLabel = orgEntity != null 
         ? Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgEntity) 
         : Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
+
+    // "Legal" terminology follows the custom Matters terminology (UI label)
+    var legalTeamLabel = orgEntity != null
+        ? Certio.Web.Helpers.RoleDisplayHelper.GetLegalTeamTerminology(orgEntity)
+        : Certio.Web.Helpers.RoleDisplayHelper.GetLegalTeamTerminology(orgType);
 }
 
 <!-- Organization ID for JavaScript access -->
@@ -152,8 +157,8 @@
                                     <label class="settings-row-label">Who can invite team members</label>
                                 </div>
                                 <select class="form-select" style="width: 200px;">
-                                    <option value="legal-only" selected>Legal team only</option>
-                                    <option value="client-legal">Client & legal teams</option>
+                                    <option value="legal-only" selected>@legalTeamLabel only</option>
+                                    <option value="client-legal">Client & @legalTeamLabel</option>
                                     <option value="everyone">Everyone</option>
                                 </select>
                             </div>

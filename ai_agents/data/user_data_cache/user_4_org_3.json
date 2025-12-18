@@ -1,0 +1,32 @@
+{
+  "user_id": 4,
+  "organization_id": 3,
+  "user_name": "Frederick Dewey",
+  "total_chunks": 1,
+  "last_synced": "2025-12-13T21:39:32.582395",
+  "module_summaries": {
+    "clients": {
+      "totalClients": 1,
+      "activeClients": 1
+    }
+  },
+  "chunks": [
+    {
+      "id": "e9774f40-f8ad-40cd-85ef-2f9fc426feef",
+      "module_name": "clients",
+      "entity_type": "User",
+      "entity_id": 4,
+      "title": "Frederick Dewey",
+      "content": "Client: Frederick Dewey\r\nEmail: cht042@ucsd.edu\r\n",
+      "metadata": {
+        "email": "cht042@ucsd.edu",
+        "phoneNumber": null,
+        "company": null,
+        "jobTitle": null
+      },
+      "created_at": "2025-09-29T00:57:21.9235041",
+      "modified_at": null,
+      "relevance_score": 0
+    }
+  ]
+}

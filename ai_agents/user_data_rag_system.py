@@ -745,10 +745,11 @@ async def sync_user_data_context(user_id: int, organization_id: int,
     return await user_data_rag.sync_user_data(user_id, organization_id, module_data, metadata, user_name)
 
 async def get_user_data_context(user_id: int, organization_id: int, query: str,
-                                agent_type: str = "general", top_k: int = 10) -> str:
-    """Get user data context for agent"""
+                                agent_type: str = "general", top_k: int = 10,
+                                module_filter: Optional[List[str]] = None) -> str:
+    """Get user data context for agent with optional module filtering for performance"""
     return await user_data_rag.get_context_for_agent(
-        user_id, organization_id, query, agent_type, top_k
+        user_id, organization_id, query, agent_type, top_k, module_filter
     )
 
 async def search_user_data(user_id: int, organization_id: int, query: str,

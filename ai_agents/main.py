@@ -2058,6 +2058,7 @@ async def conversational_response(payload: dict, _: str = Depends(authenticate_r
         document_context = payload.get("document_context", None)
         stream = payload.get("stream", False)  # Support streaming
         attachments = payload.get("attachments", [])  # Image/file attachments
+        ai_mode = (payload.get("ai_mode", "ask") or "ask").lower()  # "agent" or "ask"
         
         # Extract image URLs from attachments
         image_urls = []
@@ -2081,7 +2082,7 @@ async def conversational_response(payload: dict, _: str = Depends(authenticate_r
         is_simple_message = _is_simple_message(user_message, conversation_analysis)
         
         if is_simple_message:
-            # Simple response for greetings and short messages - enhanced with RAG
+            # Simple response for greetings - NO RAG needed (performance optimization)
             base_simple_prompt = f"""You are Notal AI, a friendly legal assistant. The user said: "{user_message}"
 
 Respond with a brief, warm greeting and offer to help with legal questions. Keep it conversational and under 50 words. Use HTML formatting with proper <p> tags and <br> for line breaks.
@@ -2093,13 +2094,9 @@ CRITICAL RULES:
 - Be friendly but don't waste words on repeated greetings
 Format your response as proper HTML with <p> tags."""
             
-            # Even simple messages get RAG enhancement for Notal context
-            simple_context = {"user_type": user_type, "message_type": "greeting"}
-            if RAG_SYSTEM == "enhanced":
-                system_prompt = enhance_agent_prompt("ConversationalAI", base_simple_prompt, user_message, 
-                                                    user_type=user_type, conversation_context=simple_context)
-            else:
-                system_prompt = enhance_agent_prompt("ConversationalAI", base_simple_prompt, user_message, simple_context)
+            # ⚡ SKIP RAG for simple greetings - major performance improvement
+            system_prompt = base_simple_prompt
+            logger.info("⚡ RAG SKIPPED for simple greeting (non-streaming)")
             
             # For simple messages, include recent history (last 3-5 messages) so AI knows if this is a follow-up
             history_messages = []
@@ -2146,7 +2143,35 @@ Format your response as proper HTML with <p> tags."""
                 context_metadata.get("token_budget")
             )
             
-            base_system_prompt = f"""You are Notal AI, an advanced legal assistant. Provide a comprehensive response that includes both conversation and analysis.
+            agent_mode_section = ""
+            if ai_mode == "agent":
+                agent_mode_section = """
+
+AGENT MODE (IMPORTANT):
+- You are allowed to take actions, but ONLY when the user explicitly asks you to do so (e.g. "create a task", "add a note", "start a timer", "attach a file").
+- When the user explicitly requests an action, you MUST include the appropriate [ACTION:...] block in the SAME message. Do NOT ask "shall I proceed?" / do NOT ask for confirmation.
+- Do NOT tell the user to click around the UI in Agent mode; propose an action instead.
+- Do NOT ask for internal IDs like assigneeIds/userIds. If you don't know IDs, OMIT optional fields (assigneeIds, taskId, sourceDocumentId, etc.).
+- Dates: if you include dueDate, output ISO format "YYYY-MM-DD" (not "December 25, 2025").
+- If truly required info is missing (rare; e.g. you cannot determine what entity to attach to), ask ONE short clarifying question and do NOT output any action block.
+
+Action blocks (JSON must be valid; use camelCase; no markdown fences):
+[ACTION:CreateTask]{\"matterId\":123,\"title\":\"Draft event contract\",\"description\":\"Draft the event contract\",\"priority\":\"Medium\",\"dueDate\":\"YYYY-MM-DD\",\"assigneeIds\":[1,2]}[/ACTION]
+[ACTION:AddNote]{\"matterId\":123,\"targetEntityType\":\"Matter\",\"targetEntityId\":123,\"content\":\"...\",\"isInternal\":true}[/ACTION]
+[ACTION:StartTimer]{\"matterId\":123,\"description\":\"...\",\"taskId\":456,\"billingCode\":\"...\",\"isBillable\":true}[/ACTION]
+[ACTION:AttachFile]{\"matterId\":123,\"targetEntityType\":\"Matter\",\"targetEntityId\":123,\"sourceDocumentId\":789}[/ACTION]
+
+Supported actions: CreateTask, AttachFile, AddNote, StartTimer
+"""
+            else:
+                agent_mode_section = """
+
+ASK MODE (IMPORTANT):
+- Do NOT include any [ACTION:...] blocks.
+- Provide guidance/information only.
+"""
+            
+            base_system_prompt = f"""You are Notal AI, an advanced legal assistant. Provide a comprehensive response that includes both conversation and analysis.{agent_mode_section}
 
 CONVERSATION CONTEXT:
 - User Type: {user_type}
@@ -2162,7 +2187,9 @@ NOTE: You will receive the full conversation history as separate messages. Pay a
 
 {doc_context_section if doc_context_section else ''}"""
 
-            # Enhance prompt with RAG context for Certio-specific knowledge
+            # ====================================================================
+            # DYNAMIC RAG ACTIVATION - Only trigger when necessary (performance)
+            # ====================================================================
             conversation_context_payload = {
                 "user_type": user_type,
                 "message_count": len(messages),
@@ -2171,41 +2198,46 @@ NOTE: You will receive the full conversation history as separate messages. Pay a
                 "conversation_stage": conversation_analysis.get('conversation_stage', 'Initial')
             }
             
-            # Use RAG enhancement to inject Notal-specific knowledge
-            logger.info(f"🔍 Enhancing conversational prompt with RAG for user_type: {user_type}")
-            # Enhanced RAG system supports user_type parameter for better context
-            if RAG_SYSTEM == "enhanced":
-                enhanced_prompt = enhance_agent_prompt("ConversationalAI", base_system_prompt, user_message, 
-                                                      user_type=user_type, conversation_context=conversation_context_payload)
+            # Fast intent detection to determine which RAG pipelines to activate
+            rag_intent = _detect_rag_intent(user_message, conversation_context_payload)
+            enhanced_prompt = base_system_prompt
+            
+            # PRODUCT RAG: Only for Notal feature/help questions
+            if rag_intent["needs_product_rag"]:
+                logger.info(f"🔍 PRODUCT RAG: Activating (reason: {rag_intent['reason']})")
+                if RAG_SYSTEM == "enhanced":
+                    enhanced_prompt = enhance_agent_prompt("ConversationalAI", base_system_prompt, user_message, 
+                                                          user_type=user_type, conversation_context=conversation_context_payload)
+                else:
+                    enhanced_prompt = enhance_agent_prompt("ConversationalAI", base_system_prompt, user_message, conversation_context_payload)
+                logger.info(f"✅ Product RAG completed")
             else:
-                enhanced_prompt = enhance_agent_prompt("ConversationalAI", base_system_prompt, user_message, conversation_context_payload)
-            logger.info(f"✅ RAG enhancement completed for conversational response")
+                logger.info(f"⚡ PRODUCT RAG SKIPPED: {rag_intent['reason']}")
+
+            # USER DATA RAG: Only for queries about user's own data
+            user_id = payload.get("user_id")
+            organization_id = payload.get("organization_id")
             
-            # Add user data context from all modules (Matters, Tasks, Calendar, etc.)
-            user_data_context_section = ""
-            if USER_DATA_RAG_AVAILABLE:
+            if rag_intent["needs_user_data_rag"] and USER_DATA_RAG_AVAILABLE and user_id and organization_id:
+                logger.info(f"🔍 USER DATA RAG: Activating (modules: {rag_intent['user_data_modules']})")
                 try:
-                    # Extract user_id and organization_id from payload if available
-                    user_id = payload.get("user_id")
-                    organization_id = payload.get("organization_id")
-                    
-                    if user_id and organization_id:
-                        logger.info(f"🔍 Fetching user data context for User {user_id} in Org {organization_id}")
-                        user_data_context = await get_user_data_context(
-                            user_id, organization_id, user_message, 
-                            agent_type="ConversationalAI", top_k=8
-                        )
-                        if user_data_context and len(user_data_context) > 50:  # Has meaningful content
-                            user_data_context_section = f"\n\n{user_data_context}"
-                            logger.info(f"✅ Added user data context ({len(user_data_context)} chars) from user's modules")
-                        else:
-                            logger.info("ℹ️ No relevant user data context found")
+                    # Use module filter for targeted, faster retrieval
+                    user_data_context = await get_user_data_context(
+                        user_id, organization_id, user_message,
+                        agent_type="ConversationalAI",
+                        top_k=rag_intent.get("top_k", 8),
+                        module_filter=rag_intent.get("user_data_modules")
+                    )
+                    if user_data_context and len(user_data_context) > 50:
+                        enhanced_prompt = enhanced_prompt + f"\n\n{user_data_context}"
+                        logger.info(f"✅ User Data RAG completed ({len(user_data_context)} chars)")
                     else:
-                        logger.debug("ℹ️ User ID or Organization ID not provided, skipping user data context")
+                        logger.info("ℹ️ User Data RAG returned no relevant results")
                 except Exception as e:
-                    logger.warning(f"Failed to retrieve user data context: {e}")
-            
-            enhanced_prompt = enhanced_prompt + user_data_context_section
+                    logger.warning(f"User Data RAG failed: {e}")
+            else:
+                if not rag_intent["needs_user_data_rag"]:
+                    logger.info(f"⚡ USER DATA RAG SKIPPED: {rag_intent['reason']}")
             
             # Add the response requirements to the enhanced prompt
             system_prompt = enhanced_prompt + f"""
@@ -2383,6 +2415,7 @@ async def conversational_response_stream(payload: dict, _: str = Depends(authent
             user_type = payload.get("user_type", "Client")
             document_context = payload.get("document_context", None)
             ai_model_tier = payload.get("ai_model_tier", "Auto")  # Get tier preference
+            ai_mode = (payload.get("ai_mode", "ask") or "ask").lower()  # "agent" or "ask"
             user_id = payload.get("user_id")
             organization_id = payload.get("organization_id")
 
@@ -2440,7 +2473,7 @@ async def conversational_response_stream(payload: dict, _: str = Depends(authent
             # else: Auto - use dynamic selection (3-tier complexity)
             
             if is_simple_message:
-                # Simple response for greetings and short messages - enhanced with RAG
+                # Simple response for greetings - NO RAG needed (performance optimization)
                 base_simple_prompt = f"""You are Notal AI, a friendly legal assistant. The user said: "{user_message}"
 
 Respond with a brief, warm greeting and offer to help with legal questions. Keep it conversational and under 50 words.
@@ -2452,18 +2485,9 @@ CRITICAL RULES:
 - Be friendly but don't waste words on repeated greetings
 IMPORTANT: Return ONLY the HTML content with <p> tags and <br> for line breaks. Do NOT wrap your response in ```html code blocks or any other markdown formatting. Return the raw HTML directly."""
                 
-                # Even simple messages get RAG enhancement for Notal context
-                simple_context = {"user_type": user_type, "message_type": "greeting"}
-                if RAG_SYSTEM == "enhanced":
-                    system_prompt = enhance_agent_prompt("ConversationalAI", base_simple_prompt, user_message, 
-                                                        user_type=user_type, conversation_context=simple_context)
-                else:
-                    system_prompt = enhance_agent_prompt("ConversationalAI", base_simple_prompt, user_message, simple_context)
-
-                # Attach user data context if available
-                user_data_context_section = await fetch_user_data_context()
-                if user_data_context_section:
-                    system_prompt += user_data_context_section
+                # ⚡ SKIP RAG for simple greetings - major performance improvement
+                system_prompt = base_simple_prompt
+                logger.info("⚡ RAG SKIPPED for simple greeting (streaming)")
                 
                 # Use GPT-4o-mini for simple responses (unless tier forces different model)
                 if force_model_type:
@@ -2502,7 +2526,35 @@ IMPORTANT: Return ONLY the HTML content with <p> tags and <br> for line breaks. 
                     context_metadata.get("token_budget")
                 )
                 
-                base_system_prompt = f"""You are Notal AI, an advanced legal assistant. Provide a comprehensive, helpful response.
+                agent_mode_section = ""
+                if ai_mode == "agent":
+                    agent_mode_section = """
+
+AGENT MODE (IMPORTANT):
+- You are allowed to take actions, but ONLY when the user explicitly asks you to do so (e.g. "create a task", "add a note", "start a timer", "attach a file").
+- When the user explicitly requests an action, you MUST include the appropriate [ACTION:...] block in the SAME message. Do NOT ask "shall I proceed?" / do NOT ask for confirmation.
+- Do NOT tell the user to click around the UI in Agent mode; propose an action instead.
+- Do NOT ask for internal IDs like assigneeIds/userIds. If you don't know IDs, OMIT optional fields (assigneeIds, taskId, sourceDocumentId, etc.).
+- Dates: if you include dueDate, output ISO format "YYYY-MM-DD" (not "December 25, 2025").
+- If truly required info is missing (rare; e.g. you cannot determine what entity to attach to), ask ONE short clarifying question and do NOT output any action block.
+
+Action blocks (JSON must be valid; use camelCase; no markdown fences):
+[ACTION:CreateTask]{\"matterId\":123,\"title\":\"Draft event contract\",\"description\":\"Draft the event contract\",\"priority\":\"Medium\",\"dueDate\":\"YYYY-MM-DD\",\"assigneeIds\":[1,2]}[/ACTION]
+[ACTION:AddNote]{\"matterId\":123,\"targetEntityType\":\"Matter\",\"targetEntityId\":123,\"content\":\"...\",\"isInternal\":true}[/ACTION]
+[ACTION:StartTimer]{\"matterId\":123,\"description\":\"...\",\"taskId\":456,\"billingCode\":\"...\",\"isBillable\":true}[/ACTION]
+[ACTION:AttachFile]{\"matterId\":123,\"targetEntityType\":\"Matter\",\"targetEntityId\":123,\"sourceDocumentId\":789}[/ACTION]
+
+Supported actions: CreateTask, AttachFile, AddNote, StartTimer
+"""
+                else:
+                    agent_mode_section = """
+
+ASK MODE (IMPORTANT):
+- Do NOT include any [ACTION:...] blocks.
+- Provide guidance/information only.
+"""
+
+                base_system_prompt = f"""You are Notal AI, an advanced legal assistant. Provide a comprehensive, helpful response.{agent_mode_section}
 
 CONVERSATION CONTEXT:
 - User Type: {user_type}
@@ -2516,7 +2568,9 @@ OPTIMIZED CONVERSATION HISTORY ({context_metadata.get('history_strategy', 'full'
 
 CURRENT REQUEST: {user_message}{doc_context_section}"""
 
-                # Enhance prompt with RAG context for Certio-specific knowledge
+                # ====================================================================
+                # DYNAMIC RAG ACTIVATION - Only trigger when necessary (performance)
+                # ====================================================================
                 conversation_context_payload = {
                     "user_type": user_type,
                     "message_count": len(messages),
@@ -2525,19 +2579,43 @@ CURRENT REQUEST: {user_message}{doc_context_section}"""
                     "conversation_stage": conversation_analysis.get('conversation_stage', 'Initial')
                 }
                 
-                # Use RAG enhancement to inject Notal-specific knowledge
-                logger.info(f"🔍 Enhancing streaming prompt with RAG for user_type: {user_type}")
-                if RAG_SYSTEM == "enhanced":
-                    enhanced_prompt = enhance_agent_prompt("ConversationalAI", base_system_prompt, user_message, 
-                                                          user_type=user_type, conversation_context=conversation_context_payload)
+                # Fast intent detection to determine which RAG pipelines to activate
+                rag_intent = _detect_rag_intent(user_message, conversation_context_payload)
+                enhanced_prompt = base_system_prompt
+                
+                # PRODUCT RAG: Only for Notal feature/help questions
+                if rag_intent["needs_product_rag"]:
+                    logger.info(f"🔍 PRODUCT RAG: Activating for streaming (reason: {rag_intent['reason']})")
+                    if RAG_SYSTEM == "enhanced":
+                        enhanced_prompt = enhance_agent_prompt("ConversationalAI", base_system_prompt, user_message, 
+                                                              user_type=user_type, conversation_context=conversation_context_payload)
+                    else:
+                        enhanced_prompt = enhance_agent_prompt("ConversationalAI", base_system_prompt, user_message, conversation_context_payload)
+                    logger.info(f"✅ Product RAG completed for streaming")
                 else:
-                    enhanced_prompt = enhance_agent_prompt("ConversationalAI", base_system_prompt, user_message, conversation_context_payload)
-                logger.info(f"✅ RAG enhancement completed for streaming response")
+                    logger.info(f"⚡ PRODUCT RAG SKIPPED (streaming): {rag_intent['reason']}")
 
-                # Attach user data context if available
-                user_data_context_section = await fetch_user_data_context()
-                if user_data_context_section:
-                    enhanced_prompt = enhanced_prompt + user_data_context_section
+                # USER DATA RAG: Only for queries about user's own data
+                if rag_intent["needs_user_data_rag"] and USER_DATA_RAG_AVAILABLE and user_id and organization_id:
+                    logger.info(f"🔍 USER DATA RAG: Activating (modules: {rag_intent['user_data_modules']})")
+                    try:
+                        # Use module filter for targeted, faster retrieval
+                        user_data_context = await get_user_data_context(
+                            user_id, organization_id, user_message,
+                            agent_type="ConversationalAI",
+                            top_k=rag_intent.get("top_k", 8),
+                            module_filter=rag_intent.get("user_data_modules")
+                        )
+                        if user_data_context and len(user_data_context) > 50:
+                            enhanced_prompt = enhanced_prompt + f"\n\n{user_data_context}"
+                            logger.info(f"✅ User Data RAG completed ({len(user_data_context)} chars)")
+                        else:
+                            logger.info("ℹ️ User Data RAG returned no relevant results")
+                    except Exception as e:
+                        logger.warning(f"User Data RAG failed: {e}")
+                else:
+                    if not rag_intent["needs_user_data_rag"]:
+                        logger.info(f"⚡ USER DATA RAG SKIPPED (streaming): {rag_intent['reason']}")
                 
                 # Add the response requirements to the enhanced prompt
                 system_prompt = enhanced_prompt + """
@@ -2806,6 +2884,166 @@ def _is_simple_message(user_message: str, conversation_analysis: dict) -> bool:
         return False
     
     return False
+
+
+# =============================================================================
+# RAG INTENT DETECTION - Dynamic activation for performance optimization
+# =============================================================================
+
+def _detect_rag_intent(query: str, conversation_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """
+    Fast, lightweight detection of whether RAG pipelines should be activated.
+    Returns which RAG systems to use and optionally which modules to filter.
+    
+    This is a performance-critical function - NO ML, NO vector operations.
+    Pure keyword/pattern matching for sub-millisecond execution.
+    """
+    query_lower = query.lower().strip()
+    
+    result = {
+        "needs_product_rag": False,
+        "needs_user_data_rag": False,
+        "user_data_modules": None,  # None = all modules, or specific list
+        "top_k": 5,  # Default number of chunks to retrieve
+        "reason": "no_rag_needed"
+    }
+    
+    # Skip RAG entirely for simple greetings
+    simple_patterns = [
+        "hi", "hello", "hey", "good morning", "good afternoon", "good evening",
+        "thanks", "thank you", "ok", "okay", "yes", "no", "sure", "alright",
+        "bye", "goodbye", "see you", "later"
+    ]
+    if query_lower in simple_patterns or len(query_lower) <= 3:
+        result["reason"] = "simple_greeting"
+        logger.info(f"⚡ RAG SKIPPED: Simple greeting/acknowledgement")
+        return result
+    
+    # ==========================================================================
+    # PRODUCT RAG: Detect queries about Notal features, help, how-to
+    # ==========================================================================
+    product_rag_triggers = [
+        # Onboarding / Getting started
+        "get started", "getting started", "new to notal", "new user", "first time",
+        "where do i start", "how to begin", "just started",
+        # Feature questions
+        "how do i", "how can i", "how to", "what is", "what are", "what does",
+        "where is", "where can i find", "how does",
+        # Notal-specific
+        "notal", "this app", "this platform", "the system",
+        # Help / Support
+        "help me", "i need help", "can you help", "assist me",
+        "not working", "doesn't work", "error", "problem", "issue",
+        # Navigation
+        "navigate", "find the", "access the", "open the",
+        # Feature names (will trigger product RAG)
+        "matter", "calendar", "task", "document", "channel", "message",
+        "dashboard", "settings", "billing", "team", "organization"
+    ]
+    
+    # Check for product RAG need
+    if any(trigger in query_lower for trigger in product_rag_triggers):
+        # But exclude if it's clearly asking about THEIR data (possession words)
+        possession_patterns = ["my ", "our ", "show me my", "list my", "what are my"]
+        is_user_data_query = any(p in query_lower for p in possession_patterns)
+        
+        if not is_user_data_query:
+            result["needs_product_rag"] = True
+            result["reason"] = "product_feature_query"
+            # Increase chunks for onboarding queries
+            if any(p in query_lower for p in ["get started", "getting started", "new to notal"]):
+                result["top_k"] = 10
+            logger.info(f"🔍 PRODUCT RAG ACTIVATED: Feature/help query detected")
+    
+    # ==========================================================================
+    # USER DATA RAG: Detect queries about user's own data
+    # ==========================================================================
+    
+    # Explicit user data queries (possession words)
+    user_data_triggers = [
+        # Possession indicators
+        "my ", "our ", "mine",
+        # List/show commands
+        "show me", "list all", "list my", "what are my", "give me",
+        "display", "fetch", "get my", "find my",
+        # Specific data actions
+        "recent", "latest", "upcoming", "today", "this week", "overdue",
+        "pending", "completed", "active", "open",
+        # Analysis of user data
+        "analyze my", "summarize my", "review my", "check my",
+        # Counts and statistics
+        "how many", "count", "total"
+    ]
+    
+    # Module-specific keywords for targeted retrieval
+    module_keywords = {
+        "matters": ["matter", "case", "client case", "legal matter", "case status"],
+        "tasks": ["task", "to do", "todo", "assignment", "deadline", "due date", "overdue"],
+        "calendar": ["calendar", "event", "meeting", "appointment", "schedule", "upcoming"],
+        "communications": ["message", "chat", "channel", "dm", "direct message", "conversation"],
+        "documents": ["document", "file", "upload", "attachment", "contract", "pdf"],
+        "clients": ["client", "customer", "account", "contact"]
+    }
+    
+    # Check for user data RAG need
+    if any(trigger in query_lower for trigger in user_data_triggers):
+        result["needs_user_data_rag"] = True
+        result["reason"] = "user_data_query"
+        
+        # Detect specific modules to filter (performance optimization)
+        detected_modules = []
+        for module, keywords in module_keywords.items():
+            if any(kw in query_lower for kw in keywords):
+                detected_modules.append(module)
+        
+        if detected_modules:
+            result["user_data_modules"] = detected_modules
+            logger.info(f"🔍 USER DATA RAG ACTIVATED: Modules={detected_modules}")
+        else:
+            # General user data query - search all modules but limit results
+            result["top_k"] = 8
+            logger.info(f"🔍 USER DATA RAG ACTIVATED: All modules (general query)")
+    
+    # ==========================================================================
+    # BOTH RAG: Some queries need both (e.g., "how do I create my first matter")
+    # ==========================================================================
+    both_triggers = [
+        "create", "add", "new", "set up", "configure", "organize"
+    ]
+    
+    if any(trigger in query_lower for trigger in both_triggers):
+        # These might need product RAG (how-to) AND user data (context)
+        if "my" in query_lower or "our" in query_lower:
+            result["needs_user_data_rag"] = True
+        result["needs_product_rag"] = True
+        result["reason"] = "action_query"
+        logger.info(f"🔍 BOTH RAG ACTIVATED: Action query detected")
+
+        # If the user is requesting an action like creating a task, ensure we include matters context
+        # so the agent can resolve required IDs like matterId.
+        if any(k in query_lower for k in ["task", "to do", "todo", "deadline"]) and any(k in query_lower for k in ["create", "add", "new", "set up", "setup"]):
+            result["needs_user_data_rag"] = True
+            modules = set(result["user_data_modules"] or [])
+            modules.update(["matters", "tasks"])
+            result["user_data_modules"] = list(modules)
+            result["top_k"] = max(result.get("top_k", 5), 8)
+    
+    # ==========================================================================
+    # CONTEXT-BASED ACTIVATION: Use conversation context
+    # ==========================================================================
+    if conversation_context:
+        # If conversation has legal topics, enable user data RAG
+        legal_topics = conversation_context.get("legal_topics", [])
+        if legal_topics:
+            result["needs_user_data_rag"] = True
+            if not result["user_data_modules"]:
+                result["user_data_modules"] = ["matters", "tasks"]
+    
+    # Log final decision
+    if not result["needs_product_rag"] and not result["needs_user_data_rag"]:
+        logger.info(f"⚡ RAG SKIPPED: No RAG triggers detected for query")
+    
+    return result
 
 def _normalize_messages(messages: List[Union[dict, ChatMessage]]) -> List[Dict[str, Any]]:
     """Normalize conversation messages to dictionaries"""

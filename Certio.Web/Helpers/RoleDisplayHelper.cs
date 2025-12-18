@@ -124,6 +124,20 @@ namespace Certio.Web.Helpers
         {
             return orgType == OrganizationType.EventPlanner ? "Events" : "Legal";
         }
+
+        /// <summary>
+        /// Gets terminology for "Legal" with custom organization settings support.
+        /// We intentionally treat the "Legal" term as a UI label that tracks the organization's
+        /// custom Matters/Events terminology (e.g. "Chapters Team" instead of "Legal Team").
+        /// </summary>
+        public static string GetLegalTerminology(Organization org)
+        {
+            if (org == null)
+                return "Legal";
+
+            // Use the custom plural matters terminology as the "legal" label (e.g. Chapters)
+            return org.GetMattersTerminology();
+        }
         
         /// <summary>
         /// Gets terminology for "Legal Team" based on organization type.
@@ -132,6 +146,24 @@ namespace Certio.Web.Helpers
         public static string GetLegalTeamTerminology(OrganizationType orgType)
         {
             return orgType == OrganizationType.EventPlanner ? "Events Team" : "Legal Team";
+        }
+
+        /// <summary>
+        /// Gets terminology for "Legal Team" with custom organization settings support.
+        /// This is a UI-only label and will follow the organization's custom Matters terminology:
+        /// - "Events Team" when Matters => Events
+        /// - "Chapters Team" when Matters => Chapters
+        /// </summary>
+        public static string GetLegalTeamTerminology(Organization org)
+        {
+            if (org == null)
+                return "Legal Team";
+
+            var plural = org.GetMattersTerminology();
+            if (string.IsNullOrWhiteSpace(plural))
+                return "Legal Team";
+
+            return $"{plural} Team";
         }
         
         /// <summary>

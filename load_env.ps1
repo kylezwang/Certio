@@ -1,3 +1,7 @@
+param(
+    [switch]$NoPrompt
+)
+
 # PowerShell script to load environment variables
 Write-Host "Loading environment variables from .env file..." -ForegroundColor Cyan
 
@@ -5,7 +9,9 @@ Write-Host "Loading environment variables from .env file..." -ForegroundColor Cy
 if (-not (Test-Path ".env")) {
     Write-Host "ERROR: .env file not found!" -ForegroundColor Red
     Write-Host "Please create a .env file with your environment variables." -ForegroundColor Yellow
+    if (-not $NoPrompt) {
     Read-Host "Press Enter to continue"
+    }
     exit 1
 }
 
@@ -47,4 +53,6 @@ Write-Host "Create Migration Command Example: dotnet ef migrations add Migration
 Write-Host ""
 Write-Host "Apply Migration Command Example: dotnet ef database update --project Certio.Infrastructure --startup-project Certio.Web --context ApplicationDbContext" -ForegroundColor Yellow
 Write-Host ""
+if (-not $NoPrompt) {
 Read-Host "Press Enter to continue"
+}

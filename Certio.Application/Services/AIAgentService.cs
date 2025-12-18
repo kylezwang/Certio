@@ -159,12 +159,12 @@ public class AIAgentService : IAIAgentService
         }
     }
 
-    public async Task<string> GenerateConversationalResponseAsync(string conversationId, List<ChatMessage> messages, string userMessage)
+    public async Task<string> GenerateConversationalResponseAsync(string conversationId, List<ChatMessage> messages, string userMessage, string? aiMode = null)
     {
         try
         {
             var documentContext = await TryBuildDocumentContextAsync(conversationId, messages, userMessage);
-            var request = CreateAIRequest(conversationId, messages, userMessage, documentContext: documentContext);
+            var request = CreateAIRequest(conversationId, messages, userMessage, documentContext: documentContext, aiMode: aiMode);
             
             var json = JsonSerializer.Serialize(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -188,7 +188,8 @@ public class AIAgentService : IAIAgentService
         string userMessage, 
         Certio.Domain.Organizations.AIModelTier? aiModelTier = null,
         int? fallbackUserId = null,
-        int? fallbackOrganizationId = null)
+        int? fallbackOrganizationId = null,
+        string? aiMode = null)
     {
         HttpResponseMessage? response = null;
         Stream? stream = null;
@@ -211,7 +212,8 @@ public class AIAgentService : IAIAgentService
             documentContext: documentContext, 
             aiModelTier: aiModelTier,
             fallbackUserId: fallbackUserId,
-            fallbackOrganizationId: fallbackOrganizationId);
+            fallbackOrganizationId: fallbackOrganizationId,
+            aiMode: aiMode);
         var json = JsonSerializer.Serialize(request);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
         var httpRequest = new HttpRequestMessage(HttpMethod.Post, "/agents/conversational-response-stream")
@@ -391,7 +393,8 @@ public class AIAgentService : IAIAgentService
         Dictionary<string, string?>? documentContext = null,
         Certio.Domain.Organizations.AIModelTier? aiModelTier = null,
         int? fallbackUserId = null,
-        int? fallbackOrganizationId = null)
+        int? fallbackOrganizationId = null,
+        string? aiMode = null)
     {
         var orderedMessages = OrderMessages(messages);
 
@@ -441,17 +444,18 @@ public class AIAgentService : IAIAgentService
             }).ToList(),
             user_type = userType,
             ai_model_tier = aiModelTier?.ToString() ?? "Auto",
+            ai_mode = aiMode,
             user_id = userId,  // Added for user data RAG context
             organization_id = organizationId  // Added for user data RAG context
         };
 
         if (userMessage != null && documentContext != null)
         {
-            return new { request.conversation_id, request.messages, request.user_type, request.ai_model_tier, request.user_id, request.organization_id, user_message = userMessage, document_context = documentContext };
+            return new { request.conversation_id, request.messages, request.user_type, request.ai_model_tier, request.ai_mode, request.user_id, request.organization_id, user_message = userMessage, document_context = documentContext };
         }
         else if (userMessage != null)
         {
-            return new { request.conversation_id, request.messages, request.user_type, request.ai_model_tier, request.user_id, request.organization_id, user_message = userMessage };
+            return new { request.conversation_id, request.messages, request.user_type, request.ai_model_tier, request.ai_mode, request.user_id, request.organization_id, user_message = userMessage };
         }
         else
         {

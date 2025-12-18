@@ -2,8 +2,8 @@
   "user_id": 1,
   "organization_id": 1,
   "user_name": "Kyle Wang",
-  "total_chunks": 141,
-  "last_synced": "2025-12-10T08:23:37.657952",
+  "total_chunks": 146,
+  "last_synced": "2025-12-18T01:02:25.733792",
   "module_summaries": {
     "matters": {
       "totalMatters": 29,
@@ -31,14 +31,14 @@
       ]
     },
     "tasks": {
-      "totalTasks": 21,
-      "pendingTasks": 2,
+      "totalTasks": 29,
+      "pendingTasks": 10,
       "inProgressTasks": 3,
       "completedTasks": 8,
-      "highPriorityTasks": 14
+      "highPriorityTasks": 18
     },
     "calendar": {
-      "totalEvents": 6,
+      "totalEvents": 3,
       "upcomingEvents": 0,
       "todayEvents": 0,
       "thisWeekEvents": 0
@@ -71,7 +71,7 @@
   },
   "chunks": [
     {
-      "id": "9caedb4d-b82d-4508-9c2d-b8db774d110b",
+      "id": "18da8af8-370d-4cd1-90d9-4f69068925a2",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 16,
@@ -98,7 +98,7 @@
       "relevance_score": 0
     },
     {
-      "id": "f37de8c7-aa28-4ce2-9453-b17fdccf56a2",
+      "id": "6589f5d6-366f-4212-afaa-cc1495c5f8a8",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 5,
@@ -126,7 +126,7 @@
       "relevance_score": 0
     },
     {
-      "id": "a92ae0c1-05e7-4a50-8f71-031ff572c7c1",
+      "id": "6924bda5-e1c0-4226-aa73-f333603c3f2e",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 30,
@@ -154,7 +154,7 @@
       "relevance_score": 0
     },
     {
-      "id": "414ad1a7-2f36-4956-9e89-f63d069c4ee0",
+      "id": "05b2a6a9-55c7-41d8-8d71-88c34d22e612",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 29,
@@ -178,7 +178,7 @@
       "relevance_score": 0
     },
     {
-      "id": "ce96d730-bef3-45fc-a3f3-76416f409932",
+      "id": "c68c426c-e335-4067-903b-497a28f31e90",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 28,
@@ -206,7 +206,7 @@
       "relevance_score": 0
     },
     {
-      "id": "dca23364-a149-42cc-afb0-4b1802a366c5",
+      "id": "91c42e0c-2dde-4958-991a-b6308de4a1e4",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 27,
@@ -234,7 +234,7 @@
       "relevance_score": 0
     },
     {
-      "id": "85b44c87-8acf-4380-90bd-8f6c47690007",
+      "id": "7966c8e7-29d9-4e4b-a9b4-9da225fc04d6",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 26,
@@ -262,7 +262,7 @@
       "relevance_score": 0
     },
     {
-      "id": "14b5a640-63d3-4b1a-8c8d-b87e5e4c4386",
+      "id": "9a337473-1553-41d2-852b-534e9efc939b",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 25,
@@ -290,7 +290,7 @@
       "relevance_score": 0
     },
     {
-      "id": "57ff7fa3-dd49-4162-9860-b1ea8e06ce03",
+      "id": "af039d1d-7cc6-4aa3-810a-ae5dd2420139",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 24,
@@ -318,7 +318,7 @@
       "relevance_score": 0
     },
     {
-      "id": "5ef74a17-208b-4c20-9ced-a71d566d006f",
+      "id": "a56bf7e1-fa6a-48df-bca3-17286e83ba2a",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 23,
@@ -342,7 +342,7 @@
       "relevance_score": 0
     },
     {
-      "id": "373f039f-ed3f-459e-a503-14aa03652e0f",
+      "id": "60334214-8539-40fb-a0f7-bba7fb9a6b28",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 22,
@@ -370,7 +370,7 @@
       "relevance_score": 0
     },
     {
-      "id": "c7db5af9-e916-49f5-8d5a-3c1502b66b2c",
+      "id": "916a8b5c-2623-4442-9227-cd2a73885ee4",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 21,
@@ -398,7 +398,7 @@
       "relevance_score": 0
     },
     {
-      "id": "95a237b6-366a-4377-9539-95d76dce7aa4",
+      "id": "4d7cf4e9-65b2-4ce8-84d5-1ce9d1a5f690",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 20,
@@ -426,7 +426,7 @@
       "relevance_score": 0
     },
     {
-      "id": "ed378182-7c85-40c2-95e5-475e51041536",
+      "id": "129b28af-7fcd-47e4-9495-6d4de3378338",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 19,
@@ -454,7 +454,7 @@
       "relevance_score": 0
     },
     {
-      "id": "61640e7d-3491-4e7e-90ba-4d384534a4f9",
+      "id": "7e887408-ed2e-47a8-9613-1b4496ce42f9",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 18,
@@ -482,7 +482,7 @@
       "relevance_score": 0
     },
     {
-      "id": "060f6203-b11a-4c53-bb16-95046087478f",
+      "id": "0d33fe36-cf03-4f97-8352-afe72e8d2e8a",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 17,
@@ -510,7 +510,7 @@
       "relevance_score": 0
     },
     {
-      "id": "d668c366-22d7-4961-a746-531d5ea1cecd",
+      "id": "62a5fad1-69e0-4540-88cf-1fab33df2793",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 15,
@@ -534,7 +534,7 @@
       "relevance_score": 0
     },
     {
-      "id": "9c5d495c-9c55-46c6-98db-4cb359a86045",
+      "id": "2bfe5c53-f2c6-4104-9446-fc0abd9d8b20",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 14,
@@ -561,7 +561,7 @@
       "relevance_score": 0
     },
     {
-      "id": "dda61abf-df39-4025-bc40-35c9ea0f9700",
+      "id": "8e61110d-b9c4-4e67-8a11-0c96630f8a25",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 13,
@@ -585,7 +585,7 @@
       "relevance_score": 0
     },
     {
-      "id": "682fe993-b44f-4d53-97f0-18d190777098",
+      "id": "759351a7-2cda-4bd0-805c-6270363ce938",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 12,
@@ -614,7 +614,7 @@
       "relevance_score": 0
     },
     {
-      "id": "0efbe3eb-ca81-423a-9f54-5a3dd660907b",
+      "id": "e25abba1-f1d5-4e09-ae2c-c8cb9605d6f8",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 11,
@@ -643,7 +643,7 @@
       "relevance_score": 0
     },
     {
-      "id": "28d0a895-6e6f-40f2-8edb-b1bcd64f9213",
+      "id": "fdf0350b-6542-49b3-9c5d-e41b29b59260",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 10,
@@ -672,7 +672,7 @@
       "relevance_score": 0
     },
     {
-      "id": "d797416a-1c6f-42d0-b1a0-034f0a346e67",
+      "id": "991ea3d8-2066-4fd8-a0e0-b76e7765fad0",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 9,
@@ -701,7 +701,7 @@
       "relevance_score": 0
     },
     {
-      "id": "d47a4638-d735-4d7a-a9d2-4d7d49be8756",
+      "id": "3e146231-7a78-4aae-ac28-f0cff702a777",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 8,
@@ -730,7 +730,7 @@
       "relevance_score": 0
     },
     {
-      "id": "295d5252-2e21-40e4-a6e0-17cced1a502f",
+      "id": "f37cf2ea-69b5-4d78-b71f-8a345281077a",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 7,
@@ -759,7 +759,7 @@
       "relevance_score": 0
     },
     {
-      "id": "dc96811a-5e2b-42d8-9fb1-d8de201ee153",
+      "id": "653d97ec-eb9e-4623-8423-f992cf669b55",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 6,
@@ -788,7 +788,7 @@
       "relevance_score": 0
     },
     {
-      "id": "55697a03-e699-47b1-a750-2f3d34391613",
+      "id": "92abbe6d-03ef-4c4b-910e-5c2bec8a8e2a",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 4,
@@ -817,12 +817,12 @@
       "relevance_score": 0
     },
     {
-      "id": "262bbba1-4fb0-434c-addd-fc4a17f19b8a",
+      "id": "5249a418-e4d2-4832-9656-f41de05b02d7",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 2,
       "title": "Sesame Street LLC",
-      "content": "=== MATTER: Sesame Street LLC ===\r\nMatter ID: 2\r\nClient/Organization: Law Office of Kyle Wang\r\nStatus: In Progress\r\nPractice Area: Real Estate\r\nDescription: New organization building at Sesame Street LLC\r\nStart Date: 2025-09-28\r\nDue Date: 2025-10-29\r\nPending Date: 2025-10-10\r\nTasks Progress: 1/1 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - Kyle Wang (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\n  - Kyle Wang (RelevantContact)\r\nCreated: 2025-09-28\r\n",
+      "content": "=== MATTER: Sesame Street LLC ===\r\nMatter ID: 2\r\nClient/Organization: Law Office of Kyle Wang\r\nStatus: In Progress\r\nPractice Area: Real Estate\r\nDescription: New organization building at Sesame Street LLC\r\nStart Date: 2025-09-28\r\nDue Date: 2025-10-29\r\nPending Date: 2025-10-10\r\nTasks Progress: 1/3 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - Kyle Wang (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\n  - Kyle Wang (RelevantContact)\r\nCreated: 2025-09-28\r\n",
       "metadata": {
         "matterId": 2,
         "organizationId": 1,
@@ -831,7 +831,7 @@
         "practiceArea": "Real Estate",
         "dueDate": "2025-10-29T00:00:00",
         "tasksCompleted": 1,
-        "totalTasks": 1,
+        "totalTasks": 3,
         "assignees": [
           "Kyle Wang",
           "Kyle Wang",
@@ -846,12 +846,12 @@
       "relevance_score": 0
     },
     {
-      "id": "d1624e58-7066-47b8-8ff5-1e7ad5c27f9c",
+      "id": "de3349ac-6972-408b-82c7-6344505bd430",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 1,
       "title": "HK Desktop Recoveries LLC",
-      "content": "=== MATTER: HK Desktop Recoveries LLC ===\r\nMatter ID: 1\r\nClient/Organization: Law Office of Kyle Wang\r\nStatus: Review\r\nPractice Area: Real Estate\r\nDescription: This is the recovery matter marking the start of the new Certio desktop development track.\r\nStart Date: 2025-09-27\r\nDue Date: 2025-09-28\r\nPending Date: 2025-09-27\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - Kyle Wang (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\n  - Kyle Wang (RelevantContact)\r\nCreated: 2025-09-28\r\n",
+      "content": "=== MATTER: HK Desktop Recoveries LLC ===\r\nMatter ID: 1\r\nClient/Organization: Law Office of Kyle Wang\r\nStatus: Review\r\nPractice Area: Real Estate\r\nDescription: This is the recovery matter marking the start of the new Certio desktop development track.\r\nStart Date: 2025-09-27\r\nDue Date: 2025-09-28\r\nPending Date: 2025-09-27\r\nTasks Progress: 0/6 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - Kyle Wang (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\n  - Kyle Wang (RelevantContact)\r\nCreated: 2025-09-28\r\n",
       "metadata": {
         "matterId": 1,
         "organizationId": 1,
@@ -860,7 +860,7 @@
         "practiceArea": "Real Estate",
         "dueDate": "2025-09-28T00:00:00",
         "tasksCompleted": 0,
-        "totalTasks": 0,
+        "totalTasks": 6,
         "assignees": [
           "Kyle Wang",
           "Kyle Wang",
@@ -875,7 +875,175 @@
       "relevance_score": 0
     },
     {
-      "id": "fb383707-6630-4a9f-bf8e-1008c9260677",
+      "id": "1885952a-fd36-4218-a6e1-3d0b3f37c56f",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 37,
+      "title": "EECS 50 Project Progress",
+      "content": "Task: EECS 50 Project Progress\r\nStatus: Pending\r\nPriority: Medium\r\nDescription: This task involves the progress report for the EECS 50 project, focusing on designing a digital low-pass filter system to remove high-frequency noise using AI. The project aims to understand the performance of traditional discrete-time systems in comparison to modern learned filters. Key components include: 1. Background & Motivation: Understanding the impact of high-frequency noise in applications like DSP. 2. Problem Definition: Implementing FIR filters and comparing performance with AI methods. 3. Expected Results: Evaluating the effectiveness of both FIR and AI approaches in noise reduction. Group Members: Kyle Wang and Isaac Mays, with task breakdowns specified in the project report.\r\nRelated Matter: Sesame Street LLC\r\nDue Date: 2025-12-18\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Pending",
+        "priority": "Medium",
+        "dueDate": "2025-12-18T00:00:00",
+        "matterId": 2,
+        "matterTitle": "Sesame Street LLC",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-12-18T00:08:00.7859096",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "1bed84a9-b3d3-4b7a-bc7d-362e7b9b4834",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 30,
+      "title": "EECS 50",
+      "content": "Task: EECS 50\r\nStatus: Pending\r\nPriority: Medium\r\nDescription: General task for EECS 50.\r\nRelated Matter: Sesame Street LLC\r\nDue Date: 2025-10-13\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Pending",
+        "priority": "Medium",
+        "dueDate": "2025-10-13T00:00:00",
+        "matterId": 2,
+        "matterTitle": "Sesame Street LLC",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-12-15T06:19:00.3835466",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "ff53c320-a37f-4385-88f9-fbcc5be0f927",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 29,
+      "title": "EECS 170A Lab 2",
+      "content": "Task: EECS 170A Lab 2\r\nStatus: Pending\r\nPriority: High\r\nDescription: Complete the analysis and design for the soldering technology and RC circuits as outlined in Lab 2.\r\nRelated Matter: HK Desktop Recoveries LLC\r\nDue Date: 2025-02-19\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Pending",
+        "priority": "High",
+        "dueDate": "2025-02-19T00:00:00",
+        "matterId": 1,
+        "matterTitle": "HK Desktop Recoveries LLC",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-12-15T06:16:55.4787005",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "dfcaad89-3769-48b2-a176-c8fe5cb6540a",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 28,
+      "title": "EECS 170A Lab 4 - Additional Task",
+      "content": "Task: EECS 170A Lab 4 - Additional Task\r\nStatus: Pending\r\nPriority: High\r\nDescription: Conduct further analysis on the RISC-V single cycle processor design and prepare for presentation.\r\nRelated Matter: HK Desktop Recoveries LLC\r\nDue Date: 2025-03-15\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Pending",
+        "priority": "High",
+        "dueDate": "2025-03-15T00:00:00",
+        "matterId": 1,
+        "matterTitle": "HK Desktop Recoveries LLC",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-12-15T05:58:58.2195286",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "81591989-f732-4c3b-a87c-223686473887",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 27,
+      "title": "EECS 170A Lab 4",
+      "content": "Task: EECS 170A Lab 4\r\nStatus: Pending\r\nPriority: High\r\nDescription: Complete the design and analysis for the RISC-V single cycle processor as outlined in Lab 4.\r\nRelated Matter: HK Desktop Recoveries LLC\r\nDue Date: 2025-03-10\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Pending",
+        "priority": "High",
+        "dueDate": "2025-03-10T00:00:00",
+        "matterId": 1,
+        "matterTitle": "HK Desktop Recoveries LLC",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-12-15T05:23:55.9827632",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "5c737928-79eb-48a8-bc56-e31387f4f9d8",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 26,
+      "title": "EECS 170A Lab 3",
+      "content": "Task: EECS 170A Lab 3\r\nStatus: Pending\r\nPriority: High\r\nDescription: Complete the design for the D Flip-Flop and Instruction Memory as outlined in Lab 3.\r\nRelated Matter: HK Desktop Recoveries LLC\r\nDue Date: 2025-02-23\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Pending",
+        "priority": "High",
+        "dueDate": "2025-02-23T00:00:00",
+        "matterId": 1,
+        "matterTitle": "HK Desktop Recoveries LLC",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-12-15T05:02:45.4268701",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "7cae528a-c126-40be-954d-b23810b0011c",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 25,
+      "title": "Kyle's First Agent Task",
+      "content": "Task: Kyle's First Agent Task\r\nStatus: Pending\r\nPriority: Medium\r\nDescription: This task is to ensure the successful completion of the initial agent task.\r\nRelated Matter: HK Desktop Recoveries LLC\r\nDue Date: 2025-10-20\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Pending",
+        "priority": "Medium",
+        "dueDate": "2025-10-20T00:00:00",
+        "matterId": 1,
+        "matterTitle": "HK Desktop Recoveries LLC",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-12-15T05:02:00.7712615",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "0829bed3-2c07-453b-b964-0449b2268cae",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 24,
+      "title": "Kyle's First Agent Task",
+      "content": "Task: Kyle's First Agent Task\r\nStatus: Pending\r\nPriority: Medium\r\nDescription: This task is to ensure the successful completion of the initial agent task.\r\nRelated Matter: HK Desktop Recoveries LLC\r\nDue Date: 2025-10-20\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Pending",
+        "priority": "Medium",
+        "dueDate": "2025-10-20T00:00:00",
+        "matterId": 1,
+        "matterTitle": "HK Desktop Recoveries LLC",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-12-15T04:20:42.0113261",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "6364c8fc-ab1c-426e-85a9-633f7875ae4e",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 2,
@@ -896,7 +1064,7 @@
       "relevance_score": 0
     },
     {
-      "id": "d0dd1850-e676-4afe-bb8b-3f1b846680e6",
+      "id": "f2871b83-4082-4bc2-a954-5090373f99b1",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 15,
@@ -917,7 +1085,7 @@
       "relevance_score": 0
     },
     {
-      "id": "8413eadd-948f-4eac-8633-5cb0639aec88",
+      "id": "4b91b222-a74f-4241-bc0d-46166b37bb2a",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 21,
@@ -938,7 +1106,7 @@
       "relevance_score": 0
     },
     {
-      "id": "e61824ce-df02-4a6e-bc7b-b132c52dd822",
+      "id": "27e3b602-d8f1-4d0e-abed-daf4954594b3",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 9,
@@ -960,7 +1128,7 @@
       "relevance_score": 0
     },
     {
-      "id": "c0828e36-1b9d-4737-b087-7226dc348aa0",
+      "id": "7fb98d67-114d-484c-969f-177bf8346bc9",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 18,
@@ -981,7 +1149,7 @@
       "relevance_score": 0
     },
     {
-      "id": "8950df81-f25c-48a2-969e-c4f725d0eeb0",
+      "id": "c0153843-1840-489e-bfbf-b61cbb485162",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 19,
@@ -1003,7 +1171,7 @@
       "relevance_score": 0
     },
     {
-      "id": "f39b5eaa-8f1f-41d3-aff9-bbc0930a071b",
+      "id": "ac0c3ce9-c46c-40d2-94f3-e009901f2646",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 12,
@@ -1024,7 +1192,7 @@
       "relevance_score": 0
     },
     {
-      "id": "78728e6d-5828-49bf-aed6-609bfde37a16",
+      "id": "a8d2985f-c3a9-4142-9f60-820f9db88232",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 14,
@@ -1046,7 +1214,7 @@
       "relevance_score": 0
     },
     {
-      "id": "706b7524-3df3-4c2e-a8ba-9476e0e75f4b",
+      "id": "7305b189-984e-4f2f-a58f-e88f66bf4275",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 10,
@@ -1069,7 +1237,7 @@
       "relevance_score": 0
     },
     {
-      "id": "46e0c313-6fc9-49aa-b48b-a7a9fe34e4f2",
+      "id": "bfbd9126-ae0d-4274-91dc-bb80d2c03a50",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 23,
@@ -1091,7 +1259,7 @@
       "relevance_score": 0
     },
     {
-      "id": "34d24ad3-1b99-4656-8ede-2ad0e8061701",
+      "id": "1142b5e9-0713-472e-ac7e-aabddbf49699",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 22,
@@ -1112,7 +1280,7 @@
       "relevance_score": 0
     },
     {
-      "id": "f161e06e-23dd-4003-86e9-856897dc1a02",
+      "id": "5ebab2d1-8dad-4d89-99a5-2e80b3f4d4c2",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 4,
@@ -1131,7 +1299,7 @@
       "relevance_score": 0
     },
     {
-      "id": "3afd29b9-ac0c-4193-9e0c-19d57bb506eb",
+      "id": "7427a671-507a-43d1-85a8-8cd3c7aadbc5",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 13,
@@ -1152,7 +1320,7 @@
       "relevance_score": 0
     },
     {
-      "id": "c3bbbf7b-a977-4823-97a2-96767ce977f8",
+      "id": "af2243b0-03c1-4829-8a73-7111384f9b02",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 11,
@@ -1173,7 +1341,7 @@
       "relevance_score": 0
     },
     {
-      "id": "aa53db77-f587-4a4a-8659-8508de77e441",
+      "id": "565e3372-05ab-462d-9bd0-5f80f73807ea",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 20,
@@ -1195,7 +1363,7 @@
       "relevance_score": 0
     },
     {
-      "id": "e17a9e6d-e8af-4239-b5bf-ac3d8393292e",
+      "id": "fdfd4089-1e61-4aa5-b947-56cd466b4052",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 17,
@@ -1214,7 +1382,7 @@
       "relevance_score": 0
     },
     {
-      "id": "c232ba79-1b1a-4d5a-9d1e-1a5c98cf302a",
+      "id": "64266ed5-c558-47e6-8f51-9d484de47aca",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 8,
@@ -1235,7 +1403,7 @@
       "relevance_score": 0
     },
     {
-      "id": "b3f5b243-b384-4cd8-8a8e-20393286df0e",
+      "id": "2c08a94a-34f0-42fd-948b-4ed7d26ce167",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 7,
@@ -1258,7 +1426,7 @@
       "relevance_score": 0
     },
     {
-      "id": "0e3cb0ba-39cf-480b-948b-aeb94a0bce62",
+      "id": "bdb4a224-a85f-4632-99aa-ad61df103193",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 6,
@@ -1279,7 +1447,7 @@
       "relevance_score": 0
     },
     {
-      "id": "6c203280-e893-4aa2-8f97-edb86d5d7ea1",
+      "id": "e29aff97-1580-4e47-ab52-eb6fcee06247",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 5,
@@ -1298,7 +1466,7 @@
       "relevance_score": 0
     },
     {
-      "id": "7670c524-5cb0-4869-ad08-321844ae7b21",
+      "id": "18c119c5-757b-40af-8ece-5d481b4375d4",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 3,
@@ -1317,75 +1485,7 @@
       "relevance_score": 0
     },
     {
-      "id": "41bba3ad-b4b5-47ae-923f-90d39e6bb156",
-      "module_name": "calendar",
-      "entity_type": "CalendarEvent",
-      "entity_id": 3,
-      "title": "Audit Logging",
-      "content": "Event: Audit Logging\r\nType: Filing\r\nStart: 2025-11-11 14:15\r\nEnd: 2025-11-11 16:45\r\nLocation: {\"name\":\"Logging Lake\",\"address\":\"Logging Lake, Montana 59936, USA\",\"formatted_address\":\"Logging Lake, Montana 59936, USA\",\"place_id\":null,\"geometry\":{\"location\":{\"lat\":48.7591981,\"lng\":-114.0731626}}}\r\nDescription: Testing audit logging capabilities for newly created Calendar Events. Update test for audit log.\r\nAttendees: Kyle Wang, John Marshall\r\n",
-      "metadata": {
-        "startDateTime": "2025-11-11T14:15:00",
-        "endDateTime": "2025-11-11T16:45:00",
-        "eventType": "Filing",
-        "location": "{\"name\":\"Logging Lake\",\"address\":\"Logging Lake, Montana 59936, USA\",\"formatted_address\":\"Logging Lake, Montana 59936, USA\",\"place_id\":null,\"geometry\":{\"location\":{\"lat\":48.7591981,\"lng\":-114.0731626}}}",
-        "isAllDay": false,
-        "attendees": [
-          "Kyle Wang",
-          "John Marshall"
-        ],
-        "matterId": null
-      },
-      "created_at": "2025-10-21T09:03:11.6977475",
-      "modified_at": "2025-11-22T11:04:43.943634",
-      "relevance_score": 0
-    },
-    {
-      "id": "46bbf3d8-952b-4d28-934b-aece3ce0dd6e",
-      "module_name": "calendar",
-      "entity_type": "CalendarEvent",
-      "entity_id": 21,
-      "title": "Intro Demo Event with XYZ",
-      "content": "Event: Intro Demo Event with XYZ\r\nType: Conference\r\nStart: 2025-11-11 19:00\r\nEnd: 2025-11-11 22:00\r\nLocation: {\"name\":\"Marshalls\",\"address\":\"4209 Genesee Ave, San Diego, CA 92117, USA\",\"formatted_address\":\"4209 Genesee Ave, San Diego, CA 92117, USA\",\"place_id\":null,\"geometry\":null}\r\nDescription: Partner associate\r\nAttendees: Kyle Wang, John Marshall\r\n",
-      "metadata": {
-        "startDateTime": "2025-11-11T19:00:00",
-        "endDateTime": "2025-11-11T22:00:00",
-        "eventType": "Conference",
-        "location": "{\"name\":\"Marshalls\",\"address\":\"4209 Genesee Ave, San Diego, CA 92117, USA\",\"formatted_address\":\"4209 Genesee Ave, San Diego, CA 92117, USA\",\"place_id\":null,\"geometry\":null}",
-        "isAllDay": false,
-        "attendees": [
-          "Kyle Wang",
-          "John Marshall"
-        ],
-        "matterId": 30
-      },
-      "created_at": "2025-10-30T23:55:55.0524728",
-      "modified_at": "2025-11-22T11:04:43.943634",
-      "relevance_score": 0
-    },
-    {
-      "id": "c7be8804-4714-4be0-9e2f-4ba038aa2e90",
-      "module_name": "calendar",
-      "entity_type": "CalendarEvent",
-      "entity_id": 19,
-      "title": "Brown v. Jones Filing",
-      "content": "Event: Brown v. Jones Filing\r\nType: CourtDate\r\nStart: 2025-11-12 13:00\r\nEnd: 2025-11-12 14:00\r\nLocation: {\"name\":\"Superior Court Kearny Mesa Courthouse\",\"address\":\"8950 Clairemont Mesa Blvd, San Diego, CA 92123, USA\",\"formatted_address\":\"8950 Clairemont Mesa Blvd, San Diego, CA 92123, USA\",\"place_id\":null,\"geometry\":{\"location\":{\"lat\":32.8323913,\"lng\":-117.1356528}}}\r\nDescription: Need to go in-person to Superior Court Kearny Mesa Courthouse to submit Brown v. Jones filings.\r\nAttendees: Kyle Wang\r\n",
-      "metadata": {
-        "startDateTime": "2025-11-12T13:00:00",
-        "endDateTime": "2025-11-12T14:00:00",
-        "eventType": "CourtDate",
-        "location": "{\"name\":\"Superior Court Kearny Mesa Courthouse\",\"address\":\"8950 Clairemont Mesa Blvd, San Diego, CA 92123, USA\",\"formatted_address\":\"8950 Clairemont Mesa Blvd, San Diego, CA 92123, USA\",\"place_id\":null,\"geometry\":{\"location\":{\"lat\":32.8323913,\"lng\":-117.1356528}}}",
-        "isAllDay": false,
-        "attendees": [
-          "Kyle Wang"
-        ],
-        "matterId": null
-      },
-      "created_at": "2025-10-26T20:00:05.1468522",
-      "modified_at": "2025-11-22T11:04:43.943634",
-      "relevance_score": 0
-    },
-    {
-      "id": "1a870540-f3fe-4463-960b-68563630f9ec",
+      "id": "b8308192-364b-4ea2-91e3-210a57173be6",
       "module_name": "calendar",
       "entity_type": "CalendarEvent",
       "entity_id": 24,
@@ -1405,7 +1505,7 @@
       "relevance_score": 0
     },
     {
-      "id": "51b7bc09-01f8-4f4b-a8a5-9c2449518b52",
+      "id": "04425836-1e02-4936-9e28-3b7642c84510",
       "module_name": "calendar",
       "entity_type": "CalendarEvent",
       "entity_id": 25,
@@ -1427,7 +1527,7 @@
       "relevance_score": 0
     },
     {
-      "id": "5a815290-5e81-4d62-aa30-0bd9165180f2",
+      "id": "7df0f923-2705-4066-8a14-d6802f4f8a21",
       "module_name": "calendar",
       "entity_type": "CalendarEvent",
       "entity_id": 26,
@@ -1447,7 +1547,7 @@
       "relevance_score": 0
     },
     {
-      "id": "99ae67e1-b71a-4977-bb62-6898969bb046",
+      "id": "adf88e55-8f4f-41a5-87a6-fe850f52ec42",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1463,10 +1563,10 @@
       },
       "created_at": "2025-10-15T21:17:42.9635538",
       "modified_at": "2025-11-17T03:01:14.6859457",
-      "relevance_score": 1.2
+      "relevance_score": 1
     },
     {
-      "id": "52a1fa98-06e2-462f-a6fe-3a634aa4813c",
+      "id": "e5c1fedd-e4c0-427f-9357-4af7c38264c7",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1485,7 +1585,7 @@
       "relevance_score": 1
     },
     {
-      "id": "c5bfdf38-50e7-405f-a29c-1529d7204f94",
+      "id": "771584fb-d738-43b7-8694-4d50bce2506b",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 29,
@@ -1507,7 +1607,7 @@
       "relevance_score": 0
     },
     {
-      "id": "4cc19d44-f55d-4e92-a341-4ecb9fe693ab",
+      "id": "0d218a3d-1c3d-4ed1-84aa-dd3774d3e3da",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 44,
@@ -1528,7 +1628,7 @@
       "relevance_score": 0
     },
     {
-      "id": "17980a9a-bc1b-47ef-8b91-67d61c603bcf",
+      "id": "2d5d22df-b119-4008-bfd1-fbf22fc0e49d",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 55,
@@ -1550,7 +1650,7 @@
       "relevance_score": 0
     },
     {
-      "id": "09921e03-4419-4026-8824-a02350fd30e4",
+      "id": "14c47c8e-eca4-432e-b4b8-b2b3e2512228",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 28,
@@ -1572,7 +1672,7 @@
       "relevance_score": 0
     },
     {
-      "id": "658ed4f3-f2e9-4e19-b93c-76dc52a0c1f9",
+      "id": "d5949b95-f6d3-423a-825e-cbdf553808c2",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 27,
@@ -1595,7 +1695,7 @@
       "relevance_score": 0
     },
     {
-      "id": "9abcce21-475d-4e74-bbc2-a5e1cbae4f48",
+      "id": "218f9b54-53be-4348-841c-6ead8aac6e7a",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 52,
@@ -1618,7 +1718,7 @@
       "relevance_score": 0
     },
     {
-      "id": "5653bf14-20e9-45a3-a9d9-1511015416a9",
+      "id": "022a847d-b58f-4066-8059-abaed5d01d61",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 56,
@@ -1639,7 +1739,7 @@
       "relevance_score": 0
     },
     {
-      "id": "2a4a3a7b-cac6-4125-8208-d3183c7395b4",
+      "id": "a92d6fa4-ca9b-471d-89fe-593a0fd0d1e2",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 59,
@@ -1660,7 +1760,7 @@
       "relevance_score": 0
     },
     {
-      "id": "5e951060-7ed8-4dce-8035-28e3c1e34a79",
+      "id": "47249d4b-85c2-4924-8efc-9d3263792d77",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 43,
@@ -1682,7 +1782,7 @@
       "relevance_score": 0
     },
     {
-      "id": "db51db5d-6f55-4d9d-9621-431e202f33f8",
+      "id": "10863e46-f5d4-40f0-a3b0-4185cfc9f4bf",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 53,
@@ -1703,7 +1803,7 @@
       "relevance_score": 0
     },
     {
-      "id": "d67a3d69-aaf3-4a20-bfb1-b928707b49ec",
+      "id": "a70a7002-dc2e-48e6-b3d7-fb342e0f309b",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 54,
@@ -1724,7 +1824,7 @@
       "relevance_score": 0
     },
     {
-      "id": "1f535c0b-c235-4434-bfba-73fff33147bf",
+      "id": "b81af4c9-f237-49e1-8eac-6c8a6261e913",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 45,
@@ -1747,7 +1847,7 @@
       "relevance_score": 0
     },
     {
-      "id": "82981a71-5573-4c11-8e8e-1594262960ff",
+      "id": "d47382e3-1535-466f-b87a-6681c220c457",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1766,7 +1866,7 @@
       "relevance_score": 0
     },
     {
-      "id": "1f9451b1-7d71-4853-82ec-a2ccbd734088",
+      "id": "c81f0b4d-1fbb-4e31-8f3c-7ae1f82270c9",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1785,7 +1885,7 @@
       "relevance_score": 0
     },
     {
-      "id": "8365b4eb-4373-4e40-9968-39d620278003",
+      "id": "5d57f669-cbdd-4cf2-9446-3285b176912e",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1804,7 +1904,7 @@
       "relevance_score": 0
     },
     {
-      "id": "cf54f7ea-e4df-4db2-bb96-0015503b33aa",
+      "id": "0e759055-9b4c-4a58-a23d-9cd8504b9660",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1823,7 +1923,7 @@
       "relevance_score": 0
     },
     {
-      "id": "aad1ee1a-1b68-42da-880a-4d7099ac91a0",
+      "id": "09addcd1-eda4-4af3-879e-9a416611ab98",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1842,7 +1942,7 @@
       "relevance_score": 0
     },
     {
-      "id": "68c9fc5b-0dc7-4142-ae80-72071793d7d4",
+      "id": "a83af724-62d6-42c1-ab29-52ff00b428b2",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1861,7 +1961,7 @@
       "relevance_score": 0
     },
     {
-      "id": "8fb52cc9-92bf-46f5-a0a3-5ebc360426ab",
+      "id": "e19f8b4d-d923-4ed9-8736-fe249e339961",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1880,7 +1980,7 @@
       "relevance_score": 0
     },
     {
-      "id": "610d5428-9bd6-4760-821b-0c069dd52361",
+      "id": "a49dcf1c-4082-44c7-94d2-bba559b05d22",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1899,7 +1999,7 @@
       "relevance_score": 0
     },
     {
-      "id": "9759230f-0331-4923-9d3c-a88a9c9c9a2e",
+      "id": "fb74a3c2-c6f4-4891-a626-d3b1000712fd",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1918,7 +2018,7 @@
       "relevance_score": 0
     },
     {
-      "id": "b6d264da-1c81-41c5-b127-729ee002f40d",
+      "id": "f5f14f2e-402a-41ae-adf8-7f3702688b9d",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1937,7 +2037,7 @@
       "relevance_score": 0
     },
     {
-      "id": "a8e34b16-66ff-41f2-9e84-dce02c1f9270",
+      "id": "80c3f9cf-7284-4d1a-b481-839cbf8f0494",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1956,7 +2056,7 @@
       "relevance_score": 0
     },
     {
-      "id": "99c76254-394e-4494-96c7-3bdce2dddd1f",
+      "id": "c07c5171-5dae-45ef-ab1a-5f34bb581ec7",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1975,7 +2075,7 @@
       "relevance_score": 0
     },
     {
-      "id": "ab091cf4-8beb-4085-a3a7-bc1cad8798c7",
+      "id": "d5ccb57d-b0b9-4739-97e7-58965f4ea45c",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1994,7 +2094,7 @@
       "relevance_score": 0
     },
     {
-      "id": "d82ea28c-9c66-4f5d-b795-a7deedaa1c42",
+      "id": "f3c2b905-4def-4daa-b0be-a8158b14929a",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2013,7 +2113,7 @@
       "relevance_score": 0
     },
     {
-      "id": "4b24d3fb-6e97-42a7-b719-54c8e0f3ca2e",
+      "id": "90989bd6-48ec-4927-985b-00d15876c83e",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2032,7 +2132,7 @@
       "relevance_score": 0
     },
     {
-      "id": "9f2ccafa-7b7f-4a6f-b9de-d02842aa1cb1",
+      "id": "1669e8e9-8123-41f9-a648-e139ce64f566",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2051,7 +2151,7 @@
       "relevance_score": 0
     },
     {
-      "id": "d9c4acd1-63bd-40c0-aca4-1957c9c37471",
+      "id": "58893df5-81a7-4e98-9535-bd952d4e92ee",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2070,7 +2170,7 @@
       "relevance_score": 0
     },
     {
-      "id": "b55ae4ae-b6f1-4071-9511-223cd79c20e0",
+      "id": "8dfd6d54-2ed5-480b-8e4c-dadf6ce1e999",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2089,7 +2189,7 @@
       "relevance_score": 0
     },
     {
-      "id": "e2cd1f75-6b94-403a-a13f-e6f518215aa7",
+      "id": "b7823dc7-34a5-4c80-a0d0-c8c53d7c1ed1",
       "module_name": "clients",
       "entity_type": "User",
       "entity_id": 1,
@@ -2106,7 +2206,7 @@
       "relevance_score": 0
     },
     {
-      "id": "9ee301f2-2771-4cd2-b74e-d01942868d5d",
+      "id": "23341474-250b-4674-bd6e-438cbfdefa1e",
       "module_name": "clients",
       "entity_type": "User",
       "entity_id": 3,
@@ -2123,7 +2223,7 @@
       "relevance_score": 0
     },
     {
-      "id": "fcd99916-427c-4f90-8d90-ff8e9bcc2f9a",
+      "id": "c7c5943c-ad8a-4b03-811f-b6d8aa4486a8",
       "module_name": "clients",
       "entity_type": "User",
       "entity_id": 5,
@@ -2140,7 +2240,7 @@
       "relevance_score": 0
     },
     {
-      "id": "13cf688d-cf83-44e0-a4d9-cff816ea0d75",
+      "id": "62e4c30b-c292-40b9-a0c2-5a588c3e8d79",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2164,7 +2264,7 @@
       "relevance_score": 0
     },
     {
-      "id": "0c8bc4c1-2e15-44cb-91fc-7b5dc6709ba8",
+      "id": "7c1499db-6e7b-49a8-9f67-d2fd45606fbf",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2188,7 +2288,7 @@
       "relevance_score": 0
     },
     {
-      "id": "6f319126-ac42-4d94-b868-1861b469bf4d",
+      "id": "88c1c0de-3df7-459e-b91b-414832b92fbe",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2212,7 +2312,7 @@
       "relevance_score": 0
     },
     {
-      "id": "4f0311cd-741a-4815-a74b-c3dfdd1cf5ce",
+      "id": "5ba6c6fd-61e3-4c87-8aae-d7b98170c134",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2236,7 +2336,7 @@
       "relevance_score": 0
     },
     {
-      "id": "79bca95c-5139-40e3-b262-9074468dee14",
+      "id": "c948b4e1-4e9d-4cd8-917c-a9428d2908e3",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2260,7 +2360,7 @@
       "relevance_score": 0
     },
     {
-      "id": "ef4c65c3-354d-44cd-b6d9-86336fe75837",
+      "id": "6dc4e5b1-f03b-4471-a82b-9599a3d4003c",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2284,7 +2384,7 @@
       "relevance_score": 0
     },
     {
-      "id": "7802b9c5-532d-44c1-ac2a-4833da17fb61",
+      "id": "c4627958-8702-4c68-a2c7-c0780101b7c4",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2308,7 +2408,7 @@
       "relevance_score": 0
     },
     {
-      "id": "37974752-8cb9-4d01-9432-1fe089873201",
+      "id": "0773f513-a110-4938-b480-01fcd47165ab",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2332,7 +2432,7 @@
       "relevance_score": 0
     },
     {
-      "id": "6e9d0885-3f88-414d-b27a-a3549f9fe422",
+      "id": "817d22ef-aef6-42b7-9645-c7395e022212",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2356,7 +2456,7 @@
       "relevance_score": 0
     },
     {
-      "id": "1b0a637c-8ca4-498e-bb12-9dccee7c93c7",
+      "id": "3fcb6361-5e5f-4c17-a73d-c473b258c861",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2380,7 +2480,7 @@
       "relevance_score": 0
     },
     {
-      "id": "9b7a08a0-546b-4541-9ba7-d82b29cc4f06",
+      "id": "3f34fc6c-aa14-4049-b428-c412cf45acd1",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2404,7 +2504,7 @@
       "relevance_score": 0
     },
     {
-      "id": "674410c5-7704-4b2b-b4a4-6341d0f68ab1",
+      "id": "0b2bafa1-d278-43ae-8a6e-fd8b382e42bf",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2428,7 +2528,7 @@
       "relevance_score": 0
     },
     {
-      "id": "651ade8e-207f-4946-83f0-9f24b6c744ae",
+      "id": "6207e80c-2f6f-41a0-9cfe-fd65b33f36ff",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2452,7 +2552,7 @@
       "relevance_score": 0
     },
     {
-      "id": "21025488-7864-412c-bf3b-33b243f229b3",
+      "id": "61829221-fef5-46b8-b05a-c0cb3f11a79d",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2476,7 +2576,7 @@
       "relevance_score": 0
     },
     {
-      "id": "2cf5c72e-356f-4f0a-83be-8d99b41c2df9",
+      "id": "22aaa3c9-3604-4847-b73c-b6f225845c7f",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2500,7 +2600,7 @@
       "relevance_score": 0
     },
     {
-      "id": "e17fc281-d69d-4e48-9e9b-149c996ffa6f",
+      "id": "f9ba3ac7-d7df-4bde-bb43-a4546b232c1d",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2524,7 +2624,7 @@
       "relevance_score": 0
     },
     {
-      "id": "400229a1-2b28-44a8-9aea-35300aaad195",
+      "id": "2df1e746-7cf5-4d13-8e72-e5a6bde568f8",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2548,7 +2648,7 @@
       "relevance_score": 0
     },
     {
-      "id": "cdd309e0-ecb1-41ca-b059-142cfd940ac8",
+      "id": "43b7919b-ff47-4f78-8b11-c08da5276e7d",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2572,7 +2672,7 @@
       "relevance_score": 0
     },
     {
-      "id": "5e10ba67-2d26-45e3-ae2d-0a141369a682",
+      "id": "3b9b8ca5-aa3a-4c79-a620-9faf0b8cd18c",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2596,7 +2696,7 @@
       "relevance_score": 0
     },
     {
-      "id": "f92800fc-27b1-4e55-bbd3-ab39ba3a0b20",
+      "id": "5974646d-ef3c-4f83-ade2-705622e5eb98",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2620,7 +2720,7 @@
       "relevance_score": 0
     },
     {
-      "id": "fc344af6-1234-4fd8-b6ce-e24e88758d8a",
+      "id": "dfe46097-2f23-4abc-92ce-8bd85ec122a7",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2644,7 +2744,7 @@
       "relevance_score": 0
     },
     {
-      "id": "69ac6dee-f9e7-431e-a88a-bbae327a7bc6",
+      "id": "a7fa8f88-f124-4861-b182-13dcc0787d03",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2668,7 +2768,7 @@
       "relevance_score": 0
     },
     {
-      "id": "f4a68ba0-e356-4922-9d5e-6f44837817c4",
+      "id": "d239c063-0a41-403a-bd44-2c2302f9307f",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2692,7 +2792,7 @@
       "relevance_score": 0
     },
     {
-      "id": "d5b60184-76ec-46fe-b8d5-5d12641a3127",
+      "id": "2196ddcc-7a92-493e-9bd2-8e69521c3cb8",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2716,7 +2816,7 @@
       "relevance_score": 0
     },
     {
-      "id": "91364cef-04f4-4fa4-b431-659f6be2f072",
+      "id": "844deee6-1f25-4e1e-9112-e99530e432b4",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2740,7 +2840,7 @@
       "relevance_score": 0
     },
     {
-      "id": "05dadd40-473a-4488-ac81-e9c752bf525f",
+      "id": "d009b999-68f6-4b4b-9954-c19fce340e4e",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2764,7 +2864,7 @@
       "relevance_score": 0
     },
     {
-      "id": "6062afbb-0837-403e-a1e0-487e4b3556e1",
+      "id": "c00632ea-fef0-4477-a8b2-b35833080cc8",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2788,7 +2888,7 @@
       "relevance_score": 0
     },
     {
-      "id": "a3eaef61-a915-444c-9aa3-bb909b34cd86",
+      "id": "6d4b169b-8521-4727-ad04-d69af6e09628",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2812,7 +2912,7 @@
       "relevance_score": 0
     },
     {
-      "id": "9faba5df-a6d1-4a09-9955-d911423fe724",
+      "id": "04ef6b9a-288a-4e16-a0a3-ef90256ae9b3",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2836,7 +2936,7 @@
       "relevance_score": 0
     },
     {
-      "id": "a6be569b-c27f-4ba0-8e76-70a81ba187bb",
+      "id": "d2c8da05-0d69-4d97-a4e1-23f5bdcb6814",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2860,7 +2960,7 @@
       "relevance_score": 0
     },
     {
-      "id": "890304ab-e1e7-419f-9a3d-5eef2b777be5",
+      "id": "a7d83181-44a2-40f5-a85f-c2647e938fc1",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2884,7 +2984,7 @@
       "relevance_score": 0
     },
     {
-      "id": "84e2ca5b-4e08-40d9-b123-bca02d081d06",
+      "id": "32126ee3-a53a-4195-a1f6-d006e63fac1f",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2908,7 +3008,7 @@
       "relevance_score": 0
     },
     {
-      "id": "e505c8cb-9ea2-48d0-ab93-e631e829c79f",
+      "id": "3de21f5e-799d-4dcc-8ea9-185b0e018464",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2932,7 +3032,7 @@
       "relevance_score": 0
     },
     {
-      "id": "27d16862-2332-4d2e-a171-768635f7d3f9",
+      "id": "bd01ef65-5f90-4587-a87a-d602553ee1ad",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2956,7 +3056,7 @@
       "relevance_score": 0
     },
     {
-      "id": "3ffba73c-5653-479f-afa8-b53b9f9b7cb6",
+      "id": "2e1b9820-bfba-4309-97f4-7ad98242040d",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2980,7 +3080,7 @@
       "relevance_score": 0
     },
     {
-      "id": "b592e37b-9937-402d-a9f5-eadd728d2278",
+      "id": "4b5a34bb-8796-4c87-9cdb-94b9a4fce79e",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3004,7 +3104,7 @@
       "relevance_score": 0
     },
     {
-      "id": "25d845ca-2fc0-4e3d-8715-2d785f20980d",
+      "id": "5a6fc7a0-fab3-455f-912e-b29c47b9f7e0",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3028,7 +3128,7 @@
       "relevance_score": 0
     },
     {
-      "id": "f2f46ea2-fe77-48f0-928e-8cf566040c0c",
+      "id": "5950ffd2-6be8-4722-9fb9-d2df9d4b85ad",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3052,7 +3152,7 @@
       "relevance_score": 0
     },
     {
-      "id": "e9efc4b2-0c67-4165-b376-359cabb4bfd3",
+      "id": "2d2d9cf2-7866-4a1c-ab5f-f3eff0eb80ab",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3076,7 +3176,7 @@
       "relevance_score": 0
     },
     {
-      "id": "f845facb-2864-420e-9625-e35b706bad02",
+      "id": "6f147a2e-a89e-4708-95dc-a933533ad79a",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3100,7 +3200,7 @@
       "relevance_score": 0
     },
     {
-      "id": "72a4245e-620a-47e3-96cf-13b2e3f5e654",
+      "id": "394f5db8-c46b-43f4-952a-daae56d86145",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3124,7 +3224,7 @@
       "relevance_score": 0
     },
     {
-      "id": "8697afa8-8a78-4e8f-9763-94db598b590e",
+      "id": "27daa54a-4748-4724-9611-64014a7fb5ce",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3148,7 +3248,7 @@
       "relevance_score": 0
     },
     {
-      "id": "f37024ab-3b6b-41a1-a65e-9eb2e428d921",
+      "id": "420756c0-4ea0-4205-8ae7-bdec0aa557b7",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3172,7 +3272,7 @@
       "relevance_score": 0
     },
     {
-      "id": "11e20877-0522-4770-b985-03c8b0e09140",
+      "id": "54edd0e1-23fb-4344-aed8-0ce8be0cc6d4",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3196,7 +3296,7 @@
       "relevance_score": 0
     },
     {
-      "id": "7b0f92f3-fb8d-4c4c-ae27-8d5caa49ae87",
+      "id": "72ae2d14-2aaa-459d-b256-a04ea840cf37",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3220,7 +3320,7 @@
       "relevance_score": 0
     },
     {
-      "id": "2771b9fe-2839-40d4-a4b9-5069eb8670f9",
+      "id": "9b989e9b-b54b-45ba-9b96-3b7b04a8f695",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3244,7 +3344,7 @@
       "relevance_score": 0
     },
     {
-      "id": "0c8b2f64-4819-4fd3-9e4b-ed4bdc5c7f35",
+      "id": "c9d60959-33c2-41f1-b984-1a7f10ce131f",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3268,7 +3368,7 @@
       "relevance_score": 0
     },
     {
-      "id": "4454b2f9-42c5-49d7-8e9e-07de26639dcf",
+      "id": "0f7049f5-b668-43a0-8594-19e7e47c38ba",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3292,7 +3392,7 @@
       "relevance_score": 0
     },
     {
-      "id": "f60f2f9c-c8e7-4407-a9b2-b70647076e5b",
+      "id": "9f407ad0-35f6-4333-a6fd-2301bded6050",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3316,7 +3416,7 @@
       "relevance_score": 0
     },
     {
-      "id": "8fedbbc2-a6a6-4e61-abcd-ae07ca9bd27a",
+      "id": "c83d21f1-b52d-4489-9410-704f8589ba8c",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,

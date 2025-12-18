@@ -14,6 +14,16 @@
     var matterLabel = orgEntity != null 
         ? Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgEntity) 
         : Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
+
+    // "Legal" terminology follows the custom Matters terminology (UI label)
+    var legalTeamLabel = orgEntity != null
+        ? Certio.Web.Helpers.RoleDisplayHelper.GetLegalTeamTerminology(orgEntity)
+        : Certio.Web.Helpers.RoleDisplayHelper.GetLegalTeamTerminology(orgType);
+
+    // Single-word/short label for the team chip inside member cards (e.g., "Chapters" instead of "Legal")
+    var legalLabel = orgEntity != null
+        ? Certio.Web.Helpers.RoleDisplayHelper.GetLegalTerminology(orgEntity)
+        : Certio.Web.Helpers.RoleDisplayHelper.GetLegalTerminology(orgType);
     
     var generatedJoinCode = TempData["JoinCode"] as string;
     var generatedJoinCodeEmail = TempData["JoinCodeEmail"] as string;
@@ -39,7 +49,7 @@
         <div>
             <h1 class="display-6 fw-bold mb-2">Teams</h1>
             <p class="lead text-muted">
-                Manage team members across all @matterLabel.ToLower() stakeholders
+                Manage team members across all @matterLabel.ToLower()s
             </p>
         </div>
         <a class="btn btn-primary d-flex align-items-center gap-2" asp-controller="Client" asp-action="AddPeople" asp-route-orgId="@ViewBag.OrganizationId" style="font-weight: 500;">
@@ -66,7 +76,7 @@
                     <ul class="dropdown-menu" aria-labelledby="teamsFilterBtn">
                         <li><a class="dropdown-item teams-filter-option" href="#" data-filter="all">All Team Members</a></li>
                         <li><a class="dropdown-item teams-filter-option" href="#" data-filter="client">Client Team</a></li>
-                        <li><a class="dropdown-item teams-filter-option" href="#" data-filter="legal">Legal Team</a></li>
+                        <li><a class="dropdown-item teams-filter-option" href="#" data-filter="legal">@legalTeamLabel</a></li>
                         <li><a class="dropdown-item teams-filter-option" href="#" data-filter="external">External Team</a></li>
                     </ul>
                 </div>
@@ -177,7 +187,7 @@
                             var teamTitle = teamType switch
                             {
                                 Certio.Web.ViewModels.TeamType.Client => "Client Team",
-                                Certio.Web.ViewModels.TeamType.Legal => Certio.Web.Helpers.RoleDisplayHelper.GetLegalTeamTerminology(orgType),
+                                Certio.Web.ViewModels.TeamType.Legal => legalTeamLabel,
                                 Certio.Web.ViewModels.TeamType.External => "External (Other Parties)",
                                 _ => ""
                             };
@@ -220,7 +230,7 @@
                                         <!-- Team Type -->
                                         <div class="d-flex align-items-center gap-1 text-muted small">
                                             <i class="fas fa-briefcase" style="font-size: 0.75rem;"></i>
-                                            <span>@member.Team</span>
+                                            <span>@(member.Team == Certio.Web.ViewModels.TeamType.Legal ? legalLabel : member.Team.ToString())</span>
                                         </div>
                                     </div>
                                 </div>
@@ -321,7 +331,7 @@
                         <select class="form-select" id="memberTeam" required>
                             <option value="">Select Team</option>
                             <option value="Client">Client Team</option>
-                            <option value="Legal">Legal Team</option>
+                            <option value="Legal">@legalTeamLabel</option>
                             <option value="External">External (Other Parties)</option>
                         </select>
                     </div>
@@ -439,7 +449,7 @@
             const teamFilterLabels = {
                 'all': 'All Team Members',
                 'client': 'Client Team',
-                'legal': 'Legal Team',
+                'legal': '@legalTeamLabel',
                 'external': 'External Team'
             };
 

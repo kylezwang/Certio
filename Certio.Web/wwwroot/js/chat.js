@@ -619,6 +619,8 @@ async function generateAIResponse(userMessage) {
         const decoder = new TextDecoder();
         let buffer = '';
         
+        // While streaming, never show raw [ACTION:...] text. We render action cards instead (Cursor-style).
+        
         while (true) {
             const { done, value } = await reader.read();
             
@@ -742,6 +744,24 @@ async function generateAIResponse(userMessage) {
                                 let displayText = fullContent
                                     .replace(/<[^>]*$/g, '')  // Remove incomplete tag at the end (e.g., "<p" or "<stro")
                                     .trim();
+
+                                // Cursor-style streaming:
+                                // - Replace complete action blocks with animated action cards
+                                // - Replace an in-progress trailing action block with a placeholder action card
+                                if (typeof window.AgentActions !== 'undefined') {
+                                    if (window.AgentActions.replaceWithCardsStreaming) {
+                                        displayText = window.AgentActions.replaceWithCardsStreaming(displayText);
+                                    } else if (window.AgentActions.replaceWithCards) {
+                                        displayText = window.AgentActions.replaceWithCards(displayText);
+                                        displayText = displayText.replace(/\[ACTION:[\s\S]*$/g, '').trim();
+                                    } else if (window.AgentActions.stripActionCommands) {
+                                        displayText = window.AgentActions.stripActionCommands(displayText);
+                                        displayText = displayText.replace(/\[ACTION:[\s\S]*$/g, '').trim();
+                                    }
+                                } else {
+                                    // Fallback safety: hide any trailing action command text
+                                    displayText = displayText.replace(/\[ACTION:[\s\S]*$/g, '').trim();
+                                }
                                 
                                 console.log('🔤 displayText:', displayText.substring(0, 50));
                                 console.log('🎯 About to update DOM...');
@@ -1364,34 +1384,48 @@ function isMessageInStickyArea(element, container) {
 
 // Format AI message based on message type
 function formatAIMessage(message) {
-    if (!message.messageType.startsWith('AI_')) {
-        // Convert markdown to HTML for regular messages too
-        return convertMarkdownToHtml(message.content);
+    const messageType = message?.messageType || '';
+    const rawContent = message?.content || '';
+    
+    // IMPORTANT: Regardless of message type, AI content may contain [ACTION:...] blocks.
+    // We always route through formatIntelligentResponse() so action blocks are replaced/stripped
+    // during history render and after navigation.
+    if (!messageType.startsWith('AI_')) {
+        return formatIntelligentResponse(rawContent);
     }
     
     // Handle AI_Response type directly (it's plain text, not JSON)
-    if (message.messageType === 'AI_Response') {
-        return formatIntelligentResponse(message.content);
+    if (messageType === 'AI_Response') {
+        return formatIntelligentResponse(rawContent);
     }
     
     try {
-        const aiData = JSON.parse(message.content);
+        const aiData = JSON.parse(rawContent);
         
-        switch (message.messageType) {
+        let formatted = '';
+        switch (messageType) {
             case 'AI_Summary':
-                return formatSummaryMessage(aiData);
+                formatted = formatSummaryMessage(aiData);
+                break;
             case 'AI_Goal':
-                return formatGoalMessage(aiData);
+                formatted = formatGoalMessage(aiData);
+                break;
             case 'AI_Reply':
-                return formatReplyMessage(aiData);
+                formatted = formatReplyMessage(aiData);
+                break;
             case 'AI_Clarity':
-                return formatClarityMessage(aiData);
+                formatted = formatClarityMessage(aiData);
+                break;
             default:
-                return `<div class="ai-result"><pre>${cleanNewlines(message.content)}</pre></div>`;
+                formatted = `<div class="ai-result"><pre>${cleanNewlines(rawContent)}</pre></div>`;
+                break;
         }
+        
+        // Sanitize/replace any action blocks that might have been included
+        return formatIntelligentResponse(formatted);
     } catch (e) {
         // If JSON parsing fails, try to format as intelligent response
-        return formatIntelligentResponse(message.content);
+        return formatIntelligentResponse(rawContent);
     }
 }
 
@@ -1533,23 +1567,31 @@ function formatClarityMessage(data) {
 
 // Format intelligent AI response
 function formatIntelligentResponse(content) {
-    // Check if content is already HTML (contains HTML tags)
+    if (!content) return content;
+
+    // Render markdown first (unless already HTML), then ALWAYS sanitize/replace any [ACTION:...] blocks.
+    // This ensures raw commands never appear:
+    // - during reload/history render
+    // - during navigation
+    // - even if agent-actions.js hasn't initialized yet
     const hasHtmlTags = /<[^>]+>/.test(content);
-    
-    // If already HTML, return as-is (streaming responses are already formatted)
-    if (hasHtmlTags) {
-        return content;
+    let html = hasHtmlTags ? content : convertMarkdownToHtml(content);
+
+    // Replace complete action blocks with an in-message action container (Cursor-style) if available,
+    // otherwise strip them entirely. Also strip any trailing partial block as a safety net.
+    if (typeof window.AgentActions !== 'undefined' && window.AgentActions.replaceWithCards) {
+        html = window.AgentActions.replaceWithCards(html);
+    } else {
+        html = html.replace(/\[ACTION:\w+\][\s\S]*?\[\/ACTION\]/g, '');
     }
-    
-    // Otherwise, convert markdown to HTML
-    const htmlContent = convertMarkdownToHtml(content);
-    
+    html = html.replace(/\[ACTION:[\s\S]*$/g, '').trim();
+
     // Check if this is a service unavailable message
-    if (content.includes("AI Services Temporarily Unavailable")) {
-        return htmlContent;
+    if (!hasHtmlTags && content.includes("AI Services Temporarily Unavailable")) {
+        return html;
     }
-    
-    return htmlContent;
+
+    return html;
 }
 
 // Convert markdown to HTML
@@ -2482,6 +2524,29 @@ function centerActionButtons(chatPanelWidth) {
     }
 }
 
+// Right sidebar width (AI / Comms / Notifications) - keep ONE shared width so the resize handle
+// stays consistent when switching between the 3 sidebars.
+const RIGHT_SIDEBAR_WIDTH_KEY = 'rightSidebarWidth';
+
+function getSavedRightSidebarWidth() {
+    // Back-compat: older builds stored AI chat as chatPanelWidth and comms/notifications as notificationsPanelWidth
+    const raw =
+        localStorage.getItem(RIGHT_SIDEBAR_WIDTH_KEY) ||
+        localStorage.getItem('chatPanelWidth') ||
+        localStorage.getItem('notificationsPanelWidth') ||
+        '320';
+
+    const n = parseInt(raw, 10);
+    return Number.isFinite(n) ? n : 320;
+}
+
+function setSavedRightSidebarWidth(width) {
+    localStorage.setItem(RIGHT_SIDEBAR_WIDTH_KEY, String(width));
+    // Also write legacy keys so any older code paths still behave predictably
+    localStorage.setItem('chatPanelWidth', String(width));
+    localStorage.setItem('notificationsPanelWidth', String(width));
+}
+
 // Chat Layout Functions
 function initializeChatLayout() {
     // Initialize resize functionality (this restores resize handle position based on active sidebar)
@@ -2495,9 +2560,7 @@ function initializeChatLayout() {
     }
     
     // Set initial chat panel width from localStorage or default
-    const savedWidth = localStorage.getItem('chatPanelWidth');
-    const defaultWidth = 320; // Default narrower width
-    const chatPanelWidth = savedWidth ? parseInt(savedWidth) : defaultWidth;
+    const chatPanelWidth = getSavedRightSidebarWidth();
     
     const chatPanel = document.getElementById('chatPanel');
     const mainContent = document.querySelector('.main-content');
@@ -2647,16 +2710,16 @@ function initializeResizeHandle() {
     // Restore resize handle position on page load based on active sidebar
     const activeSidebar = localStorage.getItem('activeSidebar');
     if (activeSidebar === 'ai') {
-        const savedWidth = localStorage.getItem('chatPanelWidth') || '320';
-        resizeHandle.style.right = (parseInt(savedWidth) - 12) + 'px';
+        const savedWidth = getSavedRightSidebarWidth();
+        resizeHandle.style.right = (savedWidth - 12) + 'px';
         resizeHandle.style.display = 'flex';
     } else if (activeSidebar === 'notifications') {
-        const savedWidth = localStorage.getItem('notificationsPanelWidth') || '320';
-        resizeHandle.style.right = (parseInt(savedWidth) - 12) + 'px';
+        const savedWidth = getSavedRightSidebarWidth();
+        resizeHandle.style.right = (savedWidth - 12) + 'px';
         resizeHandle.style.display = 'flex';
     } else if (activeSidebar === 'comms') {
-        const savedWidth = localStorage.getItem('notificationsPanelWidth') || '320';
-        resizeHandle.style.right = (parseInt(savedWidth) - 12) + 'px';
+        const savedWidth = getSavedRightSidebarWidth();
+        resizeHandle.style.right = (savedWidth - 12) + 'px';
         resizeHandle.style.display = 'flex';
     }
     
@@ -2710,14 +2773,11 @@ function initializeResizeHandle() {
             // Determine which panel is active
             const sidebarTarget = window.currentSidebarTarget;
             let activePanel;
-            let storageKey = 'chatPanelWidth';
             
             if (sidebarTarget === 'comms') {
                 activePanel = commsSidebarPanel;
-                storageKey = 'notificationsPanelWidth'; // Share width with notifications
             } else if (sidebarTarget === 'notifications') {
                 activePanel = notificationsPanel;
-                storageKey = 'notificationsPanelWidth';
             } else {
                 activePanel = chatPanel;
             }
@@ -2734,10 +2794,12 @@ function initializeResizeHandle() {
                 mainContentWrapper.style.right = newWidth + 'px';
             }
             
-            // Update task details modal to make space for sidebar
-            const taskDetailsModal = document.querySelector('.task-details-modal');
-            if (taskDetailsModal) {
-                taskDetailsModal.style.right = newWidth + 'px';
+            // Keep modals perfectly aligned with the live main content edge (Cursor-like snapping)
+            if (typeof window.adjustTaskDetailsModalPosition === 'function') {
+                window.adjustTaskDetailsModalPosition();
+            }
+            if (typeof window.adjustEmailModalPosition === 'function') {
+                window.adjustEmailModalPosition();
             }
             
             // Update floating timer overlay position
@@ -2756,8 +2818,8 @@ function initializeResizeHandle() {
                 window.centerSearchBar();
             }
             
-            // Save to localStorage with appropriate key
-            localStorage.setItem(storageKey, newWidth);
+            // Save ONE shared width for all 3 sidebars
+            setSavedRightSidebarWidth(newWidth);
         }
     });
     
@@ -2790,6 +2852,14 @@ function initializeResizeHandle() {
             // Center search bar after resize completes
             if (typeof window.centerSearchBar === 'function') {
                 window.centerSearchBar();
+            }
+
+            // Final snap alignment for modals after resize ends
+            if (typeof window.adjustTaskDetailsModalPosition === 'function') {
+                window.adjustTaskDetailsModalPosition();
+            }
+            if (typeof window.adjustEmailModalPosition === 'function') {
+                window.adjustEmailModalPosition();
             }
         }
     });

@@ -57,8 +57,58 @@ namespace Certio.Application.Services
                     return AgentActionResult.Fail($"Invalid action type: {actionType}", "INVALID_ACTION_TYPE");
                 }
 
+                // Normalize payload for validation:
+                // - API model binding typically gives `JsonElement` for `object` properties
+                // - AI/action JSON is usually camelCase, but our payload DTOs are PascalCase
+                // - MatterId can come from context (route) even if omitted in payload
+                var payloadForValidation = payload;
+                var deserializeOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                if (payload is JsonElement je)
+                {
+                    try
+                    {
+                        payloadForValidation = actionType switch
+                        {
+                            AgentActionTypes.CreateTask => JsonSerializer.Deserialize<CreateTaskPayload>(je.GetRawText(), deserializeOptions) ?? payload,
+                            AgentActionTypes.AttachFile => JsonSerializer.Deserialize<AttachFilePayload>(je.GetRawText(), deserializeOptions) ?? payload,
+                            AgentActionTypes.AddNote => JsonSerializer.Deserialize<AddNotePayload>(je.GetRawText(), deserializeOptions) ?? payload,
+                            AgentActionTypes.StartTimer => JsonSerializer.Deserialize<StartTimerPayload>(je.GetRawText(), deserializeOptions) ?? payload,
+                            _ => payload
+                        };
+                    }
+                    catch
+                    {
+                        // Keep original payload if we can't deserialize
+                        payloadForValidation = payload;
+                    }
+                }
+
+                // Apply contextual MatterId if supplied and missing from payload
+                if (matterId.HasValue && matterId.Value > 0)
+                {
+                    switch (payloadForValidation)
+                    {
+                        case CreateTaskPayload ct when ct.MatterId <= 0:
+                            ct.MatterId = matterId.Value;
+                            payloadForValidation = ct;
+                            break;
+                        case AttachFilePayload af when af.MatterId <= 0:
+                            af.MatterId = matterId.Value;
+                            payloadForValidation = af;
+                            break;
+                        case AddNotePayload an when an.MatterId <= 0:
+                            an.MatterId = matterId.Value;
+                            payloadForValidation = an;
+                            break;
+                        case StartTimerPayload st when st.MatterId <= 0:
+                            st.MatterId = matterId.Value;
+                            payloadForValidation = st;
+                            break;
+                    }
+                }
+
                 // Validate payload
-                var validationResult = await ValidatePayloadAsync(actionType, payload, organizationId);
+                var validationResult = await ValidatePayloadAsync(actionType, payloadForValidation, organizationId);
                 if (!validationResult.IsValid)
                 {
                     return AgentActionResult.Fail(string.Join("; ", validationResult.Errors), "VALIDATION_ERROR");
@@ -73,8 +123,8 @@ namespace Certio.Application.Services
                     MatterId = matterId,
                     ActionType = actionType,
                     Status = AgentActionStatus.Pending,
-                    Description = description ?? GetDefaultDescription(actionType, payload),
-                    ActionPayload = JsonSerializer.Serialize(payload, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }),
+                    Description = description ?? GetDefaultDescription(actionType, payloadForValidation),
+                    ActionPayload = JsonSerializer.Serialize(payloadForValidation, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }),
                     ProposedById = proposedByUserId,
                     AIAgentType = aiAgentType,
                     SourceConversationId = sourceConversationId,
@@ -583,6 +633,7 @@ namespace Certio.Application.Services
         public async Task<AgentActionValidationResult> ValidatePayloadAsync(string actionType, object payload, int organizationId)
         {
             var errors = new List<string>();
+            var deserializeOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
             switch (actionType)
             {
@@ -603,7 +654,7 @@ namespace Certio.Application.Services
                     }
                     else if (payload is JsonElement je)
                     {
-                        var taskPayload = JsonSerializer.Deserialize<CreateTaskPayload>(je.GetRawText());
+                        var taskPayload = JsonSerializer.Deserialize<CreateTaskPayload>(je.GetRawText(), deserializeOptions);
                         if (taskPayload != null)
                             return await ValidatePayloadAsync(actionType, taskPayload, organizationId);
                     }
@@ -621,6 +672,12 @@ namespace Certio.Application.Services
                         if (string.IsNullOrWhiteSpace(attachFile.TargetEntityType))
                             errors.Add("Target entity type is required");
                     }
+                    else if (payload is JsonElement je)
+                    {
+                        var attachPayload = JsonSerializer.Deserialize<AttachFilePayload>(je.GetRawText(), deserializeOptions);
+                        if (attachPayload != null)
+                            return await ValidatePayloadAsync(actionType, attachPayload, organizationId);
+                    }
                     else
                     {
                         errors.Add("Invalid AttachFile payload format");
@@ -635,6 +692,12 @@ namespace Certio.Application.Services
                         if (string.IsNullOrWhiteSpace(addNote.Content))
                             errors.Add("Note content is required");
                     }
+                    else if (payload is JsonElement je)
+                    {
+                        var notePayload = JsonSerializer.Deserialize<AddNotePayload>(je.GetRawText(), deserializeOptions);
+                        if (notePayload != null)
+                            return await ValidatePayloadAsync(actionType, notePayload, organizationId);
+                    }
                     else
                     {
                         errors.Add("Invalid AddNote payload format");
@@ -648,6 +711,12 @@ namespace Certio.Application.Services
                             errors.Add("Valid matter ID is required");
                         if (string.IsNullOrWhiteSpace(startTimer.Description))
                             errors.Add("Timer description is required");
+                    }
+                    else if (payload is JsonElement je)
+                    {
+                        var timerPayload = JsonSerializer.Deserialize<StartTimerPayload>(je.GetRawText(), deserializeOptions);
+                        if (timerPayload != null)
+                            return await ValidatePayloadAsync(actionType, timerPayload, organizationId);
                     }
                     else
                     {
@@ -913,9 +982,20 @@ namespace Certio.Application.Services
 
         private async Task LogAuditEventAsync(AgentAction action, string auditAction, int? userId)
         {
+            const int MaxAuditDescriptionLength = 500;
+            static string? Truncate(string? value, int maxLen)
+            {
+                if (string.IsNullOrEmpty(value)) return value;
+                if (value.Length <= maxLen) return value;
+                if (maxLen <= 1) return value.Substring(0, Math.Max(0, maxLen));
+                return value.Substring(0, maxLen - 1) + "…";
+            }
+
+            AuditLog? auditLog = null;
             try
             {
-                var auditLog = new AuditLog
+                var description = $"{auditAction}: {action.ActionType} - {action.Description}";
+                auditLog = new AuditLog
                 {
                     EntityType = "AgentAction",
                     EntityId = action.Id,
@@ -928,7 +1008,10 @@ namespace Certio.Application.Services
                     AIAgentType = action.AIAgentType,
                     SourceConversationId = action.SourceConversationId,
                     SourceMessageId = action.SourceMessageId,
-                    Description = $"{auditAction}: {action.ActionType} - {action.Description}",
+                    // Prevent SQL truncation errors (AuditLogs.Description is nvarchar(500)).
+                    // If this overflows, EF keeps the entity tracked as Added and later SaveChanges()
+                    // calls can repeatedly fail (breaking Keep/Execute).
+                    Description = Truncate(description, MaxAuditDescriptionLength),
                     NewValues = JsonSerializer.Serialize(new
                     {
                         action.RunId,
@@ -945,6 +1028,20 @@ namespace Certio.Application.Services
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Failed to log audit event for action {ActionId}", action.Id);
+                
+                // Defensive: if SaveChanges failed, ensure we don't poison the DbContext with a pending AuditLog
+                // that will re-fail on subsequent SaveChanges calls.
+                try
+                {
+                    if (auditLog != null)
+                    {
+                        _context.Entry(auditLog).State = EntityState.Detached;
+                    }
+                }
+                catch
+                {
+                    // Ignore cleanup failures
+                }
             }
         }
 

@@ -2,6 +2,9 @@
 echo Starting Certio Services...
 echo.
 
+set "NO_PAUSE=0"
+if /I "%1"=="--no-pause" set "NO_PAUSE=1"
+
 REM Load environment variables from .env file if it exists
 if exist .env (
     for /f "usebackq tokens=1,2 delims==" %%a in (.env) do (
@@ -87,4 +90,4 @@ echo AI Service:   http://localhost:8000
 echo Web App:      http://localhost:5092
 echo ========================================
 echo.
-pause
+if "%NO_PAUSE%"=="0" pause

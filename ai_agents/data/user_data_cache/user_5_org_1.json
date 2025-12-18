@@ -2,8 +2,8 @@
   "user_id": 5,
   "organization_id": 1,
   "user_name": "John Marshall",
-  "total_chunks": 80,
-  "last_synced": "2025-11-22T18:51:51.227764",
+  "total_chunks": 122,
+  "last_synced": "2025-12-13T21:38:11.933871",
   "module_summaries": {
     "matters": {
       "totalMatters": 29,
@@ -32,16 +32,16 @@
     },
     "tasks": {
       "totalTasks": 21,
-      "pendingTasks": 3,
+      "pendingTasks": 2,
       "inProgressTasks": 3,
-      "completedTasks": 7,
+      "completedTasks": 8,
       "highPriorityTasks": 14
     },
     "calendar": {
-      "totalEvents": 11,
-      "upcomingEvents": 1,
+      "totalEvents": 3,
+      "upcomingEvents": 0,
       "todayEvents": 0,
-      "thisWeekEvents": 1
+      "thisWeekEvents": 0
     },
     "communications": {
       "totalChannels": 12,
@@ -53,11 +53,25 @@
     "clients": {
       "totalClients": 3,
       "activeClients": 3
+    },
+    "documents": {
+      "totalDocuments": 50,
+      "documentsByType": {
+        "text/plain": 4,
+        "application/octet-stream": 28,
+        "application/java-archive": 7,
+        "application/x-msdos-program": 1,
+        "application/x-zip": 8,
+        "application/java": 1,
+        "application/x-object": 1
+      },
+      "documentsWithContent": 2,
+      "documentsWithFailedExtraction": 48
     }
   },
   "chunks": [
     {
-      "id": "77bb7fd2-1672-40d2-84bd-5ee56f5ad52c",
+      "id": "1df0e678-5d59-45d6-b637-1bc7a5d0d4a9",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 16,
@@ -84,7 +98,7 @@
       "relevance_score": 0
     },
     {
-      "id": "8200fcb6-b6b3-400d-b2df-818cce23b931",
+      "id": "fea683c2-b08b-4229-8c81-47b44036fc39",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 5,
@@ -112,7 +126,7 @@
       "relevance_score": 0
     },
     {
-      "id": "715c6933-35b7-4372-8bfb-9891a7be4b25",
+      "id": "0d9c97c3-3f8d-40d5-9e22-68b4c15a581c",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 30,
@@ -140,7 +154,7 @@
       "relevance_score": 0
     },
     {
-      "id": "15b12c25-f60e-4cd1-94be-c306ba4b8e44",
+      "id": "3c1b5b73-75a4-43e7-8f92-d3a42722ab3d",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 29,
@@ -164,7 +178,7 @@
       "relevance_score": 0
     },
     {
-      "id": "10b647e0-169b-4365-815f-063fa8cfae80",
+      "id": "48647df5-81dc-4dac-9609-31628e377b3c",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 28,
@@ -192,7 +206,7 @@
       "relevance_score": 0
     },
     {
-      "id": "1d9c47d5-ae6d-49a7-82d6-06062671f2e6",
+      "id": "aa43b339-42d6-4789-92a6-c2a0260665d9",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 27,
@@ -220,7 +234,7 @@
       "relevance_score": 0
     },
     {
-      "id": "9d9b454e-f775-40f0-8793-ae78519e6fe2",
+      "id": "ef4fceff-0bd0-4464-8e80-1c2aa3b74d30",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 26,
@@ -248,7 +262,7 @@
       "relevance_score": 0
     },
     {
-      "id": "3f93829f-18b2-4d7e-a06d-ee57a16804db",
+      "id": "82a47073-47ba-41f3-984b-6a8269f6df16",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 25,
@@ -276,7 +290,7 @@
       "relevance_score": 0
     },
     {
-      "id": "88f2ee61-3821-4fc8-ada3-65d5944ed26d",
+      "id": "f708fa01-7448-4dac-a316-a6e73f99a732",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 24,
@@ -304,7 +318,7 @@
       "relevance_score": 0
     },
     {
-      "id": "d91fda2f-aead-47d0-b358-b34f39aac28f",
+      "id": "5f35758c-a8c5-4a7f-9d5a-fa9a7e4efc61",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 23,
@@ -328,7 +342,7 @@
       "relevance_score": 0
     },
     {
-      "id": "f764a24e-2676-4779-8fef-5084f8dacc57",
+      "id": "2212ee17-2d84-40d2-b711-367d9db7989b",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 22,
@@ -356,7 +370,7 @@
       "relevance_score": 0
     },
     {
-      "id": "15c26391-7cab-42c9-97dd-319278ff2128",
+      "id": "2d865f51-8e29-4d66-bace-ab164823f77b",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 21,
@@ -384,7 +398,7 @@
       "relevance_score": 0
     },
     {
-      "id": "418f4348-1806-4771-8e1b-058856d5fb61",
+      "id": "38e27cae-9c3b-4b7c-97e6-1dc186d9fc94",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 20,
@@ -412,7 +426,7 @@
       "relevance_score": 0
     },
     {
-      "id": "9415a9c0-bb54-4367-bfb6-e7d8b633a191",
+      "id": "2b6e0aad-efce-46a6-957e-b4a92c282b9c",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 19,
@@ -440,7 +454,7 @@
       "relevance_score": 0
     },
     {
-      "id": "bc9c420d-d4ff-43ca-8b52-ff31748af05b",
+      "id": "83a70d91-61e8-48cd-9168-fb9277af68bd",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 18,
@@ -468,7 +482,7 @@
       "relevance_score": 0
     },
     {
-      "id": "89ff6acf-fb0f-4814-b0bd-be139eec71b5",
+      "id": "a8b7ab9b-6708-4302-b00c-d42bc6a73b7e",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 17,
@@ -496,7 +510,7 @@
       "relevance_score": 0
     },
     {
-      "id": "71658df9-3f21-4600-92db-e7480d06cc55",
+      "id": "325b6f74-5de7-412d-bb45-4b7dcf584e53",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 15,
@@ -520,7 +534,7 @@
       "relevance_score": 0
     },
     {
-      "id": "837fbc34-dd2f-455f-b692-09f63fbe5bd4",
+      "id": "a5c623f7-8059-4a12-bed4-85c18cd1c4b2",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 14,
@@ -547,7 +561,7 @@
       "relevance_score": 0
     },
     {
-      "id": "e643b741-ca6e-43ea-818c-cafdbf9629df",
+      "id": "f4b0d03e-31b9-46b2-850a-c1b62b740fe5",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 13,
@@ -571,7 +585,7 @@
       "relevance_score": 0
     },
     {
-      "id": "5e27c599-02c4-49fb-9227-a96b7fda5918",
+      "id": "3ea5e45f-3d9c-40a7-9677-33f906503a4e",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 12,
@@ -600,7 +614,7 @@
       "relevance_score": 0
     },
     {
-      "id": "018b3b1a-d462-45b2-bf16-22ee3deb5f68",
+      "id": "944dce2c-e386-4609-a534-34878a826a55",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 11,
@@ -629,7 +643,7 @@
       "relevance_score": 0
     },
     {
-      "id": "6c936d4b-4a09-4c07-9451-cef71137d1a2",
+      "id": "353fb69b-e4f9-4d4b-a08c-561f2dca61c6",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 10,
@@ -658,12 +672,12 @@
       "relevance_score": 0
     },
     {
-      "id": "d70fc704-651d-4a8e-8774-354ba7b16bb8",
+      "id": "30e72e38-553c-47b5-b3ef-5025520528fc",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 9,
       "title": "Brand New Day Document Review",
-      "content": "=== MATTER: Brand New Day Document Review ===\r\nMatter ID: 9\r\nClient/Organization: Law Office of Kyle Wang\r\nStatus: Review\r\nPractice Area: Real Estate\r\nDescription: This is a document review request for Brand New Day\r\nStart Date: 2025-10-08\r\nDue Date: 2025-10-30\r\nPending Date: 2025-10-18\r\nStatute of Limitations: 2025-10-26\r\nTasks Progress: 0/2 tasks completed\r\nTeam Members:\r\n  - John Marshall (ResponsibleAttorney)\r\n  - Kyle Wang (ResponsibleStaff)\r\n  - John Marshall (OriginatingAttorney)\r\n  - Chloe Tang (RelevantContact)\r\nCreated: 2025-10-02\r\n",
+      "content": "=== MATTER: Brand New Day Document Review ===\r\nMatter ID: 9\r\nClient/Organization: Law Office of Kyle Wang\r\nStatus: Review\r\nPractice Area: Real Estate\r\nDescription: This is a document review request for Brand New Day\r\nStart Date: 2025-10-08\r\nDue Date: 2025-10-30\r\nPending Date: 2025-10-18\r\nStatute of Limitations: 2025-10-26\r\nTasks Progress: 1/2 tasks completed\r\nTeam Members:\r\n  - John Marshall (ResponsibleAttorney)\r\n  - Kyle Wang (ResponsibleStaff)\r\n  - John Marshall (OriginatingAttorney)\r\n  - Chloe Tang (RelevantContact)\r\nCreated: 2025-10-02\r\n",
       "metadata": {
         "matterId": 9,
         "organizationId": 1,
@@ -671,7 +685,7 @@
         "status": "Review",
         "practiceArea": "Real Estate",
         "dueDate": "2025-10-30T00:00:00",
-        "tasksCompleted": 0,
+        "tasksCompleted": 1,
         "totalTasks": 2,
         "assignees": [
           "John Marshall",
@@ -687,7 +701,7 @@
       "relevance_score": 0
     },
     {
-      "id": "1d34cb5e-3c16-47eb-97b1-0baff46fb484",
+      "id": "af193298-8df2-4d51-878c-b40eb524ae59",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 8,
@@ -716,7 +730,7 @@
       "relevance_score": 0
     },
     {
-      "id": "1651239f-5109-4b25-9601-7600cc34c713",
+      "id": "f413502c-7be8-487a-bdec-737bbd452a0d",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 7,
@@ -745,7 +759,7 @@
       "relevance_score": 0
     },
     {
-      "id": "06f8a895-a5c8-4ed7-9165-85dcb057a7b7",
+      "id": "60c8c78b-e1c5-45f9-92de-c62259de2e40",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 6,
@@ -774,7 +788,7 @@
       "relevance_score": 0
     },
     {
-      "id": "100cfbca-d81f-4d2e-a185-aae7873a79f8",
+      "id": "2d1885ac-af3c-468d-921d-6f3b8f35da7a",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 4,
@@ -803,7 +817,7 @@
       "relevance_score": 0
     },
     {
-      "id": "e03442ea-3087-4c5d-842f-5120a08e2b8d",
+      "id": "70769e19-1868-4c0e-b279-51a540693e0c",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 2,
@@ -832,7 +846,7 @@
       "relevance_score": 0
     },
     {
-      "id": "8a5fe535-779c-44ac-a368-c08f77aca22b",
+      "id": "d82d3bb4-e1e9-49a2-bd7f-7689cec54107",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 1,
@@ -861,7 +875,28 @@
       "relevance_score": 0
     },
     {
-      "id": "4ea92c93-fb9b-4148-bef3-a1c66fbaeabc",
+      "id": "4fbfc0f4-7300-408b-af5c-143dc83c7a83",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 2,
+      "title": "Brand New Day's First Task",
+      "content": "Task: Brand New Day's First Task\r\nStatus: Completed\r\nPriority: Medium\r\nDescription: The first task added into the Certio desktop development database! Here's a test update. Another test update.\r\nRelated Matter: Brand New Day Document Review\r\nDue Date: 2025-10-05\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Completed",
+        "priority": "Medium",
+        "dueDate": "2025-10-05T00:00:00",
+        "matterId": 9,
+        "matterTitle": "Brand New Day Document Review",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-10-04T11:40:34.087416",
+      "modified_at": "2025-12-07T10:14:07.4790494",
+      "relevance_score": 0
+    },
+    {
+      "id": "8766b1fc-b6ce-41b8-84d4-fcc5b7218925",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 15,
@@ -882,7 +917,7 @@
       "relevance_score": 0
     },
     {
-      "id": "d789a843-c582-44f4-9f13-527e2ad1f248",
+      "id": "5c10f41f-a8c5-49b1-b989-176cbd26575a",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 21,
@@ -903,7 +938,7 @@
       "relevance_score": 0
     },
     {
-      "id": "34fc3564-979c-4300-bcea-c38e53a69f29",
+      "id": "774ea0c9-6126-47f2-a5e2-e7b95afe8efd",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 9,
@@ -925,7 +960,7 @@
       "relevance_score": 0
     },
     {
-      "id": "80be0344-928b-48fb-a45f-0b8e27163b9f",
+      "id": "07afcb06-c819-49f5-9323-012a727531bd",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 18,
@@ -946,7 +981,7 @@
       "relevance_score": 0
     },
     {
-      "id": "f2dbfacb-d19a-4658-828b-1f813a49c413",
+      "id": "79d5ca98-1707-4d70-a9b0-65b25e5c2f1c",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 19,
@@ -968,7 +1003,7 @@
       "relevance_score": 0
     },
     {
-      "id": "e7fe8689-ff91-432d-af54-5ccb80a9465d",
+      "id": "44b8dc5b-90a5-478c-85ff-2bde303b51c7",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 12,
@@ -989,7 +1024,7 @@
       "relevance_score": 0
     },
     {
-      "id": "fe949bff-1d46-4024-814f-11664e9d3104",
+      "id": "5844a967-7e09-44df-a792-941bf1d4d4db",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 14,
@@ -1011,7 +1046,7 @@
       "relevance_score": 0
     },
     {
-      "id": "3d8a7598-0c9c-44fd-bd7b-498b98bde042",
+      "id": "57767faa-da4b-4180-bf74-4114c4e4c261",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 10,
@@ -1034,7 +1069,7 @@
       "relevance_score": 0
     },
     {
-      "id": "18f78ce2-167d-4187-9392-4ff9fa1d2b01",
+      "id": "a5880862-f009-4973-8fca-4f96b82ea69e",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 23,
@@ -1056,7 +1091,7 @@
       "relevance_score": 0
     },
     {
-      "id": "ba2c994c-b1c9-454a-9c74-8a19beb0d9d3",
+      "id": "607ec08d-6116-4162-b8ca-0aea34b6b41d",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 22,
@@ -1077,7 +1112,7 @@
       "relevance_score": 0
     },
     {
-      "id": "841c56f8-ec72-497a-896d-944c519d0c31",
+      "id": "dfedc218-84bb-42ce-9bcf-6a89415e8b66",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 4,
@@ -1096,7 +1131,7 @@
       "relevance_score": 0
     },
     {
-      "id": "0d2fc69b-b54e-442f-83e9-e5cf0402cee4",
+      "id": "163eb56c-e4af-484e-b7e9-340a99153961",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 13,
@@ -1117,7 +1152,7 @@
       "relevance_score": 0
     },
     {
-      "id": "bac3646d-6581-49b7-bf4b-7312411913dd",
+      "id": "55ff0479-88cc-4847-9d99-f5f528f317eb",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 11,
@@ -1138,7 +1173,7 @@
       "relevance_score": 0
     },
     {
-      "id": "d7c10553-4d42-45ea-9109-bd32259c9f00",
+      "id": "a31b681e-7002-443f-b8f0-d63ef94b898f",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 20,
@@ -1160,7 +1195,7 @@
       "relevance_score": 0
     },
     {
-      "id": "0fbf835a-6f8e-4a24-a48b-c85b6900fe63",
+      "id": "715c23de-5adf-434a-9bee-98b3d70f28fc",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 17,
@@ -1179,7 +1214,7 @@
       "relevance_score": 0
     },
     {
-      "id": "aa63ab8c-81d2-479d-93d5-0772f2580f45",
+      "id": "6b5fa5ea-cca9-4179-af31-3833c2c9aba3",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 8,
@@ -1200,7 +1235,7 @@
       "relevance_score": 0
     },
     {
-      "id": "7a641120-0683-419c-baeb-18474c551cbe",
+      "id": "3e62ecdd-72d8-4ffc-a294-8ec291e2a6da",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 7,
@@ -1223,7 +1258,7 @@
       "relevance_score": 0
     },
     {
-      "id": "1da758e5-7d93-4848-912a-f678123e3f58",
+      "id": "bdcd1104-c236-4f7e-84d4-6feb0ba1b84a",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 6,
@@ -1244,7 +1279,7 @@
       "relevance_score": 0
     },
     {
-      "id": "066d70b5-ddae-467a-b065-650617575a1f",
+      "id": "deb7025b-a35e-428f-af7a-11d0777aaa48",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 5,
@@ -1263,7 +1298,7 @@
       "relevance_score": 0
     },
     {
-      "id": "dc4a2927-0514-4336-9c45-7c4bf4b7ea88",
+      "id": "a8c05cea-be7e-46a4-86a7-11fb311aa34e",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 3,
@@ -1282,247 +1317,7 @@
       "relevance_score": 0
     },
     {
-      "id": "59f61da2-b0d8-430e-8efa-441f9a52b561",
-      "module_name": "tasks",
-      "entity_type": "Task",
-      "entity_id": 2,
-      "title": "Brand New Day's First Task",
-      "content": "Task: Brand New Day's First Task\r\nStatus: Pending\r\nPriority: Medium\r\nDescription: The first task added into the Certio desktop development database! Here's a test update. Another test update.\r\nRelated Matter: Brand New Day Document Review\r\nDue Date: 2025-10-05\r\nAssigned to: Kyle Wang\r\n",
-      "metadata": {
-        "status": "Pending",
-        "priority": "Medium",
-        "dueDate": "2025-10-05T00:00:00",
-        "matterId": 9,
-        "matterTitle": "Brand New Day Document Review",
-        "assignees": [
-          "Kyle Wang"
-        ]
-      },
-      "created_at": "2025-10-04T11:40:34.087416",
-      "modified_at": null,
-      "relevance_score": 0
-    },
-    {
-      "id": "ab98cb47-1cb0-4ab3-9c7e-575db1c07e39",
-      "module_name": "calendar",
-      "entity_type": "CalendarEvent",
-      "entity_id": 14,
-      "title": "Real Visible Finale!!!",
-      "content": "Event: Real Visible Finale!!!\r\nType: Meeting\r\nStart: 2025-10-23 12:12\r\nEnd: 2025-10-23 13:12\r\nLocation: {\"name\":\"Finland\",\"address\":\"Finland\",\"formatted_address\":\"Finland\",\"place_id\":null,\"geometry\":null}\r\nDescription: Checking again to see if duplicate events are created.\r\n",
-      "metadata": {
-        "startDateTime": "2025-10-23T12:12:00",
-        "endDateTime": "2025-10-23T13:12:00",
-        "eventType": "Meeting",
-        "location": "{\"name\":\"Finland\",\"address\":\"Finland\",\"formatted_address\":\"Finland\",\"place_id\":null,\"geometry\":null}",
-        "isAllDay": false,
-        "attendees": [],
-        "matterId": 5
-      },
-      "created_at": "2025-10-21T22:13:37.939657",
-      "modified_at": "2025-10-22T00:41:29.9221482",
-      "relevance_score": 0
-    },
-    {
-      "id": "eef522f6-5a0b-4ba5-8b1f-549179d428e2",
-      "module_name": "calendar",
-      "entity_type": "CalendarEvent",
-      "entity_id": 12,
-      "title": "VFER Relocation",
-      "content": "Event: VFER Relocation\r\nType: Conference\r\nStart: 2025-10-26 16:06\r\nEnd: 2025-10-26 18:06\r\nLocation: {\"name\":\"Vista\",\"address\":\"Vista, CA, USA\",\"formatted_address\":\"Vista, CA, USA\",\"place_id\":null,\"geometry\":null}\r\nDescription: Testing if Matter Details Calendar event creation is properly assigning matter and org ID's.\r\n",
-      "metadata": {
-        "startDateTime": "2025-10-26T16:06:00",
-        "endDateTime": "2025-10-26T18:06:00",
-        "eventType": "Conference",
-        "location": "{\"name\":\"Vista\",\"address\":\"Vista, CA, USA\",\"formatted_address\":\"Vista, CA, USA\",\"place_id\":null,\"geometry\":null}",
-        "isAllDay": false,
-        "attendees": [],
-        "matterId": 5
-      },
-      "created_at": "2025-10-21T22:08:18.7273029",
-      "modified_at": "2025-10-22T00:39:46.4155596",
-      "relevance_score": 0
-    },
-    {
-      "id": "ca0ba40a-16c0-4b88-8eee-5e5e810df39f",
-      "module_name": "calendar",
-      "entity_type": "CalendarEvent",
-      "entity_id": 16,
-      "title": "FINALE",
-      "content": "Event: FINALE\r\nType: CourtDate\r\nStart: 2025-10-29 09:30\r\nEnd: 2025-10-29 10:30\r\nLocation: {\"name\":\"Finale Court\",\"address\":\"Finale Ct, Menifee, CA 92584, USA\",\"formatted_address\":\"Finale Ct, Menifee, CA 92584, USA\",\"place_id\":null,\"geometry\":null}\r\nDescription: Create now works and doesn't create duplicates.\r\nAttendees: John Marshall\r\n",
-      "metadata": {
-        "startDateTime": "2025-10-29T09:30:00",
-        "endDateTime": "2025-10-29T10:30:00",
-        "eventType": "CourtDate",
-        "location": "{\"name\":\"Finale Court\",\"address\":\"Finale Ct, Menifee, CA 92584, USA\",\"formatted_address\":\"Finale Ct, Menifee, CA 92584, USA\",\"place_id\":null,\"geometry\":null}",
-        "isAllDay": false,
-        "attendees": [
-          "John Marshall"
-        ],
-        "matterId": 5
-      },
-      "created_at": "2025-10-21T22:29:32.6800872",
-      "modified_at": "2025-10-22T00:24:47.6979848",
-      "relevance_score": 0
-    },
-    {
-      "id": "df4a15e5-3a84-4ced-b601-2c0a88c8321d",
-      "module_name": "calendar",
-      "entity_type": "CalendarEvent",
-      "entity_id": 8,
-      "title": "Visible Event",
-      "content": "Event: Visible Event\r\nType: Meeting\r\nStart: 2025-10-31 06:06\r\nEnd: 2025-10-31 06:14\r\nLocation: {\"name\":\"The Marine Room\",\"address\":\"1950 Spindrift Dr, La Jolla, CA 92037, USA\",\"formatted_address\":\"1950 Spindrift Dr, La Jolla, CA 92037, USA\",\"place_id\":null,\"geometry\":null}\r\nDescription: First test of Matter Details Calendar implementation. Test revision.\r\n",
-      "metadata": {
-        "startDateTime": "2025-10-31T06:06:00",
-        "endDateTime": "2025-10-31T06:14:00",
-        "eventType": "Meeting",
-        "location": "{\"name\":\"The Marine Room\",\"address\":\"1950 Spindrift Dr, La Jolla, CA 92037, USA\",\"formatted_address\":\"1950 Spindrift Dr, La Jolla, CA 92037, USA\",\"place_id\":null,\"geometry\":null}",
-        "isAllDay": false,
-        "attendees": [],
-        "matterId": null
-      },
-      "created_at": "2025-10-21T21:15:40.6554142",
-      "modified_at": "2025-11-22T11:04:43.943634",
-      "relevance_score": 0
-    },
-    {
-      "id": "878497c2-f7ed-4d8e-9588-6581c25b5c96",
-      "module_name": "calendar",
-      "entity_type": "CalendarEvent",
-      "entity_id": 20,
-      "title": "REC Document Review",
-      "content": "Event: REC Document Review\r\nType: Meeting\r\nStart: 2025-10-31 12:00\r\nEnd: 2025-10-31 13:00\r\nLocation: {\"name\":\"Nara Ultra Lounge\",\"address\":\"8055 Clairemont Mesa Blvd, San Diego, CA 92111, USA\",\"formatted_address\":\"8055 Clairemont Mesa Blvd, San Diego, CA 92111, USA\",\"place_id\":null,\"geometry\":{\"location\":{\"lat\":32.8321505,\"lng\":-117.1497883}}}\r\nDescription: Example event for Redundant Extermination Corporation\r\nAttendees: Kyle Wang, John Marshall\r\n",
-      "metadata": {
-        "startDateTime": "2025-10-31T12:00:00",
-        "endDateTime": "2025-10-31T13:00:00",
-        "eventType": "Meeting",
-        "location": "{\"name\":\"Nara Ultra Lounge\",\"address\":\"8055 Clairemont Mesa Blvd, San Diego, CA 92111, USA\",\"formatted_address\":\"8055 Clairemont Mesa Blvd, San Diego, CA 92111, USA\",\"place_id\":null,\"geometry\":{\"location\":{\"lat\":32.8321505,\"lng\":-117.1497883}}}",
-        "isAllDay": false,
-        "attendees": [
-          "Kyle Wang",
-          "John Marshall"
-        ],
-        "matterId": 12
-      },
-      "created_at": "2025-10-27T01:15:42.5357216",
-      "modified_at": "2025-11-22T11:04:43.943634",
-      "relevance_score": 0
-    },
-    {
-      "id": "07d434d3-81e7-473c-bf23-cd8f4a335d62",
-      "module_name": "calendar",
-      "entity_type": "CalendarEvent",
-      "entity_id": 22,
-      "title": "New Visible Event",
-      "content": "Event: New Visible Event\r\nType: Meeting\r\nStart: 2025-11-07 11:00\r\nEnd: 2025-11-07 12:48\r\nLocation: {\"name\":\"The White House\",\"address\":\"1600 Pennsylvania Ave NW, Washington, DC 20500, USA\",\"formatted_address\":\"1600 Pennsylvania Ave NW, Washington, DC 20500, USA\",\"place_id\":null,\"geometry\":null}\r\nAttendees: Kyle Wang, John Marshall\r\n",
-      "metadata": {
-        "startDateTime": "2025-11-07T11:00:00",
-        "endDateTime": "2025-11-07T12:48:00",
-        "eventType": "Meeting",
-        "location": "{\"name\":\"The White House\",\"address\":\"1600 Pennsylvania Ave NW, Washington, DC 20500, USA\",\"formatted_address\":\"1600 Pennsylvania Ave NW, Washington, DC 20500, USA\",\"place_id\":null,\"geometry\":null}",
-        "isAllDay": false,
-        "attendees": [
-          "Kyle Wang",
-          "John Marshall"
-        ],
-        "matterId": 5
-      },
-      "created_at": "2025-11-05T23:49:20.169736",
-      "modified_at": "2025-11-11T02:05:12.6089806",
-      "relevance_score": 0
-    },
-    {
-      "id": "57033edf-95b0-437c-a218-5082ebabfab6",
-      "module_name": "calendar",
-      "entity_type": "CalendarEvent",
-      "entity_id": 23,
-      "title": "Check Canvas",
-      "content": "Event: Check Canvas\r\nType: CourtDate\r\nStart: 2025-11-08 15:46\r\nEnd: 2025-11-08 16:46\r\nLocation: {\"name\":\"Freaky Lomas\",\"address\":\"Los Trancos Dr, Irvine, CA 92617, USA\",\"formatted_address\":\"Los Trancos Dr, Irvine, CA 92617, USA\",\"place_id\":null,\"geometry\":null}\r\nDescription: Freaky Lomas\r\nAttendees: Kyle Wang, John Marshall\r\n",
-      "metadata": {
-        "startDateTime": "2025-11-08T15:46:00",
-        "endDateTime": "2025-11-08T16:46:00",
-        "eventType": "CourtDate",
-        "location": "{\"name\":\"Freaky Lomas\",\"address\":\"Los Trancos Dr, Irvine, CA 92617, USA\",\"formatted_address\":\"Los Trancos Dr, Irvine, CA 92617, USA\",\"place_id\":null,\"geometry\":null}",
-        "isAllDay": false,
-        "attendees": [
-          "Kyle Wang",
-          "John Marshall"
-        ],
-        "matterId": 11
-      },
-      "created_at": "2025-11-07T07:47:15.256744",
-      "modified_at": "2025-11-22T11:04:43.943634",
-      "relevance_score": 0
-    },
-    {
-      "id": "a72beca3-e090-4545-b6bd-a0b6f2e8d16c",
-      "module_name": "calendar",
-      "entity_type": "CalendarEvent",
-      "entity_id": 3,
-      "title": "Audit Logging",
-      "content": "Event: Audit Logging\r\nType: Filing\r\nStart: 2025-11-11 14:15\r\nEnd: 2025-11-11 16:45\r\nLocation: {\"name\":\"Logging Lake\",\"address\":\"Logging Lake, Montana 59936, USA\",\"formatted_address\":\"Logging Lake, Montana 59936, USA\",\"place_id\":null,\"geometry\":{\"location\":{\"lat\":48.7591981,\"lng\":-114.0731626}}}\r\nDescription: Testing audit logging capabilities for newly created Calendar Events. Update test for audit log.\r\nAttendees: Kyle Wang, John Marshall\r\n",
-      "metadata": {
-        "startDateTime": "2025-11-11T14:15:00",
-        "endDateTime": "2025-11-11T16:45:00",
-        "eventType": "Filing",
-        "location": "{\"name\":\"Logging Lake\",\"address\":\"Logging Lake, Montana 59936, USA\",\"formatted_address\":\"Logging Lake, Montana 59936, USA\",\"place_id\":null,\"geometry\":{\"location\":{\"lat\":48.7591981,\"lng\":-114.0731626}}}",
-        "isAllDay": false,
-        "attendees": [
-          "Kyle Wang",
-          "John Marshall"
-        ],
-        "matterId": null
-      },
-      "created_at": "2025-10-21T09:03:11.6977475",
-      "modified_at": "2025-11-22T11:04:43.943634",
-      "relevance_score": 0
-    },
-    {
-      "id": "b13a8932-e7ed-4fe0-870e-d841ef53b224",
-      "module_name": "calendar",
-      "entity_type": "CalendarEvent",
-      "entity_id": 21,
-      "title": "Intro Demo Event with XYZ",
-      "content": "Event: Intro Demo Event with XYZ\r\nType: Conference\r\nStart: 2025-11-11 19:00\r\nEnd: 2025-11-11 22:00\r\nLocation: {\"name\":\"Marshalls\",\"address\":\"4209 Genesee Ave, San Diego, CA 92117, USA\",\"formatted_address\":\"4209 Genesee Ave, San Diego, CA 92117, USA\",\"place_id\":null,\"geometry\":null}\r\nDescription: Partner associate\r\nAttendees: Kyle Wang, John Marshall\r\n",
-      "metadata": {
-        "startDateTime": "2025-11-11T19:00:00",
-        "endDateTime": "2025-11-11T22:00:00",
-        "eventType": "Conference",
-        "location": "{\"name\":\"Marshalls\",\"address\":\"4209 Genesee Ave, San Diego, CA 92117, USA\",\"formatted_address\":\"4209 Genesee Ave, San Diego, CA 92117, USA\",\"place_id\":null,\"geometry\":null}",
-        "isAllDay": false,
-        "attendees": [
-          "Kyle Wang",
-          "John Marshall"
-        ],
-        "matterId": 30
-      },
-      "created_at": "2025-10-30T23:55:55.0524728",
-      "modified_at": "2025-11-22T11:04:43.943634",
-      "relevance_score": 0
-    },
-    {
-      "id": "8a7e607d-02b1-4a0c-b0c9-02c044168168",
-      "module_name": "calendar",
-      "entity_type": "CalendarEvent",
-      "entity_id": 19,
-      "title": "Brown v. Jones Filing",
-      "content": "Event: Brown v. Jones Filing\r\nType: CourtDate\r\nStart: 2025-11-12 13:00\r\nEnd: 2025-11-12 14:00\r\nLocation: {\"name\":\"Superior Court Kearny Mesa Courthouse\",\"address\":\"8950 Clairemont Mesa Blvd, San Diego, CA 92123, USA\",\"formatted_address\":\"8950 Clairemont Mesa Blvd, San Diego, CA 92123, USA\",\"place_id\":null,\"geometry\":{\"location\":{\"lat\":32.8323913,\"lng\":-117.1356528}}}\r\nDescription: Need to go in-person to Superior Court Kearny Mesa Courthouse to submit Brown v. Jones filings.\r\nAttendees: Kyle Wang\r\n",
-      "metadata": {
-        "startDateTime": "2025-11-12T13:00:00",
-        "endDateTime": "2025-11-12T14:00:00",
-        "eventType": "CourtDate",
-        "location": "{\"name\":\"Superior Court Kearny Mesa Courthouse\",\"address\":\"8950 Clairemont Mesa Blvd, San Diego, CA 92123, USA\",\"formatted_address\":\"8950 Clairemont Mesa Blvd, San Diego, CA 92123, USA\",\"place_id\":null,\"geometry\":{\"location\":{\"lat\":32.8323913,\"lng\":-117.1356528}}}",
-        "isAllDay": false,
-        "attendees": [
-          "Kyle Wang"
-        ],
-        "matterId": null
-      },
-      "created_at": "2025-10-26T20:00:05.1468522",
-      "modified_at": "2025-11-22T11:04:43.943634",
-      "relevance_score": 0
-    },
-    {
-      "id": "eb156aa0-2543-4b43-bec3-7d9033ed3133",
+      "id": "8ce68d8e-1b96-44fb-9460-b20756403d6e",
       "module_name": "calendar",
       "entity_type": "CalendarEvent",
       "entity_id": 24,
@@ -1542,7 +1337,49 @@
       "relevance_score": 0
     },
     {
-      "id": "151add36-75c6-4acf-9322-08fa7e7973a4",
+      "id": "95de7c34-d8cc-4781-bb8c-d16f26b90eb7",
+      "module_name": "calendar",
+      "entity_type": "CalendarEvent",
+      "entity_id": 25,
+      "title": "Testing",
+      "content": "Event: Testing\r\nType: Meeting\r\nStart: 2025-11-29 02:45\r\nEnd: 2025-11-29 03:45\r\nAttendees: Kyle Wang\r\n",
+      "metadata": {
+        "startDateTime": "2025-11-29T02:45:00",
+        "endDateTime": "2025-11-29T03:45:00",
+        "eventType": "Meeting",
+        "location": null,
+        "isAllDay": false,
+        "attendees": [
+          "Kyle Wang"
+        ],
+        "matterId": null
+      },
+      "created_at": "2025-11-29T02:45:39.4038215",
+      "modified_at": "2025-12-08T02:43:17.3152611",
+      "relevance_score": 0
+    },
+    {
+      "id": "5cb0c321-194c-4a37-8ef0-4f3f9aa28136",
+      "module_name": "calendar",
+      "entity_type": "CalendarEvent",
+      "entity_id": 26,
+      "title": "EECS 40 Homework due @ 11:59",
+      "content": "Event: EECS 40 Homework due @ 11:59\r\nType: Meeting\r\nStart: 2025-12-08 02:41\r\nEnd: 2025-12-08 07:59\r\nLocation: JCPenney\r\nDescription: Do your homework it's coding. Just use Cursor.\r\n",
+      "metadata": {
+        "startDateTime": "2025-12-08T02:41:00",
+        "endDateTime": "2025-12-08T07:59:00",
+        "eventType": "Meeting",
+        "location": "JCPenney",
+        "isAllDay": false,
+        "attendees": [],
+        "matterId": null
+      },
+      "created_at": "2025-12-08T05:50:55.4163041",
+      "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "f3c5ed74-6004-4b25-8e25-783ab3fd863a",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1558,10 +1395,10 @@
       },
       "created_at": "2025-10-15T21:17:42.9635538",
       "modified_at": "2025-11-17T03:01:14.6859457",
-      "relevance_score": 1.5
+      "relevance_score": 1.2
     },
     {
-      "id": "02117683-c4b3-497c-8db0-c32e213966d4",
+      "id": "b20e86a6-3778-40af-b88a-00a584baa5db",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 29,
@@ -1583,7 +1420,7 @@
       "relevance_score": 0
     },
     {
-      "id": "9fb067c3-ded0-4c5d-8178-83de6abccf41",
+      "id": "a8d13a94-c64a-47de-a218-bfab8c2ea778",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 44,
@@ -1604,7 +1441,7 @@
       "relevance_score": 0
     },
     {
-      "id": "0f084153-ad0d-4059-a8f8-459322e9a59c",
+      "id": "b470184a-aeae-431b-80ce-ba4550241839",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 55,
@@ -1626,7 +1463,7 @@
       "relevance_score": 0
     },
     {
-      "id": "67c3121c-36f7-4479-9830-b154cd806354",
+      "id": "318192e3-bcf0-4011-86c1-070947f7f225",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 28,
@@ -1648,7 +1485,7 @@
       "relevance_score": 0
     },
     {
-      "id": "a97e0d80-0c9d-4f5e-bd3a-38e33673345f",
+      "id": "e48687df-0ea4-4727-a2b0-62352b0aa7ec",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 27,
@@ -1671,7 +1508,7 @@
       "relevance_score": 0
     },
     {
-      "id": "00806784-df61-4a6d-adaa-48dd04d71fbe",
+      "id": "476dbb44-7175-4870-8d70-2557e0bac3f3",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 52,
@@ -1694,7 +1531,7 @@
       "relevance_score": 0
     },
     {
-      "id": "4c26b253-a227-4817-bbcc-9a731796ddac",
+      "id": "6a751ab1-ee28-4241-8957-3b2c9ff70ac6",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 56,
@@ -1715,7 +1552,7 @@
       "relevance_score": 0
     },
     {
-      "id": "3f8cae2c-2448-4be0-8847-69f9c470216b",
+      "id": "2ffbbd6d-b227-42d6-bf77-1b211a62d50c",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 59,
@@ -1736,7 +1573,7 @@
       "relevance_score": 0
     },
     {
-      "id": "ba1522aa-ce57-4de1-8983-65163cd56327",
+      "id": "95be583f-b104-4706-8935-7ee2db5727f4",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 43,
@@ -1758,7 +1595,7 @@
       "relevance_score": 0
     },
     {
-      "id": "e7d89f22-ceeb-48e2-9d9c-c594aa68830e",
+      "id": "474e3fe8-d1b5-4af1-b5b7-57a42285f187",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 53,
@@ -1779,7 +1616,7 @@
       "relevance_score": 0
     },
     {
-      "id": "e2d0146e-5b28-46d0-a7df-362e111c94f9",
+      "id": "b5eeb44e-2ffa-4eaf-8e52-e5bfe4f41727",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 54,
@@ -1800,7 +1637,7 @@
       "relevance_score": 0
     },
     {
-      "id": "aecdb1af-785d-496b-89f4-d7ac0046ba07",
+      "id": "0c3e1f04-593f-490c-b673-04e1c97d4de4",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 45,
@@ -1823,7 +1660,7 @@
       "relevance_score": 0
     },
     {
-      "id": "159561b7-1464-4df5-a124-76fe4c5c7947",
+      "id": "81022960-02ae-46cf-8851-5ec1321dea5b",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1842,7 +1679,7 @@
       "relevance_score": 0
     },
     {
-      "id": "961c9bc7-175f-43f6-9402-b7c87b87604f",
+      "id": "e81297c9-eece-41fb-acf5-e77bdeafc391",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1861,7 +1698,7 @@
       "relevance_score": 0
     },
     {
-      "id": "6cc66f7b-1aa3-4ee7-8254-ef56fb62074e",
+      "id": "86f60b1e-93d4-429c-b076-7ac2be4b3b76",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1880,7 +1717,7 @@
       "relevance_score": 0
     },
     {
-      "id": "a35ec631-0d7d-45e6-b4db-48a617e09d60",
+      "id": "d20986b7-1fbc-40b3-b4bc-e82fc616dec9",
       "module_name": "clients",
       "entity_type": "User",
       "entity_id": 1,
@@ -1897,7 +1734,7 @@
       "relevance_score": 0
     },
     {
-      "id": "86e9a156-eba2-47ae-bd71-7fed4dffc925",
+      "id": "103a4c3d-4693-41f1-b1db-3c7b102df33b",
       "module_name": "clients",
       "entity_type": "User",
       "entity_id": 3,
@@ -1914,7 +1751,7 @@
       "relevance_score": 0
     },
     {
-      "id": "4f3f1091-34fd-48a5-969e-be0069026e3b",
+      "id": "7515f88e-91c1-436d-83ff-1f01be13eda1",
       "module_name": "clients",
       "entity_type": "User",
       "entity_id": 5,
@@ -1928,6 +1765,1206 @@
       },
       "created_at": "2025-09-29T01:12:29.9320965",
       "modified_at": null,
+      "relevance_score": 0
+    },
+    {
+      "id": "957e5447-dbca-42b5-83e2-37ea94f2ed08",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "additional_project_files.txt",
+      "content": "=== DOCUMENT: additional_project_files.txt ===\r\nDocument ID: 7e4b6eef-5423-414e-8e1a-7ff74078cc09\r\nType: text/plain\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:43\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1d7D2AYMiQhE2Mm5NRuceevUgUjBctrMy\r\nMetadata:\n- mimeType: text/plain\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1HzSpHZ-3vl22v31huIwL27VmChNoMadf\r\nMetadata:\n- parentFolderName: x86\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "7e4b6eef-5423-414e-8e1a-7ff74078cc09",
+        "fileType": "text/plain",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:22.294631",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:43:00.9440423",
+      "modified_at": "2025-12-08T06:01:22.294631",
+      "relevance_score": 0
+    },
+    {
+      "id": "2da1f2de-d8bc-4fba-a5c7-3fb7f382767d",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "metadata_generation_command.txt",
+      "content": "=== DOCUMENT: metadata_generation_command.txt ===\r\nDocument ID: 95886fd8-67e5-454f-9e2e-2a3d660ef710\r\nType: text/plain\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:43\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1X39n75fjHjqx-LBmw25bx6rJQIkBROYM\r\nMetadata:\n- mimeType: text/plain\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1HzSpHZ-3vl22v31huIwL27VmChNoMadf\r\nMetadata:\n- parentFolderName: x86\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: metadata_generation_command.txt\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2025-11-30T21:54:33.7949016\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1X39n75fjHjqx-LBmw25bx6rJQIkBROYM\r\n- mimeType: text/plain\r\n- ownerName: Kyle Wang\r\n- parentIds: 1HzSpHZ-3vl22v31huIwL27VmChNoMadf\r\n- parentFolderName: x86\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n                        -HC:\\src\\flutter\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\scripts\n-DCMAKE_SYSTEM_NAME=Android\n-DCMAKE_EXPORT_COMPILE_COMMANDS=ON\n-DCMAKE_SYSTEM_VERSION=21\n-DANDROID_PLATFORM=android-21\n-DANDROID_ABI=x86\n-DCMAKE_ANDROID_ARCH_ABI=x86\n-DANDROID_NDK=C:\\Users\\wangz\\AppData\\Local\\Android\\sdk\\ndk\\27.0.12077973\n-DCMAKE_ANDROID_NDK=C:\\Users\\wangz\\AppData\\Local\\Android\\sdk\\ndk\\27.0.12077973\n-DCMAKE_TOOLCHAIN_FILE=C:\\Users\\wangz\\AppData\\Local\\Android\\sdk\\ndk\\27.0.12077973\\build\\cmake\\android.toolchain.cmake\n-DCMAKE_MAKE_PROGRAM=C:\\Users\\wangz\\AppData\\Local\\Android\\sdk\\cmake\\3.22.1\\bin\\ninja.exe\n-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=C:\\Users\\wangz\\flutter_projects\\seedjura\\build\\app\\intermediates\\cxx\\Debug\\5z2r2z4c\\obj\\x86\n-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=C:\\Users\\wangz\\flutter_project\n\ns\\seedjura\\build\\app\\intermediates\\cxx\\Debug\\5z2r2z4c\\obj\\x86\n-DCMAKE_BUILD_TYPE=Debug\n-BC:\\Users\\wangz\\flutter_projects\\seedjura\\build\\.cxx\\Debug\\5z2r2z4c\\x86\n-GNinja\n-Wno-dev\n--no-warn-unused-cli\n                        Build command args: []\n                        Version: 2\r\n\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "95886fd8-67e5-454f-9e2e-2a3d660ef710",
+        "fileType": "text/plain",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:22.1531171",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:43:00.7559982",
+      "modified_at": "2025-12-08T06:01:22.1531171",
+      "relevance_score": 0
+    },
+    {
+      "id": "36ca0938-0785-4ed4-abdb-8e8ce600bb95",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "out",
+      "content": "=== DOCUMENT: out ===\r\nDocument ID: 17f693c3-bae5-493a-aeba-3025d54eae50\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:43\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1PvLYIctcytaUbFCDtyP0-9uY33zNOkub\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 16ny2_9mqqVVfudspZVv6p27eAN_RtkYx\r\nMetadata:\n- parentFolderName: dexBuilderDebug\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "17f693c3-bae5-493a-aeba-3025d54eae50",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:22.102432",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:43:00.2635943",
+      "modified_at": "2025-12-08T06:01:22.102432",
+      "relevance_score": 0
+    },
+    {
+      "id": "e7e1d1fc-ed4a-4ffe-ae96-69ef504731aa",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "3ffb40e79d38da2d03baa31b96ce3c8d61a2569ab2f3fe0151053755738c9d78_0.jar",
+      "content": "=== DOCUMENT: 3ffb40e79d38da2d03baa31b96ce3c8d61a2569ab2f3fe0151053755738c9d78_0.jar ===\r\nDocument ID: 0c930c1a-22a2-4488-9f9b-2a270c9d2aaf\r\nType: application/java-archive\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1sBMOAagIRNUYfo7yt8kHoLjWw7MAjZ4R\r\nMetadata:\n- mimeType: application/java-archive\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1JI0-enbjVJ-KCFAhmnq2BDSQyiXwEnm3\r\nMetadata:\n- parentFolderName: out\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "0c930c1a-22a2-4488-9f9b-2a270c9d2aaf",
+        "fileType": "application/java-archive",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:22.0796532",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:59.9556642",
+      "modified_at": "2025-12-08T06:01:22.0796532",
+      "relevance_score": 0
+    },
+    {
+      "id": "d7f8d96b-7e8f-4b25-8caa-4f3f2ace1ea2",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "results.bin",
+      "content": "=== DOCUMENT: results.bin ===\r\nDocument ID: 733e0376-02cb-4a79-a835-19813c351de7\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:43\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1FATDsHK-75Mtv43QWxDKVhMF6ZrsL59l\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1nPBbtoNQfNCXM-MFZ66By8fjUKmTsxpC\r\nMetadata:\n- parentFolderName: e17fd379f552c55269c83119fe9e2ca9\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "733e0376-02cb-4a79-a835-19813c351de7",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:21.773863",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:43:00.4383359",
+      "modified_at": "2025-12-08T06:01:21.773863",
+      "relevance_score": 0
+    },
+    {
+      "id": "0ec74a53-4810-4ddd-a031-95c67138fafc",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "graph.bin",
+      "content": "=== DOCUMENT: graph.bin ===\r\nDocument ID: d9efae50-239c-4187-8db1-42b73b998138\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:43\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1P2NRg2iN8h6QJU6cM_kImo91rjFNd4OX\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1iUppEa46Yv6kHhe5yy2wdzxOI_1r6p4G\r\nMetadata:\n- parentFolderName: dirs_bucket_2\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "d9efae50-239c-4187-8db1-42b73b998138",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:21.7430113",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:43:00.1124781",
+      "modified_at": "2025-12-08T06:01:21.7430113",
+      "relevance_score": 0
+    },
+    {
+      "id": "82bf526c-55bb-4c6a-a48c-d38d48855798",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "3ffb40e79d38da2d03baa31b96ce3c8d61a2569ab2f3fe0151053755738c9d78_5.jar",
+      "content": "=== DOCUMENT: 3ffb40e79d38da2d03baa31b96ce3c8d61a2569ab2f3fe0151053755738c9d78_5.jar ===\r\nDocument ID: 5a7218ba-8b9e-4c6d-a599-ced58a814a57\r\nType: application/java-archive\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 100PpWejORwv7KcLQcpmhcv-2YEm2Dxq2\r\nMetadata:\n- mimeType: application/java-archive\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1JI0-enbjVJ-KCFAhmnq2BDSQyiXwEnm3\r\nMetadata:\n- parentFolderName: out\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "5a7218ba-8b9e-4c6d-a599-ced58a814a57",
+        "fileType": "application/java-archive",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:21.4799746",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:59.1883873",
+      "modified_at": "2025-12-08T06:01:21.4799746",
+      "relevance_score": 0
+    },
+    {
+      "id": "b7b7c87b-e9b2-4875-a847-100348180aa0",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "graph.bin",
+      "content": "=== DOCUMENT: graph.bin ===\r\nDocument ID: a72ace92-11a1-421c-be35-8846f54f725a\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 10YPqZILiyJhtm4uV1Ix7LViA-Punm286\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 162lLeh6DE3k-POdHBU4HPEpEf2nN2Edu\r\nMetadata:\n- parentFolderName: jar_5ae549eefc7ed95f1ae1fe3f36be8f9cb97e1cde14e6f4b35044f034eb11e784_bucket_1\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "a72ace92-11a1-421c-be35-8846f54f725a",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:21.4621569",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:59.8153778",
+      "modified_at": "2025-12-08T06:01:21.4621569",
+      "relevance_score": 0
+    },
+    {
+      "id": "4761be9b-cbb5-4451-83a7-1c8e4c221249",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "app_debug.kotlin_module",
+      "content": "=== DOCUMENT: app_debug.kotlin_module ===\r\nDocument ID: 9bd77d71-2590-4f9a-802e-6f6a0ac0cf0b\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1NTPPkdSTdAo8k7Rb77tZfxS-4HQGtTwc\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1uCEHEo7UqBBK7eSPntbRqlvOaVZApxaV\r\nMetadata:\n- parentFolderName: META-INF\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "9bd77d71-2590-4f9a-802e-6f6a0ac0cf0b",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:21.4442758",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:59.6458967",
+      "modified_at": "2025-12-08T06:01:21.4442758",
+      "relevance_score": 0
+    },
+    {
+      "id": "caf0cfd9-cc3e-4591-90f2-829dc54ab1e4",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "CMakeCCompilerId.c",
+      "content": "=== DOCUMENT: CMakeCCompilerId.c ===\r\nDocument ID: 886aaecb-488e-4d60-bf3e-938cd6ade162\r\nType: text/plain\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1yc_vxWfART1hBNPohgErVqWSf5jE_93g\r\nMetadata:\n- mimeType: text/plain\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1WwR-7p1TDwXfwUyl8Tr8Al05dkcI4y19\r\nMetadata:\n- parentFolderName: CompilerIdC\r\n\r\n=== DOCUMENT CONTENT ===\r\nTitle: CMakeCCompilerId.c\r\nCategory: General\r\nSource: GoogleDrive\r\nStatus: Draft\r\nLastModifiedUtc: 2025-12-08T06:01:20.5285818\r\nMetadata:\r\n- provider: google\r\n- driveFileId: 1yc_vxWfART1hBNPohgErVqWSf5jE_93g\r\n- mimeType: text/plain\r\n- ownerName: Kyle Wang\r\n- parentIds: 1WwR-7p1TDwXfwUyl8Tr8Al05dkcI4y19\r\n- parentFolderName: CompilerIdC\r\nTags:\r\n#Google Drive\r\n\r\n---\r\nSanitizedContent:\r\n#ifdef __cplusplus\r\n# error \"A C++ compiler has been selected for C.\"\r\n#endif\r\n\r\n#if defined(__18CXX)\r\n# define ID_VOID_MAIN\r\n#endif\r\n#if defined(__CLASSIC_C__)\r\n/* cv-qualifiers did not exist in K&R C */\r\n# define const\r\n# define volatile\r\n#endif\r\n\r\n#if !defined(__has_include)\r\n/* If the compiler does not have __has_include, pretend the answer is\r\n   always no.  */\r\n#  define __has_include(x) 0\r\n#endif\r\n\r\n\r\n/* Version number components: V=Version, R=Revision, P=Patch\r\n   Version date components:   YYYY=Year, MM=Month,   DD=Day  */\r\n\r\n#if defined(__INTEL_COMPILER) || defined(__ICC)\r\n# define COMPILER_ID \"Intel\"\r\n# if defined(_MSC_VER)\r\n#  define SIMULATE_ID \"MSVC\"\r\n# endif\r\n# if defined(__GNUC__)\r\n#  define SIMULATE_ID \"GNU\"\r\n# endif\r\n  /* __INTEL_COMPILER = VRP prior to 2021, and then VVVV for 2021 and\n\n later,\r\n     except that a few beta releases use the old format with V=2021.  */\r\n# if __INTEL_COMPILER < 2021 || __INTEL_COMPILER == 202110 || __INTEL_COMPILER == 202111\r\n#  define COMPILER_VERSION_MAJOR DEC(__INTEL_COMPILER/100)\r\n#  define COMPILER_VERSION_MINOR DEC(__INTEL_COMPILER/10 % 10)\r\n#  if defined(__INTEL_COMPILER_UPDATE)\r\n#   define COMPILER_VERSION_PATCH DEC(__INTEL_COMPILER_UPDATE)\r\n#  else\r\n#   define COMPILER_VERSION_PATCH DEC(__INTEL_COMPILER   % 10)\r\n#  endif\r\n# else\r\n#  define COMPILER_VERSION_MAJOR DEC(__INTEL_COMPILER)\r\n#  define COMPILER_VERSION_MINOR DEC(__INTEL_COMPILER_UPDATE)\r\n   /* The third version component from --version is an update index,\r\n      but no macro is provided for it.  */\r\n#  define COMPILER_VERSION_PATCH DEC(0)\r\n# endif\r\n# if defined(__INTEL_COMPILER_BUILD_DATE)\r\n   /* __INTEL_COMPILER_BUILD_DATE = YYYYMMDD */\r\n#  define COMPILER_VERSION_TWEAK DEC(__INTEL_COMPILER_BUILD_DATE)\r\n# endif\r\n# if defined(_MSC_VER)\r\n   /* _MSC_VER = VVRR */\r\n#  define SIMULATE_VERSION_MAJOR DEC(_MSC_VER / 100)\r\n#  define SIMULATE_VERSION_MINOR DEC(_MSC_VER % 100)\r\n# endif\r\n# if defined(__GNUC__)\r\n#  define SIMULATE_VERSION_MAJOR DEC(__GNUC__)\r\n# elif defined(__G\n\nNUG__)\r\n#  define SIMULATE_VERSION_MAJOR DEC(__GNUG__)\r\n# endif\r\n# if defined(__GNUC_MINOR__)\r\n#  define SIMULATE_VERSION_MINOR DEC(__GNUC_MINOR__)\r\n# endif\r\n# if defined(__GNUC_PATCHLEVEL__)\r\n#  define SIMULATE_VERSION_PATCH DEC(__GNUC_PATCHLEVEL__)\r\n# endif\r\n\r\n#elif (defined(__clang__) && defined(__INTEL_CLANG_COMPILER)) || defined(__INTEL_LLVM_COMPILER)\r\n# define COMPILER_ID \"IntelLLVM\"\r\n#if defined(_MSC_VER)\r\n# define SIMULATE_ID \"MSVC\"\r\n#endif\r\n#if defined(__GNUC__)\r\n# define SIMULATE_ID \"GNU\"\r\n#endif\r\n/* __INTEL_LLVM_COMPILER = VVVVRP prior to 2021.2.0, VVVVRRPP for 2021.2.0 and\r\n * later.  Look for 6 digit vs. 8 digit version number to decide encoding.\r\n * VVVV is no smaller than the current year when a version is released.\r\n */\r\n#if __INTEL_LLVM_COMPILER < 1000000L\r\n# define COMPILER_VERSION_MAJOR DEC(__INTEL_LLVM_COMPILER/100)\r\n# define COMPILER_VERSION_MINOR DEC(__INTEL_LLVM_COMPILER/10 % 10)\r\n# define COMPILER_VERSION_PATCH DEC(__INTEL_LLVM_COMPILER    % 10)\r\n#else\r\n# define COMPILER_VERSION_MAJOR DEC(__INTEL_LLVM_COMPILER/10000)\r\n# define COMPILER_VERSION_MINOR DEC(__INTEL_LLVM_COMPILER/100 % 100)\r\n# define COMPILER_VERSION_PATCH DEC(__INTEL_LLVM_COMPILER     % 100)\r\n#e\n\nndif\r\n#if defined(_MSC_VER)\r\n  /* _MSC_VER = VVRR */\r\n# define SIMULATE_VERSION_MAJOR DEC(_MSC_VER / 100)\r\n# define SIMULATE_VERSION_MINOR DEC(_MSC_VER % 100)\r\n#endif\r\n#if defined(__GNUC__)\r\n# define SIMULATE_VERSION_MAJOR DEC(__GNUC__)\r\n#elif defined(__GNUG__)\r\n# define SIMULATE_VERSION_MAJOR DEC(__GNUG__)\r\n#endif\r\n#if defined(__GNUC_MINOR__)\r\n# define SIMULATE_VERSION_MINOR DEC(__GNUC_MINOR__)\r\n#endif\r\n#if defined(__GNUC_PATCHLEVEL__)\r\n# define SIMULATE_VERSION_PATCH DEC(__GNUC_PATCHLEVEL__)\r\n#endif\r\n\r\n#elif defined(__PATHCC__)\r\n# define COMPILER_ID \"PathScale\"\r\n# define COMPILER_VERSION_MAJOR DEC(__PATHCC__)\r\n# define COMPILER_VERSION_MINOR DEC(__PATHCC_MINOR__)\r\n# if defined(__PATHCC_PATCHLEVEL__)\r\n#  define COMPILER_VERSION_PATCH DEC(__PATHCC_PATCHLEVEL__)\r\n# endif\r\n\r\n#elif defined(__BORLANDC__) && defined(__CODEGEARC_VERSION__)\r\n# define COMPILER_ID \"Embarcadero\"\r\n# define COMPILER_VERSION_MAJOR HEX(__CODEGEARC_VERSION__>>24 & 0x00FF)\r\n# define COMPILER_VERSION_MINOR HEX(__CODEGEARC_VERSION__>>16 & 0x00FF)\r\n# define COMPILER_VERSION_PATCH DEC(__CODEGEARC_VERSION__     & 0xFFFF)\r\n\r\n#elif defined(__BORLANDC__)\r\n# define COMPILER_ID \"Borland\"\r\n  /* __BORLANDC__ = 0xVRR */\r\n# def\n\nine COMPILER_VERSION_MAJOR HEX(__BORLANDC__>>8)\r\n# define COMPILER_VERSION_MINOR HEX(__BORLANDC__ & 0xFF)\r\n\r\n#elif defined(__WATCOMC__) && __WATCOMC__ < 1200\r\n# define COMPILER_ID \"Watcom\"\r\n   /* __WATCOMC__ = VVRR */\r\n# define COMPILER_VERSION_MAJOR DEC(__WATCOMC__ / 100)\r\n# define COMPILER_VERSION_MINOR DEC((__WATCOMC__ / 10) % 10)\r\n# if (__WATCOMC__ % 10) > 0\r\n#  define COMPILER_VERSION_PATCH DEC(__WATCOMC__ % 10)\r\n# endif\r\n\r\n#elif defined(__WATCOMC__)\r\n# define COMPILER_ID \"OpenWatcom\"\r\n   /* __WATCOMC__ = VVRP + 1100 */\r\n# define COMPILER_VERSION_MAJOR DEC((__WATCOMC__ - 1100) / 100)\r\n# define COMPILER_VERSION_MINOR DEC((__WATCOMC__ / 10) % 10)\r\n# if (__WATCOMC__ % 10) > 0\r\n#  define COMPILER_VERSION_PATCH DEC(__WATCOMC__ % 10)\r\n# endif\r\n\r\n#elif defined(__SUNPRO_C)\r\n# define COMPILER_ID \"SunPro\"\r\n# if __SUNPRO_C >= 0x5100\r\n   /* __SUNPRO_C = 0xVRRP */\r\n#  define COMPILER_VERSION_MAJOR HEX(__SUNPRO_C>>12)\r\n#  define COMPILER_VERSION_MINOR HEX(__SUNPRO_C>>4 & 0xFF)\r\n#  define COMPILER_VERSION_PATCH HEX(__SUNPRO_C    & 0xF)\r\n# else\r\n   /* __SUNPRO_CC = 0xVRP */\r\n#  define COMPILER_VERSION_MAJOR HEX(__SUNPRO_C>>8)\r\n#  define COMPILER_VERSION_MINOR HEX(__SUNPRO_C>>4 & 0xF)\r\n#  defi\n\nne COMPILER_VERSION_PATCH HEX(__SUNPRO_C    & 0xF)\r\n# endif\r\n\r\n#elif defined(__HP_cc)\r\n# define COMPILER_ID \"HP\"\r\n  /* __HP_cc = VVRRPP */\r\n# define COMPILER_VERSION_MAJOR DEC(__HP_cc/10000)\r\n# define COMPILER_VERSION_MINOR DEC(__HP_cc/100 % 100)\r\n# define COMPILER_VERSION_PATCH DEC(__HP_cc     % 100)\r\n\r\n#elif defined(__DECC)\r\n# define COMPILER_ID \"Compaq\"\r\n  /* __DECC_VER = VVRRTPPPP */\r\n# define COMPILER_VERSION_MAJOR DEC(__DECC_VER/10000000)\r\n# define COMPILER_VERSION_MINOR DEC(__DECC_VER/100000  % 100)\r\n# define COMPILER_VERSION_PATCH DEC(__DECC_VER         % 10000)\r\n\r\n#elif defined(__IBMC__) && defined(__COMPILER_VER__)\r\n# define COMPILER_ID \"zOS\"\r\n  /* __IBMC__ = VRP */\r\n# define COMPILER_VERSION_MAJOR DEC(__IBMC__/100)\r\n# define COMPILER_VERSION_MINOR DEC(__IBMC__/10 % 10)\r\n# define COMPILER_VERSION_PATCH DEC(__IBMC__    % 10)\r\n\r\n#elif defined(__ibmxl__) && defined(__clang__)\r\n# define COMPILER_ID \"XLClang\"\r\n# define COMPILER_VERSION_MAJOR DEC(__ibmxl_version__)\r\n# define COMPILER_VERSION_MINOR DEC(__ibmxl_release__)\r\n# define COMPILER_VERSION_PATCH DEC(__ibmxl_modification__)\r\n# define COMPILER_VERSION_TWEAK DEC(__ibmxl_ptf_fix_level__)\r\n\r\n\r\n#elif defined(__IBMC__) && !defi\n\nned(__COMPILER_VER__) && __IBMC__ >= 800\r\n# define COMPILER_ID \"XL\"\r\n  /* __IBMC__ = VRP */\r\n# define COMPILER_VERSION_MAJOR DEC(__IBMC__/100)\r\n# define COMPILER_VERSION_MINOR DEC(__IBMC__/10 % 10)\r\n# define COMPILER_VERSION_PATCH DEC(__IBMC__    % 10)\r\n\r\n#elif defined(__IBMC__) && !defined(__COMPILER_VER__) && __IBMC__ < 800\r\n# define COMPILER_ID \"VisualAge\"\r\n  /* __IBMC__ = VRP */\r\n# define COMPILER_VERSION_MAJOR DEC(__IBMC__/100)\r\n# define COMPILER_VERSION_MINOR DEC(__IBMC__/10 % 10)\r\n# define COMPILER_VERSION_PATCH DEC(__IBMC__    % 10)\r\n\r\n#elif defined(__NVCOMPILER)\r\n# define COMPILER_ID \"NVHPC\"\r\n# define COMPILER_VERSION_MAJOR DEC(__NVCOMPILER_MAJOR__)\r\n# define COMPILER_VERSION_MINOR DEC(__NVCOMPILER_MINOR__)\r\n# if defined(__NVCOMPILER_PATCHLEVEL__)\r\n#  define COMPILER_V\n[... content truncated ...]\r\n=== END CONTENT ===\r\n",
+      "metadata": {
+        "documentId": "886aaecb-488e-4d60-bf3e-938cd6ade162",
+        "fileType": "text/plain",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": true,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:21.2806989",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:59.3285092",
+      "modified_at": "2025-12-08T06:01:21.2806989",
+      "relevance_score": 0
+    },
+    {
+      "id": "c84dc10e-a5af-486c-a015-7805bb62f087",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "configure_command.bat",
+      "content": "=== DOCUMENT: configure_command.bat ===\r\nDocument ID: 894e290c-9cc6-4a20-9d3c-cac6fe0ff679\r\nType: application/x-msdos-program\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1qs1_e1VRJEGZOAPmvGnbW7_S1fGi8fSG\r\nMetadata:\n- mimeType: application/x-msdos-program\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1hTSnjY1cbXNd9E-a3N7FIxZTMEv18htg\r\nMetadata:\n- parentFolderName: x86_64\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "894e290c-9cc6-4a20-9d3c-cac6fe0ff679",
+        "fileType": "application/x-msdos-program",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:21.1920158",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:59.5016536",
+      "modified_at": "2025-12-08T06:01:21.1920158",
+      "relevance_score": 0
+    },
+    {
+      "id": "17dc8cfb-21ba-486a-a6ec-37019bfa8d67",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "CMakeSystem.cmake",
+      "content": "=== DOCUMENT: CMakeSystem.cmake ===\r\nDocument ID: 364d7c92-9bcc-40d8-bb8e-9b11d14e314c\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1hZu-HYqzUSWSVH-Y4KaEAwpU4HZD-Yp6\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1hj4SXgrqZoOt5KNKB3xlFe_WszZ19qNx\r\nMetadata:\n- parentFolderName: 3.22.1-g37088a8-dirty\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "364d7c92-9bcc-40d8-bb8e-9b11d14e314c",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:20.885543",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:58.7574987",
+      "modified_at": "2025-12-08T06:01:20.885543",
+      "relevance_score": 0
+    },
+    {
+      "id": "6d0b18e7-4dcb-493b-9a51-45a4a116205b",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "base.jar",
+      "content": "=== DOCUMENT: base.jar ===\r\nDocument ID: 04c665da-2de9-45a2-af72-21a277ebfed2\r\nType: application/java-archive\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 143IuqOpW_tidCBZ8YE1ZlYWo3HkaMB3Z\r\nMetadata:\n- mimeType: application/java-archive\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1X4gjq3Qn2SAEVJjPJ20Q_Lu-rzM-qwRn\r\nMetadata:\n- parentFolderName: mergeDebugJavaResource\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "04c665da-2de9-45a2-af72-21a277ebfed2",
+        "fileType": "application/java-archive",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:20.7465683",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:58.5953219",
+      "modified_at": "2025-12-08T06:01:20.7465683",
+      "relevance_score": 0
+    },
+    {
+      "id": "58813545-690d-4c19-9de7-6986dbdd8c1c",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "GeneratedPluginRegistrant.dex",
+      "content": "=== DOCUMENT: GeneratedPluginRegistrant.dex ===\r\nDocument ID: d17091c1-05fc-4938-882e-9b7df2cc2c55\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1mRgHAmqJFtXGhVrbuupjvSIty4pu6B3A\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1TbbL13kExd7jR-uVLn0jxRU79pAvd7An\r\nMetadata:\n- parentFolderName: plugins\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "d17091c1-05fc-4938-882e-9b7df2cc2c55",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:20.7263815",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:59.0585723",
+      "modified_at": "2025-12-08T06:01:20.7263815",
+      "relevance_score": 0
+    },
+    {
+      "id": "fc48942d-69b9-4d21-a102-c492c8a0f001",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "3ffb40e79d38da2d03baa31b96ce3c8d61a2569ab2f3fe0151053755738c9d78_2.jar",
+      "content": "=== DOCUMENT: 3ffb40e79d38da2d03baa31b96ce3c8d61a2569ab2f3fe0151053755738c9d78_2.jar ===\r\nDocument ID: 9bb5e4f5-a870-4673-917f-6619ebb58d17\r\nType: application/java-archive\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1fyHeXPkQ5K567xYtt_JKeERYI8-I3Xtp\r\nMetadata:\n- mimeType: application/java-archive\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1JI0-enbjVJ-KCFAhmnq2BDSQyiXwEnm3\r\nMetadata:\n- parentFolderName: out\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "9bb5e4f5-a870-4673-917f-6619ebb58d17",
+        "fileType": "application/java-archive",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:20.5691051",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:58.8834115",
+      "modified_at": "2025-12-08T06:01:20.5691051",
+      "relevance_score": 0
+    },
+    {
+      "id": "4585688b-4e11-4f03-9a7f-4bbd16bd5d28",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "cmakeFiles-v1",
+      "content": "=== DOCUMENT: cmakeFiles-v1 ===\r\nDocument ID: fbec7415-2877-4958-9937-d4f6a61b9af8\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 19WKKp2ddHDEBuXReegFiv6XBv4l42_PO\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1Je4UrtG-uUIjVwMqaw_GBzfLEJbWBOrR\r\nMetadata:\n- parentFolderName: client-agp\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "fbec7415-2877-4958-9937-d4f6a61b9af8",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:20.1000571",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:58.3510903",
+      "modified_at": "2025-12-08T06:01:20.1000571",
+      "relevance_score": 0
+    },
+    {
+      "id": "00948597-3c3e-4177-b633-e133018ff292",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "mTUYshl78Lq8OWaU+duanMJIV9E=",
+      "content": "=== DOCUMENT: mTUYshl78Lq8OWaU+duanMJIV9E= ===\r\nDocument ID: 263d8e01-03af-49f0-80a4-e3ffd58b16ca\r\nType: application/x-zip\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1ovoc1FdfLF30FA910T-qMZ4rfFfKqgTF\r\nMetadata:\n- mimeType: application/x-zip\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1i9S9l1_5QJrOHfrMKaAlaElpa_zL6D6r\r\nMetadata:\n- parentFolderName: zip-cache\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "263d8e01-03af-49f0-80a4-e3ffd58b16ca",
+        "fileType": "application/x-zip",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:20.0796067",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:51.7653384",
+      "modified_at": "2025-12-08T06:01:20.0796067",
+      "relevance_score": 0
+    },
+    {
+      "id": "5dfc394e-eaf7-4c41-85f9-3bc86d874543",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "classes.dex",
+      "content": "=== DOCUMENT: classes.dex ===\r\nDocument ID: a2cea3d2-b77f-4fc1-9e46-e266017c38d8\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 15AtRF2pRI5wpAsaD4PziwYdSLvHnHx0t\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1aDikF-N_hiuuu1eKtt8Lr5WbG2Bd_PWp\r\nMetadata:\n- parentFolderName: 0\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "a2cea3d2-b77f-4fc1-9e46-e266017c38d8",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:20.0565326",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:58.0856582",
+      "modified_at": "2025-12-08T06:01:20.0565326",
+      "relevance_score": 0
+    },
+    {
+      "id": "7858375a-67d3-482d-bba3-7f5ba8a51caa",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "classes.dex",
+      "content": "=== DOCUMENT: classes.dex ===\r\nDocument ID: 9eda2dca-c95c-4da1-b208-7d7d1cc32738\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1zaILHhq_3hUldTDYcI3FjRkYzKgCLtFu\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1X97iAUuerso06N0zy0U1pRnf4TROr6Hb\r\nMetadata:\n- parentFolderName: 6\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "9eda2dca-c95c-4da1-b208-7d7d1cc32738",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:19.5404369",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:57.946664",
+      "modified_at": "2025-12-08T06:01:19.5404369",
+      "relevance_score": 0
+    },
+    {
+      "id": "1f10e945-f9c9-49bb-8122-b4e28014948d",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "graph.bin",
+      "content": "=== DOCUMENT: graph.bin ===\r\nDocument ID: 9b604159-b5ae-4d1a-8f04-729481e429f5\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1GlYnozKiQQ4rYmgQGpiHw_SXc6agbR2U\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1msYvvX0DMvd03wQZsOXoz-fS1zWgo2EA\r\nMetadata:\n- parentFolderName: jar_5ae549eefc7ed95f1ae1fe3f36be8f9cb97e1cde14e6f4b35044f034eb11e784_bucket_5\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "9b604159-b5ae-4d1a-8f04-729481e429f5",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:19.4389181",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:57.7995882",
+      "modified_at": "2025-12-08T06:01:19.4389181",
+      "relevance_score": 0
+    },
+    {
+      "id": "ef116c45-4cb0-4068-9ef9-a70d43bf7295",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "3ffb40e79d38da2d03baa31b96ce3c8d61a2569ab2f3fe0151053755738c9d78_1.jar",
+      "content": "=== DOCUMENT: 3ffb40e79d38da2d03baa31b96ce3c8d61a2569ab2f3fe0151053755738c9d78_1.jar ===\r\nDocument ID: 76af194e-2f12-43af-819e-ddd60b86ea2e\r\nType: application/java-archive\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1tnpZPRZaKE3y_mg2fvNjHyd-nNiD5FGf\r\nMetadata:\n- mimeType: application/java-archive\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1JI0-enbjVJ-KCFAhmnq2BDSQyiXwEnm3\r\nMetadata:\n- parentFolderName: out\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "76af194e-2f12-43af-819e-ddd60b86ea2e",
+        "fileType": "application/java-archive",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:19.3432454",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:57.6192915",
+      "modified_at": "2025-12-08T06:01:19.3432454",
+      "relevance_score": 0
+    },
+    {
+      "id": "f63707c0-aa3c-43c1-8d14-1bfc01ef439b",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "graph.bin",
+      "content": "=== DOCUMENT: graph.bin ===\r\nDocument ID: 446a1ae6-0afe-4f9e-92fb-53e22a57b526\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1r_Bgf3PwR_PBK07Kb7wc1f8rAwDSx1TK\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1yNkpeZ5_RTFW25zJu7EeMHX6K2Jgk1wt\r\nMetadata:\n- parentFolderName: jar_5ae549eefc7ed95f1ae1fe3f36be8f9cb97e1cde14e6f4b35044f034eb11e784_bucket_2\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "446a1ae6-0afe-4f9e-92fb-53e22a57b526",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:19.088241",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:57.4282983",
+      "modified_at": "2025-12-08T06:01:19.088241",
+      "relevance_score": 0
+    },
+    {
+      "id": "b835052c-a019-48e2-b1c7-6849f0fbc77f",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "out",
+      "content": "=== DOCUMENT: out ===\r\nDocument ID: 68b69d63-98ca-4350-a0fe-56dd00c0a36d\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1DSwfOOrZCC8tzKMBfsnzVDPXRF5Xgda4\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1mObrW_ZEgWQQjEBRVXDeh-1J3G_FgbG3\r\nMetadata:\n- parentFolderName: dexBuilderDebug\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "68b69d63-98ca-4350-a0fe-56dd00c0a36d",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:18.9902226",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:57.1592802",
+      "modified_at": "2025-12-08T06:01:18.9902226",
+      "relevance_score": 0
+    },
+    {
+      "id": "0f0662db-2f84-4e73-8238-3405ec7e4162",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "classes.dex",
+      "content": "=== DOCUMENT: classes.dex ===\r\nDocument ID: 4d9684e9-4872-4c11-855a-0fe3fe041f8f\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1QQpHoH9srZCy9pNjmzqErSO8QP9PA1_5\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1BbDkF2-jBCCBEkHg3OW5Drdcm27xkx7Y\r\nMetadata:\n- parentFolderName: 1\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "4d9684e9-4872-4c11-855a-0fe3fe041f8f",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:18.7835637",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:57.0101658",
+      "modified_at": "2025-12-08T06:01:18.7835637",
+      "relevance_score": 0
+    },
+    {
+      "id": "668b02f0-06f1-4630-96f1-9ce9b7acfd82",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "classes.dex",
+      "content": "=== DOCUMENT: classes.dex ===\r\nDocument ID: 3ea52026-4210-4330-a4af-268830f19199\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1vYtiEm7Od1w8rtgAA52rKn2EAI8RoTL0\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1K9ZjBv40vavDCKBwKJiLUynzq27KF0Oi\r\nMetadata:\n- parentFolderName: 0\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "3ea52026-4210-4330-a4af-268830f19199",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:18.6316399",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:56.6631262",
+      "modified_at": "2025-12-08T06:01:18.6316399",
+      "relevance_score": 0
+    },
+    {
+      "id": "f0e4924d-9226-4b9d-8bc3-98430fc5e068",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "configure_stderr.txt",
+      "content": "=== DOCUMENT: configure_stderr.txt ===\r\nDocument ID: 9ce6aef0-0890-46e1-9db7-6121bb4d46ce\r\nType: text/plain\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1oaA7EL1oNVznJ8DfyWdFaNYooe0cm1L7\r\nMetadata:\n- mimeType: text/plain\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1hTSnjY1cbXNd9E-a3N7FIxZTMEv18htg\r\nMetadata:\n- parentFolderName: x86_64\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "9ce6aef0-0890-46e1-9db7-6121bb4d46ce",
+        "fileType": "text/plain",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:18.604728",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:57.2868309",
+      "modified_at": "2025-12-08T06:01:18.604728",
+      "relevance_score": 0
+    },
+    {
+      "id": "72a111fc-307b-494b-8e9a-4923830585ee",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "graph.bin",
+      "content": "=== DOCUMENT: graph.bin ===\r\nDocument ID: eb0b0404-26b5-4407-973a-3815c064bdfa\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1GvUWDrqtxSlGNxj5s1edk0zlmz0Gwxd_\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1vlbXGGzWQK6Ri8LGs2QqZwwtsN1CuKzI\r\nMetadata:\n- parentFolderName: dirs_bucket_3\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "eb0b0404-26b5-4407-973a-3815c064bdfa",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:18.2612127",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:56.7867383",
+      "modified_at": "2025-12-08T06:01:18.2612127",
+      "relevance_score": 0
+    },
+    {
+      "id": "9955f8e5-d684-4bd9-b245-e59109f33019",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "jTxV3bWC1aEsEj9HDkf_WDlxk8k=",
+      "content": "=== DOCUMENT: jTxV3bWC1aEsEj9HDkf_WDlxk8k= ===\r\nDocument ID: 8b232be2-e3c6-440f-bbed-a26fedea3b11\r\nType: application/x-zip\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1QGfZ7bR24NLK9ESH-TX-B-oj0uqktpwT\r\nMetadata:\n- mimeType: application/x-zip\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1i9S9l1_5QJrOHfrMKaAlaElpa_zL6D6r\r\nMetadata:\n- parentFolderName: zip-cache\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "8b232be2-e3c6-440f-bbed-a26fedea3b11",
+        "fileType": "application/x-zip",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:18.2419747",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:50.310608",
+      "modified_at": "2025-12-08T06:01:18.2419747",
+      "relevance_score": 0
+    },
+    {
+      "id": "49c57eef-d202-4bb5-adaf-34e4feca2ee3",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "3ffb40e79d38da2d03baa31b96ce3c8d61a2569ab2f3fe0151053755738c9d78_4.jar",
+      "content": "=== DOCUMENT: 3ffb40e79d38da2d03baa31b96ce3c8d61a2569ab2f3fe0151053755738c9d78_4.jar ===\r\nDocument ID: 2ef60b61-d138-4e9d-8775-70cfce7d85b7\r\nType: application/java-archive\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1jfSxw8NUykE9SCL51noaAHiqr-8KQBa3\r\nMetadata:\n- mimeType: application/java-archive\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1JI0-enbjVJ-KCFAhmnq2BDSQyiXwEnm3\r\nMetadata:\n- parentFolderName: out\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "2ef60b61-d138-4e9d-8775-70cfce7d85b7",
+        "fileType": "application/java-archive",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:17.8322536",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:56.3970101",
+      "modified_at": "2025-12-08T06:01:17.8322536",
+      "relevance_score": 0
+    },
+    {
+      "id": "984bbff5-fef6-4cba-abff-a40eebe1f74e",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "cache-v2",
+      "content": "=== DOCUMENT: cache-v2 ===\r\nDocument ID: eee35455-5054-4287-97de-c8f9b28342c7\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1oyrVmCTEeD2YBDUAvXw2DOw_bCxOhbxQ\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1Je4UrtG-uUIjVwMqaw_GBzfLEJbWBOrR\r\nMetadata:\n- parentFolderName: client-agp\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "eee35455-5054-4287-97de-c8f9b28342c7",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:17.7661156",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:56.514156",
+      "modified_at": "2025-12-08T06:01:17.7661156",
+      "relevance_score": 0
+    },
+    {
+      "id": "fcda41c5-4b8e-41e6-8696-9b31ec00c9da",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "graph.bin",
+      "content": "=== DOCUMENT: graph.bin ===\r\nDocument ID: 25deb819-56ce-4229-a6a8-bb2eef9e07d7\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1pcjYeyGe5oR89raafj20jMEGzb5EdPCZ\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1uBd0RqUlcHoF-Mkv_X6pqWWznQXIwsKi\r\nMetadata:\n- parentFolderName: jar_5ae549eefc7ed95f1ae1fe3f36be8f9cb97e1cde14e6f4b35044f034eb11e784_bucket_0\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "25deb819-56ce-4229-a6a8-bb2eef9e07d7",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:16.8310254",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:56.0755707",
+      "modified_at": "2025-12-08T06:01:16.8310254",
+      "relevance_score": 0
+    },
+    {
+      "id": "268d2ba9-e49d-4119-85c0-340e902f60f7",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "graph.bin",
+      "content": "=== DOCUMENT: graph.bin ===\r\nDocument ID: 82471b71-6d94-414a-a64e-b2d3004d6234\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1abib9GQOse5M5kmu0EXVXmtkI2Ame_cX\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1_dXXd5pXI-lHrB9iOLxlG30SbQhAH4I8\r\nMetadata:\n- parentFolderName: dirs_bucket_1\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "82471b71-6d94-414a-a64e-b2d3004d6234",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:16.5410647",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:55.9283571",
+      "modified_at": "2025-12-08T06:01:16.5410647",
+      "relevance_score": 0
+    },
+    {
+      "id": "3e9cf9e8-0a8f-472f-8fe8-fe5f598af770",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "3ffb40e79d38da2d03baa31b96ce3c8d61a2569ab2f3fe0151053755738c9d78_3.jar",
+      "content": "=== DOCUMENT: 3ffb40e79d38da2d03baa31b96ce3c8d61a2569ab2f3fe0151053755738c9d78_3.jar ===\r\nDocument ID: 7f7d13db-dff1-4b7e-8ae4-b7aed3247189\r\nType: application/java-archive\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1qFf3xeU-q2pWsB_fW91LnwDVlKQu-IhV\r\nMetadata:\n- mimeType: application/java-archive\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1JI0-enbjVJ-KCFAhmnq2BDSQyiXwEnm3\r\nMetadata:\n- parentFolderName: out\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "7f7d13db-dff1-4b7e-8ae4-b7aed3247189",
+        "fileType": "application/java-archive",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:16.4541885",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:55.798098",
+      "modified_at": "2025-12-08T06:01:16.4541885",
+      "relevance_score": 0
+    },
+    {
+      "id": "371a3fcb-2bce-408b-9d25-607879d8a9c4",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "previous-compilation-data.bin",
+      "content": "=== DOCUMENT: previous-compilation-data.bin ===\r\nDocument ID: 60062009-9191-400e-b8b1-5ddb908d8ae5\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1TEcitVkct69JSadG5dGYUV2C6-3hoQqd\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1oT6uB1JwIB-3zeL1DKFLKgNNXNfDXfmC\r\nMetadata:\n- parentFolderName: compileDebugJavaWithJavac\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "60062009-9191-400e-b8b1-5ddb908d8ae5",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:16.3507994",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:55.6579888",
+      "modified_at": "2025-12-08T06:01:16.3507994",
+      "relevance_score": 0
+    },
+    {
+      "id": "b9b6985c-c647-4586-a7ee-1c87b8ef47c4",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "GeneratedPluginRegistrant.class",
+      "content": "=== DOCUMENT: GeneratedPluginRegistrant.class ===\r\nDocument ID: 269383cc-0c3d-4334-b298-b2c52a8ef2bc\r\nType: application/java\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1VbEaUz5F0gFyPGlip3EMOF8Jl_jilezo\r\nMetadata:\n- mimeType: application/java\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1qCEwuuFisNK4XQ3LFaInzIgjyZxsbcV9\r\nMetadata:\n- parentFolderName: plugins\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "269383cc-0c3d-4334-b298-b2c52a8ef2bc",
+        "fileType": "application/java",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:16.0738149",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:55.4970833",
+      "modified_at": "2025-12-08T06:01:16.0738149",
+      "relevance_score": 0
+    },
+    {
+      "id": "3503353c-0322-4ebd-b133-4e77aecef60e",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "graph.bin",
+      "content": "=== DOCUMENT: graph.bin ===\r\nDocument ID: 548bd14d-7380-47cc-9734-490ffc0e4974\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1oHAjKiH0ssL7wUhz_DnTRgOwKN4jsniY\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1ZkkbS0XWCSrDzCenmt1gzI0adBz4t63L\r\nMetadata:\n- parentFolderName: dirs_bucket_0\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "548bd14d-7380-47cc-9734-490ffc0e4974",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:15.8792206",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:55.2318251",
+      "modified_at": "2025-12-08T06:01:15.8792206",
+      "relevance_score": 0
+    },
+    {
+      "id": "c863ffd2-1ec7-43c7-b18b-22478c68ce47",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "CMakeCCompilerId.o",
+      "content": "=== DOCUMENT: CMakeCCompilerId.o ===\r\nDocument ID: a4501071-84a0-48a0-a611-0ef8ee941391\r\nType: application/x-object\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1Cfd3w4Z2rTnu6PT4LhH9VpFYzhIC1Gg9\r\nMetadata:\n- mimeType: application/x-object\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1WwR-7p1TDwXfwUyl8Tr8Al05dkcI4y19\r\nMetadata:\n- parentFolderName: CompilerIdC\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "a4501071-84a0-48a0-a611-0ef8ee941391",
+        "fileType": "application/x-object",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:15.6016753",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:54.6684166",
+      "modified_at": "2025-12-08T06:01:15.6016753",
+      "relevance_score": 0
+    },
+    {
+      "id": "87208fb5-4fab-40e3-8dc1-48460ed75df8",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "codemodel-v2",
+      "content": "=== DOCUMENT: codemodel-v2 ===\r\nDocument ID: 969ae535-d492-4b1a-aa5c-edfbb68a2741\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1FraTwTKlgHakiUOmGhnmQ6fc15tx9lFU\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1Je4UrtG-uUIjVwMqaw_GBzfLEJbWBOrR\r\nMetadata:\n- parentFolderName: client-agp\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "969ae535-d492-4b1a-aa5c-edfbb68a2741",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:15.576981",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:55.3492956",
+      "modified_at": "2025-12-08T06:01:15.576981",
+      "relevance_score": 0
+    },
+    {
+      "id": "15db8ced-b2ed-4ac8-9c79-b803a8245fc3",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "graph.bin",
+      "content": "=== DOCUMENT: graph.bin ===\r\nDocument ID: a1846162-fd12-4277-9de9-ac345d8aaff0\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1NDY7shvanhxwj604g9cZW0NJbkcpnHVb\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1tpHFDjCKeApBAcNPZeO8gZUnqviwM5sF\r\nMetadata:\n- parentFolderName: jar_5ae549eefc7ed95f1ae1fe3f36be8f9cb97e1cde14e6f4b35044f034eb11e784_bucket_3\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "a1846162-fd12-4277-9de9-ac345d8aaff0",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:15.3637551",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:55.0913497",
+      "modified_at": "2025-12-08T06:01:15.3637551",
+      "relevance_score": 0
+    },
+    {
+      "id": "9f583a1c-e62c-431c-9511-68d40ba49e04",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "MainActivity.dex",
+      "content": "=== DOCUMENT: MainActivity.dex ===\r\nDocument ID: 77f2fecc-c32e-4926-8151-0417dba28bd6\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1Zb7rU462gM8sPKR66zX93h_LUKlToU8L\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1rkgE9LgKc-N-3gwfQbibXSCeK_kTy4vM\r\nMetadata:\n- parentFolderName: seedjura\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "77f2fecc-c32e-4926-8151-0417dba28bd6",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:15.3131979",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:54.3393709",
+      "modified_at": "2025-12-08T06:01:15.3131979",
+      "relevance_score": 0
+    },
+    {
+      "id": "a335a5e6-4159-49dd-b5cf-c101b1c177c2",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "PIBmfQYrbAigvKTVGQT5u1lAg30=",
+      "content": "=== DOCUMENT: PIBmfQYrbAigvKTVGQT5u1lAg30= ===\r\nDocument ID: 119f89cc-d070-4e7a-b82a-77a62cb334da\r\nType: application/x-zip\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1508Bb1dR4TQrKjEzsYABl1jogPdrZf4z\r\nMetadata:\n- mimeType: application/x-zip\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1i9S9l1_5QJrOHfrMKaAlaElpa_zL6D6r\r\nMetadata:\n- parentFolderName: zip-cache\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "119f89cc-d070-4e7a-b82a-77a62cb334da",
+        "fileType": "application/x-zip",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:15.2718867",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:53.2327591",
+      "modified_at": "2025-12-08T06:01:15.2718867",
+      "relevance_score": 0
+    },
+    {
+      "id": "55c124de-950b-46de-b803-69f5f161c9ec",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "graph.bin",
+      "content": "=== DOCUMENT: graph.bin ===\r\nDocument ID: c3dd9202-0fdf-4a31-93d2-42022defa1ce\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 12C_LmrYXljBL0Xs4JuquKpjBDYn6e-CC\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1yme1X21-mtZgtRjvYowUueColwKzGkIz\r\nMetadata:\n- parentFolderName: dirs_bucket_4\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "c3dd9202-0fdf-4a31-93d2-42022defa1ce",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:15.0761055",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:54.4686464",
+      "modified_at": "2025-12-08T06:01:15.0761055",
+      "relevance_score": 0
+    },
+    {
+      "id": "ce43c438-a534-4fdd-91a4-3c5fb123e780",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "graph.bin",
+      "content": "=== DOCUMENT: graph.bin ===\r\nDocument ID: 9510af52-91ab-48cb-a903-e8c1ab1643f5\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1K15MnFZoO2sZcZ6Ubil8FpNYtMNyjhCD\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1J6lzbxymQAm7Dq71yWmLQ2aX0_O3iqXi\r\nMetadata:\n- parentFolderName: dirs_bucket_5\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "9510af52-91ab-48cb-a903-e8c1ab1643f5",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:14.8955471",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:53.7128496",
+      "modified_at": "2025-12-08T06:01:14.8955471",
+      "relevance_score": 0
+    },
+    {
+      "id": "18640642-3417-4d0d-ae1b-f0c1fcea4b74",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "graph.bin",
+      "content": "=== DOCUMENT: graph.bin ===\r\nDocument ID: e3c260d8-5a9d-41b8-8a06-15faad06cbaa\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1627RKMp5dpIF10ShiMM_8m0ZEsn-vk3E\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1QouEsAWsVTVMMVJPFP8YgR4OVRYAWnbN\r\nMetadata:\n- parentFolderName: jar_5ae549eefc7ed95f1ae1fe3f36be8f9cb97e1cde14e6f4b35044f034eb11e784_bucket_4\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "e3c260d8-5a9d-41b8-8a06-15faad06cbaa",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:14.8709356",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:54.139543",
+      "modified_at": "2025-12-08T06:01:14.8709356",
+      "relevance_score": 0
+    },
+    {
+      "id": "68f422ac-7b38-4f12-ad8e-6c3651f4f60d",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "resourceHashesCache.bin",
+      "content": "=== DOCUMENT: resourceHashesCache.bin ===\r\nDocument ID: 2ebb9817-99e0-44f0-b93a-929ebc9e500c\r\nType: application/octet-stream\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1tqdhtlBglsWk56XT4WfTYe-3LcuNaNNe\r\nMetadata:\n- mimeType: application/octet-stream\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 14kBV5vd3XD43NR978riqiWvvf_KSTwOp\r\nMetadata:\n- parentFolderName: fileHashes\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "2ebb9817-99e0-44f0-b93a-929ebc9e500c",
+        "fileType": "application/octet-stream",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:14.7980141",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:53.9446098",
+      "modified_at": "2025-12-08T06:01:14.7980141",
+      "relevance_score": 0
+    },
+    {
+      "id": "a339ec08-a9be-4737-a31d-7272344b2889",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "0ij2rTPp0bH+lprekpvphgC3Mp0=",
+      "content": "=== DOCUMENT: 0ij2rTPp0bH+lprekpvphgC3Mp0= ===\r\nDocument ID: d6f6d071-dd58-4133-a657-533f208f5bbc\r\nType: application/x-zip\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1hjfc14EQVbBp-twtH4xHnzCk75Rzhi8G\r\nMetadata:\n- mimeType: application/x-zip\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1i9S9l1_5QJrOHfrMKaAlaElpa_zL6D6r\r\nMetadata:\n- parentFolderName: zip-cache\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "d6f6d071-dd58-4133-a657-533f208f5bbc",
+        "fileType": "application/x-zip",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:14.5685023",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:53.5716726",
+      "modified_at": "2025-12-08T06:01:14.5685023",
+      "relevance_score": 0
+    },
+    {
+      "id": "a7379229-ca29-44f2-b40c-cd0302b63803",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "TfLZ8m9rOMrbCxkY+euk9aysVEM=",
+      "content": "=== DOCUMENT: TfLZ8m9rOMrbCxkY+euk9aysVEM= ===\r\nDocument ID: fcb2dfd8-0947-4b87-b8c2-2e7540752b19\r\nType: application/x-zip\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1TzyzJmYkHCBzJlG9f_pA5HNwCbJ1sgVC\r\nMetadata:\n- mimeType: application/x-zip\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1i9S9l1_5QJrOHfrMKaAlaElpa_zL6D6r\r\nMetadata:\n- parentFolderName: zip-cache\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "fcb2dfd8-0947-4b87-b8c2-2e7540752b19",
+        "fileType": "application/x-zip",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:14.4476633",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:53.0989466",
+      "modified_at": "2025-12-08T06:01:14.4476633",
+      "relevance_score": 0
+    },
+    {
+      "id": "d4552803-4219-43f9-b2cd-2f55068f3ef8",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "xjPTki6_M8fNS9qKopVVoadM_TA=",
+      "content": "=== DOCUMENT: xjPTki6_M8fNS9qKopVVoadM_TA= ===\r\nDocument ID: 2bb6beca-bf4b-480d-971b-65270f39eab9\r\nType: application/x-zip\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1KPsHTcmxzTuKNrSujqaDByp5KcLe1Q9i\r\nMetadata:\n- mimeType: application/x-zip\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1i9S9l1_5QJrOHfrMKaAlaElpa_zL6D6r\r\nMetadata:\n- parentFolderName: zip-cache\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "2bb6beca-bf4b-480d-971b-65270f39eab9",
+        "fileType": "application/x-zip",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:14.3943888",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:53.4434615",
+      "modified_at": "2025-12-08T06:01:14.3943888",
+      "relevance_score": 0
+    },
+    {
+      "id": "7cbd5565-8cf9-49c3-a87c-94211a86210f",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "rzga9G86XVtjGum77FIOggPE0kU=",
+      "content": "=== DOCUMENT: rzga9G86XVtjGum77FIOggPE0kU= ===\r\nDocument ID: 4a4f1029-9c8c-453d-ac40-2710c67cb440\r\nType: application/x-zip\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 1a82p1RfZvcK_p2g7oXPnmyhdb6_Lkw9q\r\nMetadata:\n- mimeType: application/x-zip\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1i9S9l1_5QJrOHfrMKaAlaElpa_zL6D6r\r\nMetadata:\n- parentFolderName: zip-cache\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "4a4f1029-9c8c-453d-ac40-2710c67cb440",
+        "fileType": "application/x-zip",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:13.7246785",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:52.9551955",
+      "modified_at": "2025-12-08T06:01:13.7246785",
+      "relevance_score": 0
+    },
+    {
+      "id": "0fb18f39-645f-402b-9234-808ea6669fdb",
+      "module_name": "documents",
+      "entity_type": "Document",
+      "entity_id": 0,
+      "title": "hk+jxLl5isccXPa1nxVwCFhpbCE=",
+      "content": "=== DOCUMENT: hk+jxLl5isccXPa1nxVwCFhpbCE= ===\r\nDocument ID: 1bb034e5-eddb-4019-b2b4-babf90be999a\r\nType: application/x-zip\r\nSource: GoogleDrive\r\nStatus: Draft\r\nCategory: General\r\nTags: Google Drive\r\nCreated: 2025-11-06 07:42\r\nLast Modified: 2025-12-08 06:01\r\nMetadata:\n- provider: google\r\nMetadata:\n- driveFileId: 11kAZ7AthEnKec-s_0rqkLB1vFRj0bODP\r\nMetadata:\n- mimeType: application/x-zip\r\nMetadata:\n- ownerName: Kyle Wang\r\nMetadata:\n- parentIds: 1i9S9l1_5QJrOHfrMKaAlaElpa_zL6D6r\r\nMetadata:\n- parentFolderName: zip-cache\r\n\r\n[Document content pending extraction. To access this document's content, upload it directly to this chat or reconnect your GoogleDrive integration.]\r\n",
+      "metadata": {
+        "documentId": "1bb034e5-eddb-4019-b2b4-babf90be999a",
+        "fileType": "application/x-zip",
+        "category": "General",
+        "status": "Draft",
+        "sourceType": "GoogleDrive",
+        "hasExtractedContent": false,
+        "matterId": null,
+        "modifiedAt": "2025-12-08T06:01:13.5742727",
+        "tags": [
+          "Google Drive"
+        ]
+      },
+      "created_at": "2025-11-06T07:42:52.8213825",
+      "modified_at": "2025-12-08T06:01:13.5742727",
       "relevance_score": 0
     }
   ]
