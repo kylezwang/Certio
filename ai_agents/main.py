@@ -3117,13 +3117,68 @@ Respond as an intelligent assistant:"""
             else:
                 # Handle Chat Completions streaming (standard OpenAI format)
                 for chunk in stream_response:
-                    if chunk.choices and len(chunk.choices) > 0:
-                        delta = chunk.choices[0].delta
-                        if hasattr(delta, 'content') and delta.content:
-                            content = delta.content
-                            full_content += content
-                            # Send chunk as Server-Sent Event
-                            yield f"data: {json.dumps({'content': content, 'done': False})}\n\n"
+                    if not getattr(chunk, "choices", None):
+                        continue
+                    if len(chunk.choices) == 0:
+                        continue
+
+                    choice0 = chunk.choices[0]
+                    content = None
+
+                    # Most models: streamed content comes from choice.delta.content
+                    delta = getattr(choice0, "delta", None)
+                    if delta is not None:
+                        content = getattr(delta, "content", None) or getattr(delta, "text", None)
+
+                    # Some Azure/OpenAI variants may surface final content on choice.message.content
+                    if not content:
+                        message_obj = getattr(choice0, "message", None)
+                        if message_obj is not None:
+                            content = getattr(message_obj, "content", None)
+
+                    # Extremely defensive fallback
+                    if not content and hasattr(choice0, "text"):
+                        content = getattr(choice0, "text", None)
+
+                    if content:
+                        full_content += content
+                        # Send chunk as Server-Sent Event
+                        yield f"data: {json.dumps({'content': content, 'done': False})}\n\n"
+
+                # GPT-5 has been observed to sometimes return a 200 stream with no delta.content.
+                # If we got 0 chars, do a single non-streaming call as a fallback so the UI doesn't hang.
+                if not full_content.strip():
+                    logger.warning(
+                        f"⚠️ Chat Completions stream produced 0 chars for model '{selected_model}'. "
+                        f"Falling back to non-streaming call."
+                    )
+
+                    try:
+                        fallback_params = dict(completion_params)
+                        fallback_params.pop("stream", None)
+
+                        api_client = get_client_for_model(selected_model)
+                        fallback_resp = api_client.chat.completions.create(**fallback_params)
+
+                        fallback_content = None
+                        if getattr(fallback_resp, "choices", None) and len(fallback_resp.choices) > 0:
+                            msg = getattr(fallback_resp.choices[0], "message", None)
+                            if msg is not None:
+                                fallback_content = getattr(msg, "content", None)
+                            if not fallback_content and hasattr(fallback_resp.choices[0], "text"):
+                                fallback_content = getattr(fallback_resp.choices[0], "text", None)
+
+                        if fallback_content and fallback_content.strip():
+                            full_content = fallback_content
+                            yield f"data: {json.dumps({'content': fallback_content, 'done': False})}\n\n"
+                        else:
+                            logger.error(
+                                f"❌ Fallback non-streaming call returned no content for model '{selected_model}'."
+                            )
+                    except Exception as fallback_err:
+                        logger.error(
+                            f"❌ GPT fallback failed for model '{selected_model}': {fallback_err}"
+                        )
             
             # For complex messages, extract only the response part
             logger.info(f"✅ Streaming complete - {len(full_content)} chars generated")
