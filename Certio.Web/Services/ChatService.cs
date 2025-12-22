@@ -457,12 +457,47 @@ public class ChatService : IChatService
         return true;
     }
 
-    public async Task<List<ChatMessage>> GetConversationMessagesAsync(int conversationId)
+    public async Task<List<ChatMessage>> GetConversationMessagesAsync(int conversationId, int? limit = null)
     {
-        return await _context.ChatMessages
-            .Where(m => m.ConversationId == conversationId)
-            .OrderBy(m => m.CreatedAt)
-            .ToListAsync();
+        // Cache key includes limit so UI can request a small window while AI can request full history.
+        var cacheKey = limit.HasValue
+            ? $"conv_msgs:{conversationId}:limit:{limit.Value}"
+            : $"conv_msgs:{conversationId}:all";
+
+        var cached = await _cacheService.GetAsync<List<ChatMessage>>(cacheKey);
+        if (cached != null)
+        {
+            return cached;
+        }
+
+        // Use AsNoTracking for fast read-only chat history.
+        List<ChatMessage> messages;
+
+        if (limit.HasValue && limit.Value > 0)
+        {
+            // Fetch most recent N and then restore chronological order for the UI.
+            messages = await _context.ChatMessages
+                .AsNoTracking()
+                .Where(m => m.ConversationId == conversationId)
+                .OrderByDescending(m => m.CreatedAt)
+                .Take(limit.Value)
+                .ToListAsync();
+
+            messages.Reverse();
+        }
+        else
+        {
+            messages = await _context.ChatMessages
+                .AsNoTracking()
+                .Where(m => m.ConversationId == conversationId)
+                .OrderBy(m => m.CreatedAt)
+                .ToListAsync();
+        }
+
+        // Cache briefly (hot path when users switch conversations / refresh).
+        await _cacheService.SetAsync(cacheKey, messages, TimeSpan.FromMinutes(2));
+
+        return messages;
     }
 
     public async Task<List<Conversation>> GetUserConversationsAsync(int userId, int organizationId)

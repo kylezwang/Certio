@@ -16,7 +16,7 @@ namespace Certio.Application.Interfaces
         Task<ChatMessage> EditMessageAsync(int messageId, string newContent, int userId);
         Task<bool> AddReactionAsync(int messageId, int userId, string emoji);
         Task<bool> RemoveReactionAsync(int messageId, int userId, string emoji);
-        Task<List<ChatMessage>> GetConversationMessagesAsync(int conversationId);
+        Task<List<ChatMessage>> GetConversationMessagesAsync(int conversationId, int? limit = null);
         Task<List<ChatMessage>> GetChannelMessagesAsync(int conversationId, int? channelId = null);
         Task<List<ChatMessage>> GetMessagesWithRepliesAsync(int conversationId);
         Task<List<Conversation>> GetUserConversationsAsync(int userId, int organizationId);

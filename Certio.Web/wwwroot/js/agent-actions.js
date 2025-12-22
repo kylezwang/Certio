@@ -458,24 +458,9 @@ function initializeActionTrackerUI() {
         <div id="agentActionTracker" class="agent-action-tracker" style="display: none;">
             <!-- Tracker Card (similar to timer card) -->
             <div id="actionTrackerCard" class="action-tracker-card">
-                <!-- Top Right Header Icons -->
-                <div class="action-tracker-top-icons">
-                    <button id="actionHistoryBtn" class="tracker-icon-btn" title="View action history">
-                        <i class="fas fa-history"></i>
-                    </button>
-                    <button id="actionCloseBtn" class="tracker-icon-btn" title="Close">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                
-                <!-- Action Counter and Controls -->
-                <div class="action-tracker-header">
-                    <div class="action-counter">
-                        <span id="actionCurrentIndex">0</span>
-                        <span class="action-separator">/</span>
-                        <span id="actionTotalCount">0</span>
-                    </div>
-                    <div class="action-controls">
+                <!-- Top Row: Keep/Undo (left) + History/Close (right) -->
+                <div class="action-tracker-top-row">
+                    <div class="action-tracker-top-left">
                         <button id="actionKeepBtn" class="action-btn action-keep-btn" title="Keep this change">
                             <i class="fas fa-check"></i>
                             Keep
@@ -483,6 +468,14 @@ function initializeActionTrackerUI() {
                         <button id="actionUndoBtn" class="action-btn action-undo-btn" title="Undo this change">
                             <i class="fas fa-undo"></i>
                             Undo
+                        </button>
+                    </div>
+                    <div class="action-tracker-top-right">
+                        <button id="actionHistoryBtn" class="tracker-icon-btn" title="View action history">
+                            <i class="fas fa-history"></i>
+                        </button>
+                        <button id="actionCloseBtn" class="tracker-icon-btn" title="Close">
+                            <i class="fas fa-times"></i>
                         </button>
                     </div>
                 </div>
@@ -508,8 +501,10 @@ function initializeActionTrackerUI() {
                     <button id="actionPrevBtn" class="nav-btn" title="Previous action">
                         <i class="fas fa-chevron-left"></i>
                     </button>
-                    <div class="action-dots" id="actionDots">
-                        <!-- Dot indicators will be populated dynamically -->
+                    <div class="action-pager" id="actionPager" aria-label="Action position">
+                        <span id="actionPagerCurrent">1</span>
+                        <span class="action-separator">/</span>
+                        <span id="actionPagerTotal">1</span>
                     </div>
                     <button id="actionNextBtn" class="nav-btn" title="Next action">
                         <i class="fas fa-chevron-right"></i>
@@ -896,19 +891,13 @@ function updateTrackerDisplay() {
     
     showActionTracker();
     
-    // Restore counter and controls visibility
-    const counterDiv = document.querySelector('.action-counter');
-    const controlsDiv = document.querySelector('.action-controls');
-    const headerDiv = document.querySelector('.action-tracker-header');
-    if (counterDiv) counterDiv.style.display = 'flex';
-    if (controlsDiv) controlsDiv.style.display = 'flex';
-    if (headerDiv) headerDiv.style.display = 'flex';
-    
     const currentAction = actions[index];
     
-    // Update counter
-    document.getElementById('actionCurrentIndex').textContent = index + 1;
-    document.getElementById('actionTotalCount').textContent = actions.length;
+    // Update pager (shown in nav row)
+    const pagerCurrent = document.getElementById('actionPagerCurrent');
+    const pagerTotal = document.getElementById('actionPagerTotal');
+    if (pagerCurrent) pagerCurrent.textContent = String(index + 1);
+    if (pagerTotal) pagerTotal.textContent = String(actions.length);
     
     // Update action preview
     updateActionPreview(currentAction);
@@ -916,8 +905,8 @@ function updateTrackerDisplay() {
     // Update navigation
     updateNavigationControls();
     
-    // Update dots
-    updateActionDots();
+    // Update pager visibility/values
+    updateActionPager();
 
     // Re-anchor after content updates (card height can change).
     requestAnimationFrame(() => {
@@ -934,26 +923,30 @@ function updateActionPreview(action) {
     
     // Set icon based on action type
     const iconMap = {
-        [AgentActionTypes.CreateTask]: 'fa-tasks',
-        [AgentActionTypes.AttachFile]: 'fa-paperclip',
-        [AgentActionTypes.AddNote]: 'fa-sticky-note',
-        [AgentActionTypes.StartTimer]: 'fa-clock',
-        [AgentActionTypes.NavigateTo]: 'fa-external-link-alt'
+        // Match in-chat action card icons (createActionCardHTML)
+        [AgentActionTypes.CreateTask]: 'fa-solid fa-bars-progress',
+        [AgentActionTypes.AttachFile]: 'fas fa-paperclip',
+        [AgentActionTypes.AddNote]: 'fas fa-sticky-note',
+        [AgentActionTypes.StartTimer]: 'fas fa-clock',
+        [AgentActionTypes.NavigateTo]: 'fas fa-external-link-alt'
     };
     
-    const colorMap = {
-        [AgentActionTypes.CreateTask]: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-        [AgentActionTypes.AttachFile]: 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
-        [AgentActionTypes.AddNote]: 'linear-gradient(135deg, #f59e0b, #d97706)',
-        [AgentActionTypes.StartTimer]: 'linear-gradient(135deg, #10b981, #059669)',
-        [AgentActionTypes.NavigateTo]: 'linear-gradient(135deg, #a32b43, #3d1019)'
+    // Use the same icon pill styling as in-chat action cards for tasks (remove the blue background).
+    // Other action types keep their existing gradient feel for quick visual differentiation.
+    const styleMap = {
+        [AgentActionTypes.CreateTask]: { background: 'rgba(61, 16, 25, 0.08)', color: '#3d1019' },
+        [AgentActionTypes.AttachFile]: { background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: '#ffffff' },
+        [AgentActionTypes.AddNote]: { background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#ffffff' },
+        [AgentActionTypes.StartTimer]: { background: 'linear-gradient(135deg, #10b981, #059669)', color: '#ffffff' },
+        [AgentActionTypes.NavigateTo]: { background: 'linear-gradient(135deg, #a32b43, #3d1019)', color: '#ffffff' }
     };
     
-    const icon = iconMap[action.actionType] || 'fa-cog';
-    const color = colorMap[action.actionType] || 'linear-gradient(135deg, #6b7280, #374151)';
+    const iconClass = iconMap[action.actionType] || 'fas fa-cog';
+    const style = styleMap[action.actionType] || { background: 'linear-gradient(135deg, #6b7280, #374151)', color: '#ffffff' };
     
-    iconEl.innerHTML = `<i class="fas ${icon}"></i>`;
-    iconEl.style.background = color;
+    iconEl.innerHTML = `<i class="${iconClass}"></i>`;
+    iconEl.style.background = style.background;
+    iconEl.style.color = style.color;
     
     // Set title and description
     titleEl.textContent = getActionTitle(action);
@@ -1081,30 +1074,18 @@ function updateNavigationControls() {
     }
 }
 
-// Update action dots indicator
-function updateActionDots() {
-    const dotsContainer = document.getElementById('actionDots');
-    if (!dotsContainer) return;
-    
+// Update action pager indicator ("1 / N" replacing dots)
+function updateActionPager() {
+    const pager = document.getElementById('actionPager');
+    const currentEl = document.getElementById('actionPagerCurrent');
+    const totalEl = document.getElementById('actionPagerTotal');
+    if (!pager || !currentEl || !totalEl) return;
+
     const actions = AgentActionsState.actions;
     const index = AgentActionsState.currentIndex;
-    
-    let dotsHTML = '';
-    actions.forEach((action, i) => {
-        const statusClass = `dot-${action.status.toLowerCase()}`;
-        const activeClass = i === index ? 'active' : '';
-        dotsHTML += `<span class="action-dot ${statusClass} ${activeClass}" data-index="${i}"></span>`;
-    });
-    
-    dotsContainer.innerHTML = dotsHTML;
-    
-    // Add click handlers to dots
-    dotsContainer.querySelectorAll('.action-dot').forEach(dot => {
-        dot.addEventListener('click', function() {
-            AgentActionsState.currentIndex = parseInt(this.dataset.index);
-            updateTrackerDisplay();
-        });
-    });
+
+    currentEl.textContent = String(index + 1);
+    totalEl.textContent = String(actions.length || 1);
 }
 
 // Show previous action

@@ -219,8 +219,35 @@ async function loadConversationMessages(conversationId) {
             console.error('Organization ID not found');
             return;
         }
-        
-        const response = await fetch(`/Client/${orgId}/Chat/GetMessages/${conversationId}`);
+
+        // Client-side cache for faster switching between long conversations
+        const cacheKey = `aiChatMessages:${orgId}:${conversationId}:limit:200`;
+        const cachedRaw = sessionStorage.getItem(cacheKey);
+        if (cachedRaw) {
+            try {
+                const cached = JSON.parse(cachedRaw);
+                if (cached && cached.ts && (Date.now() - cached.ts) < 60000 && Array.isArray(cached.messages)) {
+                    console.log('⚡ Using cached messages for conversation:', conversationId);
+                    currentMessages = cached.messages;
+                    lastMessageCount = cached.messages.length;
+
+                    const chatMessages = document.getElementById('chatMessages');
+                    if (chatMessages) {
+                        const messagesToRemove = chatMessages.querySelectorAll('.ai-message-bubble:not(.welcome-message .ai-message-bubble):not(.notal-conversation-header .ai-message-bubble), .user-message-bubble');
+                        messagesToRemove.forEach(msg => msg.remove());
+                        messageElements = [];
+                        userMessageElements = [];
+                        cached.messages.forEach(message => addMessageToChat(message));
+                        processAIInsights(cached.messages);
+                        initializeStickyMessage();
+                    }
+                }
+            } catch (e) {
+                // ignore cache parse errors
+            }
+        }
+
+        const response = await fetch(`/Client/${orgId}/Chat/GetMessages/${conversationId}?limit=200`);
         console.log('Response status:', response.status);
         
         if (!response.ok) {
@@ -231,6 +258,12 @@ async function loadConversationMessages(conversationId) {
         console.log('Loaded messages:', messages);
         currentMessages = messages;
         lastMessageCount = messages.length;
+
+        try {
+            sessionStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), messages }));
+        } catch (e) {
+            // ignore storage quota errors
+        }
         
         const chatMessages = document.getElementById('chatMessages');
         if (chatMessages) {
@@ -2439,6 +2472,47 @@ async function loadAIConversationsForPanel(forceReload = false) {
             tabList.innerHTML = '<div style="padding: 1rem; text-align: center; color: #9ca3af; font-size: 0.875rem;">No organization selected</div>';
             return;
         }
+
+        // Fast-path: brief session cache so the tab list renders instantly on refresh.
+        const convCacheKey = `aiConversations:${orgId}`;
+        if (!forceReload) {
+            const cachedRaw = sessionStorage.getItem(convCacheKey);
+            if (cachedRaw) {
+                try {
+                    const cached = JSON.parse(cachedRaw);
+                    if (cached && cached.ts && (Date.now() - cached.ts) < 60000 && Array.isArray(cached.conversations)) {
+                        console.log('⚡ Using cached AI conversations list');
+                        // Render from cache immediately
+                        tabList.innerHTML = '';
+                        cached.conversations.forEach(conversation => {
+                            const tab = document.createElement('div');
+                            tab.className = 'conversation-tab';
+                            tab.dataset.conversationId = conversation.id.toString();
+                            tab.title = conversation.title;
+                            tab.innerHTML = `
+                                <span class="tab-title">${conversation.title}</span>
+                                <button class="tab-close" title="Delete conversation">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            `;
+                            const deleteBtn = tab.querySelector('.tab-close');
+                            if (deleteBtn) {
+                                deleteBtn.addEventListener('click', function(e) {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    deleteConversation(conversation.id.toString());
+                                });
+                            }
+                            tabList.appendChild(tab);
+                        });
+                        restoreSelectedConversation();
+                        // Continue with network fetch to refresh (don’t return).
+                    }
+                } catch (e) {
+                    // ignore cache parse errors
+                }
+            }
+        }
         
         const response = await fetch(`/Client/${orgId}/Chat/GetAIConversations`);
         if (!response.ok) {
@@ -2450,6 +2524,12 @@ async function loadAIConversationsForPanel(forceReload = false) {
         
         const conversations = await response.json();
         console.log('Loaded conversations:', conversations);
+
+        try {
+            sessionStorage.setItem(convCacheKey, JSON.stringify({ ts: Date.now(), conversations }));
+        } catch (e) {
+            // ignore storage quota errors
+        }
         
         // Clear loading indicator and populate conversations
         tabList.innerHTML = '';
