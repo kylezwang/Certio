@@ -625,7 +625,39 @@ async function generateAIResponse(userMessage) {
             const { done, value } = await reader.read();
             
             if (done) {
-                break;
+                // Stream ended without an explicit { done: true } event.
+                // Finalize the UI so the user doesn't get stuck on "AI loading".
+                console.log('⚠️ Stream reader ended (no explicit done event). Finalizing...');
+
+                // If we never got any content chunks, show a friendly error
+                if (!aiMessageDiv) {
+                    hideAIThinkingIndicator();
+                    aiMessageDiv = createStreamingAIMessagePlaceholder();
+                    messageTextDiv = aiMessageDiv.querySelector('.message-text');
+                    messageTextDiv.innerHTML = 'Sorry, I was unable to generate a response. The AI stream ended unexpectedly. Please try again.';
+                    aiMessageDiv.classList.remove('streaming');
+                    return;
+                }
+
+                // Remove streaming state and render whatever we collected
+                aiMessageDiv.classList.remove('streaming');
+
+                let displayContent = fullContent;
+                if (typeof window.AgentActions !== 'undefined') {
+                    if (window.AgentActions.replaceWithCards) {
+                        displayContent = window.AgentActions.replaceWithCards(fullContent);
+                    } else if (window.AgentActions.stripActionCommands) {
+                        displayContent = window.AgentActions.stripActionCommands(fullContent);
+                    }
+                }
+                messageTextDiv.innerHTML = displayContent || 'No response generated.';
+
+                // Remove scroll listener
+                if (chatMessages) {
+                    chatMessages.removeEventListener('scroll', handleScroll);
+                }
+
+                return;
             }
             
             // Decode the chunk and add to buffer

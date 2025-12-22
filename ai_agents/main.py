@@ -152,7 +152,7 @@ def uses_responses_api(model_name: str) -> bool:
 async def call_responses_api_streaming(
     messages: List[Dict[str, str]],
     model_name: str,
-    max_completion_tokens: int,
+    max_output_tokens: int,
     temperature: Optional[float] = None
 ):
     """Call Azure OpenAI Responses API with streaming support"""
@@ -179,7 +179,8 @@ async def call_responses_api_streaming(
     request_body = {
         "model": model_name,
         "input": formatted_messages,  # Responses API uses "input" instead of "messages"
-        "max_completion_tokens": max_completion_tokens
+        "max_output_tokens": max_output_tokens,
+        "stream": True
     }
     
     # GPT-5 models don't support custom temperature (only default 1.0)
@@ -231,7 +232,7 @@ async def call_responses_api_streaming(
 async def call_responses_api(
     messages: List[Dict[str, str]],
     model_name: str,
-    max_completion_tokens: int,
+    max_output_tokens: int,
     temperature: Optional[float] = None
 ) -> str:
     """Call Azure OpenAI Responses API (non-streaming)"""
@@ -255,7 +256,7 @@ async def call_responses_api(
     request_body = {
         "model": model_name,
         "input": formatted_messages,
-        "max_completion_tokens": max_completion_tokens
+        "max_output_tokens": max_output_tokens
     }
     
     headers = {
@@ -2967,7 +2968,7 @@ Respond as an intelligent assistant:"""
                 stream_response = call_responses_api_streaming(
                     messages=api_messages,
                     model_name=selected_model,
-                    max_completion_tokens=max_tokens,
+                    max_output_tokens=max_tokens,
                     temperature=None  # GPT-5 models don't support custom temperature
                 )
             else:
