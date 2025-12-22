@@ -104,7 +104,41 @@ def create_openai_client():
             max_retries=0
         )
 
+def create_openai_client_gpt5x():
+    """Create secondary OpenAI client for GPT-5.1/5.2 models on separate Azure resource"""
+    azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT_GPT5X")
+    azure_api_key = os.getenv("AZURE_OPENAI_API_KEY_GPT5X")
+    
+    if azure_endpoint and azure_api_key:
+        from openai import AzureOpenAI
+        logger.info("🔵 Secondary Azure OpenAI client created for GPT-5.1/5.2")
+        return AzureOpenAI(
+            azure_endpoint=azure_endpoint,
+            api_key=azure_api_key,
+            api_version=os.getenv("AZURE_OPENAI_VERSION_GPT5X", "2025-04-01-preview"),
+            max_retries=0
+        )
+    return None
+
 client = create_openai_client()
+client_gpt5x = create_openai_client_gpt5x()
+
+def get_client_for_model(model_name: str):
+    """Get the appropriate client based on the model being used.
+    GPT-5.1 and GPT-5.2 may use a different Azure endpoint."""
+    global client, client_gpt5x
+    
+    # Check if this is a GPT-5.1 or GPT-5.2 model and if secondary client exists
+    if client_gpt5x:
+        gpt5_1_deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT5_1", "")
+        gpt5_2_deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT5_2", "")
+        
+        # If the model matches GPT-5.1 or GPT-5.2 deployment, use secondary client
+        if model_name and (model_name == gpt5_1_deployment or model_name == gpt5_2_deployment):
+            logger.info(f"🔄 Using secondary Azure client for model: {model_name}")
+            return client_gpt5x
+    
+    return client
 
 # Global function to get model name (Azure deployment names if using Azure)
 def get_model_name(model_type):
@@ -449,8 +483,10 @@ class BaseAgent:
                     completion_params["max_completion_tokens"] = max_tokens
                 else:
                     completion_params["max_tokens"] = max_tokens
-                    
-                response = client.chat.completions.create(**completion_params)
+                
+                # Use appropriate client based on model (GPT-5.1/5.2 may use different endpoint)
+                api_client = get_client_for_model(selected_model)
+                response = api_client.chat.completions.create(**completion_params)
                 
                 # Track actual usage for cost optimization
                 actual_tokens = response.usage.total_tokens if hasattr(response, 'usage') else max_tokens
@@ -491,7 +527,9 @@ class BaseAgent:
         
         for attempt in range(self.max_retries):
             try:
-                response = client.chat.completions.create(
+                # Use appropriate client based on model
+                api_client = get_client_for_model(vision_model)
+                response = api_client.chat.completions.create(
                     model=vision_model,
                     messages=[{
                         "role": "user",
@@ -2384,8 +2422,11 @@ Respond as an intelligent assistant:"""
             
             logger.info(f"Sending {len(api_messages)} messages to AI (including {len(history_messages) if history_messages else 0} history messages)")
             
+            # Use appropriate client based on model (GPT-5.1/5.2 may use different endpoint)
+            api_client = get_client_for_model(selected_model)
+            
             # Make API call with full conversation context
-            response = client.chat.completions.create(
+            response = api_client.chat.completions.create(
                 model=selected_model,
                 messages=api_messages,
                 max_tokens=max_tokens,
@@ -2780,7 +2821,9 @@ Respond as an intelligent assistant:"""
             else:
                 completion_params["max_tokens"] = max_tokens
             
-            stream_response = client.chat.completions.create(**completion_params)
+            # Use appropriate client based on model (GPT-5.1/5.2 may use different endpoint)
+            api_client = get_client_for_model(selected_model)
+            stream_response = api_client.chat.completions.create(**completion_params)
             
             # Track usage for cost optimization (only if we have optimal_model_type)
             if optimal_model_type:
