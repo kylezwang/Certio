@@ -786,9 +786,9 @@ public class UserDataContextService : IUserDataContextService
         
         // CRITICAL: Practice Area - must be explicit
         if (!string.IsNullOrEmpty(matter.PracticeArea))
-            sb.AppendLine($"Practice Area: {matter.PracticeArea}");
+            sb.AppendLine($"Event Type: {matter.PracticeArea}");
         else
-            sb.AppendLine("Practice Area: Not specified");
+            sb.AppendLine("Event Type: Not specified");
         
         if (!string.IsNullOrEmpty(matter.Description))
             sb.AppendLine($"Description: {matter.Description}");
@@ -803,13 +803,13 @@ public class UserDataContextService : IUserDataContextService
             sb.AppendLine($"Start Date: {matter.StartDate.Value:yyyy-MM-dd}");
         
         if (matter.DueDate.HasValue)
-            sb.AppendLine($"Due Date: {matter.DueDate.Value:yyyy-MM-dd}");
+            sb.AppendLine($"Event Date: {matter.DueDate.Value:yyyy-MM-dd}");
         
         if (matter.PendingDate.HasValue)
-            sb.AppendLine($"Pending Date: {matter.PendingDate.Value:yyyy-MM-dd}");
+            sb.AppendLine($"Final Payment Due: {matter.PendingDate.Value:yyyy-MM-dd}");
         
         if (matter.StatuteOfLimitationsDate.HasValue)
-            sb.AppendLine($"Statute of Limitations: {matter.StatuteOfLimitationsDate.Value:yyyy-MM-dd}");
+            sb.AppendLine($"Vendor Confirmation: {matter.StatuteOfLimitationsDate.Value:yyyy-MM-dd}");
         
         sb.AppendLine($"Tasks Progress: {matter.TasksCompleted}/{matter.TotalTasks} tasks completed");
         
@@ -851,7 +851,7 @@ public class UserDataContextService : IUserDataContextService
             sb.AppendLine($"Related Matter: {task.Matter.Title}");
         
         if (task.DueDate.HasValue)
-            sb.AppendLine($"Due Date: {task.DueDate.Value:yyyy-MM-dd}");
+            sb.AppendLine($"Event Date: {task.DueDate.Value:yyyy-MM-dd}");
         
         if (task.TaskAssignments.Any())
         {

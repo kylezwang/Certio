@@ -2143,23 +2143,32 @@ Format your response as proper HTML with <p> tags."""
                 context_metadata.get("token_budget")
             )
             
+            # Get current date for the AI to know what "today" means
+            from datetime import datetime, timezone
+            current_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+            current_date_readable = datetime.now(timezone.utc).strftime("%B %d, %Y")
+            
             agent_mode_section = ""
             if ai_mode == "agent":
-                agent_mode_section = """
+                agent_mode_section = f"""
 
 AGENT MODE (IMPORTANT):
+- Today's date is {current_date_readable} ({current_date}).
 - You are allowed to take actions, but ONLY when the user explicitly asks you to do so (e.g. "create a task", "add a note", "start a timer", "attach a file").
 - When the user explicitly requests an action, you MUST include the appropriate [ACTION:...] block in the SAME message. Do NOT ask "shall I proceed?" / do NOT ask for confirmation.
 - Do NOT tell the user to click around the UI in Agent mode; propose an action instead.
 - Do NOT ask for internal IDs like assigneeIds/userIds. If you don't know IDs, OMIT optional fields (assigneeIds, taskId, sourceDocumentId, etc.).
-- Dates: if you include dueDate, output ISO format "YYYY-MM-DD" (not "December 25, 2025").
-- If truly required info is missing (rare; e.g. you cannot determine what entity to attach to), ask ONE short clarifying question and do NOT output any action block.
+- Dates: if you include dueDate, output ISO format "YYYY-MM-DD" (not "December 25, 2025"). Use today's date ({current_date}) when user says "today".
+- REQUIRED FIELDS for CreateTask: matterId (REQUIRED - you MUST ask which matter to assign the task to if not specified), title. If the user doesn't specify a matter, ask ONE clarifying question: "Which matter would you like me to assign this task to?"
+- Priority options for tasks: Low, Medium, High, Critical (default is Medium if not specified).
+- Status options for tasks: Pending, In Progress, Review, Completed, On Hold, Cancelled (default is Pending if not specified). If user says "in-progress", "in progress", or "in-review", use the appropriate status.
+- If truly required info is missing, ask ONE short clarifying question and do NOT output any action block.
 
 Action blocks (JSON must be valid; use camelCase; no markdown fences):
-[ACTION:CreateTask]{\"matterId\":123,\"title\":\"Draft event contract\",\"description\":\"Draft the event contract\",\"priority\":\"Medium\",\"dueDate\":\"YYYY-MM-DD\",\"assigneeIds\":[1,2]}[/ACTION]
-[ACTION:AddNote]{\"matterId\":123,\"targetEntityType\":\"Matter\",\"targetEntityId\":123,\"content\":\"...\",\"isInternal\":true}[/ACTION]
-[ACTION:StartTimer]{\"matterId\":123,\"description\":\"...\",\"taskId\":456,\"billingCode\":\"...\",\"isBillable\":true}[/ACTION]
-[ACTION:AttachFile]{\"matterId\":123,\"targetEntityType\":\"Matter\",\"targetEntityId\":123,\"sourceDocumentId\":789}[/ACTION]
+[ACTION:CreateTask]{{"matterId":123,"title":"Draft event contract","description":"Draft the event contract","priority":"Medium","status":"Pending","dueDate":"{current_date}","assigneeIds":[1,2]}}[/ACTION]
+[ACTION:AddNote]{{"matterId":123,"targetEntityType":"Matter","targetEntityId":123,"content":"...","isInternal":true}}[/ACTION]
+[ACTION:StartTimer]{{"matterId":123,"description":"...","taskId":456,"billingCode":"...","isBillable":true}}[/ACTION]
+[ACTION:AttachFile]{{"matterId":123,"targetEntityType":"Matter","targetEntityId":123,"sourceDocumentId":789}}[/ACTION]
 
 Supported actions: CreateTask, AttachFile, AddNote, StartTimer
 """
@@ -2526,23 +2535,32 @@ IMPORTANT: Return ONLY the HTML content with <p> tags and <br> for line breaks. 
                     context_metadata.get("token_budget")
                 )
                 
+                # Get current date for the AI to know what "today" means
+                from datetime import datetime, timezone
+                current_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+                current_date_readable = datetime.now(timezone.utc).strftime("%B %d, %Y")
+                
                 agent_mode_section = ""
                 if ai_mode == "agent":
-                    agent_mode_section = """
+                    agent_mode_section = f"""
 
 AGENT MODE (IMPORTANT):
+- Today's date is {current_date_readable} ({current_date}).
 - You are allowed to take actions, but ONLY when the user explicitly asks you to do so (e.g. "create a task", "add a note", "start a timer", "attach a file").
 - When the user explicitly requests an action, you MUST include the appropriate [ACTION:...] block in the SAME message. Do NOT ask "shall I proceed?" / do NOT ask for confirmation.
 - Do NOT tell the user to click around the UI in Agent mode; propose an action instead.
 - Do NOT ask for internal IDs like assigneeIds/userIds. If you don't know IDs, OMIT optional fields (assigneeIds, taskId, sourceDocumentId, etc.).
-- Dates: if you include dueDate, output ISO format "YYYY-MM-DD" (not "December 25, 2025").
-- If truly required info is missing (rare; e.g. you cannot determine what entity to attach to), ask ONE short clarifying question and do NOT output any action block.
+- Dates: if you include dueDate, output ISO format "YYYY-MM-DD" (not "December 25, 2025"). Use today's date ({current_date}) when user says "today".
+- REQUIRED FIELDS for CreateTask: matterId (REQUIRED - you MUST ask which matter to assign the task to if not specified), title. If the user doesn't specify a matter, ask ONE clarifying question: "Which matter would you like me to assign this task to?"
+- Priority options for tasks: Low, Medium, High, Critical (default is Medium if not specified).
+- Status options for tasks: Pending, In Progress, Review, Completed, On Hold, Cancelled (default is Pending if not specified). If user says "in-progress", "in progress", or "in-review", use the appropriate status.
+- If truly required info is missing, ask ONE short clarifying question and do NOT output any action block.
 
 Action blocks (JSON must be valid; use camelCase; no markdown fences):
-[ACTION:CreateTask]{\"matterId\":123,\"title\":\"Draft event contract\",\"description\":\"Draft the event contract\",\"priority\":\"Medium\",\"dueDate\":\"YYYY-MM-DD\",\"assigneeIds\":[1,2]}[/ACTION]
-[ACTION:AddNote]{\"matterId\":123,\"targetEntityType\":\"Matter\",\"targetEntityId\":123,\"content\":\"...\",\"isInternal\":true}[/ACTION]
-[ACTION:StartTimer]{\"matterId\":123,\"description\":\"...\",\"taskId\":456,\"billingCode\":\"...\",\"isBillable\":true}[/ACTION]
-[ACTION:AttachFile]{\"matterId\":123,\"targetEntityType\":\"Matter\",\"targetEntityId\":123,\"sourceDocumentId\":789}[/ACTION]
+[ACTION:CreateTask]{{"matterId":123,"title":"Draft event contract","description":"Draft the event contract","priority":"Medium","status":"Pending","dueDate":"{current_date}","assigneeIds":[1,2]}}[/ACTION]
+[ACTION:AddNote]{{"matterId":123,"targetEntityType":"Matter","targetEntityId":123,"content":"...","isInternal":true}}[/ACTION]
+[ACTION:StartTimer]{{"matterId":123,"description":"...","taskId":456,"billingCode":"...","isBillable":true}}[/ACTION]
+[ACTION:AttachFile]{{"matterId":123,"targetEntityType":"Matter","targetEntityId":123,"sourceDocumentId":789}}[/ACTION]
 
 Supported actions: CreateTask, AttachFile, AddNote, StartTimer
 """
@@ -3629,7 +3647,7 @@ def _assess_legal_complexity(content: str) -> str:
     content_lower = content.lower()
     
     complex_terms = [
-        "litigation", "jurisdiction", "precedent", "statute of limitations",
+        "litigation", "jurisdiction", "precedent", "vendor confirmation",
         "due diligence", "indemnification", "force majeure", "arbitration",
         "confidentiality agreement", "non-compete", "intellectual property",
         "securities", "merger", "acquisition", "antitrust"

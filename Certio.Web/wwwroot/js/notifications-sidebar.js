@@ -41,9 +41,17 @@
             }
             
             // Update floating timer overlay position
+            // IMPORTANT: Do NOT set `right` when the timer is positioned via `left/top` (default or user-dragged),
+            // otherwise the fixed element becomes over-constrained (left + right) and stretches across the screen,
+            // creating an invisible draggable hitbox.
             const floatingTimerOverlay = document.getElementById('floatingTimerOverlay');
-            if (floatingTimerOverlay && !localStorage.getItem('timerPosition')) {
-                floatingTimerOverlay.style.right = (savedWidth + 24) + 'px';
+            if (floatingTimerOverlay) {
+                const hasSavedManualPosition = !!localStorage.getItem('timerPosition');
+                const hasExplicitLeft = (floatingTimerOverlay.style.left || '').trim().length > 0;
+
+                if (!hasSavedManualPosition && !hasExplicitLeft) {
+                    floatingTimerOverlay.style.right = (savedWidth + 24) + 'px';
+                }
             }
         } else {
             notificationsPanel.style.display = 'none';
@@ -189,10 +197,19 @@
             mainContentWrapper.style.right = '1rem';
         }
 
-        // Reset floating timer overlay position
+        // Reset floating timer overlay position.
+        // If the timer is left-anchored (default) or manually positioned, do NOT set `right`
+        // (prevents stretched invisible draggable hitbox).
         const floatingTimerOverlay = document.getElementById('floatingTimerOverlay');
         if (floatingTimerOverlay) {
-            floatingTimerOverlay.style.right = '1.5rem';
+            const hasSavedManualPosition = !!localStorage.getItem('timerPosition');
+            const hasExplicitLeft = (floatingTimerOverlay.style.left || '').trim().length > 0;
+
+            if (!hasSavedManualPosition && !hasExplicitLeft) {
+                floatingTimerOverlay.style.right = '1.5rem';
+            } else {
+                floatingTimerOverlay.style.right = '';
+            }
         }
 
         // Update button states - remove active from all

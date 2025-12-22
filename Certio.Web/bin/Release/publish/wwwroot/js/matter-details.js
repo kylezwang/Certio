@@ -109,7 +109,7 @@
                         <div class="text-center py-5">
                             <i class="fas fa-stream text-muted mb-3" style="font-size: 3rem;"></i>
                             <h4 class="text-dark mb-2">Matter Timeline</h4>
-                            <p class="text-muted">This section will display a timeline of events and milestones for this matter.</p>
+                            <p class="text-muted">This section will display a timeline of events and milestones for this event.</p>
                             <p class="text-muted small">(To be implemented in a future phase)</p>
                         </div>
                     </div>
@@ -144,7 +144,7 @@
                         <div class="text-center py-5">
                             <i class="fas fa-credit-card text-muted mb-3" style="font-size: 3rem;"></i>
                             <h4 class="text-dark mb-2">Matter Billing</h4>
-                            <p class="text-muted">This section will display billing information and time tracking for this matter.</p>
+                            <p class="text-muted">This section will display billing information and time tracking for this event.</p>
                             <p class="text-muted small">(To be implemented in a future phase)</p>
                         </div>
                     </div>
@@ -158,7 +158,7 @@
                         <div class="text-center py-5">
                             <i class="fas fa-history text-muted mb-3" style="font-size: 3rem;"></i>
                             <h4 class="text-dark mb-2">Matter History</h4>
-                            <p class="text-muted">This section will display the change history and audit log for this matter.</p>
+                            <p class="text-muted">This section will display the change history and audit log for this event.</p>
                             <p class="text-muted small">(To be implemented in a future phase)</p>
                         </div>
                     </div>

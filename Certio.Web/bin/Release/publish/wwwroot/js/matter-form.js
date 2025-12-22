@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
         startDateField.addEventListener('change', function() {
             if (this.value && dueDateField.value) {
                 if (new Date(this.value) > new Date(dueDateField.value)) {
-                    dueDateField.setCustomValidity('Due date must be after start date');
+                    dueDateField.setCustomValidity('Event date must be after start date');
                 } else {
                     dueDateField.setCustomValidity('');
                 }
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
         dueDateField.addEventListener('change', function() {
             if (this.value && startDateField.value) {
                 if (new Date(this.value) < new Date(startDateField.value)) {
-                    this.setCustomValidity('Due date must be after start date');
+                    this.setCustomValidity('Event date must be after start date');
                 } else {
                     this.setCustomValidity('');
                 }

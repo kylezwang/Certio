@@ -656,7 +656,7 @@ namespace Certio.Web.Controllers
                 // Validate Step 2 fields
                 if (string.IsNullOrWhiteSpace(model.PracticeArea))
                 {
-                    ModelState.AddModelError("PracticeArea", "Please select a practice area");
+                    ModelState.AddModelError("PracticeArea", "Please select a event type");
                     isValid = false;
                 }
                 if (string.IsNullOrWhiteSpace(model.Status))

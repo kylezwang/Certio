@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <span class="timestamp">Just now</span>
                             </div>
                             <div class="message-text">
-                                Hi! I'm Notal, your AI legal assistant. Please leave me a note or select a chat above to get started!
+                                Hi! I'm Notal, your AI assistant. Leave me an actionable note or select a chat above to get started!
                             </div>
                         </div>
                     </div>

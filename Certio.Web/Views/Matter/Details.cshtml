@@ -256,14 +256,14 @@
                                                 <i class="fas fa-file-alt fs-5 me-2" style="color: #3d1019; font-size: 1.35rem;"></i>
                                                 <div>
                                                     <h6 class="fw-bold text-dark mb-1" style="font-size: 1rem;">Basic Information</h6>
-                                                    <p class="text-muted mb-0 small" style="font-size: 0.8rem;">View or edit the essential details for your matter. Scroll or use arrows to navigate.</p>
+                                                    <p class="text-muted mb-0 small" style="font-size: 0.8rem;">View or edit the essential details for your event. Scroll or use arrows to navigate.</p>
                                                 </div>
                                             </div>
                                             <div class="container-fluid px-0">
                                                 <div class="row">
                                                     <div class="col-12 mb-3">
                                                         <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
-                                                            Matter Title <span class="text-danger">*</span>
+                                                            Event Title <span class="text-danger">*</span>
                                                         </label>
                                                         <input type="text" class="form-control form-control-lg matter-carousel-input" 
                                                                data-field="title" 
@@ -279,8 +279,8 @@
                                                     </div>
                                                         <div class="row small text-muted" style="padding: 0rem;">
                                                         <div class="col-md-6 mb-2"><strong class="text-dark">Created:</strong> @Model.Matter.CreatedAt.ToString("MMM dd, yyyy")</div>
-                                                        <div class="col-md-6 mb-2"><strong class="text-dark">Due Date:</strong> @(Model.Matter.DueDate?.ToString("MMM dd, yyyy") ?? "Not specified")</div>
-                                                        <div class="col-md-6 mb-2"><strong class="text-dark">Statute of Limitations:</strong> @(Model.Matter.StatuteOfLimitationsDate?.ToString("MMM dd, yyyy") ?? "Not specified")</div>
+                                                        <div class="col-md-6 mb-2"><strong class="text-dark">Event Date:</strong> @(Model.Matter.DueDate?.ToString("MMM dd, yyyy") ?? "Not specified")</div>
+                                                        <div class="col-md-6 mb-2"><strong class="text-dark">Vendor Confirmation:</strong> @(Model.Matter.StatuteOfLimitationsDate?.ToString("MMM dd, yyyy") ?? "Not specified")</div>
                                                         <div class="col-md-6 mb-2"><strong class="text-dark">Last Updated:</strong> @(Model.Matter.LastModifiedDate?.ToString("MMM dd, yyyy") ?? Model.Matter.CreatedAt.ToString("MMM dd, yyyy"))</div>
                                                     </div>
                                                 </div>
@@ -323,12 +323,12 @@
                                                     <div class="col-md-6 mb-3">
                                                         <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
                                                             <i class="fas fa-gem me-2" style="color: #3d1019;"></i>
-                                                            Practice Area <span class="text-danger">*</span>
+                                                            Event Type <span class="text-danger">*</span>
                                                         </label>
                                                         <select class="form-select form-select-lg matter-carousel-input" 
                                                                 data-field="practiceArea" 
                                                                 style="font-size: 0.9rem;">
-                                                            <option value="">Select practice area</option>
+                                                            <option value="">Select event type</option>
                                                             @foreach (var category in ViewBag.PracticeAreas ?? new List<string> { "Business Formation / Compliance", "Commercial Litigation", "Construction", "Corporate Litigation", "Criminal", "Elder", "Employment / Labor", "Family", "Healthcare", "Intellectual Property", "Medical Malpractice", "Personal Injury", "Privacy / Information Security", "Product Liability", "Real Estate", "Securities / Mergers & Acquisitions", "Sports / Entertainment / Gaming", "Tax", "Trusts", "Wills & Estates", "Other" })
                                                             {
                                                                 @if (Model.Matter.PracticeArea == category)
@@ -355,7 +355,7 @@
                                                     <div class="col-md-6 mb-3">
                                                         <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
                                                             <i class="fas fa-calendar me-2" style="color: #3d1019;"></i>
-                                                            Due Date
+                                                            Event Date
                                                         </label>
                                                         <input type="date" class="form-control form-control-lg matter-carousel-input" 
                                                                data-field="dueDate" 
@@ -365,7 +365,7 @@
                                                     <div class="col-md-6 mb-3">
                                                         <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
                                                             <i class="fas fa-calendar me-2" style="color: #3d1019;"></i>
-                                                            Pending Date
+                                                            Final Payment Due
                                                         </label>
                                                         <input type="date" class="form-control form-control-lg matter-carousel-input" 
                                                                data-field="pendingDate" 
@@ -375,7 +375,7 @@
                                                     <div class="col-md-6 mb-3">
                                                         <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
                                                             <i class="fas fa-calendar me-2" style="color: #3d1019;"></i>
-                                                            Statute of Limitations Date
+                                                            Vendor Confirmation Deadline
                                                         </label>
                                                         <input type="date" class="form-control form-control-lg matter-carousel-input" 
                                                                data-field="statuteOfLimitationsDate" 
@@ -386,13 +386,13 @@
                                             </div>
                                         </div>
 
-                                        <!-- Slide 3: Firm & Contacts (replica of Create - Step 3) -->
+                                        <!-- Slide 3: Staff & Contacts (replica of Create - Step 3) -->
                                         <div class="carousel-slide">
                                             <div class="d-flex align-items-center mb-3" style="margin-left:0.25rem;">
                                                 <i class="fas fa-building-columns fs-5 me-2" style="color: #3d1019; font-size: 1.35rem;"></i>
                                                 <div>
-                                                    <h6 class="fw-bold text-dark mb-1" style="font-size: 1rem;">Firm & Contacts</h6>
-                                                    <p class="text-muted mb-0 small" style="font-size: 0.8rem;">Assign attorneys and staff responsible for this matter.</p>
+                                                    <h6 class="fw-bold text-dark mb-1" style="font-size: 1rem;">Staff & Contacts</h6>
+                                                    <p class="text-muted mb-0 small" style="font-size: 0.8rem;">Assign your team members and relevant contacts for this event.</p>
                                                 </div>
                                             </div>
                                             <div class="container-fluid px-0">
@@ -406,7 +406,7 @@
                                                     <div class="col-md-6 mb-3">
                                                         <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
                                                             <i class="fas fa-user-tie me-2" style="color: #3d1019;"></i>
-                                                            Responsible Attorney
+                                                            MC / Host
                                                         </label>
                                                         <div class="input-group input-group-lg">
                                                             <input type="text" class="form-control form-control-lg" id="responsibleAttorneyInput" 
@@ -425,7 +425,7 @@
                                                     <div class="col-md-6 mb-3">
                                                         <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
                                                             <i class="fas fa-user me-2" style="color: #3d1019;"></i>
-                                                            Responsible Staff
+                                                            Photobooth
                                                         </label>
                                                         <div class="input-group input-group-lg">
                                                             <input type="text" class="form-control form-control-lg" id="responsibleStaffInput" 
@@ -444,7 +444,7 @@
                                                     <div class="col-12 mb-3">
                                                         <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
                                                             <i class="fas fa-user-tie me-2" style="color: #3d1019;"></i>
-                                                            Originating Attorney
+                                                            DJ & Music
                                                         </label>
                                                         <div class="input-group input-group-lg">
                                                             <input type="text" class="form-control form-control-lg" id="originatingAttorneyInput" 
@@ -462,31 +462,45 @@
                                                     </div>
                                                 </div>
                                                 <div class="mb-3" style="padding: 0rem 0.5rem;">
-                                                    <div class="d-flex align-items-center mb-2">
-                                                        <i class="fas fa-users fs-6 me-2" style="color: #3d1019; font-size: 1.125rem;"></i>
-                                                        <h6 class="fw-bold text-dark mb-0" style="font-size: 0.9rem;">Relevant contacts</h6>
-                                                    </div>
-                                                    @if (relevantContacts.Count == 0)
-                                                    {
-                                                        <div class="alert alert-info mb-0">
-                                                            <i class="fas fa-info-circle me-2"></i>
-                                                            Information for relevant contacts appears on the matter dashboard.
+                                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="fas fa-users fs-6 me-2" style="color: #3d1019; font-size: 1.125rem;"></i>
+                                                            <h6 class="fw-bold text-dark mb-0" style="font-size: 0.9rem;">Relevant contacts</h6>
                                                         </div>
-                                                    }
-                                                    else
-                                                    {
-                                                        <div class="border rounded p-3" style="background-color: #f8f9fa;">
+                                                        <button type="button" class="btn btn-outline-primary btn-sm" id="addRelevantContactBtn" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                                                            <i class="fas fa-plus me-1"></i> Add
+                                                        </button>
+                                                    </div>
+                                                    
+                                                    <!-- Relevant Contacts Container -->
+                                                    <div id="relevant-contacts-container" style="max-height: 200px; overflow-y: auto;">
+                                                        @if (relevantContacts.Count == 0)
+                                                        {
+                                                            <div class="text-muted small text-center py-2" id="noContactsMessage">
+                                                                <i class="fas fa-info-circle me-1"></i>
+                                                                No relevant contacts added yet.
+                                                            </div>
+                                                        }
+                                                        else
+                                                        {
                                                             @foreach (var rc in relevantContacts)
                                                             {
                                                                 var contactName = rc.User != null ? ($"{rc.User.FirstName} {rc.User.LastName}") : "Unknown contact";
                                                                 var contactRole = string.IsNullOrWhiteSpace(rc.Role) ? "Contact" : rc.Role;
-                                                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                                                    <div class="text-dark">@contactName</div>
-                                                                    <span class="badge bg-secondary">@contactRole</span>
+                                                                <div class="relevant-contact-row d-flex align-items-center gap-2 mb-2 p-2 border rounded" data-assignment-id="@rc.Id" style="background-color: #f8f9fa;">
+                                                                    <div class="flex-grow-1">
+                                                                        <div class="fw-medium text-dark" style="font-size: 0.85rem;">@contactName</div>
+                                                                        <div class="text-muted" style="font-size: 0.75rem;">@contactRole</div>
+                                                                    </div>
+                                                                    <button type="button" class="btn btn-outline-danger btn-sm remove-contact-btn" 
+                                                                            data-assignment-id="@rc.Id"
+                                                                            style="padding: 0.15rem 0.35rem; font-size: 0.7rem;">
+                                                                        <i class="fas fa-times"></i>
+                                                                    </button>
                                                                 </div>
                                                             }
-                                                        </div>
-                                                    }
+                                                        }
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -497,7 +511,7 @@
                                                 <i class="fas fa-eye fs-5 me-2" style="color: #3d1019; font-size: 1.35rem;"></i>
                                                 <div>
                                                     <h6 class="fw-bold text-dark mb-1" style="font-size: 1rem;">Permissions</h6>
-                                                    <p class="text-muted mb-0 small" style="font-size: 0.8rem;">Review your matter's access level.</p>
+                                                    <p class="text-muted mb-0 small" style="font-size: 0.8rem;">Review your event's access level.</p>
                                                 </div>
                                             </div>
                                             <div class="container-fluid px-0">
@@ -916,9 +930,9 @@
 
             try {
                 const roleMap = {
-                    'ResponsibleAttorney': 'Responsible Attorney',
-                    'ResponsibleStaff': 'Responsible Staff',
-                    'OriginatingAttorney': 'Originating Attorney'
+                    'ResponsibleAttorney': 'MC / Host',
+                    'ResponsibleStaff': 'Photobooth',
+                    'OriginatingAttorney': 'DJ & Music'
                 };
 
                 // Save assignment changes
@@ -1043,9 +1057,9 @@
             
             // Get assignment type label
             const assignmentLabels = {
-                'ResponsibleAttorney': 'Responsible Attorney',
-                'ResponsibleStaff': 'Responsible Staff',
-                'OriginatingAttorney': 'Originating Attorney'
+                'ResponsibleAttorney': 'MC / Host',
+                'ResponsibleStaff': 'Photobooth',
+                'OriginatingAttorney': 'DJ & Music'
             };
             const assignmentLabel = assignmentLabels[assignmentType] || assignmentType;
             
@@ -1130,9 +1144,9 @@
                     </div>
                 </div>
                 
-                <div class="d-flex justify-content-end gap-2 mt-2">
+                <div class="d-flex justify-content-end mt-2">
                     <button class="btn btn-secondary btn-sm" id="matterAssignmentCancel" style="border-radius: 0.5rem;">Cancel</button>
-                    <button class="btn btn-primary btn-sm" id="matterAssignmentDone" style="border-radius: 0.5rem;">Done</button>
+                    <button class="btn btn-primary btn-sm" id="matterAssignmentDone" style="border-radius: 0.5rem; margin-left: 0.5rem;">Done</button>
                 </div>
             `;
             
@@ -1269,9 +1283,9 @@
                 
                 // Update UI only
                 const roleMap = {
-                    'ResponsibleAttorney': 'Responsible Attorney',
-                    'ResponsibleStaff': 'Responsible Staff',
-                    'OriginatingAttorney': 'Originating Attorney'
+                    'ResponsibleAttorney': 'MC / Host',
+                    'ResponsibleStaff': 'Photobooth',
+                    'OriginatingAttorney': 'DJ & Music'
                 };
                 
                 // Update the input field
@@ -1335,6 +1349,201 @@
             setTimeout(() => {
                 document.addEventListener('click', outsideClickHandler);
             }, 100);
+        }
+
+        // Initialize relevant contacts functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add contact button click handler
+            const addContactBtn = document.getElementById('addRelevantContactBtn');
+            if (addContactBtn) {
+                addContactBtn.addEventListener('click', showAddRelevantContactPopup);
+            }
+            
+            // Remove contact button handlers
+            document.querySelectorAll('.remove-contact-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const assignmentId = this.dataset.assignmentId;
+                    removeRelevantContact(assignmentId, this.closest('.relevant-contact-row'));
+                });
+            });
+        });
+
+        // Show popup to add relevant contact
+        async function showAddRelevantContactPopup() {
+            await loadUsersForAssignment();
+            
+            const addBtn = document.getElementById('addRelevantContactBtn');
+            const btnRect = addBtn.getBoundingClientRect();
+            
+            // Create popup - position right above the Add button
+            const popupHeight = 320; // Approximate height of popup
+            const popup = document.createElement('div');
+            popup.className = 'relevant-contact-popup';
+            popup.style.cssText = `
+                position: fixed;
+                top: ${btnRect.top - popupHeight - 10}px;
+                left: ${btnRect.right - 350}px;
+                background: white;
+                border-radius: 0.5rem;
+                padding: 1rem;
+                width: 350px;
+                max-height: 400px;
+                overflow-y: auto;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+                border: 1px solid #dee2e6;
+                z-index: 1100;
+            `;
+            
+            // Adjust position if off-screen
+            const screenWidth = window.innerWidth;
+            if (btnRect.right - 350 < 10) {
+                popup.style.left = '10px';
+            }
+            // If popup would go above viewport, show below button instead
+            if (btnRect.top - popupHeight - 10 < 10) {
+                popup.style.top = `${btnRect.bottom + 10}px`;
+            }
+            
+            popup.innerHTML = `
+                <div class="mb-3">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-user-plus me-2" style="color: #3d1019; font-size: 1rem;"></i>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-0" style="font-size: 0.9rem;">Add Relevant Contact</h6>
+                            <p class="text-muted mb-0" style="font-size: 0.75rem;">Select a contact and their role.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-dark mb-1" style="font-size: 0.85rem;">Contact</label>
+                    <select id="newContactUserSelect" class="form-select form-select-sm">
+                        <option value="">Select a contact...</option>
+                        ${allUsers.map(u => `<option value="${u.id}">${u.name}${u.email ? ' (' + u.email + ')' : ''}</option>`).join('')}
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-dark mb-1" style="font-size: 0.85rem;">Involvement / Role</label>
+                    <input type="text" id="newContactRole" class="form-control form-control-sm" placeholder="e.g., Decision maker, Billing contact">
+                </div>
+                
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input type="checkbox" id="newContactNotify" class="form-check-input" checked>
+                        <label class="form-check-label" style="font-size: 0.85rem;">Notify recipient</label>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-secondary btn-sm" id="cancelAddContact" style="border-radius: 0.5rem;">Cancel</button>
+                    <button class="btn btn-primary btn-sm" id="confirmAddContact" style="border-radius: 0.5rem; margin-left: 0.5rem;">Add Contact</button>
+                </div>
+            `;
+            
+            document.body.appendChild(popup);
+            
+            // Cancel button
+            popup.querySelector('#cancelAddContact').addEventListener('click', function() {
+                popup.remove();
+            });
+            
+            // Confirm button - add contact immediately via API
+            popup.querySelector('#confirmAddContact').addEventListener('click', async function() {
+                const userId = popup.querySelector('#newContactUserSelect').value;
+                const role = popup.querySelector('#newContactRole').value.trim();
+                const notify = popup.querySelector('#newContactNotify').checked;
+                
+                if (!userId) {
+                    alert('Please select a contact.');
+                    return;
+                }
+                
+                if (!role) {
+                    alert('Please enter an involvement/role.');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`/Client/${organizationId}/Matter/${matterId}/Assignment`, {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            userId: parseInt(userId),
+                            assignmentType: 'RelevantContact',
+                            role: role,
+                            isNotifyRecipient: notify
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        popup.remove();
+                        location.reload(); // Refresh to show the new contact
+                    } else {
+                        const errorData = await response.json();
+                        console.error('Error adding contact:', errorData);
+                        alert('Error adding contact. Please try again.');
+                    }
+                } catch (error) {
+                    console.error('Error adding contact:', error);
+                    alert('An error occurred. Please try again.');
+                }
+            });
+            
+            // Close on outside click
+            const outsideClickHandler = function(e) {
+                if (!popup.contains(e.target) && e.target !== addBtn) {
+                    popup.remove();
+                    document.removeEventListener('click', outsideClickHandler);
+                }
+            };
+            
+            setTimeout(() => {
+                document.addEventListener('click', outsideClickHandler);
+            }, 100);
+        }
+
+        // Remove relevant contact
+        async function removeRelevantContact(assignmentId, rowElement) {
+            if (!confirm('Are you sure you want to remove this contact?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/Client/${organizationId}/Matter/${matterId}/Assignment/${assignmentId}`, {
+                    method: 'DELETE',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    // Remove the row from UI
+                    rowElement.remove();
+                    
+                    // If no contacts left, show the "no contacts" message
+                    const container = document.getElementById('relevant-contacts-container');
+                    if (container && container.querySelectorAll('.relevant-contact-row').length === 0) {
+                        container.innerHTML = `
+                            <div class="text-muted small text-center py-2" id="noContactsMessage">
+                                <i class="fas fa-info-circle me-1"></i>
+                                No relevant contacts added yet.
+                            </div>
+                        `;
+                    }
+                } else {
+                    const errorData = await response.json();
+                    console.error('Error removing contact:', errorData);
+                    alert('Error removing contact. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error removing contact:', error);
+                alert('An error occurred. Please try again.');
+            }
         }
     </script>
 }
