@@ -167,14 +167,34 @@ async def call_responses_api_streaming(
     url = f"{endpoint.rstrip('/')}/openai/responses"
     
     # Build request body for Responses API
-    # Responses API format may vary - try both "input" and "messages" formats
-    # First, ensure messages are in the right format (list of dicts with role/content)
+    # Responses API requires proper role values: 'assistant', 'system', 'developer', 'user'
     formatted_messages = []
     for msg in messages:
         if isinstance(msg, dict):
-            formatted_messages.append(msg)
+            role = msg.get("role", "").strip().lower()
+            content = msg.get("content", "")
+            
+            # Skip messages with empty content
+            if not content or not content.strip():
+                continue
+            
+            # Validate and fix role - Responses API only accepts specific values
+            if role == "system":
+                formatted_messages.append({"role": "system", "content": content})
+            elif role == "assistant" or role == "ai":
+                formatted_messages.append({"role": "assistant", "content": content})
+            elif role in ("user", "client", "human"):
+                formatted_messages.append({"role": "user", "content": content})
+            elif role == "developer":
+                formatted_messages.append({"role": "developer", "content": content})
+            else:
+                # Default to user for unknown/empty roles
+                formatted_messages.append({"role": "user", "content": content})
         else:
-            formatted_messages.append({"role": "user", "content": str(msg)})
+            # Non-dict messages are treated as user messages
+            content = str(msg).strip()
+            if content:
+                formatted_messages.append({"role": "user", "content": content})
     
     request_body = {
         "model": model_name,
@@ -245,13 +265,33 @@ async def call_responses_api(
     
     url = f"{endpoint.rstrip('/')}/openai/responses"
     
-    # Ensure messages are in the right format
+    # Ensure messages are in the right format with valid roles
     formatted_messages = []
     for msg in messages:
         if isinstance(msg, dict):
-            formatted_messages.append(msg)
+            role = msg.get("role", "").strip().lower()
+            content = msg.get("content", "")
+            
+            # Skip messages with empty content
+            if not content or not content.strip():
+                continue
+            
+            # Validate and fix role - Responses API only accepts specific values
+            if role == "system":
+                formatted_messages.append({"role": "system", "content": content})
+            elif role == "assistant" or role == "ai":
+                formatted_messages.append({"role": "assistant", "content": content})
+            elif role in ("user", "client", "human"):
+                formatted_messages.append({"role": "user", "content": content})
+            elif role == "developer":
+                formatted_messages.append({"role": "developer", "content": content})
+            else:
+                # Default to user for unknown/empty roles
+                formatted_messages.append({"role": "user", "content": content})
         else:
-            formatted_messages.append({"role": "user", "content": str(msg)})
+            content = str(msg).strip()
+            if content:
+                formatted_messages.append({"role": "user", "content": content})
     
     request_body = {
         "model": model_name,
@@ -2960,9 +3000,27 @@ Respond as an intelligent assistant:"""
                 api_messages = [
                     {"role": "system", "content": system_prompt}
                 ]
-                # Add user message if present
+                # Add conversation history if present (normalize roles)
                 if messages:
-                    api_messages.extend(messages)
+                    for msg in messages:
+                        if isinstance(msg, dict):
+                            role = msg.get("role", "user")
+                            content = msg.get("content", "")
+                            # Map isFromAI field to role if present
+                            if msg.get("isFromAI") or msg.get("is_from_ai"):
+                                role = "assistant"
+                            elif role.lower() in ("ai", "assistant"):
+                                role = "assistant"
+                            else:
+                                role = "user"
+                            if content and content.strip():
+                                api_messages.append({"role": role, "content": content})
+                
+                # Add current user message
+                if user_message and user_message.strip():
+                    api_messages.append({"role": "user", "content": user_message})
+                
+                logger.info(f"📡 Responses API message count: {len(api_messages)}")
                 
                 # Stream from Responses API
                 stream_response = call_responses_api_streaming(
@@ -3007,20 +3065,54 @@ Respond as an intelligent assistant:"""
             if uses_responses:
                 # Handle Responses API streaming (async generator)
                 async for event_data in stream_response:
-                    # Responses API format may vary - check for common fields
-                    if "content" in event_data:
+                    logger.debug(f"📨 Responses API event: {json.dumps(event_data)[:200]}")
+                    
+                    # Azure Responses API can return content in various formats
+                    content = None
+                    
+                    # Format 1: Direct content field
+                    if "content" in event_data and event_data["content"]:
                         content = event_data["content"]
-                        full_content += content
-                        yield f"data: {json.dumps({'content': content, 'done': False})}\n\n"
-                    elif "text" in event_data:
+                    # Format 2: Text field
+                    elif "text" in event_data and event_data["text"]:
                         content = event_data["text"]
+                    # Format 3: Delta with content
+                    elif "delta" in event_data:
+                        delta = event_data["delta"]
+                        if isinstance(delta, dict) and delta.get("content"):
+                            content = delta["content"]
+                        elif isinstance(delta, str):
+                            content = delta
+                    # Format 4: Choices array (like Chat Completions)
+                    elif "choices" in event_data and event_data["choices"]:
+                        choice = event_data["choices"][0]
+                        if "delta" in choice and choice["delta"].get("content"):
+                            content = choice["delta"]["content"]
+                        elif "message" in choice and choice["message"].get("content"):
+                            content = choice["message"]["content"]
+                        elif "text" in choice:
+                            content = choice["text"]
+                    # Format 5: Output field (Responses API specific)
+                    elif "output" in event_data:
+                        output = event_data["output"]
+                        if isinstance(output, str):
+                            content = output
+                        elif isinstance(output, list) and output:
+                            # Output might be list of content items
+                            for item in output:
+                                if isinstance(item, dict) and item.get("content"):
+                                    content = item["content"]
+                                    break
+                                elif isinstance(item, str):
+                                    content = item
+                                    break
+                    
+                    if content:
                         full_content += content
                         yield f"data: {json.dumps({'content': content, 'done': False})}\n\n"
-                    elif "delta" in event_data and "content" in event_data["delta"]:
-                        content = event_data["delta"]["content"]
-                        full_content += content
-                        yield f"data: {json.dumps({'content': content, 'done': False})}\n\n"
-                    elif event_data.get("done"):
+                    
+                    # Check for completion signals
+                    if event_data.get("done") or event_data.get("finish_reason"):
                         break
             else:
                 # Handle Chat Completions streaming (standard OpenAI format)
@@ -3034,11 +3126,14 @@ Respond as an intelligent assistant:"""
                             yield f"data: {json.dumps({'content': content, 'done': False})}\n\n"
             
             # For complex messages, extract only the response part
+            logger.info(f"✅ Streaming complete - {len(full_content)} chars generated")
             if not is_simple_message and "<response>" in full_content and "</response>" in full_content:
                 # We've already streamed it, just signal completion
+                logger.info("📤 Sending done signal (complex response)")
                 yield f"data: {json.dumps({'content': '', 'done': True})}\n\n"
             else:
                 # Signal completion
+                logger.info("📤 Sending done signal")
                 yield f"data: {json.dumps({'content': '', 'done': True})}\n\n"
                 
         except Exception as e:
