@@ -433,14 +433,22 @@ class BaseAgent:
         # Wait for rate limiter before making request
         await rate_limiter.wait_if_needed()
         
+        # GPT-5 models require max_completion_tokens instead of max_tokens
+        is_gpt5_model = any(x in selected_model.lower() for x in ['gpt-5', 'gpt5', 'o1', 'o3'])
+        
         for attempt in range(self.max_retries):
             try:
-                response = client.chat.completions.create(
-                    model=selected_model,
-                    messages=[{"role": "user", "content": prompt}],
-                    max_tokens=max_tokens,
-                    temperature=temperature
-                )
+                completion_params = {
+                    "model": selected_model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": temperature
+                }
+                if is_gpt5_model:
+                    completion_params["max_completion_tokens"] = max_tokens
+                else:
+                    completion_params["max_tokens"] = max_tokens
+                    
+                response = client.chat.completions.create(**completion_params)
                 
                 # Track actual usage for cost optimization
                 actual_tokens = response.usage.total_tokens if hasattr(response, 'usage') else max_tokens
@@ -2748,16 +2756,26 @@ Respond as an intelligent assistant:"""
             # Wait for rate limiter before making request
             await rate_limiter.wait_if_needed()
             
+            # GPT-5 models require max_completion_tokens instead of max_tokens
+            is_gpt5_model = any(x in selected_model.lower() for x in ['gpt-5', 'gpt5', 'o1', 'o3'])
+            
             # Create streaming response from Azure OpenAI
-            stream_response = client.chat.completions.create(
-                model=selected_model,
-                messages=[
+            completion_params = {
+                "model": selected_model,
+                "messages": [
                     {"role": "system", "content": system_prompt}
                 ],
-                max_tokens=max_tokens,
-                temperature=temperature,
-                stream=True  # Enable streaming
-            )
+                "temperature": temperature,
+                "stream": True  # Enable streaming
+            }
+            
+            # Use correct token parameter based on model
+            if is_gpt5_model:
+                completion_params["max_completion_tokens"] = max_tokens
+            else:
+                completion_params["max_tokens"] = max_tokens
+            
+            stream_response = client.chat.completions.create(**completion_params)
             
             # Track usage for cost optimization (only if we have optimal_model_type)
             if optimal_model_type:
