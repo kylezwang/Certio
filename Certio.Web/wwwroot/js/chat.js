@@ -697,11 +697,17 @@ async function generateAIResponse(userMessage) {
                         
                         if (eventData.done) {
                             console.log('✅ Stream done signal received');
+                            // Always clear the "thinking" UI on done, even if we never received content chunks.
+                            hideAIThinkingIndicator();
+                            
+                            // Ensure messageTextDiv exists if aiMessageDiv exists
+                            if (aiMessageDiv && !messageTextDiv) {
+                                messageTextDiv = aiMessageDiv.querySelector('.message-text');
+                            }
                             
                             // If stream completed without any content, create error message
                             if (!aiMessageDiv) {
                                 console.log('⚠️ Stream ended without content - showing error');
-                                hideAIThinkingIndicator();
                                 aiMessageDiv = createStreamingAIMessagePlaceholder();
                                 messageTextDiv = aiMessageDiv.querySelector('.message-text');
                                 messageTextDiv.innerHTML = 'Sorry, I was unable to generate a response. The AI model may be unavailable. Please try again or select a different model.';
