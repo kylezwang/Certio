@@ -323,7 +323,7 @@ public class ChatController : Controller
     }
 
     [HttpGet("GetMessages/{id}")]
-    public async Task<IActionResult> GetMessages(int orgId, int id)
+    public async Task<IActionResult> GetMessages(int orgId, int id, int? limit = 200)
     {
         try
         {
@@ -347,7 +347,8 @@ public class ChatController : Controller
             }
             
             _logger.LogInformation("✅ DEBUG GetMessages: Access granted, fetching messages...");
-            var messages = await _chatService.GetConversationMessagesAsync(id);
+            var safeLimit = limit.HasValue && limit.Value > 0 ? Math.Min(limit.Value, 500) : (int?)null;
+            var messages = await _chatService.GetConversationMessagesAsync(id, safeLimit);
             _logger.LogInformation("✅ DEBUG GetMessages: Retrieved {Count} messages for conversation {ConvId}", messages.Count, id);
             
             return Json(messages);
