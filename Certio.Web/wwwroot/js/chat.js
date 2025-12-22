@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <span class="timestamp">Just now</span>
                             </div>
                             <div class="message-text">
-                                Hi! I'm Notal, your AI legal assistant. Please leave me a note or select a chat above to get started!
+                                Hi! I'm Notal, your AI assistant. Leave me an actionable note or select a chat above to get started!
                             </div>
                         </div>
                     </div>
@@ -1126,6 +1126,14 @@ function addMessageToChat(message) {
         welcomeMessage.style.display = 'none';
     }
     
+    // Suppress internal/non-user-facing AI analysis artifacts from the chat stream.
+    // These message types are stored for potential future "Insights" use, but should
+    // not render as user-visible chat bubbles.
+    const suppressedAiMessageTypes = new Set(['AI_Summary', 'AI_Goal', 'AI_Reply']);
+    if (message?.isFromAI && suppressedAiMessageTypes.has(message?.messageType)) {
+        return;
+    }
+
     const messageDiv = document.createElement('div');
     messageDiv.dataset.messageId = message.id || messageElements.length;
     
@@ -1144,7 +1152,7 @@ function addMessageToChat(message) {
                 <div class="message-text">
                     ${formatAIMessage(message)}
                 </div>
-                ${message.messageType === 'AI_Reply' ? generateSourcesSection() : ''}
+                ${'' /* Sources reserved for future use (see generateSourcesSection) */}
             </div>
         `;
     } else {
@@ -1386,6 +1394,12 @@ function isMessageInStickyArea(element, container) {
 function formatAIMessage(message) {
     const messageType = message?.messageType || '';
     const rawContent = message?.content || '';
+
+    // Never show internal analysis artifacts as standalone chat messages.
+    // (These are not part of the conversational response the user expects.)
+    if (messageType === 'AI_Summary' || messageType === 'AI_Goal' || messageType === 'AI_Reply') {
+        return '';
+    }
     
     // IMPORTANT: Regardless of message type, AI content may contain [ACTION:...] blocks.
     // We always route through formatIntelligentResponse() so action blocks are replaced/stripped
@@ -1431,112 +1445,20 @@ function formatAIMessage(message) {
 
 // Format conversation summary
 function formatSummaryMessage(data) {
-    if (data.Summary === "Error processing conversation") {
-        return `
-            <div class="ai-summary-error">
-                <p><strong>⚠️ Summary Unavailable</strong></p>
-                <p>I'm having trouble processing this conversation right now. Please try again in a moment.</p>
-            </div>
-        `;
-    }
-    
-    return `
-        <div class="ai-summary">
-            <h6><i class="fas fa-chart-line"></i> Conversation Summary</h6>
-            <p><strong>Summary:</strong> ${data.Summary || 'No summary available'}</p>
-            <p><strong>Sentiment:</strong> <span class="badge bg-${getSentimentColor(data.Sentiment)}">${data.Sentiment || 'Neutral'}</span></p>
-            <p><strong>Urgency:</strong> <span class="badge bg-${getUrgencyColor(data.Urgency)}">${data.Urgency || 'Medium'}</span></p>
-            ${data.KeyPoints && data.KeyPoints.length > 0 ? `
-                <div class="key-points">
-                    <strong>Key Points:</strong>
-                    <ul>
-                        ${data.KeyPoints.map(point => `<li>${point}</li>`).join('')}
-                    </ul>
-                </div>
-            ` : ''}
-            ${data.SuggestedActions && data.SuggestedActions.length > 0 ? `
-                <div class="suggested-actions">
-                    <strong>Suggested Actions:</strong>
-                    <ul>
-                        ${data.SuggestedActions.map(action => `<li>${action}</li>`).join('')}
-                    </ul>
-                </div>
-            ` : ''}
-        </div>
-    `;
+    // Removed from user-visible chat/UX (not currently functional).
+    return '';
 }
 
 // Format client goals
 function formatGoalMessage(data) {
-    if (!data.PrimaryGoal && !data.BusinessType) {
-        return `
-            <div class="ai-goal-error">
-                <p><strong>🎯 Goals Analysis</strong></p>
-                <p>I'm still analyzing the conversation to identify your goals. This may take a moment.</p>
-            </div>
-        `;
-    }
-    
-    return `
-        <div class="ai-goal">
-            <h6><i class="fas fa-target"></i> Client Goals Analysis</h6>
-            <p><strong>Primary Goal:</strong> ${data.PrimaryGoal || 'Not yet identified'}</p>
-            <p><strong>Business Type:</strong> ${data.BusinessType || 'Not specified'}</p>
-            <p><strong>Legal Area:</strong> ${data.LegalArea || 'General'}</p>
-            <p><strong>Timeline:</strong> ${data.Timeline || 'Not specified'}</p>
-            <p><strong>Budget:</strong> ${data.Budget || 'Not specified'}</p>
-            ${data.SecondaryGoals && data.SecondaryGoals.length > 0 ? `
-                <div class="secondary-goals">
-                    <strong>Secondary Goals:</strong>
-                    <ul>
-                        ${data.SecondaryGoals.map(goal => `<li>${goal}</li>`).join('')}
-                    </ul>
-                </div>
-            ` : ''}
-            ${data.RequiredDocuments && data.RequiredDocuments.length > 0 ? `
-                <div class="required-documents">
-                    <strong>Required Documents:</strong>
-                    <ul>
-                        ${data.RequiredDocuments.map(doc => `<li>${doc}</li>`).join('')}
-                    </ul>
-                </div>
-            ` : ''}
-        </div>
-    `;
+    // Removed from user-visible chat/UX (not currently functional).
+    return '';
 }
 
 // Format reply suggestions
 function formatReplyMessage(data) {
-    if (!data.SuggestedReply) {
-        return `
-            <div class="ai-reply-error">
-                <p><strong>💡 Reply Suggestions</strong></p>
-                <p>I'm working on generating reply suggestions for you. Please wait a moment.</p>
-            </div>
-        `;
-    }
-    
-    return `
-        <div class="ai-reply">
-            <h6><i class="fas fa-lightbulb"></i> Suggested Reply</h6>
-            <div class="reply-meta">
-                <span class="badge bg-${getToneColor(data.Tone)}">${data.Tone || 'Professional'}</span>
-                <span class="badge bg-info">${data.Purpose || 'Response'}</span>
-                ${data.RequiresLegalReview ? '<span class="badge bg-warning">Requires Legal Review</span>' : ''}
-            </div>
-            <div class="suggested-reply">
-                <p>${data.SuggestedReply}</p>
-            </div>
-            ${data.KeyPoints && data.KeyPoints.length > 0 ? `
-                <div class="reply-keypoints">
-                    <strong>Key Points:</strong>
-                    <ul>
-                        ${data.KeyPoints.map(point => `<li>${point}</li>`).join('')}
-                    </ul>
-                </div>
-            ` : ''}
-        </div>
-    `;
+    // Removed from user-visible chat/UX (not currently functional).
+    return '';
 }
 
 // Format clarity explanation
@@ -1747,17 +1669,11 @@ function generateSourcesSection() {
         'FAQs: Legal Questions'
     ];
     
-    return `
-        <div class="sources-section">
-            <div class="sources-title">Sources</div>
-            ${sources.map(source => `
-                <a href="#" class="source-link">
-                    ${source}
-                    <i class="fas fa-arrow-right"></i>
-                </a>
-            `).join('')}
-        </div>
-    `;
+    // Keep for future use, but do not show to users yet.
+    // Returning an HTML comment ensures it is not visible and does not affect layout.
+    return `<!-- Sources (reserved for future use)
+${sources.map(s => `- ${s}`).join('\n')}
+-->`;
 }
 
 // Add clarity to chat
@@ -1871,58 +1787,9 @@ function displayAIInsights(insights) {
     const insightsPanel = document.getElementById('aiInsightsPanel');
     const insightsContent = document.getElementById('aiInsightsContent');
     
-    if (!insights.summary && !insights.goals && !insights.suggestions) {
-        insightsPanel.style.display = 'none';
-        return;
-    }
-    
-    insightsPanel.style.display = 'block';
-    
-    let html = '<div class="ai-insights-grid">';
-    
-    if (insights.summary) {
-        html += `
-            <div class="ai-insight-card">
-                <h6><i class="fas fa-chart-line"></i> Conversation Summary</h6>
-                <p><strong>Sentiment:</strong> <span class="badge bg-${getSentimentColor(insights.summary.sentiment)}">${insights.summary.sentiment}</span></p>
-                <p><strong>Urgency:</strong> <span class="badge bg-${getUrgencyColor(insights.summary.urgency)}">${insights.summary.urgency}</span></p>
-                <p>${insights.summary.summary}</p>
-                <ul>
-                    ${insights.summary.keyPoints.map(point => `<li>${point}</li>`).join('')}
-                </ul>
-            </div>
-        `;
-    }
-    
-    if (insights.goals) {
-        html += `
-            <div class="ai-insight-card">
-                <h6><i class="fas fa-target"></i> Client Goals</h6>
-                <p><strong>Primary Goal:</strong> ${insights.goals.primaryGoal}</p>
-                <p><strong>Business Type:</strong> ${insights.goals.businessType}</p>
-                <p><strong>Legal Area:</strong> ${insights.goals.legalArea}</p>
-                <p><strong>Timeline:</strong> ${insights.goals.timeline}</p>
-                <ul>
-                    ${insights.goals.secondaryGoals.map(goal => `<li>${goal}</li>`).join('')}
-                </ul>
-            </div>
-        `;
-    }
-    
-    if (insights.suggestions) {
-        html += `
-            <div class="ai-insight-card">
-                <h6><i class="fas fa-lightbulb"></i> Reply Suggestions</h6>
-                <p><strong>Tone:</strong> ${insights.suggestions.tone}</p>
-                <p><strong>Purpose:</strong> ${insights.suggestions.purpose}</p>
-                <div class="suggestion-preview">${insights.suggestions.suggestedReply}</div>
-                ${insights.suggestions.requiresLegalReview ? '<span class="badge bg-warning">Requires Legal Review</span>' : ''}
-            </div>
-        `;
-    }
-    
-    html += '</div>';
-    insightsContent.innerHTML = html;
+    // Removed from user-visible UX (not currently functional).
+    if (insightsPanel) insightsPanel.style.display = 'none';
+    if (insightsContent) insightsContent.innerHTML = '';
 }
 
 function getSentimentColor(sentiment) {
@@ -2220,129 +2087,10 @@ function displayAIInsights(insights) {
     const insightsContainer = document.getElementById('aiInsightsContent');
     if (!insightsContainer) return;
 
-    let html = '<div class="ai-insights-container">';
-    
-    // Summary
-    if (insights.AI_Summary) {
-        const summary = insights.AI_Summary;
-        html += `
-            <div class="insight-card mb-3">
-                <h6 class="insight-title">
-                    <i class="fas fa-chart-line text-primary"></i> Conversation Summary
-                </h6>
-                <div class="insight-content">
-                    <p class="summary-text">${summary.summary || 'No summary available'}</p>
-                    <div class="summary-meta">
-                        <span class="badge badge-${getSentimentColor(summary.sentiment)}">${summary.sentiment || 'Neutral'}</span>
-                        <span class="badge badge-${getUrgencyColor(summary.urgency)}">${summary.urgency || 'Medium'}</span>
-                    </div>
-                    ${summary.key_points && summary.key_points.length > 0 ? `
-                        <div class="key-points mt-2">
-                            <strong>Key Points:</strong>
-                            <ul class="list-unstyled mt-1">
-                                ${summary.key_points.map(point => `<li>• ${point}</li>`).join('')}
-                            </ul>
-                        </div>
-                    ` : ''}
-                    ${summary.suggested_actions && summary.suggested_actions.length > 0 ? `
-                        <div class="suggested-actions mt-2">
-                            <strong>Suggested Actions:</strong>
-                            <ul class="list-unstyled mt-1">
-                                ${summary.suggested_actions.map(action => `<li>• ${action}</li>`).join('')}
-                            </ul>
-                        </div>
-                    ` : ''}
-                </div>
-            </div>
-        `;
-    }
-
-    // Client Goals
-    if (insights.AI_Goal) {
-        const goals = insights.AI_Goal;
-        html += `
-            <div class="insight-card mb-3">
-                <h6 class="insight-title">
-                    <i class="fas fa-target text-success"></i> Client Goals
-                </h6>
-                <div class="insight-content">
-                    <p><strong>Primary Goal:</strong> ${goals.primary_goal || 'Not identified'}</p>
-                    ${goals.business_type ? `<p><strong>Business Type:</strong> ${goals.business_type}</p>` : ''}
-                    ${goals.legal_area ? `<p><strong>Legal Area:</strong> ${goals.legal_area}</p>` : ''}
-                    ${goals.timeline ? `<p><strong>Timeline:</strong> ${goals.timeline}</p>` : ''}
-                    ${goals.budget ? `<p><strong>Budget:</strong> ${goals.budget}</p>` : ''}
-                    ${goals.secondary_goals && goals.secondary_goals.length > 0 ? `
-                        <div class="secondary-goals mt-2">
-                            <strong>Secondary Goals:</strong>
-                            <ul class="list-unstyled mt-1">
-                                ${goals.secondary_goals.map(goal => `<li>• ${goal}</li>`).join('')}
-                            </ul>
-                        </div>
-                    ` : ''}
-                    ${goals.required_documents && goals.required_documents.length > 0 ? `
-                        <div class="required-docs mt-2">
-                            <strong>Required Documents:</strong>
-                            <ul class="list-unstyled mt-1">
-                                ${goals.required_documents.map(doc => `<li>• ${doc}</li>`).join('')}
-                            </ul>
-                        </div>
-                    ` : ''}
-                </div>
-            </div>
-        `;
-    }
-
-    // Reply Suggestions
-    if (insights.AI_Reply) {
-        const reply = insights.AI_Reply;
-        html += `
-            <div class="insight-card mb-3">
-                <h6 class="insight-title">
-                    <i class="fas fa-lightbulb text-warning"></i> Reply Suggestion
-                </h6>
-                <div class="insight-content">
-                    <div class="reply-suggestion">
-                        <p class="suggested-reply">${reply.suggested_reply || 'No suggestion available'}</p>
-                        <div class="reply-meta">
-                            <span class="badge badge-info">${reply.tone || 'Professional'}</span>
-                            <span class="badge badge-${reply.requires_legal_review ? 'danger' : 'success'}">
-                                ${reply.requires_legal_review ? 'Needs Review' : 'Ready to Send'}
-                            </span>
-                        </div>
-                        ${reply.key_points && reply.key_points.length > 0 ? `
-                            <div class="reply-key-points mt-2">
-                                <strong>Key Points:</strong>
-                                <ul class="list-unstyled mt-1">
-                                    ${reply.key_points.map(point => `<li>• ${point}</li>`).join('')}
-                                </ul>
-                            </div>
-                        ` : ''}
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    // Metadata
-    if (insights.AI_Metadata) {
-        const metadata = insights.AI_Metadata;
-        html += `
-            <div class="insight-card mb-3">
-                <h6 class="insight-title">
-                    <i class="fas fa-info-circle text-info"></i> Processing Info
-                </h6>
-                <div class="insight-content">
-                    <small class="text-muted">
-                        Processed: ${new Date(metadata.processing_timestamp).toLocaleString()}<br>
-                        Agents: ${metadata.agents_executed ? metadata.agents_executed.join(', ') : 'Unknown'}
-                    </small>
-                </div>
-            </div>
-        `;
-    }
-
-    html += '</div>';
-    insightsContainer.innerHTML = html;
+    // Removed from user-visible UX (not currently functional).
+    const insightsPanel = document.getElementById('aiInsightsPanel');
+    if (insightsPanel) insightsPanel.style.display = 'none';
+    insightsContainer.innerHTML = '';
 }
 
 // Helper functions for styling
@@ -2580,10 +2328,18 @@ function initializeChatLayout() {
         mainContentWrapper.style.right = chatPanelWidth + 'px';
     }
     
-    // Adjust floating timer overlay position
+    // Adjust floating timer overlay position.
+    // IMPORTANT: Do NOT set `right` when the timer is positioned via `left/top` (default or user-dragged),
+    // otherwise the fixed element becomes over-constrained (left + right) and stretches across the screen,
+    // creating an invisible draggable hitbox.
     const floatingTimerOverlay = document.getElementById('floatingTimerOverlay');
     if (floatingTimerOverlay) {
-        floatingTimerOverlay.style.right = (chatPanelWidth + 24) + 'px'; // Add 24px for spacing
+        const hasSavedManualPosition = !!localStorage.getItem('timerPosition');
+        const hasExplicitLeft = (floatingTimerOverlay.style.left || '').trim().length > 0;
+
+        if (!hasSavedManualPosition && !hasExplicitLeft) {
+            floatingTimerOverlay.style.right = (chatPanelWidth + 24) + 'px'; // Add 24px for spacing
+        }
     }
     
     // Center action buttons within chat panel
@@ -2802,10 +2558,15 @@ function initializeResizeHandle() {
                 window.adjustEmailModalPosition();
             }
             
-            // Update floating timer overlay position
+            // Update floating timer overlay position (see note in initializeChatLayout()).
             const floatingTimerOverlay = document.getElementById('floatingTimerOverlay');
             if (floatingTimerOverlay) {
-                floatingTimerOverlay.style.right = (newWidth + 24) + 'px'; // Add 24px for spacing
+                const hasSavedManualPosition = !!localStorage.getItem('timerPosition');
+                const hasExplicitLeft = (floatingTimerOverlay.style.left || '').trim().length > 0;
+
+                if (!hasSavedManualPosition && !hasExplicitLeft) {
+                    floatingTimerOverlay.style.right = (newWidth + 24) + 'px'; // Add 24px for spacing
+                }
             }
             
             // Center action buttons within chat panel (only for AI chat, not for comms or notifications)

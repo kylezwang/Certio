@@ -457,6 +457,16 @@ function initializeActionTrackerUI() {
         <div id="agentActionTracker" class="agent-action-tracker" style="display: none;">
             <!-- Tracker Card (similar to timer card) -->
             <div id="actionTrackerCard" class="action-tracker-card">
+                <!-- Top Right Header Icons -->
+                <div class="action-tracker-top-icons">
+                    <button id="actionHistoryBtn" class="tracker-icon-btn" title="View action history">
+                        <i class="fas fa-history"></i>
+                    </button>
+                    <button id="actionCloseBtn" class="tracker-icon-btn" title="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
                 <!-- Action Counter and Controls -->
                 <div class="action-tracker-header">
                     <div class="action-counter">
@@ -561,6 +571,22 @@ function setupAgentActionListeners() {
         toggleActionTracker({ anchorToActionsButton: true });
     });
     
+    // Close button (X icon)
+    document.getElementById('actionCloseBtn')?.addEventListener('click', function(e) {
+        e.stopPropagation();
+        closeActionTrackerPanel();
+    });
+    
+    // History button
+    document.getElementById('actionHistoryBtn')?.addEventListener('click', function(e) {
+        e.stopPropagation();
+        // Navigate to history/activity page
+        const orgId = AgentActionsState.orgId || getCurrentOrganizationId();
+        if (orgId) {
+            window.location.href = `/Client/${orgId}/History`;
+        }
+    });
+    
     // Button hover effects
     addButtonHoverEffects();
 }
@@ -648,9 +674,11 @@ function showEmptyState() {
     const controlsDiv = document.querySelector('.action-controls');
     const navDiv = document.getElementById('actionNavigation');
     const quickBar = document.getElementById('actionQuickBar');
+    const headerDiv = document.querySelector('.action-tracker-header');
+    const previewCard = document.getElementById('actionPreviewCard');
     
     if (titleEl) titleEl.textContent = 'No Pending Actions';
-    if (descEl) descEl.textContent = 'Agent actions will appear here when you ask the AI to do something';
+    if (descEl) descEl.textContent = 'Agent actions will appear here w...';
     if (iconEl) {
         iconEl.innerHTML = '<i class="fas fa-check-circle"></i>';
         // Match Dashboard Quick Access Calendar green (Bootstrap text-success)
@@ -658,8 +686,14 @@ function showEmptyState() {
     }
     if (counterDiv) counterDiv.style.display = 'none';
     if (controlsDiv) controlsDiv.style.display = 'none';
+    if (headerDiv) headerDiv.style.display = 'none';
     if (navDiv) navDiv.style.display = 'none';
     if (quickBar) quickBar.style.display = 'none';
+    
+    // Make the preview card look like a proper card in empty state
+    if (previewCard) {
+        previewCard.classList.remove('status-pending', 'status-approved', 'status-running', 'status-done', 'status-failed', 'status-rolledback', 'status-rejected');
+    }
 }
 
 // Update the actions badge in navbar
@@ -864,8 +898,10 @@ function updateTrackerDisplay() {
     // Restore counter and controls visibility
     const counterDiv = document.querySelector('.action-counter');
     const controlsDiv = document.querySelector('.action-controls');
+    const headerDiv = document.querySelector('.action-tracker-header');
     if (counterDiv) counterDiv.style.display = 'flex';
     if (controlsDiv) controlsDiv.style.display = 'flex';
+    if (headerDiv) headerDiv.style.display = 'flex';
     
     const currentAction = actions[index];
     
@@ -1106,6 +1142,9 @@ async function keepCurrentAction() {
     keepBtn.disabled = true;
     keepBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Applying...';
     
+    // Update chat card to show running status
+    updateActionCardStatus(action.id, 'Running', getRunningTitle(action.actionType));
+    
     try {
         // If pending, approve first
         if (action.status === AgentActionStatus.Pending) {
@@ -1118,6 +1157,9 @@ async function keepCurrentAction() {
             await executeAction(action.id);
             action.status = AgentActionStatus.Done;
         }
+        
+        // Update chat card to show done status
+        updateActionCardStatus(action.id, 'Done', getDoneTitle(action.actionType));
         
         // Update display and save state
         updateTrackerDisplay();
@@ -1140,12 +1182,52 @@ async function keepCurrentAction() {
         console.error('[AgentActions] Error keeping action:', error);
         showActionNotification('Failed to apply change. Please try again.', 'error');
         action.status = AgentActionStatus.Failed;
+        
+        // Update chat card to show failed status
+        updateActionCardStatus(action.id, 'Failed', getFailedTitle(action.actionType));
+        
         updateTrackerDisplay();
         saveActionsToSession();
     } finally {
         keepBtn.disabled = false;
         keepBtn.innerHTML = '<i class="fas fa-check"></i> Keep';
     }
+}
+
+// Get title for running state
+function getRunningTitle(actionType) {
+    const titles = {
+        CreateTask: 'Creating task...',
+        AttachFile: 'Attaching file...',
+        AddNote: 'Adding note...',
+        StartTimer: 'Starting timer...',
+        NavigateTo: 'Navigating...'
+    };
+    return titles[actionType] || 'Processing...';
+}
+
+// Get title for done state
+function getDoneTitle(actionType) {
+    const titles = {
+        CreateTask: 'Task created',
+        AttachFile: 'File attached',
+        AddNote: 'Note added',
+        StartTimer: 'Timer started',
+        NavigateTo: 'Navigated'
+    };
+    return titles[actionType] || 'Done';
+}
+
+// Get title for failed state
+function getFailedTitle(actionType) {
+    const titles = {
+        CreateTask: 'Task creation failed',
+        AttachFile: 'File attach failed',
+        AddNote: 'Note add failed',
+        StartTimer: 'Timer start failed',
+        NavigateTo: 'Navigation failed'
+    };
+    return titles[actionType] || 'Failed';
 }
 
 // Undo current action (rollback or reject)
@@ -1167,10 +1249,16 @@ async function undoCurrentAction() {
             // Rollback executed action
             await rollbackAction(action.id);
             action.status = AgentActionStatus.RolledBack;
+            
+            // Update chat card to show rolled back status
+            updateActionCardStatus(action.id, 'RolledBack', getUndoneTitle(action.actionType));
         } else if (action.status === AgentActionStatus.Pending || action.status === AgentActionStatus.Approved) {
             // Reject pending/approved action
             await rejectAction(action.id);
             action.status = AgentActionStatus.Rejected;
+            
+            // Update chat card to show rejected status
+            updateActionCardStatus(action.id, 'Rejected', getRejectedTitle(action.actionType));
         }
         
         // Update display and save state
@@ -1190,6 +1278,30 @@ async function undoCurrentAction() {
         undoBtn.disabled = false;
         undoBtn.innerHTML = '<i class="fas fa-undo"></i> Undo';
     }
+}
+
+// Get title for undone/rolled back state
+function getUndoneTitle(actionType) {
+    const titles = {
+        CreateTask: 'Task removed',
+        AttachFile: 'File detached',
+        AddNote: 'Note removed',
+        StartTimer: 'Timer stopped',
+        NavigateTo: 'Navigation cancelled'
+    };
+    return titles[actionType] || 'Undone';
+}
+
+// Get title for rejected state
+function getRejectedTitle(actionType) {
+    const titles = {
+        CreateTask: 'Task cancelled',
+        AttachFile: 'File attach cancelled',
+        AddNote: 'Note cancelled',
+        StartTimer: 'Timer cancelled',
+        NavigateTo: 'Navigation cancelled'
+    };
+    return titles[actionType] || 'Cancelled';
 }
 
 // Keep all actions
@@ -1215,7 +1327,10 @@ async function keepAllActions() {
             await bulkApproveActions(pendingIds);
             pendingIds.forEach(id => {
                 const action = actions.find(a => a.id === id);
-                if (action) action.status = AgentActionStatus.Approved;
+                if (action) {
+                    action.status = AgentActionStatus.Approved;
+                    updateActionCardStatus(id, 'Approved');
+                }
             });
         }
         
@@ -1225,9 +1340,17 @@ async function keepAllActions() {
             .map(a => a.id);
         
         for (const id of allApprovedIds) {
-            await executeAction(id);
             const action = actions.find(a => a.id === id);
-            if (action) action.status = AgentActionStatus.Done;
+            if (action) {
+                updateActionCardStatus(id, 'Running', getRunningTitle(action.actionType));
+            }
+            
+            await executeAction(id);
+            
+            if (action) {
+                action.status = AgentActionStatus.Done;
+                updateActionCardStatus(id, 'Done', getDoneTitle(action.actionType));
+            }
             updateTrackerDisplay();
         }
         
@@ -1263,6 +1386,7 @@ async function undoAllActions() {
         for (const action of doneActions) {
             await rollbackAction(action.id);
             action.status = AgentActionStatus.RolledBack;
+            updateActionCardStatus(action.id, 'RolledBack', getUndoneTitle(action.actionType));
             updateTrackerDisplay();
         }
         
@@ -1275,7 +1399,10 @@ async function undoAllActions() {
             await bulkRejectActions(pendingIds);
             pendingIds.forEach(id => {
                 const action = actions.find(a => a.id === id);
-                if (action) action.status = AgentActionStatus.Rejected;
+                if (action) {
+                    action.status = AgentActionStatus.Rejected;
+                    updateActionCardStatus(id, 'Rejected', getRejectedTitle(action.actionType));
+                }
             });
         }
         
@@ -1706,6 +1833,7 @@ async function processDetectedActions(actions, conversationId) {
             // Normalize payload for server-side DTO parsing:
             // - Ensure CreateTask has assigneeIds (default to current user)
             // - Ensure dueDate is ISO (YYYY-MM-DD or full ISO) so System.Text.Json can parse DateTime?
+            // - Normalize priority to proper case (Low, Medium, High, Critical)
             let normalizedPayload = actionData.payload;
             if (actionData.actionType === AgentActionTypes.CreateTask && actionData.payload && typeof actionData.payload === 'object') {
                 normalizedPayload = { ...actionData.payload };
@@ -1722,6 +1850,55 @@ async function processDetectedActions(actions, conversationId) {
                     if (userId) {
                         normalizedPayload.assigneeIds = [userId];
                     }
+                }
+
+                // Normalize priority to proper case (Low, Medium, High, Critical)
+                const priority = normalizedPayload.priority ?? normalizedPayload.Priority;
+                if (typeof priority === 'string' && priority.trim().length > 0) {
+                    const normalizedPriority = priority.trim().toLowerCase();
+                    const priorityMap = {
+                        'low': 'Low',
+                        'medium': 'Medium',
+                        'high': 'High',
+                        'critical': 'Critical',
+                        'normal': 'Medium',  // Map "normal" to "Medium"
+                        'urgent': 'High'     // Map "urgent" to "High"
+                    };
+                    normalizedPayload.priority = priorityMap[normalizedPriority] || 'Medium';
+                    delete normalizedPayload.Priority;
+                } else {
+                    // Default to Medium if not specified
+                    normalizedPayload.priority = 'Medium';
+                }
+
+                // Normalize status to proper case (Pending, In Progress, Review, Completed, On Hold, Cancelled)
+                const status = normalizedPayload.status ?? normalizedPayload.Status;
+                if (typeof status === 'string' && status.trim().length > 0) {
+                    const normalizedStatus = status.trim().toLowerCase();
+                    const statusMap = {
+                        'pending': 'Pending',
+                        'in progress': 'In Progress',
+                        'in-progress': 'In Progress',
+                        'inprogress': 'In Progress',
+                        'review': 'Review',
+                        'in review': 'Review',
+                        'in-review': 'Review',
+                        'completed': 'Completed',
+                        'complete': 'Completed',
+                        'done': 'Completed',
+                        'on hold': 'On Hold',
+                        'on-hold': 'On Hold',
+                        'onhold': 'On Hold',
+                        'hold': 'On Hold',
+                        'cancelled': 'Cancelled',
+                        'canceled': 'Cancelled',
+                        'cancel': 'Cancelled'
+                    };
+                    normalizedPayload.status = statusMap[normalizedStatus] || 'Pending';
+                    delete normalizedPayload.Status;
+                } else {
+                    // Default to Pending if not specified
+                    normalizedPayload.status = 'Pending';
                 }
 
                 // Normalize dueDate if provided as a human string like "December 25, 2025"
@@ -1785,14 +1962,20 @@ async function processDetectedActions(actions, conversationId) {
             
             // Add to our tracking array
             const action = result.action || result;
+            const actionId = action.id || action.Id;
+            
             AgentActionsState.actions.push({
-                id: action.id || action.Id,
+                id: actionId,
                 actionType: actionData.actionType,
                 payload: normalizedPayload,
                 description: action.description || actionData.description,
                 status: action.status || AgentActionStatus.Pending,
                 runId: action.runId
             });
+            
+            // Update the chat card with the actual action ID so status updates work
+            const tempCardId = generateCardIdFromPayload(actionData.actionType, normalizedPayload);
+            linkCardToActionId(tempCardId, actionId, actionData.actionType, normalizedPayload);
             
         } catch (error) {
             console.error('[AgentActions] Failed to propose action:', error);
@@ -1960,7 +2143,7 @@ function navigateToPage(pageName) {
 }
 
 // Create an animated action card HTML to display in chat instead of raw action commands
-function createActionCardHTML(actionType, payload) {
+function createActionCardHTML(actionType, payload, actionId = null) {
     const iconMap = {
         // Match the client navbar Tasks icon exactly
         CreateTask: 'fa-solid fa-bars-progress',
@@ -1993,8 +2176,11 @@ function createActionCardHTML(actionType, payload) {
         detail = payload.description;
     }
 
+    // Generate a unique card ID for later updates
+    const cardId = actionId || `action-card-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+
     return `
-        <div class="agent-action-attachment">
+        <div class="agent-action-attachment action-pending" data-action-id="${cardId}" data-action-type="${actionType}">
             <div class="agent-action-icon">
                 <i class="${iconClass}"></i>
             </div>
@@ -2002,9 +2188,220 @@ function createActionCardHTML(actionType, payload) {
                 <div class="agent-action-title">${label}</div>
                 ${detail ? `<div class="agent-action-detail">${detail}</div>` : ''}
             </div>
-            <div class="agent-action-badge">Pending</div>
+            <div class="agent-action-badge status-pending" data-status="pending">Pending</div>
         </div>
     `;
+}
+
+// Save action card status to sessionStorage for persistence
+function saveActionCardStatusToSession(actionId, status, title) {
+    try {
+        const savedStatuses = JSON.parse(sessionStorage.getItem('actionCardStatuses') || '{}');
+        savedStatuses[String(actionId)] = { status, title, timestamp: Date.now() };
+        sessionStorage.setItem('actionCardStatuses', JSON.stringify(savedStatuses));
+        console.log(`[AgentActions] Saved card status to session: ${actionId} = ${status}`);
+    } catch (e) {
+        console.warn('[AgentActions] Failed to save card status:', e);
+    }
+}
+
+// Restore action card statuses from sessionStorage
+function restoreActionCardStatuses() {
+    try {
+        const savedStatuses = JSON.parse(sessionStorage.getItem('actionCardStatuses') || '{}');
+        const now = Date.now();
+        let updated = false;
+        
+        for (const [actionId, data] of Object.entries(savedStatuses)) {
+            // Only restore statuses less than 1 hour old
+            if (now - data.timestamp < 3600000) {
+                // Find cards with this action ID or temporary IDs
+                const cards = document.querySelectorAll(`.agent-action-attachment`);
+                cards.forEach(card => {
+                    const cardId = card.getAttribute('data-action-id');
+                    // Check if this card matches the action ID
+                    if (cardId === actionId || cardId === String(actionId)) {
+                        applyStatusToCard(card, data.status, data.title);
+                    }
+                });
+            } else {
+                // Remove old entries
+                delete savedStatuses[actionId];
+                updated = true;
+            }
+        }
+        
+        if (updated) {
+            sessionStorage.setItem('actionCardStatuses', JSON.stringify(savedStatuses));
+        }
+    } catch (e) {
+        console.warn('[AgentActions] Failed to restore card statuses:', e);
+    }
+}
+
+// Apply status styling to a single card
+function applyStatusToCard(card, status, title = null) {
+    const badge = card.querySelector('.agent-action-badge');
+    const titleEl = card.querySelector('.agent-action-title');
+    
+    if (badge) {
+        badge.setAttribute('data-status', status.toLowerCase());
+        
+        const statusLabels = {
+            'pending': 'Pending',
+            'approved': 'Approved',
+            'running': 'Running',
+            'done': 'Done',
+            'failed': 'Failed',
+            'rejected': 'Rejected',
+            'rolledback': 'Undone'
+        };
+        
+        badge.textContent = statusLabels[status.toLowerCase()] || status;
+        badge.classList.remove('status-pending', 'status-approved', 'status-running', 'status-done', 'status-failed', 'status-rejected', 'status-rolledback');
+        badge.classList.add(`status-${status.toLowerCase()}`);
+    }
+    
+    if (titleEl && title) {
+        titleEl.textContent = title;
+    }
+    
+    card.classList.remove('action-pending', 'action-done', 'action-failed', 'action-rejected', 'action-rolledback');
+    card.classList.add(`action-${status.toLowerCase()}`);
+}
+
+// Update an action card's status in the chat UI
+function updateActionCardStatus(actionId, newStatus, newTitle = null) {
+    console.log(`[AgentActions] updateActionCardStatus called: id=${actionId}, status=${newStatus}, title=${newTitle}`);
+    
+    // Save to sessionStorage for persistence
+    saveActionCardStatusToSession(actionId, newStatus, newTitle);
+    
+    // Normalize actionId to string for comparison
+    const actionIdStr = String(actionId);
+    
+    // Try multiple strategies to find the card
+    let cards = [];
+    
+    // Strategy 1: Find by exact action ID (as string)
+    cards = Array.from(document.querySelectorAll(`.agent-action-attachment[data-action-id="${actionIdStr}"]`));
+    console.log(`[AgentActions] Strategy 1 (exact ID ${actionIdStr}): found ${cards.length} cards`);
+    
+    // Strategy 2: If not found, find by temporary ID pattern that includes action type
+    if (cards.length === 0) {
+        // Get the action from state to know the type
+        const action = AgentActionsState.actions.find(a => 
+            String(a.id) === actionIdStr || a.id === actionId || a.id === parseInt(actionId)
+        );
+        if (action) {
+            const actionType = action.actionType.toLowerCase();
+            // Find cards with temporary IDs of this action type
+            const tempCards = document.querySelectorAll(`.agent-action-attachment[data-action-id^="action-${actionType}"]`);
+            cards = Array.from(tempCards);
+            console.log(`[AgentActions] Strategy 2 (by type ${actionType}): found ${cards.length} cards`);
+        }
+    }
+    
+    // Strategy 3: Find any pending card with matching action type
+    if (cards.length === 0) {
+        const action = AgentActionsState.actions.find(a => a.id === actionId || a.id === parseInt(actionId));
+        if (action) {
+            const actionType = action.actionType;
+            const pendingCards = document.querySelectorAll(`.agent-action-attachment[data-action-type="${actionType}"]`);
+            // Filter to only pending ones
+            cards = Array.from(pendingCards).filter(card => {
+                const badge = card.querySelector('.agent-action-badge');
+                const status = badge?.getAttribute('data-status') || badge?.textContent?.toLowerCase();
+                return status === 'pending';
+            });
+            console.log(`[AgentActions] Strategy 3 (pending by type): found ${cards.length} cards`);
+        }
+    }
+    
+    // Strategy 4: Last resort - find any pending action card
+    if (cards.length === 0) {
+        const allCards = document.querySelectorAll('.agent-action-attachment');
+        cards = Array.from(allCards).filter(card => {
+            const badge = card.querySelector('.agent-action-badge');
+            const status = badge?.getAttribute('data-status') || badge?.textContent?.toLowerCase();
+            return status === 'pending';
+        });
+        console.log(`[AgentActions] Strategy 4 (any pending): found ${cards.length} cards`);
+    }
+    
+    // Strategy 5: Search specifically within chat containers
+    if (cards.length === 0) {
+        const chatContainers = ['#chatMessages', '#dashboardChatMessages', '.chat-messages', '.message-list'];
+        for (const selector of chatContainers) {
+            const container = document.querySelector(selector);
+            if (container) {
+                const containerCards = container.querySelectorAll('.agent-action-attachment');
+                cards = Array.from(containerCards).filter(card => {
+                    const badge = card.querySelector('.agent-action-badge');
+                    const status = badge?.getAttribute('data-status') || badge?.textContent?.toLowerCase();
+                    return status === 'pending';
+                });
+                if (cards.length > 0) {
+                    console.log(`[AgentActions] Strategy 5 (chat container ${selector}): found ${cards.length} cards`);
+                    break;
+                }
+            }
+        }
+    }
+    
+    if (cards.length === 0) {
+        console.warn(`[AgentActions] No cards found to update for action ${actionId}`);
+        // Log all cards in document for debugging
+        const debugCards = document.querySelectorAll('.agent-action-attachment');
+        console.log(`[AgentActions] Total cards in document: ${debugCards.length}`);
+        debugCards.forEach((card, i) => {
+            console.log(`[AgentActions] Card ${i}: id=${card.getAttribute('data-action-id')}, type=${card.getAttribute('data-action-type')}, status=${card.querySelector('.agent-action-badge')?.getAttribute('data-status')}`);
+        });
+        return;
+    }
+    
+    // Update the first matching card (or all if they share the same ID)
+    const cardsToUpdate = cards.length === 1 ? cards : [cards[0]];
+    
+    cardsToUpdate.forEach(card => {
+        const badge = card.querySelector('.agent-action-badge');
+        const titleEl = card.querySelector('.agent-action-title');
+        
+        // Link the card to the actual action ID for future updates
+        card.setAttribute('data-action-id', actionId);
+        
+        if (badge) {
+            badge.setAttribute('data-status', newStatus.toLowerCase());
+            
+            // Update badge text and class based on status
+            const statusLabels = {
+                'pending': 'Pending',
+                'approved': 'Approved',
+                'running': 'Running',
+                'done': 'Done',
+                'failed': 'Failed',
+                'rejected': 'Rejected',
+                'rolledback': 'Undone'
+            };
+            
+            badge.textContent = statusLabels[newStatus.toLowerCase()] || newStatus;
+            
+            // Remove old status classes
+            badge.classList.remove('status-pending', 'status-approved', 'status-running', 'status-done', 'status-failed', 'status-rejected', 'status-rolledback');
+            badge.classList.add(`status-${newStatus.toLowerCase()}`);
+        }
+        
+        // Update the title if provided (e.g., "Creating task..." -> "Task created")
+        if (titleEl && newTitle) {
+            titleEl.textContent = newTitle;
+        }
+        
+        // Update card styling based on status
+        card.classList.remove('action-pending', 'action-done', 'action-failed', 'action-rejected', 'action-rolledback');
+        card.classList.add(`action-${newStatus.toLowerCase()}`);
+        
+        console.log(`[AgentActions] Updated card for action ${actionId} to status ${newStatus}`);
+    });
 }
 
 // Replace action commands in content with action cards
@@ -2034,11 +2431,96 @@ function replaceActionCommandsWithCards(content) {
     }
     
     // Replace each match with an action card
+    // Use payload-based ID so we can match it later with the proposed action
     for (const m of matches) {
-        result = result.replace(m.fullMatch, createActionCardHTML(m.actionType, m.payload));
+        const cardId = generateCardIdFromPayload(m.actionType, m.payload);
+        result = result.replace(m.fullMatch, createActionCardHTML(m.actionType, m.payload, cardId));
     }
     
     return result;
+}
+
+// Generate a stable card ID from payload so we can match cards to actions
+function generateCardIdFromPayload(actionType, payload) {
+    // For CreateTask, use title as part of the ID
+    if (actionType === 'CreateTask' && (payload.title || payload.Title)) {
+        const title = (payload.title || payload.Title).toLowerCase().replace(/[^a-z0-9]/g, '-').substring(0, 30);
+        return `action-${actionType.toLowerCase()}-${title}`;
+    }
+    // For other types, use a timestamp-based ID
+    return `action-${actionType.toLowerCase()}-${Date.now()}`;
+}
+
+// Link a temporary card ID to the actual action ID from the backend
+function linkCardToActionId(tempCardId, actualActionId, actionType = null, payload = null) {
+    console.log(`[AgentActions] linkCardToActionId: tempId=${tempCardId}, actualId=${actualActionId}, type=${actionType}`);
+    
+    let linked = false;
+    
+    // Strategy 1: Find by exact temporary ID
+    let cards = document.querySelectorAll(`.agent-action-attachment[data-action-id="${tempCardId}"]`);
+    if (cards.length > 0) {
+        cards.forEach(card => {
+            card.setAttribute('data-action-id', actualActionId);
+            linked = true;
+        });
+        console.log(`[AgentActions] Linked ${cards.length} cards by exact tempId`);
+    }
+    
+    // Strategy 2: Find by action type prefix
+    if (!linked && actionType) {
+        cards = document.querySelectorAll(`.agent-action-attachment[data-action-id^="action-${actionType.toLowerCase()}"]`);
+        if (cards.length > 0) {
+            // Link only the first unlinked one
+            for (const card of cards) {
+                const currentId = card.getAttribute('data-action-id');
+                if (currentId && currentId.startsWith('action-')) {
+                    card.setAttribute('data-action-id', actualActionId);
+                    linked = true;
+                    console.log(`[AgentActions] Linked card by type prefix: ${actionType}`);
+                    break;
+                }
+            }
+        }
+    }
+    
+    // Strategy 3: Find pending cards by action type attribute
+    if (!linked && actionType) {
+        cards = document.querySelectorAll(`.agent-action-attachment[data-action-type="${actionType}"]`);
+        for (const card of cards) {
+            const badge = card.querySelector('.agent-action-badge');
+            const status = badge?.getAttribute('data-status') || badge?.textContent?.toLowerCase();
+            const currentId = card.getAttribute('data-action-id');
+            // Only link if it's still pending and has a temp ID
+            if (status === 'pending' && currentId && currentId.startsWith('action-')) {
+                card.setAttribute('data-action-id', actualActionId);
+                linked = true;
+                console.log(`[AgentActions] Linked pending card by type: ${actionType}`);
+                break;
+            }
+        }
+    }
+    
+    // Strategy 4: Find any unlinked pending card
+    if (!linked) {
+        cards = document.querySelectorAll('.agent-action-attachment');
+        for (const card of cards) {
+            const badge = card.querySelector('.agent-action-badge');
+            const status = badge?.getAttribute('data-status') || badge?.textContent?.toLowerCase();
+            const currentId = card.getAttribute('data-action-id');
+            // Only link if it's still pending and has a temp ID
+            if (status === 'pending' && currentId && currentId.startsWith('action-')) {
+                card.setAttribute('data-action-id', actualActionId);
+                linked = true;
+                console.log(`[AgentActions] Linked first pending card`);
+                break;
+            }
+        }
+    }
+    
+    if (!linked) {
+        console.warn(`[AgentActions] Could not find card to link for action ${actualActionId}`);
+    }
 }
 
 // Export functions for use in chat.js
@@ -2058,6 +2540,8 @@ window.AgentActions = {
     replaceWithCards: replaceActionCommandsWithCards,
     replaceWithCardsStreaming: replaceActionCommandsWithCardsStreaming,
     createActionCard: createActionCardHTML,
+    updateCardStatus: updateActionCardStatus,
+    restoreCardStatuses: restoreActionCardStatuses,
     syncModelTier: syncOrgModelTier,
     restoreFromSession: restoreActionsFromSession,
     saveToSession: saveActionsToSession,
@@ -2072,6 +2556,11 @@ document.addEventListener('DOMContentLoaded', function() {
         initializeAgentActions();
         // Try to restore any pending actions from previous page
         restoreActionsFromSession();
+        // Restore action card statuses after a short delay (to ensure cards are rendered)
+        setTimeout(restoreActionCardStatuses, 500);
     }, 500);
 });
+
+// Also restore statuses periodically in case cards are rendered dynamically
+setInterval(restoreActionCardStatuses, 2000);
 

@@ -758,7 +758,12 @@ namespace Certio.Application.Services
                 // Capture before state
                 action.BeforeState = JsonSerializer.Serialize(new { MatterTasks = new List<int>() });
 
-                // Create the task
+                // Create the task - use status from payload if valid, otherwise default to Pending
+                var validStatuses = new[] { "Pending", "In Progress", "Review", "Completed", "On Hold", "Cancelled" };
+                var taskStatus = validStatuses.Contains(payload.Status, StringComparer.OrdinalIgnoreCase) 
+                    ? payload.Status 
+                    : "Pending";
+                
                 var task = new Domain.Tasks.TaskItem
                 {
                     OrgId = action.OrganizationId,
@@ -768,7 +773,7 @@ namespace Certio.Application.Services
                     Priority = payload.Priority,
                     DueDate = payload.DueDate,
                     Location = payload.Location,
-                    Status = "Pending",
+                    Status = taskStatus,
                     IsAIGenerated = !string.IsNullOrEmpty(action.AIAgentType),
                     AIAgentType = action.AIAgentType,
                     SourceConversationId = action.SourceConversationId,

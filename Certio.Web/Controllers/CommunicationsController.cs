@@ -1256,7 +1256,7 @@ namespace Certio.Web.Controllers
                     userId = userId.ToString(),
                     userName = "Kyle Wang",
                     userAvatar = "KW",
-                    content = $"Starting discussion for this matter in #{channelName}",
+                    content = $"Starting discussion for this event in #{channelName}",
                     createdAt = DateTime.UtcNow.AddHours(-2)
                 });
                 messages.Add(new

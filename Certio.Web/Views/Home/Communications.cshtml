@@ -295,7 +295,7 @@
                         <i class="fas fa-hashtag channel-header-icon"></i>
                         <div class="channel-details">
                             <h2 class="channel-title">@Model.ActiveChannel</h2>
-                            <p class="channel-description">Secure legal communications</p>
+                            <p class="channel-description">Secure communications</p>
                         </div>
                     </div>
                     <div class="chat-controls">
@@ -1161,7 +1161,7 @@
                                     }
                                     channelDescription.textContent = namesText;
                                 } else {
-                                    channelDescription.textContent = 'Secure legal communications';
+                                    channelDescription.textContent = 'Secure communications';
                                 }
                             }
                         }
@@ -1195,7 +1195,7 @@
                                 messageInput.placeholder = `Message #${channelName}`;
                             }
                             if (channelDescription) {
-                                channelDescription.textContent = 'Secure legal communications';
+                                channelDescription.textContent = 'Secure communications';
                             }
                         }
                     }
@@ -1297,13 +1297,13 @@
                                             }
                                             channelDescription.textContent = namesText;
                                         } else {
-                                            channelDescription.textContent = 'Secure legal communications';
+                                            channelDescription.textContent = 'Secure communications';
                                         }
                                     }
                                 }
                             } catch (error) {
                                 console.error('Error fetching channel members on channel switch:', error);
-                                channelDescription.textContent = 'Secure legal communications';
+                                channelDescription.textContent = 'Secure communications';
                             }
                         }
                         
@@ -1318,7 +1318,7 @@
                         }
                     } else {
                         // Not in email mode - update channel description based on type
-                        const defaultDescription = channelType === 'voice' ? 'Voice Channel' : 'Secure legal communications';
+                        const defaultDescription = channelType === 'voice' ? 'Voice Channel' : 'Secure communications';
                         if (channelDescription) {
                             channelDescription.textContent = defaultDescription;
                         }

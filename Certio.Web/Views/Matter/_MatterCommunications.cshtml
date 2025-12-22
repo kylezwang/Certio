@@ -282,7 +282,7 @@
                         <i class="fas fa-hashtag channel-header-icon"></i>
                         <div class="channel-details">
                             <h2 class="channel-title">@Model.ActiveChannel</h2>
-                            <p class="channel-description">Secure legal communications</p>
+                            <p class="channel-description">Secure communications</p>
                         </div>
                     </div>
                     <div class="chat-controls">
@@ -601,7 +601,7 @@
                     document.querySelector('.channel-title').textContent = channelName;
                     
                     // Update channel description based on type
-                    const channelDescription = channelType === 'voice' ? 'Voice Channel' : 'Secure legal communications';
+                    const channelDescription = channelType === 'voice' ? 'Voice Channel' : 'Secure communications';
                     document.querySelector('.channel-description').textContent = channelDescription;
                     
                     // Update channel header icon

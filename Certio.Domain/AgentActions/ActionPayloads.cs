@@ -36,6 +36,12 @@ namespace Certio.Domain.AgentActions
         [StringLength(20)]
         public string Priority { get; set; } = "Medium"; // High, Medium, Low, Critical
         
+        /// <summary>
+        /// Task status: Pending, In Progress, Review, Completed, On Hold, Cancelled
+        /// </summary>
+        [StringLength(20)]
+        public string Status { get; set; } = "Pending";
+        
         public DateTime? DueDate { get; set; }
         
         public List<int>? AssigneeIds { get; set; }

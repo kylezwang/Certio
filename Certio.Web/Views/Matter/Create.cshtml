@@ -48,7 +48,7 @@
             <div class="progress-step @(Model.Step >= 3 ? "active" : "")">
                 3
             </div>
-            <div class="progress-step-label @(Model.Step >= 3 ? "active" : "")">Firm & Contacts</div>
+            <div class="progress-step-label @(Model.Step >= 3 ? "active" : "")">Staff & Contacts</div>
             <div class="progress-line"></div>
             
             <div class="progress-step @(Model.Step >= 4 ? "active" : "")">
@@ -229,10 +229,10 @@
                                         <div class="col-md-6 mb-4">
                                             <label asp-for="PracticeArea" class="form-label fw-bold text-dark">
                                                 <i class="fas fa-gem me-2" style="color: #3d1019;"></i>
-                                                Practice Area <span class="text-danger">*</span>
+                                                Event Type <span class="text-danger">*</span>
                                             </label>
                                             <select asp-for="PracticeArea" class="form-select form-select-lg">
-                                                <option value="">Select practice area</option>
+                                                <option value="">Select event type</option>
                                                 @foreach (var category in Model.PracticeAreas)
                                                 {
                                                     <option value="@category">@category</option>
@@ -254,30 +254,30 @@
                                         <div class="col-md-6 mb-4">
                                             <label asp-for="DueDate" class="form-label fw-bold text-dark">
                                                 <i class="fas fa-calendar me-2" style="color: #3d1019;"></i>
-                                                Due Date
+                                                Event Date
                                             </label>
                                             <input asp-for="DueDate" type="date" class="form-control form-control-lg" 
-                                                   placeholder="Pick due date" />
+                                                   placeholder="Pick event date" />
                                             <span asp-validation-for="DueDate" class="text-danger"></span>
                                         </div>
 
                                         <div class="col-md-6 mb-4">
                                             <label asp-for="PendingDate" class="form-label fw-bold text-dark">
                                                 <i class="fas fa-calendar me-2" style="color: #3d1019;"></i>
-                                                Pending Date
+                                                Final Payment Due
                                             </label>
                                             <input asp-for="PendingDate" type="date" class="form-control form-control-lg" 
-                                                   placeholder="Pick pending date" />
+                                                   placeholder="Pick final payment deadline" />
                                             <span asp-validation-for="PendingDate" class="text-danger"></span>
                                         </div>
 
                                         <div class="col-md-6 mb-4">
                                             <label asp-for="StatuteOfLimitationsDate" class="form-label fw-bold text-dark">
                                                 <i class="fas fa-calendar me-2" style="color: #3d1019;"></i>
-                                                Statute of Limitations Date
+                                                Vendor Confirmation Deadline
                                             </label>
                                             <input asp-for="StatuteOfLimitationsDate" type="date" class="form-control form-control-lg" 
-                                                   placeholder="Pick statute of limitations date" />
+                                                   placeholder="Pick vendor confirmation deadline" />
                                             <span asp-validation-for="StatuteOfLimitationsDate" class="text-danger"></span>
                                         </div>
                                     </div>
@@ -310,34 +310,34 @@
                                                 <div class="col-md-6 mb-4">
                                                     <label class="form-label fw-bold text-dark">
                                                         <i class="fas fa-user-tie me-2" style="color: #3d1019;"></i>
-                                                        Responsible Attorney
+                                                        MC / Host
                                                     </label>
                                                     <select name="FirmAssignments[0].UserId" class="form-select form-select-lg firm-assignment-select" data-assignment-type="ResponsibleAttorney">
-                                                        <option value="">Select responsible attorney</option>
+                                                        <option value="">Select MC / Host</option>
                                                         @foreach (var member in Model.OrgMembers)
                                                         {
                                                             <option value="@member.Id">@member.Name (@member.Email)</option>
                                                         }
                                                     </select>
                                                     <input type="hidden" name="FirmAssignments[0].AssignmentType" value="ResponsibleAttorney" />
-                                                    <input type="hidden" name="FirmAssignments[0].Role" value="Responsible Attorney" />
+                                                    <input type="hidden" name="FirmAssignments[0].Role" value="MC / Host" />
                                                     <input type="hidden" name="FirmAssignments[0].IsNotifyRecipient" value="true" />
                                                 </div>
                                                 
                                                 <div class="col-md-6 mb-4">
                                                     <label class="form-label fw-bold text-dark">
                                                         <i class="fas fa-user me-2" style="color: #3d1019;"></i>
-                                                        Responsible Staff
+                                                        Photobooth
                                                     </label>
                                                     <select name="FirmAssignments[1].UserId" class="form-select form-select-lg firm-assignment-select" data-assignment-type="ResponsibleStaff">
-                                                        <option value="">Select responsible staff</option>
+                                                        <option value="">Select Photobooth</option>
                                                         @foreach (var member in Model.OrgMembers)
                                                         {
                                                             <option value="@member.Id">@member.Name (@member.Email)</option>
                                                         }
                                                     </select>
                                                     <input type="hidden" name="FirmAssignments[1].AssignmentType" value="ResponsibleStaff" />
-                                                    <input type="hidden" name="FirmAssignments[1].Role" value="Responsible Staff" />
+                                                    <input type="hidden" name="FirmAssignments[1].Role" value="Photobooth" />
                                                     <input type="hidden" name="FirmAssignments[1].IsNotifyRecipient" value="true" />
                                                 </div>
                                             </div>
@@ -346,17 +346,17 @@
                                                 <div class="col-12 mb-4">
                                                     <label class="form-label fw-bold text-dark">
                                                         <i class="fas fa-user-tie me-2" style="color: #3d1019;"></i>
-                                                        Originating Attorney
+                                                        DJ & Music
                                                     </label>
                                                     <select name="FirmAssignments[2].UserId" class="form-select form-select-lg firm-assignment-select" data-assignment-type="OriginatingAttorney">
-                                                        <option value="">Select originating attorney</option>
+                                                        <option value="">Select DJ & Music</option>
                                                         @foreach (var member in Model.OrgMembers)
                                                         {
                                                             <option value="@member.Id">@member.Name (@member.Email)</option>
                                                         }
                                                     </select>
                                                     <input type="hidden" name="FirmAssignments[2].AssignmentType" value="OriginatingAttorney" />
-                                                    <input type="hidden" name="FirmAssignments[2].Role" value="Originating Attorney" />
+                                                    <input type="hidden" name="FirmAssignments[2].Role" value="DJ & Music" />
                                                     <input type="hidden" name="FirmAssignments[2].IsNotifyRecipient" value="true" />
                                                 </div>
                                             </div>
@@ -368,34 +368,34 @@
                                                 <div class="col-md-6 mb-4">
                                                     <label class="form-label fw-bold text-dark">
                                                         <i class="fas fa-user-tie me-2" style="color: #3d1019;"></i>
-                                                        Responsible Attorney
+                                                        MC / Host
                                                     </label>
                                                     <select name="FirmAssignments[0].UserId" class="form-select form-select-lg firm-assignment-select" data-assignment-type="ResponsibleAttorney">
-                                                        <option value="">Select responsible attorney</option>
+                                                        <option value="">Select MC / Host</option>
                                                         @foreach (var member in Model.OrgMembers)
                                                         {
                                                             <option value="@member.Id" selected="@(Model.FirmAssignments.FirstOrDefault(fa => fa.AssignmentType == "ResponsibleAttorney")?.UserId == member.Id)">@member.Name (@member.Email)</option>
                                                         }
                                                     </select>
                                                     <input type="hidden" name="FirmAssignments[0].AssignmentType" value="ResponsibleAttorney" />
-                                                    <input type="hidden" name="FirmAssignments[0].Role" value="Responsible Attorney" />
+                                                    <input type="hidden" name="FirmAssignments[0].Role" value="MC / Host" />
                                                     <input type="hidden" name="FirmAssignments[0].IsNotifyRecipient" value="true" />
                                                 </div>
                                                 
                                                 <div class="col-md-6 mb-4">
                                                     <label class="form-label fw-bold text-dark">
                                                         <i class="fas fa-user me-2" style="color: #3d1019;"></i>
-                                                        Responsible Staff
+                                                        Photobooth
                                                     </label>
                                                     <select name="FirmAssignments[1].UserId" class="form-select form-select-lg firm-assignment-select" data-assignment-type="ResponsibleStaff">
-                                                        <option value="">Select responsible staff</option>
+                                                        <option value="">Select Photobooth</option>
                                                         @foreach (var member in Model.OrgMembers)
                                                         {
                                                             <option value="@member.Id" selected="@(Model.FirmAssignments.FirstOrDefault(fa => fa.AssignmentType == "ResponsibleStaff")?.UserId == member.Id)">@member.Name (@member.Email)</option>
                                                         }
                                                     </select>
                                                     <input type="hidden" name="FirmAssignments[1].AssignmentType" value="ResponsibleStaff" />
-                                                    <input type="hidden" name="FirmAssignments[1].Role" value="Responsible Staff" />
+                                                    <input type="hidden" name="FirmAssignments[1].Role" value="Photobooth" />
                                                     <input type="hidden" name="FirmAssignments[1].IsNotifyRecipient" value="true" />
                                                 </div>
                                             </div>
@@ -404,17 +404,17 @@
                                                 <div class="col-12 mb-4">
                                                     <label class="form-label fw-bold text-dark">
                                                         <i class="fas fa-user-tie me-2" style="color: #3d1019;"></i>
-                                                        Originating Attorney
+                                                        DJ & Music
                                                     </label>
                                                     <select name="FirmAssignments[2].UserId" class="form-select form-select-lg firm-assignment-select" data-assignment-type="OriginatingAttorney">
-                                                        <option value="">Select originating attorney</option>
+                                                        <option value="">Select DJ & Music</option>
                                                         @foreach (var member in Model.OrgMembers)
                                                         {
                                                             <option value="@member.Id" selected="@(Model.FirmAssignments.FirstOrDefault(fa => fa.AssignmentType == "OriginatingAttorney")?.UserId == member.Id)">@member.Name (@member.Email)</option>
                                                         }
                                                     </select>
                                                     <input type="hidden" name="FirmAssignments[2].AssignmentType" value="OriginatingAttorney" />
-                                                    <input type="hidden" name="FirmAssignments[2].Role" value="Originating Attorney" />
+                                                    <input type="hidden" name="FirmAssignments[2].Role" value="DJ & Music" />
                                                     <input type="hidden" name="FirmAssignments[2].IsNotifyRecipient" value="true" />
                                                 </div>
                                             </div>
@@ -585,7 +585,7 @@
                                                             </div>
                                                             <div class="snapshot-content">
                                                                 <div class="mb-2">
-                                                                    <strong>Practice Area:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.PracticeArea) ? "Not specified" : Model.PracticeArea)</span>
+                                                                    <strong>Event Type:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.PracticeArea) ? "Not specified" : Model.PracticeArea)</span>
                                                                 </div>
                                                                 <div class="mb-2">
                                                                     <strong>Status:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.Status) ? "Not specified" : Model.Status)</span>
@@ -594,10 +594,10 @@
                                                                     <strong>Start Date:</strong> <span class="text-muted">@(Model.StartDate?.ToString("MMM dd, yyyy") ?? "Not specified")</span>
                                                                 </div>
                                                                 <div class="mb-2">
-                                                                    <strong>Due Date:</strong> <span class="text-muted">@(Model.DueDate?.ToString("MMM dd, yyyy") ?? "Not specified")</span>
+                                                                    <strong>Event Date:</strong> <span class="text-muted">@(Model.DueDate?.ToString("MMM dd, yyyy") ?? "Not specified")</span>
                                                                 </div>
                                                                 <div class="mb-0">
-                                                                    <strong>Pending Date:</strong> <span class="text-muted">@(Model.PendingDate?.ToString("MMM dd, yyyy") ?? "Not specified")</span>
+                                                                    <strong>Final Payment Due:</strong> <span class="text-muted">@(Model.PendingDate?.ToString("MMM dd, yyyy") ?? "Not specified")</span>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -611,8 +611,8 @@
                                                             <div class="d-flex align-items-center mb-3">
                                                                 <i class="fas fa-building-columns fs-4 me-3" style="color: #3d1019;"></i>
                                                                 <div>
-                                                                    <h6 class="fw-bold text-dark mb-1">Firm & Contacts</h6>
-                                                                    <p class="text-muted mb-0 small">Team assignments and contacts</p>
+                                                                    <h6 class="fw-bold text-dark mb-1">Staff & Contacts</h6>
+                                                                    <p class="text-muted mb-0 small">Your team member assignments and relevant contacts</p>
                                                                 </div>
                                                             </div>
                                                             <div class="snapshot-content">
@@ -622,13 +622,13 @@
                                                                     var responsibleStaff = Model.FirmAssignments.FirstOrDefault(fa => fa.AssignmentType == "ResponsibleStaff");
                                                                 }
                                                                 <div class="mb-2">
-                                                                    <strong>Originating @attorneyLabel:</strong> <span class="text-muted">@(originatingAttorney != null ? Model.OrgMembers.FirstOrDefault(m => m.Id == originatingAttorney.UserId)?.Name ?? "Not specified" : "Not specified")</span>
+                                                                    <strong>DJ & Music:</strong> <span class="text-muted">@(originatingAttorney != null ? Model.OrgMembers.FirstOrDefault(m => m.Id == originatingAttorney.UserId)?.Name ?? "Not specified" : "Not specified")</span>
                                                                 </div>
                                                                 <div class="mb-2">
-                                                                    <strong>Responsible @attorneyLabel:</strong> <span class="text-muted">@(responsibleAttorney != null ? Model.OrgMembers.FirstOrDefault(m => m.Id == responsibleAttorney.UserId)?.Name ?? "Not specified" : "Not specified")</span>
+                                                                    <strong>MC / Host:</strong> <span class="text-muted">@(responsibleAttorney != null ? Model.OrgMembers.FirstOrDefault(m => m.Id == responsibleAttorney.UserId)?.Name ?? "Not specified" : "Not specified")</span>
                                                                 </div>
                                                                 <div class="mb-2">
-                                                                    <strong>Responsible Staff:</strong> <span class="text-muted">@(responsibleStaff != null ? Model.OrgMembers.FirstOrDefault(m => m.Id == responsibleStaff.UserId)?.Name ?? "Not specified" : "Not specified")</span>
+                                                                    <strong>Photobooth:</strong> <span class="text-muted">@(responsibleStaff != null ? Model.OrgMembers.FirstOrDefault(m => m.Id == responsibleStaff.UserId)?.Name ?? "Not specified" : "Not specified")</span>
                                                                 </div>
                                                                 <div class="mb-0">
                                                                     <strong>Relevant Contacts:</strong>
@@ -805,7 +805,7 @@
                                         @(string.IsNullOrEmpty(Model.Status) ? "Planning" : Model.Status)
                                     </span>
                                     <span class="badge bg-secondary category-badge" style="font-size: 0.7rem; padding: 0.25rem 0.5rem;">
-                                        @(string.IsNullOrEmpty(Model.PracticeArea) ? "Practice Area" : Model.PracticeArea)
+                                        @(string.IsNullOrEmpty(Model.PracticeArea) ? "Event Type" : Model.PracticeArea)
                                     </span>
                                 </div>
 
@@ -844,7 +844,7 @@
                                 <div class="d-flex justify-content-between align-items-center text-muted small mb-2" style="font-size: 0.75rem;">
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-calendar me-1"></i>
-                                        <span class="due-date-text">@(Model.DueDate?.ToString("MMM dd, yyyy") ?? "No due date set")</span>
+                                        <span class="due-date-text">@(Model.DueDate?.ToString("MMM dd, yyyy") ?? "No event date set")</span>
                                     </div>
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-users me-1"></i>
@@ -1234,7 +1234,7 @@
                 
                 // Update category
                 if (previewPracticeArea) {
-                    previewPracticeArea.textContent = currentValues.category || 'Practice Area';
+                    previewPracticeArea.textContent = currentValues.category || 'Event Type';
                 }
                 
                 // Update status
@@ -1295,7 +1295,7 @@
                     });
                     previewDueDate.textContent = `Due ${formattedDate}`;
                 } else {
-                    previewDueDate.textContent = 'No due date set';
+                    previewDueDate.textContent = 'No event date set';
                 }
             }
             
@@ -1549,9 +1549,9 @@
                 select.addEventListener('change', function() {
                     const assignmentType = this.getAttribute('data-assignment-type');
                     const roleMap = {
-                        'ResponsibleAttorney': 'Responsible Attorney',
-                        'ResponsibleStaff': 'Responsible Staff',
-                        'OriginatingAttorney': 'Originating Attorney'
+                        'ResponsibleAttorney': 'MC / Host',
+                        'ResponsibleStaff': 'Photobooth',
+                        'OriginatingAttorney': 'DJ & Music'
                     };
                     const role = roleMap[assignmentType] || '';
                     
@@ -1617,9 +1617,9 @@
                         } else {
                             // Add new assignment
                             let roleName = '';
-                            if (assignmentType === 'ResponsibleAttorney') roleName = 'Responsible Attorney';
-                            else if (assignmentType === 'ResponsibleStaff') roleName = 'Responsible Staff';
-                            else if (assignmentType === 'OriginatingAttorney') roleName = 'Originating Attorney';
+                            if (assignmentType === 'ResponsibleAttorney') roleName = 'MC / Host';
+                            else if (assignmentType === 'ResponsibleStaff') roleName = 'Photobooth';
+                            else if (assignmentType === 'OriginatingAttorney') roleName = 'DJ & Music';
                             
                             currentValues.firmAssignments.push({
                                 assignmentType: assignmentType,

@@ -51,9 +51,17 @@ function initializeCommsSidebar() {
         }
         
         // Update floating timer overlay position
+        // IMPORTANT: Do NOT set `right` when the timer is positioned via `left/top` (default or user-dragged),
+        // otherwise the fixed element becomes over-constrained (left + right) and stretches across the screen,
+        // creating an invisible draggable hitbox.
         const floatingTimerOverlay = document.getElementById('floatingTimerOverlay');
-        if (floatingTimerOverlay && !localStorage.getItem('timerPosition')) {
-            floatingTimerOverlay.style.right = (savedWidth + 24) + 'px';
+        if (floatingTimerOverlay) {
+            const hasSavedManualPosition = !!localStorage.getItem('timerPosition');
+            const hasExplicitLeft = (floatingTimerOverlay.style.left || '').trim().length > 0;
+
+            if (!hasSavedManualPosition && !hasExplicitLeft) {
+                floatingTimerOverlay.style.right = (savedWidth + 24) + 'px';
+            }
         }
     }
     
