@@ -15,6 +15,7 @@ from collections import deque
 import secrets
 import base64
 import mimetypes
+import httpx
 from simplified_cost_optimization import (
     SimplifiedModelSelector, TaskComplexityAnalyzer, UsageTracker,
     ModelType, TaskComplexity
@@ -139,6 +140,154 @@ def get_client_for_model(model_name: str):
             return client_gpt5x
     
     return client
+
+def uses_responses_api(model_name: str) -> bool:
+    """Check if a model uses the Responses API (GPT-5.1/5.2) instead of Chat Completions"""
+    if not model_name:
+        return False
+    gpt5_1_deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT5_1", "")
+    gpt5_2_deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT5_2", "")
+    return model_name == gpt5_1_deployment or model_name == gpt5_2_deployment
+
+async def call_responses_api_streaming(
+    messages: List[Dict[str, str]],
+    model_name: str,
+    max_completion_tokens: int,
+    temperature: Optional[float] = None
+):
+    """Call Azure OpenAI Responses API with streaming support"""
+    endpoint = os.getenv("AZURE_OPENAI_ENDPOINT_GPT5X")
+    api_key = os.getenv("AZURE_OPENAI_API_KEY_GPT5X")
+    api_version = os.getenv("AZURE_OPENAI_VERSION_GPT5X", "2025-04-01-preview")
+    
+    if not endpoint or not api_key:
+        raise ValueError("AZURE_OPENAI_ENDPOINT_GPT5X and AZURE_OPENAI_API_KEY_GPT5X must be set for Responses API")
+    
+    # Responses API endpoint format
+    url = f"{endpoint.rstrip('/')}/openai/responses"
+    
+    # Build request body for Responses API
+    # Responses API format may vary - try both "input" and "messages" formats
+    # First, ensure messages are in the right format (list of dicts with role/content)
+    formatted_messages = []
+    for msg in messages:
+        if isinstance(msg, dict):
+            formatted_messages.append(msg)
+        else:
+            formatted_messages.append({"role": "user", "content": str(msg)})
+    
+    request_body = {
+        "model": model_name,
+        "input": formatted_messages,  # Responses API uses "input" instead of "messages"
+        "max_completion_tokens": max_completion_tokens
+    }
+    
+    # GPT-5 models don't support custom temperature (only default 1.0)
+    # So we don't include it for Responses API
+    
+    headers = {
+        "api-key": api_key,
+        "Content-Type": "application/json"
+    }
+    
+    params = {
+        "api-version": api_version
+    }
+    
+    logger.info(f"📡 Calling Responses API: {url} with model {model_name}")
+    logger.debug(f"📡 Responses API request body: {json.dumps(request_body, indent=2)}")
+    
+    async with httpx.AsyncClient(timeout=300.0) as http_client:
+        async with http_client.stream(
+            "POST",
+            url,
+            headers=headers,
+            params=params,
+            json=request_body
+        ) as response:
+            if response.status_code != 200:
+                error_text = await response.aread()
+                error_msg = error_text.decode() if error_text else "Unknown error"
+                logger.error(f"❌ Responses API error {response.status_code}: {error_msg}")
+                raise Exception(f"Responses API error {response.status_code}: {error_msg}")
+            
+            logger.info(f"✅ Responses API stream started (status: {response.status_code})")
+            async for line in response.aiter_lines():
+                if line:
+                    if line.startswith("data: "):
+                        data_str = line[6:]  # Remove "data: " prefix
+                        if data_str.strip() == "[DONE]":
+                            logger.info("✅ Responses API stream completed")
+                            break
+                        try:
+                            event_data = json.loads(data_str)
+                            yield event_data
+                        except json.JSONDecodeError as e:
+                            logger.warning(f"⚠️ Failed to parse Responses API chunk: {line[:100]}... Error: {e}")
+                            continue
+                    elif line.strip():  # Non-empty line that's not SSE format
+                        logger.debug(f"📨 Responses API raw line: {line[:100]}")
+
+async def call_responses_api(
+    messages: List[Dict[str, str]],
+    model_name: str,
+    max_completion_tokens: int,
+    temperature: Optional[float] = None
+) -> str:
+    """Call Azure OpenAI Responses API (non-streaming)"""
+    endpoint = os.getenv("AZURE_OPENAI_ENDPOINT_GPT5X")
+    api_key = os.getenv("AZURE_OPENAI_API_KEY_GPT5X")
+    api_version = os.getenv("AZURE_OPENAI_VERSION_GPT5X", "2025-04-01-preview")
+    
+    if not endpoint or not api_key:
+        raise ValueError("AZURE_OPENAI_ENDPOINT_GPT5X and AZURE_OPENAI_API_KEY_GPT5X must be set for Responses API")
+    
+    url = f"{endpoint.rstrip('/')}/openai/responses"
+    
+    # Ensure messages are in the right format
+    formatted_messages = []
+    for msg in messages:
+        if isinstance(msg, dict):
+            formatted_messages.append(msg)
+        else:
+            formatted_messages.append({"role": "user", "content": str(msg)})
+    
+    request_body = {
+        "model": model_name,
+        "input": formatted_messages,
+        "max_completion_tokens": max_completion_tokens
+    }
+    
+    headers = {
+        "api-key": api_key,
+        "Content-Type": "application/json"
+    }
+    
+    params = {
+        "api-version": api_version
+    }
+    
+    logger.info(f"📡 Calling Responses API (non-streaming): {url} with model {model_name}")
+    
+    async with httpx.AsyncClient(timeout=300.0) as http_client:
+        response = await http_client.post(url, headers=headers, params=params, json=request_body)
+        response.raise_for_status()
+        result = response.json()
+        
+        # Extract response text from Responses API format
+        # The format may vary, but typically it's in result["output"] or result["choices"][0]["message"]["content"]
+        if "output" in result:
+            return result["output"]
+        elif "choices" in result and len(result["choices"]) > 0:
+            if "message" in result["choices"][0]:
+                return result["choices"][0]["message"].get("content", "")
+            elif "text" in result["choices"][0]:
+                return result["choices"][0]["text"]
+        elif "text" in result:
+            return result["text"]
+        else:
+            logger.warning(f"Unexpected Responses API format: {result}")
+            return str(result)
 
 # Global function to get model name (Azure deployment names if using Azure)
 def get_model_name(model_type):
@@ -2801,29 +2950,49 @@ Respond as an intelligent assistant:"""
             
             # GPT-5 models require max_completion_tokens instead of max_tokens, and don't support custom temperature
             is_gpt5_model = any(x in selected_model.lower() for x in ['gpt-5', 'gpt5', 'o1', 'o3'])
+            uses_responses = uses_responses_api(selected_model)
             
-            # Create streaming response from Azure OpenAI
-            completion_params = {
-                "model": selected_model,
-                "messages": [
+            # Check if we need to use Responses API (GPT-5.1/5.2)
+            if uses_responses:
+                logger.info(f"📡 Using Responses API for model: {selected_model}")
+                # Prepare messages for Responses API (includes system prompt)
+                api_messages = [
                     {"role": "system", "content": system_prompt}
-                ],
-                "stream": True  # Enable streaming
-            }
-            
-            # GPT-5 models don't support custom temperature (only default 1.0)
-            if not is_gpt5_model:
-                completion_params["temperature"] = temperature
-            
-            # Use correct token parameter based on model
-            if is_gpt5_model:
-                completion_params["max_completion_tokens"] = max_tokens
+                ]
+                # Add user message if present
+                if messages:
+                    api_messages.extend(messages)
+                
+                # Stream from Responses API
+                stream_response = call_responses_api_streaming(
+                    messages=api_messages,
+                    model_name=selected_model,
+                    max_completion_tokens=max_tokens,
+                    temperature=None  # GPT-5 models don't support custom temperature
+                )
             else:
-                completion_params["max_tokens"] = max_tokens
-            
-            # Use appropriate client based on model (GPT-5.1/5.2 may use different endpoint)
-            api_client = get_client_for_model(selected_model)
-            stream_response = api_client.chat.completions.create(**completion_params)
+                # Use standard Chat Completions API
+                completion_params = {
+                    "model": selected_model,
+                    "messages": [
+                        {"role": "system", "content": system_prompt}
+                    ],
+                    "stream": True  # Enable streaming
+                }
+                
+                # GPT-5 models don't support custom temperature (only default 1.0)
+                if not is_gpt5_model:
+                    completion_params["temperature"] = temperature
+                
+                # Use correct token parameter based on model
+                if is_gpt5_model:
+                    completion_params["max_completion_tokens"] = max_tokens
+                else:
+                    completion_params["max_tokens"] = max_tokens
+                
+                # Use appropriate client based on model (GPT-5.1/5.2 may use different endpoint)
+                api_client = get_client_for_model(selected_model)
+                stream_response = api_client.chat.completions.create(**completion_params)
             
             # Track usage for cost optimization (only if we have optimal_model_type)
             if optimal_model_type:
@@ -2833,14 +3002,35 @@ Respond as an intelligent assistant:"""
             
             # Stream chunks to client
             full_content = ""
-            for chunk in stream_response:
-                if chunk.choices and len(chunk.choices) > 0:
-                    delta = chunk.choices[0].delta
-                    if hasattr(delta, 'content') and delta.content:
-                        content = delta.content
+            
+            if uses_responses:
+                # Handle Responses API streaming (async generator)
+                async for event_data in stream_response:
+                    # Responses API format may vary - check for common fields
+                    if "content" in event_data:
+                        content = event_data["content"]
                         full_content += content
-                        # Send chunk as Server-Sent Event
                         yield f"data: {json.dumps({'content': content, 'done': False})}\n\n"
+                    elif "text" in event_data:
+                        content = event_data["text"]
+                        full_content += content
+                        yield f"data: {json.dumps({'content': content, 'done': False})}\n\n"
+                    elif "delta" in event_data and "content" in event_data["delta"]:
+                        content = event_data["delta"]["content"]
+                        full_content += content
+                        yield f"data: {json.dumps({'content': content, 'done': False})}\n\n"
+                    elif event_data.get("done"):
+                        break
+            else:
+                # Handle Chat Completions streaming (standard OpenAI format)
+                for chunk in stream_response:
+                    if chunk.choices and len(chunk.choices) > 0:
+                        delta = chunk.choices[0].delta
+                        if hasattr(delta, 'content') and delta.content:
+                            content = delta.content
+                            full_content += content
+                            # Send chunk as Server-Sent Event
+                            yield f"data: {json.dumps({'content': content, 'done': False})}\n\n"
             
             # For complex messages, extract only the response part
             if not is_simple_message and "<response>" in full_content and "</response>" in full_content:
