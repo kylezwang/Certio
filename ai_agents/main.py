@@ -3046,6 +3046,9 @@ Respond as an intelligent assistant:"""
                 # Use correct token parameter based on model
                 if is_gpt5_model:
                     completion_params["max_completion_tokens"] = max_tokens
+                    # GPT-5 sometimes returns tool_calls with empty text; force plain text output.
+                    # (If Azure ignores this param, it will be harmless.)
+                    completion_params["tool_choice"] = "none"
                 else:
                     completion_params["max_tokens"] = max_tokens
                 
@@ -3162,11 +3165,38 @@ Respond as an intelligent assistant:"""
 
                         fallback_content = None
                         if getattr(fallback_resp, "choices", None) and len(fallback_resp.choices) > 0:
-                            msg = getattr(fallback_resp.choices[0], "message", None)
+                            choice0 = fallback_resp.choices[0]
+                            finish_reason = getattr(choice0, "finish_reason", None)
+                            logger.warning(f"⚠️ GPT fallback finish_reason for '{selected_model}': {finish_reason}")
+
+                            msg = getattr(choice0, "message", None)
                             if msg is not None:
-                                fallback_content = getattr(msg, "content", None)
-                            if not fallback_content and hasattr(fallback_resp.choices[0], "text"):
-                                fallback_content = getattr(fallback_resp.choices[0], "text", None)
+                                # content can be str or (rarely) structured; handle both
+                                raw_content = getattr(msg, "content", None)
+                                if isinstance(raw_content, str):
+                                    fallback_content = raw_content
+                                elif isinstance(raw_content, list):
+                                    # Try to join any text-like parts
+                                    parts: list[str] = []
+                                    for part in raw_content:
+                                        if isinstance(part, str):
+                                            parts.append(part)
+                                        elif isinstance(part, dict):
+                                            # common shapes: {"type":"text","text":"..."} or {"text":"..."}
+                                            txt = part.get("text") or part.get("content")
+                                            if isinstance(txt, str):
+                                                parts.append(txt)
+                                    fallback_content = "\n".join([p for p in parts if p.strip()]) if parts else None
+
+                                tool_calls = getattr(msg, "tool_calls", None)
+                                refusal = getattr(msg, "refusal", None)
+                                if tool_calls:
+                                    logger.warning(f"⚠️ GPT fallback returned tool_calls for '{selected_model}' (no text).")
+                                if refusal:
+                                    logger.warning(f"⚠️ GPT fallback returned refusal for '{selected_model}': {refusal}")
+
+                            if (not fallback_content) and hasattr(choice0, "text"):
+                                fallback_content = getattr(choice0, "text", None)
 
                         if fallback_content and fallback_content.strip():
                             full_content = fallback_content
