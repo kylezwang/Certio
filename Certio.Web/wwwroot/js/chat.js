@@ -651,7 +651,12 @@ async function generateAIResponse(userMessage) {
                         
                         if (eventData.error) {
                             console.log('❌ Error in event data');
-                            // Error occurred
+                            // Error occurred - ensure we have a message div to show error
+                            if (!aiMessageDiv) {
+                                hideAIThinkingIndicator();
+                                aiMessageDiv = createStreamingAIMessagePlaceholder();
+                                messageTextDiv = aiMessageDiv.querySelector('.message-text');
+                            }
                             messageTextDiv.innerHTML = eventData.content || 'An error occurred while generating the response.';
                             // Remove streaming class
                             aiMessageDiv.classList.remove('streaming');
@@ -660,6 +665,18 @@ async function generateAIResponse(userMessage) {
                         
                         if (eventData.done) {
                             console.log('✅ Stream done signal received');
+                            
+                            // If stream completed without any content, create error message
+                            if (!aiMessageDiv) {
+                                console.log('⚠️ Stream ended without content - showing error');
+                                hideAIThinkingIndicator();
+                                aiMessageDiv = createStreamingAIMessagePlaceholder();
+                                messageTextDiv = aiMessageDiv.querySelector('.message-text');
+                                messageTextDiv.innerHTML = 'Sorry, I was unable to generate a response. The AI model may be unavailable. Please try again or select a different model.';
+                                aiMessageDiv.classList.remove('streaming');
+                                return;
+                            }
+                            
                             // Stream complete - remove streaming class and cursor
                             aiMessageDiv.classList.remove('streaming');
                             
