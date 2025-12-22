@@ -433,16 +433,18 @@ class BaseAgent:
         # Wait for rate limiter before making request
         await rate_limiter.wait_if_needed()
         
-        # GPT-5 models require max_completion_tokens instead of max_tokens
+        # GPT-5 models require max_completion_tokens instead of max_tokens, and don't support custom temperature
         is_gpt5_model = any(x in selected_model.lower() for x in ['gpt-5', 'gpt5', 'o1', 'o3'])
         
         for attempt in range(self.max_retries):
             try:
                 completion_params = {
                     "model": selected_model,
-                    "messages": [{"role": "user", "content": prompt}],
-                    "temperature": temperature
+                    "messages": [{"role": "user", "content": prompt}]
                 }
+                # GPT-5 models don't support custom temperature (only default 1.0)
+                if not is_gpt5_model:
+                    completion_params["temperature"] = temperature
                 if is_gpt5_model:
                     completion_params["max_completion_tokens"] = max_tokens
                 else:
@@ -2756,7 +2758,7 @@ Respond as an intelligent assistant:"""
             # Wait for rate limiter before making request
             await rate_limiter.wait_if_needed()
             
-            # GPT-5 models require max_completion_tokens instead of max_tokens
+            # GPT-5 models require max_completion_tokens instead of max_tokens, and don't support custom temperature
             is_gpt5_model = any(x in selected_model.lower() for x in ['gpt-5', 'gpt5', 'o1', 'o3'])
             
             # Create streaming response from Azure OpenAI
@@ -2765,9 +2767,12 @@ Respond as an intelligent assistant:"""
                 "messages": [
                     {"role": "system", "content": system_prompt}
                 ],
-                "temperature": temperature,
                 "stream": True  # Enable streaming
             }
+            
+            # GPT-5 models don't support custom temperature (only default 1.0)
+            if not is_gpt5_model:
+                completion_params["temperature"] = temperature
             
             # Use correct token parameter based on model
             if is_gpt5_model:
