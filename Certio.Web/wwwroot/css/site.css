@@ -1902,7 +1902,9 @@ body {
 
 .progress-bar {
   border-radius: 4px;
-  background: linear-gradient(135deg, #a32b43, #3d1019) !important;
+  /* No gradients on progress bars by default (individual pages/components set solid colors as needed) */
+  background-image: none !important;
+  background-color: #3b82f6;
 }
 
 .card {

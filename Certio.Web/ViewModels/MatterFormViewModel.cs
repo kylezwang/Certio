@@ -41,28 +41,30 @@ namespace Certio.Web.ViewModels
         public List<int> PermissionUserIds { get; set; } = new List<int>();
         
         // Available options
+        // Event Type categories for event planning
         public List<string> PracticeAreas { get; set; } = new List<string>
         {
-            "Business Formation / Compliance",
-            "Commercial Litigation",
-            "Construction",
-            "Corporate Litigation",
-            "Criminal",
-            "Elder",
-            "Employment / Labor",
-            "Family",
-            "Healthcare",
-            "Intellectual Property",
-            "Medical Malpractice",
-            "Personal Injury",
-            "Privacy / Information Security",
-            "Product Liability",
-            "Real Estate",
-            "Securities / Mergers & Acquisitions",
-            "Sports / Entertainment / Gaming",
-            "Tax",
-            "Trusts",
-            "Wills & Estates",
+            "Wedding",
+            "Quinceañera",
+            "Sweet 16",
+            "Birthday Party",
+            "Anniversary",
+            "Corporate Event",
+            "Holiday Party",
+            "Graduation",
+            "Prom / School Dance",
+            "Reunion",
+            "Baby Shower",
+            "Bridal Shower",
+            "Engagement Party",
+            "Fundraiser / Gala",
+            "Concert / Live Music",
+            "Festival",
+            "Private Dinner",
+            "Cocktail Party",
+            "Bar / Bat Mitzvah",
+            "Religious Celebration",
+            "Memorial / Celebration of Life",
             "Other"
         };
         

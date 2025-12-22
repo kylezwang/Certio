@@ -860,47 +860,13 @@
                                 @{
                                     var currentTier = ViewBag.AIModelTier?.ToString() ?? "Auto";
                                 }
-                                <select class="form-select" id="aiModelTier" style="width: 200px;" data-original="@currentTier">
-                                    @if (currentTier == "Auto")
-                                    {
-                                        <option value="Auto" selected>Auto</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="Auto">Auto</option>
-                                    }
-                                    @if (currentTier == "Basic")
-                                    {
-                                        <option value="Basic" selected>Basic</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="Basic">Basic</option>
-                                    }
-                                    @if (currentTier == "Intermediate")
-                                    {
-                                        <option value="Intermediate" selected>Intermediate</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="Intermediate">Intermediate</option>
-                                    }
-                                    @if (currentTier == "Advanced")
-                                    {
-                                        <option value="Advanced" selected>Advanced</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="Advanced">Advanced</option>
-                                    }
-                                    @if (currentTier == "Premium")
-                                    {
-                                        <option value="Premium" selected>Premium</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="Premium">Premium</option>
-                                    }
+                                <select class="form-select" id="aiModelTier" style="width: 220px;" data-original="@currentTier">
+                                    @if (currentTier == "Auto") { <option value="Auto" selected>Auto</option> } else { <option value="Auto">Auto</option> }
+                                    @if (currentTier == "GPT4o") { <option value="GPT4o" selected>Azure GPT-4o</option> } else { <option value="GPT4o">Azure GPT-4o</option> }
+                                    @if (currentTier == "GPT4oMini") { <option value="GPT4oMini" selected>Azure GPT-4o-mini</option> } else { <option value="GPT4oMini">Azure GPT-4o-mini</option> }
+                                    @if (currentTier == "GPT5") { <option value="GPT5" selected>Azure GPT-5</option> } else { <option value="GPT5">Azure GPT-5</option> }
+                                    @if (currentTier == "GPT51") { <option value="GPT51" selected>Azure GPT-5.1</option> } else { <option value="GPT51">Azure GPT-5.1</option> }
+                                    @if (currentTier == "GPT52") { <option value="GPT52" selected>Azure GPT-5.2</option> } else { <option value="GPT52">Azure GPT-5.2</option> }
                                 </select>
                             </div>
                         </div>

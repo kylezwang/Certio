@@ -373,7 +373,9 @@
 }
 
 .task-progress .progress-bar {
-    background-color: #3b82f6;
+    /* Keep the gradient style for task progress bars (overrides global .progress-bar defaults) */
+    background-color: #3d1019;
+    background-image: linear-gradient(135deg, #a32b43, #3d1019) !important;
     height: 100%;
     transition: width 0.3s;
 }
@@ -2008,7 +2010,9 @@ body:has(.client-main-content-wrapper.global-dashboard-layout) .task-details-mod
 }
 
 .inbox-task-card .task-progress .progress-bar {
-    background-color: #3b82f6;
+    /* Keep the gradient style for task progress bars (overrides global .progress-bar defaults) */
+    background-color: #3d1019;
+    background-image: linear-gradient(135deg, #a32b43, #3d1019) !important;
     height: 100%;
     transition: width 0.3s;
 }

@@ -116,7 +116,9 @@ def get_model_name(model_type):
         gpt4o_mini = os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT4O_MINI", "gpt-4o-mini")
         gpt4_1_mini = os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT4_1_MINI", "")  # Default empty - not all have this
         gpt4_1 = os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT4_1", "")  # Default empty - not all have this
-        gpt5 = os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT5", "")  # Default empty - not all have this
+        gpt5 = os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT5", "")  # Azure GPT-5
+        gpt5_1 = os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT5_1", "")  # Azure GPT-5.1
+        gpt5_2 = os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT5_2", "")  # Azure GPT-5.2
         
         # Build mapping with fallbacks for unavailable premium models
         azure_mapping = {
@@ -127,17 +129,23 @@ def get_model_name(model_type):
             # GPT-4.1 falls back to GPT-4o if not configured
             ModelType.GPT_4_1: gpt4_1 if gpt4_1 else gpt4o,
             # GPT-5 falls back to GPT-4.1, then GPT-4o if not configured
-            ModelType.GPT_5: gpt5 if gpt5 else (gpt4_1 if gpt4_1 else gpt4o)
+            ModelType.GPT_5: gpt5 if gpt5 else (gpt4_1 if gpt4_1 else gpt4o),
+            # GPT-5.1 falls back to GPT-5, then GPT-4o if not configured
+            ModelType.GPT_5_1: gpt5_1 if gpt5_1 else (gpt5 if gpt5 else gpt4o),
+            # GPT-5.2 falls back to GPT-5.1, then GPT-5, then GPT-4o if not configured
+            ModelType.GPT_5_2: gpt5_2 if gpt5_2 else (gpt5_1 if gpt5_1 else (gpt5 if gpt5 else gpt4o))
         }
         
         result = azure_mapping.get(model_type, gpt4o_mini)
         
         # Log fallback info for debugging
-        if model_type in [ModelType.GPT_4_1, ModelType.GPT_4_1_MINI, ModelType.GPT_5]:
+        if model_type in [ModelType.GPT_4_1, ModelType.GPT_4_1_MINI, ModelType.GPT_5, ModelType.GPT_5_1, ModelType.GPT_5_2]:
             original_env = {
                 ModelType.GPT_4_1: "AZURE_OPENAI_DEPLOYMENT_GPT4_1",
                 ModelType.GPT_4_1_MINI: "AZURE_OPENAI_DEPLOYMENT_GPT4_1_MINI",
-                ModelType.GPT_5: "AZURE_OPENAI_DEPLOYMENT_GPT5"
+                ModelType.GPT_5: "AZURE_OPENAI_DEPLOYMENT_GPT5",
+                ModelType.GPT_5_1: "AZURE_OPENAI_DEPLOYMENT_GPT5_1",
+                ModelType.GPT_5_2: "AZURE_OPENAI_DEPLOYMENT_GPT5_2"
             }
             env_var = original_env.get(model_type, "")
             if not os.getenv(env_var):
@@ -151,7 +159,9 @@ def get_model_name(model_type):
             ModelType.GPT_4O_MINI: "gpt-4o-mini",
             ModelType.GPT_4_1_MINI: "o1-mini",
             ModelType.GPT_4_1: "o1-preview",
-            ModelType.GPT_5: "gpt-5"
+            ModelType.GPT_5: "gpt-5",
+            ModelType.GPT_5_1: "gpt-5.1",
+            ModelType.GPT_5_2: "gpt-5.2"
         }
         return regular_mapping.get(model_type, "gpt-4o-mini")
 
@@ -2464,6 +2474,22 @@ async def conversational_response_stream(payload: dict, _: str = Depends(authent
                 # Always use mini for dashboard cards to reduce costs
                 force_model_type = ModelType.GPT_4O_MINI
                 logger.info("Dashboard card detected - forcing gpt-4o-mini for cost optimization")
+            elif ai_model_tier == "GPT4oMini":
+                force_model_type = ModelType.GPT_4O_MINI
+                logger.info("GPT4oMini tier selected")
+            elif ai_model_tier == "GPT4o":
+                force_model_type = ModelType.GPT_4O
+                logger.info("GPT4o tier selected")
+            elif ai_model_tier == "GPT5":
+                force_model_type = ModelType.GPT_5
+                logger.info("GPT5 tier selected")
+            elif ai_model_tier == "GPT51":
+                force_model_type = ModelType.GPT_5_1
+                logger.info("GPT51 tier selected")
+            elif ai_model_tier == "GPT52":
+                force_model_type = ModelType.GPT_5_2
+                logger.info("GPT52 tier selected")
+            # Legacy tier names for backward compatibility
             elif ai_model_tier == "Basic":
                 force_model_type = ModelType.GPT_4O_MINI
             elif ai_model_tier == "Intermediate":
@@ -2471,14 +2497,7 @@ async def conversational_response_stream(payload: dict, _: str = Depends(authent
             elif ai_model_tier == "Advanced":
                 force_model_type = ModelType.GPT_4O
             elif ai_model_tier == "Premium":
-                # For Premium tier, use GPT-4.1 (o1-preview) - will auto-upgrade to GPT-5 when available
-                gpt5_deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT5", "")
-                if gpt5_deployment:
-                    force_model_type = ModelType.GPT_5
-                    logger.info("Premium tier using GPT-5")
-                else:
-                    force_model_type = ModelType.GPT_4_1
-                    logger.info("Premium tier using GPT-4.1 (o1-preview)")
+                force_model_type = ModelType.GPT_5
             # else: Auto - use dynamic selection (3-tier complexity)
             
             if is_simple_message:
@@ -2684,7 +2703,11 @@ Respond as an intelligent assistant:"""
                     optimal_model_type = force_model_type
                     selected_model = get_model_name(optimal_model_type)
                     # Set cost estimates based on model type
-                    if optimal_model_type == ModelType.GPT_5:
+                    if optimal_model_type == ModelType.GPT_5_2:
+                        estimated_cost = 0.02  # GPT-5.2 cost estimate
+                    elif optimal_model_type == ModelType.GPT_5_1:
+                        estimated_cost = 0.015  # GPT-5.1 cost estimate
+                    elif optimal_model_type == ModelType.GPT_5:
                         estimated_cost = 0.01  # GPT-5 cost estimate
                     elif optimal_model_type == ModelType.GPT_4_1:
                         estimated_cost = 0.02  # GPT-4.1 (o1-preview) cost estimate
