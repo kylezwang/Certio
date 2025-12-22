@@ -249,6 +249,70 @@ async def call_responses_api_streaming(
                     elif line.strip():  # Non-empty line that's not SSE format
                         logger.debug(f"📨 Responses API raw line: {line[:100]}")
 
+async def call_chat_completions_api_streaming(
+    messages: List[Dict[str, str]],
+    deployment_name: str,
+    max_completion_tokens: int,
+    temperature: Optional[float] = None
+):
+    """Call Azure OpenAI Chat Completions API with streaming support (raw httpx).
+
+    This is used for GPT-5 deployments where the SDK streaming sometimes yields 0 content.
+    """
+    endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+    api_key = os.getenv("AZURE_OPENAI_API_KEY")
+    api_version = os.getenv("AZURE_OPENAI_VERSION", "2024-02-15-preview")
+
+    if not endpoint or not api_key:
+        raise ValueError("AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY must be set for Chat Completions API")
+
+    url = f"{endpoint.rstrip('/')}/openai/deployments/{deployment_name}/chat/completions"
+
+    request_body: Dict[str, Any] = {
+        "messages": messages,
+        "stream": True,
+        "max_completion_tokens": max_completion_tokens
+    }
+    # GPT-5 doesn't support custom temperature (only default). For other models we can pass it.
+    if temperature is not None:
+        request_body["temperature"] = temperature
+
+    headers = {
+        "api-key": api_key,
+        "Content-Type": "application/json"
+    }
+    params = {"api-version": api_version}
+
+    logger.info(f"📡 Calling Chat Completions (raw): {url} (api-version={api_version})")
+
+    async with httpx.AsyncClient(timeout=300.0) as http_client:
+        async with http_client.stream(
+            "POST",
+            url,
+            headers=headers,
+            params=params,
+            json=request_body
+        ) as response:
+            if response.status_code != 200:
+                error_text = await response.aread()
+                error_msg = error_text.decode() if error_text else "Unknown error"
+                logger.error(f"❌ Chat Completions API error {response.status_code}: {error_msg}")
+                raise Exception(f"Chat Completions API error {response.status_code}: {error_msg}")
+
+            async for line in response.aiter_lines():
+                if not line:
+                    continue
+                if line.startswith("data: "):
+                    data_str = line[6:]
+                    if data_str.strip() == "[DONE]":
+                        break
+                    try:
+                        event_data = json.loads(data_str)
+                        yield event_data
+                    except json.JSONDecodeError as e:
+                        logger.warning(f"⚠️ Failed to parse Chat Completions chunk: {line[:120]}... Error: {e}")
+                        continue
+
 async def call_responses_api(
     messages: List[Dict[str, str]],
     model_name: str,
@@ -3046,15 +3110,43 @@ Respond as an intelligent assistant:"""
                 # Use correct token parameter based on model
                 if is_gpt5_model:
                     completion_params["max_completion_tokens"] = max_tokens
-                    # GPT-5 sometimes returns tool_calls with empty text; force plain text output.
-                    # (If Azure ignores this param, it will be harmless.)
-                    completion_params["tool_choice"] = "none"
                 else:
                     completion_params["max_tokens"] = max_tokens
                 
-                # Use appropriate client based on model (GPT-5.1/5.2 may use different endpoint)
-                api_client = get_client_for_model(selected_model)
-                stream_response = api_client.chat.completions.create(**completion_params)
+                # GPT-5 (chat completions) can stream "0 chars" via SDK on Azure.
+                # For GPT-5 specifically, use raw httpx streaming so we can parse the real SSE payload.
+                is_azure = bool(os.getenv("AZURE_OPENAI_ENDPOINT") and os.getenv("AZURE_OPENAI_API_KEY"))
+                if is_azure and is_gpt5_model and not uses_responses:
+                    # Build messages list for raw call (same as completion_params["messages"] + history + user)
+                    api_messages = [{"role": "system", "content": system_prompt}]
+                    if messages:
+                        for msg in messages:
+                            if isinstance(msg, dict):
+                                role = (msg.get("role") or "").lower()
+                                content = msg.get("content", "")
+                                if msg.get("isFromAI") or msg.get("is_from_ai") or role in ("ai", "assistant"):
+                                    role = "assistant"
+                                elif role == "system":
+                                    role = "system"
+                                else:
+                                    role = "user"
+                                if content and content.strip():
+                                    api_messages.append({"role": role, "content": content})
+                    if user_message and user_message.strip():
+                        api_messages.append({"role": "user", "content": user_message})
+
+                    # GPT-5 doesn't support temperature, so pass None.
+                    stream_response = call_chat_completions_api_streaming(
+                        messages=api_messages,
+                        deployment_name=selected_model,
+                        max_completion_tokens=max_tokens,
+                        temperature=None
+                    )
+                    completion_params = None  # sentinel so fallback logic can branch safely
+                else:
+                    # Use appropriate client based on model (GPT-5.1/5.2 may use different endpoint)
+                    api_client = get_client_for_model(selected_model)
+                    stream_response = api_client.chat.completions.create(**completion_params)
             
             # Track usage for cost optimization (only if we have optimal_model_type)
             if optimal_model_type:
@@ -3119,34 +3211,50 @@ Respond as an intelligent assistant:"""
                         break
             else:
                 # Handle Chat Completions streaming (standard OpenAI format)
-                for chunk in stream_response:
-                    if not getattr(chunk, "choices", None):
-                        continue
-                    if len(chunk.choices) == 0:
-                        continue
+                if is_azure and is_gpt5_model and not uses_responses and completion_params is None:
+                    # Raw SSE event objects (dicts)
+                    async for event_data in stream_response:
+                        content = None
+                        try:
+                            if isinstance(event_data, dict) and event_data.get("choices"):
+                                choice0 = event_data["choices"][0]
+                                delta = choice0.get("delta") or {}
+                                content = delta.get("content") or delta.get("text")
+                        except Exception:
+                            content = None
 
-                    choice0 = chunk.choices[0]
-                    content = None
+                        if content:
+                            full_content += content
+                            yield f"data: {json.dumps({'content': content, 'done': False})}\n\n"
+                else:
+                    for chunk in stream_response:
+                        if not getattr(chunk, "choices", None):
+                            continue
+                        if len(chunk.choices) == 0:
+                            continue
 
-                    # Most models: streamed content comes from choice.delta.content
-                    delta = getattr(choice0, "delta", None)
-                    if delta is not None:
-                        content = getattr(delta, "content", None) or getattr(delta, "text", None)
+                        choice0 = chunk.choices[0]
+                        content = None
 
-                    # Some Azure/OpenAI variants may surface final content on choice.message.content
-                    if not content:
-                        message_obj = getattr(choice0, "message", None)
-                        if message_obj is not None:
-                            content = getattr(message_obj, "content", None)
+                        # Most models: streamed content comes from choice.delta.content
+                        delta = getattr(choice0, "delta", None)
+                        if delta is not None:
+                            content = getattr(delta, "content", None) or getattr(delta, "text", None)
 
-                    # Extremely defensive fallback
-                    if not content and hasattr(choice0, "text"):
-                        content = getattr(choice0, "text", None)
+                        # Some Azure/OpenAI variants may surface final content on choice.message.content
+                        if not content:
+                            message_obj = getattr(choice0, "message", None)
+                            if message_obj is not None:
+                                content = getattr(message_obj, "content", None)
 
-                    if content:
-                        full_content += content
-                        # Send chunk as Server-Sent Event
-                        yield f"data: {json.dumps({'content': content, 'done': False})}\n\n"
+                        # Extremely defensive fallback
+                        if not content and hasattr(choice0, "text"):
+                            content = getattr(choice0, "text", None)
+
+                        if content:
+                            full_content += content
+                            # Send chunk as Server-Sent Event
+                            yield f"data: {json.dumps({'content': content, 'done': False})}\n\n"
 
                 # GPT-5 has been observed to sometimes return a 200 stream with no delta.content.
                 # If we got 0 chars, do a single non-streaming call as a fallback so the UI doesn't hang.
@@ -3157,8 +3265,16 @@ Respond as an intelligent assistant:"""
                     )
 
                     try:
-                        fallback_params = dict(completion_params)
-                        fallback_params.pop("stream", None)
+                        # If we used raw streaming, rebuild the params for SDK fallback.
+                        if completion_params is None:
+                            fallback_params = {
+                                "model": selected_model,
+                                "messages": api_messages,
+                                "max_completion_tokens": max_tokens
+                            }
+                        else:
+                            fallback_params = dict(completion_params)
+                            fallback_params.pop("stream", None)
 
                         api_client = get_client_for_model(selected_model)
                         fallback_resp = api_client.chat.completions.create(**fallback_params)
