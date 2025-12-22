@@ -720,7 +720,7 @@
                                             <span class="fw-medium small">@Model.HighPriorityCount</span>
                                         </div>
                                         <div class="progress" style="height: 8px;">
-                                            <div class="progress-bar bg-danger" style="width: @Model.HighPriorityPercentage%"></div>
+                                            <div class="progress-bar" style="width: @Model.HighPriorityPercentage%; background-color: #fd7e14; background-image: none;"></div>
                                         </div>
                                     </div>
                                     <div class="mb-3">
@@ -729,7 +729,7 @@
                                             <span class="fw-medium small">@Model.MediumPriorityCount</span>
                                         </div>
                                         <div class="progress" style="height: 8px;">
-                                            <div class="progress-bar" style="width: @Model.MediumPriorityPercentage%; background-color: #3b82f6;"></div>
+                                            <div class="progress-bar" style="width: @Model.MediumPriorityPercentage%; background-color: #0d6efd; background-image: none;"></div>
                                         </div>
                                     </div>
                                     <div class="mb-3">
@@ -738,7 +738,7 @@
                                             <span class="fw-medium small">@Model.LowPriorityCount</span>
                                         </div>
                                         <div class="progress" style="height: 8px;">
-                                            <div class="progress-bar bg-secondary" style="width: @Model.LowPriorityPercentage%"></div>
+                                            <div class="progress-bar" style="width: @Model.LowPriorityPercentage%; background-color: #6c757d; background-image: none;"></div>
                                         </div>
                                     </div>
                                     @if (Model.CriticalPriorityCount > 0)
@@ -749,7 +749,7 @@
                                                 <span class="fw-medium small">@Model.CriticalPriorityCount</span>
                                             </div>
                                             <div class="progress" style="height: 8px;">
-                                                <div class="progress-bar" style="width: @Model.CriticalPriorityPercentage%; background-color: #dc2626;"></div>
+                                                <div class="progress-bar" style="width: @Model.CriticalPriorityPercentage%; background-color: #dc3545; background-image: none;"></div>
                                             </div>
                                         </div>
                                     }

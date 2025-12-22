@@ -15,16 +15,17 @@ const AgentActionsState = {
     conversationId: null,  // Current conversation context
     orgId: null,           // Current organization ID
     mode: 'agent',         // Current AI mode: 'agent' or 'ask'
-    modelTier: 'Auto'      // Current AI model tier: Auto, Basic, Intermediate, Advanced, Premium
+    modelTier: 'Auto'      // Current AI model tier: Auto, GPT4o, GPT4oMini, GPT5, GPT51, GPT52
 };
 
 // Model Tier Labels for display
 const ModelTierLabels = {
     'Auto': 'Auto',
-    'Basic': 'Basic',
-    'Intermediate': 'Intermediate',
-    'Advanced': 'Advanced',
-    'Premium': 'Premium'
+    'GPT4o': 'Azure GPT-4o',
+    'GPT4oMini': 'Azure GPT-4o-mini',
+    'GPT5': 'Azure GPT-5',
+    'GPT51': 'Azure GPT-5.1',
+    'GPT52': 'Azure GPT-5.2'
 };
 
 // Action Types

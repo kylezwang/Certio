@@ -3,19 +3,25 @@
 ## Simplified Cost Optimization System for Azure OpenAI
 
 ### **Overview**
-Your simplified system uses only 2 models for maximum cost-effectiveness:
-- **GPT-4o Mini** - Simple tasks (98% cost savings)
-- **GPT-4o** - Complex tasks (50% cost savings)
+Your system supports multiple Azure OpenAI models for flexible cost/quality optimization:
+- **GPT-4o Mini** - Simple tasks (most cost-effective)
+- **GPT-4o** - Complex tasks (balanced performance)
+- **GPT-5** - Advanced reasoning and analysis
+- **GPT-5.1** - Extended context and enhanced capabilities
+- **GPT-5.2** - Expert reasoning with maximum context window
 
 ### **Azure OpenAI Configuration**
 
 #### **1. Azure OpenAI Models Available**
-Azure OpenAI supports the same models with slightly different naming:
+Azure OpenAI supports the following models:
 
-| Model | Azure Name | Cost (per 1K tokens) | Usage |
-|-------|------------|---------------------|-------|
+| Model | Azure Deployment | Cost (per 1K tokens) | Usage |
+|-------|-----------------|---------------------|-------|
 | GPT-4o Mini | `gpt-4o-mini` | $0.00015 input / $0.0006 output | Simple tasks |
 | GPT-4o | `gpt-4o` | $0.005 input / $0.015 output | Complex tasks |
+| GPT-5 | `gpt-5` | $0.01 input / $0.03 output | Advanced reasoning |
+| GPT-5.1 | `gpt-5.1` | $0.012 input / $0.036 output | Extended context |
+| GPT-5.2 | `gpt-5.2` | $0.015 input / $0.045 output | Expert reasoning |
 
 #### **2. Environment Configuration**
 ```env
@@ -23,17 +29,35 @@ Azure OpenAI supports the same models with slightly different naming:
 AZURE_OPENAI_API_KEY=your_azure_openai_api_key
 AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
 AZURE_OPENAI_VERSION=2024-02-15-preview
+
+# Base model deployments
 AZURE_OPENAI_DEPLOYMENT_GPT4O_MINI=gpt-4o-mini-deployment
 AZURE_OPENAI_DEPLOYMENT_GPT4O=gpt-4o-deployment
+
+# GPT-5 family deployments (optional - falls back gracefully if not configured)
+AZURE_OPENAI_DEPLOYMENT_GPT5=gpt-5-deployment
+AZURE_OPENAI_DEPLOYMENT_GPT5_1=gpt-5.1-deployment
+AZURE_OPENAI_DEPLOYMENT_GPT5_2=gpt-5.2-deployment
+
+# Legacy model deployments (optional)
+AZURE_OPENAI_DEPLOYMENT_GPT4_1=gpt-4.1-deployment
+AZURE_OPENAI_DEPLOYMENT_GPT4_1_MINI=gpt-4.1-mini-deployment
 ```
 
 #### **3. Azure-Specific Model Mapping**
 ```python
-# Update your model mapping for Azure
+# Model mapping is automatically handled by get_model_name() in main.py
+# The mapping uses environment variables for deployment names:
 model_mapping = {
-    ModelType.GPT_4O_MINI: "gpt-4o-mini",  # Azure deployment name
-    ModelType.GPT_4O: "gpt-4o"             # Azure deployment name
+    ModelType.GPT_4O_MINI: os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT4O_MINI"),
+    ModelType.GPT_4O: os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT4O"),
+    ModelType.GPT_5: os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT5"),
+    ModelType.GPT_5_1: os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT5_1"),
+    ModelType.GPT_5_2: os.getenv("AZURE_OPENAI_DEPLOYMENT_GPT5_2")
 }
+
+# Fallback chain: GPT-5.2 → GPT-5.1 → GPT-5 → GPT-4o
+# This ensures graceful degradation if premium models are unavailable
 ```
 
 ### **Production Benefits**

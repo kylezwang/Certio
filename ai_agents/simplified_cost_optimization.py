@@ -17,11 +17,13 @@ logger = logging.getLogger(__name__)
 
 class ModelType(Enum):
     """Model selection with tiered complexity support"""
-    GPT_4O_MINI = "gpt-4o-mini"  # For simple tasks - Basic tier
-    GPT_4_1_MINI = "gpt-4.1-mini"  # For intermediate tasks - Intermediate tier (o1-mini)
-    GPT_4O = "gpt-4o"            # For complex tasks - Advanced tier
-    GPT_4_1 = "gpt-4.1"          # For highest complexity tasks - Premium tier (o1-preview)
-    GPT_5 = "gpt-5"              # For highest complexity tasks - Premium tier (future)
+    GPT_4O_MINI = "gpt-4o-mini"  # For simple tasks
+    GPT_4_1_MINI = "gpt-4.1-mini"  # For intermediate tasks (o1-mini)
+    GPT_4O = "gpt-4o"            # For complex tasks
+    GPT_4_1 = "gpt-4.1"          # For highest complexity tasks (o1-preview)
+    GPT_5 = "gpt-5"              # Azure GPT-5
+    GPT_5_1 = "gpt-5.1"          # Azure GPT-5.1
+    GPT_5_2 = "gpt-5.2"          # Azure GPT-5.2
 
 @dataclass
 class ModelInfo:
@@ -100,14 +102,36 @@ class SimplifiedModelSelector:
                 speed_tier=2,
                 quality_tier=1
             ),
-            # GPT-5 - For highest complexity tasks - Premium tier (future)
+            # GPT-5 - Azure GPT-5
             ModelType.GPT_5: ModelInfo(
                 name="GPT-5",
                 cost_per_1k_tokens_input=0.01,  # $10.00 per 1M tokens (estimated)
                 cost_per_1k_tokens_output=0.03,  # $30.00 per 1M tokens (estimated)
                 max_tokens=8192,
-                context_window=200000,  # Expected larger context window
+                context_window=200000,
                 capabilities=["advanced_reasoning", "analysis", "creativity", "code_generation", "multimodal", "agentic"],
+                speed_tier=2,
+                quality_tier=1
+            ),
+            # GPT-5.1 - Azure GPT-5.1
+            ModelType.GPT_5_1: ModelInfo(
+                name="GPT-5.1",
+                cost_per_1k_tokens_input=0.012,  # $12.00 per 1M tokens (estimated)
+                cost_per_1k_tokens_output=0.036,  # $36.00 per 1M tokens (estimated)
+                max_tokens=16384,
+                context_window=256000,
+                capabilities=["advanced_reasoning", "analysis", "creativity", "code_generation", "multimodal", "agentic", "extended_context"],
+                speed_tier=2,
+                quality_tier=1
+            ),
+            # GPT-5.2 - Azure GPT-5.2
+            ModelType.GPT_5_2: ModelInfo(
+                name="GPT-5.2",
+                cost_per_1k_tokens_input=0.015,  # $15.00 per 1M tokens (estimated)
+                cost_per_1k_tokens_output=0.045,  # $45.00 per 1M tokens (estimated)
+                max_tokens=32768,
+                context_window=512000,
+                capabilities=["advanced_reasoning", "analysis", "creativity", "code_generation", "multimodal", "agentic", "extended_context", "expert_reasoning"],
                 speed_tier=2,
                 quality_tier=1
             )
