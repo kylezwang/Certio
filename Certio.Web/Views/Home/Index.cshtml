@@ -246,6 +246,26 @@
             text-decoration: none;
         }
 
+        .terms-disclaimer {
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.75rem;
+            margin-top: 1rem;
+            margin-bottom: 0;
+        }
+
+        .terms-link {
+            color: #3d1019;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .terms-link:hover {
+            color: #3d1019;
+            text-decoration: underline;
+        }
+
         .footer-copyright {
             text-align: center;
             margin-top: 2rem;
@@ -455,6 +475,10 @@
                     <button type="submit" class="btn btn-signin">
                         Sign in
                     </button>
+                    
+                    <p class="terms-disclaimer">
+                        By signing in, you agree to our <a href="https://notal.org/terms/" target="_blank" class="terms-link">Terms of Service</a> and <a href="https://notal.org/privacy/" target="_blank" class="terms-link">Privacy Policy</a>.
+                    </p>
                 </form>
                 
                 <!-- OAuth Separator -->
