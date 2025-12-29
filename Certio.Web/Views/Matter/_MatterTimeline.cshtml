@@ -553,6 +553,15 @@
             console.error('Failed to ensure Tasks tab is loaded:', err);
         }
 
+        // Ensure the modal is not trapped under the hidden Tasks tab container.
+        try {
+            if (typeof window.portalTaskDetailsModalToBody === 'function') {
+                window.portalTaskDetailsModalToBody();
+            }
+        } catch (err) {
+            console.warn('Failed to portal taskDetailsModal to body:', err);
+        }
+
         if (typeof window.openTaskModal === 'function') {
             // openTaskModal(taskId = null, defaultStatus = 'Pending')
             if (taskId == null) {
