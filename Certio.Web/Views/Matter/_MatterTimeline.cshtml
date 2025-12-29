@@ -547,7 +547,7 @@
         // This matches the Tasks tab behavior without requiring the user to click Tasks first.
         try {
             if (typeof window.ensureMatterTabLoaded === 'function') {
-                await window.ensureMatterTabLoaded('tasks');
+                await window.ensureMatterTabLoaded('tasks', { timeoutMs: 20000 });
             }
         } catch (err) {
             console.error('Failed to ensure Tasks tab is loaded:', err);
@@ -572,8 +572,8 @@
             return;
         }
 
-        // Last resort: switch to Tasks tab (still on same page) so the user can proceed.
-        window.location.hash = 'tasks';
+        // If Tasks didn't load, don't force-navigate. Let the user keep context on Timeline.
+        console.warn('Tasks modal is not available yet (openTaskModal not found).');
     }
     
     function closeTimelineModal() {
