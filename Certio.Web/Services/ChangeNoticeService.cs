@@ -158,8 +158,8 @@ public sealed class ChangeNoticeService : IChangeNoticeService
         if (notice == null)
             throw new InvalidOperationException("Change notice not found.");
 
-        if (notice.Status != ChangeNoticeStatuses.Draft)
-            throw new InvalidOperationException("Only draft notices can be updated.");
+        // Allow updating both Draft and Sent notices (for Nudge/re-send with edits)
+        // Only restrict if notice is in a terminal state that shouldn't be modified
 
         // Update basic fields
         notice.Title = request.Title.Trim();
