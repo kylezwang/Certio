@@ -39,7 +39,7 @@
                         <div style="font-weight: 600;">Create a Notal account to track this thread</div>
                         <div class="small text-muted">You can still submit your clarification here, but creating an account makes it easier to follow updates.</div>
                         <div class="mt-2">
-                            <a class="btn btn-sm btn-outline-dark" href="@Url.Action(\"Register\", \"Home\")" style="font-weight: 600;">Create account</a>
+                            <a class="btn btn-sm btn-outline-dark" href="@Url.Action("Register", "Home")" style="font-weight: 600;">Create account</a>
                         </div>
                     </div>
                 </div>
@@ -186,8 +186,11 @@
             <div class="text-muted small mb-2">
                 Tell us what needs clarification (this will appear under <strong>Activity &amp; responses</strong>).
             </div>
-            <form method="post" action="/public/change-notice/respond?t=@Context.Request.Query[\"t\"]" class="chat-input" style="padding: 0; margin: 0; border-radius: 20px;">
-                <input type="hidden" name="t" value="@Context.Request.Query[\"t\"]" />
+            @{
+                var tokenParam = Context.Request.Query["t"].ToString();
+            }
+            <form method="post" action="/public/change-notice/respond?t=@tokenParam" class="chat-input" style="padding: 0; margin: 0; border-radius: 20px;">
+                <input type="hidden" name="t" value="@tokenParam" />
 
                 <div class="public-clarify-input">
                     <div class="input-container">
