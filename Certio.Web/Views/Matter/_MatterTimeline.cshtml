@@ -47,136 +47,7 @@
         display: none !important;
     }
     
-    /* Task Details Modal styling */
-    .timeline-content .task-details-modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 1100;
-        display: none;
-        justify-content: center;
-        align-items: flex-start;
-        padding-top: 5vh;
-    }
-    
-    .timeline-content .task-details-modal .modal-dialog {
-        background: #fff;
-        border-radius: 12px;
-        width: 100%;
-        max-width: 600px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-        max-height: 85vh;
-        overflow: auto;
-    }
-    
-    .timeline-content .task-details-content {
-        padding: 0;
-    }
-    
-    .timeline-content .task-details-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem 1.25rem;
-        border-bottom: 1px solid #e5e7eb;
-    }
-    
-    .timeline-content .task-details-title-section {
-        padding: 1rem 1.25rem;
-    }
-    
-    .timeline-content .task-title-container {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-    
-    .timeline-content .task-title-container i {
-        color: #6b7280;
-        font-size: 1rem;
-    }
-    
-    .timeline-content .task-title {
-        flex: 1;
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin: 0;
-        border: none;
-        outline: none;
-        padding: 0.25rem;
-        border-radius: 4px;
-        min-width: 0;
-    }
-    
-    .timeline-content .task-title:empty:before {
-        content: attr(placeholder);
-        color: #9ca3af;
-    }
-    
-    .timeline-content .task-title:focus {
-        background: #f9fafb;
-    }
-    
-    .timeline-content .task-details-body {
-        padding: 1rem 1.25rem;
-    }
-    
-    .timeline-content .description-section {
-        margin-bottom: 1.5rem;
-    }
-    
-    .timeline-content .section-header h6 {
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: #374151;
-        margin-bottom: 0.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .timeline-content .task-description-textarea {
-        width: 100%;
-        min-height: 80px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        padding: 0.75rem;
-        font-size: 0.875rem;
-        resize: vertical;
-    }
-    
-    .timeline-content .details-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-    }
-    
-    .timeline-content .detail-item label {
-        display: block;
-        font-size: 0.75rem;
-        font-weight: 500;
-        color: #6b7280;
-        margin-bottom: 0.25rem;
-    }
-    
-    .timeline-content .detail-item .form-select,
-    .timeline-content .detail-item .form-control {
-        width: 100%;
-        padding: 0.5rem;
-        font-size: 0.875rem;
-        border: 1px solid #e5e7eb;
-        border-radius: 6px;
-    }
-    
-    .timeline-content .task-priority-badge {
-        padding: 0.25rem 0.75rem;
-        border-radius: 999px;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
+    /* Timeline uses Tasks tab's modal - no custom modal CSS needed */
 </style>
 
 <div class="timeline-content matter-tasks-content">
@@ -330,63 +201,7 @@
         </div>
     </div>
     
-    <!-- Task Details Modal for Timeline (unique ID to avoid conflict with Tasks modal) -->
-    <div class="task-details-modal" id="timelineTaskModal" style="display: none;">
-        <div class="modal-dialog">
-            <div class="task-details-content">
-                <div class="task-details-header">
-                    <div class="task-details-header-left">
-                        <span class="task-priority-badge" id="task-priority-badge">Medium</span>
-                    </div>
-                    <div class="task-details-header-right">
-                        <button type="button" class="btn-close" id="closeTimelineTaskModal" aria-label="Close"></button>
-                    </div>
-                </div>
-                <div class="task-details-title-section">
-                    <div class="task-title-container">
-                        <i class="fa-solid fa-bars-progress"></i>
-                        <h2 class="task-title" contenteditable="true" placeholder="Task title"></h2>
-                    </div>
-                </div>
-                <div class="task-details-body">
-                    <div class="description-section">
-                        <div class="section-header">
-                            <h6><i class="fas fa-align-left"></i> Description</h6>
-                        </div>
-                        <textarea class="task-description-textarea timeline-task-description" placeholder="Add a description..."></textarea>
-                    </div>
-                    <div class="details-grid">
-                        <div class="detail-item">
-                            <label>Status</label>
-                            <select id="timeline-status-field" class="form-select">
-                                <option value="Pending">Pending</option>
-                                <option value="InProgress">In Progress</option>
-                                <option value="Review">Review</option>
-                                <option value="Completed">Completed</option>
-                            </select>
-                        </div>
-                        <div class="detail-item">
-                            <label>Priority</label>
-                            <select id="timeline-priority-field" class="form-select">
-                                <option value="Low">Low</option>
-                                <option value="Medium">Medium</option>
-                                <option value="High">High</option>
-                                <option value="Critical">Critical</option>
-                            </select>
-                        </div>
-                        <div class="detail-item">
-                            <label>Start Date</label>
-                            <input type="datetime-local" id="timeline-start-date-field" class="form-control" />
-                        </div>
-                        <div class="detail-item">
-                            <label>Due Date</label>
-                            <input type="datetime-local" id="timeline-due-date-field" class="form-control" />
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Timeline uses Tasks tab's modal (taskDetailsModal) for full functionality -->
 </div>
 
 <script>
@@ -447,11 +262,7 @@
             openTimelineTaskModal(null);
         });
         
-        // Close modal handlers - use Timeline-specific modal IDs
-        document.getElementById('closeTimelineTaskModal')?.addEventListener('click', closeTimelineModal);
-        document.getElementById('timelineTaskModal')?.addEventListener('click', function(e) {
-            if (e.target === this) closeTimelineModal();
-        });
+        // Close modal handled by Tasks tab's modal
         
         // Current time indicator update
         setInterval(updateTimelineCurrentTimeIndicator, 60000);
@@ -729,50 +540,66 @@
                date1.getDate() === date2.getDate();
     }
     
-    // Modal functions - use Timeline-specific modal ID
-    function openTimelineTaskModal(taskId) {
-        const modal = document.getElementById('timelineTaskModal');
-        if (!modal) return;
-        
-        modal.style.display = 'flex';
-        
-        // Scope queries to the Timeline modal - use Timeline-specific IDs
-        const titleEl = modal.querySelector('.task-title');
-        const descEl = modal.querySelector('.timeline-task-description');
-        const statusField = document.getElementById('timeline-status-field');
-        const priorityField = document.getElementById('timeline-priority-field');
-        const startDateField = document.getElementById('timeline-start-date-field');
-        const dueDateField = document.getElementById('timeline-due-date-field');
-        
-        if (taskId) {
-            const task = tasksData.allTasks.find(t => t.id === taskId);
-            if (task) {
-                if (titleEl) {
-                    titleEl.textContent = task.title;
-                    titleEl.dataset.taskId = task.id;
-                }
-                if (descEl) descEl.value = task.description || '';
-                if (statusField) statusField.value = task.status;
-                if (priorityField) priorityField.value = task.priority;
-                if (startDateField && task.startedAt) startDateField.value = task.startedAt.substring(0, 16);
-                if (dueDateField && task.dueDate) dueDateField.value = task.dueDate.substring(0, 16);
-            }
-        } else {
-            // New task
-            if (titleEl) {
-                titleEl.textContent = '';
-                titleEl.removeAttribute('data-task-id');
-            }
-            if (descEl) descEl.value = '';
-            if (statusField) statusField.value = 'Pending';
-            if (priorityField) priorityField.value = 'Medium';
-            if (startDateField) startDateField.value = '';
-            if (dueDateField) dueDateField.value = '';
+    // Modal functions - delegate to Tasks tab's modal for full functionality
+    async function openTimelineTaskModal(taskId) {
+        // Use the Tasks tab's full-featured modal if available
+        if (typeof window.openTaskModal === 'function') {
+            window.openTaskModal(taskId);
+            return;
         }
+        
+        // If Tasks tab not loaded yet, load it first then open modal
+        const tasksTabPane = document.getElementById('tasks');
+        if (tasksTabPane && !tasksTabPane.querySelector('#taskDetailsModal')) {
+            // Load Tasks tab content to get the modal
+            const orgId = document.body.dataset.organizationId || document.querySelector('[data-organization-id]')?.dataset.organizationId;
+            const matterId = document.body.dataset.matterId || document.querySelector('[data-matter-id]')?.dataset.matterId;
+            
+            if (orgId && matterId) {
+                try {
+                    const response = await fetch(`/Client/${orgId}/Matter/${matterId}/Tasks`);
+                    if (response.ok) {
+                        const html = await response.text();
+                        tasksTabPane.innerHTML = html;
+                        
+                        // Execute any scripts in the loaded content
+                        const scripts = tasksTabPane.querySelectorAll('script');
+                        scripts.forEach(script => {
+                            const newScript = document.createElement('script');
+                            if (script.src) {
+                                newScript.src = script.src;
+                            } else {
+                                newScript.textContent = script.textContent;
+                            }
+                            document.body.appendChild(newScript);
+                            document.body.removeChild(newScript);
+                        });
+                        
+                        // Wait a moment for scripts to initialize, then open modal
+                        setTimeout(() => {
+                            if (typeof window.openTaskModal === 'function') {
+                                window.openTaskModal(taskId);
+                            }
+                        }, 100);
+                        return;
+                    }
+                } catch (err) {
+                    console.error('Failed to load Tasks tab:', err);
+                }
+            }
+        }
+        
+        // Fallback: show simple alert if we can't load the proper modal
+        alert('Please click the Tasks tab first to enable full task editing.');
     }
     
     function closeTimelineModal() {
-        const modal = document.getElementById('timelineTaskModal');
+        // Close Tasks modal if it's open
+        if (typeof window.closeTaskModal === 'function') {
+            window.closeTaskModal();
+            return;
+        }
+        const modal = document.getElementById('taskDetailsModal');
         if (modal) modal.style.display = 'none';
     }
     

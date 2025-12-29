@@ -628,11 +628,11 @@
         renderSummary(summary);
     }
 
-    async function createOrUpdateDraft(orgId, matterId) {
+    async function createOrUpdateDraft(orgId, matterId, skipClose = false) {
         const title = document.getElementById('ccTitleInput').value.trim();
         if (!title) {
             alert('Please enter a title.');
-            return;
+            return false;
         }
 
         const data = new FormData();
@@ -659,7 +659,10 @@
         });
 
         renderSummary(summary);
-        closeModal();
+        if (!skipClose) {
+            closeModal();
+        }
+        return true;
     }
 
     async function sendNotice(orgId, matterId, noticeId) {
@@ -747,8 +750,9 @@
             e.preventDefault();
             const noticeId = currentNoticeId || document.getElementById('ccNoticeId').value;
             if (!noticeId) {
-                // Need to save first (new draft)
-                await createOrUpdateDraft(orgId, matterId);
+                // Need to save first (new draft) - don't close yet
+                const saved = await createOrUpdateDraft(orgId, matterId, true);
+                if (!saved) return;
                 // Get the ID from the summary
                 const summary = JSON.parse(document.getElementById('change-control-summary-json').textContent || '{}');
                 if (summary.notices && summary.notices.length > 0) {
@@ -756,8 +760,9 @@
                     await sendNotice(orgId, matterId, newNotice.id);
                 }
             } else {
-                // Save any edits first, then send/nudge
-                await createOrUpdateDraft(orgId, matterId);
+                // Save any edits first (don't close), then send/nudge
+                const saved = await createOrUpdateDraft(orgId, matterId, true);
+                if (!saved) return;
                 await sendNotice(orgId, matterId, noticeId);
             }
             return;
