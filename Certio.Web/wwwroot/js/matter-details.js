@@ -265,6 +265,17 @@
                     console.error('✗ window.initializeMatterTasks function not available');
                     console.log('Available window functions:', Object.keys(window).filter(k => k.includes('initialize')));
                 }
+
+                // IMPORTANT: The Tasks tab container is hidden when user is on Timeline.
+                // If the modal lives under a display:none ancestor, it cannot render even with position:fixed.
+                // "Portal" the modal to <body> so it can be opened from other tabs.
+                try {
+                    if (typeof window.portalTaskDetailsModalToBody === 'function') {
+                        window.portalTaskDetailsModalToBody();
+                    }
+                } catch (e) {
+                    console.warn('Failed to portal taskDetailsModal to body:', e);
+                }
                 
                 // Also try the generic initialization if available
                 if (typeof window.initializeTasks === 'function') {
@@ -519,6 +530,23 @@
             };
             tick();
         });
+    };
+
+    // Move the Tasks modal to <body> once loaded so it can render while other tabs are active.
+    window.portalTaskDetailsModalToBody = function() {
+        const modal = document.getElementById('taskDetailsModal');
+        if (!modal) return false;
+        if (modal.dataset && modal.dataset.portaledToBody === 'true') return true;
+
+        // If it's already under <body>, nothing to do.
+        if (modal.parentElement === document.body) {
+            modal.dataset.portaledToBody = 'true';
+            return true;
+        }
+
+        document.body.appendChild(modal);
+        modal.dataset.portaledToBody = 'true';
+        return true;
     };
 
 })();
