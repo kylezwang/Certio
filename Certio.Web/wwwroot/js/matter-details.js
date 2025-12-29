@@ -483,12 +483,72 @@
         return validTabs.includes(tabName);
     }
 
+    function getActiveTabName() {
+        const activeLink = document.querySelector('.matter-tab-link.active');
+        return activeLink?.dataset?.tab || null;
+    }
+
+    // Some tab scripts expect their DOM to be measurable (not under display:none).
+    // When we "ensure load" a tab in the background, temporarily render it offscreen.
+    function prepareTabForBackgroundInit(tabName) {
+        const el = document.getElementById('tab-' + tabName);
+        if (!el) return null;
+
+        const computed = window.getComputedStyle(el);
+        const isHidden = computed.display === 'none' || el.style.display === 'none';
+        if (!isHidden) return null;
+
+        // Store inline styles we will overwrite
+        el.dataset.bgInitPrevDisplay = el.style.display || '';
+        el.dataset.bgInitPrevPosition = el.style.position || '';
+        el.dataset.bgInitPrevLeft = el.style.left || '';
+        el.dataset.bgInitPrevTop = el.style.top || '';
+        el.dataset.bgInitPrevWidth = el.style.width || '';
+        el.dataset.bgInitPrevHeight = el.style.height || '';
+        el.dataset.bgInitPrevOverflow = el.style.overflow || '';
+        el.dataset.bgInitPrevVisibility = el.style.visibility || '';
+
+        el.style.display = 'block';
+        el.style.position = 'absolute';
+        el.style.left = '-100000px';
+        el.style.top = '0';
+        el.style.width = '1px';
+        el.style.height = '1px';
+        el.style.overflow = 'hidden';
+        el.style.visibility = 'hidden';
+        return el;
+    }
+
+    function restoreTabAfterBackgroundInit(tabName) {
+        const el = document.getElementById('tab-' + tabName);
+        if (!el || !el.dataset) return;
+        if (!('bgInitPrevDisplay' in el.dataset)) return;
+
+        el.style.display = el.dataset.bgInitPrevDisplay || '';
+        el.style.position = el.dataset.bgInitPrevPosition || '';
+        el.style.left = el.dataset.bgInitPrevLeft || '';
+        el.style.top = el.dataset.bgInitPrevTop || '';
+        el.style.width = el.dataset.bgInitPrevWidth || '';
+        el.style.height = el.dataset.bgInitPrevHeight || '';
+        el.style.overflow = el.dataset.bgInitPrevOverflow || '';
+        el.style.visibility = el.dataset.bgInitPrevVisibility || '';
+
+        delete el.dataset.bgInitPrevDisplay;
+        delete el.dataset.bgInitPrevPosition;
+        delete el.dataset.bgInitPrevLeft;
+        delete el.dataset.bgInitPrevTop;
+        delete el.dataset.bgInitPrevWidth;
+        delete el.dataset.bgInitPrevHeight;
+        delete el.dataset.bgInitPrevOverflow;
+        delete el.dataset.bgInitPrevVisibility;
+    }
+
     // Expose a tiny helper so other tabs (ex: Timeline) can ensure another tab's
     // HTML + inline scripts are loaded before calling its functions (ex: openTaskModal).
     // This avoids requiring the user to click the Tasks tab first.
     window.ensureMatterTabLoaded = function(tabName, options) {
         const opts = options || {};
-        const timeoutMs = typeof opts.timeoutMs === 'number' ? opts.timeoutMs : 8000;
+        const timeoutMs = typeof opts.timeoutMs === 'number' ? opts.timeoutMs : 20000;
 
         const isReady = () => {
             if (!loadedTabs.has(tabName)) return false;
@@ -509,6 +569,12 @@
                 return;
             }
 
+            const activeTabAtStart = getActiveTabName();
+            // If we're ensuring a non-active tab, render it offscreen while its scripts initialize.
+            if (activeTabAtStart && activeTabAtStart !== tabName) {
+                prepareTabForBackgroundInit(tabName);
+            }
+
             // Kick off loading if needed; otherwise retry initialization (scripts may exist but not initialized)
             if (!loadedTabs.has(tabName)) {
                 loadTabContent(tabName, targetElement);
@@ -519,10 +585,19 @@
             const start = Date.now();
             const tick = () => {
                 if (isReady()) {
+                    // If Tasks loaded, make sure the modal can render from other tabs.
+                    try { window.portalTaskDetailsModalToBody?.(); } catch (_) { /* ignore */ }
+                    // Restore offscreen rendering if we never actually switched tabs.
+                    if (activeTabAtStart && activeTabAtStart !== tabName) {
+                        restoreTabAfterBackgroundInit(tabName);
+                    }
                     resolve(true);
                     return;
                 }
                 if (Date.now() - start > timeoutMs) {
+                    if (activeTabAtStart && activeTabAtStart !== tabName) {
+                        restoreTabAfterBackgroundInit(tabName);
+                    }
                     reject(new Error(`Timed out loading tab: ${tabName}`));
                     return;
                 }
