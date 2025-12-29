@@ -23,11 +23,11 @@ public sealed class PublicChangeNoticeController : Controller
     }
 
     [HttpPost("/public/change-notice/respond")]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> RespondClarification([FromForm(Name = "t")] string token, [FromForm] string clarificationNote, CancellationToken ct)
+    [IgnoreAntiforgeryToken]
+    public async Task<IActionResult> RespondClarification(string t, [FromForm] string clarificationNote, CancellationToken ct)
     {
         // Always process the response first (idempotent for our purposes)
-        var initial = await _changeNoticeService.ProcessPublicResponseAsync(token, ct);
+        var initial = await _changeNoticeService.ProcessPublicResponseAsync(t, ct);
         if (!initial.Success)
         {
             return View("Respond", initial);
@@ -47,13 +47,17 @@ public sealed class PublicChangeNoticeController : Controller
                 Message = "Please enter what you need clarified before submitting.",
                 ChangeNoticeId = initial.ChangeNoticeId,
                 RecipientId = initial.RecipientId,
+                RecipientEmail = initial.RecipientEmail,
+                HasNotalAccount = initial.HasNotalAccount,
                 Action = initial.Action,
                 NewRecipientStatus = initial.NewRecipientStatus,
-                NewNoticeStatus = initial.NewNoticeStatus
+                NewNoticeStatus = initial.NewNoticeStatus,
+                ClarificationNoteSaved = false,
+                ClarificationNoteMessage = "Not sent — please type what you need clarified, then press send."
             });
         }
 
-        var saved = await _changeNoticeService.SavePublicClarificationNoteAsync(token, clarificationNote.Trim(), ct);
+        var saved = await _changeNoticeService.SavePublicClarificationNoteAsync(t, clarificationNote.Trim(), ct);
         return View("Respond", saved);
     }
 }

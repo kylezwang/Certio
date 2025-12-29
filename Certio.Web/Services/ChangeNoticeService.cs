@@ -76,6 +76,7 @@ public sealed class ChangeNoticeService : IChangeNoticeService
             {
                 Id = r.Id,
                 Email = r.Email,
+                UserId = r.UserId,
                 Status = r.Status,
                 RespondedAt = r.RespondedAt,
                 ClarificationNote = r.ClarificationNote
@@ -377,6 +378,8 @@ public sealed class ChangeNoticeService : IChangeNoticeService
                     : "Marked as needing clarification. Thank you!",
                 ChangeNoticeId = notice.Id,
                 RecipientId = recipient.Id,
+                RecipientEmail = recipient.Email,
+                HasNotalAccount = recipient.UserId.HasValue,
                 Action = action,
                 NewRecipientStatus = recipient.Status,
                 NewNoticeStatus = notice.Status
@@ -437,15 +440,25 @@ public sealed class ChangeNoticeService : IChangeNoticeService
                 Message = "Thanks — your clarification request was sent.",
                 ChangeNoticeId = notice.Id,
                 RecipientId = recipient.Id,
+                RecipientEmail = recipient.Email,
+                HasNotalAccount = recipient.UserId.HasValue,
                 Action = action,
                 NewRecipientStatus = recipient.Status,
-                NewNoticeStatus = notice.Status
+                NewNoticeStatus = notice.Status,
+                ClarificationNoteSaved = true,
+                ClarificationNoteMessage = "Sent."
             };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error saving public Change Notice clarification note");
-            return new PublicChangeNoticeResponseResult { Success = false, Message = "We couldn't save your clarification note. Please try again later." };
+            return new PublicChangeNoticeResponseResult
+            {
+                Success = false,
+                Message = "We couldn't save your clarification note. Please try again later.",
+                ClarificationNoteSaved = false,
+                ClarificationNoteMessage = "Not sent — please try again."
+            };
         }
     }
 

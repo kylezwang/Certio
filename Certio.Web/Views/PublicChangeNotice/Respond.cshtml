@@ -29,6 +29,23 @@
     @* If the recipient clicked "Needs Clarification", capture details here *@
     @if (Model.Success && string.Equals((Model.Action ?? "").Trim(), "clarify", StringComparison.OrdinalIgnoreCase))
     {
+        @* If this recipient isn't a registered user, nudge them to create an account *@
+        @if (!Model.HasNotalAccount)
+        {
+            <div class="alert alert-warning mt-3 mb-3" role="alert" style="border-radius: 12px;">
+                <div class="d-flex align-items-start">
+                    <div class="me-2"><i class="fas fa-user-plus"></i></div>
+                    <div class="flex-grow-1">
+                        <div style="font-weight: 600;">Create a Notal account to track this thread</div>
+                        <div class="small text-muted">You can still submit your clarification here, but creating an account makes it easier to follow updates.</div>
+                        <div class="mt-2">
+                            <a class="btn btn-sm btn-outline-dark" href="@Url.Action(\"Register\", \"Home\")" style="font-weight: 600;">Create account</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
         <style>
             /* Public clarify composer: match the AI chat input container styling (without Agent/Model pills).
                Copied from `_ClientLayout.cshtml` input styles and scoped to this page.
@@ -169,9 +186,8 @@
             <div class="text-muted small mb-2">
                 Tell us what needs clarification (this will appear under <strong>Activity &amp; responses</strong>).
             </div>
-            <form method="post" action="/public/change-notice/respond" class="chat-input" style="padding: 0; margin: 0; border-radius: 20px;">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="t" value="@Context.Request.Query["t"]" />
+            <form method="post" action="/public/change-notice/respond?t=@Context.Request.Query[\"t\"]" class="chat-input" style="padding: 0; margin: 0; border-radius: 20px;">
+                <input type="hidden" name="t" value="@Context.Request.Query[\"t\"]" />
 
                 <div class="public-clarify-input">
                     <div class="input-container">
@@ -204,6 +220,13 @@
                             <div></div>
                         </div>
                     </div>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.ClarificationNoteMessage))
+                    {
+                        <div class="small mt-2" style="padding-left: 0.25rem; color: @(Model.ClarificationNoteSaved ? "#059669" : "#b45309");">
+                            @Model.ClarificationNoteMessage
+                        </div>
+                    }
                 </div>
             </form>
         </div>
