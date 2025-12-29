@@ -747,7 +747,7 @@
             e.preventDefault();
             const noticeId = currentNoticeId || document.getElementById('ccNoticeId').value;
             if (!noticeId) {
-                // Need to save first
+                // Need to save first (new draft)
                 await createOrUpdateDraft(orgId, matterId);
                 // Get the ID from the summary
                 const summary = JSON.parse(document.getElementById('change-control-summary-json').textContent || '{}');
@@ -756,6 +756,8 @@
                     await sendNotice(orgId, matterId, newNotice.id);
                 }
             } else {
+                // Save any edits first, then send/nudge
+                await createOrUpdateDraft(orgId, matterId);
                 await sendNotice(orgId, matterId, noticeId);
             }
             return;
