@@ -218,10 +218,11 @@
     // Matter data
     const matterId = @ViewBag.MatterId;
     const matterDueDateStr = '@matterDueDate';
-    const matterDueDate = matterDueDateStr ? new Date(matterDueDateStr) : null;
+    // Parse date as local time (append T00:00:00 to avoid UTC interpretation shifting the day)
+    const matterDueDate = matterDueDateStr ? new Date(matterDueDateStr + 'T00:00:00') : null;
     
     // Start on the event date if available, otherwise today
-    let timelineViewDate = (matterDueDate && !isNaN(matterDueDate.getTime())) ? new Date(matterDueDate) : new Date();
+    let timelineViewDate = (matterDueDate && !isNaN(matterDueDate.getTime())) ? new Date(matterDueDate.getTime()) : new Date();
     
     // Task data from server
     const tasksData = {
@@ -550,42 +551,47 @@
         
         // If Tasks tab not loaded yet, load it first then open modal
         const tasksTabPane = document.getElementById('tasks');
-        if (tasksTabPane && !tasksTabPane.querySelector('#taskDetailsModal')) {
-            // Load Tasks tab content to get the modal
-            const orgId = document.body.dataset.organizationId || document.querySelector('[data-organization-id]')?.dataset.organizationId;
-            const matterId = document.body.dataset.matterId || document.querySelector('[data-matter-id]')?.dataset.matterId;
-            
-            if (orgId && matterId) {
-                try {
-                    const response = await fetch(`/Client/${orgId}/Matter/${matterId}/Tasks`);
-                    if (response.ok) {
-                        const html = await response.text();
-                        tasksTabPane.innerHTML = html;
-                        
-                        // Execute any scripts in the loaded content
-                        const scripts = tasksTabPane.querySelectorAll('script');
-                        scripts.forEach(script => {
-                            const newScript = document.createElement('script');
-                            if (script.src) {
-                                newScript.src = script.src;
-                            } else {
-                                newScript.textContent = script.textContent;
-                            }
-                            document.body.appendChild(newScript);
-                            document.body.removeChild(newScript);
-                        });
-                        
-                        // Wait a moment for scripts to initialize, then open modal
-                        setTimeout(() => {
-                            if (typeof window.openTaskModal === 'function') {
-                                window.openTaskModal(taskId);
-                            }
-                        }, 100);
-                        return;
+        const matterContainer = document.querySelector('.matter-details-container');
+        const orgId = matterContainer?.dataset.organizationId;
+        const matterIdAttr = matterContainer?.dataset.matterId;
+        
+        if (tasksTabPane && orgId && matterIdAttr) {
+            try {
+                // Show loading state
+                tasksTabPane.innerHTML = '<div class="text-center p-4"><i class="fas fa-spinner fa-spin"></i> Loading Tasks...</div>';
+                
+                const response = await fetch(`/Client/${orgId}/Matter/${matterIdAttr}/Tasks`);
+                if (response.ok) {
+                    const html = await response.text();
+                    tasksTabPane.innerHTML = html;
+                    
+                    // Execute any scripts in the loaded content
+                    const scripts = tasksTabPane.querySelectorAll('script');
+                    for (const script of scripts) {
+                        const newScript = document.createElement('script');
+                        if (script.src) {
+                            newScript.src = script.src;
+                        } else {
+                            newScript.textContent = script.textContent;
+                        }
+                        document.body.appendChild(newScript);
+                        // Wait for script to execute
+                        await new Promise(resolve => setTimeout(resolve, 50));
+                        if (newScript.parentNode) newScript.parentNode.removeChild(newScript);
                     }
-                } catch (err) {
-                    console.error('Failed to load Tasks tab:', err);
+                    
+                    // Wait a moment for scripts to initialize, then open modal
+                    setTimeout(() => {
+                        if (typeof window.openTaskModal === 'function') {
+                            window.openTaskModal(taskId);
+                        } else {
+                            console.error('openTaskModal not available after loading Tasks tab');
+                        }
+                    }, 200);
+                    return;
                 }
+            } catch (err) {
+                console.error('Failed to load Tasks tab:', err);
             }
         }
         
