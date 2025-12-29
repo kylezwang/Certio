@@ -265,17 +265,6 @@
                     console.error('✗ window.initializeMatterTasks function not available');
                     console.log('Available window functions:', Object.keys(window).filter(k => k.includes('initialize')));
                 }
-
-                // IMPORTANT: The Tasks tab container is hidden when user is on Timeline.
-                // If the modal lives under a display:none ancestor, it cannot render even with position:fixed.
-                // "Portal" the modal to <body> so it can be opened from other tabs.
-                try {
-                    if (typeof window.portalTaskDetailsModalToBody === 'function') {
-                        window.portalTaskDetailsModalToBody();
-                    }
-                } catch (e) {
-                    console.warn('Failed to portal taskDetailsModal to body:', e);
-                }
                 
                 // Also try the generic initialization if available
                 if (typeof window.initializeTasks === 'function') {
@@ -498,49 +487,39 @@
         const isHidden = computed.display === 'none' || el.style.display === 'none';
         if (!isHidden) return null;
 
-        // Store inline styles we will overwrite
-        el.dataset.bgInitPrevDisplay = el.style.display || '';
-        el.dataset.bgInitPrevPosition = el.style.position || '';
-        el.dataset.bgInitPrevLeft = el.style.left || '';
-        el.dataset.bgInitPrevTop = el.style.top || '';
-        el.dataset.bgInitPrevWidth = el.style.width || '';
-        el.dataset.bgInitPrevHeight = el.style.height || '';
-        el.dataset.bgInitPrevOverflow = el.style.overflow || '';
-        el.dataset.bgInitPrevVisibility = el.style.visibility || '';
+        // Store current inline style attribute so we can restore exactly.
+        el.dataset.bgInitPrevStyle = el.getAttribute('style') || '';
 
+        // Render full-size but invisible so measurements match the real viewport.
+        // This avoids initializing Tasks modal logic in a 1px container (which breaks layout).
         el.style.display = 'block';
-        el.style.position = 'absolute';
-        el.style.left = '-100000px';
+        el.style.position = 'fixed';
+        el.style.left = '0';
         el.style.top = '0';
-        el.style.width = '1px';
-        el.style.height = '1px';
-        el.style.overflow = 'hidden';
+        el.style.right = '0';
+        el.style.bottom = '0';
+        el.style.width = '100vw';
+        el.style.height = '100vh';
+        el.style.overflow = 'auto';
         el.style.visibility = 'hidden';
+        el.style.pointerEvents = 'none';
+        el.style.opacity = '0';
+        el.style.zIndex = '-1';
         return el;
     }
 
     function restoreTabAfterBackgroundInit(tabName) {
         const el = document.getElementById('tab-' + tabName);
         if (!el || !el.dataset) return;
-        if (!('bgInitPrevDisplay' in el.dataset)) return;
+        if (!('bgInitPrevStyle' in el.dataset)) return;
 
-        el.style.display = el.dataset.bgInitPrevDisplay || '';
-        el.style.position = el.dataset.bgInitPrevPosition || '';
-        el.style.left = el.dataset.bgInitPrevLeft || '';
-        el.style.top = el.dataset.bgInitPrevTop || '';
-        el.style.width = el.dataset.bgInitPrevWidth || '';
-        el.style.height = el.dataset.bgInitPrevHeight || '';
-        el.style.overflow = el.dataset.bgInitPrevOverflow || '';
-        el.style.visibility = el.dataset.bgInitPrevVisibility || '';
-
-        delete el.dataset.bgInitPrevDisplay;
-        delete el.dataset.bgInitPrevPosition;
-        delete el.dataset.bgInitPrevLeft;
-        delete el.dataset.bgInitPrevTop;
-        delete el.dataset.bgInitPrevWidth;
-        delete el.dataset.bgInitPrevHeight;
-        delete el.dataset.bgInitPrevOverflow;
-        delete el.dataset.bgInitPrevVisibility;
+        const prev = el.dataset.bgInitPrevStyle || '';
+        if (prev) {
+            el.setAttribute('style', prev);
+        } else {
+            el.removeAttribute('style');
+        }
+        delete el.dataset.bgInitPrevStyle;
     }
 
     // Expose a tiny helper so other tabs (ex: Timeline) can ensure another tab's
@@ -569,11 +548,9 @@
                 return;
             }
 
-            const activeTabAtStart = getActiveTabName();
-            // If we're ensuring a non-active tab, render it offscreen while its scripts initialize.
-            if (activeTabAtStart && activeTabAtStart !== tabName) {
-                prepareTabForBackgroundInit(tabName);
-            }
+            // If the tab content is currently hidden, render it full-size but invisible while scripts initialize.
+            // This is critical for Tasks modal logic which measures layout.
+            const didPrepare = !!prepareTabForBackgroundInit(tabName);
 
             // Kick off loading if needed; otherwise retry initialization (scripts may exist but not initialized)
             if (!loadedTabs.has(tabName)) {
@@ -587,17 +564,13 @@
                 if (isReady()) {
                     // If Tasks loaded, make sure the modal can render from other tabs.
                     try { window.portalTaskDetailsModalToBody?.(); } catch (_) { /* ignore */ }
-                    // Restore offscreen rendering if we never actually switched tabs.
-                    if (activeTabAtStart && activeTabAtStart !== tabName) {
-                        restoreTabAfterBackgroundInit(tabName);
-                    }
+                    // Restore background rendering unless the user actually switched to this tab.
+                    if (didPrepare && getActiveTabName() !== tabName) restoreTabAfterBackgroundInit(tabName);
                     resolve(true);
                     return;
                 }
                 if (Date.now() - start > timeoutMs) {
-                    if (activeTabAtStart && activeTabAtStart !== tabName) {
-                        restoreTabAfterBackgroundInit(tabName);
-                    }
+                    if (didPrepare && getActiveTabName() !== tabName) restoreTabAfterBackgroundInit(tabName);
                     reject(new Error(`Timed out loading tab: ${tabName}`));
                     return;
                 }
@@ -613,12 +586,15 @@
         if (!modal) return false;
         if (modal.dataset && modal.dataset.portaledToBody === 'true') return true;
 
-        // If it's already under <body>, nothing to do.
-        if (modal.parentElement === document.body) {
+        const wrapper = document.querySelector('.client-main-content-wrapper');
+        if (wrapper && wrapper.parentElement) {
+            // Keep modal as a sibling of the main wrapper so existing CSS (~ selectors) continues to work.
+            wrapper.insertAdjacentElement('afterend', modal);
             modal.dataset.portaledToBody = 'true';
             return true;
         }
 
+        // Fallback
         document.body.appendChild(modal);
         modal.dataset.portaledToBody = 'true';
         return true;
