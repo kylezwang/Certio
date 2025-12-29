@@ -18,6 +18,7 @@ using Certio.Domain.Tasks;
 using Certio.Domain.Calendar;
 using Certio.Domain.AgentActions;
 using Certio.Domain.UnifiedInbox;
+using Certio.Domain.ChangeControl;
 
 namespace Certio.Infrastructure.Data
 {
@@ -48,6 +49,10 @@ namespace Certio.Infrastructure.Data
         public DbSet<StatusItemDependency> StatusItemDependencies => Set<StatusItemDependency>();
         public DbSet<StatusItemAssignment> StatusItemAssignments => Set<StatusItemAssignment>();
         public DbSet<StatusItemComment> StatusItemComments => Set<StatusItemComment>();
+
+        // Change Control Entities
+        public DbSet<ChangeNotice> ChangeNotices => Set<ChangeNotice>();
+        public DbSet<ChangeNoticeRecipient> ChangeNoticeRecipients => Set<ChangeNoticeRecipient>();
         
         // Task Entities
         public DbSet<TaskItem> TaskItems => Set<TaskItem>();
@@ -162,6 +167,59 @@ namespace Certio.Infrastructure.Data
             ConfigureUserDeletionRequestRelationships(builder);
             ConfigureAgentActionRelationships(builder);
             ConfigureUnifiedInboxRelationships(builder);
+            ConfigureChangeControlRelationships(builder);
+        }
+
+        private void ConfigureChangeControlRelationships(ModelBuilder builder)
+        {
+            builder.Entity<ChangeNotice>()
+                .HasIndex(cn => new { cn.OrganizationId, cn.MatterId, cn.IsDeleted });
+
+            builder.Entity<ChangeNotice>()
+                .HasOne(cn => cn.Matter)
+                .WithMany()
+                .HasForeignKey(cn => cn.MatterId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<ChangeNotice>()
+                .HasOne(cn => cn.Organization)
+                .WithMany()
+                .HasForeignKey(cn => cn.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Avoid SQL Server "multiple cascade paths" by using NoAction for audit user FKs.
+            builder.Entity<ChangeNotice>()
+                .HasOne(cn => cn.CreatedBy)
+                .WithMany()
+                .HasForeignKey(cn => cn.CreatedById)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            builder.Entity<ChangeNotice>()
+                .HasOne(cn => cn.ModifiedBy)
+                .WithMany()
+                .HasForeignKey(cn => cn.ModifiedById)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            builder.Entity<ChangeNotice>()
+                .HasOne(cn => cn.DeletedBy)
+                .WithMany()
+                .HasForeignKey(cn => cn.DeletedById)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            builder.Entity<ChangeNoticeRecipient>()
+                .HasIndex(r => new { r.ChangeNoticeId, r.Email });
+
+            builder.Entity<ChangeNoticeRecipient>()
+                .HasOne(r => r.ChangeNotice)
+                .WithMany(cn => cn.Recipients)
+                .HasForeignKey(r => r.ChangeNoticeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<ChangeNoticeRecipient>()
+                .HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
 
         private void ConfigureOrganizationRelationships(ModelBuilder builder)

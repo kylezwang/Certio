@@ -130,7 +130,16 @@ public class EmailSendingService : IEmailSendingService
         return emailMessage;
     }
 
-    public async Task<bool> SendSystemEmailAsync(string toEmail, string subject, string bodyHtml, CancellationToken ct = default)
+    public Task<bool> SendSystemEmailAsync(string toEmail, string subject, string bodyHtml, CancellationToken ct = default)
+        => SendSystemEmailAsync(toEmail, subject, bodyHtml, fromNameOverride: null, replyToEmailOverride: null, ct);
+
+    public async Task<bool> SendSystemEmailAsync(
+        string toEmail,
+        string subject,
+        string bodyHtml,
+        string? fromNameOverride,
+        string? replyToEmailOverride,
+        CancellationToken ct = default)
     {
         try
         {
@@ -141,13 +150,15 @@ public class EmailSendingService : IEmailSendingService
                 var smtpHost = _configuration["Security:TwoFactorEmail:SmtpHost"];
                 if (!string.IsNullOrWhiteSpace(smtpHost))
                 {
-                    return await SendViaSmtpAsync(toEmail, subject, bodyHtml, ct);
+                    return await SendViaSmtpAsync(toEmail, subject, bodyHtml, fromNameOverride, replyToEmailOverride, ct);
                 }
 
                 // Fall back to REST API
                 var apiKey = _configuration["Security:TwoFactorEmail:SendGridApiKey"];
                 var fromEmail = _configuration["Security:TwoFactorEmail:FromEmail"];
-                var fromName = _configuration["Security:TwoFactorEmail:FromName"] ?? "Notal";
+                var fromName = (string.IsNullOrWhiteSpace(fromNameOverride) ? null : fromNameOverride.Trim())
+                               ?? _configuration["Security:TwoFactorEmail:FromName"]
+                               ?? "Notal";
 
                 if (string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(fromEmail))
                 {
@@ -155,9 +166,15 @@ public class EmailSendingService : IEmailSendingService
                     return false;
                 }
 
-                var payload = new
+                var trackingSettings = new
                 {
-                    personalizations = new[]
+                    click_tracking = new { enable = false, enable_text = false },
+                    open_tracking = new { enable = false }
+                };
+
+                var payload = new Dictionary<string, object?>
+                {
+                    ["personalizations"] = new[]
                     {
                         new
                         {
@@ -167,13 +184,22 @@ public class EmailSendingService : IEmailSendingService
                             }
                         }
                     },
-                    from = new { email = fromEmail, name = fromName },
-                    subject,
-                    content = new[]
+                    ["from"] = new { email = fromEmail, name = fromName },
+                    ["subject"] = subject,
+                    ["content"] = new[]
                     {
+                        new { type = "text/plain", value = StripHtmlToText(bodyHtml) },
                         new { type = "text/html", value = bodyHtml }
-                    }
+                    },
+                    // IMPORTANT: disable click tracking so security-sensitive links (e.g. Change Notice actions)
+                    // don't get rewritten to a tracking domain that may have invalid SSL.
+                    ["tracking_settings"] = trackingSettings
                 };
+
+                if (!string.IsNullOrWhiteSpace(replyToEmailOverride))
+                {
+                    payload["reply_to"] = new { email = replyToEmailOverride.Trim() };
+                }
 
                 using var httpClient = new HttpClient();
                 using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.sendgrid.com/v3/mail/send")
@@ -204,7 +230,13 @@ public class EmailSendingService : IEmailSendingService
         }
     }
 
-    private async Task<bool> SendViaSmtpAsync(string toEmail, string subject, string bodyHtml, CancellationToken ct)
+    private async Task<bool> SendViaSmtpAsync(
+        string toEmail,
+        string subject,
+        string bodyHtml,
+        string? fromNameOverride,
+        string? replyToEmailOverride,
+        CancellationToken ct)
     {
         try
         {
@@ -283,13 +315,48 @@ public class EmailSendingService : IEmailSendingService
                 return false;
             }
 
+            if (!string.IsNullOrWhiteSpace(fromNameOverride))
+            {
+                fromAddress = new MailboxAddress(fromNameOverride.Trim(), fromAddress.Address);
+            }
+
             // Build and send email via SMTP
             var message = new MimeMessage();
             message.From.Add(fromAddress);
             message.To.Add(new MailboxAddress(string.Empty, toEmail));
             message.Subject = subject;
 
-            var bodyBuilder = new BodyBuilder { HtmlBody = bodyHtml };
+            if (!string.IsNullOrWhiteSpace(replyToEmailOverride) && replyToEmailOverride.Contains('@'))
+            {
+                message.ReplyTo.Add(new MailboxAddress(string.Empty, replyToEmailOverride.Trim()));
+            }
+
+            // IMPORTANT (SendGrid SMTP): disable click/open tracking so action links aren't rewritten.
+            // This prevents recipients from hitting "Your connection is not private" due to misconfigured link branding SSL.
+            // SendGrid SMTPAPI header format:
+            // { "filters": { "clicktrack": { "settings": { "enable": 0 } }, "opentrack": { "settings": { "enable": 0 } } } }
+            try
+            {
+                var smtpApi = new
+                {
+                    filters = new
+                    {
+                        clicktrack = new { settings = new { enable = 0 } },
+                        opentrack = new { settings = new { enable = 0 } }
+                    }
+                };
+                message.Headers.Add("X-SMTPAPI", JsonSerializer.Serialize(smtpApi));
+            }
+            catch
+            {
+                // If we can't add the header for any reason, still send the email.
+            }
+
+            var bodyBuilder = new BodyBuilder
+            {
+                HtmlBody = bodyHtml,
+                TextBody = StripHtmlToText(bodyHtml)
+            };
             message.Body = bodyBuilder.ToMessageBody();
 
             using var client = new SmtpClient();
@@ -314,6 +381,22 @@ public class EmailSendingService : IEmailSendingService
             _logger.LogError(ex, "Failed to send system email via SMTP to {Email}", toEmail);
             return false;
         }
+    }
+
+    private static string StripHtmlToText(string html)
+    {
+        if (string.IsNullOrWhiteSpace(html))
+        {
+            return string.Empty;
+        }
+
+        // Very small, safe conversion for email clients/spam filters:
+        // remove tags and decode entities.
+        var noTags = System.Text.RegularExpressions.Regex.Replace(html, "<.*?>", " ");
+        var decoded = System.Net.WebUtility.HtmlDecode(noTags);
+        // collapse whitespace
+        decoded = System.Text.RegularExpressions.Regex.Replace(decoded, "\\s+", " ").Trim();
+        return decoded;
     }
 
     public async Task<(string subject, string body)> FormatDirectMessageAsEmailAsync(DirectMessage directMessage, CancellationToken ct = default)

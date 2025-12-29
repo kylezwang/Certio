@@ -83,6 +83,17 @@
         flex-direction: column;
         overflow: hidden;
     }
+
+    /* Matter details: remove global matter-card hover/elevation for summary cards. */
+    .matter-details-container #matters-grid .matter-card {
+        transition: none !important;
+    }
+
+    .matter-details-container #matters-grid .matter-card:hover {
+        background-color: #ffffff !important;
+        transform: none !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    }
 </style>
 
 <div class="matter-details-container" data-matter-id="@Model.Matter.Id" data-organization-id="@ViewBag.OrganizationId">
@@ -233,10 +244,10 @@
                     </div>
                 </div>
 
-                <!-- Matters Grid (2 columns like Matter/Index) -->
-                <div class="row" id="matters-grid">
-                    <!-- Matter Info Carousel -->
-                    <div class="col-lg-6 mb-3 matter-card-wrapper carousel-wrapper">
+                <!-- Matters Grid (2 columns - 8/4 ratio like Billing) -->
+                <div class="row" id="matters-grid" style="display: flex; flex-wrap: wrap;">
+                    <!-- Matter Info Carousel (displays second due to order) -->
+                    <div class="col-lg-4 mb-3 matter-card-wrapper carousel-wrapper" style="order: 2;">
                         <div class="card h-100 border-0 matter-card" style="padding-top: 0.5rem; position: relative;">
                             <div class="card-body pt-2">
                                 <!-- Save Indicator Button (Top Right) -->
@@ -561,94 +572,927 @@
                     </div>
 
                     
-                    <!-- Status Overview -->
-                    <div class="col-lg-6 mb-3 matter-card-wrapper">
+                    <!-- Change Control (displays first due to order) -->
+                    <div class="col-lg-8 mb-3 matter-card-wrapper" style="order: 1;">
                         <div class="card h-100 border-0 matter-card" style="padding-top: 0.5rem; position: relative;">
                             <div class="card-header bg-transparent border-0 pb-0">
                                 <div class="mb-2">
                                     <div class="d-flex align-items-start">
-                                        <i class="fas fa-chart-pie fs-5 me-2 flex-shrink-0 text-muted" style="margin-top: 2px;"></i>
+                                        <i class="fas fa-clipboard-check fs-5 me-2 flex-shrink-0 text-muted" style="margin-top: 2px;"></i>
                                         <div class="flex-grow-1">
-                                            <h5 class="card-title fw-bold mb-2" style="color: black; font-size: 1rem; line-height: 1.3;">Status overview</h5>
+                                            <h5 class="card-title fw-bold mb-2" style="color: black; font-size: 1rem; line-height: 1.3;">Announcements & Change Control</h5>
                                         </div>
                                     </div>
-                                    <p class="card-text text-muted mb-0" style="font-size: 0.8rem; line-height: 1.4; padding-left: 30px;">
-                                        Get a snapshot of the status of your task items. 
-                                        <a href="/Client/@ViewBag.OrganizationId/Matter/@Model.Matter.Id/Tasks" class="text-primary text-decoration-none">View all task items</a>
+                                    <p class="card-text text-muted mb-0" style="font-size: 0.8rem; line-height: 1.4; padding-left: 1.5rem;">
+                                        Create, send, and track change notices.
                                     </p>
                                 </div>
                             </div>
-                                <div class="card-body pt-2 d-flex flex-column align-items-center justify-content-center">
-                                    @if (Model.TotalTasksCount > 0)
-                                    {
-                                        var r = 80.0; 
-                                        var c = 2 * Math.PI * r; 
-                                        var total = Math.Max(1, Model.TotalTasksCount);
-                                        var segPlanned = (double)Model.TasksPending / total * c; // Planned/Pending
-                                        var segInProgress = (double)Model.TasksInProgress / total * c;
-                                        var segReview = (double)Model.TasksInReview / total * c;
-                                        var segCompleted = (double)Model.TasksCompleted / total * c;
-                                        var offsetPlanned = 0.0;
-                                        var offsetInProgress = offsetPlanned + segPlanned;
-                                        var offsetReview = offsetInProgress + segInProgress;
-                                        var offsetCompleted = offsetReview + segReview;
-                                        <div class="position-relative mb-3" style="width: 192px; height: 192px;">
-                                            <svg class="w-100 h-100" style="transform: rotate(-90deg);" viewBox="0 0 192 192">
-                                                <!-- track -->
-                                                <circle cx="96" cy="96" r="80" stroke="#e5e7eb" stroke-width="16" fill="none" />
-                                                <!-- Planned / Pending (secondary gray) -->
-                                                @if (Model.TasksPending > 0)
-                                                {
-                                                    <circle cx="96" cy="96" r="80" style="stroke: rgba(var(--bs-secondary-rgb), 1); stroke-linecap: butt;" stroke-width="16" fill="none"
-                                                            stroke-dasharray="@segPlanned @c" stroke-dashoffset="-@offsetPlanned" />
-                                                }
-                                                <!-- In Progress (primary) -->
-                                                @if (Model.TasksInProgress > 0)
-                                                {
-                                                    <circle cx="96" cy="96" r="80" style="stroke: rgba(var(--bs-primary-rgb), 1); stroke-linecap: butt;" stroke-width="16" fill="none"
-                                                            stroke-dasharray="@segInProgress @c" stroke-dashoffset="-@offsetInProgress" />
-                                                }
-                                                <!-- Review (amber) -->
-                                                @if (Model.TasksInReview > 0)
-                                                {
-                                                    <circle cx="96" cy="96" r="80" style="stroke: rgba(var(--bs-warning-rgb), 1); stroke-linecap: butt;" stroke-width="16" fill="none"
-                                                            stroke-dasharray="@segReview @c" stroke-dashoffset="-@offsetReview" />
-                                                }
-                                                <!-- Completed (green) -->
-                                                @if (Model.TasksCompleted > 0)
-                                                {
-                                                    <circle cx="96" cy="96" r="80" style="stroke: rgba(var(--bs-success-rgb), 1); stroke-linecap: butt;" stroke-width="16" fill="none"
-                                                            stroke-dasharray="@segCompleted @c" stroke-dashoffset="-@offsetCompleted" />
-                                                }
-                                            </svg>
-                                            <div class="position-absolute top-50 start-50 translate-middle text-center">
-                                                <div class="fs-1 fw-bold text-dark">@Model.TotalTasksCount</div>
-                                                <div class="small text-muted">Total task items</div>
+                            <div class="card-body pt-2">
+                                @{
+                                    var cc = Model.ChangeControlSummary;
+                                }
+
+                                <div id="change-control-card" data-org-id="@ViewBag.OrganizationId" data-matter-id="@Model.Matter.Id">
+                                    <style>
+                                        /* Scoped "drippy inbox list" styling for Change Control card (inspired by Tasks/History/Billing) */
+                                        #change-control-card .cc-add-card-outer-container {
+                                            background: white;
+                                            border-radius: 8px;
+                                            padding: 0.75rem 0.75rem 0.6rem 0.75rem;
+                                            margin-bottom: 0.35rem;
+                                            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+                                            width: 100%;
+                                        }
+
+                                        #change-control-card .cc-add-card-container {
+                                            margin-bottom: 0.5rem;
+                                        }
+
+                                        #change-control-card .cc-add-card-button {
+                                            width: 100%;
+                                            margin: 0;
+                                            padding: 0.75rem 1rem;
+                                            border: none;
+                                            border-radius: 12px;
+                                            background: #fff;
+                                            color: #4a5568;
+                                            font-size: 0.9rem;
+                                            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+                                            transition: transform 0.2s ease, background-color 0.2s ease;
+                                            cursor: pointer;
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            gap: 0.5rem;
+                                        }
+
+                                        #change-control-card .cc-add-card-button:hover {
+                                            background-color: #eef1f3;
+                                            transform: translateY(-2px);
+                                            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2) !important;
+                                        }
+
+                                        #change-control-card .cc-add-card-icon {
+                                            color: #a0aec0;
+                                            font-size: 0.9rem;
+                                        }
+
+                                        #change-control-card .cc-add-card-text {
+                                            color: #4a5568;
+                                            font-weight: 600;
+                                        }
+
+                                        #change-control-card .cc-row {
+                                            border: 1px solid #eeeeee;
+                                            border-radius: 0.5rem;
+                                            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                                            transition: all 0.2s ease;
+                                            background: #fff;
+                                        }
+
+                                        /* Clickable notice rows should show pointer cursor */
+                                        #change-control-card .cc-row[data-notice-id] {
+                                            cursor: pointer;
+                                        }
+
+                                        #change-control-card .cc-row:hover {
+                                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                                            transform: translateY(-2px);
+                                            background-color: #fafafa;
+                                            border-color: #cbd5e1;
+                                        }
+
+                                        #change-control-card .cc-row.cc-header {
+                                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                                            padding: 0.6rem 1rem 0.2rem 1rem;
+                                            margin-bottom: 0.4rem;
+                                            cursor: default;
+                                        }
+
+                                        #change-control-card .cc-row.cc-header:hover {
+                                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                                            transform: none;
+                                            background: #fff;
+                                            border-color: #eeeeee;
+                                        }
+
+                                        #change-control-card .cc-grid {
+                                            display: grid;
+                                            grid-template-columns: 180px 1fr 80px;
+                                            gap: 0.75rem;
+                                            align-items: start;
+                                            width: 100%;
+                                        }
+
+                                        #change-control-card .cc-col-status {
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: flex-start;
+                                            gap: 0.5rem;
+                                        }
+
+                                        #change-control-card .cc-col-actions {
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: flex-end;
+                                            gap: 0.5rem;
+                                        }
+
+                                        #change-control-card .cc-title {
+                                            font-weight: 600;
+                                            color: #111827;
+                                            font-size: 0.95rem;
+                                            line-height: 1.25;
+                                            text-align: left;
+                                        }
+
+                                        #change-control-card .cc-meta {
+                                            font-size: 0.75rem;
+                                            color: #6b7280;
+                                            margin-top: 0.35rem;
+                                            display: flex;
+                                            flex-wrap: wrap;
+                                            gap: 0.35rem;
+                                        }
+
+                                        #change-control-card .cc-status-pill {
+                                            display: inline-flex;
+                                            align-items: center;
+                                            gap: 0.35rem;
+                                            font-weight: 800;
+                                            font-size: 0.75rem;
+                                            padding: 0.35rem 0.6rem;
+                                            border-radius: 999px;
+                                            background-color: #1e1e1e89;
+                                        }
+
+                                        #change-control-card .cc-chip {
+                                            display: inline-flex;
+                                            align-items: center;
+                                            gap: 0.35rem;
+                                            padding: 0.15rem 0.45rem;
+                                            border-radius: 999px;
+                                            background: rgba(107, 114, 128, 0.12);
+                                            color: #374151;
+                                            font-weight: 600;
+                                        }
+
+                                        #change-control-card .cc-legend {
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 0.4rem;
+                                            flex-wrap: wrap;
+                                        }
+
+                                        #change-control-card .cc-composer {
+                                            border: 1px solid #eeeeee;
+                                            border-radius: 12px;
+                                            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+                                            background: #fff;
+                                            overflow: hidden;
+                                        }
+
+                                        #change-control-card .cc-composer-header {
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: space-between;
+                                            padding: 0.75rem 1rem;
+                                            background: #f9fafb;
+                                            border-bottom: 1px solid #e5e7eb;
+                                        }
+
+                                        #change-control-card .cc-composer-title {
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 0.6rem;
+                                            font-weight: 700;
+                                            color: #111827;
+                                        }
+
+                                        #change-control-card .cc-composer-body {
+                                            padding: 0.85rem 1rem 1rem 1rem;
+                                        }
+
+                                        #change-control-card .cc-form-actions {
+                                            display: flex;
+                                            justify-content: flex-end;
+                                            gap: 0.5rem;
+                                        }
+
+                                        #change-control-card .cc-status-col {
+                                            display: flex;
+                                            flex-direction: column;
+                                            align-items: flex-start;
+                                            gap: 0.5rem;
+                                        }
+
+                                        #change-control-card .cc-status-counts {
+                                            display: flex;
+                                            flex-direction: column;
+                                            gap: 0.35rem;
+                                        }
+
+                                        #change-control-card .cc-count-pill {
+                                            display: inline-flex;
+                                            align-items: center;
+                                            padding: 0.2rem 0.55rem;
+                                            border-radius: 999px;
+                                            font-weight: 700;
+                                            font-size: 0.75rem;
+                                        }
+
+                                        /* Draft modal: match Tasks Details modal adaptive layout (covers main content area only) */
+                                        #ccDraftModal.task-details-modal {
+                                            position: fixed;
+                                            top: 7vh; /* Start below header */
+                                            left: 20vw; /* Match client-main-content-wrapper default position */
+                                            right: 320px; /* Default chat panel width */
+                                            bottom: 0 !important;
+                                            z-index: 1105; /* Above notifications/chat */
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            background-color: rgba(0, 0, 0, 0.5);
+                                            pointer-events: auto;
+                                            border-radius: 20px 20px 0 0;
+                                            transition: left 0.3s ease, right 0.3s ease;
+                                        }
+
+                                        #ccDraftModal.task-details-modal .modal-dialog {
+                                            width: 50rem;
+                                            max-width: 90%;
+                                            margin: 1.5rem;
+                                            max-height: calc(100% - 3rem);
+                                            border-radius: 16px;
+                                            pointer-events: auto;
+                                            position: relative;
+                                            z-index: 1106;
+                                            background-color: white;
+                                            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 12px 24px -8px rgba(0, 0, 0, 0.3);
+                                            display: flex;
+                                            flex-direction: column;
+                                            overflow: hidden;
+                                        }
+
+                                        #ccDraftModal .task-details-content {
+                                            border: none;
+                                            border-radius: 16px;
+                                            box-shadow: none;
+                                            background: white;
+                                            height: 100%;
+                                            display: flex;
+                                            flex-direction: column;
+                                            overflow: hidden;
+                                        }
+
+                                        #ccDraftModal .task-details-header {
+                                            display: flex;
+                                            justify-content: space-between;
+                                            align-items: center;
+                                            padding: 1rem 2rem 0 2rem;
+                                            flex-shrink: 0;
+                                            position: relative;
+                                        }
+
+                                        #ccDraftModal .task-details-title-section {
+                                            padding: 0.75rem 2rem 0.25rem 2rem;
+                                            flex-shrink: 0;
+                                        }
+
+                                        #ccDraftModal .task-title-container {
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 0.75rem;
+                                        }
+
+                                        /* Change Notice Modal
+                                           Uses shared Tasks modal styling from `~/css/task-details-modal.css`.
+                                           Keep ONLY CC-specific tweaks here to avoid fighting the shared modal CSS.
+                                        */
+                                        #ccModal .cc-title-input {
+                                            font-size: 1.5rem;
+                                            font-weight: 600;
+                                            color: #111827;
+                                            margin: 0;
+                                            border: none;
+                                            background: transparent;
+                                            padding: 0.25rem 0.5rem;
+                                            border-radius: 4px;
+                                            transition: background-color 0.2s, box-shadow 0.2s;
+                                            width: 100%;
+                                        }
+
+                                        #ccModal .cc-title-input:hover,
+                                        #ccModal .cc-title-input:focus {
+                                            outline: none;
+                                            background-color: #ffffff;
+                                            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+                                        }
+
+                                        /* Form controls */
+                                        #ccModal .form-control,
+                                        #ccModal .form-select {
+                                            font-size: 0.875rem;
+                                            border-color: #d1d5db;
+                                        }
+
+                                        #ccModal .form-control:focus,
+                                        #ccModal .form-select:focus {
+                                            border-color: #3d1019;
+                                            box-shadow: 0 0 0 2px rgba(61, 16, 25, 0.1);
+                                        }
+
+                                        #ccModal .form-label {
+                                            font-size: 0.8125rem;
+                                            font-weight: 500;
+                                            color: #374151;
+                                            margin-bottom: 0.375rem;
+                                        }
+
+                                        /* Footer action bar */
+                                        #ccModal .cc-modal-footer {
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: space-between;
+                                            padding: 1rem 1.25rem;
+                                            border-top: 1px solid #e5e7eb;
+                                            background: #fff;
+                                            flex-shrink: 0;
+                                        }
+
+                                        #ccModal .cc-modal-footer .btn {
+                                            font-size: 0.875rem;
+                                            padding: 0.5rem 1rem;
+                                            border-radius: 0.375rem;
+                                        }
+
+                                        #ccModal .cc-modal-footer .btn-primary {
+                                            background: #2563eb;
+                                            border-color: #2563eb;
+                                        }
+
+                                        #ccModal .cc-modal-footer .btn-primary:hover {
+                                            background: #1d4ed8;
+                                            border-color: #1d4ed8;
+                                        }
+
+                                        #ccModal .cc-modal-footer .btn-success {
+                                            background: #059669;
+                                            border-color: #059669;
+                                        }
+
+                                        #ccModal .cc-modal-footer .btn-success:hover {
+                                            background: #047857;
+                                            border-color: #047857;
+                                        }
+
+                                        /* Add member button */
+                                        #ccModal .add-member-btn {
+                                            width: 28px;
+                                            height: 28px;
+                                            border-radius: 50%;
+                                            border: 1px dashed #d1d5db;
+                                            background: #fff;
+                                            color: #6b7280;
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            cursor: pointer;
+                                            transition: all 0.15s ease;
+                                        }
+
+                                        #ccModal .add-member-btn:hover {
+                                            border-color: #3d1019;
+                                            color: #3d1019;
+                                            background: rgba(61, 16, 25, 0.05);
+                                        }
+
+                                        #ccModal .add-member-btn i {
+                                            font-size: 0.625rem;
+                                        }
+
+                                        /* Recipients inline avatars */
+                                        .cc-recipients-container {
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 0.25rem;
+                                            flex-wrap: wrap;
+                                        }
+                                        .cc-recipient-avatar {
+                                            width: 28px;
+                                            height: 28px;
+                                            border-radius: 50%;
+                                            background: #3d1019;
+                                            color: white;
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            font-size: 0.7rem;
+                                            font-weight: 600;
+                                            cursor: pointer;
+                                            transition: transform 0.15s ease;
+                                        }
+                                        .cc-recipient-avatar:hover {
+                                            transform: scale(1.1);
+                                        }
+                                        .cc-recipient-more {
+                                            background: #6b7280;
+                                        }
+
+                                        /* Recipients list in section */
+                                        .cc-recipients-list {
+                                            display: flex;
+                                            flex-direction: column;
+                                            gap: 0.5rem;
+                                        }
+                                        .cc-recipient-item {
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: space-between;
+                                            padding: 0.5rem 0.75rem;
+                                            background: white;
+                                            border: 1px solid #e5e7eb;
+                                            border-radius: 0.375rem;
+                                        }
+                                        .cc-recipient-item .recipient-info {
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 0.75rem;
+                                        }
+                                        .cc-recipient-item .recipient-email {
+                                            font-size: 0.875rem;
+                                            color: #374151;
+                                        }
+                                        .cc-recipient-item .recipient-status {
+                                            font-size: 0.75rem;
+                                            padding: 0.125rem 0.5rem;
+                                            border-radius: 0.25rem;
+                                        }
+                                        .cc-recipient-item .recipient-remove {
+                                            color: #9ca3af;
+                                            cursor: pointer;
+                                            padding: 0.25rem;
+                                            border-radius: 0.25rem;
+                                            transition: all 0.15s ease;
+                                        }
+                                        .cc-recipient-item .recipient-remove:hover {
+                                            color: #ef4444;
+                                            background: rgba(239, 68, 68, 0.1);
+                                        }
+
+                                        /* Contact Selector Popup */
+                                        .cc-contact-selector-popup {
+                                            position: fixed;
+                                            background: white;
+                                            border-radius: 0.5rem;
+                                            padding: 1rem;
+                                            width: 380px;
+                                            max-height: 450px;
+                                            overflow-y: auto;
+                                            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+                                            border: 1px solid #dee2e6;
+                                            z-index: 1200;
+                                        }
+                                        .cc-contact-selector-popup .contact-item {
+                                            display: flex;
+                                            align-items: center;
+                                            padding: 0.5rem;
+                                            border-radius: 0.375rem;
+                                            cursor: pointer;
+                                            transition: background 0.15s ease;
+                                        }
+                                        .cc-contact-selector-popup .contact-item:hover {
+                                            background: #f3f4f6;
+                                        }
+                                        .cc-contact-selector-popup .contact-item.selected {
+                                            background: rgba(61, 16, 25, 0.1);
+                                        }
+                                        .cc-contact-selector-popup .contact-avatar {
+                                            width: 32px;
+                                            height: 32px;
+                                            border-radius: 50%;
+                                            background: #3d1019;
+                                            color: white;
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            font-size: 0.75rem;
+                                            font-weight: 600;
+                                            margin-right: 0.75rem;
+                                        }
+                                        .cc-contact-selector-popup .contact-info {
+                                            flex: 1;
+                                        }
+                                        .cc-contact-selector-popup .contact-name {
+                                            font-size: 0.875rem;
+                                            font-weight: 600;
+                                            color: #374151;
+                                        }
+                                        .cc-contact-selector-popup .contact-email {
+                                            font-size: 0.75rem;
+                                            color: #6b7280;
+                                        }
+
+                                        .sidebar-hidden body:has(.client-main-content-wrapper.global-dashboard-layout) #ccDraftModal.task-details-modal {
+                                            left: calc(6vw + 1rem) !important;
+                                        }
+                                    </style>
+
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <span class="badge bg-secondary" style="font-weight: 600;">Draft: <span data-cc-count="draft">@((cc?.DraftCount) ?? 0)</span></span>
+                                            <span class="badge bg-primary" style="margin-top:0; background-color: rgba(var(--bs-primary-rgb), 1) !important; font-weight: 600;">Pending Confirmation: <span data-cc-count="pending">@((cc?.PendingCount) ?? 0)</span></span>
+                                            <span class="badge bg-warning text-dark" style="margin-top:0; font-weight: 600;">Needs Clarification: <span data-cc-count="clarify">@((cc?.NeedsClarificationCount) ?? 0)</span></span>
+                                            <span class="badge bg-success" style="margin-top:0; font-weight: 600;">Confirmed: <span data-cc-count="ack">@((cc?.AcknowledgedCount) ?? 0)</span></span>
+                                        </div>
+                                        <button id="cc-refresh-btn" class="btn btn-sm btn-outline-secondary" style="font-weight: 600;">
+                                            <i class="fas fa-rotate-right me-1"></i> Refresh
+                                        </button>
+                                    </div>
+
+                                    <!-- Draft composer toggle (Tasks-inspired) -->
+                                    <div id="cc-add-container" class="cc-add-card-outer-container">
+                                        <div class="cc-add-card-container">
+                                            <button class="cc-add-card-button" id="cc-open-composer-btn" type="button">
+                                                <div class="cc-add-card-icon">
+                                                    <i class="fas fa-plus"></i>
+                                                </div>
+                                                <span class="cc-add-card-text">Draft new change notice</span>
+                                            </button>
+                                        </div>
+
+                                    <!-- Column headers (History/Billing inspired) -->
+                                    <div id="cc-list-header" class="cc-row cc-header mb-2">
+                                        <div class="cc-grid">
+                                            <div>
+                                                <button class="btn btn-sm" style="padding: 0.375rem 0.5rem; border: none; background: white; color: #2d3748; font-size: 0.75rem; font-weight: 700; border-radius: 0.5rem; cursor: default; text-align: left; width: 100%;">Status</button>
+                                            </div>
+                                            <div>
+                                                <button class="btn btn-sm" style="padding: 0.375rem 0.5rem; border: none; background: white; color: #2d3748; font-size: 0.75rem; font-weight: 700; border-radius: 0.5rem; cursor: default; text-align: left; width: 100%;">Title</button>
+                                            </div>
+                                            <div>
+                                                <button class="btn btn-sm" style="padding: 0.375rem 0.5rem; border: none; background: white; color: #2d3748; font-size: 0.75rem; font-weight: 700; border-radius: 0.5rem; cursor: default; text-align: right; width: 100%;">Actions</button>
                                             </div>
                                         </div>
-                                        <div class="d-flex flex-wrap justify-content-center gap-3 small">
-                                            <div class="d-flex align-items-center gap-2"><span class="rounded" style="width:12px;height:12px;background-color: rgba(var(--bs-secondary-rgb), 1); margin-top:0.6rem;"></span><span class="text-muted">Planned: @Model.TasksPending</span></div>
-                                            <div class="d-flex align-items-center gap-2"><span class="rounded" style="width:12px;height:12px;background-color: rgba(var(--bs-primary-rgb), 1); margin-top:0.6rem;"></span><span class="text-muted">In Progress: @Model.TasksInProgress</span></div>
-                                            <div class="d-flex align-items-center gap-2"><span class="rounded" style="width:12px;height:12px;background-color: rgba(var(--bs-warning-rgb), 1); margin-top:0.6rem;"></span><span class="text-muted">Review: @Model.TasksInReview</span></div>
-                                            <div class="d-flex align-items-center gap-2"><span class="rounded" style="width:12px;height:12px;background-color: rgba(var(--bs-success-rgb), 1); margin-top:0.6rem;"></span><span class="text-muted">Completed: @Model.TasksCompleted</span></div>
+                                    </div>
+                                    </div>
+
+                                    <div id="change-control-notice-list">
+                                        @if (cc?.Notices != null && cc.Notices.Any())
+                                        {
+                                            var maxVisible = 2;
+                                            var noticeList = cc.Notices.ToList();
+                                            var visibleNotices = noticeList.Take(maxVisible).ToList();
+                                            var hasMore = noticeList.Count > maxVisible;
+                                            var hiddenCount = noticeList.Count - maxVisible;
+
+                                            foreach (var n in visibleNotices)
+                                            {
+                                                var badgeClass = n.Status == "Acknowledged"
+                                                    ? "bg-success"
+                                                    : n.Status == "NeedsClarification"
+                                                        ? ""
+                                                        : (n.Status == "Sent" || n.Status == "PartiallyAcknowledged")
+                                                            ? ""
+                                                            : "";
+                                                var sendLabel = n.Status == "Draft" ? "Send" : "Nudge";
+                                                var sendDisabled = n.Status == "Acknowledged";
+                                                var statusLabel = n.Status == "Acknowledged" ? "Confirmed"
+                                                    : n.Status == "NeedsClarification" ? "Needs Clarification"
+                                                    : n.Status == "PartiallyAcknowledged" ? "Partial"
+                                                    : n.Status;
+                                                var statusIcon = n.Status == "Acknowledged" ? "fas fa-check-circle"
+                                                    : n.Status == "NeedsClarification" ? "fas fa-circle-question"
+                                                    : (n.Status == "Sent" || n.Status == "PartiallyAcknowledged") ? "fas fa-paper-plane"
+                                                    : "fas fa-pen";
+
+                                                <div class="cc-row cc-visible-row p-3 mb-2" data-notice-id="@n.Id">
+                                                    <div class="cc-grid">
+                                                        <div class="cc-status-col">
+                                                            <span class="cc-status-pill badge @badgeClass">
+                                                                <i class="@statusIcon"></i> @statusLabel
+                                                            </span>
+                                                            <div class="cc-status-counts">
+                                                                <span class="cc-count-pill" style="background: rgba(var(--bs-success-rgb), 0.12); color: #065f46;">Confirmed @n.AcknowledgedRecipientCount / @n.RecipientCount</span>
+                                                                <span class="cc-count-pill" style="background: rgba(var(--bs-warning-rgb), 0.16); color: #92400e;">Needs Clarification @n.NeedsClarificationRecipientCount / @n.RecipientCount</span>
+                                                                <span class="cc-count-pill" style="background: rgba(var(--bs-primary-rgb), 0.12); color: #1d4ed8;">Pending Confirmation @n.PendingRecipientCount / @n.RecipientCount</span>
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <div class="cc-title">@n.Title</div>
+                                                            <div class="cc-meta">
+                                                                <span class="cc-chip"><i class="fas fa-tag" style="opacity:0.75;"></i> @n.ChangeType</span>
+                                                                <span class="cc-chip"><i class="fas fa-flag" style="opacity:0.75;"></i> @n.Priority</span>
+                                                                <span class="cc-chip"><i class="fas fa-users" style="opacity:0.75;"></i> @n.RecipientCount</span>
+                                                            </div>
+                                                            @if (!string.IsNullOrWhiteSpace(n.Description))
+                                                            {
+                                                                <div class="cc-description" style="font-size: 0.8rem; color: #6b7280; margin-top: 0.25rem; line-height: 1.4;">@n.Description</div>
+                                                            }
+                                                        </div>
+                                                        <div class="cc-col-actions">
+                                                            <button class="btn btn-sm btn-outline-primary cc-send-btn" style="font-weight:600; padding: 0.2rem 0.5rem;" data-notice-id="@n.Id" @(sendDisabled ? "disabled" : "")>@sendLabel</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+
+                                            @* Hidden items (collapsed by default) *@
+                                            @foreach (var n in noticeList.Skip(maxVisible))
+                                            {
+                                                var badgeClass = n.Status == "Acknowledged"
+                                                    ? "bg-success"
+                                                    : n.Status == "NeedsClarification"
+                                                        ? ""
+                                                        : (n.Status == "Sent" || n.Status == "PartiallyAcknowledged")
+                                                            ? ""
+                                                            : "";
+                                                var sendLabel = n.Status == "Draft" ? "Send" : "Nudge";
+                                                var sendDisabled = n.Status == "Acknowledged";
+                                                var statusLabel = n.Status == "Acknowledged" ? "Confirmed"
+                                                    : n.Status == "NeedsClarification" ? "Needs Clarification"
+                                                    : n.Status == "PartiallyAcknowledged" ? "Partial"
+                                                    : n.Status;
+                                                var statusIcon = n.Status == "Acknowledged" ? "fas fa-check-circle"
+                                                    : n.Status == "NeedsClarification" ? "fas fa-circle-question"
+                                                    : (n.Status == "Sent" || n.Status == "PartiallyAcknowledged") ? "fas fa-paper-plane"
+                                                    : "fas fa-pen";
+
+                                                <div class="cc-row cc-hidden-row p-3 mb-2" data-notice-id="@n.Id" style="display: none;">
+                                                    <div class="cc-grid">
+                                                        <div class="cc-status-col">
+                                                            <span class="cc-status-pill badge @badgeClass">
+                                                                <i class="@statusIcon"></i> @statusLabel
+                                                            </span>
+                                                            <div class="cc-status-counts">
+                                                                <span class="cc-count-pill" style="background: rgba(var(--bs-success-rgb), 0.12); color: #065f46;">Confirmed @n.AcknowledgedRecipientCount / @n.RecipientCount</span>
+                                                                <span class="cc-count-pill" style="background: rgba(var(--bs-warning-rgb), 0.16); color: #92400e;">Clarify @n.NeedsClarificationRecipientCount / @n.RecipientCount</span>
+                                                                <span class="cc-count-pill" style="background: rgba(var(--bs-primary-rgb), 0.12); color: #1d4ed8;">Pending @n.PendingRecipientCount / @n.RecipientCount</span>
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <div class="cc-title">@n.Title</div>
+                                                            <div class="cc-meta">
+                                                                <span class="cc-chip"><i class="fas fa-tag" style="opacity:0.75;"></i> @n.ChangeType</span>
+                                                                <span class="cc-chip"><i class="fas fa-flag" style="opacity:0.75;"></i> @n.Priority</span>
+                                                                <span class="cc-chip"><i class="fas fa-users" style="opacity:0.75;"></i> @n.RecipientCount</span>
+                                                            </div>
+                                                            @if (!string.IsNullOrWhiteSpace(n.Description))
+                                                            {
+                                                                <div class="cc-description" style="font-size: 0.8rem; color: #6b7280; margin-top: 0.25rem; line-height: 1.4;">@n.Description</div>
+                                                            }
+                                            </div>
+                                                        <div class="cc-col-actions">
+                                                            <button class="btn btn-sm btn-outline-primary cc-send-btn" style="font-weight:600; padding: 0.2rem 0.5rem;" data-notice-id="@n.Id" @(sendDisabled ? "disabled" : "")>@sendLabel</button>
                                         </div>
+                                                    </div>
+                                        </div>
+                                            }
+
+                                            @if (hasMore)
+                                            {
+                                                <div class="cc-toggle-row text-center py-2" id="cc-show-more-toggle" style="cursor: pointer; color: #6b7280; font-size: 0.8rem; border-top: 1px solid #e5e7eb;" onclick="toggleCCHiddenRows()">
+                                                    <i class="fas fa-chevron-down"></i> Show @hiddenCount more
+                                                </div>
+                                            }
                                     }
                                     else
                                     {
-                                        <div class="text-center py-5">
-                                            <div class="mb-3">
-                                                <i class="fa-solid fa-bars-progress text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
+                                            <div class="text-center py-3">
+                                                <p class="text-muted small mb-0">No change notices yet</p>
                                             </div>
-                                            <h6 class="fw-semibold text-dark mb-2">No task items yet</h6>
-                                            <p class="text-muted small mb-0">Create tasks to track your work</p>
+                                        }
                                         </div>
-                                    }
+                                    <script>
+                                        function toggleCCHiddenRows() {
+                                            const hiddenRows = document.querySelectorAll('.cc-hidden-row');
+                                            const toggle = document.getElementById('cc-show-more-toggle');
+                                            const isExpanded = toggle.dataset.expanded === 'true';
+                                            
+                                            hiddenRows.forEach(row => {
+                                                row.style.display = isExpanded ? 'none' : 'block';
+                                            });
+                                            
+                                            toggle.dataset.expanded = !isExpanded;
+                                            toggle.innerHTML = isExpanded 
+                                                ? '<i class="fas fa-chevron-down"></i> Show @(cc?.Notices?.Count() > 2 ? cc.Notices.Count() - 2 : 0) more'
+                                                : '<i class="fas fa-chevron-up"></i> Show less';
+                                        }
+                                    </script>
+
+                                    <pre id="change-control-summary-json" class="d-none"></pre>
+                                </div>
+
+                                <!-- Change Notice Modal (Tasks-style) - for Draft and Edit -->
+                                <div class="task-details-modal cc-modal" id="ccModal" style="display: none;">
+                                    <div class="modal-dialog" style="margin-bottom: 1.5rem;">
+                                        <div class="task-details-content">
+                                            <!-- Modal Header -->
+                                            <div class="task-details-header">
+                                                <div class="task-details-header-left">
+                                                    <div class="task-status-dropdown">
+                                                        <select class="form-select task-status-select" id="ccStatusDropdown" disabled>
+                                                            <option value="Draft">Draft</option>
+                                                            <option value="Sent">Sent</option>
+                                                            <option value="PartiallyAcknowledged">Partial</option>
+                                                            <option value="NeedsClarification">Needs Clarification</option>
+                                                            <option value="Acknowledged">Confirmed</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="task-details-header-middle">
+                                                    <div class="header-progress" id="ccHeaderProgress" style="display: none;">
+                                                        <div class="progress" style="height: 8px;">
+                                                            <div class="progress-bar bg-success" style="width: 0%" id="ccProgressBar"></div>
+                                                        </div>
+                                                        <span class="progress-text" style="font-size: 0.875rem; font-weight: 500; color: #6b7280;" id="ccProgressText">0%</span>
+                                                    </div>
+                                                </div>
+                                                <div class="task-details-header-right">
+                                                    <button class="btn btn-sm btn-link task-header-btn" id="ccDeleteBtn" title="Delete" style="display: none;">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-link task-header-btn" title="More options">
+                                                        <i class="fas fa-ellipsis-h"></i>
+                                                    </button>
+                                                    <button type="button" class="btn-close" id="cc-close-modal" aria-label="Close"></button>
+                                                </div>
+                                            </div>
+
+                                            <!-- Title Section -->
+                                            <div class="task-details-title-section">
+                                                <div class="task-title-container">
+                                                    <i class="fas fa-pen-nib" style="color:#3d1019; font-size: 1.25rem;"></i>
+                                                    <input type="text" class="cc-title-input" id="ccTitleInput" placeholder="Change notice title" maxlength="200">
+                                                </div>
+                                            </div>
+
+                                            <!-- Action Buttons -->
+                                            <div class="task-action-buttons">
+                                                <button type="button" class="task-action-btn" id="cc-scroll-type-btn">
+                                                    <i class="fas fa-tag"></i> Type
+                                                </button>
+                                                <button type="button" class="task-action-btn" id="cc-scroll-priority-btn">
+                                                    <i class="fas fa-flag"></i> Priority
+                                                </button>
+                                                <button type="button" class="task-action-btn" id="cc-scroll-due-btn">
+                                                    <i class="fas fa-calendar-day"></i> Due Date
+                                                </button>
+                                                <button type="button" class="task-action-btn" id="cc-scroll-recipients-btn">
+                                                    <i class="fas fa-users"></i> Recipients
+                                                </button>
+                                            </div>
+
+                                            <!-- Recipients Section (like Assignees) -->
+                                            <div class="task-meta-section">
+                                                <div class="task-members">
+                                                    <span class="task-meta-label">Recipients</span>
+                                                    <div class="cc-recipients-container task-assignees-container" id="ccRecipientsContainer">
+                                                        <!-- Recipients will be dynamically rendered here -->
+                                                    </div>
+                                                    <button type="button" class="add-member-btn" id="ccAddRecipientBtn">
+                                                        <i class="fas fa-plus"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <!-- Main Content Area (Two-column layout like Tasks) -->
+                                            <div class="task-details-body">
+                                                <!-- Left Panel -->
+                                                <div class="task-details-left">
+                                                    <form id="change-control-form">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="NoticeId" id="ccNoticeId" value="">
+                                                        <input type="hidden" name="RecipientEmails" id="ccRecipientEmailsHidden" value="">
+
+                                                        <!-- Description Section -->
+                                                        <div class="task-section">
+                                                            <div class="task-section-header">
+                                                                <h6 class="task-section-title">
+                                                                    <i class="fas fa-bars"></i> Description
+                                                                </h6>
+                                                            </div>
+                                                            <div class="task-section-content">
+                                                                <textarea class="form-control" name="Description" id="ccDescription" rows="4" maxlength="2000" placeholder="Add a description for this change notice..." style="font-size: 0.875rem;"></textarea>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Type & Priority Section -->
+                                                        <div class="task-section" id="cc-type-priority-section">
+                                                            <div class="task-section-header">
+                                                                <h6 class="task-section-title">
+                                                                    <i class="fas fa-cog"></i> Type & Priority
+                                                                </h6>
+                                                            </div>
+                                                            <div class="task-section-content">
+                                                                <div class="row">
+                                                                    <div class="col-md-6 mb-3">
+                                                                        <label class="form-label fw-bold" style="font-size: 0.875rem;">
+                                                                            <i class="fas fa-tag me-2" style="color: #3d1019;"></i>Type
+                                                                        </label>
+                                                                        <select class="form-select" name="ChangeType" id="ccChangeType" style="font-size: 0.875rem;">
+                                                                            <option value="General">General</option>
+                                                                            <option value="Schedule">Schedule</option>
+                                                                            <option value="Scope">Scope</option>
+                                                                            <option value="Budget">Budget</option>
+                                                                        </select>
+                                                                    </div>
+                                                                    <div class="col-md-6 mb-3">
+                                                                        <label class="form-label fw-bold" style="font-size: 0.875rem;">
+                                                                            <i class="fas fa-flag me-2" style="color: #3d1019;"></i>Priority
+                                                                        </label>
+                                                                        <select class="form-select" name="Priority" id="ccPriority" style="font-size: 0.875rem;">
+                                                                            <option value="Low">Low</option>
+                                                                            <option value="Medium" selected>Medium</option>
+                                                                            <option value="High">High</option>
+                                                                            <option value="Critical">Critical</option>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Due Date Section -->
+                                                        <div class="task-section" id="cc-due-section">
+                                                            <div class="task-section-header">
+                                                                <h6 class="task-section-title">
+                                                                    <i class="fa-solid fa-calendar-day"></i> Acknowledgement Due Date
+                                                                </h6>
+                                                            </div>
+                                                            <div class="task-section-content">
+                                                                <input class="form-control" type="date" name="AcknowledgementDueDate" id="ccDueDate" style="font-size: 0.875rem; max-width: 250px;">
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Recipients Section (Detailed) -->
+                                                        <div class="task-section" id="cc-recipients-section" style="margin-bottom: 0;">
+                                                            <div class="task-section-header">
+                                                                <h6 class="task-section-title">
+                                                                    <i class="fas fa-users"></i> Recipients
+                                                                </h6>
+                                                                <button type="button" class="btn btn-sm btn-outline-secondary edit-btn" id="ccAddRecipientBtnAlt" style="border-radius: 0.5rem;">
+                                                                    <i class="fas fa-plus"></i> Add
+                                                                </button>
+                                                            </div>
+                                                            <div class="task-section-content">
+                                                                <div id="ccRecipientsList" class="cc-recipients-list">
+                                                                    <!-- Recipients list will be rendered here -->
+                                                                </div>
+                                                                <div class="mt-2">
+                                                                    <input type="text" class="form-control form-control-sm" id="ccAddRecipientEmail" placeholder="Add email address and press Enter" style="font-size: 0.875rem;">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </form>
+                                                </div>
+
+                                                <!-- Right Panel (Activity/Comments) -->
+                                                <div class="task-details-right">
+                                                    <div class="comments-section">
+                                                        <div class="comments-header">
+                                                            <h6 class="comments-title">
+                                                                <i class="fas fa-comment"></i> Activity & responses
+                                                            </h6>
+                                                        </div>
+                                                        <div class="comment-input-section">
+                                                            <textarea class="form-control comment-input" id="ccCommentInput" placeholder="Write a note..."></textarea>
+                                                            <div class="mt-2 d-flex align-items-center">
+                                                                <small class="text-muted" style="margin-right: 0.8rem; margin-left: 0.3rem; font-size: 0.8rem;">Type &#64; to mention users</small>
+                                                                <button class="btn btn-sm btn-primary" id="ccPostCommentBtn" style="font-weight: 600;"><i class="fas fa-paper-plane"></i> Post</button>
+                                                            </div>
+                                                        </div>
+                                                        <div class="activity-log" id="ccActivityLog">
+                                                            <p class="text-muted small text-center">No activity yet.</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- Footer with action buttons -->
+                                            <div class="task-details-footer" style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1.5rem; border-top: 1px solid #e5e7eb; background: #fff; flex-shrink: 0;">
+                                                <div id="ccModalMode" style="font-size: 0.8rem; color: #6b7280;"></div>
+                                                <div class="d-flex gap-2">
+                                                    <button type="button" class="btn btn-outline-secondary" id="cc-cancel-btn" style="font-size: 0.875rem;">Cancel</button>
+                                                    <button type="button" class="btn btn-primary" id="ccSaveBtn" style="font-weight: 600; font-size: 0.875rem;">
+                                                        <i class="fas fa-save me-1"></i> <span id="ccSaveBtnText">Create Draft</span>
+                                                    </button>
+                                                    <button type="button" class="btn btn-primary" id="ccSendBtn" style="font-weight: 600; font-size: 0.875rem; display: none;">
+                                                        <i class="fas fa-paper-plane me-1"></i> <span id="ccSendBtnText">Send</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Contact Selector Popup -->
+                                <div id="ccContactSelectorPopup" class="cc-contact-selector-popup" style="display: none;"></div>
                                 </div>
                         </div>
                     </div>
 
                     <!-- Recent Activity -->
-                    <div class="col-lg-6 mb-3 matter-card-wrapper">
+                    <div class="col-lg-6 mb-3 matter-card-wrapper" style="order: 3;">
                         <div class="card h-100 border-0 matter-card" style="padding-top: 0.5rem; position: relative;">
                             <div class="card-header bg-transparent border-0 pb-0">
                                 <div class="mb-2">
@@ -695,69 +1539,86 @@
                         </div>
                     </div>
 
-                    <!-- Priority Breakdown -->
-                    <div class="col-lg-6 mb-3 matter-card-wrapper">
+                    <!-- Status Overview -->
+                    <div class="col-lg-6 mb-3 matter-card-wrapper" style="order: 4;">
                         <div class="card h-100 border-0 matter-card" style="padding-top: 0.5rem; position: relative;">
                             <div class="card-header bg-transparent border-0 pb-0">
                                 <div class="mb-2">
                                     <div class="d-flex align-items-start">
-                                        <i class="fas fa-signal fs-5 me-2 flex-shrink-0 text-muted" style="margin-top: 2px;"></i>
+                                        <i class="fas fa-chart-pie fs-5 me-2 flex-shrink-0 text-muted" style="margin-top: 2px;"></i>
                                         <div class="flex-grow-1">
-                                            <h5 class="card-title fw-bold mb-2" style="color: black; font-size: 1rem; line-height: 1.3;">Priority breakdown</h5>
+                                            <h5 class="card-title fw-bold mb-2" style="color: black; font-size: 1rem; line-height: 1.3;">Status overview</h5>
                                         </div>
                                     </div>
                                     <p class="card-text text-muted mb-0" style="font-size: 0.8rem; line-height: 1.4; padding-left: 30px;">
-                                        Get a holistic view of how work is being prioritized.
+                                        Get a snapshot of the status of your task items. 
+                                        <a href="/Client/@ViewBag.OrganizationId/Matter/@Model.Matter.Id/Tasks" class="text-primary text-decoration-none">View all task items</a>
                                     </p>
                                 </div>
                             </div>
-                            <div class="card-body pt-2">
+                                <div class="card-body pt-2 d-flex flex-column align-items-center justify-content-center">
                                 @if (Model.TotalTasksCount > 0)
                                 {
-                                    <div class="mb-3">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span class="text-muted small">High Priority</span>
-                                            <span class="fw-medium small">@Model.HighPriorityCount</span>
-                                        </div>
-                                        <div class="progress" style="height: 8px;">
-                                            <div class="progress-bar" style="width: @Model.HighPriorityPercentage%; background-color: #fd7e14; background-image: none;"></div>
-                                        </div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span class="text-muted small">Medium Priority</span>
-                                            <span class="fw-medium small">@Model.MediumPriorityCount</span>
-                                        </div>
-                                        <div class="progress" style="height: 8px;">
-                                            <div class="progress-bar" style="width: @Model.MediumPriorityPercentage%; background-color: #0d6efd; background-image: none;"></div>
-                                        </div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span class="text-muted small">Low Priority</span>
-                                            <span class="fw-medium small">@Model.LowPriorityCount</span>
-                                        </div>
-                                        <div class="progress" style="height: 8px;">
-                                            <div class="progress-bar" style="width: @Model.LowPriorityPercentage%; background-color: #6c757d; background-image: none;"></div>
-                                        </div>
-                                    </div>
-                                    @if (Model.CriticalPriorityCount > 0)
-                                    {
-                                        <div class="mb-3">
-                                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                                <span class="text-muted small">Critical Priority</span>
-                                                <span class="fw-medium small">@Model.CriticalPriorityCount</span>
+                                        var r = 80.0; 
+                                        var c = 2 * Math.PI * r; 
+                                        var total = Math.Max(1, Model.TotalTasksCount);
+                                        var segPlanned = (double)Model.TasksPending / total * c; // Planned/Pending
+                                        var segInProgress = (double)Model.TasksInProgress / total * c;
+                                        var segReview = (double)Model.TasksInReview / total * c;
+                                        var segCompleted = (double)Model.TasksCompleted / total * c;
+                                        var offsetPlanned = 0.0;
+                                        var offsetInProgress = offsetPlanned + segPlanned;
+                                        var offsetReview = offsetInProgress + segInProgress;
+                                        var offsetCompleted = offsetReview + segReview;
+                                        <div class="position-relative mb-3" style="width: 192px; height: 192px;">
+                                            <svg class="w-100 h-100" style="transform: rotate(-90deg);" viewBox="0 0 192 192">
+                                                <!-- track -->
+                                                <circle cx="96" cy="96" r="80" stroke="#e5e7eb" stroke-width="16" fill="none" />
+                                                <!-- Planned / Pending (secondary gray) -->
+                                                @if (Model.TasksPending > 0)
+                                                {
+                                                    <circle cx="96" cy="96" r="80" style="stroke: rgba(var(--bs-secondary-rgb), 1); stroke-linecap: butt;" stroke-width="16" fill="none"
+                                                            stroke-dasharray="@segPlanned @c" stroke-dashoffset="-@offsetPlanned" />
+                                                }
+                                                <!-- In Progress (primary) -->
+                                                @if (Model.TasksInProgress > 0)
+                                                {
+                                                    <circle cx="96" cy="96" r="80" style="stroke: rgba(var(--bs-primary-rgb), 1); stroke-linecap: butt;" stroke-width="16" fill="none"
+                                                            stroke-dasharray="@segInProgress @c" stroke-dashoffset="-@offsetInProgress" />
+                                                }
+                                                <!-- Review (amber) -->
+                                                @if (Model.TasksInReview > 0)
+                                                {
+                                                    <circle cx="96" cy="96" r="80" style="stroke: rgba(var(--bs-warning-rgb), 1); stroke-linecap: butt;" stroke-width="16" fill="none"
+                                                            stroke-dasharray="@segReview @c" stroke-dashoffset="-@offsetReview" />
+                                                }
+                                                <!-- Completed (green) -->
+                                                @if (Model.TasksCompleted > 0)
+                                                {
+                                                    <circle cx="96" cy="96" r="80" style="stroke: rgba(var(--bs-success-rgb), 1); stroke-linecap: butt;" stroke-width="16" fill="none"
+                                                            stroke-dasharray="@segCompleted @c" stroke-dashoffset="-@offsetCompleted" />
+                                                }
+                                            </svg>
+                                            <div class="position-absolute top-50 start-50 translate-middle text-center">
+                                                <div class="fs-1 fw-bold text-dark">@Model.TotalTasksCount</div>
+                                                <div class="small text-muted">Total task items</div>
                                             </div>
-                                            <div class="progress" style="height: 8px;">
-                                                <div class="progress-bar" style="width: @Model.CriticalPriorityPercentage%; background-color: #dc3545; background-image: none;"></div>
                                             </div>
+                                        <div class="d-flex flex-wrap justify-content-center gap-3 small">
+                                            <div class="d-flex align-items-center gap-2"><span class="rounded" style="width:12px;height:12px;background-color: rgba(var(--bs-secondary-rgb), 1); margin-top:0.6rem;"></span><span class="text-muted">Planned: @Model.TasksPending</span></div>
+                                            <div class="d-flex align-items-center gap-2"><span class="rounded" style="width:12px;height:12px;background-color: rgba(var(--bs-primary-rgb), 1); margin-top:0.6rem;"></span><span class="text-muted">In Progress: @Model.TasksInProgress</span></div>
+                                            <div class="d-flex align-items-center gap-2"><span class="rounded" style="width:12px;height:12px;background-color: rgba(var(--bs-warning-rgb), 1); margin-top:0.6rem;"></span><span class="text-muted">Review: @Model.TasksInReview</span></div>
+                                            <div class="d-flex align-items-center gap-2"><span class="rounded" style="width:12px;height:12px;background-color: rgba(var(--bs-success-rgb), 1); margin-top:0.6rem;"></span><span class="text-muted">Completed: @Model.TasksCompleted</span></div>
                                         </div>
-                                    }
                                 }
                                 else
                                 {
-                                    <div class="text-center py-4">
-                                        <p class="text-muted small mb-0">No priority data available</p>
+                                        <div class="text-center py-5">
+                                            <div class="mb-3">
+                                                <i class="fa-solid fa-bars-progress text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
+                                            </div>
+                                            <h6 class="fw-semibold text-dark mb-2">No task items yet</h6>
+                                            <p class="text-muted small mb-0">Create tasks to track your work</p>
                                     </div>
                                 }
                             </div>
@@ -774,17 +1635,11 @@
             <!-- Content will be loaded via AJAX when tab is first accessed -->
         </div>
 
-        <!-- Timeline Tab (Placeholder) -->
+        <!-- Timeline Tab (AJAX Loaded) -->
         <div id="tab-timeline" class="tab-content-section" style="display: none;">
-            <div class="container-fluid px-4 py-4">
-                <div class="text-center py-5">
-                    <i class="fas fa-stream text-muted mb-3" style="font-size: 3rem;"></i>
-                    <h4 class="text-dark mb-2">@matterLabel Timeline</h4>
-                    <p class="text-muted">This section will display a timeline of events and milestones for this @matterLabel.ToLower().</p>
-                    <p class="text-muted small">(To be implemented in a future phase)</p>
-                </div>
-            </div>
+            <!-- Content will be loaded via AJAX when tab is first accessed -->
         </div>
+
 
         <!-- Calendar Tab (AJAX Loaded) -->
         <div id="tab-calendar" class="tab-content-section" style="display: none;">
@@ -837,6 +1692,7 @@
 @section Scripts {
     <script src="~/js/matter-details.js"></script>
     <script src="~/js/matter-info-carousel.js"></script>
+    <script src="~/js/change-control.js"></script>
     <script>
         const matterId = @Model.Matter.Id;
         const organizationId = @ViewBag.OrganizationId;
@@ -1545,6 +2401,369 @@
                 alert('An error occurred. Please try again.');
             }
         }
+
+        // ============================================
+        // Timeline Tab (Planner View) Logic
+        // ============================================
+        (function() {
+            'use strict';
+
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            
+            let timelineViewDate = new Date();
+            let timelineCurrentView = 'day'; // 'day' or 'week'
+            let timelineInitialized = false;
+            let matterEventDate = null;
+
+            // Parse the matter's event date
+            const matterDueDateStr = '@(Model.Matter.DueDate?.ToString("yyyy-MM-dd") ?? "")';
+            if (matterDueDateStr) {
+                matterEventDate = new Date(matterDueDateStr + 'T00:00:00');
+            }
+
+            function initTimeline() {
+                if (timelineInitialized) return;
+                timelineInitialized = true;
+
+                // Navigation buttons
+                document.getElementById('timelinePrevBtn')?.addEventListener('click', () => navigateTimeline(-1));
+                document.getElementById('timelineNextBtn')?.addEventListener('click', () => navigateTimeline(1));
+
+                // View toggle dropdown
+                document.querySelectorAll('.timeline-view-option').forEach(opt => {
+                    opt.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const view = opt.dataset.view;
+                        switchTimelineView(view);
+                    });
+                });
+
+                // Set initial view to day and navigate to event date if available
+                if (matterEventDate) {
+                    timelineViewDate = new Date(matterEventDate);
+                }
+                switchTimelineView('day');
+
+                // Update time indicator
+                updateTimelineCurrentTimeIndicator();
+                setInterval(updateTimelineCurrentTimeIndicator, 60000);
+            }
+
+            function navigateTimeline(direction) {
+                if (timelineCurrentView === 'day') {
+                    timelineViewDate.setDate(timelineViewDate.getDate() + direction);
+                } else {
+                    timelineViewDate.setDate(timelineViewDate.getDate() + (direction * 7));
+                }
+                updateTimelineHeader();
+                updateTimelineEventBadges();
+                renderTimelineTasks();
+                updateTimelineCurrentTimeIndicator();
+            }
+
+            function switchTimelineView(view) {
+                timelineCurrentView = view;
+                const tabTimeline = document.getElementById('tab-timeline');
+                
+                // Update view class
+                tabTimeline.classList.remove('day-view', 'week-view');
+                tabTimeline.classList.add(view + '-view');
+
+                // Update dropdown
+                document.querySelectorAll('.timeline-view-option').forEach(opt => {
+                    opt.classList.toggle('active', opt.dataset.view === view);
+                });
+                const label = document.getElementById('timelineViewToggleLabel');
+                if (label) label.textContent = view === 'day' ? 'Day' : 'Week';
+
+                updateTimelineHeader();
+                updateTimelineEventBadges();
+                renderTimelineTasks();
+                updateTimelineCurrentTimeIndicator();
+            }
+
+            function updateTimelineHeader() {
+                const dateLabel = document.getElementById('timelineMonthLabel');
+                const daysHeader = document.getElementById('timelineDaysHeader');
+                const datesHeader = document.getElementById('timelineDatesHeader');
+
+                if (timelineCurrentView === 'day') {
+                    const options = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
+                    if (dateLabel) dateLabel.textContent = timelineViewDate.toLocaleDateString('en-US', options);
+
+                    const dayHeaders = daysHeader?.querySelectorAll('.timeline-day-header');
+                    if (dayHeaders && dayHeaders[1]) dayHeaders[1].textContent = dayNames[timelineViewDate.getDay()];
+
+                    const dateCells = datesHeader?.querySelectorAll('.timeline-date-cell');
+                    if (dateCells && dateCells[1]) {
+                        dateCells[1].textContent = timelineViewDate.getDate();
+                        dateCells[1].classList.toggle('today', isTimelineToday(timelineViewDate));
+                    }
+                } else {
+                    const weekStart = getTimelineWeekStart(timelineViewDate);
+                    const weekEnd = new Date(weekStart);
+                    weekEnd.setDate(weekEnd.getDate() + 6);
+
+                    let labelText;
+                    if (weekStart.getMonth() === weekEnd.getMonth()) {
+                        labelText = `${monthNames[weekStart.getMonth()]} ${weekStart.getFullYear()}`;
+                    } else {
+                        labelText = `${monthNames[weekStart.getMonth()].substring(0, 3)} - ${monthNames[weekEnd.getMonth()].substring(0, 3)} ${weekEnd.getFullYear()}`;
+                    }
+                    if (dateLabel) dateLabel.textContent = labelText;
+
+                    const dayHeaders = daysHeader?.querySelectorAll('.timeline-day-header');
+                    for (let i = 0; i < 7; i++) {
+                        if (dayHeaders && dayHeaders[i + 1]) dayHeaders[i + 1].textContent = dayNames[i];
+                    }
+
+                    const dateCells = datesHeader?.querySelectorAll('.timeline-date-cell');
+                    for (let i = 0; i < 7; i++) {
+                        const date = new Date(weekStart);
+                        date.setDate(date.getDate() + i);
+                        if (dateCells && dateCells[i + 1]) {
+                            dateCells[i + 1].textContent = date.getDate();
+                            dateCells[i + 1].classList.toggle('today', isTimelineToday(date));
+                        }
+                    }
+                }
+            }
+
+            function updateTimelineEventBadges() {
+                const badgeRow = document.getElementById('timelineEventBadgeRow');
+                if (!badgeRow) return;
+
+                // Clear existing badges
+                badgeRow.querySelectorAll('.timeline-event-badge').forEach(b => b.remove());
+
+                if (!matterEventDate) return;
+
+                if (timelineCurrentView === 'day') {
+                    if (isTimelineSameDay(timelineViewDate, matterEventDate)) {
+                        const cell = badgeRow.querySelector('.timeline-event-badge-cell[data-day="0"]');
+                        if (cell) {
+                            cell.innerHTML = '<span class="timeline-event-badge"><i class="fas fa-star"></i> Day of Event</span>';
+                        }
+                    }
+                } else {
+                    const weekStart = getTimelineWeekStart(timelineViewDate);
+                    for (let i = 0; i < 7; i++) {
+                        const date = new Date(weekStart);
+                        date.setDate(date.getDate() + i);
+                        if (isTimelineSameDay(date, matterEventDate)) {
+                            const cell = badgeRow.querySelector(`.timeline-event-badge-cell[data-day="${i}"]`);
+                            if (cell) {
+                                cell.innerHTML = '<span class="timeline-event-badge"><i class="fas fa-star"></i> Day of Event</span>';
+                            }
+                        }
+                    }
+                }
+            }
+
+            function renderTimelineTasks() {
+                // Clear existing task cards
+                document.querySelectorAll('#tab-timeline .timeline-task-card, #tab-timeline .timeline-all-day-task').forEach(el => el.remove());
+
+                // Get tasks for this matter (you can extend this to load from API)
+                const tasks = window.matterTasks || [];
+                
+                tasks.forEach(task => {
+                    if (!task.dueDate) return;
+
+                    const taskDueDate = new Date(task.dueDate);
+                    let columnIndex = -1;
+
+                    if (timelineCurrentView === 'day') {
+                        if (isTimelineSameDay(taskDueDate, timelineViewDate)) {
+                            columnIndex = 0;
+                        }
+                    } else {
+                        const weekStart = getTimelineWeekStart(timelineViewDate);
+                        for (let i = 0; i < 7; i++) {
+                            const columnDate = new Date(weekStart);
+                            columnDate.setDate(columnDate.getDate() + i);
+                            if (isTimelineSameDay(taskDueDate, columnDate)) {
+                                columnIndex = i;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (columnIndex === -1) return;
+
+                    const hasTime = task.dueDate && task.dueDate.indexOf('T') !== -1;
+                    const hour = taskDueDate.getHours();
+                    const minutes = taskDueDate.getMinutes();
+
+                    if (!hasTime || (hour === 0 && minutes === 0)) {
+                        const allDayCell = document.querySelector(`#timelineAllDayRow .timeline-all-day-cell[data-day="${columnIndex}"]`);
+                        if (allDayCell) {
+                            const taskEl = createTimelineAllDayTask(task);
+                            allDayCell.appendChild(taskEl);
+                        }
+                    } else {
+                        const column = document.querySelector(`#timelineColumns .timeline-column[data-day="${columnIndex}"]`);
+                        if (column) {
+                            const taskEl = createTimelineTaskCard(task, taskDueDate);
+                            column.appendChild(taskEl);
+                        }
+                    }
+                });
+            }
+
+            function createTimelineAllDayTask(task) {
+                const el = document.createElement('div');
+                el.className = 'timeline-all-day-task';
+                el.textContent = task.title;
+                el.style.borderLeftColor = getPriorityColor(task.priority);
+                el.addEventListener('click', () => {
+                    if (typeof openTaskModal === 'function') openTaskModal(task.id);
+                });
+                return el;
+            }
+
+            function createTimelineTaskCard(task, dueDate) {
+                const el = document.createElement('div');
+                el.className = 'timeline-task-card';
+                el.textContent = task.title;
+                el.style.borderLeftColor = getPriorityColor(task.priority);
+
+                const hour = dueDate.getHours();
+                const minutes = dueDate.getMinutes();
+                const top = (hour * 60 + minutes);
+                el.style.top = top + 'px';
+                el.style.height = '50px';
+
+                el.addEventListener('click', () => {
+                    if (typeof openTaskModal === 'function') openTaskModal(task.id);
+                });
+                return el;
+            }
+
+            function getPriorityColor(priority) {
+                const colors = { 'Critical': '#dc3545', 'High': '#fd7e14', 'Medium': '#0d6efd', 'Low': '#6c757d' };
+                return colors[priority] || colors['Medium'];
+            }
+
+            function updateTimelineCurrentTimeIndicator() {
+                const indicator = document.getElementById('timelineCurrentTimeLine');
+                if (!indicator) return;
+
+                const now = new Date();
+                let columnIndex = -1;
+
+                if (timelineCurrentView === 'day') {
+                    if (isTimelineToday(timelineViewDate)) {
+                        columnIndex = 0;
+                    }
+                } else {
+                    const weekStart = getTimelineWeekStart(timelineViewDate);
+                    for (let i = 0; i < 7; i++) {
+                        const date = new Date(weekStart);
+                        date.setDate(date.getDate() + i);
+                        if (isTimelineToday(date)) {
+                            columnIndex = i;
+                            break;
+                        }
+                    }
+                }
+
+                if (columnIndex === -1) {
+                    indicator.style.display = 'none';
+                    return;
+                }
+
+                const hour = now.getHours();
+                const minutes = now.getMinutes();
+                const top = (hour * 60 + minutes);
+
+                indicator.style.display = 'block';
+                indicator.style.top = top + 'px';
+
+                // Position horizontally within the correct column
+                const columnsWrapper = document.getElementById('timelineColumns');
+                const columns = columnsWrapper?.querySelectorAll('.timeline-column');
+                if (columns && columns[columnIndex]) {
+                    const columnWidth = columns[columnIndex].offsetWidth;
+                    const totalWidth = columnsWrapper.offsetWidth;
+                    const left = (columnIndex / (timelineCurrentView === 'day' ? 1 : 7)) * 100;
+                    const width = (1 / (timelineCurrentView === 'day' ? 1 : 7)) * 100;
+                    indicator.style.left = left + '%';
+                    indicator.style.width = width + '%';
+                }
+            }
+
+            function getTimelineWeekStart(date) {
+                const d = new Date(date);
+                const day = d.getDay();
+                d.setDate(d.getDate() - day);
+                d.setHours(0, 0, 0, 0);
+                return d;
+            }
+
+            function isTimelineToday(date) {
+                const today = new Date();
+                return date.getFullYear() === today.getFullYear() &&
+                       date.getMonth() === today.getMonth() &&
+                       date.getDate() === today.getDate();
+            }
+
+            function isTimelineSameDay(date1, date2) {
+                return date1.getFullYear() === date2.getFullYear() &&
+                       date1.getMonth() === date2.getMonth() &&
+                       date1.getDate() === date2.getDate();
+            }
+
+            // Initialize when timeline tab is shown
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                        const tabTimeline = document.getElementById('tab-timeline');
+                        if (tabTimeline && tabTimeline.style.display !== 'none') {
+                            initTimeline();
+
+                            // Scroll to current time on first load
+                            setTimeout(() => {
+                                const now = new Date();
+                                const scrollTo = Math.max(0, (now.getHours() - 2) * 60);
+                                const timeGrid = document.getElementById('timelineTimeGrid');
+                                if (timeGrid) timeGrid.scrollTop = scrollTo;
+                            }, 100);
+                        }
+                    }
+                });
+            });
+
+            const tabTimeline = document.getElementById('tab-timeline');
+            if (tabTimeline) {
+                observer.observe(tabTimeline, { attributes: true });
+            }
+
+            // Also handle immediate init if tab is already visible
+            if (tabTimeline && tabTimeline.style.display !== 'none') {
+                initTimeline();
+            }
+
+            // Expose initialization function globally for matter-details.js
+            window.initializeTimeline = initTimeline;
+
+            // Listen for custom tab change event from matter-details.js
+            document.addEventListener('matterTabChanged', function(e) {
+                if (e.detail && e.detail.tabName === 'timeline') {
+                    initTimeline();
+                    // Scroll to current time or event date
+                    setTimeout(() => {
+                        const timeGrid = document.getElementById('timelineTimeGrid');
+                        if (timeGrid) {
+                            const now = new Date();
+                            const scrollTo = Math.max(0, (now.getHours() - 2) * 60);
+                            timeGrid.scrollTop = scrollTo;
+                        }
+                    }, 100);
+                }
+            });
+        })();
     </script>
 }
 

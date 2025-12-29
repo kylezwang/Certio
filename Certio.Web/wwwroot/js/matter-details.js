@@ -103,19 +103,8 @@
                 url = `/Client/${orgId}/Matter/${matterId}/Tasks`;
                 break;
             case 'timeline':
-                // Placeholder for future implementation
-                targetElement.innerHTML = `
-                    <div class="container-fluid px-4 py-4">
-                        <div class="text-center py-5">
-                            <i class="fas fa-stream text-muted mb-3" style="font-size: 3rem;"></i>
-                            <h4 class="text-dark mb-2">Matter Timeline</h4>
-                            <p class="text-muted">This section will display a timeline of events and milestones for this matter.</p>
-                            <p class="text-muted small">(To be implemented in a future phase)</p>
-                        </div>
-                    </div>
-                `;
-                loadedTabs.add(tabName);
-                return;
+                url = `/Client/${orgId}/Matter/${matterId}/Timeline`;
+                break;
             case 'calendar':
                 url = `/Client/${orgId}/Matter/${matterId}/Calendar`;
                 break;
@@ -342,6 +331,33 @@
                 console.log('✓ Dispatched matterTabChanged event for calendar');
                 
                 console.log('=== Calendar scripts initialization complete ===');
+                break;
+            
+            case 'timeline':
+                // Initialize timeline scripts
+                console.log('Initializing timeline scripts for Matter Details Timeline tab...');
+                
+                // Dispatch event to notify timeline that tab is active
+                const timelineTabEvent = new CustomEvent('matterTabChanged', { 
+                    detail: { tabName: 'timeline' } 
+                });
+                document.dispatchEvent(timelineTabEvent);
+                console.log('✓ Dispatched matterTabChanged event for timeline');
+                
+                // Check if timeline initialization function exists and call it
+                if (typeof window.initializeTimeline === 'function') {
+                    console.log('✓ Found initializeTimeline, calling it...');
+                    try {
+                        window.initializeTimeline();
+                        console.log('✓ initializeTimeline completed successfully');
+                    } catch (error) {
+                        console.error('✗ Error calling initializeTimeline:', error);
+                    }
+                } else {
+                    console.log('Timeline will be initialized by its own observer');
+                }
+                
+                console.log('=== Timeline scripts initialization complete ===');
                 break;
             
             // Add other tab-specific initializations here as needed

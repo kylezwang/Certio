@@ -1,0 +1,783 @@
+@model Certio.Web.ViewModels.TasksViewModel
+@{
+    Layout = null;
+    var matterDueDate = ViewBag.MatterDueDate as string ?? "";
+    var matterTitle = ViewBag.MatterTitle as string ?? "";
+}
+
+<link rel="stylesheet" href="~/css/tasks.css" />
+
+<style>
+    /* Timeline-specific overrides */
+    .timeline-content {
+        padding: 0;
+        background: transparent;
+    }
+    
+    .timeline-planner-view {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 180px);
+        min-height: 600px;
+        background: #f9fafb;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    /* Event Badge - centered in header */
+    .timeline-event-badge-center {
+        z-index: 5;
+    }
+    
+    .timeline-event-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.25rem 0.6rem;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        background: #3d1019;
+        color: #fff;
+        white-space: nowrap;
+    }
+    
+    /* Hide matter badges in timeline context */
+    .task-matter-badge {
+        display: none !important;
+    }
+    
+    /* Task Details Modal styling */
+    .timeline-content .task-details-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1100;
+        display: none;
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 5vh;
+    }
+    
+    .timeline-content .task-details-modal .modal-dialog {
+        background: #fff;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 600px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        max-height: 85vh;
+        overflow: auto;
+    }
+    
+    .timeline-content .task-details-content {
+        padding: 0;
+    }
+    
+    .timeline-content .task-details-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .timeline-content .task-details-title-section {
+        padding: 1rem 1.25rem;
+    }
+    
+    .timeline-content .task-title-container {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .timeline-content .task-title-container i {
+        color: #6b7280;
+        font-size: 1rem;
+    }
+    
+    .timeline-content .task-title {
+        flex: 1;
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0;
+        border: none;
+        outline: none;
+        padding: 0.25rem;
+        border-radius: 4px;
+        min-width: 0;
+    }
+    
+    .timeline-content .task-title:empty:before {
+        content: attr(placeholder);
+        color: #9ca3af;
+    }
+    
+    .timeline-content .task-title:focus {
+        background: #f9fafb;
+    }
+    
+    .timeline-content .task-details-body {
+        padding: 1rem 1.25rem;
+    }
+    
+    .timeline-content .description-section {
+        margin-bottom: 1.5rem;
+    }
+    
+    .timeline-content .section-header h6 {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .timeline-content .task-description-textarea {
+        width: 100%;
+        min-height: 80px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 0.75rem;
+        font-size: 0.875rem;
+        resize: vertical;
+    }
+    
+    .timeline-content .details-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    
+    .timeline-content .detail-item label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #6b7280;
+        margin-bottom: 0.25rem;
+    }
+    
+    .timeline-content .detail-item .form-select,
+    .timeline-content .detail-item .form-control {
+        width: 100%;
+        padding: 0.5rem;
+        font-size: 0.875rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+    }
+    
+    .timeline-content .task-priority-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+</style>
+
+<div class="timeline-content matter-tasks-content">
+    @Html.AntiForgeryToken()
+    
+    <!-- Planner View Container -->
+    <div class="timeline-planner-view" id="timelinePlannerView">
+        <div class="planner-calendar-container" style="flex: 1; display: flex; flex-direction: column;">
+            <!-- Calendar Header with Month/Year and Navigation -->
+            <div class="planner-header-bar" style="position: relative; display: flex; justify-content: space-between; align-items: center;">
+                <!-- Left: Date + Nav arrows -->
+                <div class="d-flex align-items-center">
+                    <div class="planner-month-label" id="timelineMonthLabel">Loading...</div>
+                    <div class="planner-nav-controls ms-3">
+                        <button class="btn btn-sm" id="timelinePrevBtn">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="btn btn-sm" id="timelineNextBtn">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                <!-- Center: Day of Event badge (positioned to center over calendar column, accounting for time column offset) -->
+                <div class="timeline-event-badge-center" id="timelineEventBadgeCenter" style="display: none; position: absolute; left: calc(50% + 30px); transform: translateX(-50%);">
+                    <span class="timeline-event-badge"><i class="fas fa-star"></i> Day of Event</span>
+                </div>
+                <!-- Right: Day/Week toggle + Create -->
+                <div class="planner-create-section">
+                    <div class="dropdown me-3">
+                        <button class="btn planner-view-btn qa-card" type="button" id="timelineViewToggleBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span id="timelineViewToggleLabel">Day</span>
+                            <i class="fas fa-chevron-down ms-2 dropdown-arrow"></i>
+                        </button>
+                        <ul class="dropdown-menu planner-dropdown" id="timelineViewDropdown">
+                            <li><a class="dropdown-item timeline-view-option active" href="#" data-view="day"><i class="fas fa-calendar-day me-2"></i>Day</a></li>
+                            <li><a class="dropdown-item timeline-view-option" href="#" data-view="week"><i class="fas fa-calendar-week me-2"></i>Week</a></li>
+                        </ul>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn planner-create-btn qa-card" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-plus me-2"></i>
+                            <span>Create</span>
+                            <i class="fas fa-chevron-down ms-2 dropdown-arrow"></i>
+                        </button>
+                        <ul class="dropdown-menu planner-dropdown">
+                            <li><a class="dropdown-item" href="#" id="timelineCreateTaskBtn"><i class="fa-solid fa-bars-progress me-2"></i>Task</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day/Week Planner View -->
+            <div class="planner-dayweek-container day-view" id="timelineDayWeekContainer" style="flex: 1; display: flex; flex-direction: column;">
+                <div class="planner-container" style="flex: 1; display: flex; flex-direction: column;">
+                    <div class="calendar-grid planner-grid" style="flex: 1; display: flex; flex-direction: column;">
+                        <!-- Days Header (Week View) -->
+                        <div class="calendar-days-header" id="timelineDaysHeader">
+                            <div class="day-header time-header"></div>
+                            <div class="day-header">Sun</div>
+                            <div class="day-header">Mon</div>
+                            <div class="day-header">Tue</div>
+                            <div class="day-header">Wed</div>
+                            <div class="day-header">Thu</div>
+                            <div class="day-header">Fri</div>
+                            <div class="day-header">Sat</div>
+                        </div>
+
+                        <!-- Dates Header -->
+                        <div class="calendar-dates-header" id="timelineDatesHeader">
+                            <div class="date-cell time-header"></div>
+                            <div class="date-cell" data-day="0">1</div>
+                            <div class="date-cell" data-day="1">2</div>
+                            <div class="date-cell" data-day="2">3</div>
+                            <div class="date-cell" data-day="3">4</div>
+                            <div class="date-cell" data-day="4">5</div>
+                            <div class="date-cell" data-day="5">6</div>
+                            <div class="date-cell" data-day="6">7</div>
+                        </div>
+
+                        <!-- All Day Row -->
+                        <div class="all-day-row" id="timelineAllDayRow">
+                            <div class="all-day-time-column">
+                                <div class="time-slot all-day">All day</div>
+                            </div>
+                            <div class="all-day-calendar-columns" id="timelineAllDayColumns">
+                                <div class="calendar-column" data-day="0"><div class="time-cell all-day-cell"></div></div>
+                                <div class="calendar-column" data-day="1"><div class="time-cell all-day-cell"></div></div>
+                                <div class="calendar-column" data-day="2"><div class="time-cell all-day-cell"></div></div>
+                                <div class="calendar-column" data-day="3"><div class="time-cell all-day-cell"></div></div>
+                                <div class="calendar-column" data-day="4"><div class="time-cell all-day-cell"></div></div>
+                                <div class="calendar-column" data-day="5"><div class="time-cell all-day-cell"></div></div>
+                                <div class="calendar-column" data-day="6"><div class="time-cell all-day-cell"></div></div>
+                            </div>
+                        </div>
+
+                        <!-- Time Grid (Scrollable) -->
+                        <div class="calendar-time-grid" id="timelineTimeGrid" style="flex: 1;">
+                            <div class="time-column">
+                                <div class="time-slot">12 am</div>
+                                <div class="time-slot">1 am</div>
+                                <div class="time-slot">2 am</div>
+                                <div class="time-slot">3 am</div>
+                                <div class="time-slot">4 am</div>
+                                <div class="time-slot">5 am</div>
+                                <div class="time-slot">6 am</div>
+                                <div class="time-slot">7 am</div>
+                                <div class="time-slot">8 am</div>
+                                <div class="time-slot">9 am</div>
+                                <div class="time-slot">10 am</div>
+                                <div class="time-slot">11 am</div>
+                                <div class="time-slot">12 pm</div>
+                                <div class="time-slot">1 pm</div>
+                                <div class="time-slot">2 pm</div>
+                                <div class="time-slot">3 pm</div>
+                                <div class="time-slot">4 pm</div>
+                                <div class="time-slot">5 pm</div>
+                                <div class="time-slot">6 pm</div>
+                                <div class="time-slot">7 pm</div>
+                                <div class="time-slot">8 pm</div>
+                                <div class="time-slot">9 pm</div>
+                                <div class="time-slot">10 pm</div>
+                                <div class="time-slot">11 pm</div>
+                            </div>
+                            <div class="calendar-columns" id="timelineCalendarColumns">
+                                <div class="calendar-column" data-day="0">
+                                    @for (int h = 0; h < 24; h++) { <div class="time-cell"></div> }
+                                </div>
+                                <div class="calendar-column" data-day="1">
+                                    @for (int h = 0; h < 24; h++) { <div class="time-cell"></div> }
+                                </div>
+                                <div class="calendar-column" data-day="2">
+                                    @for (int h = 0; h < 24; h++) { <div class="time-cell"></div> }
+                                </div>
+                                <div class="calendar-column" data-day="3">
+                                    @for (int h = 0; h < 24; h++) { <div class="time-cell"></div> }
+                                </div>
+                                <div class="calendar-column" data-day="4">
+                                    @for (int h = 0; h < 24; h++) { <div class="time-cell"></div> }
+                                </div>
+                                <div class="calendar-column" data-day="5">
+                                    @for (int h = 0; h < 24; h++) { <div class="time-cell"></div> }
+                                </div>
+                                <div class="calendar-column" data-day="6">
+                                    @for (int h = 0; h < 24; h++) { <div class="time-cell"></div> }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Task Details Modal for Timeline (unique ID to avoid conflict with Tasks modal) -->
+    <div class="task-details-modal" id="timelineTaskModal" style="display: none;">
+        <div class="modal-dialog">
+            <div class="task-details-content">
+                <div class="task-details-header">
+                    <div class="task-details-header-left">
+                        <span class="task-priority-badge" id="task-priority-badge">Medium</span>
+                    </div>
+                    <div class="task-details-header-right">
+                        <button type="button" class="btn-close" id="closeTimelineTaskModal" aria-label="Close"></button>
+                    </div>
+                </div>
+                <div class="task-details-title-section">
+                    <div class="task-title-container">
+                        <i class="fa-solid fa-bars-progress"></i>
+                        <h2 class="task-title" contenteditable="true" placeholder="Task title"></h2>
+                    </div>
+                </div>
+                <div class="task-details-body">
+                    <div class="description-section">
+                        <div class="section-header">
+                            <h6><i class="fas fa-align-left"></i> Description</h6>
+                        </div>
+                        <textarea class="task-description-textarea timeline-task-description" placeholder="Add a description..."></textarea>
+                    </div>
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <label>Status</label>
+                            <select id="timeline-status-field" class="form-select">
+                                <option value="Pending">Pending</option>
+                                <option value="InProgress">In Progress</option>
+                                <option value="Review">Review</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </div>
+                        <div class="detail-item">
+                            <label>Priority</label>
+                            <select id="timeline-priority-field" class="form-select">
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                                <option value="Critical">Critical</option>
+                            </select>
+                        </div>
+                        <div class="detail-item">
+                            <label>Start Date</label>
+                            <input type="datetime-local" id="timeline-start-date-field" class="form-control" />
+                        </div>
+                        <div class="detail-item">
+                            <label>Due Date</label>
+                            <input type="datetime-local" id="timeline-due-date-field" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    'use strict';
+    
+    // Timeline state - starts in Day view on the event date
+    let timelineCurrentView = 'day';
+    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                      'July', 'August', 'September', 'October', 'November', 'December'];
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    
+    // Matter data
+    const matterId = @ViewBag.MatterId;
+    const matterDueDateStr = '@matterDueDate';
+    const matterDueDate = matterDueDateStr ? new Date(matterDueDateStr) : null;
+    
+    // Start on the event date if available, otherwise today
+    let timelineViewDate = (matterDueDate && !isNaN(matterDueDate.getTime())) ? new Date(matterDueDate) : new Date();
+    
+    // Task data from server
+    const tasksData = {
+        allTasks: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AllTasks ?? new List<Certio.Web.ViewModels.TaskItemViewModel>())),
+        users: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Users ?? new List<Certio.Web.ViewModels.UserOption>())),
+        matters: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Matters ?? new List<Certio.Web.ViewModels.MatterOption>()))
+    };
+    
+    // Track if already initialized
+    let timelineInitialized = false;
+    
+    function initializeTimeline() {
+        if (timelineInitialized) return;
+        timelineInitialized = true;
+        console.log('Initializing Timeline view...');
+        
+        // Setup view toggle
+        const viewOptions = document.querySelectorAll('.timeline-view-option');
+        viewOptions.forEach(option => {
+            option.addEventListener('click', function(e) {
+                e.preventDefault();
+                const newView = this.dataset.view;
+                viewOptions.forEach(opt => opt.classList.remove('active'));
+                this.classList.add('active');
+                const viewLabels = { 'day': 'Day', 'week': 'Week' };
+                document.getElementById('timelineViewToggleLabel').textContent = viewLabels[newView];
+                switchTimelineView(newView);
+            });
+        });
+        
+        // Navigation buttons
+        document.getElementById('timelinePrevBtn')?.addEventListener('click', navigateTimelinePrev);
+        document.getElementById('timelineNextBtn')?.addEventListener('click', navigateTimelineNext);
+        
+        // Create task button
+        document.getElementById('timelineCreateTaskBtn')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            openTimelineTaskModal(null);
+        });
+        
+        // Close modal handlers - use Timeline-specific modal IDs
+        document.getElementById('closeTimelineTaskModal')?.addEventListener('click', closeTimelineModal);
+        document.getElementById('timelineTaskModal')?.addEventListener('click', function(e) {
+            if (e.target === this) closeTimelineModal();
+        });
+        
+        // Current time indicator update
+        setInterval(updateTimelineCurrentTimeIndicator, 60000);
+        
+        // Initial render - start in Day view on event date
+        switchTimelineView('day');
+        
+        console.log('Timeline initialized with', tasksData.allTasks.length, 'tasks');
+    }
+    
+    function switchTimelineView(view) {
+        timelineCurrentView = view;
+        const container = document.getElementById('timelineDayWeekContainer');
+        
+        // Update view class
+        container.classList.remove('day-view', 'week-view');
+        container.classList.add(view + '-view');
+        
+        updateTimelineHeader();
+        renderTimelineTasks();
+        updateTimelineEventBadge();
+        updateTimelineCurrentTimeIndicator();
+    }
+    
+    function navigateTimelinePrev() {
+        if (timelineCurrentView === 'day') {
+            timelineViewDate.setDate(timelineViewDate.getDate() - 1);
+        } else {
+            timelineViewDate.setDate(timelineViewDate.getDate() - 7);
+        }
+        updateTimelineHeader();
+        renderTimelineTasks();
+        updateTimelineEventBadge();
+        updateTimelineCurrentTimeIndicator();
+    }
+    
+    function navigateTimelineNext() {
+        if (timelineCurrentView === 'day') {
+            timelineViewDate.setDate(timelineViewDate.getDate() + 1);
+        } else {
+            timelineViewDate.setDate(timelineViewDate.getDate() + 7);
+        }
+        updateTimelineHeader();
+        renderTimelineTasks();
+        updateTimelineEventBadge();
+        updateTimelineCurrentTimeIndicator();
+    }
+    
+    function updateTimelineHeader() {
+        const monthLabel = document.getElementById('timelineMonthLabel');
+        const daysHeader = document.getElementById('timelineDaysHeader');
+        const datesHeader = document.getElementById('timelineDatesHeader');
+        
+        if (timelineCurrentView === 'day') {
+            // Day view header
+            const dateFormatter = new Intl.DateTimeFormat('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                timeZone: userTimeZone 
+            });
+            monthLabel.textContent = dateFormatter.format(timelineViewDate);
+            
+            // Update single day header
+            const dayOfWeek = timelineViewDate.getDay();
+            const dayHeaders = daysHeader.querySelectorAll('.day-header:not(.time-header)');
+            dayHeaders.forEach((header, i) => {
+                header.style.display = i === 0 ? '' : 'none';
+                if (i === 0) header.textContent = dayNames[dayOfWeek];
+            });
+            
+            const dateCells = datesHeader.querySelectorAll('.date-cell:not(.time-header)');
+            dateCells.forEach((cell, i) => {
+                cell.style.display = i === 0 ? '' : 'none';
+                if (i === 0) {
+                    cell.textContent = timelineViewDate.getDate();
+                    cell.classList.toggle('today', isTimelineToday(timelineViewDate));
+                }
+            });
+        } else {
+            // Week view header
+            const weekStart = getTimelineWeekStart(timelineViewDate);
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekEnd.getDate() + 6);
+            
+            const monthFormatter = new Intl.DateTimeFormat('en-US', { 
+                month: 'long', 
+                year: 'numeric',
+                timeZone: userTimeZone 
+            });
+            
+            if (weekStart.getMonth() === weekEnd.getMonth()) {
+                monthLabel.textContent = monthFormatter.format(weekStart);
+            } else {
+                const startMonth = new Intl.DateTimeFormat('en-US', { month: 'long', timeZone: userTimeZone }).format(weekStart);
+                const endMonth = monthFormatter.format(weekEnd);
+                monthLabel.textContent = `${startMonth} - ${endMonth}`;
+            }
+            
+            // Update day headers
+            const dayHeaders = daysHeader.querySelectorAll('.day-header:not(.time-header)');
+            dayHeaders.forEach((header, i) => {
+                header.style.display = '';
+                header.textContent = dayNames[i];
+            });
+            
+            // Update date cells
+            const dateCells = datesHeader.querySelectorAll('.date-cell:not(.time-header)');
+            dateCells.forEach((cell, i) => {
+                cell.style.display = '';
+                const cellDate = new Date(weekStart);
+                cellDate.setDate(cellDate.getDate() + i);
+                cell.textContent = cellDate.getDate();
+                cell.classList.toggle('today', isTimelineToday(cellDate));
+            });
+        }
+    }
+    
+    function updateTimelineEventBadge() {
+        const badgeEl = document.getElementById('timelineEventBadgeCenter');
+        if (!badgeEl) return;
+        
+        if (!matterDueDate || isNaN(matterDueDate.getTime())) {
+            badgeEl.style.display = 'none';
+            return;
+        }
+        
+        // Show badge if we're viewing the event date (day view) or if event date is in current week (week view)
+        let showBadge = false;
+        
+        if (timelineCurrentView === 'day') {
+            showBadge = isTimelineSameDay(timelineViewDate, matterDueDate);
+        } else {
+            // Week view - check if event date falls within this week
+            const weekStart = getTimelineWeekStart(timelineViewDate);
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekEnd.getDate() + 7);
+            showBadge = matterDueDate >= weekStart && matterDueDate < weekEnd;
+        }
+        
+        badgeEl.style.display = showBadge ? 'block' : 'none';
+    }
+    
+    function renderTimelineTasks() {
+        // Clear existing task cards
+        document.querySelectorAll('.planner-task-card, .planner-all-day-task').forEach(el => el.remove());
+        
+        const weekStart = timelineCurrentView === 'day' ? new Date(timelineViewDate) : getTimelineWeekStart(timelineViewDate);
+        
+        // Filter tasks for this matter and visible date range
+        const visibleTasks = tasksData.allTasks.filter(task => {
+            if (!task.dueDate) return false;
+            const dueDate = new Date(task.dueDate);
+            
+            if (timelineCurrentView === 'day') {
+                return isTimelineSameDay(dueDate, timelineViewDate);
+            } else {
+                const weekEnd = new Date(weekStart);
+                weekEnd.setDate(weekEnd.getDate() + 7);
+                return dueDate >= weekStart && dueDate < weekEnd;
+            }
+        });
+        
+        visibleTasks.forEach(task => {
+            const dueDate = new Date(task.dueDate);
+            let dayIndex;
+            
+            if (timelineCurrentView === 'day') {
+                dayIndex = 0;
+            } else {
+                dayIndex = dueDate.getDay();
+            }
+            
+            // Check if it's an all-day task (no specific time or midnight)
+            const isAllDay = dueDate.getHours() === 0 && dueDate.getMinutes() === 0;
+            
+            if (isAllDay) {
+                // Add to all-day row
+                const allDayColumns = document.getElementById('timelineAllDayColumns');
+                const column = allDayColumns?.querySelector(`.calendar-column[data-day="${dayIndex}"]`);
+                if (column) {
+                    const taskEl = createTimelineAllDayTask(task);
+                    column.querySelector('.all-day-cell')?.appendChild(taskEl);
+                }
+            } else {
+                // Add to time grid
+                const columns = document.getElementById('timelineCalendarColumns');
+                const column = columns?.querySelector(`.calendar-column[data-day="${dayIndex}"]`);
+                if (column) {
+                    const taskEl = createTimelineTaskCard(task, dueDate);
+                    column.appendChild(taskEl);
+                }
+            }
+        });
+    }
+    
+    function createTimelineAllDayTask(task) {
+        const taskEl = document.createElement('div');
+        taskEl.className = 'planner-all-day-task';
+        taskEl.dataset.taskId = task.id;
+        taskEl.textContent = task.title;
+        const priorityColors = { 'Critical': '#dc3545', 'High': '#fd7e14', 'Medium': '#0d6efd', 'Low': '#6c757d' };
+        taskEl.style.cssText = `border-left: 3px solid ${priorityColors[task.priority] || priorityColors['Medium']}; background-color: #f8f9fa; padding: 2px 6px; border-radius: 3px; font-size: 0.75rem; cursor: pointer; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;`;
+        taskEl.addEventListener('click', (e) => { e.stopPropagation(); openTimelineTaskModal(task.id); });
+        return taskEl;
+    }
+    
+    function createTimelineTaskCard(task, dueDate) {
+        const taskEl = document.createElement('div');
+        taskEl.className = 'planner-task-card';
+        taskEl.dataset.taskId = task.id;
+        const startHour = dueDate.getHours() + dueDate.getMinutes() / 60;
+        const priorityColors = { 'Critical': { bg: '#fee2e2', border: '#dc3545' }, 'High': { bg: '#fef3c7', border: '#fd7e14' }, 'Medium': { bg: '#dbeafe', border: '#0d6efd' }, 'Low': { bg: '#f3f4f6', border: '#6c757d' } };
+        const colors = priorityColors[task.priority] || priorityColors['Medium'];
+        taskEl.style.cssText = `position: absolute; top: ${startHour * 60}px; height: 60px; left: 2px; right: 2px; z-index: 5; cursor: pointer; background-color: ${colors.bg}; border-left: 3px solid ${colors.border}; border-radius: 4px; padding: 4px 6px; font-size: 0.75rem; overflow: hidden;`;
+        const timeFormatter = new Intl.DateTimeFormat('en-US', { timeZone: userTimeZone, hour: 'numeric', minute: '2-digit', hour12: true });
+        taskEl.innerHTML = `<div style="font-size: 0.65rem; color: #666; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-bars-progress" style="font-size: 0.6rem;"></i>${timeFormatter.format(dueDate)}</div><div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${task.title}</div>`;
+        taskEl.addEventListener('click', (e) => { e.stopPropagation(); openTimelineTaskModal(task.id); });
+        return taskEl;
+    }
+    
+    function updateTimelineCurrentTimeIndicator() {
+        document.querySelectorAll('.planner-time-indicator').forEach(el => el.remove());
+        
+        const now = new Date();
+        let columnIndex = -1;
+        
+        if (timelineCurrentView === 'day') {
+            if (isTimelineToday(timelineViewDate)) columnIndex = 0;
+        } else {
+            const weekStart = getTimelineWeekStart(timelineViewDate);
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(weekStart);
+                d.setDate(d.getDate() + i);
+                if (isTimelineToday(d)) {
+                    columnIndex = i;
+                    break;
+                }
+            }
+        }
+        
+        if (columnIndex === -1) return;
+        
+        const columns = document.getElementById('timelineCalendarColumns');
+        const column = columns?.querySelector(`.calendar-column[data-day="${columnIndex}"]`);
+        if (!column) return;
+        
+        const indicator = document.createElement('div');
+        indicator.className = 'planner-time-indicator';
+        const hours = now.getHours() + now.getMinutes() / 60;
+        indicator.style.cssText = `position: absolute; left: 0; right: 0; height: 2px; background: #ef4444; z-index: 10; top: ${hours * 60}px;`;
+        indicator.innerHTML = '<div style="position: absolute; left: -4px; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: #ef4444;"></div>';
+        column.appendChild(indicator);
+    }
+    
+    function getTimelineWeekStart(date) {
+        const d = new Date(date);
+        const day = d.getDay();
+        d.setDate(d.getDate() - day);
+        d.setHours(0, 0, 0, 0);
+        return d;
+    }
+    
+    function isTimelineToday(date) {
+        const today = new Date();
+        return date.getFullYear() === today.getFullYear() &&
+               date.getMonth() === today.getMonth() &&
+               date.getDate() === today.getDate();
+    }
+    
+    function isTimelineSameDay(date1, date2) {
+        return date1.getFullYear() === date2.getFullYear() &&
+               date1.getMonth() === date2.getMonth() &&
+               date1.getDate() === date2.getDate();
+    }
+    
+    // Modal functions - use Timeline-specific modal ID
+    function openTimelineTaskModal(taskId) {
+        const modal = document.getElementById('timelineTaskModal');
+        if (!modal) return;
+        
+        modal.style.display = 'flex';
+        
+        // Scope queries to the Timeline modal - use Timeline-specific IDs
+        const titleEl = modal.querySelector('.task-title');
+        const descEl = modal.querySelector('.timeline-task-description');
+        const statusField = document.getElementById('timeline-status-field');
+        const priorityField = document.getElementById('timeline-priority-field');
+        const startDateField = document.getElementById('timeline-start-date-field');
+        const dueDateField = document.getElementById('timeline-due-date-field');
+        
+        if (taskId) {
+            const task = tasksData.allTasks.find(t => t.id === taskId);
+            if (task) {
+                if (titleEl) {
+                    titleEl.textContent = task.title;
+                    titleEl.dataset.taskId = task.id;
+                }
+                if (descEl) descEl.value = task.description || '';
+                if (statusField) statusField.value = task.status;
+                if (priorityField) priorityField.value = task.priority;
+                if (startDateField && task.startedAt) startDateField.value = task.startedAt.substring(0, 16);
+                if (dueDateField && task.dueDate) dueDateField.value = task.dueDate.substring(0, 16);
+            }
+        } else {
+            // New task
+            if (titleEl) {
+                titleEl.textContent = '';
+                titleEl.removeAttribute('data-task-id');
+            }
+            if (descEl) descEl.value = '';
+            if (statusField) statusField.value = 'Pending';
+            if (priorityField) priorityField.value = 'Medium';
+            if (startDateField) startDateField.value = '';
+            if (dueDateField) dueDateField.value = '';
+        }
+    }
+    
+    function closeTimelineModal() {
+        const modal = document.getElementById('timelineTaskModal');
+        if (modal) modal.style.display = 'none';
+    }
+    
+    // Expose for external initialization
+    window.initializeTimeline = initializeTimeline;
+})();
+</script>
+

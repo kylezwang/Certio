@@ -346,6 +346,146 @@ namespace Certio.Web.Controllers
             return View("~/Views/Matter/_MatterTasks.cshtml", viewModel);
         }
 
+        // GET: /Client/{orgId}/Matter/{matterId}/Timeline
+        [Authorize(Policy = "OrgMember")]
+        [HttpGet("/Client/{orgId:int}/Matter/{matterId:int}/Timeline")]
+        public async Task<IActionResult> MatterTimeline(int orgId, int matterId)
+        {
+            var (user, organizationId) = GetUserContext();
+            if (user == null || organizationId == 0)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Verify the matter exists and user has access to it
+            var matterResult = await _matterService.GetMatterAsync(user.Id, matterId);
+            if (!matterResult.Success)
+            {
+                TempData["Error"] = matterResult.ErrorMessage ?? "Matter not found";
+                return RedirectToAction("Index", "Matter");
+            }
+
+            var matter = matterResult.Data!;
+            
+            // Set ViewBag for layout
+            ViewBag.OrganizationId = orgId;
+            ViewBag.MatterId = matterId;
+            ViewBag.GoogleMapsApiKey = _googleMapsConfig.ApiKey;
+            ViewBag.GoogleMapsEnabled = _googleMapsConfig.Enabled;
+            ViewBag.CurrentUserId = user.Id;
+            ViewBag.CurrentUserName = $"{user.FirstName} {user.LastName}";
+            ViewBag.CurrentUserInitials = $"{user.FirstName[0]}{user.LastName[0]}".ToUpper();
+            ViewBag.CurrentUserEmail = user.Email ?? "";
+            
+            // Set the matter's DueDate (Event Date) for the "Day of Event" badge
+            ViewBag.MatterDueDate = matter.DueDate?.ToString("yyyy-MM-dd") ?? "";
+            ViewBag.MatterTitle = matter.Title;
+
+            // Get organization name
+            var org = await _context.Organizations
+                .Where(o => o.Id == orgId)
+                .FirstOrDefaultAsync();
+            ViewBag.OrganizationName = org?.Name ?? "Client";
+            ViewBag.OrganizationType = org?.Type ?? Certio.Domain.Organizations.OrganizationType.Client;
+            ViewBag.OrganizationEntity = org;
+
+            // Get tasks for this matter (same logic as MatterTasks)
+            var currentOrg = org;
+            List<TaskDto> allTasks;
+            
+            if (currentOrg?.Type == Certio.Domain.Organizations.OrganizationType.LawFirm)
+            {
+                var accessibleClients = await _firmRelationshipCache.GetAccessibleClientOrganizationsAsync(user.Id);
+                var clientOrgIds = accessibleClients.Select(c => c.Id).ToList();
+                clientOrgIds.Add(orgId);
+                
+                allTasks = new List<TaskDto>();
+                foreach (var clientOrgId in clientOrgIds)
+                {
+                    var tasksResult = await _taskService.ListTasksAsync(user.Id, clientOrgId);
+                    if (tasksResult.Success)
+                    {
+                        allTasks.AddRange(tasksResult.Data!);
+                    }
+                }
+            }
+            else
+            {
+                var tasksResult = await _taskService.ListTasksAsync(user.Id, orgId);
+                if (!tasksResult.Success)
+                {
+                    TempData["Error"] = tasksResult.ErrorMessage ?? "Failed to load tasks";
+                    return View("~/Views/Matter/_MatterTimeline.cshtml", new TasksViewModel());
+                }
+                allTasks = tasksResult.Data!;
+            }
+
+            // Filter tasks to only include those for this matter
+            var matterTasks = allTasks.Where(t => t.MatterId == matterId).ToList();
+
+            // Get users in organization
+            var directUsers = await _context.UserOrganizations
+                .Where(uo => uo.OrganizationId == orgId && uo.IsActive)
+                .Select(uo => new UserOption
+                {
+                    Id = uo.UserId,
+                    Name = uo.User.FirstName + " " + uo.User.LastName,
+                    Email = uo.User.Email ?? "",
+                    Initials = (uo.User.FirstName.Substring(0, 1) + uo.User.LastName.Substring(0, 1)).ToUpper()
+                })
+                .ToListAsync();
+            
+            var firmUsers = await _context.UserOrganizations
+                .Where(uo => uo.IsActive && uo.UserType == Certio.Domain.Users.UserTypes.LawFirm)
+                .Include(uo => uo.User)
+                .Include(uo => uo.Organization)
+                    .ThenInclude(o => o.OrganizationRelationships)
+                .Where(uo => uo.Organization.OrganizationRelationships.Any(rel =>
+                    rel.TargetOrganizationId == orgId &&
+                    rel.IsActive &&
+                    !rel.IsDeleted &&
+                    rel.RelationshipType == Certio.Domain.Organizations.RelationshipTypes.LawFirmClient &&
+                    (!rel.ExpiresAt.HasValue || rel.ExpiresAt.Value > DateTime.UtcNow)))
+                .Select(uo => new UserOption
+                {
+                    Id = uo.User.Id,
+                    Name = uo.User.FirstName + " " + uo.User.LastName,
+                    Email = uo.User.Email ?? "",
+                    Initials = (uo.User.FirstName.Substring(0, 1) + uo.User.LastName.Substring(0, 1)).ToUpper()
+                })
+                .ToListAsync();
+            
+            var users = directUsers
+                .Union(firmUsers, new UserOptionComparer())
+                .OrderBy(u => u.Name)
+                .ToList();
+
+            // Map DTOs to ViewModels
+            var taskViewModels = matterTasks.Select(MapDtoToViewModel).ToList();
+
+            var viewModel = new TasksViewModel
+            {
+                AllTasks = taskViewModels,
+                PlannedTasks = taskViewModels.Where(t => t.Status == "Pending").ToList(),
+                InProgressTasks = taskViewModels.Where(t => t.Status == "InProgress").ToList(),
+                ReviewTasks = taskViewModels.Where(t => t.Status == "Review").ToList(),
+                CompletedTasks = taskViewModels.Where(t => t.Status == "Completed").ToList(),
+                Matters = new List<MatterOption>
+                {
+                    new MatterOption
+                    {
+                        Id = matter.Id,
+                        Title = matter.Title,
+                        PracticeArea = matter.PracticeArea,
+                        AssignedUserIds = matter.Assignments.Select(a => a.UserId).ToList()
+                    }
+                },
+                Users = users
+            };
+
+            return View("~/Views/Matter/_MatterTimeline.cshtml", viewModel);
+        }
+
         // POST: Tasks/Create
         [HttpPost]
         [ValidateAntiForgeryToken]

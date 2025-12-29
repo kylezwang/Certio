@@ -21,5 +21,16 @@ public interface IEmailSendingService
     /// Send a system email (e.g., verification codes, notifications)
     /// </summary>
     Task<bool> SendSystemEmailAsync(string toEmail, string subject, string bodyHtml, CancellationToken ct = default);
+
+    /// <summary>
+    /// Send a system email with optional From display name and Reply-To override (used for Change Notices).
+    /// </summary>
+    Task<bool> SendSystemEmailAsync(
+        string toEmail,
+        string subject,
+        string bodyHtml,
+        string? fromNameOverride,
+        string? replyToEmailOverride,
+        CancellationToken ct = default);
 }
 

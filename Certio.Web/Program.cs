@@ -736,6 +736,7 @@ builder.Services.AddScoped<Certio.Application.Interfaces.IUserDataContextService
 builder.Services.AddScoped<Certio.Application.Interfaces.IEmailService, Certio.Web.Services.EmailService>();
 builder.Services.AddScoped<Certio.Application.Interfaces.IEmailToDmService, Certio.Web.Services.EmailToDmService>();
 builder.Services.AddScoped<Certio.Application.Interfaces.IEmailSendingService, Certio.Web.Services.EmailSendingService>();
+builder.Services.AddScoped<Certio.Application.Interfaces.IChangeNoticeService, Certio.Web.Services.ChangeNoticeService>();
 
 // Channel Management Services
 builder.Services.AddScoped<Certio.Web.Services.IChannelManagementService, Certio.Web.Services.ChannelManagementService>();
