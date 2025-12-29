@@ -8,14 +8,14 @@
     <!-- Header -->
     <div class="d-flex align-items-center justify-content-between mb-3">
         <div>
-            <h1 class="display-6 fw-bold mb-2">Clients</h1>
+            <h1 class="display-6 fw-bold mb-2">Contacts & Clients</h1>
             <p class="lead text-muted">
-                Manage clients under @(ViewBag.OrganizationName ?? "Organization")
+                Manage contacts and clients under @(ViewBag.OrganizationName ?? "Organization")
             </p>
         </div>
         <a class="btn btn-primary d-flex align-items-center gap-2" href="@Url.Action("NewClient", "Client", new { orgId = ViewBag.OrganizationId ?? 0 })" id="newClientBtn" style="font-weight: 500;">
             <i class="fas fa-user-plus"></i>
-            New client
+            Add Contact
         </a>
     </div>
 
@@ -228,7 +228,7 @@
             <div class="task-details-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
                 <div class="task-details-header-left" style="display: flex; align-items-center; gap: 0.75rem; flex: 1;">
                     <i class="fa-solid fa-user" style="color: #3d1019; font-size: 1.25rem;"></i>
-                    <h2 class="task-title" style="cursor: default; margin: 0; font-size: 1.25rem; font-weight: 600; color: #3d1019;">Client Details</h2>
+                    <h2 class="task-title" style="cursor: default; margin: 0; font-size: 1.25rem; font-weight: 600; color: #3d1019;">Contact Details</h2>
                 </div>
                 <button type="button" class="btn-close" onclick="closeUserDetailsModal()" aria-label="Close" style="margin: 0;"></button>
             </div>

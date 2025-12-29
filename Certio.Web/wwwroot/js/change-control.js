@@ -455,20 +455,21 @@
 
         for (const r of recipients) {
             const email = r.email || '';
-            const initials = getInitials(email);
+            const hasAccount = !!r.userId;
+            const avatarHtml = hasAccount ? escapeHtml(getInitials(email)) : `<i class="fas fa-envelope"></i>`;
             const status = r.status || '';
             const respondedAt = r.respondedAt;
             const note = (r.clarificationNote || '').trim();
 
             if (status === 'NeedsClarification' && note) {
                 items.push({
-                    initials,
+                    avatarHtml,
                     textHtml: `<strong>${escapeHtml(email)}</strong> requested clarification: ${escapeHtml(note)}`,
                     time: formatTimeAgo(respondedAt)
                 });
             } else if (status === 'Acknowledged') {
                 items.push({
-                    initials,
+                    avatarHtml,
                     textHtml: `<strong>${escapeHtml(email)}</strong> confirmed.`,
                     time: formatTimeAgo(respondedAt)
                 });
@@ -482,7 +483,7 @@
 
         log.innerHTML = items.map(i => `
             <div class="activity-item">
-                <div class="activity-avatar">${escapeHtml(i.initials)}</div>
+                <div class="activity-avatar">${i.avatarHtml}</div>
                 <div class="activity-content">
                     <div class="activity-text">${i.textHtml}</div>
                     ${i.time ? `<div class="activity-time">${escapeHtml(i.time)}</div>` : ``}

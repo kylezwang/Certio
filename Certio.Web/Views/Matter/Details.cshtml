@@ -890,6 +890,11 @@
                                             box-shadow: 0 1px 2px rgba(0,0,0,0.1);
                                         }
 
+                                        /* Allow icon avatars in Activity & responses */
+                                        #ccModal .activity-avatar i {
+                                            font-size: 0.75rem;
+                                        }
+
                                         /* Form controls */
                                         #ccModal .form-control,
                                         #ccModal .form-select {
@@ -1326,22 +1331,6 @@
                                                     <i class="fas fa-pen-nib" style="color:#3d1019; font-size: 1.25rem;"></i>
                                                     <input type="text" class="cc-title-input" id="ccTitleInput" placeholder="Change notice title" maxlength="200">
                                                 </div>
-                                            </div>
-
-                                            <!-- Action Buttons -->
-                                            <div class="task-action-buttons">
-                                                <button type="button" class="task-action-btn" id="cc-scroll-type-btn">
-                                                    <i class="fas fa-tag"></i> Type
-                                                </button>
-                                                <button type="button" class="task-action-btn" id="cc-scroll-priority-btn">
-                                                    <i class="fas fa-flag"></i> Priority
-                                                </button>
-                                                <button type="button" class="task-action-btn" id="cc-scroll-due-btn">
-                                                    <i class="fas fa-calendar-day"></i> Due Date
-                                                </button>
-                                                <button type="button" class="task-action-btn" id="cc-scroll-recipients-btn">
-                                                    <i class="fas fa-users"></i> Recipients
-                                                </button>
                                             </div>
 
                                             <!-- Recipients Section (like Assignees) -->

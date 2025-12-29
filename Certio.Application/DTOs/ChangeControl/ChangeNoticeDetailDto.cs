@@ -26,6 +26,7 @@ public sealed class ChangeNoticeRecipientDto
 {
     public int Id { get; init; }
     public string Email { get; init; } = "";
+    public int? UserId { get; init; }
     public string Status { get; init; } = "";
     public DateTime? RespondedAt { get; init; }
     public string? ClarificationNote { get; init; }
