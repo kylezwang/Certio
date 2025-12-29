@@ -472,5 +472,54 @@
         return validTabs.includes(tabName);
     }
 
+    // Expose a tiny helper so other tabs (ex: Timeline) can ensure another tab's
+    // HTML + inline scripts are loaded before calling its functions (ex: openTaskModal).
+    // This avoids requiring the user to click the Tasks tab first.
+    window.ensureMatterTabLoaded = function(tabName, options) {
+        const opts = options || {};
+        const timeoutMs = typeof opts.timeoutMs === 'number' ? opts.timeoutMs : 8000;
+
+        const isReady = () => {
+            if (!loadedTabs.has(tabName)) return false;
+            if (tabName === 'tasks') return (typeof window.openTaskModal === 'function');
+            if (tabName === 'timeline') return (typeof window.initializeTimeline === 'function');
+            return true;
+        };
+
+        return new Promise((resolve, reject) => {
+            if (isReady()) {
+                resolve(true);
+                return;
+            }
+
+            const targetElement = document.getElementById('tab-' + tabName);
+            if (!targetElement) {
+                reject(new Error(`Tab element not found: tab-${tabName}`));
+                return;
+            }
+
+            // Kick off loading if needed; otherwise retry initialization (scripts may exist but not initialized)
+            if (!loadedTabs.has(tabName)) {
+                loadTabContent(tabName, targetElement);
+            } else {
+                try { initializeTabScripts(tabName); } catch (_) { /* ignore */ }
+            }
+
+            const start = Date.now();
+            const tick = () => {
+                if (isReady()) {
+                    resolve(true);
+                    return;
+                }
+                if (Date.now() - start > timeoutMs) {
+                    reject(new Error(`Timed out loading tab: ${tabName}`));
+                    return;
+                }
+                setTimeout(tick, 50);
+            };
+            tick();
+        });
+    };
+
 })();
 
