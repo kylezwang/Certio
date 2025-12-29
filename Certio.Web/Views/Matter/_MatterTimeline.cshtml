@@ -543,60 +543,28 @@
     
     // Modal functions - delegate to Tasks tab's modal for full functionality
     async function openTimelineTaskModal(taskId) {
-        // Use the Tasks tab's full-featured modal if available
+        // Ensure the Tasks tab (and its modal JS) is loaded, then delegate to openTaskModal.
+        // This matches the Tasks tab behavior without requiring the user to click Tasks first.
+        try {
+            if (typeof window.ensureMatterTabLoaded === 'function') {
+                await window.ensureMatterTabLoaded('tasks');
+            }
+        } catch (err) {
+            console.error('Failed to ensure Tasks tab is loaded:', err);
+        }
+
         if (typeof window.openTaskModal === 'function') {
-            window.openTaskModal(taskId);
+            // openTaskModal(taskId = null, defaultStatus = 'Pending')
+            if (taskId == null) {
+                window.openTaskModal(null, 'Pending');
+            } else {
+                window.openTaskModal(taskId);
+            }
             return;
         }
-        
-        // If Tasks tab not loaded yet, load it first then open modal
-        const tasksTabPane = document.getElementById('tasks');
-        const matterContainer = document.querySelector('.matter-details-container');
-        const orgId = matterContainer?.dataset.organizationId;
-        const matterIdAttr = matterContainer?.dataset.matterId;
-        
-        if (tasksTabPane && orgId && matterIdAttr) {
-            try {
-                // Show loading state
-                tasksTabPane.innerHTML = '<div class="text-center p-4"><i class="fas fa-spinner fa-spin"></i> Loading Tasks...</div>';
-                
-                const response = await fetch(`/Client/${orgId}/Matter/${matterIdAttr}/Tasks`);
-                if (response.ok) {
-                    const html = await response.text();
-                    tasksTabPane.innerHTML = html;
-                    
-                    // Execute any scripts in the loaded content
-                    const scripts = tasksTabPane.querySelectorAll('script');
-                    for (const script of scripts) {
-                        const newScript = document.createElement('script');
-                        if (script.src) {
-                            newScript.src = script.src;
-                        } else {
-                            newScript.textContent = script.textContent;
-                        }
-                        document.body.appendChild(newScript);
-                        // Wait for script to execute
-                        await new Promise(resolve => setTimeout(resolve, 50));
-                        if (newScript.parentNode) newScript.parentNode.removeChild(newScript);
-                    }
-                    
-                    // Wait a moment for scripts to initialize, then open modal
-                    setTimeout(() => {
-                        if (typeof window.openTaskModal === 'function') {
-                            window.openTaskModal(taskId);
-                        } else {
-                            console.error('openTaskModal not available after loading Tasks tab');
-                        }
-                    }, 200);
-                    return;
-                }
-            } catch (err) {
-                console.error('Failed to load Tasks tab:', err);
-            }
-        }
-        
-        // Fallback: show simple alert if we can't load the proper modal
-        alert('Please click the Tasks tab first to enable full task editing.');
+
+        // Last resort: switch to Tasks tab (still on same page) so the user can proceed.
+        window.location.hash = 'tasks';
     }
     
     function closeTimelineModal() {
