@@ -1078,6 +1078,16 @@
         transition: all 0.2s ease;
     }
 
+    /* Make hamburger pill match organization-name-field size */
+    .hamburger-hover-container .btn {
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
     .hamburger-hover-container:hover {
         background-color: white;
         box-shadow: rgba(0, 0, 0, 0.25) 0px 2px 4px;
@@ -1228,7 +1238,7 @@
     <div class="page-header">
         <!-- Simple Hamburger Menu Button -->
         <div class="hamburger-hover-container d-none d-xl-block" style="margin-left: 0.25rem;">
-            <button class="btn btn-link" id="toggleSidebar" type="button" style="color: #3d1019; font-size: 1.2rem; padding: 0.5rem;">
+            <button class="btn btn-link" id="toggleSidebar" type="button" style="color: #3d1019; font-size: 1.2rem;">
             <i class="fas fa-bars"></i>
         </button>
         </div>
