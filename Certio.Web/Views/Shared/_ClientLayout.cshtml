@@ -1069,6 +1069,20 @@
         box-shadow: rgba(0, 0, 0, 0.25) 0px 2px 4px;
     }
 
+    /* Hamburger hover container - match organization-name-field hover treatment */
+    .hamburger-hover-container {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease;
+    }
+
+    .hamburger-hover-container:hover {
+        background-color: white;
+        box-shadow: rgba(0, 0, 0, 0.25) 0px 2px 4px;
+    }
+
     .dark-mode-toggle:hover {
         background-color: #f3f4f6;
         color: #3d1019;
@@ -1205,9 +1219,11 @@
     <!-- Page Header -->
     <div class="page-header">
         <!-- Simple Hamburger Menu Button -->
-        <button class="btn btn-link d-none d-xl-block" id="toggleSidebar" type="button" style="color: #3d1019; font-size: 1.2rem; padding: 0.5rem; margin-left: 0.25rem;">
-            <i class="fas fa-bars"></i>
-        </button>
+        <div class="hamburger-hover-container d-none d-xl-block" style="margin-left: 0.25rem;">
+            <button class="btn btn-link" id="toggleSidebar" type="button" style="color: #3d1019; font-size: 1.2rem; padding: 0.5rem;">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
         
         <!-- Organization Name Field -->
         <div class="organization-name-field d-none d-xl-block" title="@(ViewBag.OrganizationName ?? "Organization")">
@@ -1980,9 +1996,11 @@
     <!-- Mobile Header -->
     <div class="d-xl-none">
         <div class="sticky-top d-flex align-items-center gap-3 border-bottom bg-white px-4 py-3 shadow-soft">
-            <button class="btn btn-ghost p-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar">
-                <i class="fas fa-bars fs-5"></i>
-            </button>
+            <div class="hamburger-hover-container">
+                <button class="btn btn-ghost p-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar">
+                    <i class="fas fa-bars fs-5"></i>
+                </button>
+            </div>
             
             <div class="flex-fill text-sm fw-semibold text-center">
                 <div class="d-flex align-items-center justify-content-center">
