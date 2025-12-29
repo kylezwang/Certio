@@ -1651,7 +1651,9 @@
 
     // Global initialization function for Matter Tasks
     window.initializeMatterTasks = function() {
-        const container = document.querySelector('.matter-tasks-content');
+        // IMPORTANT: Timeline also used `.matter-tasks-content` for styling, which caused this initializer
+        // to bind to the wrong DOM (and crash before defining openTaskModal). Be specific here.
+        const container = document.querySelector('.matter-tasks-content.tasks-content');
         if (!container) {
             console.error('Matter tasks container not found');
             return;
@@ -1711,6 +1713,68 @@
                 attributeFilter: ['class']
             });
         });
+
+        // Keep Task Details modal backdrop perfectly aligned with the live main-content edge,
+        // matching the full Tasks page behavior (snaps in real time during resizing).
+        window.adjustTaskDetailsModalPosition = function() {
+            const modal = document.getElementById('taskDetailsModal');
+            if (!modal || modal.style.display === 'none') return;
+
+            const mainContentWrapper = document.querySelector('.client-main-content-wrapper');
+            if (!mainContentWrapper) return;
+
+            const wrapperStyle = window.getComputedStyle(mainContentWrapper);
+            const wrapperRight = wrapperStyle.right;
+
+            if (document.body.classList.contains('chat-hidden')) {
+                modal.style.right = '1rem';
+            } else if (wrapperRight && wrapperRight !== 'auto') {
+                modal.style.right = wrapperRight;
+            } else {
+                // Fall back to CSS default
+                modal.style.right = '';
+            }
+        };
+
+        // Re-snap on window resize
+        window.addEventListener('resize', () => window.adjustTaskDetailsModalPosition && window.adjustTaskDetailsModalPosition());
+
+        // Observe body class changes (sidebar-hidden, chat-hidden)
+        const modalPosObserver = new MutationObserver(function(mutations) {
+            for (const mutation of mutations) {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                    setTimeout(() => window.adjustTaskDetailsModalPosition && window.adjustTaskDetailsModalPosition(), 50);
+                }
+            }
+        });
+        modalPosObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+        // Observe resize handle for position changes and update during drag
+        const resizeHandle = document.getElementById('resizeHandle');
+        if (resizeHandle) {
+            let isResizing = false;
+            let resizeTimeout;
+
+            resizeHandle.addEventListener('mousedown', function() {
+                isResizing = true;
+            });
+
+            document.addEventListener('mousemove', function() {
+                if (!isResizing) return;
+                const modal = document.getElementById('taskDetailsModal');
+                if (!modal || modal.style.display === 'none') return;
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    window.adjustTaskDetailsModalPosition && window.adjustTaskDetailsModalPosition();
+                }, 10);
+            });
+
+            document.addEventListener('mouseup', function() {
+                if (!isResizing) return;
+                isResizing = false;
+                setTimeout(() => window.adjustTaskDetailsModalPosition && window.adjustTaskDetailsModalPosition(), 50);
+            });
+        }
         
         // Setup add button positioning handler
         const tasksContent = document.querySelector('.matter-tasks-content, .tasks-content');
@@ -2331,6 +2395,9 @@
             
             // Show modal
             taskDetailsModal.style.display = 'flex';
+            // Ensure right edge snaps to the live wrapper edge immediately
+            try { window.adjustTaskDetailsModalPosition && window.adjustTaskDetailsModalPosition(); } catch (_) { /* ignore */ }
+            setTimeout(() => { try { window.adjustTaskDetailsModalPosition && window.adjustTaskDetailsModalPosition(); } catch (_) { /* ignore */ } }, 0);
             
             // Initialize task matter selector
             initializeTaskMatterSelector();
