@@ -296,14 +296,14 @@ public class EmailSendingService : IEmailSendingService
                 catch (Exception ex)
                 {
                     _logger.LogWarning(ex, "Failed to parse SMTP_FROM_EMAIL: {Email}, using fallback", smtpFromEmail);
-                    var fallbackEmail = _configuration["Security:TwoFactorEmail:FromEmail"] ?? "kyle@notal.com";
+                    var fallbackEmail = _configuration["Security:TwoFactorEmail:FromEmail"] ?? "info@notal.org";
                     var fallbackName = _configuration["Security:TwoFactorEmail:FromName"] ?? "Notal";
                     fromAddress = new MailboxAddress(fallbackName, fallbackEmail);
                 }
             }
             else
             {
-                var fallbackEmail = _configuration["Security:TwoFactorEmail:FromEmail"] ?? "kyle@notal.com";
+                var fallbackEmail = _configuration["Security:TwoFactorEmail:FromEmail"] ?? "info@notal.org";
                 var fallbackName = _configuration["Security:TwoFactorEmail:FromName"] ?? "Notal";
                 fromAddress = new MailboxAddress(fallbackName, fallbackEmail);
             }
