@@ -1,0 +1,213 @@
+@model Certio.Application.DTOs.ChangeControl.PublicChangeNoticeResponseResult
+
+@{
+    ViewData["Title"] = "Change Notice Response";
+}
+
+<div class="container py-5" style="max-width: 720px;">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-start">
+                <div class="me-3">
+                    @if (Model.Success)
+                    {
+                        <i class="fas fa-check-circle text-success" style="font-size: 1.75rem;"></i>
+                    }
+                    else
+                    {
+                        <i class="fas fa-exclamation-triangle text-warning" style="font-size: 1.75rem;"></i>
+                    }
+                </div>
+                <div class="flex-grow-1">
+                    <h3 class="mb-2">@ViewData["Title"]</h3>
+                    <p class="text-muted mb-0">@Model.Message</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* If the recipient clicked "Needs Clarification", capture details here *@
+    @if (Model.Success && string.Equals((Model.Action ?? "").Trim(), "clarify", StringComparison.OrdinalIgnoreCase))
+    {
+        <style>
+            /* Public clarify composer: match the AI chat input container styling (without Agent/Model pills).
+               Copied from `_ClientLayout.cshtml` input styles and scoped to this page.
+            */
+            .public-clarify-input {
+                border: none;
+                background: transparent;
+                width: 100%;
+            }
+
+            .public-clarify-input .input-container {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+                background: white;
+                padding: 0.75rem;
+                border-radius: 16px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+                transition: all 0.3s ease;
+                max-width: 100%;
+                box-sizing: border-box;
+                overflow: hidden;
+            }
+
+            .public-clarify-input .input-container:hover {
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+            }
+
+            .public-clarify-input .input-container:focus-within {
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+            }
+
+            .public-clarify-input .message-input-wrapper {
+                display: flex;
+                align-items: flex-end;
+                gap: 0.5rem;
+                width: 100%;
+            }
+
+            .public-clarify-input .message-input {
+                flex: 1;
+                padding: 0.625rem 0.75rem;
+                border-radius: 10px;
+                font-size: 0.875rem;
+                border: none;
+                background: #f9fafb;
+                resize: none;
+                max-height: 120px;
+                min-height: 40px;
+                line-height: 1.5;
+                font-family: inherit;
+                transition: background 0.2s ease;
+            }
+
+            .public-clarify-input .message-input:hover {
+                background: #f3f4f6;
+            }
+
+            .public-clarify-input .message-input:focus {
+                outline: none;
+                background: #f3f4f6;
+            }
+
+            .public-clarify-input .message-input::placeholder {
+                color: #9ca3af;
+            }
+
+            .public-clarify-input .input-actions-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding-top: 0.25rem;
+                gap: 1.7rem;
+            }
+
+            .public-clarify-input .input-actions-left {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .public-clarify-input .input-action-btn {
+                background: transparent;
+                border: none;
+                color: #6b7280;
+                padding: 0.5rem;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.95rem;
+            }
+
+            .public-clarify-input .input-action-btn:hover {
+                background: #f3f4f6;
+                color: #3d1019;
+                transform: scale(1.05);
+            }
+
+            .public-clarify-input .input-action-btn:active {
+                transform: scale(0.95);
+            }
+
+            .public-clarify-input .send-button {
+                background: linear-gradient(135deg, #a32b43, #3d1019);
+                border: none;
+                color: white;
+                padding: 0.625rem;
+                border-radius: 10px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                width: 36px;
+                height: 36px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                box-shadow: 0 2px 6px rgba(61, 16, 25, 0.3);
+            }
+
+            .public-clarify-input .send-button:hover {
+                background: linear-gradient(135deg, #c53a55, #a32b43);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(61, 16, 25, 0.4);
+            }
+
+            .public-clarify-input .send-button:active {
+                transform: translateY(0);
+                box-shadow: 0 2px 4px rgba(61, 16, 25, 0.3);
+            }
+        </style>
+
+        <div class="mt-3">
+            <div class="text-muted small mb-2">
+                Tell us what needs clarification (this will appear under <strong>Activity &amp; responses</strong>).
+            </div>
+            <form method="post" action="/public/change-notice/respond" class="chat-input" style="padding: 0; margin: 0; border-radius: 20px;">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="t" value="@Context.Request.Query["t"]" />
+
+                <div class="public-clarify-input">
+                    <div class="input-container">
+                        <!-- Main Input Row -->
+                        <div class="message-input-wrapper">
+                            <textarea class="message-input"
+                                      name="clarificationNote"
+                                      placeholder="Write what you need clarified..."
+                                      rows="2"
+                                      maxlength="2000"
+                                      required></textarea>
+                            <button class="send-button" type="submit" title="Send clarification details">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+
+                        <!-- Action Buttons Row (no Agent/Model selectors here) -->
+                        <div class="input-actions-row">
+                            <div class="input-actions-left">
+                                <button class="input-action-btn" type="button" title="Attach file" disabled>
+                                    <i class="fas fa-paperclip"></i>
+                                </button>
+                                <button class="input-action-btn" type="button" title="Add emoji" disabled>
+                                    <i class="fas fa-smile"></i>
+                                </button>
+                                <button class="input-action-btn" type="button" title="Voice message" disabled>
+                                    <i class="fas fa-microphone"></i>
+                                </button>
+                            </div>
+                            <div></div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    }
+</div>
+
+

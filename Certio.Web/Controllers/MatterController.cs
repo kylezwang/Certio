@@ -19,17 +19,20 @@ namespace Certio.Web.Controllers
         private readonly ApplicationDbContext _context; // Used for PopulateOrgMembersData helper method only
         private readonly IMatterService _matterService;
         private readonly IFirmRelationshipCacheService _firmRelationshipCache;
+        private readonly IChangeNoticeService _changeNoticeService;
         private readonly ILogger<MatterController> _logger;
 
         public MatterController(
             ApplicationDbContext context,
             IMatterService matterService,
             IFirmRelationshipCacheService firmRelationshipCache,
+            IChangeNoticeService changeNoticeService,
             ILogger<MatterController> logger)
         {
             _context = context;
             _matterService = matterService;
             _firmRelationshipCache = firmRelationshipCache;
+            _changeNoticeService = changeNoticeService;
             _logger = logger;
         }
 
@@ -333,6 +336,9 @@ namespace Certio.Web.Controllers
                     })
                     .ToList()
             };
+
+            // Change Control (Change Notices) summary for the card
+            viewModel.ChangeControlSummary = await _changeNoticeService.GetSummaryAsync(orgId, id.Value);
 
             ViewBag.RouteOrganizationId = orgId; // Keep route org for navigation/breadcrumbs if needed
                         

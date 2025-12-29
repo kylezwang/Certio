@@ -1,0 +1,450 @@
+/* Task Details Modal (shared)
+   Extracted from `wwwroot/css/tasks.css` so other pages (Matter, etc.) can use the exact same modal.
+   Keep this file narrowly scoped to the modal + comments UI to avoid pulling in unrelated Tasks page styling.
+*/
+
+/* Task Details Modal */
+.task-details-modal {
+    position: fixed;
+    top: 7vh; /* Start below header */
+    left: 20vw; /* Match client-main-content-wrapper default position */
+    right: 320px; /* Default chat panel width */
+    bottom: 0 !important;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    pointer-events: auto;
+    border-radius: 20px 20px 0 0;
+    transition: left 0.3s ease, right 0.3s ease; /* Smooth transition when sidebars toggle */
+}
+
+.task-details-modal .modal-dialog {
+    width: 50rem;
+    max-width: 90%;
+    margin: 1.5rem;
+    max-height: calc(100% - 3rem);
+    border-radius: 16px;
+    pointer-events: auto;
+    position: relative;
+    z-index: 1001;
+    background-color: white;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 12px 24px -8px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.task-details-content {
+    border: none;
+    border-radius: 16px;
+    box-shadow: none;
+    background: white;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.task-details-body {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem 2rem 2rem;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
+}
+
+/* Custom Scrollbar for Task Details Modal Body */
+.task-details-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.task-details-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.task-details-body::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+.task-details-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.35);
+}
+
+/* Firefox scrollbar for Task Details Modal Body */
+.task-details-body {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.task-details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem 0 2rem;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.task-details-header-left {
+    display: flex;
+    align-items: center;
+}
+
+.task-status-dropdown {
+    min-width: auto;
+    width: auto;
+}
+
+.task-status-select {
+    border: none;
+    background: transparent;
+    font-weight: 500;
+    color: #4a5568;
+    padding: 0.25rem 1.5rem 0.25rem 0.5rem;
+    width: auto;
+    min-width: fit-content;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+.task-details-header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.task-details-header-middle {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    justify-content: center;
+}
+
+.header-progress {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.header-progress .progress {
+    width: 120px;
+    height: 8px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.header-progress:hover .progress {
+    opacity: 0.8;
+}
+
+.header-progress .progress-text {
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.header-progress:hover .progress-text {
+    color: #374151;
+}
+
+.task-status-dropdown {
+    cursor: pointer;
+    position: relative;
+    min-width: auto;
+    width: auto;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+}
+
+.task-status-dropdown:hover {
+    background-color: #eef1f3;
+}
+
+.status-dropdown-arrow {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6b7280;
+    font-size: 0.75rem;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.task-header-btn {
+    color: #6b7280;
+    padding: 0.425rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    transition: background-color 0.2s;
+}
+
+.task-header-btn:hover {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+.task-details-title-section {
+    padding: 0rem 1rem 1rem 1rem;
+    flex-shrink: 0;
+}
+
+.task-title-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* Task Details Page Action Buttons Container */
+.task-details-modal .task-action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    margin: 0rem 1.5rem 1rem;
+}
+
+/* Task Details Page Action Buttons */
+.task-details-modal .task-action-btn {
+    border: 1px solid #d1d5db;
+    color: #6b7280;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: all 0.2s;
+    background: #fff;
+}
+
+.task-details-modal .task-action-btn:hover {
+    background-color: #f9fafb;
+    border-color: #9ca3af;
+    color: #374151;
+}
+
+.task-meta-section {
+    display: flex;
+    gap: 2rem;
+    padding: 0 1.5rem 1rem;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+}
+
+.task-members {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.task-meta-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #6b7280;
+    min-width: 60px;
+}
+
+.member-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #3d1019;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.task-assignees-container {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+}
+
+.add-member-btn {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.task-details-left {
+    flex: 2;
+    overflow-y: auto;
+    max-height: 46vh;
+    position: relative;
+    padding-right: 2.5rem;
+}
+
+.task-details-right {
+    flex: 1;
+    min-width: 200px;
+}
+
+.task-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.task-section-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0.5rem;
+}
+
+.task-section-title i {
+    color: #6b7280;
+    font-size: 0.75rem;
+}
+
+.edit-btn {
+    color: #6b7280;
+    font-size: 0.875rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.edit-btn:hover {
+    color: #374151;
+    background-color: #f3f4f6;
+}
+
+.task-section-content {
+    padding-left: 1.5rem;
+}
+
+/* Comments and activity (right panel) */
+.comments-section {
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 0rem 0.25rem;
+}
+
+.comments-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.comments-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.comments-title i {
+    color: #6b7280;
+    font-size: 0.75rem;
+}
+
+.comment-input-section {
+    margin-bottom: 1rem;
+}
+
+.comment-input {
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 0.75rem;
+    font-size: 0.875rem;
+    resize: vertical;
+    min-height: 80px;
+}
+
+.comment-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.activity-log {
+    max-height: 12.5rem;
+    overflow-y: auto;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .task-details-modal .modal-dialog {
+        width: 85%;
+    }
+}
+
+@media (max-width: 768px) {
+    .task-details-modal {
+        left: 0;
+        right: 0;
+    }
+
+    .task-details-modal .modal-dialog {
+        width: 95%;
+    }
+
+    .task-details-body {
+        flex-direction: column;
+    }
+
+    .task-details-right {
+        min-width: auto;
+    }
+
+    .task-meta-section {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .task-details-modal .task-action-buttons {
+        flex-direction: column;
+    }
+}
+
+/* Adjust for hidden sidebar */
+.sidebar-hidden .task-details-modal {
+    left: calc(6vw + 1rem) !important; /* Move back to just after global navbar + space */
+}
+
+/* Adjust for hidden chat panel */
+.chat-hidden .task-details-modal {
+    right: 1rem !important; /* Same leftover padding as sidebar toggle */
+}
+
+/* Adjust for both sidebars hidden */
+.sidebar-hidden.chat-hidden .task-details-modal {
+    left: calc(6vw + 1rem) !important;
+    right: 1rem !important;
+}
+
+/* Adjust for global dashboard layout */
+.client-main-content-wrapper.global-dashboard-layout ~ .task-details-modal,
+body:has(.client-main-content-wrapper.global-dashboard-layout) .task-details-modal {
+    left: 23vw;
+}
+
+.sidebar-hidden .client-main-content-wrapper.global-dashboard-layout ~ .task-details-modal,
+.sidebar-hidden body:has(.client-main-content-wrapper.global-dashboard-layout) .task-details-modal {
+    left: calc(6vw + 1rem) !important;
+}
+
+

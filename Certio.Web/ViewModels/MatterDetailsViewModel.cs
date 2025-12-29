@@ -1,5 +1,6 @@
 using Certio.Domain.Matters;
 using Certio.Domain.Tasks;
+using Certio.Application.DTOs.ChangeControl;
 
 namespace Certio.Web.ViewModels
 {
@@ -29,6 +30,9 @@ namespace Certio.Web.ViewModels
         
         // Recent Activity
         public List<RecentActivityItem> RecentActivity { get; set; } = new List<RecentActivityItem>();
+
+        // Change Control (Change Notices)
+        public ChangeControlSummaryDto? ChangeControlSummary { get; set; }
         
         // Computed Properties
         public double HighPriorityPercentage => TotalTasksCount > 0 ? (double)HighPriorityCount / TotalTasksCount * 100 : 0;
