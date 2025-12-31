@@ -309,7 +309,7 @@ public sealed class ChangeNoticeService : IChangeNoticeService
             var ackUrl = $"{baseUrl.TrimEnd('/')}/public/change-notice/respond?t={Uri.EscapeDataString(ackToken)}";
             var clarifyUrl = $"{baseUrl.TrimEnd('/')}/public/change-notice/respond?t={Uri.EscapeDataString(clarifyToken)}";
 
-            var subject = $"Change Notice: {notice.Title}";
+            var subject = $"Action Required: {notice.Title}";
             var body = BuildEmailHtml(notice, ackUrl, clarifyUrl);
 
             var ok = await _emailSendingService.SendSystemEmailAsync(
@@ -574,8 +574,8 @@ public sealed class ChangeNoticeService : IChangeNoticeService
   {(string.IsNullOrWhiteSpace(description) ? "" : $"<p style=\"margin: 0 0 12px 0; color: #333;\">{description}</p>")}
   {due}
   <div style=""margin-top: 18px;"">
-    <a href=""{ackUrl}"" style=""display: inline-block; padding: 10px 14px; background: #0d6efd; color: #fff; text-decoration: none; font-weight: 600; border-radius: 6px; margin-right: 10px;"">Acknowledge</a>
-    <a href=""{clarifyUrl}"" style=""display: inline-block; padding: 10px 14px; background: #6c757d; color: #fff; text-decoration: none; font-weight: 600; border-radius: 6px;"">Needs clarification</a>
+    <a href=""{ackUrl}"" style=""display: inline-block; padding: 10px 14px; background: #0d6efd; color: #fff; text-decoration: none; font-weight: 600; border-radius: 6px; margin-right: 10px;"">Confirm</a>
+    <a href=""{clarifyUrl}"" style=""display: inline-block; padding: 10px 14px; background: #6c757d; color: #fff; text-decoration: none; font-weight: 600; border-radius: 6px;"">Needs Clarification</a>
   </div>
   <p style=""margin-top: 18px; color: #777; font-size: 12px;"">
     This link is unique to you. If you received this in error, you can ignore it.
