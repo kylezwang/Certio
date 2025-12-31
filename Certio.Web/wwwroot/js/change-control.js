@@ -149,7 +149,7 @@
                                status === 'NeedsClarification' ? 'bg-warning text-dark' :
                                'bg-secondary text-white';
             const statusLabel = status === 'Acknowledged' ? 'Confirmed' :
-                               status === 'NeedsClarification' ? 'Needs Clarification' :
+                               status === 'NeedsClarification' ? 'Response Required' :
                                'Pending';
             return `
                 <div class="cc-recipient-item" data-email="${escapeHtml(email)}">
@@ -579,7 +579,7 @@
             const canSend = !isAcknowledged;
             const sendLabel = n.status === 'Draft' ? 'Send' : 'Nudge';
             const statusLabel = n.status === 'Acknowledged' ? 'Confirmed'
-                : n.status === 'NeedsClarification' ? 'Needs Clarification'
+                : n.status === 'NeedsClarification' ? 'Response Required'
                 : n.status === 'PartiallyAcknowledged' ? 'Partial'
                 : (n.status || '');
             const statusIcon =
@@ -598,8 +598,8 @@
                         <span class="cc-status-pill badge ${badgeClass}"><i class="${statusIcon}"></i> ${escapeHtml(statusLabel)}</span>
                         <div class="cc-status-counts">
                             <span class="cc-count-pill" style="background: rgba(var(--bs-success-rgb), 0.12); color: #065f46;">Confirmed ${n.acknowledgedRecipientCount} / ${n.recipientCount}</span>
-                            <span class="cc-count-pill" style="background: rgba(var(--bs-warning-rgb), 0.16); color: #92400e;">Needs Clarification ${n.needsClarificationRecipientCount} / ${n.recipientCount}</span>
-                            <span class="cc-count-pill" style="background: rgba(var(--bs-primary-rgb), 0.12); color: #1d4ed8;">Pending Confirmation ${n.pendingRecipientCount} / ${n.recipientCount}</span>
+                            <span class="cc-count-pill" style="background: rgba(var(--bs-warning-rgb), 0.16); color: #92400e;">Response Required ${n.needsClarificationRecipientCount} / ${n.recipientCount}</span>
+                            <span class="cc-count-pill" style="background: rgba(var(--bs-primary-rgb), 0.12); color: #1d4ed8;">Pending ${n.pendingRecipientCount} / ${n.recipientCount}</span>
                         </div>
                     </div>
                     <div class="cc-content-col">
