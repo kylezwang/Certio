@@ -223,6 +223,46 @@
             <h5 class="card-title fw-bold mb-3">Quick Access</h5>
             
             <div class="row gx-4 gy-3">
+                <div class="col-md-3">
+                    <a href="/Client/@ViewBag.OrganizationId/Matter" class="quick-access-item qa-card">
+                        <div class="d-flex flex-column align-items-center text-center p-3">
+                            <div class="quick-access-icon mb-2">
+                                <i class="fas fa-briefcase" style="color: #0b365e;"></i>
+                            </div>
+                            <span class="fw-medium">@mattersLabel</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="/Client/@ViewBag.OrganizationId/Tasks" class="quick-access-item qa-card">
+                        <div class="d-flex flex-column align-items-center text-center p-3">
+                            <div class="quick-access-icon mb-2">
+                                <i class="fa-solid fa-bars-progress" style="color: #9bc0ec;"></i>
+                            </div>
+                            <span class="fw-medium">Tasks</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="/Client/@ViewBag.OrganizationId/Communications" class="quick-access-item qa-card">
+                        <div class="d-flex flex-column align-items-center text-center p-3">
+                            <div class="quick-access-icon mb-2">
+                                <i class="far fa-comments text-danger"></i>
+                            </div>
+                            <span class="fw-medium">Communications</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="/Client/@ViewBag.OrganizationId/Documents" class="quick-access-item qa-card">
+                        <div class="d-flex flex-column align-items-center text-center p-3">
+                            <div class="quick-access-icon mb-2">
+                                <i class="far fa-file-alt text-primary"></i>
+                            </div>
+                            <span class="fw-medium">Files</span>
+                        </div>
+                    </a>
+                </div>
                 @if (Model.OrganizationType == Certio.Domain.Organizations.OrganizationType.LawFirm)
                 {
                     <div class="col-md-3">
@@ -231,7 +271,7 @@
                                 <div class="quick-access-icon mb-2">
                                     <i class="fas fa-users text-purple"></i>
                                 </div>
-                                <span class="fw-medium">Clients</span>
+                                <span class="fw-medium">Contacts</span>
                             </div>
                         </a>
                     </div>
@@ -279,46 +319,7 @@
                         </div>
                     </a>
                 </div>
-                <div class="col-md-3">
-                    <a href="/Client/@ViewBag.OrganizationId/Matter" class="quick-access-item qa-card">
-                        <div class="d-flex flex-column align-items-center text-center p-3">
-                            <div class="quick-access-icon mb-2">
-                                <i class="fas fa-briefcase" style="color: #0b365e;"></i>
-                            </div>
-                            <span class="fw-medium">@mattersLabel</span>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-md-3">
-                    <a href="/Client/@ViewBag.OrganizationId/Tasks" class="quick-access-item qa-card">
-                        <div class="d-flex flex-column align-items-center text-center p-3">
-                            <div class="quick-access-icon mb-2">
-                                <i class="fa-solid fa-bars-progress" style="color: #9bc0ec;"></i>
-                            </div>
-                            <span class="fw-medium">Tasks</span>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-md-3">
-                    <a href="/Client/@ViewBag.OrganizationId/Communications" class="quick-access-item qa-card">
-                        <div class="d-flex flex-column align-items-center text-center p-3">
-                            <div class="quick-access-icon mb-2">
-                                <i class="far fa-comments text-danger"></i>
-                            </div>
-                            <span class="fw-medium">Communications</span>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-md-3">
-                    <a href="/Client/@ViewBag.OrganizationId/Documents" class="quick-access-item qa-card">
-                        <div class="d-flex flex-column align-items-center text-center p-3">
-                            <div class="quick-access-icon mb-2">
-                                <i class="far fa-file-alt text-primary"></i>
-                            </div>
-                            <span class="fw-medium">Files</span>
-                        </div>
-                    </a>
-                </div>
+                
             </div>
         </div>
     </div>
