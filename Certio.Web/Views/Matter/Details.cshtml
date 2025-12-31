@@ -1197,7 +1197,7 @@
                                                 var sendLabel = n.Status == "Draft" ? "Send" : "Nudge";
                                                 var sendDisabled = n.Status == "Acknowledged";
                                                 var statusLabel = n.Status == "Acknowledged" ? "Confirmed"
-                                                    : n.Status == "NeedsClarification" ? "Needs Clarification"
+                                                    : n.Status == "NeedsClarification" ? "Response Required"
                                                     : n.Status == "PartiallyAcknowledged" ? "Partial"
                                                     : n.Status;
                                                 var statusIcon = n.Status == "Acknowledged" ? "fas fa-check-circle"
@@ -1249,7 +1249,7 @@
                                                 var sendLabel = n.Status == "Draft" ? "Send" : "Nudge";
                                                 var sendDisabled = n.Status == "Acknowledged";
                                                 var statusLabel = n.Status == "Acknowledged" ? "Confirmed"
-                                                    : n.Status == "NeedsClarification" ? "Needs Clarification"
+                                                    : n.Status == "NeedsClarification" ? "Response Required"
                                                     : n.Status == "PartiallyAcknowledged" ? "Partial"
                                                     : n.Status;
                                                 var statusIcon = n.Status == "Acknowledged" ? "fas fa-check-circle"
@@ -1334,7 +1334,7 @@
                                                             <option value="Draft">Draft</option>
                                                             <option value="Sent">Sent</option>
                                                             <option value="PartiallyAcknowledged">Partial</option>
-                                                            <option value="NeedsClarification">Needs Clarification</option>
+                                                            <option value="NeedsClarification">Response Required</option>
                                                             <option value="Acknowledged">Confirmed</option>
                                                         </select>
                                                     </div>
