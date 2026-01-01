@@ -504,6 +504,7 @@ namespace Certio.Web.Controllers
                 Description = request.Description,
                 Status = request.Status ?? "Pending",
                 Priority = request.Priority ?? "Medium",
+                StartedAt = request.StartedAt,
                 DueDate = request.DueDate,
                 Location = request.Location,
                 Order = request.Order
@@ -579,6 +580,7 @@ namespace Certio.Web.Controllers
                 Status = request.Status,
                 Priority = request.Priority,
                 Location = !string.IsNullOrEmpty(request.Location) ? InputValidator.Sanitize(request.Location, 200) : null,
+                StartedAt = request.StartedAt,
                 DueDate = request.DueDate,
                 Order = request.Order
             };
