@@ -7,6 +7,7 @@ namespace Certio.Application.DTOs
         public string Status { get; set; } = "Pending";
         public string Priority { get; set; } = "Medium";
         public string? Location { get; set; }
+        public DateTime? StartedAt { get; set; }
         public DateTime? DueDate { get; set; }
         public int Order { get; set; } = 0;
         public List<int>? AssignedUserIds { get; set; }
@@ -19,6 +20,7 @@ namespace Certio.Application.DTOs
         public string? Status { get; set; }
         public string? Priority { get; set; }
         public string? Location { get; set; }
+        public DateTime? StartedAt { get; set; }
         public DateTime? DueDate { get; set; }
         public int? Order { get; set; }
         public DateTime? CompletedAt { get; set; }

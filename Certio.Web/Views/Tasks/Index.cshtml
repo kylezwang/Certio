@@ -315,7 +315,7 @@
                         
                         <!-- Due Date Column -->
                         <div class="task-due-date-column">
-                            <button class="column-header-btn" style="padding: 0.375rem 0.5rem; border: none; background: white; color: #2d3748; font-size: 0.75rem; font-weight: 600; border-radius: 0.5rem; cursor: pointer; text-align: center; width: 100%;">Due Date</button>
+                            <button class="column-header-btn" style="padding: 0.375rem 0.5rem; border: none; background: white; color: #2d3748; font-size: 0.75rem; font-weight: 600; border-radius: 0.5rem; cursor: pointer; text-align: center; width: 100%;">Schedule</button>
                         </div>
                         
                         <!-- Subtask Progress Column -->
@@ -400,23 +400,36 @@
                                                     }
                                             </div>
                                             
-                                            <!-- Due Date Column -->
+                                            <!-- Schedule Column -->
                                             <div class="task-due-date-column">
-                                                    @if (task.DueDate.HasValue)
-                                                    {
-                                                        var today = DateTime.Now.Date;
-                                                        var dueDate = task.DueDate.Value.Date;
-                                                        var daysUntilDue = (dueDate - today).Days;
-                                                        var isOverdue = daysUntilDue < 0;
-                                                        var isTodayOrTomorrow = !isOverdue && daysUntilDue <= 1;
-                                                        var dueDateClass = "task-card-date-btn";
-                                                        var dueDateColor = isOverdue ? "#c62828" : (isTodayOrTomorrow ? "#1e1e1e" : "#6b7280");
-                                                        var dueDateWeight = "600";
-                                                    <span class="@dueDateClass" style="font-size: 0.75em; cursor: pointer; color: @dueDateColor !important; font-weight: @dueDateWeight !important;" 
-                                                          data-task-id="@task.Id" title="Click to edit dates">
-                                                        <i class="fa-solid fa-calendar-day"></i> @task.DueDate.Value.ToString("MMM dd, \\'yy")
-                                                        </span>
-                                                    }
+                                                @{
+                                                    var hasStart = task.StartedAt.HasValue;
+                                                    var hasEnd = task.DueDate.HasValue;
+                                                    // Consider "date-only" if it lands on midnight; used for deadlines + all-day display
+                                                    var endAt = task.DueDate;
+                                                    var endIsMidnight = endAt.HasValue && endAt.Value.TimeOfDay == TimeSpan.Zero;
+                                                    var showDateOnly = !hasStart && hasEnd && endIsMidnight;
+
+                                                    // Determine urgency styling based on the END date when available (fallback to START)
+                                                    var today = DateTime.Now.Date;
+                                                    var anchor = (hasEnd ? task.DueDate!.Value.Date : (hasStart ? task.StartedAt!.Value.Date : (DateTime?)null));
+                                                    var daysUntil = anchor.HasValue ? (anchor.Value - today).Days : int.MaxValue;
+                                                    var isOverdue = anchor.HasValue && daysUntil < 0;
+                                                    var isTodayOrTomorrow = anchor.HasValue && !isOverdue && daysUntil <= 1;
+                                                    var scheduleColor = isOverdue ? "#c62828" : (isTodayOrTomorrow ? "#1e1e1e" : "#6b7280");
+                                                    var scheduleWeight = "600";
+                                                }
+                                                <span class="task-card-date-btn task-card-schedule"
+                                                      style="font-size: 0.75em; cursor: pointer; color: @scheduleColor !important; font-weight: @scheduleWeight !important;"
+                                                      data-task-id="@task.Id"
+                                                      data-start="@(task.StartedAt.HasValue ? task.StartedAt.Value.ToString("O") : "")"
+                                                      data-end="@(task.DueDate.HasValue ? task.DueDate.Value.ToString("O") : "")"
+                                                      data-date-only="@(showDateOnly ? "1" : "0")"
+                                                      title="Click to edit dates">
+                                                    <i class="fa-solid fa-calendar-day"></i>
+                                                    <span class="task-card-schedule-text">—</span>
+                                                    <div class="task-card-schedule-subtext text-muted" style="font-size: 0.65em; font-weight: 500; line-height: 1; margin-left: 1.05rem; display: none;">All day</div>
+                                                </span>
                                             </div>
                                             
                                             <!-- Subtask Progress Column -->
@@ -544,23 +557,34 @@
                                                     }
                                             </div>
                                             
-                                            <!-- Due Date Column -->
+                                            <!-- Schedule Column -->
                                             <div class="task-due-date-column">
-                                                    @if (task.DueDate.HasValue)
-                                                    {
-                                                        var today = DateTime.Now.Date;
-                                                        var dueDate = task.DueDate.Value.Date;
-                                                        var daysUntilDue = (dueDate - today).Days;
-                                                        var isOverdue = daysUntilDue < 0;
-                                                        var isTodayOrTomorrow = !isOverdue && daysUntilDue <= 1;
-                                                        var dueDateClass = "task-card-date-btn";
-                                                        var dueDateColor = isOverdue ? "#c62828" : (isTodayOrTomorrow ? "#1e1e1e" : "#6b7280");
-                                                        var dueDateWeight = "600";
-                                                    <span class="@dueDateClass" style="font-size: 0.75em; cursor: pointer; color: @dueDateColor !important; font-weight: @dueDateWeight !important;" 
-                                                          data-task-id="@task.Id" title="Click to edit dates">
-                                                        <i class="fa-solid fa-calendar-day"></i> @task.DueDate.Value.ToString("MMM dd, \\'yy")
-                                                        </span>
-                                                    }
+                                                @{
+                                                    var hasStart = task.StartedAt.HasValue;
+                                                    var hasEnd = task.DueDate.HasValue;
+                                                    var endAt = task.DueDate;
+                                                    var endIsMidnight = endAt.HasValue && endAt.Value.TimeOfDay == TimeSpan.Zero;
+                                                    var showDateOnly = !hasStart && hasEnd && endIsMidnight;
+                                                    
+                                                    var today = DateTime.Now.Date;
+                                                    var anchor = (hasEnd ? task.DueDate!.Value.Date : (hasStart ? task.StartedAt!.Value.Date : (DateTime?)null));
+                                                    var daysUntil = anchor.HasValue ? (anchor.Value - today).Days : int.MaxValue;
+                                                    var isOverdue = anchor.HasValue && daysUntil < 0;
+                                                    var isTodayOrTomorrow = anchor.HasValue && !isOverdue && daysUntil <= 1;
+                                                    var scheduleColor = isOverdue ? "#c62828" : (isTodayOrTomorrow ? "#1e1e1e" : "#6b7280");
+                                                    var scheduleWeight = "600";
+                                                }
+                                                <span class="task-card-date-btn task-card-schedule"
+                                                      style="font-size: 0.75em; cursor: pointer; color: @scheduleColor !important; font-weight: @scheduleWeight !important;"
+                                                      data-task-id="@task.Id"
+                                                      data-start="@(task.StartedAt.HasValue ? task.StartedAt.Value.ToString("O") : "")"
+                                                      data-end="@(task.DueDate.HasValue ? task.DueDate.Value.ToString("O") : "")"
+                                                      data-date-only="@(showDateOnly ? "1" : "0")"
+                                                      title="Click to edit dates">
+                                                    <i class="fa-solid fa-calendar-day"></i>
+                                                    <span class="task-card-schedule-text">—</span>
+                                                    <div class="task-card-schedule-subtext text-muted" style="font-size: 0.65em; font-weight: 500; line-height: 1; margin-left: 1.05rem; display: none;">All day</div>
+                                                </span>
                                             </div>
                                             
                                             <!-- Subtask Progress Column -->
@@ -688,23 +712,34 @@
                                                     }
                                             </div>
                                             
-                                            <!-- Due Date Column -->
+                                            <!-- Schedule Column -->
                                             <div class="task-due-date-column">
-                                                    @if (task.DueDate.HasValue)
-                                                    {
-                                                        var today = DateTime.Now.Date;
-                                                        var dueDate = task.DueDate.Value.Date;
-                                                        var daysUntilDue = (dueDate - today).Days;
-                                                        var isOverdue = daysUntilDue < 0;
-                                                        var isTodayOrTomorrow = !isOverdue && daysUntilDue <= 1;
-                                                        var dueDateClass = "task-card-date-btn";
-                                                        var dueDateColor = isOverdue ? "#c62828" : (isTodayOrTomorrow ? "#1e1e1e" : "#6b7280");
-                                                        var dueDateWeight = "600";
-                                                    <span class="@dueDateClass" style="font-size: 0.75em; cursor: pointer; color: @dueDateColor !important; font-weight: @dueDateWeight !important;" 
-                                                          data-task-id="@task.Id" title="Click to edit dates">
-                                                        <i class="fa-solid fa-calendar-day"></i> @task.DueDate.Value.ToString("MMM dd, \\'yy")
-                                                        </span>
-                                                    }
+                                                @{
+                                                    var hasStart = task.StartedAt.HasValue;
+                                                    var hasEnd = task.DueDate.HasValue;
+                                                    var endAt = task.DueDate;
+                                                    var endIsMidnight = endAt.HasValue && endAt.Value.TimeOfDay == TimeSpan.Zero;
+                                                    var showDateOnly = !hasStart && hasEnd && endIsMidnight;
+                                                    
+                                                    var today = DateTime.Now.Date;
+                                                    var anchor = (hasEnd ? task.DueDate!.Value.Date : (hasStart ? task.StartedAt!.Value.Date : (DateTime?)null));
+                                                    var daysUntil = anchor.HasValue ? (anchor.Value - today).Days : int.MaxValue;
+                                                    var isOverdue = anchor.HasValue && daysUntil < 0;
+                                                    var isTodayOrTomorrow = anchor.HasValue && !isOverdue && daysUntil <= 1;
+                                                    var scheduleColor = isOverdue ? "#c62828" : (isTodayOrTomorrow ? "#1e1e1e" : "#6b7280");
+                                                    var scheduleWeight = "600";
+                                                }
+                                                <span class="task-card-date-btn task-card-schedule"
+                                                      style="font-size: 0.75em; cursor: pointer; color: @scheduleColor !important; font-weight: @scheduleWeight !important;"
+                                                      data-task-id="@task.Id"
+                                                      data-start="@(task.StartedAt.HasValue ? task.StartedAt.Value.ToString("O") : "")"
+                                                      data-end="@(task.DueDate.HasValue ? task.DueDate.Value.ToString("O") : "")"
+                                                      data-date-only="@(showDateOnly ? "1" : "0")"
+                                                      title="Click to edit dates">
+                                                    <i class="fa-solid fa-calendar-day"></i>
+                                                    <span class="task-card-schedule-text">—</span>
+                                                    <div class="task-card-schedule-subtext text-muted" style="font-size: 0.65em; font-weight: 500; line-height: 1; margin-left: 1.05rem; display: none;">All day</div>
+                                                </span>
                                             </div>
                                             
                                             <!-- Subtask Progress Column -->
@@ -832,23 +867,34 @@
                                                     }
                                             </div>
                                             
-                                            <!-- Due Date Column -->
+                                            <!-- Schedule Column -->
                                             <div class="task-due-date-column">
-                                                    @if (task.DueDate.HasValue)
-                                                    {
-                                                        var today = DateTime.Now.Date;
-                                                        var dueDate = task.DueDate.Value.Date;
-                                                        var daysUntilDue = (dueDate - today).Days;
-                                                        var isOverdue = daysUntilDue < 0;
-                                                        var isTodayOrTomorrow = !isOverdue && daysUntilDue <= 1;
-                                                        var dueDateClass = "task-card-date-btn";
-                                                        var dueDateColor = isOverdue ? "#c62828" : (isTodayOrTomorrow ? "#1e1e1e" : "#6b7280");
-                                                        var dueDateWeight = "600";
-                                                    <span class="@dueDateClass" style="font-size: 0.75em; cursor: pointer; color: @dueDateColor !important; font-weight: @dueDateWeight !important;" 
-                                                          data-task-id="@task.Id" title="Click to edit dates">
-                                                        <i class="fa-solid fa-calendar-day"></i> @task.DueDate.Value.ToString("MMM dd, \\'yy")
-                                                        </span>
-                                                    }
+                                                @{
+                                                    var hasStart = task.StartedAt.HasValue;
+                                                    var hasEnd = task.DueDate.HasValue;
+                                                    var endAt = task.DueDate;
+                                                    var endIsMidnight = endAt.HasValue && endAt.Value.TimeOfDay == TimeSpan.Zero;
+                                                    var showDateOnly = !hasStart && hasEnd && endIsMidnight;
+                                                    
+                                                    var today = DateTime.Now.Date;
+                                                    var anchor = (hasEnd ? task.DueDate!.Value.Date : (hasStart ? task.StartedAt!.Value.Date : (DateTime?)null));
+                                                    var daysUntil = anchor.HasValue ? (anchor.Value - today).Days : int.MaxValue;
+                                                    var isOverdue = anchor.HasValue && daysUntil < 0;
+                                                    var isTodayOrTomorrow = anchor.HasValue && !isOverdue && daysUntil <= 1;
+                                                    var scheduleColor = isOverdue ? "#c62828" : (isTodayOrTomorrow ? "#1e1e1e" : "#6b7280");
+                                                    var scheduleWeight = "600";
+                                                }
+                                                <span class="task-card-date-btn task-card-schedule"
+                                                      style="font-size: 0.75em; cursor: pointer; color: @scheduleColor !important; font-weight: @scheduleWeight !important;"
+                                                      data-task-id="@task.Id"
+                                                      data-start="@(task.StartedAt.HasValue ? task.StartedAt.Value.ToString("O") : "")"
+                                                      data-end="@(task.DueDate.HasValue ? task.DueDate.Value.ToString("O") : "")"
+                                                      data-date-only="@(showDateOnly ? "1" : "0")"
+                                                      title="Click to edit dates">
+                                                    <i class="fa-solid fa-calendar-day"></i>
+                                                    <span class="task-card-schedule-text">—</span>
+                                                    <div class="task-card-schedule-subtext text-muted" style="font-size: 0.65em; font-weight: 500; line-height: 1; margin-left: 1.05rem; display: none;">All day</div>
+                                                </span>
                                             </div>
                                             
                                             <!-- Subtask Progress Column -->
@@ -1235,7 +1281,7 @@
                             <i class="fas fa-exclamation-circle"></i> Priority
                         </button>
                         <button class="btn btn-sm btn-outline-secondary task-action-btn" id="scroll-dates-btn" style="font-size: 0.875rem; border-radius: 0.5rem;">
-                            <i class="fa-solid fa-calendar-day"></i> Dates
+                            <i class="fa-solid fa-calendar-day"></i> Dates & Times
                         </button>
                         <button class="btn btn-sm btn-outline-secondary task-action-btn" id="scroll-checklist-btn" style="font-size: 0.875rem; border-radius: 0.5rem;">
                             <i class="fas fa-check-square"></i> Subtasks
@@ -1319,7 +1365,7 @@
                             <div class="task-section" id="dates-section">
                                 <div class="task-section-header">
                                     <h6 class="task-section-title">
-                                        <i class="fa-solid fa-calendar-day"></i> Dates
+                                        <i class="fa-solid fa-calendar-day"></i> Dates & Times
                                     </h6>
                                 </div>
                                 <div class="task-section-content">
@@ -1327,16 +1373,24 @@
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label fw-bold status-priority-label" style="font-size: 0.875rem;" id="start-date-label">
                                                 <i class="fa-solid fa-calendar-day me-2" style="color: #3d1019;"></i>
-                                                Start Date
+                                                Start
                                             </label>
-                                            <input type="date" class="form-control dates-field" style="font-size: 0.875rem;" id="start-date-field" />
+                                            <input type="datetime-local" class="form-control dates-field" style="font-size: 0.875rem;" id="start-date-field" />
                                         </div>
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label fw-bold status-priority-label" style="font-size: 0.875rem;" id="due-date-label">
                                                 <i class="fa-solid fa-calendar-day me-2" style="color: #3d1019;"></i>
-                                                Event Date
+                                                End
                                             </label>
-                                            <input type="date" class="form-control dates-field" style="font-size: 0.875rem;" id="due-date-field" />
+                                            <input type="datetime-local" class="form-control dates-field" style="font-size: 0.875rem;" id="due-date-field" />
+                                        </div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="taskAllDayCheck">
+                                            <label class="form-check-label fw-semibold" for="taskAllDayCheck" style="font-size: 0.875rem;">
+                                                All day
+                                            </label>
                                         </div>
                                     </div>
                                 </div>
@@ -2240,6 +2294,10 @@
                 }
             }
             
+            // Match CalendarEvent modal behavior: All-day toggle + Start->End auto fill
+            initializeTaskAllDayToggle();
+            initializeTaskStartEndAutoAdjust();
+            
             // Show modal
             taskDetailsModal.style.display = 'flex';
 
@@ -2280,6 +2338,105 @@
             }, 100);
         }
         
+        // All-day toggle (mirrors CalendarEvent modal)
+        let taskAllDayHandlersInitialized = false;
+        function initializeTaskAllDayToggle() {
+            if (taskAllDayHandlersInitialized) return;
+            
+            const allDayCheckbox = document.getElementById('taskAllDayCheck');
+            const startInput = document.getElementById('start-date-field');
+            const endInput = document.getElementById('due-date-field');
+            if (!allDayCheckbox || !startInput || !endInput) return;
+            
+            function toDateValue(v) {
+                if (!v) return '';
+                return v.includes('T') ? v.split('T')[0] : v;
+            }
+            
+            function toDatetimeLocalFromDateOnly(dateStr) {
+                // Default to 9:00 AM to avoid surprising midnight when toggling off all-day
+                return dateStr ? `${dateStr}T09:00` : '';
+            }
+            
+            allDayCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    // Convert to date-only inputs
+                    startInput.type = 'date';
+                    endInput.type = 'date';
+                    
+                    const startDateOnly = toDateValue(startInput.value);
+                    startInput.value = startDateOnly;
+                    
+                    // End should follow start (same day) in all-day mode
+                    if (startDateOnly) {
+                        endInput.value = startDateOnly;
+                    } else {
+                        // If start isn't set, keep end date-only if present
+                        endInput.value = toDateValue(endInput.value);
+                    }
+                } else {
+                    // Convert back to datetime-local inputs
+                    startInput.type = 'datetime-local';
+                    endInput.type = 'datetime-local';
+                    
+                    // If start was date-only, restore a reasonable default time and keep End = Start + 1hr
+                    if (startInput.value && !startInput.value.includes('T')) {
+                        startInput.value = toDatetimeLocalFromDateOnly(startInput.value);
+                    }
+                    
+                    if (startInput.value) {
+                        const d = new Date(startInput.value);
+                        if (!isNaN(d)) {
+                            const endDate = new Date(d.getTime() + 60 * 60 * 1000);
+                            const pad = n => String(n).padStart(2, '0');
+                            endInput.value = `${endDate.getFullYear()}-${pad(endDate.getMonth() + 1)}-${pad(endDate.getDate())}T${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`;
+                        }
+                    }
+                }
+            });
+            
+            taskAllDayHandlersInitialized = true;
+        }
+        
+        // Auto-adjust End when Start changes (mirrors CalendarEvent modal)
+        let taskStartEndHandlersInitialized = false;
+        function initializeTaskStartEndAutoAdjust() {
+            if (taskStartEndHandlersInitialized) return;
+            
+            const startInput = document.getElementById('start-date-field');
+            const endInput = document.getElementById('due-date-field');
+            if (!startInput || !endInput) return;
+            
+            function toDatetimeLocalValue(date) {
+                if (!date || isNaN(date)) return '';
+                const pad = n => String(n).padStart(2, '0');
+                const y = date.getFullYear();
+                const m = pad(date.getMonth() + 1);
+                const d = pad(date.getDate());
+                const hh = pad(date.getHours());
+                const mm = pad(date.getMinutes());
+                return `${y}-${m}-${d}T${hh}:${mm}`;
+            }
+            
+            startInput.addEventListener('change', function() {
+                if (!this.value) return;
+                
+                const allDay = document.getElementById('taskAllDayCheck')?.checked;
+                if (allDay || startInput.type === 'date') {
+                    const dateOnly = this.value.includes('T') ? this.value.split('T')[0] : this.value;
+                    endInput.value = dateOnly;
+                    return;
+                }
+                
+                const startDate = new Date(this.value);
+                if (isNaN(startDate)) return;
+                const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // +1 hour
+                endInput.value = toDatetimeLocalValue(endDate);
+            });
+            
+            taskStartEndHandlersInitialized = true;
+        }
+        
         // Clear task modal for new task creation
         function clearTaskModal() {
             // Clear task matter ID
@@ -2312,6 +2469,10 @@
             const dueDateField = document.getElementById('due-date-field');
             if (startDateField) startDateField.value = '';
             if (dueDateField) dueDateField.value = '';
+            const allDayCheckbox = document.getElementById('taskAllDayCheck');
+            if (allDayCheckbox) allDayCheckbox.checked = false;
+            if (startDateField) startDateField.type = 'datetime-local';
+            if (dueDateField) dueDateField.type = 'datetime-local';
             
             // Clear location
             const locationInput = document.getElementById('locationSearchInput');
@@ -2495,15 +2656,78 @@
             const startedAt = getProp(task, ['startedAt','StartedAt'], null);
             const dueDate = getProp(task, ['dueDate','DueDate'], null);
             
-            if (startDateField && startedAt) {
-                const d = new Date(startedAt);
-                if (!isNaN(d)) startDateField.value = d.toISOString().split('T')[0];
+            function parseDateOrDateTimeToLocal(value) {
+                if (!value) return null;
+                if (value instanceof Date) return isNaN(value) ? null : value;
+                if (typeof value !== 'string') return null;
+                
+                const v = value.trim();
+                // IMPORTANT: "YYYY-MM-DD" parses as UTC in JS; build a local date instead.
+                if (/^\d{4}-\d{2}-\d{2}$/.test(v)) {
+                    const [y, m, d] = v.split('-').map(Number);
+                    const local = new Date(y, m - 1, d, 0, 0, 0, 0);
+                    return isNaN(local) ? null : local;
+                }
+                
+                const dt = new Date(v);
+                return isNaN(dt) ? null : dt;
             }
             
-            if (dueDateField && dueDate) {
-                const d = new Date(dueDate);
-                if (!isNaN(d)) dueDateField.value = d.toISOString().split('T')[0];
+            function toDatetimeLocalValue(date) {
+                if (!date || isNaN(date)) return '';
+                const pad = n => String(n).padStart(2, '0');
+                const y = date.getFullYear();
+                const m = pad(date.getMonth() + 1);
+                const d = pad(date.getDate());
+                const hh = pad(date.getHours());
+                const mm = pad(date.getMinutes());
+                return `${y}-${m}-${d}T${hh}:${mm}`;
             }
+            
+            if (startDateField) {
+                const d = parseDateOrDateTimeToLocal(startedAt);
+                startDateField.value = d ? toDatetimeLocalValue(d) : '';
+            }
+            
+            if (dueDateField) {
+                const d = parseDateOrDateTimeToLocal(dueDate);
+                dueDateField.value = d ? toDatetimeLocalValue(d) : '';
+            }
+
+            // Infer "All day" / date-only based on stored values (midnight timestamps)
+            (function syncAllDayFromLoadedValues() {
+                const allDayCheckbox = document.getElementById('taskAllDayCheck');
+                if (!allDayCheckbox || !startDateField || !dueDateField) return;
+                
+                const s = parseDateOrDateTimeToLocal(startedAt);
+                const e = parseDateOrDateTimeToLocal(dueDate);
+                
+                const isMidnight = dt => dt && dt.getHours() === 0 && dt.getMinutes() === 0 && dt.getSeconds() === 0;
+                const sameDay = (a, b) => a && b &&
+                    a.getFullYear() === b.getFullYear() &&
+                    a.getMonth() === b.getMonth() &&
+                    a.getDate() === b.getDate();
+                const toDateValue = dt => dt ? `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}` : '';
+                
+                const shouldAllDay =
+                    // Deadline/date-only: only end set at midnight
+                    (!s && e && isMidnight(e)) ||
+                    // All-day block: start+end same day and both midnight
+                    (s && e && sameDay(s, e) && isMidnight(s) && isMidnight(e));
+                
+                if (shouldAllDay) {
+                    allDayCheckbox.checked = true;
+                    startDateField.type = 'date';
+                    dueDateField.type = 'date';
+                    // Preserve existing values as date-only where possible
+                    startDateField.value = s ? toDateValue(s) : (e ? toDateValue(e) : '');
+                    dueDateField.value = e ? toDateValue(e) : '';
+                } else {
+                    allDayCheckbox.checked = false;
+                    startDateField.type = 'datetime-local';
+                    dueDateField.type = 'datetime-local';
+                }
+            })();
             
             // Set location (if available)
             if (task.location) {
@@ -4186,6 +4410,111 @@
                 });
             });
         }
+
+        // ==========================================================
+        // Task Schedule display formatting (Tasks list + MatterTasks list)
+        // ==========================================================
+        function formatTaskScheduleDisplay(startIso, endIso, dateOnlyHint = false) {
+            const start = startIso ? new Date(startIso) : null;
+            const end = endIso ? new Date(endIso) : null;
+            const validStart = start && !isNaN(start);
+            const validEnd = end && !isNaN(end);
+
+            const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
+
+            function getTimeParts(d) {
+                const parts = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }).formatToParts(d);
+                const map = {};
+                for (const p of parts) map[p.type] = p.value;
+                return {
+                    hour: map.hour,
+                    minute: map.minute,
+                    dayPeriod: map.dayPeriod // AM/PM
+                };
+            }
+
+            function formatTime(d) {
+                const p = getTimeParts(d);
+                return `${p.hour}:${p.minute} ${p.dayPeriod}`;
+            }
+
+            function formatTimeNoPeriod(d) {
+                const p = getTimeParts(d);
+                return `${p.hour}:${p.minute}`;
+            }
+
+            function sameDay(a, b) {
+                return a.getFullYear() === b.getFullYear() &&
+                       a.getMonth() === b.getMonth() &&
+                       a.getDate() === b.getDate();
+            }
+
+            function isMidnight(d) {
+                return d.getHours() === 0 && d.getMinutes() === 0 && d.getSeconds() === 0;
+            }
+
+            // 1) No start set (and no end either)
+            if (!validStart && !validEnd) {
+                return { main: '—', sub: '' };
+            }
+
+            // 2) Date only (deadline / all-day)
+            // - deadline: only end set and midnight
+            // - all-day: start+end set, both midnight, same day
+            if (!validStart && validEnd && (dateOnlyHint || isMidnight(end))) {
+                return { main: dateFmt.format(end), sub: '' };
+            }
+            if (validStart && validEnd && sameDay(start, end) && isMidnight(start) && isMidnight(end)) {
+                return { main: dateFmt.format(start), sub: 'All day' };
+            }
+
+            // 3) Start datetime, no end
+            if (validStart && !validEnd) {
+                return { main: `${dateFmt.format(start)} \u2022 ${formatTime(start)}`, sub: '' };
+            }
+
+            // 4) Start + end same day (time block)
+            if (validStart && validEnd && sameDay(start, end)) {
+                const sp = getTimeParts(start);
+                const ep = getTimeParts(end);
+                const startTime = (sp.dayPeriod === ep.dayPeriod)
+                    ? formatTimeNoPeriod(start)
+                    : formatTime(start);
+                const endTime = formatTime(end);
+                return { main: `${dateFmt.format(start)} \u2022 ${startTime}\u2013${endTime}`, sub: '' };
+            }
+
+            // Fallback: spans multiple days
+            if (validStart && validEnd) {
+                return { main: `${dateFmt.format(start)} ${formatTime(start)} \u2013 ${dateFmt.format(end)} ${formatTime(end)}`, sub: '' };
+            }
+
+            // Only end set (non-midnight): show as moment time
+            if (!validStart && validEnd) {
+                return { main: `${dateFmt.format(end)} \u2022 ${formatTime(end)}`, sub: '' };
+            }
+
+            return { main: '—', sub: '' };
+        }
+
+        function applyTaskScheduleFormatting() {
+            const items = document.querySelectorAll('.task-card-schedule');
+            items.forEach(el => {
+                const startIso = el.getAttribute('data-start') || '';
+                const endIso = el.getAttribute('data-end') || '';
+                const dateOnlyHint = (el.getAttribute('data-date-only') || '') === '1';
+                const textEl = el.querySelector('.task-card-schedule-text');
+                const subEl = el.querySelector('.task-card-schedule-subtext');
+                const { main, sub } = formatTaskScheduleDisplay(startIso, endIso, dateOnlyHint);
+                if (textEl) textEl.textContent = main;
+                if (subEl) {
+                    subEl.textContent = sub;
+                    subEl.style.display = sub ? 'block' : 'none';
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', applyTaskScheduleFormatting);
 
         document.addEventListener('DOMContentLoaded', function() {
             // Note: Checkbox event listeners are now attached when subtasks are loaded

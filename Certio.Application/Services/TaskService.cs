@@ -64,6 +64,7 @@ namespace Certio.Application.Services
                     Status = createDto.Status,
                     Priority = createDto.Priority,
                     Location = createDto.Location,
+                    StartedAt = createDto.StartedAt,
                     DueDate = createDto.DueDate,
                     Order = createDto.Order,
                     CreatedAt = DateTime.UtcNow
@@ -146,6 +147,7 @@ namespace Certio.Application.Services
                 if (updateDto.Status != null) task.Status = updateDto.Status;
                 if (updateDto.Priority != null) task.Priority = updateDto.Priority;
                 if (updateDto.Location != null) task.Location = updateDto.Location;
+                if (updateDto.StartedAt.HasValue) task.StartedAt = updateDto.StartedAt;
                 if (updateDto.DueDate.HasValue) task.DueDate = updateDto.DueDate;
                 if (updateDto.Order.HasValue) task.Order = updateDto.Order.Value;
                 if (updateDto.CompletedAt.HasValue) task.CompletedAt = updateDto.CompletedAt;

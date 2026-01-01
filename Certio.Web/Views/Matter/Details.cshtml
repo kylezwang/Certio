@@ -578,7 +578,7 @@
                             <div class="card-header bg-transparent border-0 pb-0">
                                 <div class="mb-2">
                                     <div class="d-flex align-items-start">
-                                        <i class="fas fa-clipboard-check fs-5 me-2 flex-shrink-0 text-muted" style="margin-top: 2px;"></i>
+                                        <i class="fa-solid fa-bullhorn fs-5 me-2 flex-shrink-0 text-muted" style="margin-top: 2px;"></i>
                                         <div class="flex-grow-1">
                                             <h5 class="card-title fw-bold mb-2" style="color: black; font-size: 1rem; line-height: 1.3;">Required Action Notices</h5>
                                         </div>
@@ -1142,7 +1142,7 @@
                                             <span class="badge bg-secondary" style="font-weight: 600;">Draft: <span data-cc-count="draft">@((cc?.DraftCount) ?? 0)</span></span>
                                             <span class="badge bg-primary" style="margin-top:0; background-color: rgba(var(--bs-primary-rgb), 1) !important; font-weight: 600;">Pending: <span data-cc-count="pending">@((cc?.PendingCount) ?? 0)</span></span>
                                             <span class="badge bg-warning text-dark" style="margin-top:0; font-weight: 600;">Response Required: <span data-cc-count="clarify">@((cc?.NeedsClarificationCount) ?? 0)</span></span>
-                                            <span class="badge bg-success" style="margin-top:0; font-weight: 600;">Confirmed: <span data-cc-count="ack">@((cc?.AcknowledgedCount) ?? 0)</span></span>
+                                            <span class="badge bg-success" style="margin-top:0; font-weight: 600;">All Confirmed: <span data-cc-count="ack">@((cc?.AcknowledgedCount) ?? 0)</span></span>
                                         </div>
                                         <button id="cc-refresh-btn" class="btn btn-sm btn-outline-secondary" style="font-weight: 600;">
                                             <i class="fas fa-rotate-right me-1"></i> Refresh
@@ -1361,7 +1361,7 @@
                                             <!-- Title Section -->
                                             <div class="task-details-title-section">
                                                 <div class="task-title-container">
-                                                    <i class="fas fa-pen-nib" style="color:#3d1019; font-size: 1.25rem;"></i>
+                                                    <i class="fa-solid fa-bullhorn" style="color:#3d1019; font-size: 1.25rem;"></i>
                                                     <input type="text" class="cc-title-input" id="ccTitleInput" placeholder="Change notice title" maxlength="200">
                                                 </div>
                                             </div>

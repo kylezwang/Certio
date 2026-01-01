@@ -1789,6 +1789,55 @@ function parseNaturalLanguageActions(content) {
 // Process detected actions from AI response
 async function processDetectedActions(actions, conversationId) {
     if (actions.length === 0) return;
+
+    // Defensive dedupe/idempotency:
+    // Streaming / prompt quirks can occasionally cause the same action block to appear twice,
+    // or the client to invoke processing twice. Never propose duplicate actions.
+    function stableNormalizeForFingerprint(value) {
+        if (value === null || value === undefined) return value;
+        if (Array.isArray(value)) return value.map(stableNormalizeForFingerprint);
+        if (typeof value === 'object') {
+            const out = {};
+            for (const key of Object.keys(value).sort()) {
+                // Lowercase keys so Title/title/etc. collapse.
+                out[String(key).toLowerCase()] = stableNormalizeForFingerprint(value[key]);
+            }
+            return out;
+        }
+        return value;
+    }
+
+    function fingerprintAction(action) {
+        const t = action?.actionType || action?.ActionType || '';
+        const p = stableNormalizeForFingerprint(action?.payload || action?.Payload || {});
+        return `${String(t)}:${JSON.stringify(p)}`;
+    }
+
+    const seen = new Set();
+    const uniqueActions = [];
+    for (const a of actions) {
+        const fp = fingerprintAction(a);
+        if (seen.has(fp)) {
+            console.warn('[AgentActions] Skipping duplicate detected action:', a?.actionType, a?.payload);
+            continue;
+        }
+        seen.add(fp);
+        uniqueActions.push(a);
+    }
+
+    // If we were invoked twice with the exact same action set, ignore the second call.
+    // (e.g., if multiple completion paths fire or multiple listeners exist)
+    const actionSetHash = Array.from(seen).sort().join('|');
+    const nowTs = Date.now();
+    const last = AgentActionsState._lastProcessedActionSet;
+    if (last &&
+        last.conversationId === conversationId &&
+        last.hash === actionSetHash &&
+        (nowTs - last.ts) < 15000) {
+        console.warn('[AgentActions] Duplicate processActions call suppressed for conversation', conversationId);
+        return;
+    }
+    AgentActionsState._lastProcessedActionSet = { conversationId, hash: actionSetHash, ts: nowTs };
     
     // Ensure org ID is set
     if (!AgentActionsState.orgId) {
@@ -1805,7 +1854,7 @@ async function processDetectedActions(actions, conversationId) {
     // Show tracker immediately with processing state
     showActionTracker();
     
-    for (const actionData of actions) {
+    for (const actionData of uniqueActions) {
         try {
             console.log('[AgentActions] Proposing action:', actionData.actionType, actionData.payload);
             
