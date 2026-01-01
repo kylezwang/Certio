@@ -1292,12 +1292,12 @@
             // AI Model Tier functionality
             const aiModelTierSelect = document.getElementById('aiModelTier');
             if (aiModelTierSelect && orgId) {
-                const originalTier = aiModelTierSelect.getAttribute('data-original');
+                let originalTier = aiModelTierSelect.getAttribute('data-original');
                 
                 aiModelTierSelect.addEventListener('change', async function() {
                     const selectedTier = this.value;
                     
-                    // Only save if changed
+                    // Only save if changed from server value
                     if (selectedTier === originalTier) return;
                     
                     try {
@@ -1312,7 +1312,17 @@
                         const result = await response.json();
                         if (result.success) {
                             // Update original value
+                            originalTier = selectedTier;
                             aiModelTierSelect.setAttribute('data-original', selectedTier);
+                            
+                            // Sync with localStorage for sidebar/dashboard dropdowns
+                            localStorage.setItem('aiModelTier', selectedTier);
+                            
+                            // Sync with AgentActionsState if available (for sidebar/dashboard dropdowns)
+                            if (typeof window.AgentActions !== 'undefined' && window.AgentActions.syncModelFromSettings) {
+                                window.AgentActions.syncModelFromSettings(selectedTier);
+                            }
+                            
                             // Show success message briefly
                             const successMsg = document.createElement('div');
                             successMsg.className = 'alert alert-success alert-dismissible fade show mt-2';

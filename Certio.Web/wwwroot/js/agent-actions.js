@@ -87,20 +87,45 @@ function initializeAgentActions() {
 
 // Sync with organization's AI model tier from settings
 async function syncOrgModelTier() {
+    const orgId = AgentActionsState.orgId;
+    
+    // Always try to fetch the current tier from the server first
+    if (orgId) {
+        try {
+            const response = await fetch(`/Client/${orgId}/Settings/GetAIModelTier`);
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success && result.tier) {
+                    AgentActionsState.modelTier = result.tier;
+                    localStorage.setItem('aiModelTier', result.tier);
+                    syncModelToUI();
+                    
+                    // Also sync with settings page select if it exists
+                    const settingsSelect = document.getElementById('aiModelTier');
+                    if (settingsSelect && settingsSelect.value !== result.tier) {
+                        settingsSelect.value = result.tier;
+                        settingsSelect.setAttribute('data-original', result.tier);
+                    }
+                    
+                    console.log('[AgentActions] Model tier loaded from server:', AgentActionsState.modelTier);
+                }
+            }
+        } catch (error) {
+            console.warn('[AgentActions] Could not fetch org AI model tier from server:', error);
+            // Fall back to localStorage value which was already loaded in initializeAgentActions
+        }
+    }
+    
     // Check if there's a settings select on the page (AI Settings page)
     const settingsSelect = document.getElementById('aiModelTier');
     if (settingsSelect) {
-        // Use the value from the settings page
-        AgentActionsState.modelTier = settingsSelect.value || 'Auto';
-        localStorage.setItem('aiModelTier', AgentActionsState.modelTier);
-        syncModelToUI();
-        
         // Listen for changes on the settings page
         settingsSelect.addEventListener('change', function() {
-            AgentActionsState.modelTier = this.value || 'Auto';
-            localStorage.setItem('aiModelTier', AgentActionsState.modelTier);
+            const newTier = this.value || 'Auto';
+            AgentActionsState.modelTier = newTier;
+            localStorage.setItem('aiModelTier', newTier);
             syncModelToUI();
-            console.log('[AgentActions] Model tier synced from settings:', AgentActionsState.modelTier);
+            console.log('[AgentActions] Model tier synced from settings select:', AgentActionsState.modelTier);
         });
     }
 }
@@ -335,8 +360,10 @@ async function updateOrgModelTier(tier) {
             
             // Also sync with the settings page select if it exists
             const settingsSelect = document.getElementById('aiModelTier');
-            if (settingsSelect && settingsSelect.value !== tier) {
+            if (settingsSelect) {
                 settingsSelect.value = tier;
+                // Update data-original so the settings page change handler knows this is the new baseline
+                settingsSelect.setAttribute('data-original', tier);
             }
         }
     } catch (error) {
@@ -388,6 +415,17 @@ function syncModelToUI() {
             option.classList.toggle('selected', option.dataset.model === tier);
         });
     });
+}
+
+// Sync model tier from settings page (called when settings page select changes)
+function syncModelFromSettings(tier) {
+    if (!tier) return;
+    
+    AgentActionsState.modelTier = tier;
+    localStorage.setItem('aiModelTier', tier);
+    syncModelToUI();
+    
+    console.log('[AgentActions] Model tier synced from settings page:', tier);
 }
 
 // Close dropdowns when clicking outside
@@ -2574,6 +2612,7 @@ window.AgentActions = {
     updateCardStatus: updateActionCardStatus,
     restoreCardStatuses: restoreActionCardStatuses,
     syncModelTier: syncOrgModelTier,
+    syncModelFromSettings: syncModelFromSettings,
     restoreFromSession: restoreActionsFromSession,
     saveToSession: saveActionsToSession,
     clearSession: clearActionsFromSession,

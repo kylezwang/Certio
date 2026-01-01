@@ -81,6 +81,33 @@ namespace Certio.Web.Controllers
             return View();
         }
 
+        [HttpGet("/Client/{orgId:int}/Settings/GetAIModelTier")]
+        public async Task<IActionResult> GetAIModelTier(int orgId)
+        {
+            try
+            {
+                var customUser = HttpContext.Items["CustomUser"] as Certio.Domain.Users.User;
+                if (customUser == null)
+                {
+                    return Json(new { success = false, error = "User not authenticated" });
+                }
+
+                // Get organization
+                var org = await _context.Organizations.FindAsync(new object[] { orgId });
+                if (org == null)
+                {
+                    return Json(new { success = false, error = "Organization not found" });
+                }
+
+                var tier = org.GetAIModelTier();
+                return Json(new { success = true, tier = tier.ToString() });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
         [HttpPost("/Client/{orgId:int}/Settings/UpdateAIModelTier")]
         public async Task<IActionResult> UpdateAIModelTier(int orgId, [FromBody] UpdateAIModelTierRequest request)
         {
