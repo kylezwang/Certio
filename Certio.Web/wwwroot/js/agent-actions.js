@@ -4,6 +4,14 @@
  * Provides Cursor-style action tracking with Keep/Undo functionality
  */
 
+(function () {
+    'use strict';
+
+    // If this script gets injected twice (AJAX nav / duplicate layout), don't crash.
+    if (window.AgentActions) {
+        return;
+    }
+
 // Agent Actions State
 const AgentActionsState = {
     actions: [],           // Array of proposed/executed actions
@@ -2634,3 +2642,4 @@ document.addEventListener('DOMContentLoaded', function() {
 // Also restore statuses periodically in case cards are rendered dynamically
 setInterval(restoreActionCardStatuses, 2000);
 
+})();
