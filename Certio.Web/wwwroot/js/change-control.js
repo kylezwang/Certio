@@ -340,24 +340,43 @@
         recipientEmails = [];
 
         const modal = document.getElementById('ccModal');
-        if (!modal) return;
+        if (!modal) {
+            console.error('Change Notice modal not found in DOM');
+            return;
+        }
 
-        // Reset form
-        document.getElementById('ccNoticeId').value = '';
-        document.getElementById('ccTitleInput').value = '';
-        document.getElementById('ccDescription').value = '';
-        document.getElementById('ccChangeType').value = 'General';
-        document.getElementById('ccPriority').value = 'Medium';
-        document.getElementById('ccDueDate').value = '';
-        document.getElementById('ccAutoReminders').value = '0';
+        // Reset form - with null checks for all elements
+        const noticeIdEl = document.getElementById('ccNoticeId');
+        const titleInputEl = document.getElementById('ccTitleInput');
+        const descriptionEl = document.getElementById('ccDescription');
+        const changeTypeEl = document.getElementById('ccChangeType');
+        const priorityEl = document.getElementById('ccPriority');
+        const dueDateEl = document.getElementById('ccDueDate');
+        const autoRemindersEl = document.getElementById('ccAutoReminders');
+        const statusDropdownEl = document.getElementById('ccStatusDropdown');
+        const headerProgressEl = document.getElementById('ccHeaderProgress');
+        const deleteBtnEl = document.getElementById('ccDeleteBtn');
+        const saveBtnEl = document.getElementById('ccSaveBtn');
+        const saveBtnTextEl = document.getElementById('ccSaveBtnText');
+        const modalModeEl = document.getElementById('ccModalMode');
+
+        if (noticeIdEl) noticeIdEl.value = '';
+        if (titleInputEl) titleInputEl.value = '';
+        if (descriptionEl) descriptionEl.value = '';
+        if (changeTypeEl) changeTypeEl.value = 'General';
+        if (priorityEl) priorityEl.value = 'Medium';
+        if (dueDateEl) dueDateEl.value = '';
+        if (autoRemindersEl) autoRemindersEl.value = '0';
 
         // Update UI for new draft mode
-        document.getElementById('ccStatusDropdown').value = 'Draft';
-        document.getElementById('ccStatusDropdown').disabled = true;
-        document.getElementById('ccHeaderProgress').style.display = 'none';
-        document.getElementById('ccDeleteBtn').style.display = 'none';
-        document.getElementById('ccSaveBtn').style.display = 'inline-flex';
-        document.getElementById('ccSaveBtnText').textContent = 'Save';
+        if (statusDropdownEl) {
+            statusDropdownEl.value = 'Draft';
+            statusDropdownEl.disabled = true;
+        }
+        if (headerProgressEl) headerProgressEl.style.display = 'none';
+        if (deleteBtnEl) deleteBtnEl.style.display = 'none';
+        if (saveBtnEl) saveBtnEl.style.display = 'inline-flex';
+        if (saveBtnTextEl) saveBtnTextEl.textContent = 'Save';
 
         const headerActionBtn = document.getElementById('ccHeaderActionBtn');
         if (headerActionBtn) {
@@ -366,14 +385,14 @@
             const txt = document.getElementById('ccHeaderActionBtnText');
             if (txt) txt.textContent = 'Send';
         }
-        document.getElementById('ccModalMode').textContent = 'Creating new change notice';
+        if (modalModeEl) modalModeEl.textContent = 'Creating new change notice';
 
         renderRecipientAvatars();
         renderRecipientsList();
 
         modal.style.display = 'flex';
         adjustChangeNoticeModalPosition();
-        document.getElementById('ccTitleInput').focus();
+        if (titleInputEl) titleInputEl.focus();
     }
 
     // Open modal for existing notice
@@ -390,37 +409,60 @@
             recipientEmails = notice.recipients?.map(r => r.email) || [];
 
             const modal = document.getElementById('ccModal');
-            if (!modal) return;
+            if (!modal) {
+                console.error('Change Notice modal not found in DOM');
+                return;
+            }
+
+            // Get all form elements with null checks
+            const noticeIdEl = document.getElementById('ccNoticeId');
+            const titleInputEl = document.getElementById('ccTitleInput');
+            const descriptionEl = document.getElementById('ccDescription');
+            const changeTypeEl = document.getElementById('ccChangeType');
+            const priorityEl = document.getElementById('ccPriority');
+            const dueDateEl = document.getElementById('ccDueDate');
+            const autoRemindersEl = document.getElementById('ccAutoReminders');
+            const statusDropdownEl = document.getElementById('ccStatusDropdown');
+            const progressContainer = document.getElementById('ccHeaderProgress');
+            const progressBarEl = document.getElementById('ccProgressBar');
+            const progressTextEl = document.getElementById('ccProgressText');
+            const deleteBtnEl = document.getElementById('ccDeleteBtn');
+            const saveBtnEl = document.getElementById('ccSaveBtn');
+            const saveBtnTextEl = document.getElementById('ccSaveBtnText');
+            const modalModeEl = document.getElementById('ccModalMode');
 
             // Populate form
-            document.getElementById('ccNoticeId').value = notice.id;
-            document.getElementById('ccTitleInput').value = notice.title || '';
-            document.getElementById('ccDescription').value = notice.description || '';
-            document.getElementById('ccChangeType').value = notice.changeType || 'General';
-            document.getElementById('ccPriority').value = notice.priority || 'Medium';
-            document.getElementById('ccDueDate').value = convertUTCToLocalInput(notice.acknowledgementDueDate);
-            document.getElementById('ccAutoReminders').value = String(notice.autoReminderHoursBeforeDue || 0);
+            if (noticeIdEl) noticeIdEl.value = notice.id;
+            if (titleInputEl) titleInputEl.value = notice.title || '';
+            if (descriptionEl) descriptionEl.value = notice.description || '';
+            if (changeTypeEl) changeTypeEl.value = notice.changeType || 'General';
+            if (priorityEl) priorityEl.value = notice.priority || 'Medium';
+            if (dueDateEl) dueDateEl.value = convertUTCToLocalInput(notice.acknowledgementDueDate);
+            if (autoRemindersEl) autoRemindersEl.value = String(notice.autoReminderHoursBeforeDue || 0);
 
             // Update status dropdown
-            document.getElementById('ccStatusDropdown').value = notice.status;
-            document.getElementById('ccStatusDropdown').disabled = true;
+            if (statusDropdownEl) {
+                statusDropdownEl.value = notice.status;
+                statusDropdownEl.disabled = true;
+            }
 
             // Show progress for sent notices
             const isDraft = notice.status === 'Draft';
-            const progressContainer = document.getElementById('ccHeaderProgress');
-            if (!isDraft && notice.recipientCount > 0) {
-                const percent = Math.round((notice.acknowledgedRecipientCount / notice.recipientCount) * 100);
-                document.getElementById('ccProgressBar').style.width = `${percent}%`;
-                document.getElementById('ccProgressText').textContent = `${percent}%`;
-                progressContainer.style.display = 'flex';
-            } else {
-                progressContainer.style.display = 'none';
+            if (progressContainer) {
+                if (!isDraft && notice.recipientCount > 0) {
+                    const percent = Math.round((notice.acknowledgedRecipientCount / notice.recipientCount) * 100);
+                    if (progressBarEl) progressBarEl.style.width = `${percent}%`;
+                    if (progressTextEl) progressTextEl.textContent = `${percent}%`;
+                    progressContainer.style.display = 'flex';
+                } else {
+                    progressContainer.style.display = 'none';
+                }
             }
 
             // Update buttons
-            document.getElementById('ccDeleteBtn').style.display = isDraft ? 'inline-flex' : 'none';
-            document.getElementById('ccSaveBtn').style.display = 'inline-flex';
-            document.getElementById('ccSaveBtnText').textContent = 'Save';
+            if (deleteBtnEl) deleteBtnEl.style.display = isDraft ? 'inline-flex' : 'none';
+            if (saveBtnEl) saveBtnEl.style.display = 'inline-flex';
+            if (saveBtnTextEl) saveBtnTextEl.textContent = 'Save';
             
             // Disable send if all confirmed
             const allConfirmed = notice.acknowledgedRecipientCount === notice.recipientCount && notice.recipientCount > 0;
@@ -432,7 +474,7 @@
                 if (txt) txt.textContent = isDraft ? 'Send' : 'Nudge';
             }
 
-            document.getElementById('ccModalMode').textContent = isDraft ? 'Editing draft' : `Sent ${notice.sendCount || 1} time(s)`;
+            if (modalModeEl) modalModeEl.textContent = isDraft ? 'Editing draft' : `Sent ${notice.sendCount || 1} time(s)`;
 
             renderRecipientAvatars();
             renderRecipientsList();
@@ -664,20 +706,27 @@
     }
 
     async function createOrUpdateDraft(orgId, matterId, skipClose = false) {
-        const title = document.getElementById('ccTitleInput').value.trim();
+        const titleEl = document.getElementById('ccTitleInput');
+        const title = titleEl ? titleEl.value.trim() : '';
         if (!title) {
             alert('Please enter a title.');
             return false;
         }
 
+        const descriptionEl = document.getElementById('ccDescription');
+        const changeTypeEl = document.getElementById('ccChangeType');
+        const priorityEl = document.getElementById('ccPriority');
+        const dueDateEl = document.getElementById('ccDueDate');
+        const autoRemindersEl = document.getElementById('ccAutoReminders');
+
         const data = new FormData();
         data.append('Title', title);
-        data.append('Description', document.getElementById('ccDescription').value);
-        data.append('ChangeType', document.getElementById('ccChangeType').value);
-        data.append('Priority', document.getElementById('ccPriority').value);
-        const dueUtc = convertLocalInputToUTC(document.getElementById('ccDueDate').value);
+        data.append('Description', descriptionEl ? descriptionEl.value : '');
+        data.append('ChangeType', changeTypeEl ? changeTypeEl.value : 'General');
+        data.append('Priority', priorityEl ? priorityEl.value : 'Medium');
+        const dueUtc = convertLocalInputToUTC(dueDateEl ? dueDateEl.value : '');
         data.append('AcknowledgementDueDate', dueUtc || '');
-        data.append('AutoReminderHoursBeforeDue', document.getElementById('ccAutoReminders').value);
+        data.append('AutoReminderHoursBeforeDue', autoRemindersEl ? autoRemindersEl.value : '0');
         data.append('RecipientEmails', recipientEmails.join(','));
 
         let url, method;
