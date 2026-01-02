@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "Vt0/Y4IjJzS3qDI4tVs867GI6eQ5FrAFElOG37yTYpc=",
+  "Hash": "srARGGjzE278yy1PppS9IOx/SF85regBScbQAzVWjG8=",
   "Source": "Certio.Web",
   "BasePath": "_content/Certio.Web",
   "Mode": "Default",
@@ -1172,12 +1172,12 @@
       "OriginalItemSpec": "C:\\Projects\\Certio\\Certio.Web\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js"
     },
     {
-      "Identity": "C:\\Projects\\Certio\\Certio.Web\\obj\\Debug\\net9.0\\compressed\\gstiy08qf8-1inx11fm5m.gz",
+      "Identity": "C:\\Projects\\Certio\\Certio.Web\\obj\\Debug\\net9.0\\compressed\\gstiy08qf8-e1pin3agdu.gz",
       "SourceId": "Certio.Web",
       "SourceType": "Discovered",
       "ContentRoot": "C:\\Projects\\Certio\\Certio.Web\\obj\\Debug\\net9.0\\compressed\\",
       "BasePath": "_content/Certio.Web",
-      "RelativePath": "js/change-control#[.{fingerprint=1inx11fm5m}]?.js.gz",
+      "RelativePath": "js/change-control#[.{fingerprint=e1pin3agdu}]?.js.gz",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Alternative",
@@ -1186,8 +1186,8 @@
       "RelatedAsset": "C:\\Projects\\Certio\\Certio.Web\\wwwroot\\js\\change-control.js",
       "AssetTraitName": "Content-Encoding",
       "AssetTraitValue": "gzip",
-      "Fingerprint": "2oe0razgxy",
-      "Integrity": "Qt2KHDfM3GpuAcCe3Y4L4gd01s8s2UJEBm1udnd8tRQ=",
+      "Fingerprint": "t5p3l1qcjk",
+      "Integrity": "3+Sio0Bztcq5YQU09oZGcBixv8YJxAXCramiCkpC0+Y=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "C:\\Projects\\Certio\\Certio.Web\\wwwroot\\js\\change-control.js"
@@ -3538,8 +3538,8 @@
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
-      "Fingerprint": "1inx11fm5m",
-      "Integrity": "OaoULES7/rUrgX4FHwxpUP9VmK/S3CpNjihwOqqWPTM=",
+      "Fingerprint": "e1pin3agdu",
+      "Integrity": "vq1FHf7DxeCxGYYVSqMWG+qlO1maF+JE5ELJFUUQDTw=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\js\\change-control.js"
@@ -19483,13 +19483,13 @@
       ]
     },
     {
-      "Route": "js/change-control.1inx11fm5m.js",
-      "AssetFile": "C:\\Projects\\Certio\\Certio.Web\\obj\\Debug\\net9.0\\compressed\\gstiy08qf8-1inx11fm5m.gz",
+      "Route": "js/change-control.e1pin3agdu.js",
+      "AssetFile": "C:\\Projects\\Certio\\Certio.Web\\obj\\Debug\\net9.0\\compressed\\gstiy08qf8-e1pin3agdu.gz",
       "Selectors": [
         {
           "Name": "Content-Encoding",
           "Value": "gzip",
-          "Quality": "0.000124378109"
+          "Quality": "0.000119246363"
         }
       ],
       "ResponseHeaders": [
@@ -19499,15 +19499,15 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "8039"
+          "Value": "8385"
         },
         {
           "Name": "ETag",
-          "Value": "\"Qt2KHDfM3GpuAcCe3Y4L4gd01s8s2UJEBm1udnd8tRQ=\""
+          "Value": "\"3+Sio0Bztcq5YQU09oZGcBixv8YJxAXCramiCkpC0+Y=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Fri, 02 Jan 2026 07:27:09 GMT"
+          "Value": "Fri, 02 Jan 2026 07:58:58 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -19527,13 +19527,13 @@
         },
         {
           "Name": "ETag",
-          "Value": "W/\"OaoULES7/rUrgX4FHwxpUP9VmK/S3CpNjihwOqqWPTM=\""
+          "Value": "W/\"vq1FHf7DxeCxGYYVSqMWG+qlO1maF+JE5ELJFUUQDTw=\""
         }
       ],
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "1inx11fm5m"
+          "Value": "e1pin3agdu"
         },
         {
           "Name": "label",
@@ -19541,12 +19541,12 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-OaoULES7/rUrgX4FHwxpUP9VmK/S3CpNjihwOqqWPTM="
+          "Value": "sha256-vq1FHf7DxeCxGYYVSqMWG+qlO1maF+JE5ELJFUUQDTw="
         }
       ]
     },
     {
-      "Route": "js/change-control.1inx11fm5m.js",
+      "Route": "js/change-control.e1pin3agdu.js",
       "AssetFile": "C:\\Projects\\Certio\\Certio.Web\\wwwroot\\js\\change-control.js",
       "Selectors": [],
       "ResponseHeaders": [
@@ -19556,7 +19556,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "37750"
+          "Value": "40201"
         },
         {
           "Name": "Content-Type",
@@ -19564,11 +19564,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"OaoULES7/rUrgX4FHwxpUP9VmK/S3CpNjihwOqqWPTM=\""
+          "Value": "\"vq1FHf7DxeCxGYYVSqMWG+qlO1maF+JE5ELJFUUQDTw=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Fri, 02 Jan 2026 07:27:09 GMT"
+          "Value": "Fri, 02 Jan 2026 07:58:58 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -19578,7 +19578,7 @@
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "1inx11fm5m"
+          "Value": "e1pin3agdu"
         },
         {
           "Name": "label",
@@ -19586,13 +19586,13 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-OaoULES7/rUrgX4FHwxpUP9VmK/S3CpNjihwOqqWPTM="
+          "Value": "sha256-vq1FHf7DxeCxGYYVSqMWG+qlO1maF+JE5ELJFUUQDTw="
         }
       ]
     },
     {
-      "Route": "js/change-control.1inx11fm5m.js.gz",
-      "AssetFile": "C:\\Projects\\Certio\\Certio.Web\\obj\\Debug\\net9.0\\compressed\\gstiy08qf8-1inx11fm5m.gz",
+      "Route": "js/change-control.e1pin3agdu.js.gz",
+      "AssetFile": "C:\\Projects\\Certio\\Certio.Web\\obj\\Debug\\net9.0\\compressed\\gstiy08qf8-e1pin3agdu.gz",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -19601,7 +19601,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "8039"
+          "Value": "8385"
         },
         {
           "Name": "Content-Type",
@@ -19609,11 +19609,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"Qt2KHDfM3GpuAcCe3Y4L4gd01s8s2UJEBm1udnd8tRQ=\""
+          "Value": "\"3+Sio0Bztcq5YQU09oZGcBixv8YJxAXCramiCkpC0+Y=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Fri, 02 Jan 2026 07:27:09 GMT"
+          "Value": "Fri, 02 Jan 2026 07:58:58 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -19631,7 +19631,7 @@
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "1inx11fm5m"
+          "Value": "e1pin3agdu"
         },
         {
           "Name": "label",
@@ -19639,18 +19639,18 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-Qt2KHDfM3GpuAcCe3Y4L4gd01s8s2UJEBm1udnd8tRQ="
+          "Value": "sha256-3+Sio0Bztcq5YQU09oZGcBixv8YJxAXCramiCkpC0+Y="
         }
       ]
     },
     {
       "Route": "js/change-control.js",
-      "AssetFile": "C:\\Projects\\Certio\\Certio.Web\\obj\\Debug\\net9.0\\compressed\\gstiy08qf8-1inx11fm5m.gz",
+      "AssetFile": "C:\\Projects\\Certio\\Certio.Web\\obj\\Debug\\net9.0\\compressed\\gstiy08qf8-e1pin3agdu.gz",
       "Selectors": [
         {
           "Name": "Content-Encoding",
           "Value": "gzip",
-          "Quality": "0.000124378109"
+          "Quality": "0.000119246363"
         }
       ],
       "ResponseHeaders": [
@@ -19660,15 +19660,15 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "8039"
+          "Value": "8385"
         },
         {
           "Name": "ETag",
-          "Value": "\"Qt2KHDfM3GpuAcCe3Y4L4gd01s8s2UJEBm1udnd8tRQ=\""
+          "Value": "\"3+Sio0Bztcq5YQU09oZGcBixv8YJxAXCramiCkpC0+Y=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Fri, 02 Jan 2026 07:27:09 GMT"
+          "Value": "Fri, 02 Jan 2026 07:58:58 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -19688,13 +19688,13 @@
         },
         {
           "Name": "ETag",
-          "Value": "W/\"OaoULES7/rUrgX4FHwxpUP9VmK/S3CpNjihwOqqWPTM=\""
+          "Value": "W/\"vq1FHf7DxeCxGYYVSqMWG+qlO1maF+JE5ELJFUUQDTw=\""
         }
       ],
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-OaoULES7/rUrgX4FHwxpUP9VmK/S3CpNjihwOqqWPTM="
+          "Value": "sha256-vq1FHf7DxeCxGYYVSqMWG+qlO1maF+JE5ELJFUUQDTw="
         }
       ]
     },
@@ -19709,7 +19709,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "37750"
+          "Value": "40201"
         },
         {
           "Name": "Content-Type",
@@ -19717,11 +19717,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"OaoULES7/rUrgX4FHwxpUP9VmK/S3CpNjihwOqqWPTM=\""
+          "Value": "\"vq1FHf7DxeCxGYYVSqMWG+qlO1maF+JE5ELJFUUQDTw=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Fri, 02 Jan 2026 07:27:09 GMT"
+          "Value": "Fri, 02 Jan 2026 07:58:58 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -19731,13 +19731,13 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-OaoULES7/rUrgX4FHwxpUP9VmK/S3CpNjihwOqqWPTM="
+          "Value": "sha256-vq1FHf7DxeCxGYYVSqMWG+qlO1maF+JE5ELJFUUQDTw="
         }
       ]
     },
     {
       "Route": "js/change-control.js.gz",
-      "AssetFile": "C:\\Projects\\Certio\\Certio.Web\\obj\\Debug\\net9.0\\compressed\\gstiy08qf8-1inx11fm5m.gz",
+      "AssetFile": "C:\\Projects\\Certio\\Certio.Web\\obj\\Debug\\net9.0\\compressed\\gstiy08qf8-e1pin3agdu.gz",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -19746,7 +19746,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "8039"
+          "Value": "8385"
         },
         {
           "Name": "Content-Type",
@@ -19754,11 +19754,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"Qt2KHDfM3GpuAcCe3Y4L4gd01s8s2UJEBm1udnd8tRQ=\""
+          "Value": "\"3+Sio0Bztcq5YQU09oZGcBixv8YJxAXCramiCkpC0+Y=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Fri, 02 Jan 2026 07:27:09 GMT"
+          "Value": "Fri, 02 Jan 2026 07:58:58 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -19776,7 +19776,7 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-Qt2KHDfM3GpuAcCe3Y4L4gd01s8s2UJEBm1udnd8tRQ="
+          "Value": "sha256-3+Sio0Bztcq5YQU09oZGcBixv8YJxAXCramiCkpC0+Y="
         }
       ]
     },

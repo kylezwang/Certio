@@ -2,6 +2,10 @@
 (function () {
     'use strict';
 
+    // Helps verify production is running the latest script (and not a cached older one).
+    window.__changeControlVersion = '2026-01-02.1';
+    console.log('[ChangeControl] loaded', window.__changeControlVersion);
+
     // Modal state
     let currentNoticeId = null;
     let currentNotice = null;
