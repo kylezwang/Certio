@@ -9,6 +9,7 @@ public sealed class ChangeNoticeDetailDto
     public string Priority { get; init; } = "";
     public string ChangeType { get; init; } = "";
     public DateTime? AcknowledgementDueDate { get; init; }
+    public int? AutoReminderHoursBeforeDue { get; init; }
 
     public DateTime CreatedAt { get; init; }
     public DateTime? SentAt { get; init; }

@@ -20,6 +20,12 @@ public sealed class CreateChangeNoticeRequest
     public DateTime? AcknowledgementDueDate { get; init; }
 
     /// <summary>
+    /// Auto reminder offset in hours before AcknowledgementDueDate.
+    /// Allowed values: null/0 (Off), 24, 48, 72.
+    /// </summary>
+    public int? AutoReminderHoursBeforeDue { get; init; }
+
+    /// <summary>
     /// One email per line or comma-separated. Will be parsed/normalized server-side.
     /// </summary>
     [Required]

@@ -33,6 +33,12 @@ public interface IChangeNoticeService
         int sentByUserId,
         CancellationToken ct = default);
 
+    /// <summary>
+    /// Processes due auto reminders for change notices by sending a "Nudge" (re-send) email.
+    /// Returns the number of notices nudged.
+    /// </summary>
+    Task<int> ProcessAutoRemindersAsync(string baseUrl, CancellationToken ct = default);
+
     Task<PublicChangeNoticeResponseResult> ProcessPublicResponseAsync(string token, CancellationToken ct = default);
 
     Task<PublicChangeNoticeResponseResult> SavePublicClarificationNoteAsync(

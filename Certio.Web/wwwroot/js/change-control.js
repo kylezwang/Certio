@@ -349,6 +349,7 @@
         document.getElementById('ccChangeType').value = 'General';
         document.getElementById('ccPriority').value = 'Medium';
         document.getElementById('ccDueDate').value = '';
+        document.getElementById('ccAutoReminders').value = '0';
 
         // Update UI for new draft mode
         document.getElementById('ccStatusDropdown').value = 'Draft';
@@ -356,8 +357,15 @@
         document.getElementById('ccHeaderProgress').style.display = 'none';
         document.getElementById('ccDeleteBtn').style.display = 'none';
         document.getElementById('ccSaveBtn').style.display = 'inline-flex';
-        document.getElementById('ccSaveBtnText').textContent = 'Create Draft';
-        document.getElementById('ccSendBtn').style.display = 'none';
+        document.getElementById('ccSaveBtnText').textContent = 'Save';
+
+        const headerActionBtn = document.getElementById('ccHeaderActionBtn');
+        if (headerActionBtn) {
+            headerActionBtn.style.display = 'inline-flex';
+            headerActionBtn.disabled = false;
+            const txt = document.getElementById('ccHeaderActionBtnText');
+            if (txt) txt.textContent = 'Send';
+        }
         document.getElementById('ccModalMode').textContent = 'Creating new change notice';
 
         renderRecipientAvatars();
@@ -390,7 +398,8 @@
             document.getElementById('ccDescription').value = notice.description || '';
             document.getElementById('ccChangeType').value = notice.changeType || 'General';
             document.getElementById('ccPriority').value = notice.priority || 'Medium';
-            document.getElementById('ccDueDate').value = notice.acknowledgementDueDate ? notice.acknowledgementDueDate.split('T')[0] : '';
+            document.getElementById('ccDueDate').value = convertUTCToLocalInput(notice.acknowledgementDueDate);
+            document.getElementById('ccAutoReminders').value = String(notice.autoReminderHoursBeforeDue || 0);
 
             // Update status dropdown
             document.getElementById('ccStatusDropdown').value = notice.status;
@@ -410,14 +419,18 @@
 
             // Update buttons
             document.getElementById('ccDeleteBtn').style.display = isDraft ? 'inline-flex' : 'none';
-            document.getElementById('ccSaveBtn').style.display = isDraft ? 'inline-flex' : 'none';
-            document.getElementById('ccSaveBtnText').textContent = 'Save Changes';
-            document.getElementById('ccSendBtn').style.display = 'inline-flex';
-            document.getElementById('ccSendBtnText').textContent = isDraft ? 'Send' : 'Nudge';
+            document.getElementById('ccSaveBtn').style.display = 'inline-flex';
+            document.getElementById('ccSaveBtnText').textContent = 'Save';
             
             // Disable send if all confirmed
             const allConfirmed = notice.acknowledgedRecipientCount === notice.recipientCount && notice.recipientCount > 0;
-            document.getElementById('ccSendBtn').disabled = allConfirmed;
+            const headerActionBtn = document.getElementById('ccHeaderActionBtn');
+            if (headerActionBtn) {
+                headerActionBtn.style.display = 'inline-flex';
+                headerActionBtn.disabled = allConfirmed;
+                const txt = document.getElementById('ccHeaderActionBtnText');
+                if (txt) txt.textContent = isDraft ? 'Send' : 'Nudge';
+            }
 
             document.getElementById('ccModalMode').textContent = isDraft ? 'Editing draft' : `Sent ${notice.sendCount || 1} time(s)`;
 
@@ -442,6 +455,28 @@
         } catch {
             return d.toISOString();
         }
+    }
+
+    // Convert datetime-local (local time) -> UTC ISO string
+    function convertLocalInputToUTC(dateTimeLocalValue) {
+        if (!dateTimeLocalValue) return null;
+        const localDate = new Date(dateTimeLocalValue);
+        if (Number.isNaN(localDate.getTime())) return null;
+        return localDate.toISOString();
+    }
+
+    // Convert UTC ISO string -> datetime-local value (local time)
+    function convertUTCToLocalInput(utcISOString) {
+        if (!utcISOString) return '';
+        const utcDate = new Date(utcISOString);
+        if (Number.isNaN(utcDate.getTime())) return '';
+
+        const year = utcDate.getFullYear();
+        const month = String(utcDate.getMonth() + 1).padStart(2, '0');
+        const day = String(utcDate.getDate()).padStart(2, '0');
+        const hours = String(utcDate.getHours()).padStart(2, '0');
+        const minutes = String(utcDate.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
     }
 
     function renderActivityLog() {
@@ -640,7 +675,9 @@
         data.append('Description', document.getElementById('ccDescription').value);
         data.append('ChangeType', document.getElementById('ccChangeType').value);
         data.append('Priority', document.getElementById('ccPriority').value);
-        data.append('AcknowledgementDueDate', document.getElementById('ccDueDate').value);
+        const dueUtc = convertLocalInputToUTC(document.getElementById('ccDueDate').value);
+        data.append('AcknowledgementDueDate', dueUtc || '');
+        data.append('AutoReminderHoursBeforeDue', document.getElementById('ccAutoReminders').value);
         data.append('RecipientEmails', recipientEmails.join(','));
 
         let url, method;
@@ -744,9 +781,9 @@
             return;
         }
 
-        // Send button in modal
-        const sendModalBtn = target.closest?.('#ccSendBtn');
-        if (sendModalBtn) {
+        // Header action button (Send / Nudge)
+        const headerActionBtn = target.closest?.('#ccHeaderActionBtn');
+        if (headerActionBtn) {
             e.preventDefault();
             const noticeId = currentNoticeId || document.getElementById('ccNoticeId').value;
             if (!noticeId) {
