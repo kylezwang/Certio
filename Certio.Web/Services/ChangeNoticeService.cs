@@ -6,6 +6,7 @@ using Certio.Domain.ChangeControl;
 using Certio.Infrastructure.Data;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
+using TimeZoneConverter;
 
 namespace Certio.Web.Services;
 
@@ -64,7 +65,8 @@ public sealed class ChangeNoticeService : IChangeNoticeService
             Status = notice.Status,
             Priority = notice.Priority,
             ChangeType = notice.ChangeType,
-            AcknowledgementDueDate = notice.AcknowledgementDueDate,
+            AcknowledgementDueDate = EnsureUtcKind(notice.AcknowledgementDueDate),
+            AutoReminderHoursBeforeDue = notice.AutoReminderHoursBeforeDue,
             CreatedAt = notice.CreatedAt,
             SentAt = notice.SentAt,
             SendCount = notice.SendCount,
@@ -114,7 +116,8 @@ public sealed class ChangeNoticeService : IChangeNoticeService
             ChangeType = string.IsNullOrWhiteSpace(request.ChangeType) ? "General" : request.ChangeType.Trim(),
             Priority = string.IsNullOrWhiteSpace(request.Priority) ? "Medium" : request.Priority.Trim(),
             Status = ChangeNoticeStatuses.Draft,
-            AcknowledgementDueDate = request.AcknowledgementDueDate,
+            AcknowledgementDueDate = NormalizeUtc(request.AcknowledgementDueDate),
+            AutoReminderHoursBeforeDue = NormalizeAutoReminderHours(request.AutoReminderHoursBeforeDue),
             CreatedAt = DateTime.UtcNow,
             CreatedById = createdByUserId
         };
@@ -166,7 +169,10 @@ public sealed class ChangeNoticeService : IChangeNoticeService
         notice.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
         notice.ChangeType = string.IsNullOrWhiteSpace(request.ChangeType) ? "General" : request.ChangeType.Trim();
         notice.Priority = string.IsNullOrWhiteSpace(request.Priority) ? "Medium" : request.Priority.Trim();
-        notice.AcknowledgementDueDate = request.AcknowledgementDueDate;
+        notice.AcknowledgementDueDate = NormalizeUtc(request.AcknowledgementDueDate);
+        notice.AutoReminderHoursBeforeDue = NormalizeAutoReminderHours(request.AutoReminderHoursBeforeDue);
+        // Reset last trigger when due date or reminder setting changes so the next scheduled reminder can fire.
+        notice.AutoReminderLastTriggeredAtUtc = null;
         notice.ModifiedAt = DateTime.UtcNow;
         notice.ModifiedById = modifiedByUserId;
 
@@ -245,6 +251,76 @@ public sealed class ChangeNoticeService : IChangeNoticeService
         if (notice == null)
             throw new InvalidOperationException("Change notice not found.");
 
+        await SendOrNudgeInternalAsync(notice, baseUrl, sentByUserId, isAutoReminder: false, ct);
+
+        return await GetSummaryAsync(organizationId, matterId, ct);
+    }
+
+    public async Task<int> ProcessAutoRemindersAsync(string baseUrl, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(baseUrl))
+            return 0;
+
+        var nowUtc = DateTime.UtcNow;
+
+        // Only consider notices that are sent (or active response states) and not fully acknowledged.
+        var candidates = await _dbContext.ChangeNotices
+            .Include(n => n.Recipients)
+            .Where(n =>
+                !n.IsDeleted &&
+                n.AcknowledgementDueDate != null &&
+                n.AutoReminderHoursBeforeDue != null &&
+                (n.Status == ChangeNoticeStatuses.Sent ||
+                 n.Status == ChangeNoticeStatuses.PartiallyAcknowledged ||
+                 n.Status == ChangeNoticeStatuses.NeedsClarification) &&
+                n.Recipients.Any(r => r.Status != ChangeNoticeRecipientStatuses.Acknowledged))
+            .ToListAsync(ct);
+
+        var nudgedCount = 0;
+
+        foreach (var notice in candidates)
+        {
+            var hours = notice.AutoReminderHoursBeforeDue ?? 0;
+            if (hours is not (24 or 48 or 72))
+                continue;
+
+            var dueUtc = NormalizeUtc(notice.AcknowledgementDueDate);
+            if (!dueUtc.HasValue)
+                continue;
+
+            var triggerAtUtc = dueUtc.Value.AddHours(-hours);
+
+            // Not yet time.
+            if (nowUtc < triggerAtUtc)
+                continue;
+
+            // Deduplicate: if we already processed this exact trigger time, skip.
+            if (notice.AutoReminderLastTriggeredAtUtc.HasValue &&
+                notice.AutoReminderLastTriggeredAtUtc.Value == triggerAtUtc)
+            {
+                continue;
+            }
+
+            // Mark trigger time first to avoid duplicate sends if the loop runs again.
+            notice.AutoReminderLastTriggeredAtUtc = triggerAtUtc;
+
+            await SendOrNudgeInternalAsync(notice, baseUrl, initiatedByUserId: null, isAutoReminder: true, ct);
+            nudgedCount += 1;
+        }
+
+        return nudgedCount;
+    }
+
+    private async Task SendOrNudgeInternalAsync(
+        ChangeNotice notice,
+        string baseUrl,
+        int? initiatedByUserId,
+        bool isAutoReminder,
+        CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(baseUrl))
+            throw new ArgumentException("Base URL is required.", nameof(baseUrl));
+
         if (notice.Recipients.Count == 0)
             throw new InvalidOperationException("Change notice has no recipients.");
 
@@ -259,7 +335,7 @@ public sealed class ChangeNoticeService : IChangeNoticeService
         notice.LastResentAt = now;
         notice.SendCount += 1;
         notice.ModifiedAt = now;
-        notice.ModifiedById = sentByUserId;
+        notice.ModifiedById = initiatedByUserId;
 
         // Set to Sent if not already in an active response state
         if (notice.Status == ChangeNoticeStatuses.Draft)
@@ -267,24 +343,67 @@ public sealed class ChangeNoticeService : IChangeNoticeService
 
         await _dbContext.SaveChangesAsync(ct);
 
-        var sender = await _dbContext.Users
-            .AsNoTracking()
-            .Where(u => u.Id == sentByUserId)
-            .Select(u => new
-            {
-                Name = (u.FirstName + " " + u.LastName).Trim(),
-                Email = u.Email
-            })
-            .FirstOrDefaultAsync(ct);
+        string? fromNameOverride = null;
+        string? replyToEmailOverride = null;
 
-        var fromNameOverride = string.IsNullOrWhiteSpace(sender?.Name) ? null : $"{sender.Name} in Notal";
-        var replyToEmailOverride = string.IsNullOrWhiteSpace(sender?.Email) ? null : sender.Email;
+        // Auto reminders should come from the system identity (no user override).
+        if (!isAutoReminder && initiatedByUserId.HasValue)
+        {
+            var sender = await _dbContext.Users
+                .AsNoTracking()
+                .Where(u => u.Id == initiatedByUserId.Value)
+                .Select(u => new
+                {
+                    Name = (u.FirstName + " " + u.LastName).Trim(),
+                    Email = u.Email
+                })
+                .FirstOrDefaultAsync(ct);
+
+            fromNameOverride = string.IsNullOrWhiteSpace(sender?.Name) ? null : $"{sender.Name} in Notal";
+            replyToEmailOverride = string.IsNullOrWhiteSpace(sender?.Email) ? null : sender.Email;
+        }
 
         // Send emails after persistence so tokens match latest TokenVersion
         // Only send to recipients who haven't confirmed yet (Nudge should not re-notify confirmed users)
         var recipientsToNotify = notice.Recipients
             .Where(r => r.Status != ChangeNoticeRecipientStatuses.Acknowledged)
             .ToList();
+
+        // Personalize due date timezone in email:
+        // - Prefer recipient user timezone (if they have an account)
+        // - Else fall back to the sender's timezone (or creator)
+        // - Else UTC
+        var userIdsToLoad = recipientsToNotify
+            .Where(r => r.UserId.HasValue)
+            .Select(r => r.UserId!.Value)
+            .ToHashSet();
+
+        if (initiatedByUserId.HasValue)
+        {
+            userIdsToLoad.Add(initiatedByUserId.Value);
+        }
+        else if (notice.CreatedById.HasValue)
+        {
+            userIdsToLoad.Add(notice.CreatedById.Value);
+        }
+
+        var userTimeZones = userIdsToLoad.Count == 0
+            ? new Dictionary<int, string?>()
+            : await _dbContext.Users
+                .AsNoTracking()
+                .Where(u => userIdsToLoad.Contains(u.Id))
+                .Select(u => new { u.Id, u.TimeZone })
+                .ToDictionaryAsync(x => x.Id, x => x.TimeZone, ct);
+
+        string? defaultTimeZoneId = null;
+        if (initiatedByUserId.HasValue && userTimeZones.TryGetValue(initiatedByUserId.Value, out var tzFromSender))
+        {
+            defaultTimeZoneId = tzFromSender;
+        }
+        else if (notice.CreatedById.HasValue && userTimeZones.TryGetValue(notice.CreatedById.Value, out var tzFromCreator))
+        {
+            defaultTimeZoneId = tzFromCreator;
+        }
 
         foreach (var recipient in recipientsToNotify)
         {
@@ -310,7 +429,14 @@ public sealed class ChangeNoticeService : IChangeNoticeService
             var clarifyUrl = $"{baseUrl.TrimEnd('/')}/public/change-notice/respond?t={Uri.EscapeDataString(clarifyToken)}";
 
             var subject = $"Action Required: {notice.Title}";
-            var body = BuildEmailHtml(notice, ackUrl, clarifyUrl);
+            var recipientTimeZoneId =
+                (recipient.UserId.HasValue &&
+                 userTimeZones.TryGetValue(recipient.UserId.Value, out var tzForRecipient) &&
+                 !string.IsNullOrWhiteSpace(tzForRecipient))
+                    ? tzForRecipient
+                    : defaultTimeZoneId;
+
+            var body = BuildEmailHtml(notice, ackUrl, clarifyUrl, recipientTimeZoneId);
 
             var ok = await _emailSendingService.SendSystemEmailAsync(
                 recipient.Email,
@@ -324,8 +450,6 @@ public sealed class ChangeNoticeService : IChangeNoticeService
                 _logger.LogWarning("Failed to send Change Notice {NoticeId} to {Email}", notice.Id, recipient.Email);
             }
         }
-
-        return await GetSummaryAsync(organizationId, matterId, ct);
     }
 
     public async Task<PublicChangeNoticeResponseResult> ProcessPublicResponseAsync(string token, CancellationToken ct = default)
@@ -558,18 +682,25 @@ public sealed class ChangeNoticeService : IChangeNoticeService
         }
     }
 
-    private static string BuildEmailHtml(ChangeNotice notice, string ackUrl, string clarifyUrl)
+    private static string BuildEmailHtml(ChangeNotice notice, string ackUrl, string clarifyUrl, string? timeZoneId)
     {
         var title = System.Net.WebUtility.HtmlEncode(notice.Title);
         var description = System.Net.WebUtility.HtmlEncode(notice.Description ?? "");
-        var due = notice.AcknowledgementDueDate.HasValue
-            ? $"<p style=\"margin: 0 0 12px 0; color: #555;\">Acknowledgement due: <strong>{notice.AcknowledgementDueDate.Value:MMM dd, yyyy}</strong></p>"
-            : "";
+        var due = "";
+        if (notice.AcknowledgementDueDate.HasValue)
+        {
+            // Stored as UTC; show in recipient's preferred timezone to match UI expectations.
+            var dueUtc = EnsureUtcKind(notice.AcknowledgementDueDate)!.Value;
+            var tz = GetTimeZoneInfoOrUtc(timeZoneId);
+            var local = TimeZoneInfo.ConvertTimeFromUtc(dueUtc, tz);
+            var tzLabel = GetTimeZoneLabel(tz, local);
+            due = $"<p style=\"margin: 0 0 12px 0; color: #555;\">Acknowledgement due: <strong>{local:MMM dd, yyyy h:mm tt} {System.Net.WebUtility.HtmlEncode(tzLabel)}</strong></p>";
+        }
 
         return $@"
 <html>
 <body style=""font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; line-height: 1.4;"">
-  <h2 style=""margin: 0 0 8px 0;"">Change Notice</h2>
+  <h2 style=""margin: 0 0 8px 0;"">Notice</h2>
   <p style=""margin: 0 0 12px 0; color: #111;""><strong>{title}</strong></p>
   {(string.IsNullOrWhiteSpace(description) ? "" : $"<p style=\"margin: 0 0 12px 0; color: #333;\">{description}</p>")}
   {due}
@@ -582,6 +713,97 @@ public sealed class ChangeNoticeService : IChangeNoticeService
   </p>
 </body>
 </html>";
+    }
+
+    private static DateTime? NormalizeUtc(DateTime? dt)
+    {
+        if (!dt.HasValue)
+            return null;
+
+        // Treat user-entered values as UTC to keep comparisons consistent with DateTime.UtcNow.
+        // (datetime-local inputs do not include timezone.)
+        return DateTime.SpecifyKind(dt.Value, DateTimeKind.Utc);
+    }
+
+    private static DateTime? EnsureUtcKind(DateTime? dt)
+    {
+        if (!dt.HasValue)
+            return null;
+        // SQL DateTime has no timezone; treat persisted values as UTC for client conversion.
+        return DateTime.SpecifyKind(dt.Value, DateTimeKind.Utc);
+    }
+
+    private static TimeZoneInfo GetTimeZoneInfoOrUtc(string? timeZoneId)
+    {
+        if (string.IsNullOrWhiteSpace(timeZoneId))
+            return TimeZoneInfo.Utc;
+
+        var tzId = timeZoneId.Trim();
+        try
+        {
+            // Linux supports IANA IDs; Windows supports Windows IDs.
+            return TimeZoneInfo.FindSystemTimeZoneById(tzId);
+        }
+        catch
+        {
+            // Account settings store IANA IDs; on Windows we need a bridge.
+            try
+            {
+                return TZConvert.GetTimeZoneInfo(tzId);
+            }
+            catch
+            {
+                return TimeZoneInfo.Utc;
+            }
+        }
+    }
+
+    private static string GetTimeZoneLabel(TimeZoneInfo tz, DateTime localTime)
+    {
+        // Prefer a compact abbreviation like PST/EST when available.
+        var name = tz.StandardName;
+        try
+        {
+            name = tz.IsDaylightSavingTime(localTime) ? tz.DaylightName : tz.StandardName;
+        }
+        catch
+        {
+            // ignore
+        }
+
+        var abbr = MakeAbbreviation(name);
+        if (!string.IsNullOrWhiteSpace(abbr) && abbr.Length >= 2 && abbr.Length <= 5)
+            return abbr;
+
+        return string.IsNullOrWhiteSpace(tz.Id) ? "UTC" : tz.Id;
+    }
+
+    private static string MakeAbbreviation(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return "";
+
+        var parts = name
+            .Split(new[] { ' ', '\t', '-', '(', ')', ',' }, StringSplitOptions.RemoveEmptyEntries)
+            .Where(p => p.Length > 0 && char.IsLetter(p[0]))
+            .ToArray();
+
+        if (parts.Length == 0)
+            return "";
+
+        return string.Concat(parts.Select(p => char.ToUpperInvariant(p[0])));
+    }
+
+    private static int? NormalizeAutoReminderHours(int? hours)
+    {
+        if (!hours.HasValue)
+            return null;
+
+        var v = hours.Value;
+        if (v <= 0)
+            return null;
+
+        return v is 24 or 48 or 72 ? v : null;
     }
 }
 

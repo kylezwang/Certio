@@ -1354,6 +1354,9 @@
                                                     <button class="btn btn-sm btn-link task-header-btn" title="More options">
                                                         <i class="fas fa-ellipsis-h"></i>
                                                     </button>
+                                                    <button type="button" class="btn btn-sm btn-primary me-2" id="ccHeaderActionBtn" style="font-weight: 600; display: none;">
+                                                        <i class="fas fa-paper-plane me-1"></i> <span id="ccHeaderActionBtnText">Send</span>
+                                                    </button>
                                                     <button type="button" class="btn-close" id="cc-close-modal" aria-label="Close"></button>
                                                 </div>
                                             </div>
@@ -1439,11 +1442,29 @@
                                                         <div class="task-section" id="cc-due-section">
                                                             <div class="task-section-header">
                                                                 <h6 class="task-section-title">
-                                                                    <i class="fa-solid fa-calendar-day"></i> Acknowledgement Due Date
+                                                                    <i class="fa-solid fa-calendar"></i> Deadline & Reminders
                                                                 </h6>
                                                             </div>
                                                             <div class="task-section-content">
-                                                                <input class="form-control" type="date" name="AcknowledgementDueDate" id="ccDueDate" style="font-size: 0.875rem; max-width: 250px;">
+                                                                <div class="row">
+                                                                    <div class="col-md-6 mb-3">
+                                                                        <label class="form-label fw-bold" style="font-size: 0.875rem;">
+                                                                            <i class="fa-solid fa-calendar-day me-2" style="color: #3d1019;"></i>Acknowledgement Due
+                                                                        </label>
+                                                                        <input class="form-control" type="datetime-local" name="AcknowledgementDueDate" id="ccDueDate" style="font-size: 0.875rem;">
+                                                                    </div>
+                                                                    <div class="col-md-6 mb-3">
+                                                                        <label class="form-label fw-bold" style="font-size: 0.875rem;">
+                                                                            <i class="fas fa-bell me-2" style="color: #3d1019;"></i>Auto Reminders
+                                                                        </label>
+                                                                        <select class="form-select" name="AutoReminderHoursBeforeDue" id="ccAutoReminders" style="font-size: 0.875rem;">
+                                                                            <option value="0" selected>Off</option>
+                                                                            <option value="24">24 hours before due</option>
+                                                                            <option value="48">48 hours before due</option>
+                                                                            <option value="72">72 hours before due</option>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
 
@@ -1496,10 +1517,7 @@
                                                 <div class="d-flex gap-2">
                                                     <button type="button" class="btn btn-outline-secondary" id="cc-cancel-btn" style="font-size: 0.875rem;">Cancel</button>
                                                     <button type="button" class="btn btn-primary" id="ccSaveBtn" style="font-weight: 600; font-size: 0.875rem;">
-                                                        <i class="fas fa-save me-1"></i> <span id="ccSaveBtnText">Create Draft</span>
-                                                    </button>
-                                                    <button type="button" class="btn btn-primary" id="ccSendBtn" style="font-weight: 600; font-size: 0.875rem; display: none;">
-                                                        <i class="fas fa-paper-plane me-1"></i> <span id="ccSendBtnText">Send</span>
+                                                        <i class="fas fa-save me-1"></i> <span id="ccSaveBtnText">Save</span>
                                                     </button>
                                                 </div>
                                             </div>

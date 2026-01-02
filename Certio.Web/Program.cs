@@ -640,6 +640,7 @@ else
 builder.Services.AddSingleton<Certio.Web.Services.CacheMetricsService>();
 builder.Services.AddHostedService<Certio.Web.Services.MetricsReportingService>();
 builder.Services.AddHostedService<Certio.Web.Services.EmailSyncService>();
+builder.Services.AddHostedService<Certio.Web.Services.ChangeNoticeAutoReminderService>();
 
 // Register cache service
 builder.Services.AddSingleton<Certio.Web.Services.ICacheService, Certio.Web.Services.RedisCacheService>();

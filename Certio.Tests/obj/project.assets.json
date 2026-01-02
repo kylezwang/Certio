@@ -4100,6 +4100,19 @@
           "lib/netstandard1.3/System.Xml.XDocument.dll": {}
         }
       },
+      "TimeZoneConverter/7.2.0": {
+        "type": "package",
+        "compile": {
+          "lib/net9.0/TimeZoneConverter.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net9.0/TimeZoneConverter.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "xunit/2.9.2": {
         "type": "package",
         "dependencies": {
@@ -4267,7 +4280,8 @@
           "Microsoft.SemanticKernel": "1.4.0",
           "Microsoft.SemanticKernel.Connectors.OpenAI": "1.4.0",
           "StackExchange.Redis": "2.8.16",
-          "Swashbuckle.AspNetCore": "9.0.4"
+          "Swashbuckle.AspNetCore": "9.0.4",
+          "TimeZoneConverter": "7.2.0"
         },
         "compile": {
           "bin/placeholder/Certio.Web.dll": {}
@@ -11612,6 +11626,26 @@
         "ref/xamarinwatchos10/_._",
         "system.xml.xdocument.4.3.0.nupkg.sha512",
         "system.xml.xdocument.nuspec"
+      ]
+    },
+    "TimeZoneConverter/7.2.0": {
+      "sha512": "4Poqu79dTmacVETqUJ53g3x4U21V/cmWPSlehdsVE4Q00akavvlRq+SRjcg/CmfO9ibOCjRl6TeUV7hkC5RC4w==",
+      "type": "package",
+      "path": "timezoneconverter/7.2.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "lib/net462/TimeZoneConverter.dll",
+        "lib/net462/TimeZoneConverter.xml",
+        "lib/net8.0/TimeZoneConverter.dll",
+        "lib/net8.0/TimeZoneConverter.xml",
+        "lib/net9.0/TimeZoneConverter.dll",
+        "lib/net9.0/TimeZoneConverter.xml",
+        "lib/netstandard2.0/TimeZoneConverter.dll",
+        "lib/netstandard2.0/TimeZoneConverter.xml",
+        "timezoneconverter.7.2.0.nupkg.sha512",
+        "timezoneconverter.nuspec"
       ]
     },
     "xunit/2.9.2": {

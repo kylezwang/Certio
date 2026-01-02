@@ -52,6 +52,18 @@ public class ChangeNotice
 
     public DateTime? AcknowledgementDueDate { get; set; }
 
+    /// <summary>
+    /// Auto reminder offset in hours before <see cref="AcknowledgementDueDate"/>.
+    /// Null or 0 means Off.
+    /// </summary>
+    public int? AutoReminderHoursBeforeDue { get; set; }
+
+    /// <summary>
+    /// Last auto reminder trigger time (scheduled time = due - offset) that was processed.
+    /// Used to deduplicate reminders in a polling background job.
+    /// </summary>
+    public DateTime? AutoReminderLastTriggeredAtUtc { get; set; }
+
     public DateTime? SentAt { get; set; }
     public DateTime? LastResentAt { get; set; }
     public int SendCount { get; set; } = 0;
