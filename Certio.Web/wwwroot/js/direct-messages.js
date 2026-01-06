@@ -541,17 +541,93 @@ function appendDirectMessage(message, previousMessage = null) {
         }
     }
 
+    // If this is a Change Notice DM sync message, render Confirm/Clarify as buttons
+    // and hide the raw URLs (tokens are too noisy to show inline).
+    function extractChangeNoticeActionUrls(text) {
+        if (!text) return { confirmUrl: null, clarifyUrl: null, cleanedText: text };
+
+        let confirmUrl = null;
+        let clarifyUrl = null;
+
+        const lines = String(text).replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+        const kept = [];
+
+        for (const rawLine of lines) {
+            const line = rawLine || '';
+            const trimmed = line.trim();
+
+            let m = trimmed.match(/^Confirm:\s*(\S+)\s*$/i);
+            if (m && m[1]) {
+                confirmUrl = m[1];
+                continue; // drop this line
+            }
+
+            m = trimmed.match(/^Needs\s+clarification:\s*(\S+)\s*$/i);
+            if (m && m[1]) {
+                clarifyUrl = m[1];
+                continue; // drop this line
+            }
+
+            // Also drop older label variants if they ever appear
+            m = trimmed.match(/^Needs\s+Clarification:\s*(\S+)\s*$/i);
+            if (m && m[1]) {
+                clarifyUrl = m[1];
+                continue;
+            }
+
+            kept.push(line);
+        }
+
+        // Only treat as Change Notice if links look like public response URLs
+        const looksLikeChangeNotice =
+            (confirmUrl && confirmUrl.includes('/public/change-notice/respond')) ||
+            (clarifyUrl && clarifyUrl.includes('/public/change-notice/respond'));
+
+        if (!looksLikeChangeNotice) {
+            return { confirmUrl: null, clarifyUrl: null, cleanedText: text };
+        }
+
+        // Clean up: remove trailing blank lines
+        while (kept.length > 0 && kept[kept.length - 1].trim() === '') {
+            kept.pop();
+        }
+
+        return { confirmUrl, clarifyUrl, cleanedText: kept.join('\n').trim() };
+    }
+
+    function safeUrl(url) {
+        if (!url) return null;
+        const u = String(url).trim();
+        // Only allow http/https URLs.
+        if (!/^https?:\/\//i.test(u)) return null;
+        return u;
+    }
+
     // Normalize line endings and escape HTML
-    let normalizedText = bodyText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-    
+    const extracted = (messageType === 'email')
+        ? extractChangeNoticeActionUrls(bodyText)
+        : { confirmUrl: null, clarifyUrl: null, cleanedText: bodyText };
+
+    let normalizedText = (extracted.cleanedText || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
     // Escape HTML to prevent XSS
     const escapedText = escapeHtml(normalizedText);
-    
+
     // Convert newlines to <br> tags for proper rendering
     // First, replace sequences of 2+ newlines with double <br> (paragraph breaks)
     let withBreaks = escapedText.replace(/\n{2,}/g, '<br><br>');
     // Then replace remaining single newlines with single <br>
     withBreaks = withBreaks.replace(/\n/g, '<br>');
+
+    const confirmUrlSafe = safeUrl(extracted.confirmUrl);
+    const clarifyUrlSafe = safeUrl(extracted.clarifyUrl);
+    const hasActionButtons = !!(confirmUrlSafe || clarifyUrlSafe);
+    const actionsHtml = hasActionButtons ? `
+        <div class="dm-change-notice-actions" style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap;">
+            ${confirmUrlSafe ? `<a class="btn btn-sm btn-primary" href="${escapeHtml(confirmUrlSafe)}" target="_blank" rel="noopener noreferrer" style="border-radius: 8px; font-weight: 600;">Confirm</a>` : ``}
+            ${clarifyUrlSafe ? `<a class="btn btn-sm btn-outline-secondary" href="${escapeHtml(clarifyUrlSafe)}" target="_blank" rel="noopener noreferrer" style="border-radius: 8px; font-weight: 600;">Needs clarification</a>` : ``}
+        </div>
+    ` : '';
     
     // Check if message is an email
     const isEmailMessage = messageType === 'email';
@@ -587,6 +663,7 @@ function appendDirectMessage(message, previousMessage = null) {
                 </span>
             </div>
             <p class="message-text">${withBreaks}</p>
+            ${actionsHtml}
         </div>
         ${isGrouped ? `<div class="hover-timestamp">${hoverTimestamp}</div>` : ''}
     `;

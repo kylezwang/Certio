@@ -3,6 +3,9 @@ using System.Text.RegularExpressions;
 using Certio.Application.DTOs.ChangeControl;
 using Certio.Application.Interfaces;
 using Certio.Domain.ChangeControl;
+using Certio.Domain.Organizations;
+using Certio.Domain.Users;
+using Certio.Application.DTOs;
 using Certio.Infrastructure.Data;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
@@ -15,17 +18,20 @@ public sealed class ChangeNoticeService : IChangeNoticeService
     private static readonly Regex SplitEmailsRegex = new(@"[,\n;\r\t ]+", RegexOptions.Compiled);
     private readonly ApplicationDbContext _dbContext;
     private readonly IEmailSendingService _emailSendingService;
+    private readonly IDirectMessageService _directMessageService;
     private readonly IDataProtectionProvider _dataProtectionProvider;
     private readonly ILogger<ChangeNoticeService> _logger;
 
     public ChangeNoticeService(
         ApplicationDbContext dbContext,
         IEmailSendingService emailSendingService,
+        IDirectMessageService directMessageService,
         IDataProtectionProvider dataProtectionProvider,
         ILogger<ChangeNoticeService> logger)
     {
         _dbContext = dbContext;
         _emailSendingService = emailSendingService;
+        _directMessageService = directMessageService;
         _dataProtectionProvider = dataProtectionProvider;
         _logger = logger;
     }
@@ -449,6 +455,31 @@ public sealed class ChangeNoticeService : IChangeNoticeService
             {
                 _logger.LogWarning("Failed to send Change Notice {NoticeId} to {Email}", notice.Id, recipient.Email);
             }
+
+            // Sync to Communications (Direct Messages) as an "Email" message.
+            // Do not block email sending if DM sync fails.
+            if (!isAutoReminder && initiatedByUserId.HasValue)
+            {
+                try
+                {
+                    await SyncChangeNoticeSentToDirectMessagesAsync(
+                        organizationId: notice.OrganizationId,
+                        senderUserId: initiatedByUserId.Value,
+                        notice: notice,
+                        recipient: recipient,
+                        subject: subject,
+                        ackUrl: ackUrl,
+                        clarifyUrl: clarifyUrl,
+                        recipientTimeZoneId: recipientTimeZoneId,
+                        ct: ct);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex,
+                        "Failed to sync Change Notice {NoticeId} to DM for recipient {Email}",
+                        notice.Id, recipient.Email);
+                }
+            }
         }
     }
 
@@ -558,6 +589,19 @@ public sealed class ChangeNoticeService : IChangeNoticeService
 
             await _dbContext.SaveChangesAsync(ct);
 
+            // Sync clarification note into Communications (Direct Messages) as a message FROM the recipient.
+            // This is a public endpoint; failures should not break the user response flow.
+            try
+            {
+                await SyncClarificationToDirectMessagesAsync(notice, recipient, clarificationNote.Trim(), ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "Failed to sync clarification note to DM for Change Notice {NoticeId} recipient {RecipientEmail}",
+                    notice.Id, recipient.Email);
+            }
+
             return new PublicChangeNoticeResponseResult
             {
                 Success = true,
@@ -584,6 +628,362 @@ public sealed class ChangeNoticeService : IChangeNoticeService
                 ClarificationNoteMessage = "Not sent — please try again."
             };
         }
+    }
+
+    private async Task SyncChangeNoticeSentToDirectMessagesAsync(
+        int organizationId,
+        int senderUserId,
+        ChangeNotice notice,
+        ChangeNoticeRecipient recipient,
+        string subject,
+        string ackUrl,
+        string clarifyUrl,
+        string? recipientTimeZoneId,
+        CancellationToken ct)
+    {
+        var recipientUserId = await FindOrCreateUserForEmailInDmContextAsync(
+            organizationId,
+            ownerUserIdForExternalContacts: senderUserId,
+            email: recipient.Email,
+            displayName: recipient.DisplayName,
+            ct: ct);
+
+        if (!recipient.UserId.HasValue)
+        {
+            recipient.UserId = recipientUserId;
+            await _dbContext.SaveChangesAsync(ct);
+        }
+
+        var thread = await _directMessageService.GetOrCreateThreadAsync(
+            organizationId,
+            senderUserId,
+            recipientUserId,
+            ct);
+
+        var plainDescription = string.IsNullOrWhiteSpace(notice.Description) ? "" : notice.Description.Trim();
+        var bodyLines = new List<string>
+        {
+            $"Notice: {notice.Title}".Trim()
+        };
+
+        if (!string.IsNullOrWhiteSpace(plainDescription))
+        {
+            bodyLines.Add("");
+            bodyLines.Add(plainDescription);
+        }
+
+        if (notice.AcknowledgementDueDate.HasValue)
+        {
+            var dueUtc = EnsureUtcKind(notice.AcknowledgementDueDate)!.Value;
+            var tz = GetTimeZoneInfoOrUtc(recipientTimeZoneId);
+            var local = TimeZoneInfo.ConvertTimeFromUtc(dueUtc, tz);
+            var tzLabel = GetTimeZoneLabel(tz, local);
+
+            bodyLines.Add("");
+            bodyLines.Add($"Acknowledgement due: {local:MMM dd, yyyy h:mm tt} {tzLabel}".Trim());
+        }
+
+        bodyLines.Add("");
+        bodyLines.Add("Please confirm or request clarification:");
+        bodyLines.Add($"Confirm: {ackUrl}");
+        bodyLines.Add($"Needs clarification: {clarifyUrl}");
+
+        var messageBody = string.Join("\n", bodyLines).Trim();
+
+        var metadata = new Dictionary<string, object>
+        {
+            ["EmailSubject"] = subject,
+            ["ChangeNoticeId"] = notice.Id,
+            ["ChangeNoticeRecipientId"] = recipient.Id,
+            ["RecipientEmail"] = recipient.Email,
+            ["MatterId"] = notice.MatterId,
+            ["AckUrl"] = ackUrl,
+            ["ClarifyUrl"] = clarifyUrl
+        };
+
+        // Use MessageType="Email" so the UI shows "Sent via email" badge.
+        // This is an internal sync artifact (not an email integration record).
+        await _directMessageService.SendAsync(
+            organizationId,
+            senderUserId,
+            thread.Id,
+            new NewMessageDto(messageBody, "Email", metadata),
+            ct);
+    }
+
+    private async Task SyncClarificationToDirectMessagesAsync(
+        ChangeNotice notice,
+        ChangeNoticeRecipient recipient,
+        string clarificationNote,
+        CancellationToken ct)
+    {
+        // Prefer the last human sender as "owner" of the thread. Fallback to the creator.
+        var internalUserId = notice.ModifiedById ?? notice.CreatedById;
+        if (!internalUserId.HasValue)
+        {
+            _logger.LogWarning(
+                "Cannot sync clarification note for Change Notice {NoticeId}: no CreatedById/ModifiedById",
+                notice.Id);
+            return;
+        }
+
+        var recipientUserId = await FindOrCreateUserForEmailInDmContextAsync(
+            notice.OrganizationId,
+            ownerUserIdForExternalContacts: internalUserId.Value,
+            email: recipient.Email,
+            displayName: recipient.DisplayName,
+            ct: ct);
+
+        if (!recipient.UserId.HasValue)
+        {
+            recipient.UserId = recipientUserId;
+            await _dbContext.SaveChangesAsync(ct);
+        }
+
+        var thread = await _directMessageService.GetOrCreateThreadAsync(
+            notice.OrganizationId,
+            internalUserId.Value,
+            recipientUserId,
+            ct);
+
+        var messageBody = $"Clarification requested for \"{notice.Title}\":\n\n{clarificationNote}".Trim();
+
+        var metadata = new Dictionary<string, object>
+        {
+            ["ChangeNoticeId"] = notice.Id,
+            ["ChangeNoticeRecipientId"] = recipient.Id,
+            ["RecipientEmail"] = recipient.Email,
+            ["MatterId"] = notice.MatterId
+        };
+
+        // Send as the recipient so it appears as an inbound message in the DM thread.
+        await _directMessageService.SendAsync(
+            notice.OrganizationId,
+            recipientUserId,
+            thread.Id,
+            new NewMessageDto(messageBody, "Text", metadata),
+            ct);
+    }
+
+    private async Task<int> FindOrCreateUserForEmailInDmContextAsync(
+        int organizationId,
+        int ownerUserIdForExternalContacts,
+        string email,
+        string? displayName,
+        CancellationToken ct)
+    {
+        var normalized = NormalizeEmail(email);
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            throw new ArgumentException("Recipient email is required.", nameof(email));
+        }
+
+        // If this email belongs to an active user in the current org, use them directly.
+        var internalUserId = await _dbContext.UserOrganizations
+            .AsNoTracking()
+            .Where(uo => uo.OrganizationId == organizationId && uo.IsActive)
+            .Join(_dbContext.Users.AsNoTracking(),
+                uo => uo.UserId,
+                u => u.Id,
+                (uo, u) => new { uo.UserId, u.Email })
+            .Where(x => x.Email != null && x.Email.ToLower() == normalized)
+            .Select(x => (int?)x.UserId)
+            .FirstOrDefaultAsync(ct);
+
+        if (internalUserId.HasValue)
+        {
+            return internalUserId.Value;
+        }
+
+        // Otherwise, provision (or reuse) an external contact user + membership so DM threads can be created.
+        var externalContactsOrgId = await GetOrCreateExternalContactsOrganizationIdAsync(organizationId, ownerUserIdForExternalContacts, ct);
+
+        var user = await _dbContext.Users
+            .Include(u => u.UserOrganizations)
+            .FirstOrDefaultAsync(u => u.Email != null && u.Email.ToLower() == normalized, ct);
+
+        if (user == null)
+        {
+            var (firstName, lastName) = ExtractNameParts(displayName, normalized);
+            user = new User
+            {
+                Email = normalized,
+                FirstName = firstName,
+                LastName = lastName,
+                Color = "#aaaaaa",
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true
+            };
+
+            _dbContext.Users.Add(user);
+            await _dbContext.SaveChangesAsync(ct);
+        }
+        else
+        {
+            // Normalize email + ensure external-friendly color for external contacts.
+            var changed = false;
+            if (!string.Equals(user.Email, normalized, StringComparison.Ordinal))
+            {
+                user.Email = normalized;
+                changed = true;
+            }
+
+            if (string.IsNullOrEmpty(user.Color) || user.Color == "#007bff" || user.Color == "#3d1019")
+            {
+                user.Color = "#aaaaaa";
+                changed = true;
+            }
+
+            if (changed)
+            {
+                _dbContext.Users.Update(user);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+        }
+
+        // Ensure membership in the external contacts org.
+        var existingMembership = user.UserOrganizations
+            .FirstOrDefault(uo => uo.OrganizationId == externalContactsOrgId);
+
+        if (existingMembership == null)
+        {
+            var membership = new UserOrganization
+            {
+                UserId = user.Id,
+                OrganizationId = externalContactsOrgId,
+                UserType = UserTypes.External,
+                Role = OrganizationRoles.Guest,
+                IsActive = true,
+                JoinedAt = DateTime.UtcNow
+            };
+            _dbContext.UserOrganizations.Add(membership);
+            await _dbContext.SaveChangesAsync(ct);
+        }
+        else if (!existingMembership.IsActive ||
+                 !string.Equals(existingMembership.UserType, UserTypes.External, StringComparison.OrdinalIgnoreCase) ||
+                 !string.Equals(existingMembership.Role, OrganizationRoles.Guest, StringComparison.OrdinalIgnoreCase))
+        {
+            existingMembership.IsActive = true;
+            existingMembership.UserType = UserTypes.External;
+            existingMembership.Role = OrganizationRoles.Guest;
+            if (existingMembership.JoinedAt == default)
+            {
+                existingMembership.JoinedAt = DateTime.UtcNow;
+            }
+            _dbContext.UserOrganizations.Update(existingMembership);
+            await _dbContext.SaveChangesAsync(ct);
+        }
+
+        return user.Id;
+    }
+
+    private async Task<int> GetOrCreateExternalContactsOrganizationIdAsync(int currentOrgId, int ownerUserId, CancellationToken ct)
+    {
+        // Use the owner user's name to match existing DM Notalize behavior.
+        var owner = await _dbContext.Users
+            .AsNoTracking()
+            .Where(u => u.Id == ownerUserId)
+            .Select(u => new { u.FirstName, u.LastName })
+            .FirstOrDefaultAsync(ct);
+
+        var ownerName = $"{owner?.FirstName} {owner?.LastName}".Trim();
+        if (string.IsNullOrWhiteSpace(ownerName))
+        {
+            ownerName = "My";
+        }
+
+        var desiredOrgName = $"{ownerName}'s External Contacts";
+
+        var externalOrg = await _dbContext.Organizations
+            .FirstOrDefaultAsync(o => o.Name == desiredOrgName, ct);
+
+        if (externalOrg == null)
+        {
+            // Backward compatible with previous "External Guests" name used in DM controller.
+            var oldExternalOrg = await _dbContext.Organizations
+                .FirstOrDefaultAsync(o => o.Name == "External Guests" && o.OwnerId == ownerUserId, ct);
+
+            if (oldExternalOrg != null)
+            {
+                oldExternalOrg.Name = desiredOrgName;
+                _dbContext.Organizations.Update(oldExternalOrg);
+                await _dbContext.SaveChangesAsync(ct);
+                externalOrg = oldExternalOrg;
+            }
+            else
+            {
+                externalOrg = new Organization
+                {
+                    Name = desiredOrgName,
+                    Description = "Dedicated organization for external users created for Change Notices sync.",
+                    OwnerId = ownerUserId,
+                    Type = OrganizationType.Client,
+                    IsPersonal = false,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _dbContext.Organizations.Add(externalOrg);
+                await _dbContext.SaveChangesAsync(ct);
+            }
+        }
+
+        // Ensure relationship exists between current organization and External Contacts org.
+        var relationshipExists = await _dbContext.OrganizationRelationships
+            .AnyAsync(or => or.SourceOrganizationId == currentOrgId &&
+                            or.TargetOrganizationId == externalOrg.Id &&
+                            or.RelationshipType == RelationshipTypes.LawFirmClient, ct);
+
+        if (!relationshipExists)
+        {
+            var relationship = new OrganizationRelationship
+            {
+                SourceOrganizationId = currentOrgId,
+                TargetOrganizationId = externalOrg.Id,
+                RelationshipType = RelationshipTypes.LawFirmClient,
+                AccessLevel = AccessLevels.FullAccess,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                CreatedById = ownerUserId
+            };
+            _dbContext.OrganizationRelationships.Add(relationship);
+            await _dbContext.SaveChangesAsync(ct);
+        }
+
+        return externalOrg.Id;
+    }
+
+    private static string NormalizeEmail(string email)
+    {
+        return string.IsNullOrWhiteSpace(email)
+            ? string.Empty
+            : email.Trim().ToLowerInvariant();
+    }
+
+    private static (string FirstName, string LastName) ExtractNameParts(string? fullName, string fallbackEmail)
+    {
+        if (!string.IsNullOrWhiteSpace(fullName))
+        {
+            var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 1)
+            {
+                return (parts[0], string.Empty);
+            }
+
+            if (parts.Length > 1)
+            {
+                var lastName = string.Join(" ", parts, 1, parts.Length - 1);
+                return (parts[0], lastName);
+            }
+        }
+
+        var localPart = fallbackEmail;
+        var atIndex = fallbackEmail.IndexOf('@');
+        if (atIndex > 0)
+        {
+            localPart = fallbackEmail.Substring(0, atIndex);
+        }
+
+        return (localPart, string.Empty);
     }
 
     private static ChangeControlSummaryDto MapSummary(int organizationId, int matterId, List<ChangeNotice> notices)
