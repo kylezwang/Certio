@@ -976,7 +976,80 @@ function renderMessageItem(message, isGrouped, isCurrentUser) {
     const timestamp = message.createdAt || message.CreatedAt || message.Time;
     const { dateStr, timeStr } = formatTime(timestamp);
     // DM messages use 'body', channel messages use 'Content' or 'content'
-    const content = escapeHtml(message.body || message.Content || message.content || '');
+    // For Change Notice synced "Email" messages, render Confirm/Clarify as buttons and hide raw URLs.
+    const messageType = (message.messageType || message.MessageType || '').toLowerCase();
+    let bodyText = message.body || message.Content || message.content || '';
+
+    function extractChangeNoticeActionUrls(text) {
+        if (!text) return { confirmUrl: null, clarifyUrl: null, cleanedText: text };
+
+        let confirmUrl = null;
+        let clarifyUrl = null;
+
+        const lines = String(text).replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+        const kept = [];
+
+        for (const rawLine of lines) {
+            const line = rawLine || '';
+            const trimmed = line.trim();
+
+            let m = trimmed.match(/^Confirm:\s*(\S+)\s*$/i);
+            if (m && m[1]) {
+                confirmUrl = m[1];
+                continue;
+            }
+
+            m = trimmed.match(/^Needs\s+clarification:\s*(\S+)\s*$/i);
+            if (m && m[1]) {
+                clarifyUrl = m[1];
+                continue;
+            }
+
+            kept.push(line);
+        }
+
+        const looksLikeChangeNotice =
+            (confirmUrl && confirmUrl.includes('/public/change-notice/respond')) ||
+            (clarifyUrl && clarifyUrl.includes('/public/change-notice/respond'));
+
+        if (!looksLikeChangeNotice) {
+            return { confirmUrl: null, clarifyUrl: null, cleanedText: text };
+        }
+
+        while (kept.length > 0 && kept[kept.length - 1].trim() === '') {
+            kept.pop();
+        }
+
+        return { confirmUrl, clarifyUrl, cleanedText: kept.join('\n').trim() };
+    }
+
+    function safeUrl(url) {
+        if (!url) return null;
+        const u = String(url).trim();
+        if (!/^https?:\/\//i.test(u)) return null;
+        return u;
+    }
+
+    const extracted = (messageType === 'email')
+        ? extractChangeNoticeActionUrls(bodyText)
+        : { confirmUrl: null, clarifyUrl: null, cleanedText: bodyText };
+
+    const normalizedText = String(extracted.cleanedText || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const escapedText = escapeHtml(normalizedText);
+    let withBreaks = escapedText.replace(/\n{2,}/g, '<br><br>');
+    withBreaks = withBreaks.replace(/\n/g, '<br>');
+
+    const confirmUrlSafe = safeUrl(extracted.confirmUrl);
+    const clarifyUrlSafe = safeUrl(extracted.clarifyUrl);
+    const hasActionButtons = !!(confirmUrlSafe || clarifyUrlSafe);
+    const actionsHtml = hasActionButtons ? `
+        <div class="comms-change-notice-actions" style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap;">
+            ${confirmUrlSafe ? `<a class="btn btn-sm btn-primary" href="${escapeHtml(confirmUrlSafe)}" target="_blank" rel="noopener noreferrer" style="border-radius: 8px; font-weight: 600;">Confirm</a>` : ``}
+            ${clarifyUrlSafe ? `<a class="btn btn-sm btn-outline-secondary" href="${escapeHtml(clarifyUrlSafe)}" target="_blank" rel="noopener noreferrer" style="border-radius: 8px; font-weight: 600;">Needs clarification</a>` : ``}
+        </div>
+    ` : '';
+
+    const content = `${withBreaks}${actionsHtml}`;
     
     // Get sender color and check if external contacts
     const isExternalContacts = message.isExternalContacts || message.organizationName?.endsWith("'s External Contacts") || false;
@@ -1001,7 +1074,6 @@ function renderMessageItem(message, isGrouped, isCurrentUser) {
     const groupedClass = isGrouped ? 'grouped-message' : '';
     
     // Check if message is an email
-    const messageType = (message.messageType || message.MessageType || '').toLowerCase();
     const isEmailMessage = messageType === 'email';
     const emailBadgeHtml = isEmailMessage ? `
         <div class="task-matter-badge">
