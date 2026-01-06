@@ -928,6 +928,40 @@
                                             margin-top: 0.15rem;
                                         }
 
+                                        /* Hover actions bar for activity items */
+                                        #ccModal .activity-content {
+                                            position: relative;
+                                        }
+
+                                        #ccModal .comment-actions {
+                                            position: absolute;
+                                            top: -8px;
+                                            right: 0;
+                                            display: none;
+                                            background: #eef1f3;
+                                            border-radius: 0.5rem;
+                                            padding: 2px;
+                                            gap: 2px;
+                                        }
+
+                                        #ccModal .activity-item:hover .comment-actions {
+                                            display: inline-flex;
+                                        }
+
+                                        #ccModal .comment-actions .icon-btn {
+                                            background: transparent;
+                                            border: none;
+                                            border-radius: 4px;
+                                            padding: 2px 6px;
+                                            font-size: 0.7rem;
+                                            color: #374151;
+                                            cursor: pointer;
+                                        }
+
+                                        #ccModal .comment-actions .icon-btn:hover {
+                                            background: rgba(0,0,0,0.03);
+                                        }
+
                                         /* Form controls */
                                         #ccModal .form-control,
                                         #ccModal .form-select {
@@ -1066,6 +1100,18 @@
                                             font-size: 0.75rem;
                                             padding: 0.125rem 0.5rem;
                                             border-radius: 0.25rem;
+                                            display: inline-flex;
+                                            align-items: center;
+                                        }
+                                        .cc-recipient-item .recipient-reply-btn {
+                                            display: inline-flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            height: 24px;
+                                            line-height: 1;
+                                        }
+                                        .cc-recipient-item .recipient-reply-btn i {
+                                            line-height: 1;
                                         }
                                         .cc-recipient-item .recipient-remove {
                                             color: #9ca3af;
@@ -1073,6 +1119,9 @@
                                             padding: 0.25rem;
                                             border-radius: 0.25rem;
                                             transition: all 0.15s ease;
+                                            display: inline-flex;
+                                            align-items: center;
+                                            font-size: 0.875rem;
                                         }
                                         .cc-recipient-item .recipient-remove:hover {
                                             color: #ef4444;

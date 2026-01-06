@@ -139,16 +139,23 @@
             return;
         }
 
-        // Get recipient statuses from current notice if editing
-        const recipientStatuses = {};
+        // Get recipient statuses and user info from current notice if editing
+        const recipientData = {};
         if (currentNotice && currentNotice.recipients) {
             currentNotice.recipients.forEach(r => {
-                recipientStatuses[r.email.toLowerCase()] = r.status;
+                recipientData[r.email.toLowerCase()] = {
+                    status: r.status,
+                    userId: r.userId,
+                    userName: r.userName || r.email
+                };
             });
         }
 
         list.innerHTML = recipientEmails.map(email => {
-            const status = recipientStatuses[email.toLowerCase()] || 'Pending';
+            const data = recipientData[email.toLowerCase()] || {};
+            const status = data.status || 'Pending';
+            const userId = data.userId || null;
+            const userName = data.userName || email;
             const statusClass = status === 'Acknowledged' ? 'bg-success text-white' :
                                status === 'NeedsClarification' ? 'bg-warning text-dark' :
                                'bg-secondary text-white';
@@ -163,7 +170,10 @@
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         ${currentNotice && currentNotice.status !== 'Draft' ? `<span class="recipient-status ${statusClass}">${statusLabel}</span>` : ''}
-                        <i class="fas fa-times recipient-remove" data-email="${escapeHtml(email)}"></i>
+                        <button class="btn btn-sm btn-outline-secondary recipient-reply-btn" style="padding: 0.125rem 0.5rem; font-size: 0.75rem; margin-top: 0;" data-email="${escapeHtml(email)}" data-user-id="${userId || ''}" data-user-name="${escapeHtml(userName)}" title="Reply to ${escapeHtml(email)}">
+                            <i class="fas fa-reply"></i>
+                        </button>
+                        <i class="fas fa-times recipient-remove" style="margin-top: 0;" data-email="${escapeHtml(email)}"></i>
                     </div>
                 </div>
             `;
@@ -179,6 +189,8 @@
                 updateHiddenRecipients();
             });
         });
+
+        // Reply button handlers are handled via event delegation below (in document click handler)
     }
 
     function updateHiddenRecipients() {
@@ -541,18 +553,26 @@
             const status = r.status || '';
             const respondedAt = r.respondedAt;
             const note = (r.clarificationNote || '').trim();
+            const userId = r.userId || null;
+            const userName = r.userName || email;
 
             if (status === 'NeedsClarification' && note) {
                 items.push({
                     avatarHtml,
                     textHtml: `<strong>${escapeHtml(email)}</strong> requested clarification: ${escapeHtml(note)}`,
-                    time: formatTimeAgo(respondedAt)
+                    time: formatTimeAgo(respondedAt),
+                    userId,
+                    userName,
+                    email
                 });
             } else if (status === 'Acknowledged') {
                 items.push({
                     avatarHtml,
                     textHtml: `<strong>${escapeHtml(email)}</strong> confirmed.`,
-                    time: formatTimeAgo(respondedAt)
+                    time: formatTimeAgo(respondedAt),
+                    userId,
+                    userName,
+                    email
                 });
             }
         }
@@ -565,12 +585,69 @@
         log.innerHTML = items.map(i => `
             <div class="activity-item">
                 <div class="activity-avatar">${i.avatarHtml}</div>
-                <div class="activity-content">
+                <div class="activity-content position-relative">
                     <div class="activity-text">${i.textHtml}</div>
                     ${i.time ? `<div class="activity-time">${escapeHtml(i.time)}</div>` : ``}
+                    <div class="comment-actions">
+                        <button class="icon-btn" title="Like" data-react="like">👍</button>
+                        <button class="icon-btn activity-reply-btn" title="Reply" data-user-id="${i.userId || ''}" data-user-name="${escapeHtml(i.userName || '')}" data-user-email="${escapeHtml(i.email || '')}"><i class="fas fa-reply"></i></button>
+                        <button class="icon-btn" title="More" data-action="more"><i class="fas fa-ellipsis-h"></i></button>
+                    </div>
                 </div>
             </div>
         `).join('');
+    }
+
+    function replyToRecipient(userId, userName, email) {
+        console.log('[CC] Replying to recipient:', { userId, userName, email });
+        
+        // Close the change notice modal
+        closeModal();
+        
+        // Switch to communications tab
+        const commsTab = document.querySelector('.matter-tab-link[data-tab="communications"]');
+        if (commsTab) {
+            commsTab.click();
+            
+            // Poll for communications to be fully loaded and initialized
+            let attempts = 0;
+            const maxAttempts = 40; // 40 attempts * 150ms = 6 seconds max wait
+            let functionFoundAtAttempt = null;
+            
+            const checkInterval = setInterval(() => {
+                attempts++;
+                
+                // Check if openDirectThread is available (from direct-messages.js)
+                const hasFunction = typeof window.openDirectThread === 'function';
+                
+                // Record when we first find the function
+                if (hasFunction && functionFoundAtAttempt === null) {
+                    functionFoundAtAttempt = attempts;
+                    console.log(`[CC] openDirectThread found at attempt ${attempts}, waiting for SignalR...`);
+                }
+                
+                // Once function is found, wait 4 more poll cycles (600ms) for SignalR connection
+                const readyToOpen = functionFoundAtAttempt !== null && (attempts - functionFoundAtAttempt) >= 4;
+                
+                if (readyToOpen) {
+                    clearInterval(checkInterval);
+                    console.log('[CC] Opening direct message thread with:', userName, userId, email);
+                    
+                    try {
+                        window.openDirectThread(userId, userName, email);
+                    } catch (err) {
+                        console.error('[CC] Error opening direct thread:', err);
+                    }
+                } else if (attempts >= maxAttempts) {
+                    clearInterval(checkInterval);
+                    console.error('[CC] Communications feature failed to initialize in time');
+                    alert('Communications feature is taking longer than expected to load. Please try clicking the reply button again.');
+                }
+            }, 150);
+        } else {
+            console.error('[CC] Communications tab not found');
+            alert('Could not navigate to communications tab.');
+        }
     }
 
     function closeModal() {
@@ -894,6 +971,42 @@
             const noticeId = noticeRow.dataset.noticeId;
             await loadContacts(orgId, matterId);
             await openNoticeModal(orgId, matterId, noticeId);
+            return;
+        }
+
+        // Activity reply button (in hover bar)
+        const activityReplyBtn = target.closest?.('.activity-reply-btn');
+        if (activityReplyBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const userId = activityReplyBtn.dataset.userId;
+            const userName = activityReplyBtn.dataset.userName;
+            const email = activityReplyBtn.dataset.userEmail;
+            
+            console.log('[CC] Activity reply clicked:', { userId, userName, email });
+            if (userId && userName) {
+                replyToRecipient(userId, userName, email);
+            } else {
+                alert(`Cannot send direct message to ${email} - user account not found.`);
+            }
+            return;
+        }
+
+        // Recipients reply button
+        const recipientReplyBtn = target.closest?.('.recipient-reply-btn');
+        if (recipientReplyBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const userId = recipientReplyBtn.dataset.userId;
+            const userName = recipientReplyBtn.dataset.userName;
+            const email = recipientReplyBtn.dataset.email;
+            
+            console.log('[CC] Recipient reply clicked:', { userId, userName, email });
+            if (userId && userName) {
+                replyToRecipient(userId, userName, email);
+            } else {
+                alert(`Cannot send direct message to ${email} - user account not found.`);
+            }
             return;
         }
 
