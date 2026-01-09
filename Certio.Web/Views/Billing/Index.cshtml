@@ -20,13 +20,6 @@
 <meta name="current-user-initials" content="@ViewBag.CurrentUserInitials" />
 
 <div class="billing-container" style="padding: 1rem; position: relative;">
-    <!-- Development Overlay for entire billing page (except navbar) -->
-    @{
-        ViewData["targetSelector"] = "";
-        ViewData["fullScreen"] = true;
-    }
-    @await Html.PartialAsync("_DevelopmentOverlay")
-    
     <!-- Header Section -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
