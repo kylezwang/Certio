@@ -29,6 +29,18 @@ namespace Certio.Web.Middleware
                 return;
             }
 
+            // Check verbose logging preference from cookie
+            // If verbose is OFF (default), skip logging GET requests (View actions)
+            var verboseLoggingCookie = context.Request.Cookies["VerboseLogging"];
+            var isVerboseEnabled = string.Equals(verboseLoggingCookie, "true", StringComparison.OrdinalIgnoreCase);
+            
+            // Skip View audit logging if verbose is disabled (default behavior)
+            if (!isVerboseEnabled && string.Equals(context.Request.Method, "GET", StringComparison.OrdinalIgnoreCase))
+            {
+                await _next(context);
+                return;
+            }
+
             var stopwatch = Stopwatch.StartNew();
             Exception? requestException = null;
 
