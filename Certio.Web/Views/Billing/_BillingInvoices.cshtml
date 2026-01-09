@@ -32,6 +32,11 @@
                 <button class="column-header-btn" style="text-align: left;">Client</button>
             </div>
             
+            <!-- Event Column -->
+            <div class="billing-event-column">
+                <button class="column-header-btn" style="text-align: left;">Event</button>
+            </div>
+            
             <!-- Date Column -->
             <div class="billing-date-column">
                 <button class="column-header-btn" style="text-align: left;">Date</button>
@@ -40,11 +45,6 @@
             <!-- Due Date Column -->
             <div class="billing-due-date-column">
                 <button class="column-header-btn" style="text-align: left;">Due Date</button>
-            </div>
-            
-            <!-- Hours Column -->
-            <div class="billing-hours-column">
-                <button class="column-header-btn" style="text-align: right;">Hours</button>
             </div>
             
             <!-- Amount Column -->
@@ -76,7 +76,12 @@
                 
                 <!-- Client -->
                 <div class="billing-client-column">
-                    <span style="color: #1e293b;">Smith Corp</span>
+                    <span style="color: #1e293b;">Sarah & Michael</span>
+                </div>
+                
+                <!-- Event -->
+                <div class="billing-event-column">
+                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Wedding Reception</span>
                 </div>
                 
                 <!-- Date -->
@@ -87,11 +92,6 @@
                 <!-- Due Date -->
                 <div class="billing-due-date-column">
                     <span style="color: #64748b; font-size: 0.85rem;">Feb 10, 2025</span>
-                </div>
-                
-                <!-- Hours -->
-                <div class="billing-hours-column">
-                    <span style="color: #1e293b;">35.5</span>
                 </div>
                 
                 <!-- Amount -->
@@ -122,7 +122,10 @@
                     <span style="font-weight: 500; color: #1e293b;">INV-2024-187</span>
                 </div>
                 <div class="billing-client-column">
-                    <span style="color: #1e293b;">Johnson LLC</span>
+                    <span style="color: #1e293b;">TechCorp Inc</span>
+                </div>
+                <div class="billing-event-column">
+                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Annual Gala</span>
                 </div>
                 <div class="billing-date-column">
                     <span style="color: #64748b; font-size: 0.85rem;">Dec 20, 2024</span>
@@ -130,11 +133,8 @@
                 <div class="billing-due-date-column">
                     <span style="color: #64748b; font-size: 0.85rem;">Jan 20, 2025</span>
                 </div>
-                <div class="billing-hours-column">
-                    <span style="color: #1e293b;">21.5</span>
-                </div>
                 <div class="billing-amount-column">
-                    <span style="color: #1e293b; font-weight: 500;">$8,750</span>
+                    <span style="color: #1e293b; font-weight: 500;">$18,750</span>
                 </div>
                 <div class="billing-status-column">
                     <span class="billing-status-badge paid">Paid</span>
@@ -153,7 +153,10 @@
                     <span style="font-weight: 500; color: #1e293b;">INV-2024-186</span>
                 </div>
                 <div class="billing-client-column">
-                    <span style="color: #1e293b;">Acme Inc</span>
+                    <span style="color: #1e293b;">Johnson Family</span>
+                </div>
+                <div class="billing-event-column">
+                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Family Reunion</span>
                 </div>
                 <div class="billing-date-column">
                     <span style="color: #64748b; font-size: 0.85rem;">Dec 15, 2024</span>
@@ -161,11 +164,8 @@
                 <div class="billing-due-date-column">
                     <span style="color: #64748b; font-size: 0.85rem;">Jan 15, 2025</span>
                 </div>
-                <div class="billing-hours-column">
-                    <span style="color: #1e293b;">42</span>
-                </div>
                 <div class="billing-amount-column">
-                    <span style="color: #1e293b; font-weight: 500;">$15,200</span>
+                    <span style="color: #1e293b; font-weight: 500;">$5,200</span>
                 </div>
                 <div class="billing-status-column">
                     <span class="billing-status-badge overdue">Overdue</span>
@@ -187,7 +187,10 @@
                     <span style="font-weight: 500; color: #1e293b;">INV-2024-185</span>
                 </div>
                 <div class="billing-client-column">
-                    <span style="color: #1e293b;">Global Tech</span>
+                    <span style="color: #1e293b;">ABC Corp</span>
+                </div>
+                <div class="billing-event-column">
+                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Holiday Party</span>
                 </div>
                 <div class="billing-date-column">
                     <span style="color: #64748b; font-size: 0.85rem;">Dec 10, 2024</span>
@@ -195,11 +198,8 @@
                 <div class="billing-due-date-column">
                     <span style="color: #64748b; font-size: 0.85rem;">Jan 10, 2025</span>
                 </div>
-                <div class="billing-hours-column">
-                    <span style="color: #1e293b;">56</span>
-                </div>
                 <div class="billing-amount-column">
-                    <span style="color: #1e293b; font-weight: 500;">$22,400</span>
+                    <span style="color: #1e293b; font-weight: 500;">$8,400</span>
                 </div>
                 <div class="billing-status-column">
                     <span class="billing-status-badge paid">Paid</span>
@@ -303,7 +303,7 @@
     /* Billing Card Columns Layout - Adjusted for Invoices columns */
     #billingInvoicesView .billing-card-item {
         display: grid;
-        grid-template-columns: 1.2fr 1.2fr 1fr 1fr 0.8fr 1fr 1fr 1.8fr;
+        grid-template-columns: 1fr 1.1fr 1.2fr 0.9fr 0.9fr 0.9fr 0.9fr 1.8fr;
         gap: 0.75rem;
         align-items: center;
         padding: 0.875rem 1rem;
@@ -342,16 +342,14 @@
         font-size: 0.875rem;
     }
 
+    .billing-event-column {
+        font-size: 0.875rem;
+    }
+
     .billing-date-column,
     .billing-due-date-column {
         font-size: 0.85rem;
         color: #64748b;
-    }
-
-    .billing-hours-column {
-        font-size: 0.875rem;
-        color: #1e293b;
-        text-align: right;
     }
 
     .billing-amount-column {

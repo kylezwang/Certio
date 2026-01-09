@@ -47,16 +47,64 @@
             </div>
         </div>
 
-        <!-- Attorney Section -->
+        <!-- Assignee Section -->
         <div class="billing-section collapsible-section">
             <div class="billing-section-title fw-semibold mb-2 collapsible-header" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
-                <span>Attorney</span>
+                <span>Assignee</span>
                 <i class="fas fa-chevron-down collapse-icon"></i>
             </div>
             <div class="billing-section-content" style="display: none;">
                 <div class="billing-checkboxes" id="billingAttorneysList">
-                    <!-- Attorney checkboxes will be populated by JavaScript -->
-                    <div class="text-muted small">Loading attorneys...</div>
+                    <!-- Assignee checkboxes will be populated by JavaScript -->
+                    <div class="text-muted small">Loading assignees...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Event Type Section -->
+        <div class="billing-section collapsible-section">
+            <div class="billing-section-title fw-semibold mb-2 collapsible-header" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                <span>Event Type</span>
+                <i class="fas fa-chevron-down collapse-icon"></i>
+            </div>
+            <div class="billing-section-content" style="display: none;">
+                <div class="billing-checkboxes" id="billingEventTypesList">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input billing-event-type-checkbox" type="checkbox" value="wedding" id="billingEventTypeWedding" checked>
+                        <label class="form-check-label" for="billingEventTypeWedding">
+                            Wedding
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input billing-event-type-checkbox" type="checkbox" value="corporate" id="billingEventTypeCorporate" checked>
+                        <label class="form-check-label" for="billingEventTypeCorporate">
+                            Corporate Event
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input billing-event-type-checkbox" type="checkbox" value="birthday" id="billingEventTypeBirthday" checked>
+                        <label class="form-check-label" for="billingEventTypeBirthday">
+                            Birthday Celebration
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input billing-event-type-checkbox" type="checkbox" value="holiday" id="billingEventTypeHoliday" checked>
+                        <label class="form-check-label" for="billingEventTypeHoliday">
+                            Holiday Party
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input billing-event-type-checkbox" type="checkbox" value="reunion" id="billingEventTypeReunion" checked>
+                        <label class="form-check-label" for="billingEventTypeReunion">
+                            Family Reunion
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input billing-event-type-checkbox" type="checkbox" value="other" id="billingEventTypeOther" checked>
+                        <label class="form-check-label" for="billingEventTypeOther">
+                            Other
+                        </label>
+                    </div>
                 </div>
             </div>
         </div>
@@ -267,12 +315,13 @@
             mattersList.innerHTML = '';
             
             try {
-                // TODO: Implement actual API endpoint for billing matters
+                // TODO: Implement actual API endpoint for billing events
                 // For now, using placeholder data
                 const matters = [
-                    { id: 1, name: 'Johnson v. State Corp' },
-                    { id: 2, name: 'Smith Estate Planning' },
-                    { id: 3, name: 'Anderson Contract Dispute' }
+                    { id: 1, name: 'Sarah & Michael Wedding' },
+                    { id: 2, name: 'TechCorp Annual Gala' },
+                    { id: 3, name: 'Johnson Family Reunion' },
+                    { id: 4, name: 'ABC Corp Holiday Party' }
                 ];
                 
                 if (matters.length === 0) {
@@ -302,42 +351,43 @@
         }
 
         async function loadBillingAttorneys() {
-            const attorneysList = document.getElementById('billingAttorneysList');
-            if (!attorneysList) return;
+            const assigneesList = document.getElementById('billingAttorneysList');
+            if (!assigneesList) return;
             
-            attorneysList.innerHTML = '';
+            assigneesList.innerHTML = '';
             
             try {
-                // TODO: Implement actual API endpoint for attorneys
+                // TODO: Implement actual API endpoint for assignees
                 // For now, using placeholder data
-                const attorneys = [
-                    { id: 1, name: 'John Doe' },
-                    { id: 2, name: 'Jane Smith' }
+                const assignees = [
+                    { id: 1, name: 'Amanda Miller' },
+                    { id: 2, name: 'Jessica Taylor' },
+                    { id: 3, name: 'Rachel Chen' }
                 ];
                 
-                if (attorneys.length === 0) {
-                    attorneysList.innerHTML = '<div class="text-muted small">No attorneys available.</div>';
+                if (assignees.length === 0) {
+                    assigneesList.innerHTML = '<div class="text-muted small">No assignees available.</div>';
                     return;
                 }
                 
-                attorneys.forEach((attorney, index) => {
+                assignees.forEach((assignee, index) => {
                     const checkboxDiv = document.createElement('div');
                     checkboxDiv.className = 'form-check mb-2';
                     checkboxDiv.innerHTML = `
                         <input class="form-check-input billing-attorney-checkbox" 
                                type="checkbox" 
-                               value="${attorney.id}" 
+                               value="${assignee.id}" 
                                id="billingAttorney${index}" 
                                checked>
                         <label class="form-check-label" for="billingAttorney${index}">
-                            ${attorney.name}
+                            ${assignee.name}
                         </label>
                     `;
-                    attorneysList.appendChild(checkboxDiv);
+                    assigneesList.appendChild(checkboxDiv);
                 });
             } catch (error) {
-                console.error('Error loading billing attorneys:', error);
-                attorneysList.innerHTML = '<div class="text-muted small">Error loading attorneys.</div>';
+                console.error('Error loading billing assignees:', error);
+                assigneesList.innerHTML = '<div class="text-muted small">Error loading assignees.</div>';
             }
         }
 
@@ -357,8 +407,15 @@
                 });
             });
             
-            // Attorney checkboxes
+            // Assignee checkboxes
             document.querySelectorAll('.billing-attorney-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    filterBilling();
+                });
+            });
+            
+            // Event type checkboxes
+            document.querySelectorAll('.billing-event-type-checkbox').forEach(checkbox => {
                 checkbox.addEventListener('change', function() {
                     filterBilling();
                 });
@@ -383,10 +440,16 @@
                 selectedMatters.push(parseInt(checkbox.value));
             });
             
-            // Get selected attorneys
-            const selectedAttorneys = [];
+            // Get selected assignees
+            const selectedAssignees = [];
             document.querySelectorAll('.billing-attorney-checkbox:checked').forEach(checkbox => {
-                selectedAttorneys.push(parseInt(checkbox.value));
+                selectedAssignees.push(parseInt(checkbox.value));
+            });
+            
+            // Get selected event types
+            const selectedEventTypes = [];
+            document.querySelectorAll('.billing-event-type-checkbox:checked').forEach(checkbox => {
+                selectedEventTypes.push(checkbox.value);
             });
             
             // Get selected statuses
@@ -398,7 +461,8 @@
             console.log('Billing filters:', {
                 dateRange,
                 selectedMatters,
-                selectedAttorneys,
+                selectedAssignees,
+                selectedEventTypes,
                 selectedStatuses
             });
             
@@ -407,7 +471,8 @@
                 detail: { 
                     dateRange,
                     selectedMatters,
-                    selectedAttorneys,
+                    selectedAssignees,
+                    selectedEventTypes,
                     selectedStatuses
                 } 
             }));
