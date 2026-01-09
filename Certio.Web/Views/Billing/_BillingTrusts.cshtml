@@ -1,3 +1,6 @@
+@model IEnumerable<Certio.Domain.Billing.Retainer>
+@using System.Text.RegularExpressions
+
 <!-- Trusts View -->
 <div class="view-container" id="billingTrustsView">
     <div class="inbox-container">
@@ -65,182 +68,101 @@
 
         <!-- Trust Cards -->
         <div class="billing-cards-container" id="billingCardsContainer">
-            <!-- Sample Trust Rows -->
-            
-            <!-- Entry 1 - Active -->
-            <div class="billing-card-item">
-                <!-- Client -->
-                <div class="billing-client-column">
-                    <span style="font-weight: 600; color: #1e293b;">Sarah & Michael</span>
-                </div>
-                
-                <!-- Event -->
-                <div class="billing-matter-column">
-                    <span style="color: #1e293b;">Wedding Reception</span>
-                </div>
-                
-                <!-- Retainer Usage -->
-                <div class="billing-trust-usage-column">
-                    <div class="trust-usage-wrapper">
-                        <span class="trust-usage-text">$20,000 / $25,000</span>
-                        <div class="trust-usage-bar-container">
-                            <div class="trust-progress">
-                                <div class="trust-progress-bar" style="width: 80%"></div>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var retainer in Model)
+                {
+                    var clientName = retainer.Client?.Name ?? "—";
+                    var matterTitle = retainer.Matter?.Title ?? "—";
+
+                    var total = retainer.TotalDeposited > 0 ? retainer.TotalDeposited : retainer.InitialAmount;
+                    if (total <= 0) total = 0;
+                    var used = retainer.TotalWithdrawn;
+
+                    var pct = total > 0 ? (double)(used / total) * 100.0 : 0.0;
+                    var pctDisplay = Math.Round(pct, 0);
+                    var barWidth = Math.Min(100, Math.Max(0, (int)Math.Round(pct)));
+
+                    var lastDeposit = retainer.Transactions?
+                        .Where(t => t.Type == Certio.Domain.Billing.RetainerTransactionType.Deposit)
+                        .OrderByDescending(t => t.Date)
+                        .Select(t => (DateTime?)t.Date)
+                        .FirstOrDefault();
+
+                    var lastWithdrawal = retainer.Transactions?
+                        .Where(t => t.Type == Certio.Domain.Billing.RetainerTransactionType.Withdrawal)
+                        .OrderByDescending(t => t.Date)
+                        .Select(t => (DateTime?)t.Date)
+                        .FirstOrDefault();
+
+                    var statusText = Regex.Replace(retainer.Status.ToString(), "([a-z])([A-Z])", "$1 $2");
+                    var statusClass = retainer.Status switch
+                    {
+                        Certio.Domain.Billing.RetainerStatus.Active => "active",
+                        Certio.Domain.Billing.RetainerStatus.Depleted => "depleted",
+                        Certio.Domain.Billing.RetainerStatus.Overdrawn => "overdrawn",
+                        _ => "active"
+                    };
+
+                    <div class="billing-card-item"
+                         data-billing-item="retainer"
+                         data-id="@retainer.Id"
+                         data-matter-id="@(retainer.MatterId ?? 0)"
+                         data-client-id="@(retainer.ClientId ?? 0)"
+                         data-initial-amount="@retainer.InitialAmount"
+                         data-notes="@((retainer.Notes ?? string.Empty).Replace("\"", "&quot;"))"
+                         data-status="@((int)retainer.Status)">
+                        <div class="billing-client-column">
+                            <span style="font-weight: 600; color: #1e293b;">@clientName</span>
+                        </div>
+                        <div class="billing-matter-column">
+                            <span style="color: #1e293b;">@matterTitle</span>
+                        </div>
+                        <div class="billing-trust-usage-column">
+                            <div class="trust-usage-wrapper">
+                                <span class="trust-usage-text">@used.ToString("C0") / @total.ToString("C0")</span>
+                                <div class="trust-usage-bar-container">
+                                    <div class="trust-progress">
+                                        <div class="trust-progress-bar" style="width: @barWidth%"></div>
+                                    </div>
+                                    <span class="trust-usage-percentage">@pctDisplay%</span>
+                                </div>
                             </div>
-                            <span class="trust-usage-percentage">80%</span>
+                        </div>
+                        <div class="billing-balance-column">
+                            <span style="color: #1e293b; font-weight: 500;">@retainer.CurrentBalance.ToString("C0")</span>
+                        </div>
+                        <div class="billing-deposit-column">
+                            <span style="color: #64748b; font-size: 0.85rem;">@(lastDeposit.HasValue ? lastDeposit.Value.ToString("MMM dd, yyyy") : "—")</span>
+                        </div>
+                        <div class="billing-withdrawal-column">
+                            <span style="color: #64748b; font-size: 0.85rem;">@(lastWithdrawal.HasValue ? lastWithdrawal.Value.ToString("MMM dd, yyyy") : "—")</span>
+                        </div>
+                        <div class="billing-status-column">
+                            <span class="billing-status-badge @statusClass">@statusText</span>
+                        </div>
+                        <div class="billing-actions-column">
+                            <button class="billing-action-btn deposit-btn" type="button" title="Deposit" onclick="event.stopPropagation();">
+                                Deposit
+                            </button>
+                            <button class="billing-action-btn withdraw-btn" type="button" title="Withdraw" onclick="event.stopPropagation();">
+                                Withdraw
+                            </button>
+                            <button class="billing-action-btn view-btn" type="button" title="View" onclick="event.stopPropagation();">
+                                <i class="fas fa-eye"></i>
+                            </button>
                         </div>
                     </div>
+                }
+            }
+            else
+            {
+                <div class="text-center py-5 text-muted" style="border: 1px dashed #e5e7eb; border-radius: 12px; background: #fff;">
+                    <i class="fas fa-hand-holding-usd mb-2" style="font-size: 1.5rem;"></i>
+                    <div style="font-weight: 600;">No retainers</div>
+                    <div style="font-size: 0.875rem;">Create a retainer to see it listed here.</div>
                 </div>
-                
-                <!-- Balance -->
-                <div class="billing-balance-column">
-                    <span style="color: #1e293b; font-weight: 500;">$5,000</span>
-                </div>
-                
-                <!-- Last Deposit -->
-                <div class="billing-deposit-column">
-                    <span style="color: #64748b; font-size: 0.85rem;">Jan 10, 2025</span>
-                </div>
-                
-                <!-- Last Withdrawal -->
-                <div class="billing-withdrawal-column">
-                    <span style="color: #64748b; font-size: 0.85rem;">Jan 15, 2025</span>
-                </div>
-                
-                <!-- Status -->
-                <div class="billing-status-column">
-                    <span class="billing-status-badge active">Active</span>
-                </div>
-                
-                <!-- Actions -->
-                <div class="billing-actions-column">
-                    <button class="billing-action-btn deposit-btn" onclick="event.stopPropagation(); alert('Deposit functionality');">Deposit</button>
-                    <button class="billing-action-btn withdraw-btn" onclick="event.stopPropagation(); alert('Withdraw functionality');">Withdraw</button>
-                    <button class="billing-action-btn view-btn" onclick="event.stopPropagation(); alert('View details');" title="View details">
-                        <i class="fas fa-file-alt"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Entry 2 - Active -->
-            <div class="billing-card-item">
-                <div class="billing-client-column">
-                    <span style="font-weight: 600; color: #1e293b;">TechCorp Inc</span>
-                </div>
-                <div class="billing-matter-column">
-                    <span style="color: #1e293b;">Annual Gala</span>
-                </div>
-                <div class="billing-trust-usage-column">
-                    <div class="trust-usage-wrapper">
-                        <span class="trust-usage-text">$15,000 / $50,000</span>
-                        <div class="trust-usage-bar-container">
-                            <div class="trust-progress">
-                                <div class="trust-progress-bar" style="width: 30%"></div>
-                            </div>
-                            <span class="trust-usage-percentage">30%</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="billing-balance-column">
-                    <span style="color: #1e293b; font-weight: 500;">$35,000</span>
-                </div>
-                <div class="billing-deposit-column">
-                    <span style="color: #64748b; font-size: 0.85rem;">Dec 15, 2024</span>
-                </div>
-                <div class="billing-withdrawal-column">
-                    <span style="color: #64748b; font-size: 0.85rem;">Jan 14, 2025</span>
-                </div>
-                <div class="billing-status-column">
-                    <span class="billing-status-badge active">Active</span>
-                </div>
-                <div class="billing-actions-column">
-                    <button class="billing-action-btn deposit-btn" onclick="event.stopPropagation(); alert('Deposit functionality');">Deposit</button>
-                    <button class="billing-action-btn withdraw-btn" onclick="event.stopPropagation(); alert('Withdraw functionality');">Withdraw</button>
-                    <button class="billing-action-btn view-btn" onclick="event.stopPropagation(); alert('View details');" title="View details">
-                        <i class="fas fa-file-alt"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Entry 3 - Depleted -->
-            <div class="billing-card-item">
-                <div class="billing-client-column">
-                    <span style="font-weight: 600; color: #1e293b;">Johnson Family</span>
-                </div>
-                <div class="billing-matter-column">
-                    <span style="color: #1e293b;">Family Reunion</span>
-                </div>
-                <div class="billing-trust-usage-column">
-                    <div class="trust-usage-wrapper">
-                        <span class="trust-usage-text">$8,000 / $8,000</span>
-                        <div class="trust-usage-bar-container">
-                            <div class="trust-progress">
-                                <div class="trust-progress-bar" style="width: 100%"></div>
-                            </div>
-                            <span class="trust-usage-percentage">100%</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="billing-balance-column">
-                    <span style="color: #d97706; font-weight: 600;">$0</span>
-                </div>
-                <div class="billing-deposit-column">
-                    <span style="color: #64748b; font-size: 0.85rem;">Nov 20, 2024</span>
-                </div>
-                <div class="billing-withdrawal-column">
-                    <span style="color: #64748b; font-size: 0.85rem;">Jan 13, 2025</span>
-                </div>
-                <div class="billing-status-column">
-                    <span class="billing-status-badge depleted">Depleted</span>
-                </div>
-                <div class="billing-actions-column">
-                    <button class="billing-action-btn deposit-btn" onclick="event.stopPropagation(); alert('Deposit functionality');">Deposit</button>
-                    <button class="billing-action-btn withdraw-btn" onclick="event.stopPropagation(); alert('Withdraw functionality');">Withdraw</button>
-                    <button class="billing-action-btn view-btn" onclick="event.stopPropagation(); alert('View details');" title="View details">
-                        <i class="fas fa-file-alt"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Entry 4 - Overdrawn -->
-            <div class="billing-card-item">
-                <div class="billing-client-column">
-                    <span style="font-weight: 600; color: #1e293b;">ABC Corp</span>
-                </div>
-                <div class="billing-matter-column">
-                    <span style="color: #1e293b;">Holiday Party</span>
-                </div>
-                <div class="billing-trust-usage-column">
-                    <div class="trust-usage-wrapper">
-                        <span class="trust-usage-text">$12,000 / $10,000</span>
-                        <div class="trust-usage-bar-container">
-                            <div class="trust-progress">
-                                <div class="trust-progress-bar" style="width: 100%"></div>
-                            </div>
-                            <span class="trust-usage-percentage">120%</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="billing-balance-column">
-                    <span style="color: #dc2626; font-weight: 600;">$-2,000</span>
-                </div>
-                <div class="billing-deposit-column">
-                    <span style="color: #64748b; font-size: 0.85rem;">Dec 5, 2024</span>
-                </div>
-                <div class="billing-withdrawal-column">
-                    <span style="color: #64748b; font-size: 0.85rem;">Jan 12, 2025</span>
-                </div>
-                <div class="billing-status-column">
-                    <span class="billing-status-badge overdrawn">Overdrawn</span>
-                </div>
-                <div class="billing-actions-column">
-                    <button class="billing-action-btn deposit-btn" onclick="event.stopPropagation(); alert('Deposit functionality');">Deposit</button>
-                    <button class="billing-action-btn withdraw-btn" onclick="event.stopPropagation(); alert('Withdraw functionality');">Withdraw</button>
-                    <button class="billing-action-btn view-btn" onclick="event.stopPropagation(); alert('View details');" title="View details">
-                        <i class="fas fa-file-alt"></i>
-                    </button>
-                </div>
-            </div>
+            }
         </div>
     </div>
 </div>

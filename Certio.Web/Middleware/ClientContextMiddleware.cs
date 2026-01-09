@@ -31,8 +31,14 @@ namespace Certio.Web.Middleware
             // Also check for API routes with orgId query parameter or X-Organization-Id header
             else if (path.StartsWith("/api/", StringComparison.OrdinalIgnoreCase))
             {
+                // First try to parse orgId from route segments (e.g., /api/billing/{orgId}/...)
+                var apiRouteMatch = Regex.Match(path, @"^/api/billing/(?<orgId>\d+)(/|$)", RegexOptions.IgnoreCase);
+                if (apiRouteMatch.Success && int.TryParse(apiRouteMatch.Groups["orgId"].Value, out var parsedRouteOrgId))
+                {
+                    orgId = parsedRouteOrgId;
+                }
                 // First try query parameter (e.g., /api/dm/threads?orgId=1)
-                if (context.Request.Query.TryGetValue("orgId", out var orgIdValue) && 
+                else if (context.Request.Query.TryGetValue("orgId", out var orgIdValue) && 
                     int.TryParse(orgIdValue.FirstOrDefault(), out var parsedOrgId))
                 {
                     orgId = parsedOrgId;

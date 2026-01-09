@@ -1,0 +1,777 @@
+@{
+    // Get organization entity for custom terminology
+    var orgType = ViewBag.OrganizationType as Certio.Domain.Organizations.OrganizationType? ?? Certio.Domain.Organizations.OrganizationType.Client;
+    var orgEntity = ViewBag.OrganizationEntity as Certio.Domain.Organizations.Organization;
+    var matterLabel = orgEntity != null 
+        ? Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgEntity) 
+        : Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
+}
+
+<!-- Time Entry Modal - Uses same structure as task-details-modal -->
+<div class="task-details-modal billing-modal" id="timeEntryModal" style="display: none;">
+    <div class="modal-dialog">
+        <div class="task-details-content">
+            <!-- Header -->
+            <div class="task-details-header">
+                <div class="task-details-header-left">
+                    <div class="billing-modal-icon">
+                        <i class="fas fa-stopwatch"></i>
+                    </div>
+                </div>
+                <div class="task-details-header-middle">
+                    <h5 class="billing-modal-title">New Time Entry</h5>
+                </div>
+                <div class="task-details-header-right">
+                    <button type="button" class="btn task-header-btn billing-modal-close" data-close-modal aria-label="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="task-details-body billing-modal-body">
+                <div class="billing-form-content">
+                    <input type="hidden" id="timeEntryId" data-billing-id />
+                    <!-- Event/Matter Selection -->
+                    <div class="billing-field">
+                        <label class="billing-field-label">
+                            <i class="fas fa-folder"></i> @matterLabel
+                        </label>
+                        <select class="form-select billing-select billing-matter-select" id="timeEntryMatter">
+                            <option value="">Select @matterLabel...</option>
+                        </select>
+                    </div>
+
+                    <!-- Client + Assignee Row (side by side) -->
+                    <div class="billing-field-row">
+                        <div class="billing-field">
+                            <label class="billing-field-label">
+                                <i class="fas fa-building"></i> Client
+                            </label>
+                            <div class="billing-assignee-row">
+                                <div class="billing-assignees-container" id="timeEntryClientsContainer">
+                                    <!-- Client selection will be dynamically rendered here -->
+                                </div>
+                                <button class="btn btn-sm add-member-btn billing-add-client-btn" id="addTimeEntryClientBtn" data-modal="timeEntryModal">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                                <input type="hidden" id="timeEntryClient" />
+                            </div>
+                        </div>
+                        <div class="billing-field">
+                            <label class="billing-field-label">
+                                <i class="fas fa-user"></i> Assignee
+                            </label>
+                            <div class="billing-assignee-row">
+                                <div class="billing-assignees-container" id="timeEntryAssigneesContainer">
+                                    <!-- Assignees will be dynamically rendered here -->
+                                </div>
+                                <button class="btn btn-sm add-member-btn billing-add-assignee-btn" id="addTimeEntryAssigneeBtn" data-modal="timeEntryModal">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                                <input type="hidden" id="timeEntryAssignee" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Date -->
+                    <div class="billing-field">
+                        <label class="billing-field-label">
+                            <i class="fas fa-calendar"></i> Date
+                        </label>
+                        <input type="date" class="form-control billing-input" id="timeEntryDate" />
+                    </div>
+
+                    <!-- Hours and Rate Row -->
+                    <div class="billing-field-row">
+                        <div class="billing-field">
+                            <label class="billing-field-label">
+                                <i class="fas fa-clock"></i> Hours
+                            </label>
+                            <input type="number" class="form-control billing-input" id="timeEntryHours" step="0.25" min="0" placeholder="0.00" />
+                        </div>
+                        <div class="billing-field">
+                            <label class="billing-field-label">
+                                <i class="fas fa-dollar-sign"></i> Rate (per hour)
+                            </label>
+                            <input type="number" class="form-control billing-input" id="timeEntryRate" step="0.01" min="0" placeholder="0.00" />
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="billing-field">
+                        <label class="billing-field-label">
+                            <i class="fas fa-align-left"></i> Description
+                        </label>
+                        <textarea class="form-control billing-textarea" id="timeEntryDescription" rows="3" placeholder="Describe the work performed..."></textarea>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="billing-field">
+                        <label class="billing-field-label">
+                            <i class="fas fa-tag"></i> Status
+                        </label>
+                        <select class="form-select billing-select" id="timeEntryStatus">
+                            <option value="0" selected>Needs Review</option>
+                            <option value="1">Approved</option>
+                            <option value="2">Billed</option>
+                            <option value="3">Paid</option>
+                        </select>
+                    </div>
+
+                    <!-- Billable Checkbox -->
+                    <div class="billing-field">
+                        <label class="billing-checkbox-label">
+                            <input type="checkbox" class="form-check-input billing-checkbox" id="timeEntryBillable" checked>
+                            <span>Billable to client</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="billing-modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-close-modal>Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveTimeEntryBtn">
+                    <i class="fas fa-save"></i> Save Time Entry
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Expense Modal -->
+<div class="task-details-modal billing-modal" id="expenseModal" style="display: none;">
+    <div class="modal-dialog">
+        <div class="task-details-content">
+            <!-- Header -->
+            <div class="task-details-header">
+                <div class="task-details-header-left">
+                    <div class="billing-modal-icon">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                </div>
+                <div class="task-details-header-middle">
+                    <h5 class="billing-modal-title">New Expense</h5>
+                </div>
+                <div class="task-details-header-right">
+                    <button type="button" class="btn task-header-btn billing-modal-close" data-close-modal aria-label="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="task-details-body billing-modal-body">
+                <div class="billing-form-content">
+                    <input type="hidden" id="expenseId" data-billing-id />
+                    <!-- Event/Matter Selection -->
+                    <div class="billing-field">
+                        <label class="billing-field-label">
+                            <i class="fas fa-folder"></i> @matterLabel
+                        </label>
+                        <select class="form-select billing-select billing-matter-select" id="expenseMatter">
+                            <option value="">Select @matterLabel...</option>
+                        </select>
+                    </div>
+
+                    <!-- Client + Assignee Row (side by side) -->
+                    <div class="billing-field-row">
+                        <div class="billing-field">
+                            <label class="billing-field-label">
+                                <i class="fas fa-building"></i> Client
+                            </label>
+                            <div class="billing-assignee-row">
+                                <div class="billing-assignees-container" id="expenseClientsContainer">
+                                </div>
+                                <button class="btn btn-sm add-member-btn billing-add-client-btn" id="addExpenseClientBtn" data-modal="expenseModal">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                                <input type="hidden" id="expenseClient" />
+                            </div>
+                        </div>
+                        <div class="billing-field">
+                            <label class="billing-field-label">
+                                <i class="fas fa-user"></i> Assignee
+                            </label>
+                            <div class="billing-assignee-row">
+                                <div class="billing-assignees-container" id="expenseAssigneesContainer">
+                                </div>
+                                <button class="btn btn-sm add-member-btn billing-add-assignee-btn" id="addExpenseAssigneeBtn" data-modal="expenseModal">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                                <input type="hidden" id="expenseAssignee" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Date and Category Row -->
+                    <div class="billing-field-row">
+                        <div class="billing-field">
+                            <label class="billing-field-label">
+                                <i class="fas fa-calendar"></i> Date
+                            </label>
+                            <input type="date" class="form-control billing-input" id="expenseDate" />
+                        </div>
+                        <div class="billing-field">
+                            <label class="billing-field-label">
+                                <i class="fas fa-tag"></i> Category
+                            </label>
+                            <select class="form-select billing-select billing-category-select" id="expenseCategory">
+                                <option value="">Select Category...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Amount -->
+                    <div class="billing-field">
+                        <label class="billing-field-label">
+                            <i class="fas fa-dollar-sign"></i> Amount
+                        </label>
+                        <input type="number" class="form-control billing-input" id="expenseAmount" step="0.01" min="0" placeholder="0.00" />
+                    </div>
+
+                    <!-- Description -->
+                    <div class="billing-field">
+                        <label class="billing-field-label">
+                            <i class="fas fa-align-left"></i> Description
+                        </label>
+                        <textarea class="form-control billing-textarea" id="expenseDescription" rows="3" placeholder="Describe the expense..."></textarea>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="billing-field">
+                        <label class="billing-field-label">
+                            <i class="fas fa-tag"></i> Status
+                        </label>
+                        <select class="form-select billing-select" id="expenseStatus">
+                            <option value="0" selected>Unbilled</option>
+                            <option value="1">Billed</option>
+                            <option value="2">Paid</option>
+                        </select>
+                    </div>
+
+                    <!-- Billable Checkbox -->
+                    <div class="billing-field">
+                        <label class="billing-checkbox-label">
+                            <input type="checkbox" class="form-check-input billing-checkbox" id="expenseBillable" checked>
+                            <span>Billable to client</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="billing-modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-close-modal>Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveExpenseBtn">
+                    <i class="fas fa-save"></i> Save Expense
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Invoice Modal -->
+<div class="task-details-modal billing-modal" id="invoiceModal" style="display: none;">
+    <div class="modal-dialog">
+        <div class="task-details-content">
+            <!-- Header -->
+            <div class="task-details-header">
+                <div class="task-details-header-left">
+                    <div class="billing-modal-icon">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                </div>
+                <div class="task-details-header-middle">
+                    <h5 class="billing-modal-title">New Invoice</h5>
+                </div>
+                <div class="task-details-header-right">
+                    <button type="button" class="btn task-header-btn billing-modal-close" data-close-modal aria-label="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="task-details-body billing-modal-body">
+                <div class="billing-form-content">
+                    <input type="hidden" id="invoiceId" data-billing-id />
+                    <!-- Event/Matter Selection -->
+                    <div class="billing-field">
+                        <label class="billing-field-label">
+                            <i class="fas fa-folder"></i> @matterLabel
+                        </label>
+                        <select class="form-select billing-select billing-matter-select" id="invoiceMatter">
+                            <option value="">Select @matterLabel...</option>
+                        </select>
+                    </div>
+
+                    <!-- Client + Status Row -->
+                    <div class="billing-field-row">
+                        <div class="billing-field">
+                            <label class="billing-field-label">
+                                <i class="fas fa-building"></i> Client
+                            </label>
+                            <div class="billing-assignee-row">
+                                <div class="billing-assignees-container" id="invoiceClientsContainer">
+                                </div>
+                                <button class="btn btn-sm add-member-btn billing-add-client-btn" id="addInvoiceClientBtn" data-modal="invoiceModal">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                                <input type="hidden" id="invoiceClient" />
+                            </div>
+                        </div>
+                        <div class="billing-field">
+                            <label class="billing-field-label">
+                                <i class="fas fa-tag"></i> Status
+                            </label>
+                            <select class="form-select billing-select" id="invoiceStatus">
+                                <option value="0" selected>Draft</option>
+                                <option value="1">Pending</option>
+                                <option value="4">Partially Paid</option>
+                                <option value="2">Paid</option>
+                                <option value="5">Cancelled</option>
+                                <option value="6">Refunded</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Date Row -->
+                    <div class="billing-field-row">
+                        <div class="billing-field">
+                            <label class="billing-field-label">
+                                <i class="fas fa-calendar"></i> Invoice Date
+                            </label>
+                            <input type="date" class="form-control billing-input" id="invoiceDate" />
+                        </div>
+                        <div class="billing-field">
+                            <label class="billing-field-label">
+                                <i class="fas fa-calendar-alt"></i> Due Date
+                            </label>
+                            <input type="date" class="form-control billing-input" id="invoiceDueDate" />
+                        </div>
+                    </div>
+
+                    <!-- Tax Amount -->
+                    <div class="billing-field">
+                        <label class="billing-field-label">
+                            <i class="fas fa-percentage"></i> Tax Amount
+                        </label>
+                        <input type="number" class="form-control billing-input" id="invoiceTax" step="0.01" min="0" placeholder="0.00" />
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="billing-field">
+                        <label class="billing-field-label">
+                            <i class="fas fa-sticky-note"></i> Notes
+                        </label>
+                        <textarea class="form-control billing-textarea" id="invoiceNotes" rows="2" placeholder="Add notes for the client..."></textarea>
+                    </div>
+
+                    <!-- Terms -->
+                    <div class="billing-field">
+                        <label class="billing-field-label">
+                            <i class="fas fa-file-contract"></i> Terms
+                        </label>
+                        <textarea class="form-control billing-textarea" id="invoiceTerms" rows="2" placeholder="Payment terms..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="billing-modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-close-modal>Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveInvoiceBtn">
+                    <i class="fas fa-save"></i> Create Invoice
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Retainer Modal -->
+<div class="task-details-modal billing-modal" id="retainerModal" style="display: none;">
+    <div class="modal-dialog">
+        <div class="task-details-content">
+            <!-- Header -->
+            <div class="task-details-header">
+                <div class="task-details-header-left">
+                    <div class="billing-modal-icon">
+                        <i class="fas fa-hand-holding-usd"></i>
+                    </div>
+                </div>
+                <div class="task-details-header-middle">
+                    <h5 class="billing-modal-title">New Retainer</h5>
+                </div>
+                <div class="task-details-header-right">
+                    <button type="button" class="btn task-header-btn billing-modal-close" data-close-modal aria-label="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="task-details-body billing-modal-body">
+                <div class="billing-form-content">
+                    <input type="hidden" id="retainerId" data-billing-id />
+                    <!-- Event/Matter Selection -->
+                    <div class="billing-field">
+                        <label class="billing-field-label">
+                            <i class="fas fa-folder"></i> @matterLabel
+                        </label>
+                        <select class="form-select billing-select billing-matter-select" id="retainerMatter">
+                            <option value="">Select @matterLabel...</option>
+                        </select>
+                    </div>
+
+                    <!-- Client + Status Row -->
+                    <div class="billing-field-row">
+                        <div class="billing-field">
+                            <label class="billing-field-label">
+                                <i class="fas fa-building"></i> Client
+                            </label>
+                            <div class="billing-assignee-row">
+                                <div class="billing-assignees-container" id="retainerClientsContainer">
+                                </div>
+                                <button class="btn btn-sm add-member-btn billing-add-client-btn" id="addRetainerClientBtn" data-modal="retainerModal">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                                <input type="hidden" id="retainerClient" />
+                            </div>
+                        </div>
+                        <div class="billing-field">
+                            <label class="billing-field-label">
+                                <i class="fas fa-tag"></i> Status
+                            </label>
+                            <select class="form-select billing-select" id="retainerStatus">
+                                <option value="0" selected>Active</option>
+                                <option value="1">Depleted</option>
+                                <option value="2">Overdrawn</option>
+                                <option value="3">Closed</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Initial Amount -->
+                    <div class="billing-field">
+                        <label class="billing-field-label">
+                            <i class="fas fa-dollar-sign"></i> Initial Amount
+                        </label>
+                        <input type="number" class="form-control billing-input" id="retainerAmount" step="0.01" min="0" placeholder="0.00" />
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="billing-field">
+                        <label class="billing-field-label">
+                            <i class="fas fa-sticky-note"></i> Notes
+                        </label>
+                        <textarea class="form-control billing-textarea" id="retainerNotes" rows="3" placeholder="Add notes about this retainer..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="billing-modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-close-modal>Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveRetainerBtn">
+                    <i class="fas fa-save"></i> Create Retainer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Billing Modal Overrides - Extends task-details-modal.css */
+    
+    /* Override modal positioning to match task-details-modal but be narrower */
+    .billing-modal.task-details-modal {
+        /* Inherit positioning from task-details-modal.css */
+    }
+    
+    /* Make billing modals narrower */
+    .billing-modal.task-details-modal .modal-dialog {
+        width: 32rem;
+        max-width: 90%;
+    }
+    
+    /* Ensure billing modal also respects sidebar/chat hidden states - inherits from task-details-modal.css */
+    
+    /* Header icon styling */
+    .billing-modal-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #3d1019 0%, #5a1a26 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1rem;
+    }
+    
+    .billing-modal-title {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1e293b;
+    }
+    
+    /* Meta section styling - like tasks */
+    .billing-meta-section {
+        padding: 0.75rem 2rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    /* Body styling */
+    .billing-modal .billing-modal-body {
+        flex-direction: column;
+        padding: 1.25rem 2rem;
+    }
+    
+    .billing-form-content {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        width: 100%;
+    }
+    
+    /* Field styling */
+    .billing-field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.375rem;
+    }
+    
+    .billing-field-row {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .billing-field-row .billing-field {
+        flex: 1;
+    }
+    
+    .billing-field-label {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: #374151;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .billing-field-label i {
+        color: #3d1019;
+        width: 14px;
+        font-size: 0.75rem;
+    }
+    
+    .billing-modal .billing-input,
+    .billing-modal .billing-select,
+    .billing-modal .billing-textarea {
+        font-size: 0.875rem;
+        border-radius: 6px;
+        border: 1px solid #d1d5db;
+        padding: 0.5rem 0.75rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    
+    .billing-modal .billing-input:focus,
+    .billing-modal .billing-select:focus,
+    .billing-modal .billing-textarea:focus {
+        outline: none;
+        border-color: #3d1019;
+        box-shadow: 0 0 0 2px rgba(61, 16, 25, 0.1);
+    }
+    
+    .billing-textarea {
+        resize: vertical;
+        min-height: 70px;
+    }
+    
+    .billing-checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: #374151;
+        cursor: pointer;
+    }
+    
+    .billing-checkbox-label .form-check-input:checked {
+        background-color: #3d1019;
+        border-color: #3d1019;
+    }
+    
+    /* Footer styling */
+    .billing-modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        padding: 1rem 2rem;
+        border-top: 1px solid #e5e7eb;
+        background: #f9fafb;
+        border-radius: 0 0 16px 16px;
+    }
+    
+    .billing-modal-footer .btn {
+        font-size: 0.875rem;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+    }
+    
+    .billing-modal-footer .btn-primary {
+        background: linear-gradient(135deg, #3d1019 0%, #5a1a26 100%);
+        border: none;
+    }
+    
+    .billing-modal-footer .btn-primary:hover {
+        background: linear-gradient(135deg, #4a1320 0%, #6a2030 100%);
+    }
+    
+    /* Billing assignee row - layout for assignee field in body */
+    .billing-assignee-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-height: 38px;
+        padding: 0.25rem 0;
+    }
+    
+    /* Billing assignee button - ensure circular like task modal */
+    .billing-modal .billing-add-assignee-btn.add-member-btn,
+    .billing-modal .billing-add-client-btn.add-member-btn {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        min-height: 32px;
+        padding: 0;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px dashed #d1d5db;
+        background: transparent;
+        color: #6b7280;
+        transition: all 0.2s ease;
+    }
+    
+    .billing-modal .billing-add-assignee-btn.add-member-btn:hover,
+    .billing-modal .billing-add-client-btn.add-member-btn:hover {
+        border-color: #3d1019;
+        color: #3d1019;
+        background: #fef2f2;
+    }
+    
+    /* Assignees container for billing - match task modal layout */
+    .billing-modal .billing-assignees-container {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        flex-wrap: wrap;
+    }
+    
+    .billing-modal .billing-assignees-container .member-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #3d1019;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    /* Assignee popup styling */
+    .billing-assignment-popup {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        width: 350px;
+        max-height: 400px;
+        overflow-y: auto;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        border: 1px solid #dee2e6;
+        z-index: 5000;
+    }
+    
+    .billing-assignment-popup .assignee-search {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        margin-bottom: 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    .billing-assignment-popup .assignee-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .billing-assignment-popup .assignee-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    .billing-assignment-popup .assignee-item:hover {
+        background-color: #f3f4f6;
+    }
+    
+    .billing-assignment-popup .assignee-item.selected {
+        background-color: #fef2f2;
+        border: 1px solid #fca5a5;
+    }
+    
+    .billing-assignment-popup .assignee-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #3d1019;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .billing-assignment-popup .assignee-name {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #1e293b;
+    }
+    
+    .billing-assignment-popup .assignee-email {
+        font-size: 0.75rem;
+        color: #6b7280;
+    }
+    
+    /* Responsive */
+    @@media (max-width: 600px) {
+        .billing-field-row {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .billing-modal-footer {
+            flex-direction: column-reverse;
+        }
+        
+        .billing-modal-footer .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>

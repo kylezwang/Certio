@@ -1,3 +1,5 @@
+@model Certio.Application.Interfaces.BillingOverviewDto
+
 <!-- Overview View -->
 <div class="view-container" id="billingOverviewView">
     <div class="inbox-container">
@@ -11,7 +13,7 @@
                                 <i class="fas fa-calendar-check text-secondary fs-4"></i>
                             </div>
                             <div>
-                                <h3 class="fw-bold text-dark mb-0">12</h3>
+                                <h3 class="fw-bold text-dark mb-0">@Model.ActiveEvents</h3>
                                 <p class="text-muted mb-1 small">Active Events</p>
                             </div>
                         </div>
@@ -27,7 +29,7 @@
                                 <i class="fas fa-dollar-sign text-success fs-4"></i>
                             </div>
                             <div>
-                                <h3 class="fw-bold text-dark mb-0">$71,250</h3>
+                                <h3 class="fw-bold text-dark mb-0">@Model.Revenue.ToString("C0")</h3>
                                 <p class="text-muted mb-1 small">Revenue This Month</p>
                             </div>
                         </div>
@@ -43,7 +45,7 @@
                                 <i class="fas fa-file-invoice text-warning fs-4"></i>
                             </div>
                             <div>
-                                <h3 class="fw-bold text-dark mb-0">8</h3>
+                                <h3 class="fw-bold text-dark mb-0">@Model.PendingInvoices</h3>
                                 <p class="text-muted mb-1 small">Pending Invoices</p>
                             </div>
                         </div>
@@ -59,7 +61,7 @@
                                 <i class="fas fa-chart-line text-primary fs-4"></i>
                             </div>
                             <div>
-                                <h3 class="fw-bold text-dark mb-0">$28,500</h3>
+                                <h3 class="fw-bold text-dark mb-0">@Model.Outstanding.ToString("C0")</h3>
                                 <p class="text-muted mb-1 small">Outstanding</p>
                             </div>
                         </div>
@@ -136,114 +138,10 @@
 
                 <!-- Activity Cards -->
                 <div class="billing-cards-container" id="billingOverviewCardsContainer">
-                    <!-- Sample Activity Rows -->
-                    
-                    <!-- Entry 1 -->
-                    <div class="billing-card-item">
-                        <!-- Date -->
-                        <div class="billing-date-column">
-                            Jan 15, 2025
-                        </div>
-                        
-                        <!-- Type -->
-                        <div class="billing-type-column">
-                            <span style="color: #1e293b;">Time Entry</span>
-                        </div>
-                        
-                        <!-- Client -->
-                        <div class="billing-client-column">
-                            <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Sarah & Michael</span>
-                        </div>
-                        
-                        <!-- Matter -->
-                        <div class="billing-matter-column">
-                            <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Wedding Reception</span>
-                        </div>
-                        
-                        <!-- Attorney -->
-                        <div class="billing-attorney-column">
-                            <div class="billing-user-avatar">AM</div>
-                            <span class="billing-user-name">Amanda Miller</span>
-                        </div>
-                        
-                        <!-- Description -->
-                        <div class="billing-description-column-overview">
-                            <button class="billing-description-btn-overview" title="Venue walkthrough and vendor coordination" onclick="event.stopPropagation();">
-                                <i class="fa-solid fa-align-left" style="transform: scaleY(-1);"></i>
-                            </button>
-                        </div>
-                        
-                        <!-- Amount -->
-                        <div class="billing-amount-column">
-                            $1,225
-                        </div>
-                        
-                        <!-- Status -->
-                        <div class="billing-status-column">
-                            <span class="billing-status-badge needs-review">Needs Review</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Entry 2 -->
-                    <div class="billing-card-item">
-                        <div class="billing-date-column">
-                            Jan 14, 2025
-                        </div>
-                        <div class="billing-type-column">
-                            <span style="color: #1e293b;">Expense</span>
-                        </div>
-                        <div class="billing-client-column">
-                            <span style="color: #0066cc; font-weight: 500; cursor: pointer;">TechCorp Inc</span>
-                        </div>
-                        <div class="billing-matter-column">
-                            <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Annual Gala</span>
-                        </div>
-                        <div class="billing-attorney-column">
-                            <div class="billing-user-avatar">JT</div>
-                            <span class="billing-user-name">Jessica Taylor</span>
-                        </div>
-                        <div class="billing-description-column-overview">
-                            <button class="billing-description-btn-overview" title="Floral arrangements deposit" onclick="event.stopPropagation();">
-                                <i class="fa-solid fa-align-left" style="transform: scaleY(-1);"></i>
-                            </button>
-                        </div>
-                        <div class="billing-amount-column">
-                            $2,450
-                        </div>
-                        <div class="billing-status-column">
-                            <span class="billing-status-badge approved">Approved</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Entry 3 -->
-                    <div class="billing-card-item">
-                        <div class="billing-date-column">
-                            Jan 13, 2025
-                        </div>
-                        <div class="billing-type-column">
-                            <span style="color: #1e293b;">Time Entry</span>
-                        </div>
-                        <div class="billing-client-column">
-                            <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Johnson Family</span>
-                        </div>
-                        <div class="billing-matter-column">
-                            <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Family Reunion</span>
-                        </div>
-                        <div class="billing-attorney-column">
-                            <div class="billing-user-avatar">AM</div>
-                            <span class="billing-user-name">Amanda Miller</span>
-                        </div>
-                        <div class="billing-description-column-overview">
-                            <button class="billing-description-btn-overview" title="Catering menu finalization" onclick="event.stopPropagation();">
-                                <i class="fa-solid fa-align-left" style="transform: scaleY(-1);"></i>
-                            </button>
-                        </div>
-                        <div class="billing-amount-column">
-                            $700
-                        </div>
-                        <div class="billing-status-column">
-                            <span class="billing-status-badge billed">Billed</span>
-                        </div>
+                    <div class="text-center py-5 text-muted" style="border: 1px dashed #e5e7eb; border-radius: 12px; background: #fff;">
+                        <i class="fas fa-inbox mb-2" style="font-size: 1.5rem;"></i>
+                        <div style="font-weight: 600;">No recent activity</div>
+                        <div style="font-size: 0.875rem;">Time entries, expenses, invoices, and retainers will appear here.</div>
                     </div>
                 </div>
             </div>
@@ -255,22 +153,22 @@
                         <h5 class="card-title fw-bold mb-4 text-center" style="color: #1e293b;">Payment Collection Rate</h5>
                         
                         <div class="text-center mb-4">
-                            <div class="display-4 fw-bold mb-2" style="color: #3d1019; font-size: 3rem;">87.3%</div>
+                            <div class="display-4 fw-bold mb-2" style="color: #3d1019; font-size: 3rem;">@Model.CollectionRate.ToString("0.0")%</div>
                             <p class="text-muted mb-0" style="font-size: 0.875rem;">Of billed invoices paid</p>
                         </div>
                         
                         <div class="d-flex flex-column gap-3 mt-4">
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="text-muted" style="font-size: 0.875rem;">Total Billed</span>
-                                <span class="fw-semibold" style="color: #1e293b; font-size: 0.875rem;">$285,400</span>
+                                <span class="fw-semibold" style="color: #1e293b; font-size: 0.875rem;">@Model.TotalBilled.ToString("C0")</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="text-muted" style="font-size: 0.875rem;">Total Collected</span>
-                                <span class="fw-semibold" style="color: #1e293b; font-size: 0.875rem;">$249,200</span>
+                                <span class="fw-semibold" style="color: #1e293b; font-size: 0.875rem;">@Model.TotalCollected.ToString("C0")</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="text-muted" style="font-size: 0.875rem;">Outstanding</span>
-                                <span class="fw-semibold" style="color: #dc2626; font-size: 0.875rem;">$36,200</span>
+                                <span class="fw-semibold" style="color: #dc2626; font-size: 0.875rem;">@Model.Outstanding.ToString("C0")</span>
                             </div>
                         </div>
                     </div>

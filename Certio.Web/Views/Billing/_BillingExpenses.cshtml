@@ -1,3 +1,6 @@
+@model IEnumerable<Certio.Domain.Billing.Expense>
+@using System.Text.RegularExpressions
+
 <!-- Expenses View -->
 <div class="view-container" id="billingExpensesView">
     <div class="inbox-container">
@@ -75,211 +78,81 @@
 
         <!-- Expense Cards -->
         <div class="billing-cards-container" id="billingCardsContainer">
-            <!-- Sample Expense Rows -->
-            
-            <!-- Entry 1 - Venue Deposit -->
-            <div class="billing-card-item">
-                <!-- Date -->
-                <div class="billing-date-column">
-                    Jan 15, 2025
-                </div>
-                
-                <!-- Client -->
-                <div class="billing-client-column">
-                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Sarah & Michael</span>
-                </div>
-                
-                <!-- Matter -->
-                <div class="billing-matter-column">
-                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Wedding Reception</span>
-                </div>
-                
-                <!-- Assignee -->
-                <div class="billing-attorney-column">
-                    <div class="billing-user-avatar">AM</div>
-                    <span class="billing-user-name">Amanda Miller</span>
-                </div>
-                
-                <!-- Description -->
-                <div class="billing-description-column">
-                    <button class="billing-description-btn" title="Venue rental deposit - Grand Ballroom" onclick="event.stopPropagation();">
-                        <i class="fa-solid fa-align-left" style="transform: scaleY(-1);"></i>
-                    </button>
-                </div>
-                
-                <!-- Category -->
-                <div class="billing-category-column">
-                    Venue Rental
-                </div>
-                        
-                <!-- Amount -->
-                <div class="billing-amount-column">
-                    $3,500
-                </div>
-                
-                <!-- Billable -->
-                <div class="billing-billable-column">
-                    <span class="billable-badge billable-yes">Yes</span>
-                </div>
-                        
-                <!-- Status -->
-                <div class="billing-status-column">
-                    <span class="billing-status-badge billed">Billed</span>
-                </div>
-                        
-                <!-- Actions -->
-                <div class="billing-actions-column">
-                    <button class="billing-action-btn edit-btn" onclick="event.stopPropagation(); alert('Edit functionality');">Edit</button>
-                </div>
-                        </div>
-                        
-            <!-- Entry 2 - Catering -->
-            <div class="billing-card-item">
-                <div class="billing-date-column">
-                    Jan 15, 2025
-                </div>
-                <div class="billing-client-column">
-                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">TechCorp Inc</span>
-                </div>
-                <div class="billing-matter-column">
-                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Annual Gala</span>
-                </div>
-                <div class="billing-attorney-column">
-                    <div class="billing-user-avatar">JT</div>
-                    <span class="billing-user-name">Jessica Taylor</span>
-                </div>
-                <div class="billing-description-column">
-                    <button class="billing-description-btn" title="Catering deposit - 150 guests" onclick="event.stopPropagation();">
-                        <i class="fa-solid fa-align-left" style="transform: scaleY(-1);"></i>
-                    </button>
-                </div>
-                <div class="billing-category-column">
-                    Catering
-                </div>
-                <div class="billing-amount-column">
-                    $4,500
-                </div>
-                <div class="billing-billable-column">
-                    <span class="billable-badge billable-yes">Yes</span>
-                </div>
-                <div class="billing-status-column">
-                    <span class="billing-status-badge unbilled">Unbilled</span>
-                </div>
-                <div class="billing-actions-column">
-                    <button class="billing-action-btn edit-btn" onclick="event.stopPropagation(); alert('Edit functionality');">Edit</button>
-                </div>
-                        </div>
-                        
-            <!-- Entry 3 - Florals -->
-            <div class="billing-card-item">
-                <div class="billing-date-column">
-                    Jan 14, 2025
-                </div>
-                <div class="billing-client-column">
-                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Sarah & Michael</span>
-                </div>
-                <div class="billing-matter-column">
-                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Wedding Reception</span>
-                </div>
-                <div class="billing-attorney-column">
-                    <div class="billing-user-avatar">AM</div>
-                    <span class="billing-user-name">Amanda Miller</span>
-                </div>
-                <div class="billing-description-column">
-                    <button class="billing-description-btn" title="Floral arrangements - centerpieces and bouquets" onclick="event.stopPropagation();">
-                        <i class="fa-solid fa-align-left" style="transform: scaleY(-1);"></i>
-                    </button>
-                </div>
-                <div class="billing-category-column">
-                    Florals & Decor
-                </div>
-                <div class="billing-amount-column">
-                    $2,200
-                </div>
-                <div class="billing-billable-column">
-                    <span class="billable-badge billable-yes">Yes</span>
-                </div>
-                <div class="billing-status-column">
-                    <span class="billing-status-badge unbilled">Unbilled</span>
-                </div>
-                <div class="billing-actions-column">
-                    <button class="billing-action-btn edit-btn" onclick="event.stopPropagation(); alert('Edit functionality');">Edit</button>
-</div>
-                    </div>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var expense in Model)
+                {
+                    var assigneeName = expense.Assignee != null ? $"{expense.Assignee.FirstName} {expense.Assignee.LastName}" : "Unassigned";
+                    var assigneeInitials = expense.Assignee != null
+                        ? $"{expense.Assignee.FirstName?.FirstOrDefault()}{expense.Assignee.LastName?.FirstOrDefault()}".ToUpperInvariant()
+                        : "--";
+                    var clientName = expense.Client?.Name ?? "—";
+                    var matterTitle = expense.Matter?.Title ?? "—";
+                    var billableText = expense.IsBillable ? "Yes" : "No";
+                    var billableClass = expense.IsBillable ? "billable-yes" : "billable-no";
+                    var statusText = Regex.Replace(expense.Status.ToString(), "([a-z])([A-Z])", "$1 $2");
+                    var statusClass = expense.Status switch
+                    {
+                        Certio.Domain.Billing.ExpenseStatus.Billed => "billed",
+                        Certio.Domain.Billing.ExpenseStatus.Paid => "paid",
+                        Certio.Domain.Billing.ExpenseStatus.Unbilled => "unbilled",
+                        _ => "unbilled"
+                    };
 
-            <!-- Entry 4 - Entertainment -->
-            <div class="billing-card-item">
-                <div class="billing-date-column">
-                    Jan 14, 2025
-                </div>
-                <div class="billing-client-column">
-                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Sweet Sixteen - Emma</span>
-                </div>
-                <div class="billing-matter-column">
-                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Birthday Celebration</span>
-                </div>
-                <div class="billing-attorney-column">
-                    <div class="billing-user-avatar">RC</div>
-                    <span class="billing-user-name">Rachel Chen</span>
-                </div>
-                <div class="billing-description-column">
-                    <button class="billing-description-btn" title="DJ and lighting package" onclick="event.stopPropagation();">
-                        <i class="fa-solid fa-align-left" style="transform: scaleY(-1);"></i>
-                    </button>
-                </div>
-                <div class="billing-category-column">
-                    Entertainment
-                </div>
-                <div class="billing-amount-column">
-                    $1,200
-                </div>
-                <div class="billing-billable-column">
-                    <span class="billable-badge billable-no">No</span>
-                </div>
-                <div class="billing-status-column">
-                    <span class="billing-status-badge unbilled">Unbilled</span>
-                </div>
-                <div class="billing-actions-column">
-                    <button class="billing-action-btn edit-btn" onclick="event.stopPropagation(); alert('Edit functionality');">Edit</button>
-                </div>
+                    <div class="billing-card-item"
+                         data-billing-item="expense"
+                         data-id="@expense.Id"
+                         data-matter-id="@(expense.MatterId ?? 0)"
+                         data-client-id="@(expense.ClientId ?? 0)"
+                         data-assignee-id="@expense.AssigneeId"
+                         data-date="@expense.Date.ToString("yyyy-MM-dd")"
+                         data-category="@((expense.Category ?? string.Empty).Replace("\"", "&quot;"))"
+                         data-amount="@expense.Amount"
+                         data-description="@((expense.Description ?? string.Empty).Replace("\"", "&quot;"))"
+                         data-is-billable="@(expense.IsBillable ? "true" : "false")"
+                         data-status="@((int)expense.Status)">
+                        <div class="billing-date-column">@expense.Date.ToString("MMM dd, yyyy")</div>
+                        <div class="billing-client-column"><span style="color: #1e293b;">@clientName</span></div>
+                        <div class="billing-matter-column"><span style="color: #1e293b;">@matterTitle</span></div>
+                        <div class="billing-attorney-column">
+                            <div class="billing-user-avatar">@assigneeInitials</div>
+                            <span class="billing-user-name">@assigneeName</span>
+                        </div>
+                        <div class="billing-description-column">
+                            <button class="billing-description-btn" title="@expense.Description" onclick="event.stopPropagation();">
+                                <i class="fa-solid fa-align-left" style="transform: scaleY(-1);"></i>
+                            </button>
+                        </div>
+                        <div class="billing-category-column">@expense.Category</div>
+                        <div class="billing-amount-column">@expense.Amount.ToString("C0")</div>
+                        <div class="billing-billable-column">
+                            <span class="billable-badge @billableClass">@billableText</span>
+                        </div>
+                        <div class="billing-status-column">
+                            <span class="billing-status-badge @statusClass">@statusText</span>
+                        </div>
+                        <div class="billing-actions-column">
+                            @if (expense.Status == Certio.Domain.Billing.ExpenseStatus.Unbilled)
+                            {
+                                <button class="billing-action-btn approve-btn" type="button" title="Approve" onclick="event.stopPropagation();">
+                                    Approve
+                                </button>
+                            }
+                            <button class="billing-action-btn edit-btn" type="button" title="Edit" onclick="event.stopPropagation();">
+                                Edit
+                            </button>
+                        </div>
                     </div>
-                    
-            <!-- Entry 5 - Photography -->
-            <div class="billing-card-item">
-                <div class="billing-date-column">
-                    Jan 13, 2025
+                }
+            }
+            else
+            {
+                <div class="text-center py-5 text-muted" style="border: 1px dashed #e5e7eb; border-radius: 12px; background: #fff;">
+                    <i class="fas fa-receipt mb-2" style="font-size: 1.5rem;"></i>
+                    <div style="font-weight: 600;">No expenses</div>
+                    <div style="font-size: 0.875rem;">Create an expense to see it listed here.</div>
                 </div>
-                <div class="billing-client-column">
-                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Johnson Family</span>
-                </div>
-                <div class="billing-matter-column">
-                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Family Reunion</span>
-                </div>
-                <div class="billing-attorney-column">
-                    <div class="billing-user-avatar">AM</div>
-                    <span class="billing-user-name">Amanda Miller</span>
-                </div>
-                <div class="billing-description-column">
-                    <button class="billing-description-btn" title="Photography package - 4 hours coverage" onclick="event.stopPropagation();">
-                        <i class="fa-solid fa-align-left" style="transform: scaleY(-1);"></i>
-                    </button>
-                </div>
-                <div class="billing-category-column">
-                    Photography
-                </div>
-                <div class="billing-amount-column">
-                    $1,800
-                </div>
-                <div class="billing-billable-column">
-                    <span class="billable-badge billable-yes">Yes</span>
-                </div>
-                <div class="billing-status-column">
-                    <span class="billing-status-badge billed">Billed</span>
-                </div>
-                <div class="billing-actions-column">
-                    <button class="billing-action-btn edit-btn" onclick="event.stopPropagation(); alert('Edit functionality');">Edit</button>
-                </div>
-            </div>
+            }
         </div>
     </div>
 </div>
@@ -539,6 +412,11 @@
     .billing-status-badge.billed {
         background: #e3f2fd;
         color: #1565c0;
+    }
+
+    .billing-status-badge.paid {
+        background: #f1f8e9;
+        color: #558b2f;
     }
 
     .billing-status-badge.unbilled {

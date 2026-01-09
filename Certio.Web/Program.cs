@@ -681,6 +681,9 @@ builder.Services.AddScoped<Certio.Application.Interfaces.IOrganizationRelationsh
 builder.Services.AddScoped<Certio.Application.Interfaces.IAgentActionService, Certio.Application.Services.AgentActionService>();
 builder.Services.AddScoped<Certio.Application.Interfaces.IUnifiedInboxService, Certio.Application.Services.UnifiedInboxService>();
 
+// BILLING SERVICES
+builder.Services.AddScoped<Certio.Application.Interfaces.IBillingService, Certio.Application.Services.BillingService>();
+
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(options =>
     {

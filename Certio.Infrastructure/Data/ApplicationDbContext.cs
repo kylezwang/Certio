@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -19,6 +19,7 @@ using Certio.Domain.Calendar;
 using Certio.Domain.AgentActions;
 using Certio.Domain.UnifiedInbox;
 using Certio.Domain.ChangeControl;
+using Certio.Domain.Billing;
 
 namespace Certio.Infrastructure.Data
 {
@@ -124,6 +125,14 @@ namespace Certio.Infrastructure.Data
         public DbSet<InboxItem> InboxItems => Set<InboxItem>();
         public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
 
+        // Billing Entities
+        public DbSet<TimeEntry> TimeEntries => Set<TimeEntry>();
+        public DbSet<Expense> Expenses => Set<Expense>();
+        public DbSet<Invoice> Invoices => Set<Invoice>();
+        public DbSet<InvoiceLineItem> InvoiceLineItems => Set<InvoiceLineItem>();
+        public DbSet<Retainer> Retainers => Set<Retainer>();
+        public DbSet<RetainerTransaction> RetainerTransactions => Set<RetainerTransaction>();
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -168,6 +177,239 @@ namespace Certio.Infrastructure.Data
             ConfigureAgentActionRelationships(builder);
             ConfigureUnifiedInboxRelationships(builder);
             ConfigureChangeControlRelationships(builder);
+            ConfigureBillingRelationships(builder);
+        }
+
+        private void ConfigureBillingRelationships(ModelBuilder builder)
+        {
+            // TimeEntry indexes and relationships
+            builder.Entity<TimeEntry>()
+                .HasIndex(te => new { te.OrganizationId, te.Date, te.IsDeleted });
+            
+            builder.Entity<TimeEntry>()
+                .HasIndex(te => new { te.MatterId, te.Status });
+            
+            builder.Entity<TimeEntry>()
+                .HasOne(te => te.Organization)
+                .WithMany()
+                .HasForeignKey(te => te.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            builder.Entity<TimeEntry>()
+                .HasOne(te => te.Matter)
+                .WithMany()
+                .HasForeignKey(te => te.MatterId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            builder.Entity<TimeEntry>()
+                .HasOne(te => te.Client)
+                .WithMany()
+                .HasForeignKey(te => te.ClientId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            builder.Entity<TimeEntry>()
+                .HasOne(te => te.Assignee)
+                .WithMany()
+                .HasForeignKey(te => te.AssigneeId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            builder.Entity<TimeEntry>()
+                .HasOne(te => te.CreatedBy)
+                .WithMany()
+                .HasForeignKey(te => te.CreatedById)
+                .OnDelete(DeleteBehavior.NoAction);
+            
+            builder.Entity<TimeEntry>()
+                .HasOne(te => te.ModifiedBy)
+                .WithMany()
+                .HasForeignKey(te => te.ModifiedById)
+                .OnDelete(DeleteBehavior.NoAction);
+            
+            builder.Entity<TimeEntry>()
+                .HasOne(te => te.DeletedBy)
+                .WithMany()
+                .HasForeignKey(te => te.DeletedById)
+                .OnDelete(DeleteBehavior.NoAction);
+            
+            // Expense indexes and relationships
+            builder.Entity<Expense>()
+                .HasIndex(e => new { e.OrganizationId, e.Date, e.IsDeleted });
+            
+            builder.Entity<Expense>()
+                .HasIndex(e => new { e.MatterId, e.Status });
+            
+            builder.Entity<Expense>()
+                .HasOne(e => e.Organization)
+                .WithMany()
+                .HasForeignKey(e => e.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            builder.Entity<Expense>()
+                .HasOne(e => e.Matter)
+                .WithMany()
+                .HasForeignKey(e => e.MatterId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            builder.Entity<Expense>()
+                .HasOne(e => e.Client)
+                .WithMany()
+                .HasForeignKey(e => e.ClientId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            builder.Entity<Expense>()
+                .HasOne(e => e.Assignee)
+                .WithMany()
+                .HasForeignKey(e => e.AssigneeId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            builder.Entity<Expense>()
+                .HasOne(e => e.CreatedBy)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedById)
+                .OnDelete(DeleteBehavior.NoAction);
+            
+            builder.Entity<Expense>()
+                .HasOne(e => e.ModifiedBy)
+                .WithMany()
+                .HasForeignKey(e => e.ModifiedById)
+                .OnDelete(DeleteBehavior.NoAction);
+            
+            builder.Entity<Expense>()
+                .HasOne(e => e.DeletedBy)
+                .WithMany()
+                .HasForeignKey(e => e.DeletedById)
+                .OnDelete(DeleteBehavior.NoAction);
+            
+            // Invoice indexes and relationships
+            builder.Entity<Invoice>()
+                .HasIndex(i => new { i.OrganizationId, i.InvoiceDate, i.IsDeleted });
+            
+            builder.Entity<Invoice>()
+                .HasIndex(i => new { i.MatterId, i.Status });
+            
+            builder.Entity<Invoice>()
+                .HasIndex(i => i.InvoiceNumber)
+                .IsUnique();
+            
+            builder.Entity<Invoice>()
+                .HasOne(i => i.Organization)
+                .WithMany()
+                .HasForeignKey(i => i.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            builder.Entity<Invoice>()
+                .HasOne(i => i.Matter)
+                .WithMany()
+                .HasForeignKey(i => i.MatterId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            builder.Entity<Invoice>()
+                .HasOne(i => i.Client)
+                .WithMany()
+                .HasForeignKey(i => i.ClientId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            builder.Entity<Invoice>()
+                .HasOne(i => i.CreatedBy)
+                .WithMany()
+                .HasForeignKey(i => i.CreatedById)
+                .OnDelete(DeleteBehavior.NoAction);
+            
+            builder.Entity<Invoice>()
+                .HasOne(i => i.ModifiedBy)
+                .WithMany()
+                .HasForeignKey(i => i.ModifiedById)
+                .OnDelete(DeleteBehavior.NoAction);
+            
+            builder.Entity<Invoice>()
+                .HasOne(i => i.DeletedBy)
+                .WithMany()
+                .HasForeignKey(i => i.DeletedById)
+                .OnDelete(DeleteBehavior.NoAction);
+            
+            // InvoiceLineItem relationships
+            builder.Entity<InvoiceLineItem>()
+                .HasOne(li => li.Invoice)
+                .WithMany(i => i.LineItems)
+                .HasForeignKey(li => li.InvoiceId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            builder.Entity<InvoiceLineItem>()
+                .HasOne(li => li.TimeEntry)
+                .WithMany()
+                .HasForeignKey(li => li.TimeEntryId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            builder.Entity<InvoiceLineItem>()
+                .HasOne(li => li.Expense)
+                .WithMany()
+                .HasForeignKey(li => li.ExpenseId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            // Retainer indexes and relationships
+            builder.Entity<Retainer>()
+                .HasIndex(r => new { r.OrganizationId, r.Status, r.IsDeleted });
+            
+            builder.Entity<Retainer>()
+                .HasIndex(r => r.MatterId);
+            
+            builder.Entity<Retainer>()
+                .HasOne(r => r.Organization)
+                .WithMany()
+                .HasForeignKey(r => r.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            builder.Entity<Retainer>()
+                .HasOne(r => r.Matter)
+                .WithMany()
+                .HasForeignKey(r => r.MatterId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            builder.Entity<Retainer>()
+                .HasOne(r => r.Client)
+                .WithMany()
+                .HasForeignKey(r => r.ClientId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            builder.Entity<Retainer>()
+                .HasOne(r => r.CreatedBy)
+                .WithMany()
+                .HasForeignKey(r => r.CreatedById)
+                .OnDelete(DeleteBehavior.NoAction);
+            
+            builder.Entity<Retainer>()
+                .HasOne(r => r.ModifiedBy)
+                .WithMany()
+                .HasForeignKey(r => r.ModifiedById)
+                .OnDelete(DeleteBehavior.NoAction);
+            
+            builder.Entity<Retainer>()
+                .HasOne(r => r.DeletedBy)
+                .WithMany()
+                .HasForeignKey(r => r.DeletedById)
+                .OnDelete(DeleteBehavior.NoAction);
+            
+            // RetainerTransaction relationships
+            builder.Entity<RetainerTransaction>()
+                .HasIndex(rt => new { rt.RetainerId, rt.Date });
+            
+            builder.Entity<RetainerTransaction>()
+                .HasOne(rt => rt.Retainer)
+                .WithMany(r => r.Transactions)
+                .HasForeignKey(rt => rt.RetainerId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            builder.Entity<RetainerTransaction>()
+                .HasOne(rt => rt.Invoice)
+                .WithMany()
+                .HasForeignKey(rt => rt.InvoiceId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            builder.Entity<RetainerTransaction>()
+                .HasOne(rt => rt.CreatedBy)
+                .WithMany()
+                .HasForeignKey(rt => rt.CreatedById)
+                .OnDelete(DeleteBehavior.NoAction);
         }
 
         private void ConfigureChangeControlRelationships(ModelBuilder builder)
