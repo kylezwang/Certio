@@ -22,10 +22,45 @@
                     <span class="mx-2">to</span>
                     <input type="date" id="historyEndDate" class="form-control form-control-sm" placeholder="End Date">
                 </div>
-                <button class="btn btn-sm create-btn qa-card" id="exportHistoryBtn">
-                    <i class="fas fa-download me-2"></i>
-                    <span>Export</span>
-                </button>
+                <div class="d-flex align-items-center gap-2">
+                    <!-- Verbose Logging Dropdown -->
+                    <div class="verbose-dropdown-container" id="verboseDropdownContainer">
+                        <button class="btn btn-sm create-btn qa-card verbose-toggle-btn" id="verboseLoggingBtn">
+                            <i class="fas fa-list-alt me-1"></i>
+                            <span>Verbose</span>
+                            <span class="verbose-status-badge" id="verboseStatusBadge">OFF</span>
+                            <i class="fas fa-chevron-down ms-1" style="font-size: 0.65rem;"></i>
+                        </button>
+                        <div class="verbose-dropdown" id="verboseDropdown">
+                            <div class="verbose-dropdown-header">
+                                <i class="fas fa-cog me-2"></i>
+                                <span>Audit Logging Level</span>
+                            </div>
+                            <div class="verbose-dropdown-option" data-value="false" id="verboseOptionOff">
+                                <div class="verbose-option-content">
+                                    <div class="verbose-option-title">
+                                        <i class="fas fa-check-circle option-check"></i>
+                                        Standard
+                                    </div>
+                                    <div class="verbose-option-desc">Log only important actions (Create, Update, Delete)</div>
+                                </div>
+                            </div>
+                            <div class="verbose-dropdown-option" data-value="true" id="verboseOptionOn">
+                                <div class="verbose-option-content">
+                                    <div class="verbose-option-title">
+                                        <i class="fas fa-check-circle option-check"></i>
+                                        Verbose
+                                    </div>
+                                    <div class="verbose-option-desc">Log all actions including page views and API calls</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-sm create-btn qa-card" id="exportHistoryBtn">
+                        <i class="fas fa-download me-1"></i>
+                        <span>Export</span>
+                    </button>
+                </div>
             </div>
         </div>
         
@@ -348,12 +383,128 @@
         transition: transform 0.2s ease, background-color 0.2s ease;
         display: flex;
         align-items: center;
+        height: 38px; /* Fixed height to ensure alignment */
     }
 
     .create-btn:hover {
         background-color: #eef1f3;
         transform: translateY(-2px);
         box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2) !important;
+    }
+    
+    /* Verbose Dropdown Styles */
+    .verbose-dropdown-container {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .verbose-toggle-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .verbose-status-badge {
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 0.15rem 0.4rem;
+        border-radius: 4px;
+        margin-left: 0.25rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .verbose-status-badge.status-off {
+        background-color: #e5e7eb;
+        color: #6b7280;
+    }
+    
+    .verbose-status-badge.status-on {
+        background-color: #3d1019;
+        color: #fff;
+    }
+    
+    .verbose-dropdown {
+        position: absolute;
+        top: calc(100% + 0.5rem);
+        right: 0;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        min-width: 280px;
+        z-index: 1000;
+        display: none;
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    
+    .verbose-dropdown.show {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    .verbose-dropdown-header {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #e5e7eb;
+        font-weight: 600;
+        color: #374151;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .verbose-dropdown-option {
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .verbose-dropdown-option:last-child {
+        border-bottom: none;
+        border-radius: 0 0 8px 8px;
+    }
+    
+    .verbose-dropdown-option:hover {
+        background-color: #f9fafb;
+    }
+    
+    .verbose-dropdown-option.selected {
+        background-color: rgba(61, 16, 25, 0.05);
+    }
+    
+    .verbose-option-content {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .verbose-option-title {
+        font-weight: 600;
+        color: #1f2937;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .verbose-option-title .option-check {
+        color: #3d1019;
+        font-size: 0.75rem;
+        opacity: 0;
+        transition: opacity 0.15s ease;
+    }
+    
+    .verbose-dropdown-option.selected .option-check {
+        opacity: 1;
+    }
+    
+    .verbose-option-desc {
+        font-size: 0.75rem;
+        color: #6b7280;
+        padding-left: 1.25rem;
     }
 
     /* History Card Columns Layout - Match Tasks/Index styling exactly */
@@ -586,13 +737,19 @@
         
         // Pagination state
         let currentSkip = 0;
-        const pageSize = 100;
+        const pageSize = 25; // Reduced from 100 for faster initial load
         let hasMore = true;
         let isLoading = false;
         let isInitialLoad = true;
+        
+        // Verbose logging state (stored in localStorage)
+        let verboseLogging = localStorage.getItem('historyVerboseLogging') === 'true';
 
         // Initialize history page on load
         document.addEventListener('DOMContentLoaded', async function() {
+            // Sync verbose preference with server cookie on page load
+            await updateVerbosePreference(verboseLogging);
+            
             await loadUsers();
             await fetchAndRenderHistory(true);
             initializeEventHandlers();
@@ -737,6 +894,7 @@
                 if (endDate) params.append('end', endDate);
                 params.append('skip', currentSkip.toString());
                 params.append('take', pageSize.toString());
+                params.append('verbose', verboseLogging.toString());
                 
                 const response = await fetch(
                     `/Client/${orgId}/History/Activities?${params.toString()}`,
@@ -1192,6 +1350,48 @@
                 });
             }
             
+            // Verbose logging dropdown
+            const verboseBtn = document.getElementById('verboseLoggingBtn');
+            const verboseDropdown = document.getElementById('verboseDropdown');
+            const verboseContainer = document.getElementById('verboseDropdownContainer');
+            
+            if (verboseBtn && verboseDropdown) {
+                // Set initial state
+                updateVerboseButtonState();
+                
+                // Toggle dropdown
+                verboseBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    verboseDropdown.classList.toggle('show');
+                });
+                
+                // Handle option selection
+                document.querySelectorAll('.verbose-dropdown-option').forEach(option => {
+                    option.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const newValue = this.dataset.value === 'true';
+                        if (newValue !== verboseLogging) {
+                            verboseLogging = newValue;
+                            localStorage.setItem('historyVerboseLogging', verboseLogging.toString());
+                            updateVerboseButtonState();
+                            // Reload history with new setting
+                            fetchAndRenderHistory(true);
+                            
+                            // Also update server-side preference via API
+                            updateVerbosePreference(verboseLogging);
+                        }
+                        verboseDropdown.classList.remove('show');
+                    });
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (verboseContainer && !verboseContainer.contains(e.target)) {
+                        verboseDropdown.classList.remove('show');
+                    }
+                });
+            }
+            
             // Export button
             const exportBtn = document.getElementById('exportHistoryBtn');
             if (exportBtn) {
@@ -1216,6 +1416,52 @@
                 // Reset and reload with filters
                 fetchAndRenderHistory(true);
             });
+        }
+
+        // Update verbose button visual state
+        function updateVerboseButtonState() {
+            const statusBadge = document.getElementById('verboseStatusBadge');
+            const optionOff = document.getElementById('verboseOptionOff');
+            const optionOn = document.getElementById('verboseOptionOn');
+            
+            if (statusBadge) {
+                if (verboseLogging) {
+                    statusBadge.textContent = 'ON';
+                    statusBadge.classList.remove('status-off');
+                    statusBadge.classList.add('status-on');
+                } else {
+                    statusBadge.textContent = 'OFF';
+                    statusBadge.classList.remove('status-on');
+                    statusBadge.classList.add('status-off');
+                }
+            }
+            
+            // Update selected state in dropdown
+            if (optionOff && optionOn) {
+                if (verboseLogging) {
+                    optionOff.classList.remove('selected');
+                    optionOn.classList.add('selected');
+                } else {
+                    optionOff.classList.add('selected');
+                    optionOn.classList.remove('selected');
+                }
+            }
+        }
+        
+        // Update server-side verbose preference
+        async function updateVerbosePreference(enabled) {
+            try {
+                await fetch(`/Client/${orgId}/History/SetVerboseLogging`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ enabled })
+                });
+            } catch (error) {
+                console.error('Error updating verbose preference:', error);
+            }
         }
 
         // Export history to CSV
