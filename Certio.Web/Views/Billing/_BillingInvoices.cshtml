@@ -1,3 +1,6 @@
+@model IEnumerable<Certio.Domain.Billing.Invoice>
+@using System.Text.RegularExpressions
+
 <!-- Invoices View -->
 <div class="view-container" id="billingInvoicesView">
     <div class="inbox-container">
@@ -59,158 +62,91 @@
             
             <!-- Actions Column -->
             <div class="billing-actions-column">
-                <button class="column-header-btn" style="text-align: center;"></button>
+                <button class="column-header-btn" style="text-align: center;">Actions</button>
             </div>
         </div>
 
         <!-- Invoice Cards -->
         <div class="billing-cards-container" id="billingCardsContainer">
-            <!-- Sample Invoice Rows -->
-            
-            <!-- Entry 1 - Pending -->
-            <div class="billing-card-item">
-                <!-- Invoice # -->
-                <div class="billing-invoice-number-column">
-                    <span style="font-weight: 500; color: #1e293b;">INV-2025-001</span>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var invoice in Model)
+                {
+                    var clientName = invoice.Client?.Name ?? "—";
+                    var matterTitle = invoice.Matter?.Title ?? "—";
+                    var isOverdue = invoice.Status != Certio.Domain.Billing.InvoiceStatus.Paid &&
+                                    invoice.Status != Certio.Domain.Billing.InvoiceStatus.Cancelled &&
+                                    invoice.DueDate < DateTime.UtcNow.Date;
+
+                    var rawStatusText = isOverdue ? "Overdue" : invoice.Status.ToString();
+                    var statusText = Regex.Replace(rawStatusText, "([a-z])([A-Z])", "$1 $2");
+                    var statusClass = isOverdue ? "overdue" : invoice.Status switch
+                    {
+                        Certio.Domain.Billing.InvoiceStatus.Draft => "draft",
+                        Certio.Domain.Billing.InvoiceStatus.Pending => "pending",
+                        Certio.Domain.Billing.InvoiceStatus.PartiallyPaid => "pending",
+                        Certio.Domain.Billing.InvoiceStatus.Paid => "paid",
+                        Certio.Domain.Billing.InvoiceStatus.Cancelled => "cancelled",
+                        _ => "pending"
+                    };
+
+                    <div class="billing-card-item"
+                         data-billing-item="invoice"
+                         data-id="@invoice.Id"
+                         data-matter-id="@(invoice.MatterId ?? 0)"
+                         data-client-id="@(invoice.ClientId ?? 0)"
+                         data-invoice-date="@invoice.InvoiceDate.ToString("yyyy-MM-dd")"
+                         data-due-date="@invoice.DueDate.ToString("yyyy-MM-dd")"
+                         data-tax-amount="@invoice.TaxAmount"
+                         data-notes="@((invoice.Notes ?? string.Empty).Replace("\"", "&quot;"))"
+                         data-terms="@((invoice.Terms ?? string.Empty).Replace("\"", "&quot;"))"
+                         data-status="@((int)invoice.Status)">
+                        <div class="billing-invoice-number-column">
+                            <span style="font-weight: 500; color: #1e293b;">@invoice.InvoiceNumber</span>
+                        </div>
+                        <div class="billing-client-column">
+                            <span style="color: #1e293b;">@clientName</span>
+                        </div>
+                        <div class="billing-event-column">
+                            <span style="color: #1e293b;">@matterTitle</span>
+                        </div>
+                        <div class="billing-date-column">
+                            <span style="color: #64748b; font-size: 0.85rem;">@invoice.InvoiceDate.ToString("MMM dd, yyyy")</span>
+                        </div>
+                        <div class="billing-due-date-column">
+                            <span style="color: #64748b; font-size: 0.85rem;">@invoice.DueDate.ToString("MMM dd, yyyy")</span>
+                        </div>
+                        <div class="billing-amount-column">
+                            <span style="color: #1e293b; font-weight: 500;">@invoice.TotalAmount.ToString("C0")</span>
+                        </div>
+                        <div class="billing-status-column">
+                            <span class="billing-status-badge @statusClass">@statusText</span>
+                        </div>
+                        <div class="billing-actions-column">
+                            <button class="billing-action-btn view-btn" type="button" title="View" onclick="event.stopPropagation();">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            @if (invoice.Status != Certio.Domain.Billing.InvoiceStatus.Paid && invoice.Status != Certio.Domain.Billing.InvoiceStatus.Cancelled)
+                            {
+                                <button class="billing-action-btn payment-btn" type="button" title="Record Payment" onclick="event.stopPropagation();">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </button>
+                            }
+                            <button class="billing-action-btn download-btn" type="button" title="Download" onclick="event.stopPropagation();">
+                                <i class="fas fa-download"></i>
+                            </button>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="text-center py-5 text-muted" style="border: 1px dashed #e5e7eb; border-radius: 12px; background: #fff;">
+                    <i class="fas fa-file-invoice mb-2" style="font-size: 1.5rem;"></i>
+                    <div style="font-weight: 600;">No invoices</div>
+                    <div style="font-size: 0.875rem;">Create an invoice to see it listed here.</div>
                 </div>
-                
-                <!-- Client -->
-                <div class="billing-client-column">
-                    <span style="color: #1e293b;">Sarah & Michael</span>
-                </div>
-                
-                <!-- Event -->
-                <div class="billing-event-column">
-                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Wedding Reception</span>
-                </div>
-                
-                <!-- Date -->
-                <div class="billing-date-column">
-                    <span style="color: #64748b; font-size: 0.85rem;">Jan 10, 2025</span>
-                </div>
-                
-                <!-- Due Date -->
-                <div class="billing-due-date-column">
-                    <span style="color: #64748b; font-size: 0.85rem;">Feb 10, 2025</span>
-                </div>
-                
-                <!-- Amount -->
-                <div class="billing-amount-column">
-                    <span style="color: #1e293b; font-weight: 500;">$12,500</span>
-                </div>
-                
-                <!-- Status -->
-                <div class="billing-status-column">
-                    <span class="billing-status-badge pending">Pending</span>
-                </div>
-                
-                <!-- Actions -->
-                <div class="billing-actions-column">
-                    <button class="billing-action-btn view-btn" onclick="event.stopPropagation(); alert('View invoice');">View</button>
-                    <button class="billing-action-btn payment-btn" onclick="event.stopPropagation(); alert('Payment functionality');">
-                        <i class="fas fa-credit-card" style="font-size: 0.7rem; margin-right: 0.25rem;"></i>Payment
-                    </button>
-                    <button class="billing-action-btn download-btn" onclick="event.stopPropagation(); alert('Download invoice');" title="Download">
-                        <i class="fas fa-download"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Entry 2 - Paid -->
-            <div class="billing-card-item">
-                <div class="billing-invoice-number-column">
-                    <span style="font-weight: 500; color: #1e293b;">INV-2024-187</span>
-                </div>
-                <div class="billing-client-column">
-                    <span style="color: #1e293b;">TechCorp Inc</span>
-                </div>
-                <div class="billing-event-column">
-                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Annual Gala</span>
-                </div>
-                <div class="billing-date-column">
-                    <span style="color: #64748b; font-size: 0.85rem;">Dec 20, 2024</span>
-                </div>
-                <div class="billing-due-date-column">
-                    <span style="color: #64748b; font-size: 0.85rem;">Jan 20, 2025</span>
-                </div>
-                <div class="billing-amount-column">
-                    <span style="color: #1e293b; font-weight: 500;">$18,750</span>
-                </div>
-                <div class="billing-status-column">
-                    <span class="billing-status-badge paid">Paid</span>
-                </div>
-                <div class="billing-actions-column">
-                    <button class="billing-action-btn view-btn" onclick="event.stopPropagation(); alert('View invoice');">View</button>
-                    <button class="billing-action-btn download-btn" onclick="event.stopPropagation(); alert('Download invoice');" title="Download">
-                        <i class="fas fa-download"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Entry 3 - Overdue -->
-            <div class="billing-card-item">
-                <div class="billing-invoice-number-column">
-                    <span style="font-weight: 500; color: #1e293b;">INV-2024-186</span>
-                </div>
-                <div class="billing-client-column">
-                    <span style="color: #1e293b;">Johnson Family</span>
-                </div>
-                <div class="billing-event-column">
-                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Family Reunion</span>
-                </div>
-                <div class="billing-date-column">
-                    <span style="color: #64748b; font-size: 0.85rem;">Dec 15, 2024</span>
-                </div>
-                <div class="billing-due-date-column">
-                    <span style="color: #64748b; font-size: 0.85rem;">Jan 15, 2025</span>
-                </div>
-                <div class="billing-amount-column">
-                    <span style="color: #1e293b; font-weight: 500;">$5,200</span>
-                </div>
-                <div class="billing-status-column">
-                    <span class="billing-status-badge overdue">Overdue</span>
-                </div>
-                <div class="billing-actions-column">
-                    <button class="billing-action-btn view-btn" onclick="event.stopPropagation(); alert('View invoice');">View</button>
-                    <button class="billing-action-btn payment-btn" onclick="event.stopPropagation(); alert('Payment functionality');">
-                        <i class="fas fa-credit-card" style="font-size: 0.7rem; margin-right: 0.25rem;"></i>Payment
-                    </button>
-                    <button class="billing-action-btn download-btn" onclick="event.stopPropagation(); alert('Download invoice');" title="Download">
-                        <i class="fas fa-download"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Entry 4 - Paid -->
-            <div class="billing-card-item">
-                <div class="billing-invoice-number-column">
-                    <span style="font-weight: 500; color: #1e293b;">INV-2024-185</span>
-                </div>
-                <div class="billing-client-column">
-                    <span style="color: #1e293b;">ABC Corp</span>
-                </div>
-                <div class="billing-event-column">
-                    <span style="color: #0066cc; font-weight: 500; cursor: pointer;">Holiday Party</span>
-                </div>
-                <div class="billing-date-column">
-                    <span style="color: #64748b; font-size: 0.85rem;">Dec 10, 2024</span>
-                </div>
-                <div class="billing-due-date-column">
-                    <span style="color: #64748b; font-size: 0.85rem;">Jan 10, 2025</span>
-                </div>
-                <div class="billing-amount-column">
-                    <span style="color: #1e293b; font-weight: 500;">$8,400</span>
-                </div>
-                <div class="billing-status-column">
-                    <span class="billing-status-badge paid">Paid</span>
-                </div>
-                <div class="billing-actions-column">
-                    <button class="billing-action-btn view-btn" onclick="event.stopPropagation(); alert('View invoice');">View</button>
-                    <button class="billing-action-btn download-btn" onclick="event.stopPropagation(); alert('Download invoice');" title="Download">
-                        <i class="fas fa-download"></i>
-                    </button>
-                </div>
-            </div>
+            }
         </div>
     </div>
 </div>
