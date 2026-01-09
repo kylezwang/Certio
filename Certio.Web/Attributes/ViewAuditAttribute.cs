@@ -28,6 +28,16 @@ namespace Certio.Web.Attributes
             // Execute the action first
             var executedContext = await next();
 
+            // Check verbose logging preference - skip View audit logs if verbose is OFF
+            var verboseLoggingCookie = context.HttpContext.Request.Cookies["VerboseLogging"];
+            var isVerboseEnabled = string.Equals(verboseLoggingCookie, "true", StringComparison.OrdinalIgnoreCase);
+            
+            if (!isVerboseEnabled)
+            {
+                // Verbose is OFF - don't log View actions
+                return;
+            }
+
             // Only log if the action was successful
             if (executedContext.Result is Microsoft.AspNetCore.Mvc.ViewResult ||
                 executedContext.Result is Microsoft.AspNetCore.Mvc.JsonResult ||
