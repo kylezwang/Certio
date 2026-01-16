@@ -325,9 +325,19 @@ public class EmailSendingService : IEmailSendingService
                 return false;
             }
 
+            // Apply display name: fromNameOverride takes precedence, then FromName config, otherwise keep existing
             if (!string.IsNullOrWhiteSpace(fromNameOverride))
             {
                 fromAddress = new MailboxAddress(fromNameOverride.Trim(), fromAddress.Address);
+            }
+            else if (string.IsNullOrWhiteSpace(fromAddress.Name))
+            {
+                // If no name was set and no override provided, use FromName config
+                var fromName = _configuration["Security:TwoFactorEmail:FromName"];
+                if (!string.IsNullOrWhiteSpace(fromName))
+                {
+                    fromAddress = new MailboxAddress(fromName.Trim(), fromAddress.Address);
+                }
             }
 
             // Build and send email via SMTP
