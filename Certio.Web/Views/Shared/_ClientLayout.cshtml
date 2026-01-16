@@ -1296,8 +1296,8 @@
                     <i class="fa-solid fa-bell"></i>
                 </button>
                 
-                <!-- Communications Button -->
-                <button class="ai-toggle" id="communicationsBtn" type="button" title="Communications">
+                <!-- Inbox Button -->
+                <button class="ai-toggle" id="communicationsBtn" type="button" title="Inbox">
                     <i class="fas fa-comments"></i>
                 </button>
                 
@@ -1985,10 +1985,10 @@
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="/Client/@ViewBag.OrganizationId/Communications" 
+                    <a href="/Client/@ViewBag.OrganizationId/Communications"
                        class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" && ViewContext.RouteData.Values["controller"]?.ToString() == "Communications" ? "active" : "")">
                         <i class="fas fa-comments"></i>
-                        <span>Communications</span>
+                        <span>Inbox</span>
                     </a>
                 </div>
                 <div class="nav-item">
@@ -2093,7 +2093,7 @@
                                class="nav-link d-flex align-items-center gap-3 rounded-3 p-3 text-decoration-none transition-smooth @(ViewContext.RouteData.Values["action"]?.ToString() == "Communications" ? "bg-accent text-accent-foreground shadow-soft" : "text-muted-foreground hover-text-foreground hover-bg-secondary")"
                                data-bs-dismiss="offcanvas">
                                 <i class="fas fa-comments fs-5"></i>
-                                <span class="fw-medium">Communications</span>
+                                <span class="fw-medium">Inbox</span>
                             </a>
                         </li>
                         <li>
@@ -2385,16 +2385,16 @@
         </div>
     </div>
 
-    <!-- Communications Sidebar (Team Chat Style) -->
+    <!-- Inbox Sidebar (Team Chat Style) -->
     <div class="comms-sidebar-panel" id="commsSidebarPanel">
         <!-- Channels List View -->
         <div class="comms-channels-view" id="commsChannelsView">
             <div class="comms-channels-header">
                 <h3 class="comms-channels-title">
                     <i class="fas fa-comments me-2"></i>
-                    Communications
+                    Inbox
                 </h3>
-                <button class="comms-close-btn" id="commsCloseBtn" title="Close Communications">
+                <button class="comms-close-btn" id="commsCloseBtn" title="Close Inbox">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -2513,16 +2513,16 @@
         </div>
     </div>
     
-    <!-- Communications Toggle Button (Floating) -->
-    <button class="comms-toggle-btn" id="commsToggleBtn" title="Toggle Communications">
+    <!-- Inbox Toggle Button (Floating) -->
+    <button class="comms-toggle-btn" id="commsToggleBtn" title="Toggle Inbox">
         <i class="fas fa-comments"></i>
         <span class="comms-badge" id="commsBadge" style="display: none;">3</span>
     </button>
 
-    <!-- Resize handle - Always available for AI Chat, Communications, and Notifications sidebars -->
+    <!-- Resize handle - Always available for AI Chat, Inbox, and Notifications sidebars -->
     <div class="resize-handle" id="resizeHandle"></div>
 
-    @* Only show AI chat panel if not explicitly hidden (e.g., on Communications page) *@
+    @* Only show AI chat panel if not explicitly hidden (e.g., on Inbox page) *@
     @if (ViewData["HideChatPanel"] as bool? != true)
     {
     <!-- Chat panel (right side) -->
@@ -2817,7 +2817,219 @@
      style="display: none;">
 </div>
 
-<!-- Communications Sidebar Script -->
+<!-- Toast Notification Container -->
+<div id="toastNotificationContainer" style="
+    position: fixed;
+    top: calc(7vh + 1rem);
+    right: 340px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    pointer-events: none;
+">
+</div>
+
+<style>
+    /* Toast Notification Styles */
+    .toast-notification {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        padding: 1rem 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        min-width: 300px;
+        max-width: 400px;
+        pointer-events: auto;
+        animation: slideInRight 0.3s ease-out;
+        border-left: 4px solid #10b981;
+    }
+    
+    .toast-notification.toast-success {
+        border-left-color: #10b981;
+    }
+    
+    .toast-notification.toast-info {
+        border-left-color: #3b82f6;
+    }
+    
+    .toast-notification.toast-warning {
+        border-left-color: #f59e0b;
+    }
+    
+    .toast-notification.toast-error {
+        border-left-color: #ef4444;
+    }
+    
+    .toast-notification.toast-hiding {
+        animation: slideOutRight 0.3s ease-in forwards;
+    }
+    
+    .toast-notification-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 1rem;
+    }
+    
+    .toast-success .toast-notification-icon {
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+    }
+    
+    .toast-info .toast-notification-icon {
+        background: rgba(59, 130, 246, 0.15);
+        color: #3b82f6;
+    }
+    
+    .toast-warning .toast-notification-icon {
+        background: rgba(245, 158, 11, 0.15);
+        color: #f59e0b;
+    }
+    
+    .toast-error .toast-notification-icon {
+        background: rgba(239, 68, 68, 0.15);
+        color: #ef4444;
+    }
+    
+    .toast-notification-content {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .toast-notification-title {
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: #111827;
+        margin-bottom: 0.125rem;
+    }
+    
+    .toast-notification-message {
+        font-size: 0.8125rem;
+        color: #6b7280;
+        line-height: 1.4;
+    }
+    
+    .toast-notification-close {
+        background: none;
+        border: none;
+        color: #9ca3af;
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+    }
+    
+    .toast-notification-close:hover {
+        background: #f3f4f6;
+        color: #374151;
+    }
+    
+    @@keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @@keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+    
+    /* Adjust toast position when chat panel is hidden */
+    .chat-hidden #toastNotificationContainer {
+        right: 1.5rem;
+    }
+</style>
+
+<script>
+    // Toast Notification System
+    window.showToast = function(message, type = 'success', title = null, duration = 5000) {
+        const container = document.getElementById('toastNotificationContainer');
+        if (!container) return;
+        
+        const toast = document.createElement('div');
+        toast.className = `toast-notification toast-${type}`;
+        
+        const icons = {
+            success: 'fas fa-check-circle',
+            info: 'fas fa-info-circle',
+            warning: 'fas fa-exclamation-triangle',
+            error: 'fas fa-times-circle'
+        };
+        
+        const defaultTitles = {
+            success: 'Success',
+            info: 'Information',
+            warning: 'Warning',
+            error: 'Error'
+        };
+        
+        toast.innerHTML = `
+            <div class="toast-notification-icon">
+                <i class="${icons[type] || icons.info}"></i>
+            </div>
+            <div class="toast-notification-content">
+                <div class="toast-notification-title">${title || defaultTitles[type]}</div>
+                <div class="toast-notification-message">${message}</div>
+            </div>
+            <button class="toast-notification-close" onclick="this.parentElement.remove()">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        container.appendChild(toast);
+        
+        // Auto-remove after duration
+        if (duration > 0) {
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.classList.add('toast-hiding');
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, duration);
+        }
+        
+        return toast;
+    };
+    
+    // Convenience functions
+    window.showSuccessToast = function(message, title = null) {
+        return window.showToast(message, 'success', title);
+    };
+    
+    window.showInfoToast = function(message, title = null) {
+        return window.showToast(message, 'info', title);
+    };
+    
+    window.showWarningToast = function(message, title = null) {
+        return window.showToast(message, 'warning', title);
+    };
+    
+    window.showErrorToast = function(message, title = null) {
+        return window.showToast(message, 'error', title);
+    };
+</script>
+
+<!-- Inbox Sidebar Script -->
 <script src="~/js/communications-sidebar.js" defer></script>
 
 <!-- Notifications Sidebar Script -->
@@ -3714,7 +3926,7 @@
             }
         }
         
-        // AI Chat and Communications Sidebar Toggle
+        // AI Chat and Inbox Sidebar Toggle
         const aiToggle = document.getElementById('aiToggle');
         const communicationsBtn = document.getElementById('communicationsBtn');
         const chatPanel = document.getElementById('chatPanel');
@@ -4014,7 +4226,7 @@
             });
         }
         
-        // Communications button - toggle between communications and hidden
+        // Inbox button - toggle between inbox and hidden
         if (communicationsBtn) {
             communicationsBtn.addEventListener('click', function() {
                 const currentActive = localStorage.getItem('activeSidebar');
@@ -4145,7 +4357,7 @@
             document.body.classList.add('dark-mode');
         }
 
-        // Communications page check - if on communications page, hide the floating toggle button
+        // Inbox page check - if on inbox page, hide the floating toggle button
         const currentAction = '@ViewContext.RouteData.Values["action"]?.ToString()';
         if (currentAction === 'Communications') {
             const commsToggleBtn = document.getElementById('commsToggleBtn');

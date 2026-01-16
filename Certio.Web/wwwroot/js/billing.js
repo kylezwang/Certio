@@ -93,6 +93,7 @@
         initializeBillingClientButtons();
         initializeMatterClientAutoFill();
         loadBillingFormData();
+        initializeSubscriptionLinks();
         
         console.log('[Billing] Initialization complete. Current tab:', currentActiveTab);
         
@@ -658,9 +659,53 @@
         }
     }
 
+    // Initialize subscription links
+    function initializeSubscriptionLinks() {
+        // Use event delegation since these elements are loaded via AJAX
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('#manageSubscriptionLink')) {
+                e.preventDefault();
+                openSubscriptionModal();
+            }
+            if (e.target.closest('#viewBillingHistoryLink')) {
+                e.preventDefault();
+                toggleBillingHistory(e.target.closest('#viewBillingHistoryLink'));
+            }
+        });
+    }
+
+    // Open subscription management modal
+    function openSubscriptionModal() {
+        const modal = document.getElementById('subscriptionModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            adjustBillingModalPosition(modal);
+        }
+    }
+
+    // Toggle billing history section visibility
+    function toggleBillingHistory(linkElement) {
+        const billingHistorySection = document.getElementById('billingHistorySection');
+        if (!billingHistorySection) return;
+
+        const isVisible = billingHistorySection.style.display !== 'none';
+        
+        if (isVisible) {
+            billingHistorySection.style.display = 'none';
+            if (linkElement) {
+                linkElement.classList.remove('active');
+            }
+        } else {
+            billingHistorySection.style.display = 'block';
+            if (linkElement) {
+                linkElement.classList.add('active');
+            }
+        }
+    }
+
     // Initialize billing modal close handlers
     function initializeBillingModalCloseHandlers() {
-        const modals = ['timeEntryModal', 'expenseModal', 'invoiceModal', 'retainerModal'];
+        const modals = ['timeEntryModal', 'expenseModal', 'invoiceModal', 'retainerModal', 'subscriptionModal'];
         
         modals.forEach(modalId => {
             const modal = document.getElementById(modalId);
@@ -1688,7 +1733,9 @@
         },
         openModal: openBillingModal,
         closeModal: closeBillingModal,
-        loadFormData: loadBillingFormData
+        loadFormData: loadBillingFormData,
+        openSubscriptionModal: openSubscriptionModal,
+        toggleBillingHistory: toggleBillingHistory
     };
 })();
 

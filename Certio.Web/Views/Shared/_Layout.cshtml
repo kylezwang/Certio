@@ -710,9 +710,38 @@
             }
 
             async function showFirmsPopup() {
+                // Check if we should auto-navigate (only one firm)
+                const shouldAutoNavigate = await checkSingleFirmAutoNavigate();
+                if (shouldAutoNavigate) {
+                    return; // Already navigated
+                }
+                
                 firmsPopup.classList.add('show');
                 myFirmLink.classList.add('active');
                 await populateFirmsList();
+            }
+            
+            async function checkSingleFirmAutoNavigate() {
+                try {
+                    const storedFirmId = localStorage.getItem('activeFirmId');
+                    let url = '/Client/List';
+                    if (storedFirmId) url += `?firmOrgId=${storedFirmId}`;
+
+                    const response = await fetch(url, { credentials: 'include' });
+                    const result = await response.json();
+                    
+                    if (result.success && result.myFirms && result.myFirms.length === 1) {
+                        // Only one firm - navigate directly
+                        const firm = result.myFirms[0];
+                        localStorage.setItem('activeFirmId', firm.organizationId);
+                        window.location.href = `/Client/${firm.organizationId}/Dashboard`;
+                        return true;
+                    }
+                    return false;
+                } catch (error) {
+                    console.error('Error checking firms:', error);
+                    return false;
+                }
             }
 
             function hideFirmsPopup() {
