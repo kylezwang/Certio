@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Certio.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bcfe4c0c0c5327ec64ea23cfc17e1752330bd7a8")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+713288f650d54301cba18fc2a25a24917530edf9")]
 [assembly: System.Reflection.AssemblyProductAttribute("Certio.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Certio.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
