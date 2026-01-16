@@ -390,6 +390,45 @@
     </div>
 </div>
 
+<!-- Subscription Management Modal -->
+<div class="task-details-modal billing-modal" id="subscriptionModal" style="display: none;">
+    <div class="modal-dialog">
+        <div class="task-details-content">
+            <!-- Header -->
+            <div class="task-details-header">
+                <div class="task-details-header-left">
+                    <div class="billing-modal-icon">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                </div>
+                <div class="task-details-header-middle">
+                    <h5 class="billing-modal-title">Manage Subscription</h5>
+                </div>
+                <div class="task-details-header-right">
+                    <button type="button" class="btn task-header-btn billing-modal-close" data-close-modal aria-label="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="task-details-body billing-modal-body">
+                <div class="billing-form-content">
+                    <!-- Subscription content will be customized in a follow-up prompt -->
+                    <div class="subscription-placeholder">
+                        <p class="text-muted text-center">Subscription management options will be configured here.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="billing-modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-close-modal>Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Retainer Modal -->
 <div class="task-details-modal billing-modal" id="retainerModal" style="display: none;">
     <div class="modal-dialog">
@@ -773,5 +812,11 @@
             width: 100%;
             justify-content: center;
         }
+    }
+
+    /* Subscription Modal Placeholder */
+    .subscription-placeholder {
+        padding: 2rem;
+        text-align: center;
     }
 </style>

@@ -287,9 +287,14 @@
                         <input type="text" class="form-control form-control-lg" id="modalInputLocation" placeholder="">
                     </div>
 
-                    <div class="d-flex justify-content-end">
-                        <button type="button" class="btn btn-secondary" onclick="closeUserDetailsModal()">Cancel</button>
-                        <button type="submit" class="btn btn-primary" style="margin-left: 0.5rem;">Save Changes</button>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <button type="button" class="btn btn-outline-primary" id="sendMessageToUserBtn" onclick="sendMessageToUser()" style="gap: 0.5rem; display: flex; align-items: center;">
+                            <i class="fas fa-paper-plane" style="vertical-align: middle; position: relative; top: 4px;"></i> Send message
+                        </button>
+                        <div class="d-flex">
+                            <button type="button" class="btn btn-secondary" onclick="closeUserDetailsModal()">Cancel</button>
+                            <button type="submit" class="btn btn-primary" style="margin-left: 0.5rem;">Save Changes</button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -493,6 +498,29 @@
             if (modal) {
                 modal.style.display = 'none';
             }
+        }
+
+        // Send message to user - opens inbox with the selected user
+        function sendMessageToUser() {
+            const userEmail = document.getElementById('modalInputEmail')?.value;
+            const userName = document.getElementById('modalUserName')?.textContent;
+            const orgId = @(ViewBag.OrganizationId ?? 0);
+            
+            if (!userEmail) {
+                if (typeof showWarningToast === 'function') {
+                    showWarningToast('Unable to send message - no email address available.');
+                } else {
+                    alert('Unable to send message - no email address available.');
+                }
+                return;
+            }
+            
+            // Store the recipient info in sessionStorage for the Inbox page
+            sessionStorage.setItem('inboxRecipientEmail', userEmail);
+            sessionStorage.setItem('inboxRecipientName', userName || userEmail);
+            
+            // Navigate to the Inbox page
+            window.location.href = `/Client/${orgId}/Communications?recipient=${encodeURIComponent(userEmail)}`;
         }
 
         // Helper function to get last opened client organization ID from localStorage

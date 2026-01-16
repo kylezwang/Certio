@@ -154,11 +154,11 @@
                 </a>
                 <a href="#communications" class="matter-tab-link" data-tab="communications">
                     <i class="fas fa-comments"></i>
-                    <span>Communications</span>
+                    <span>Inbox</span>
                 </a>
                 <a href="#documents" class="matter-tab-link" data-tab="documents">
                     <i class="fas fa-folder"></i>
-                    <span>Documents</span>
+                    <span>Files</span>
                 </a>
                 <a href="#billing" class="matter-tab-link" data-tab="billing">
                     <i class="fas fa-credit-card"></i>
@@ -188,7 +188,7 @@
                                     </div>
                                     <div>
                                         <p class="text-muted mb-1 small" style="font-size: 0.9rem;">Total Billed</p>
-                                        <h3 class="fw-bold text-dark mb-0" style="font-size: 1.6rem;">$0.00</h3>
+                                        <h3 class="fw-bold text-dark mb-0" style="font-size: 1.6rem;">$4500.00</h3>
                                     </div>
                                 </div>
                             </div>
@@ -204,7 +204,7 @@
                                     </div>
                                     <div>
                                         <p class="text-muted mb-1 small" style="font-size: 0.9rem;">Unpaid Balance</p>
-                                        <h3 class="fw-bold text-dark mb-0" style="font-size: 1.6rem;">$0.00</h3>
+                                        <h3 class="fw-bold text-dark mb-0" style="font-size: 1.6rem;">$375.00</h3>
                                     </div>
                                 </div>
                             </div>
@@ -220,7 +220,7 @@
                                     </div>
                                     <div>
                                         <p class="text-muted mb-1 small" style="font-size: 0.9rem;">Billing Rate</p>
-                                        <h3 class="fw-bold text-dark mb-0" style="font-size: 1.6rem;">$0/hr</h3>
+                                        <h3 class="fw-bold text-dark mb-0" style="font-size: 1.6rem;">$125/hr</h3>
                                     </div>
                                 </div>
                             </div>
@@ -236,7 +236,7 @@
                                     </div>
                                     <div>
                                         <p class="mb-1 small" style="font-size: 0.9rem;">Hours Logged</p>
-                                        <h3 class="fw-bold mb-0" style="font-size: 1.6rem;">0 hrs</h3>
+                                        <h3 class="fw-bold mb-0" style="font-size: 1.6rem;">30 hrs</h3>
                                     </div>
                                 </div>
                             </div>
@@ -577,15 +577,15 @@
                         <div class="card h-100 border-0 matter-card" style="padding-top: 0.5rem; position: relative;">
                             <div class="card-header bg-transparent border-0 pb-0">
                                 <div class="mb-2">
-                                    <div class="d-flex align-items-start">
-                                        <i class="fa-solid fa-bullhorn fs-5 me-2 flex-shrink-0 text-muted" style="margin-top: 2px;"></i>
-                                        <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center" style="margin-left:0.25rem;">
+                                        <i class="fa-solid fa-bullhorn fs-5 me-2" style="color: #3d1019; font-size: 1.35rem;"></i>
+                                        <div>
                                             <h5 class="card-title fw-bold mb-2" style="color: black; font-size: 1rem; line-height: 1.3;">Required Action Notices</h5>
+                                            <p class="card-text text-muted mb-0" style="font-size: 0.8rem; line-height: 1.4;">
+                                                Create, send, and track notices that require acknowledgement from vendors and your team.
+                                            </p>
                                         </div>
                                     </div>
-                                    <p class="card-text text-muted mb-0" style="font-size: 0.8rem; line-height: 1.4; padding-left: 1.5rem;">
-                                        Create, send, and track notices that require acknowledgement from vendors and your team.
-                                    </p>
                                 </div>
                             </div>
                             <div class="card-body pt-2">
@@ -1404,7 +1404,7 @@
                                                         <i class="fas fa-ellipsis-h"></i>
                                                     </button>
                                                     <button type="button" class="btn btn-sm btn-primary me-2" id="ccHeaderActionBtn" style="font-weight: 600; display: none;">
-                                                        <i class="fas fa-paper-plane me-1"></i> <span id="ccHeaderActionBtnText">Send</span>
+                                                        <i class="fas fa-paper-plane me-1" style="vertical-align: middle; position: relative; top: 4px;"></i> <span id="ccHeaderActionBtnText">Send</span>
                                                     </button>
                                                     <button type="button" class="btn-close" id="cc-close-modal" aria-label="Close"></button>
                                                 </div>
@@ -1447,7 +1447,7 @@
                                                                     <i class="fas fa-bars"></i> Description
                                                                 </h6>
                                                             </div>
-                                                            <div class="task-section-content">
+                                                            <div class="task-section-content" style="margin-bottom: 1rem;">
                                                                 <textarea class="form-control" name="Description" id="ccDescription" rows="4" maxlength="2000" placeholder="Add a description for this change notice..." style="font-size: 0.875rem;"></textarea>
                                                             </div>
                                                         </div>
@@ -1551,7 +1551,7 @@
                                                             <textarea class="form-control comment-input" id="ccCommentInput" placeholder="Write a note..."></textarea>
                                                             <div class="mt-2 d-flex align-items-center">
                                                                 <small class="text-muted" style="margin-right: 0.8rem; margin-left: 0.3rem; font-size: 0.8rem;">Type &#64; to mention users</small>
-                                                                <button class="btn btn-sm btn-primary" id="ccPostCommentBtn" style="font-weight: 600;"><i class="fas fa-paper-plane"></i> Post</button>
+                                                                <button class="btn btn-sm btn-primary" id="ccPostCommentBtn" style="font-weight: 600;"><i class="fas fa-paper-plane" style="vertical-align: middle; position: relative; top: -1px;"></i> Post</button>
                                                             </div>
                                                         </div>
                                                         <div class="activity-log" id="ccActivityLog">
@@ -1565,8 +1565,8 @@
                                                 <div id="ccModalMode" style="font-size: 0.8rem; color: #6b7280;"></div>
                                                 <div class="d-flex gap-2">
                                                     <button type="button" class="btn btn-outline-secondary" id="cc-cancel-btn" style="font-size: 0.875rem;">Cancel</button>
-                                                    <button type="button" class="btn btn-primary" id="ccSaveBtn" style="font-weight: 600; font-size: 0.875rem;">
-                                                        <i class="fas fa-save me-1"></i> <span id="ccSaveBtnText">Save</span>
+                                                    <button type="button" class="btn btn-primary" id="ccSaveBtn" style="font-weight: 600; font-size: 0.875rem; margin-top: 0;">
+                                                        <i class="fas fa-save me-1" style="vertical-align: middle; position: relative; top: 4px;"></i> <span id="ccSaveBtnText">Save</span>
                                                     </button>
                                                 </div>
                                             </div>
