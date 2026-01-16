@@ -144,13 +144,23 @@ public class EmailSendingService : IEmailSendingService
         try
         {
             var provider = _configuration["Security:TwoFactorEmail:Provider"];
-            if (string.Equals(provider, "SendGrid", StringComparison.OrdinalIgnoreCase))
+            
+            // Both SendGrid and Azure support SMTP
+            if (string.Equals(provider, "SendGrid", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(provider, "Azure", StringComparison.OrdinalIgnoreCase))
             {
                 // Try SMTP first if configured
                 var smtpHost = _configuration["Security:TwoFactorEmail:SmtpHost"];
                 if (!string.IsNullOrWhiteSpace(smtpHost))
                 {
                     return await SendViaSmtpAsync(toEmail, subject, bodyHtml, fromNameOverride, replyToEmailOverride, ct);
+                }
+                
+                // Only SendGrid has REST API fallback
+                if (!string.Equals(provider, "SendGrid", StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogWarning("SMTP not configured for provider '{Provider}'. SMTP is required.", provider);
+                    return false;
                 }
 
                 // Fall back to REST API
@@ -261,7 +271,7 @@ public class EmailSendingService : IEmailSendingService
                 return false;
             }
 
-            // Parse port (default to 587 for SendGrid)
+            // Parse port (default to 587 for SMTP providers like SendGrid and Azure)
             int smtpPort = 587;
             if (!string.IsNullOrWhiteSpace(smtpPortStr) && int.TryParse(smtpPortStr, out var parsedPort))
             {
@@ -331,25 +341,30 @@ public class EmailSendingService : IEmailSendingService
                 message.ReplyTo.Add(new MailboxAddress(string.Empty, replyToEmailOverride.Trim()));
             }
 
-            // IMPORTANT (SendGrid SMTP): disable click/open tracking so action links aren't rewritten.
+            // IMPORTANT (SendGrid SMTP only): disable click/open tracking so action links aren't rewritten.
             // This prevents recipients from hitting "Your connection is not private" due to misconfigured link branding SSL.
-            // SendGrid SMTPAPI header format:
-            // { "filters": { "clicktrack": { "settings": { "enable": 0 } }, "opentrack": { "settings": { "enable": 0 } } } }
-            try
+            // Azure Communication Services Email doesn't need this header.
+            var provider = _configuration["Security:TwoFactorEmail:Provider"];
+            if (string.Equals(provider, "SendGrid", StringComparison.OrdinalIgnoreCase))
             {
-                var smtpApi = new
+                // SendGrid SMTPAPI header format:
+                // { "filters": { "clicktrack": { "settings": { "enable": 0 } }, "opentrack": { "settings": { "enable": 0 } } } }
+                try
                 {
-                    filters = new
+                    var smtpApi = new
                     {
-                        clicktrack = new { settings = new { enable = 0 } },
-                        opentrack = new { settings = new { enable = 0 } }
-                    }
-                };
-                message.Headers.Add("X-SMTPAPI", JsonSerializer.Serialize(smtpApi));
-            }
-            catch
-            {
-                // If we can't add the header for any reason, still send the email.
+                        filters = new
+                        {
+                            clicktrack = new { settings = new { enable = 0 } },
+                            opentrack = new { settings = new { enable = 0 } }
+                        }
+                    };
+                    message.Headers.Add("X-SMTPAPI", JsonSerializer.Serialize(smtpApi));
+                }
+                catch
+                {
+                    // If we can't add the header for any reason, still send the email.
+                }
             }
 
             var bodyBuilder = new BodyBuilder

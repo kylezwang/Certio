@@ -433,7 +433,7 @@ if (!string.IsNullOrWhiteSpace(documentIntelligenceApiKey))
     builder.Configuration["DocumentExtraction:ApiKey"] = documentIntelligenceApiKey;
 }
 
-// Map TwoFactorEmail/SMTP environment variables
+// Map TwoFactorEmail/SMTP environment variables (supports SendGrid and Azure Communication Services Email)
 var sendGridApiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
 if (!string.IsNullOrWhiteSpace(sendGridApiKey))
 {
