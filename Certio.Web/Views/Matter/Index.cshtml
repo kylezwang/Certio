@@ -37,7 +37,7 @@
                 <input type="text" class="form-control" id="matterSearchInput" placeholder="Search @mattersLabel.ToLower()..." />
             <span class="search-placeholder-text" style="position: absolute; left: 2.5rem; top: 50%; transform: translateY(-50%); color: #6c757d; pointer-events: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; right: 1rem;">Search @mattersLabel.ToLower()...</span>
         </div>
-        <div class="filter-buttons" style="flex: 0 0 auto; display: flex; gap: 0.5rem; flex-wrap: nowrap;">
+        <div class="filter-buttons" style="flex: 0 0 auto; display: flex; gap: 0.5rem; flex-wrap: nowrap; margin-top: 0;">
             <div class="dropdown">
                     <button class="filter-button dropdown-toggle" type="button" id="mattersFilterBtn" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-filter"></i>
@@ -96,7 +96,7 @@
         }
     </style>
 
-    <!-- Stats Cards -->
+    @* <!-- Stats Cards -->
     <div class="row mb-3">
         <div class="col-md-3 mb-3">
             <div class="card h-100 border-0 stats-filter-card" data-filter-status="planning" style="cursor: pointer;">
@@ -161,7 +161,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> *@
 
     <!-- Matters Grid -->
     <div class="row" id="matters-grid">
@@ -172,21 +172,23 @@
                     <div class="card h-100 border-0 matter-card" style="padding-top: 0.5rem; position: relative;">
                     <div class="card-header bg-transparent border-0 pb-0">
                         <div class="mb-2">
-                            <div class="d-flex align-items-start">
-                                <i class="fas fa-briefcase fs-5 me-2 flex-shrink-0" style="color: black; margin-top: 2px;"></i>
-                                <div class="flex-grow-1" style="padding-right: 70px;">
-                                    <h5 class="card-title fw-bold mb-2 user-content" style="color: black; font-size: 1rem; line-height: 1.3;">@matter.Title</h5>
+                            <div class="d-flex align-items-start" style="gap: 1rem;">
+                                <div class="matter-icon-badge flex-shrink-0" style="margin-top: 2px;">
+                                    @GetMatterInitials(matter.Title)
                                 </div>
-                            </div>
+                                <div class="flex-grow-1" style="padding-right: 70px;">
+                                    <h5 class="card-title fw-bold mb-1 user-content" style="color: black; font-size: 1rem; line-height: 1.3;">@matter.Title</h5>
                             @if (ViewBag.IsLawFirmView == true && matter.Organization != null)
                             {
-                                <div class="mb-2" style="padding-left: 30px;">
-                                    <span class="badge" style="font-size: 0.65rem; background-color: #9bc0ec; color: #3d1019;">
+                                        <div class="mb-1">
+                                            <span class="badge" style="font-size: 0.7rem; background-color: #9bc0ec; color: #3d1019;">
                                         <i class="fas fa-building me-1"></i>@matter.Organization?.Name
                                     </span>
                                 </div>
                             }
-                            <p class="card-text text-muted mb-0 user-content" style="font-size: 0.8rem; line-height: 1.4; padding-left: 30px;">@matter.Description</p>
+                                    <p class="card-text text-muted mb-0 user-content" style="font-size: 0.8rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">@matter.Description</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="card-body pt-2">
@@ -210,6 +212,10 @@
                         </div>
 
                         <!-- Meta Info -->
+                        @{
+                            var activeAssignees = matter.Assignments.Where(a => a.RemovedAt == null).GroupBy(a => a.UserId).Select(g => g.First()).ToList();
+                            var activeAssigneeCount = activeAssignees.Count;
+                        }
                         <div class="mb-2">
                             <div class="d-flex align-items-center text-muted mb-1" style="font-size: 0.75rem;">
                                 <i class="fas fa-calendar me-1"></i>
@@ -217,21 +223,18 @@
                             </div>
                             <div class="d-flex align-items-center text-muted" style="font-size: 0.75rem;">
                                 <i class="fas fa-users me-1"></i>
-                                <span>@matter.UniqueAssigneeCount assignee@(matter.UniqueAssigneeCount != 1 ? "s" : "")</span>
+                                <span>@activeAssigneeCount assignee@(activeAssigneeCount != 1 ? "s" : "")</span>
                             </div>
                         </div>
 
                         <!-- Assignees -->
-                        <div class="d-flex align-items-center assignees-container" data-total-assignees="@matter.UniqueAssigneeCount">
+                        <div class="d-flex align-items-center assignees-container" data-total-assignees="@activeAssigneeCount">
                             <span class="text-muted me-2" style="font-size: 0.75rem;">Team:</span>
                             <div class="d-flex assignees-wrapper">
-                                @{
-                                    var uniqueAssignees = matter.Assignments.GroupBy(a => a.UserId).Select(g => g.First()).ToList();
-                                }
-                                @for (int i = 0; i < uniqueAssignees.Count; i++)
+                                @for (int i = 0; i < activeAssignees.Count; i++)
                                 {
                                     <div class="assignee-avatar me-1" data-assignee-index="@i">
-                                        @GetInitials(uniqueAssignees[i].User.FirstName + " " + uniqueAssignees[i].User.LastName)
+                                        @GetInitials(activeAssignees[i].User.FirstName + " " + activeAssignees[i].User.LastName)
                                     </div>
                                 }
                                 <div class="assignee-avatar me-1 assignee-overflow" style="display: none;">
@@ -276,6 +279,34 @@
     {
         var parts = name.Split(' ');
         return parts.Length >= 2 ? $"{parts[0][0]}{parts[1][0]}" : name.Substring(0, Math.Min(2, name.Length));
+    }
+
+    string GetMatterInitials(string title)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            return string.Empty;
+        }
+
+        var initials = new List<char>(2);
+        var parts = title.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+        foreach (var part in parts)
+        {
+            var cleaned = part.Replace("&", string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(cleaned))
+            {
+                continue;
+            }
+
+            initials.Add(char.ToUpperInvariant(cleaned[0]));
+            if (initials.Count == 2)
+            {
+                break;
+            }
+        }
+
+        return new string(initials.ToArray());
     }
 }
 

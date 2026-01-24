@@ -4,8 +4,11 @@ namespace Certio.Application.DTOs
     {
         public string Title { get; set; } = "";
         public string Description { get; set; } = "";
+        public string Location { get; set; } = "";
         public string Status { get; set; } = "Planning";
         public string PracticeArea { get; set; } = "";
+        public int? GuestCount { get; set; }
+        public decimal? Budget { get; set; }
         public string AccessLevel { get; set; } = "Everyone";
         public int? TeamId { get; set; }
         public int? ClientId { get; set; }
@@ -23,8 +26,11 @@ namespace Certio.Application.DTOs
     {
         public string? Title { get; set; }
         public string? Description { get; set; }
+        public string? Location { get; set; }
         public string? Status { get; set; }
         public string? PracticeArea { get; set; }
+        public int? GuestCount { get; set; }
+        public decimal? Budget { get; set; }
         public string? AccessLevel { get; set; }
         public int? TeamId { get; set; }
         public int? ClientId { get; set; }
@@ -44,8 +50,11 @@ namespace Certio.Application.DTOs
         public int Id { get; set; }
         public string Title { get; set; } = "";
         public string Description { get; set; } = "";
+        public string Location { get; set; } = "";
         public string Status { get; set; } = "";
         public string PracticeArea { get; set; } = "";
+        public int? GuestCount { get; set; }
+        public decimal? Budget { get; set; }
         public string AccessLevel { get; set; } = "";
         public int OrganizationId { get; set; }
         public int? TeamId { get; set; }

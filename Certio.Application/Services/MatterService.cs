@@ -73,8 +73,11 @@ namespace Certio.Application.Services
                 {
                     Title = createDto.Title,
                     Description = createDto.Description,
+                    Location = createDto.Location,
                     Status = createDto.Status,
                     PracticeArea = createDto.PracticeArea,
+                    GuestCount = createDto.GuestCount,
+                    Budget = createDto.Budget,
                     AccessLevel = createDto.AccessLevel,
                     OrganizationId = organizationId,
                     TeamId = createDto.TeamId,
@@ -187,8 +190,11 @@ namespace Certio.Application.Services
                 // Apply updates
                 if (updateDto.Title != null) matter.Title = updateDto.Title;
                 if (updateDto.Description != null) matter.Description = updateDto.Description;
+                if (updateDto.Location != null) matter.Location = updateDto.Location;
                 if (updateDto.Status != null) matter.Status = updateDto.Status;
                 if (updateDto.PracticeArea != null) matter.PracticeArea = updateDto.PracticeArea;
+                if (updateDto.GuestCount.HasValue) matter.GuestCount = updateDto.GuestCount;
+                if (updateDto.Budget.HasValue) matter.Budget = updateDto.Budget;
                 if (updateDto.AccessLevel != null) matter.AccessLevel = updateDto.AccessLevel;
                 if (updateDto.TeamId.HasValue) matter.TeamId = updateDto.TeamId;
                 if (updateDto.ClientId.HasValue) matter.ClientId = updateDto.ClientId;
@@ -784,6 +790,16 @@ namespace Certio.Application.Services
                 errors["Description"] = new[] { "Description cannot exceed 1000 characters" };
             }
 
+            if (string.IsNullOrWhiteSpace(dto.Location))
+            {
+                errors["Location"] = new[] { "Location is required" };
+            }
+
+            if (dto.Location?.Length > 300)
+            {
+                errors["Location"] = new[] { "Location cannot exceed 300 characters" };
+            }
+
             if (errors.Any())
             {
                 throw new ValidationException(errors);
@@ -802,8 +818,11 @@ namespace Certio.Application.Services
                 Id = matter.Id,
                 Title = matter.Title,
                 Description = matter.Description,
+                Location = matter.Location,
                 Status = matter.Status,
                 PracticeArea = matter.PracticeArea,
+                GuestCount = matter.GuestCount,
+                Budget = matter.Budget,
                 AccessLevel = matter.AccessLevel,
                 OrganizationId = matter.OrganizationId,
                 TeamId = matter.TeamId,
@@ -821,8 +840,8 @@ namespace Certio.Application.Services
                 LastModifiedDate = matter.LastModifiedDate,
                 TasksCompleted = matter.TasksCompleted,
                 TotalTasks = matter.TotalTasks,
-                Assignments = matter.Assignments.Select(MapToMatterAssignmentDto).ToList(),
-                Permissions = matter.Permissions.Select(MapToMatterPermissionDto).ToList()
+                Assignments = matter.Assignments.Where(a => a.RemovedAt == null).Select(MapToMatterAssignmentDto).ToList(),
+                Permissions = matter.Permissions.Where(p => p.RevokedAt == null).Select(MapToMatterPermissionDto).ToList()
             };
         }
 

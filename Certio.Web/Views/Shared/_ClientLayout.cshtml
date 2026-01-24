@@ -1107,6 +1107,38 @@
         box-shadow: none !important;
     }
 
+    .search-nav-buttons {
+        display: flex;
+        gap: 0.35rem;
+    }
+
+    .search-nav-button {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 999px;
+        border: none;
+        background: transparent;
+        color: #3d1019;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .search-nav-button:hover {
+        background-color: white;
+        box-shadow: rgba(0, 0, 0, 0.25) 0px 2px 4px;
+    }
+
+    .search-nav-button:focus,
+    .search-nav-button:focus-visible,
+    .search-nav-button:active {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
     .dark-mode-toggle:hover {
         background-color: #f3f4f6;
         color: #3d1019;
@@ -1256,6 +1288,14 @@
         
         <div class="d-flex justify-content-center align-items-center w-100">
             <div class="search-container" id="headerSearchContainer" style="max-width: 525px; width: 100%; position: fixed; flex-shrink: 0; pointer-events: none; transition: left 0.3s ease, transform 0.3s ease;">
+                <div class="search-nav-buttons" style="position: absolute; left: -5rem; top: 50%; transform: translateY(-50%); pointer-events: auto; z-index: 3;">
+                    <button type="button" class="search-nav-button" id="searchBackButton" title="Back">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button type="button" class="search-nav-button" id="searchForwardButton" title="Forward">
+                        <i class="fas fa-chevron-right" style="left: 3rem;"></i>
+                    </button>
+                </div>
                 <i class="fas fa-search" id="searchIcon" style="position: absolute; left: 4rem; transform: translate(-300%, -50%); top: 50%; color: #6b7280; pointer-events: none; z-index: 2;"></i>
                 <input type="text" class="form-control" id="universalSearchInput" placeholder="Search" 
                        style="height: 2.5rem; line-height: 1.25; border-radius: 24px; padding: 0.75rem 2.5rem 0.75rem 3rem; background-color: #f9fafb; font-size: 1rem; text-align: center; border: transparent; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25); pointer-events: auto; position: relative;"/>
@@ -4350,6 +4390,20 @@
         window.hideBothSidebars = hideBothSidebars;
         window.updateNotalLogo = updateNotalLogo;
         window.centerSearchBar = centerSearchBar;
+
+        const searchBackButton = document.getElementById('searchBackButton');
+        if (searchBackButton) {
+            searchBackButton.addEventListener('click', function() {
+                window.history.back();
+            });
+        }
+
+        const searchForwardButton = document.getElementById('searchForwardButton');
+        if (searchForwardButton) {
+            searchForwardButton.addEventListener('click', function() {
+                window.history.forward();
+            });
+        }
         
         // Check for saved dark mode preference and apply it on page load
         const isDarkMode = localStorage.getItem('darkMode') === 'true';

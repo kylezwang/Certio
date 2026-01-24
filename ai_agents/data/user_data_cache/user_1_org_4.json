@@ -3,20 +3,21 @@
   "organization_id": 4,
   "user_name": "Kyle Wang",
   "total_chunks": 22,
-  "last_synced": "2026-01-06T03:04:25.578483",
+  "last_synced": "2026-01-24T00:06:39.258082",
   "module_summaries": {
     "matters": {
       "totalMatters": 8,
       "activeMatters": 2,
-      "completedMatters": 1,
+      "completedMatters": 2,
       "practiceAreas": [
-        "Employment / Labor",
-        "Trusts",
+        "Festival",
+        "Holiday Party",
+        "Corporate Event",
+        "Wedding",
         "Commercial Litigation",
         "Elder",
         "Securities / Mergers & Acquisitions",
-        "Corporate Litigation",
-        "Product Liability"
+        "Corporate Litigation"
       ]
     },
     "tasks": {
@@ -40,71 +41,134 @@
   },
   "chunks": [
     {
-      "id": "e9034da8-b262-4e56-826a-a05adbd8ec67",
+      "id": "6a69a24d-9c76-4e35-a000-02f380121354",
       "module_name": "matters",
       "entity_type": "Matter",
-      "entity_id": 16,
-      "title": "SLA IV Corporation",
-      "content": "=== MATTER: SLA IV Corporation ===\r\nMatter ID: 16\r\nClient/Organization: Chloe Tang's Organization\r\nStatus: Review\r\nEvent Type: Employment / Labor\r\nDescription: Assignee submission testing for correctness. Test update.\r\nStart Date: 2025-10-12\r\nEvent Date: 2025-10-13\r\nFinal Payment Due: 2025-10-12\r\nVendor Confirmation: 2025-10-13\r\nTasks Progress: 1/2 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\nCreated: 2025-10-12\r\nLast Modified: 2025-11-01\r\n",
+      "entity_id": 14,
+      "title": "Sunset Sessions Music Festival",
+      "content": "=== MATTER: Sunset Sessions Music Festival ===\r\nMatter ID: 14\r\nClient/Organization: Apex Event Planning\r\nStatus: Planning\r\nEvent Type: Festival\r\nDescription: 2-day outdoor music festival featuring 12 local bands across 3 stages. Coordinating sound engineers, stage managers, vendor booths, security teams, and equipment rentals. Managing setup schedules, artist arrival times, and stage transitions.\r\nStart Date: 2025-10-12\r\nEvent Date: 2026-02-25\r\nFinal Payment Due: 2026-02-01\r\nVendor Confirmation: 2026-02-09\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - John Marshall (ResponsibleAttorney)\r\n  - John Marshall (OriginatingAttorney)\r\n  - Kyle Wang (ResponsibleStaff)\r\n  - Chloe Tang (OriginatingAttorney)\r\n  - Chloe Tang (ResponsibleStaff)\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - Kyle Wang (ResponsibleStaff)\r\nCreated: 2025-10-12\r\nLast Modified: 2026-01-24\r\n",
       "metadata": {
-        "matterId": 16,
+        "matterId": 14,
         "organizationId": 4,
-        "organizationName": "Chloe Tang's Organization",
-        "status": "Review",
-        "practiceArea": "Employment / Labor",
-        "dueDate": "2025-10-13T00:00:00",
-        "tasksCompleted": 1,
-        "totalTasks": 2,
+        "organizationName": "Apex Event Planning",
+        "status": "Planning",
+        "practiceArea": "Festival",
+        "dueDate": "2026-02-25T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 0,
         "assignees": [
-          "Kyle Wang",
-          "John Marshall"
-        ],
-        "clientGoals": null,
-        "legalRequirements": null
-      },
-      "created_at": "2025-10-12T23:35:08.3706377",
-      "modified_at": "2025-11-01T22:14:38.1796036",
-      "relevance_score": 0
-    },
-    {
-      "id": "58dd70e2-c030-441e-afbe-3a01e826bd3d",
-      "module_name": "matters",
-      "entity_type": "Matter",
-      "entity_id": 5,
-      "title": "Visible Matters Corporation",
-      "content": "=== MATTER: Visible Matters Corporation ===\r\nMatter ID: 5\r\nClient/Organization: Chloe Tang's Organization\r\nStatus: Review\r\nEvent Type: Trusts\r\nDescription: This is a test matter to see if Partners have access to client data while others do not.\r\nStart Date: 2025-09-29\r\nEvent Date: 2025-09-30\r\nFinal Payment Due: 2025-09-30\r\nTasks Progress: 1/4 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\nCreated: 2025-09-30\r\nLast Modified: 2025-11-01\r\n",
-      "metadata": {
-        "matterId": 5,
-        "organizationId": 4,
-        "organizationName": "Chloe Tang's Organization",
-        "status": "Review",
-        "practiceArea": "Trusts",
-        "dueDate": "2025-09-30T00:00:00",
-        "tasksCompleted": 1,
-        "totalTasks": 4,
-        "assignees": [
-          "Kyle Wang",
           "John Marshall",
+          "John Marshall",
+          "Kyle Wang",
+          "Chloe Tang",
+          "Chloe Tang",
+          "Kyle Wang",
           "Kyle Wang"
         ],
         "clientGoals": null,
         "legalRequirements": null
       },
-      "created_at": "2025-09-30T08:47:11.9083643",
-      "modified_at": "2025-11-01T21:28:42.026074",
+      "created_at": "2025-10-12T23:06:45.952575",
+      "modified_at": "2026-01-24T00:06:09.609075",
       "relevance_score": 0
     },
     {
-      "id": "3c7a01ab-9477-4970-88d0-5f3a76021dfa",
+      "id": "21614786-da7a-4cc0-87ad-fdde1ca2343d",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 16,
+      "title": "Chen Family Lunar New Year Celebration",
+      "content": "=== MATTER: Chen Family Lunar New Year Celebration ===\r\nMatter ID: 16\r\nClient/Organization: Apex Event Planning\r\nStatus: Review\r\nEvent Type: Holiday Party\r\nDescription: 120-person Lunar New Year party with traditional lion dance performance, dim sum buffet, karaoke setup, and red envelope ceremony. Coordinating cultural entertainment, specialized catering, and family program timing.\r\nStart Date: 2025-12-01\r\nEvent Date: 2026-02-17\r\nFinal Payment Due: 2026-02-01\r\nVendor Confirmation: 2026-02-09\r\nTasks Progress: 1/2 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Chloe Tang (OriginatingAttorney)\r\nCreated: 2025-10-12\r\nLast Modified: 2026-01-23\r\n",
+      "metadata": {
+        "matterId": 16,
+        "organizationId": 4,
+        "organizationName": "Apex Event Planning",
+        "status": "Review",
+        "practiceArea": "Holiday Party",
+        "dueDate": "2026-02-17T00:00:00",
+        "tasksCompleted": 1,
+        "totalTasks": 2,
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall",
+          "Chloe Tang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-12T23:35:08.3706377",
+      "modified_at": "2026-01-23T23:26:26.9186837",
+      "relevance_score": 0
+    },
+    {
+      "id": "572f662e-d755-469a-93b5-0d145b762ad6",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 15,
+      "title": "Harbor Tech Summit 2025",
+      "content": "=== MATTER: Harbor Tech Summit 2025 ===\r\nMatter ID: 15\r\nClient/Organization: Apex Event Planning\r\nStatus: Completed\r\nEvent Type: Corporate Event\r\nDescription: 500-person tech conference with keynote presentations, breakout sessions, product demos, and networking reception. Coordinating multiple room setups, speaker tech requirements, sponsor booth logistics, and catering for breakfast, lunch, and evening reception.\r\nStart Date: 2025-11-12\r\nEvent Date: 2025-12-15\r\nFinal Payment Due: 2025-12-01\r\nVendor Confirmation: 2025-12-08\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Chloe Tang (OriginatingAttorney)\r\nCreated: 2025-10-12\r\nLast Modified: 2026-01-23\r\n",
+      "metadata": {
+        "matterId": 15,
+        "organizationId": 4,
+        "organizationName": "Apex Event Planning",
+        "status": "Completed",
+        "practiceArea": "Corporate Event",
+        "dueDate": "2025-12-15T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 0,
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall",
+          "Chloe Tang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-12T23:27:42.2997617",
+      "modified_at": "2026-01-23T23:24:16.6563509",
+      "relevance_score": 0
+    },
+    {
+      "id": "46aaad99-57bb-4230-a99f-a5ebc1b71a83",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 5,
+      "title": "Daniel & Jessie's Wedding",
+      "content": "=== MATTER: Daniel & Jessie's Wedding ===\r\nMatter ID: 5\r\nClient/Organization: Apex Event Planning\r\nStatus: Review\r\nEvent Type: Wedding\r\nDescription: Wedding planning and execution for Daniel and Jessie, including timelines, vendors, and day-of coordination.\r\nStart Date: 2025-09-29\r\nEvent Date: 2026-02-01\r\nFinal Payment Due: 2026-02-10\r\nVendor Confirmation: 2026-01-30\r\nTasks Progress: 1/4 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\n  - Chloe Tang (OriginatingAttorney)\r\n  - Chloe Tang (ResponsibleAttorney)\r\nCreated: 2025-09-30\r\nLast Modified: 2026-01-14\r\n",
+      "metadata": {
+        "matterId": 5,
+        "organizationId": 4,
+        "organizationName": "Apex Event Planning",
+        "status": "Review",
+        "practiceArea": "Wedding",
+        "dueDate": "2026-02-01T00:00:00",
+        "tasksCompleted": 1,
+        "totalTasks": 4,
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall",
+          "Kyle Wang",
+          "Chloe Tang",
+          "Chloe Tang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-09-30T08:47:11.9083643",
+      "modified_at": "2026-01-14T21:01:36.7789712",
+      "relevance_score": 0
+    },
+    {
+      "id": "999d8769-7651-46cf-9724-7fb1eec3e419",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 28,
       "title": "Client Ready Communications II",
-      "content": "=== MATTER: Client Ready Communications II ===\r\nMatter ID: 28\r\nClient/Organization: Chloe Tang's Organization\r\nStatus: Planning\r\nEvent Type: Commercial Litigation\r\nDescription: Testing if new channel is created for client communications after matter creation. Channels are created now after matter creation in law firm organization.\r\nStart Date: 2025-10-14\r\nEvent Date: 2025-10-17\r\nFinal Payment Due: 2025-10-15\r\nVendor Confirmation: 2025-10-16\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\nCreated: 2025-10-15\r\n",
+      "content": "=== MATTER: Client Ready Communications II ===\r\nMatter ID: 28\r\nClient/Organization: Apex Event Planning\r\nStatus: Planning\r\nEvent Type: Commercial Litigation\r\nDescription: Testing if new channel is created for client communications after matter creation. Channels are created now after matter creation in law firm organization.\r\nStart Date: 2025-10-14\r\nEvent Date: 2025-10-17\r\nFinal Payment Due: 2025-10-15\r\nVendor Confirmation: 2025-10-16\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\nCreated: 2025-10-15\r\n",
       "metadata": {
         "matterId": 28,
         "organizationId": 4,
-        "organizationName": "Chloe Tang's Organization",
+        "organizationName": "Apex Event Planning",
         "status": "Planning",
         "practiceArea": "Commercial Litigation",
         "dueDate": "2025-10-17T00:00:00",
@@ -123,16 +187,16 @@
       "relevance_score": 0
     },
     {
-      "id": "e27b8c40-0616-4e82-bc57-b8a13abe200c",
+      "id": "9df78066-99e0-417e-aa8f-1f598a6ceb7c",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 25,
       "title": "Client Ready Communications",
-      "content": "=== MATTER: Client Ready Communications ===\r\nMatter ID: 25\r\nClient/Organization: Chloe Tang's Organization\r\nStatus: In Progress\r\nEvent Type: Elder\r\nDescription: Testing if created matters within client organizations are automatically creating channels.\r\nStart Date: 2025-10-14\r\nEvent Date: 2025-10-15\r\nFinal Payment Due: 2025-10-14\r\nVendor Confirmation: 2025-10-15\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\nCreated: 2025-10-15\r\n",
+      "content": "=== MATTER: Client Ready Communications ===\r\nMatter ID: 25\r\nClient/Organization: Apex Event Planning\r\nStatus: In Progress\r\nEvent Type: Elder\r\nDescription: Testing if created matters within client organizations are automatically creating channels.\r\nStart Date: 2025-10-14\r\nEvent Date: 2025-10-15\r\nFinal Payment Due: 2025-10-14\r\nVendor Confirmation: 2025-10-15\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\nCreated: 2025-10-15\r\n",
       "metadata": {
         "matterId": 25,
         "organizationId": 4,
-        "organizationName": "Chloe Tang's Organization",
+        "organizationName": "Apex Event Planning",
         "status": "In Progress",
         "practiceArea": "Elder",
         "dueDate": "2025-10-15T00:00:00",
@@ -151,16 +215,16 @@
       "relevance_score": 0
     },
     {
-      "id": "6b3e1309-2dbe-4163-8f42-746ff180e359",
+      "id": "c32bd71c-7c3f-479d-87ff-37354e034ca1",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 19,
       "title": "Audit Log Verification",
-      "content": "=== MATTER: Audit Log Verification ===\r\nMatter ID: 19\r\nClient/Organization: Chloe Tang's Organization\r\nStatus: Review\r\nEvent Type: Securities / Mergers & Acquisitions\r\nDescription: Testing new audit and compliance frameworks inside Certio.\r\nStart Date: 2025-10-13\r\nEvent Date: 2025-10-14\r\nFinal Payment Due: 2025-10-13\r\nVendor Confirmation: 2025-10-14\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - John Marshall (ResponsibleAttorney)\r\n  - Kyle Wang (ResponsibleStaff)\r\n  - John Marshall (OriginatingAttorney)\r\nCreated: 2025-10-13\r\n",
+      "content": "=== MATTER: Audit Log Verification ===\r\nMatter ID: 19\r\nClient/Organization: Apex Event Planning\r\nStatus: Review\r\nEvent Type: Securities / Mergers & Acquisitions\r\nDescription: Testing new audit and compliance frameworks inside Certio.\r\nStart Date: 2025-10-13\r\nEvent Date: 2025-10-14\r\nFinal Payment Due: 2025-10-13\r\nVendor Confirmation: 2025-10-14\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - John Marshall (ResponsibleAttorney)\r\n  - Kyle Wang (ResponsibleStaff)\r\n  - John Marshall (OriginatingAttorney)\r\nCreated: 2025-10-13\r\n",
       "metadata": {
         "matterId": 19,
         "organizationId": 4,
-        "organizationName": "Chloe Tang's Organization",
+        "organizationName": "Apex Event Planning",
         "status": "Review",
         "practiceArea": "Securities / Mergers & Acquisitions",
         "dueDate": "2025-10-14T00:00:00",
@@ -179,16 +243,16 @@
       "relevance_score": 0
     },
     {
-      "id": "7e2f73b8-d1a6-4b45-a4c7-6d11638b6f65",
+      "id": "f9209c7f-5d3f-4977-8074-9aef65dc632d",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 17,
       "title": "SLA V Finale",
-      "content": "=== MATTER: SLA V Finale ===\r\nMatter ID: 17\r\nClient/Organization: Chloe Tang's Organization\r\nStatus: Completed\r\nEvent Type: Corporate Litigation\r\nDescription: Here is the final test to check whether or not duplicate assignments are allowed for full auditability.\r\nStart Date: 2025-10-12\r\nEvent Date: 2025-10-13\r\nFinal Payment Due: 2025-10-12\r\nVendor Confirmation: 2025-10-13\r\nTasks Progress: 0/1 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\nCreated: 2025-10-12\r\n",
+      "content": "=== MATTER: SLA V Finale ===\r\nMatter ID: 17\r\nClient/Organization: Apex Event Planning\r\nStatus: Completed\r\nEvent Type: Corporate Litigation\r\nDescription: Here is the final test to check whether or not duplicate assignments are allowed for full auditability.\r\nStart Date: 2025-10-12\r\nEvent Date: 2025-10-13\r\nFinal Payment Due: 2025-10-12\r\nVendor Confirmation: 2025-10-13\r\nTasks Progress: 0/1 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\nCreated: 2025-10-12\r\n",
       "metadata": {
         "matterId": 17,
         "organizationId": 4,
-        "organizationName": "Chloe Tang's Organization",
+        "organizationName": "Apex Event Planning",
         "status": "Completed",
         "practiceArea": "Corporate Litigation",
         "dueDate": "2025-10-13T00:00:00",
@@ -207,69 +271,18 @@
       "relevance_score": 0
     },
     {
-      "id": "7f0d30b4-874e-4b76-91ec-9ceea71de47c",
-      "module_name": "matters",
-      "entity_type": "Matter",
-      "entity_id": 15,
-      "title": "SLA III LLC",
-      "content": "=== MATTER: SLA III LLC ===\r\nMatter ID: 15\r\nClient/Organization: Chloe Tang's Organization\r\nStatus: Planning\r\nEvent Type: Trusts\r\nDescription: Testing new SLA fixes for matter creation. Assignees should be properly submitted.\r\nStart Date: 2025-10-12\r\nEvent Date: 2025-10-13\r\nFinal Payment Due: 2025-10-12\r\nVendor Confirmation: 2025-10-13\r\nTasks Progress: 0/0 tasks completed\r\nCreated: 2025-10-12\r\n",
-      "metadata": {
-        "matterId": 15,
-        "organizationId": 4,
-        "organizationName": "Chloe Tang's Organization",
-        "status": "Planning",
-        "practiceArea": "Trusts",
-        "dueDate": "2025-10-13T00:00:00",
-        "tasksCompleted": 0,
-        "totalTasks": 0,
-        "assignees": [],
-        "clientGoals": null,
-        "legalRequirements": null
-      },
-      "created_at": "2025-10-12T23:27:42.2997617",
-      "modified_at": null,
-      "relevance_score": 0
-    },
-    {
-      "id": "8dc6697a-4de8-4e5c-8396-81639cb9c8af",
-      "module_name": "matters",
-      "entity_type": "Matter",
-      "entity_id": 14,
-      "title": "SLA II Partnership",
-      "content": "=== MATTER: SLA II Partnership ===\r\nMatter ID: 14\r\nClient/Organization: Chloe Tang's Organization\r\nStatus: In Progress\r\nEvent Type: Product Liability\r\nDescription: Second test of new SLA fixes for matter creation. Assignees should be properly assigned and Law Firm Partners should have access permissions to create new matters in client organizations.\r\nStart Date: 2025-10-12\r\nEvent Date: 2025-10-13\r\nFinal Payment Due: 2025-10-12\r\nVendor Confirmation: 2025-10-13\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - John Marshall (ResponsibleAttorney)\r\n  - John Marshall (OriginatingAttorney)\r\nCreated: 2025-10-12\r\n",
-      "metadata": {
-        "matterId": 14,
-        "organizationId": 4,
-        "organizationName": "Chloe Tang's Organization",
-        "status": "In Progress",
-        "practiceArea": "Product Liability",
-        "dueDate": "2025-10-13T00:00:00",
-        "tasksCompleted": 0,
-        "totalTasks": 0,
-        "assignees": [
-          "John Marshall",
-          "John Marshall"
-        ],
-        "clientGoals": null,
-        "legalRequirements": null
-      },
-      "created_at": "2025-10-12T23:06:45.952575",
-      "modified_at": null,
-      "relevance_score": 0
-    },
-    {
-      "id": "52a5ba95-d780-4d2c-8c1a-8eba96ef35d7",
+      "id": "4d1d8fdc-684f-4f4f-8d71-04d8d06af908",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 19,
       "title": "Second SLA IV Task",
-      "content": "Task: Second SLA IV Task\r\nStatus: Review\r\nPriority: Critical\r\nDescription: This is a test to check whether tasks can be created for a client organization within the law firm organization.\r\nRelated Matter: SLA IV Corporation\r\nEvent Date: 2025-12-31\r\nAssigned to: Kyle Wang, John Marshall\r\n",
+      "content": "Task: Second SLA IV Task\r\nStatus: Review\r\nPriority: Critical\r\nDescription: This is a test to check whether tasks can be created for a client organization within the law firm organization.\r\nRelated Matter: Chen Family Lunar New Year Celebration\r\nEvent Date: 2025-12-31\r\nAssigned to: Kyle Wang, John Marshall\r\n",
       "metadata": {
         "status": "Review",
         "priority": "Critical",
         "dueDate": "2025-12-31T16:09:00",
         "matterId": 16,
-        "matterTitle": "SLA IV Corporation",
+        "matterTitle": "Chen Family Lunar New Year Celebration",
         "assignees": [
           "Kyle Wang",
           "John Marshall"
@@ -280,18 +293,18 @@
       "relevance_score": 0
     },
     {
-      "id": "9f01eacf-bb4a-42ed-b2b1-de10c2e4eb9d",
+      "id": "29600901-5ee6-46d8-b4d2-9b0e12072fd7",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 15,
       "title": "Third Visible Matters Task",
-      "content": "Task: Third Visible Matters Task\r\nStatus: Review\r\nPriority: Critical\r\nDescription: The third Visible Matters task to check whether or not adding new matter-scoped tasks still works after UI polish.\r\nRelated Matter: Visible Matters Corporation\r\nEvent Date: 2025-10-10\r\nAssigned to: Kyle Wang\r\n",
+      "content": "Task: Third Visible Matters Task\r\nStatus: Review\r\nPriority: Critical\r\nDescription: The third Visible Matters task to check whether or not adding new matter-scoped tasks still works after UI polish.\r\nRelated Matter: Daniel & Jessie's Wedding\r\nEvent Date: 2025-10-10\r\nAssigned to: Kyle Wang\r\n",
       "metadata": {
         "status": "Review",
         "priority": "Critical",
         "dueDate": "2025-10-10T00:00:00",
         "matterId": 5,
-        "matterTitle": "Visible Matters Corporation",
+        "matterTitle": "Daniel & Jessie's Wedding",
         "assignees": [
           "Kyle Wang"
         ]
@@ -301,18 +314,18 @@
       "relevance_score": 0
     },
     {
-      "id": "b2596ebe-6fa1-4e93-9dae-25dc0fbdfd35",
+      "id": "da9d0f13-302e-4b3d-ad72-9061998f62c0",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 21,
       "title": "Internal Visible Matters Task",
-      "content": "Task: Internal Visible Matters Task\r\nStatus: Completed\r\nPriority: High\r\nDescription: First task testing internal matter-scoped task creation within Matter Details.\r\nRelated Matter: Visible Matters Corporation\r\nEvent Date: 2025-10-18\r\nAssigned to: Kyle Wang\r\n",
+      "content": "Task: Internal Visible Matters Task\r\nStatus: Completed\r\nPriority: High\r\nDescription: First task testing internal matter-scoped task creation within Matter Details.\r\nRelated Matter: Daniel & Jessie's Wedding\r\nEvent Date: 2025-10-18\r\nAssigned to: Kyle Wang\r\n",
       "metadata": {
         "status": "Completed",
         "priority": "High",
         "dueDate": "2025-10-18T00:00:00",
         "matterId": 5,
-        "matterTitle": "Visible Matters Corporation",
+        "matterTitle": "Daniel & Jessie's Wedding",
         "assignees": [
           "Kyle Wang"
         ]
@@ -322,18 +335,18 @@
       "relevance_score": 0
     },
     {
-      "id": "8044f463-2934-4d16-8800-5e79c9cab0d1",
+      "id": "3c9571f2-7095-4382-8279-82a2a9a7b42c",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 9,
       "title": "First Visible Matters Task",
-      "content": "Task: First Visible Matters Task\r\nStatus: Pending\r\nPriority: Critical\r\nDescription: Here's the first example Visible Matters task. Example revision.\r\nRelated Matter: Visible Matters Corporation\r\nEvent Date: 2025-10-08\r\nAssigned to: Kyle Wang, John Marshall\r\n",
+      "content": "Task: First Visible Matters Task\r\nStatus: Pending\r\nPriority: Critical\r\nDescription: Here's the first example Visible Matters task. Example revision.\r\nRelated Matter: Daniel & Jessie's Wedding\r\nEvent Date: 2025-10-08\r\nAssigned to: Kyle Wang, John Marshall\r\n",
       "metadata": {
         "status": "Pending",
         "priority": "Critical",
         "dueDate": "2025-10-08T00:00:00",
         "matterId": 5,
-        "matterTitle": "Visible Matters Corporation",
+        "matterTitle": "Daniel & Jessie's Wedding",
         "assignees": [
           "Kyle Wang",
           "John Marshall"
@@ -344,18 +357,18 @@
       "relevance_score": 0
     },
     {
-      "id": "20ab3c17-0c7f-40bc-adea-9096f111150a",
+      "id": "c70112af-d8c5-450a-bc87-62d26c0eb790",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 18,
       "title": "SLA IV Task",
-      "content": "Task: SLA IV Task\r\nStatus: Completed\r\nPriority: High\r\nDescription: Example task to check whether the task assignments work and also if the Subtasks get displayed properly.\r\nRelated Matter: SLA IV Corporation\r\nEvent Date: 2025-10-13\r\nAssigned to: Kyle Wang\r\n",
+      "content": "Task: SLA IV Task\r\nStatus: Completed\r\nPriority: High\r\nDescription: Example task to check whether the task assignments work and also if the Subtasks get displayed properly.\r\nRelated Matter: Chen Family Lunar New Year Celebration\r\nEvent Date: 2025-10-13\r\nAssigned to: Kyle Wang\r\n",
       "metadata": {
         "status": "Completed",
         "priority": "High",
         "dueDate": "2025-10-13T00:00:00",
         "matterId": 16,
-        "matterTitle": "SLA IV Corporation",
+        "matterTitle": "Chen Family Lunar New Year Celebration",
         "assignees": [
           "Kyle Wang"
         ]
@@ -365,18 +378,18 @@
       "relevance_score": 0
     },
     {
-      "id": "66e10aad-a0b0-425a-ac29-3e6d8d5773cf",
+      "id": "6339c1d0-797e-4c31-a586-0aac3c98aa9f",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 10,
       "title": "Second Visible Matters Task",
-      "content": "Task: Second Visible Matters Task\r\nStatus: InProgress\r\nPriority: Low\r\nDescription: This is the second Visible Matters task to test whether or not the pre-assignee permission system is implemented.\r\nRelated Matter: Visible Matters Corporation\r\nEvent Date: 2025-10-10\r\nAssigned to: Kyle Wang, Chloe Tang, John Marshall\r\n",
+      "content": "Task: Second Visible Matters Task\r\nStatus: InProgress\r\nPriority: Low\r\nDescription: This is the second Visible Matters task to test whether or not the pre-assignee permission system is implemented.\r\nRelated Matter: Daniel & Jessie's Wedding\r\nEvent Date: 2025-10-10\r\nAssigned to: Kyle Wang, Chloe Tang, John Marshall\r\n",
       "metadata": {
         "status": "InProgress",
         "priority": "Low",
         "dueDate": "2025-10-10T00:00:00",
         "matterId": 5,
-        "matterTitle": "Visible Matters Corporation",
+        "matterTitle": "Daniel & Jessie's Wedding",
         "assignees": [
           "Kyle Wang",
           "Chloe Tang",
@@ -388,7 +401,7 @@
       "relevance_score": 0
     },
     {
-      "id": "4d4f365c-5b85-453e-b70c-98ab2a1e5bb3",
+      "id": "fbfc9727-3f59-47e9-927c-996c5fed4668",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 17,
@@ -407,7 +420,7 @@
       "relevance_score": 0
     },
     {
-      "id": "c814eb0b-5f1a-467a-84e4-68b3fb98acbf",
+      "id": "c625f8b0-9383-4a63-8f8c-7e8ed07215b3",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 52,
@@ -430,7 +443,7 @@
       "relevance_score": 0
     },
     {
-      "id": "1df9630c-90d2-4610-a4c9-dd5c5a2b42fc",
+      "id": "d2403d1b-71ca-4b3d-9485-dcf973e8794e",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 56,
@@ -451,7 +464,7 @@
       "relevance_score": 0
     },
     {
-      "id": "a176acae-76af-4672-a427-6aa16380c23b",
+      "id": "3565181d-2818-4cab-9a0d-af106302426b",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 53,
@@ -472,7 +485,7 @@
       "relevance_score": 0
     },
     {
-      "id": "59ffb472-99c2-410a-8ed2-e29b98ac409d",
+      "id": "d0209813-376a-41a3-a613-40d74ea9c41b",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 54,
@@ -493,7 +506,7 @@
       "relevance_score": 0
     },
     {
-      "id": "c0ef2bb9-e1b5-4ebd-80d6-899d6dd3968f",
+      "id": "ca7f598a-bc54-4ea1-8cba-04709fa5a040",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 45,
@@ -516,7 +529,7 @@
       "relevance_score": 0
     },
     {
-      "id": "d927fb81-e265-4d74-a95f-80cb9fd11b1c",
+      "id": "84a717b7-aa4c-4a06-bdd2-5c0cebf3e3a4",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -535,7 +548,7 @@
       "relevance_score": 0
     },
     {
-      "id": "9f58afb2-79b6-46a7-a96c-8888bc8efc9c",
+      "id": "4b8072cd-b05c-4d64-be03-7815decbce16",
       "module_name": "clients",
       "entity_type": "User",
       "entity_id": 6,

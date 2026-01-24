@@ -119,14 +119,17 @@
                             @if (Model.Step != 1)
                             {
                                 <input type="hidden" asp-for="Title" />
-                                <input type="hidden" asp-for="Description" />
+                                <input type="hidden" asp-for="Location" />
+                                <input type="hidden" asp-for="StartDate" />
+                                <input type="hidden" asp-for="DueDate" />
                             }
                             @if (Model.Step != 2)
                             {
+                                <input type="hidden" asp-for="Description" />
                                 <input type="hidden" asp-for="PracticeArea" />
                                 <input type="hidden" asp-for="Status" />
-                                <input type="hidden" asp-for="StartDate" />
-                                <input type="hidden" asp-for="DueDate" />
+                                <input type="hidden" asp-for="GuestCount" />
+                                <input type="hidden" asp-for="Budget" />
                                 <input type="hidden" asp-for="PendingDate" />
                                 <input type="hidden" asp-for="StatuteOfLimitationsDate" />
                             }
@@ -176,7 +179,7 @@
                                     <div class="row">
                                         <div class="col-12 mb-4">
                                             <label asp-for="Title" class="form-label fw-bold text-dark">
-                                                @matterLabel Title <span class="text-danger">*</span>
+                                                Event Title <span class="text-danger">*</span>
                                             </label>
                                             <input asp-for="Title" class="form-control form-control-lg" 
                                                    placeholder="e.g., Contract Review Automation" />
@@ -184,10 +187,60 @@
                                         </div>
 
                                         <div class="col-12 mb-4">
-                                            <label asp-for="Description" class="form-label fw-bold text-dark">Description</label>
-                                            <textarea asp-for="Description" class="form-control" rows="4" 
-                                                      placeholder="Describe what this @matterLabel.ToLower() aims to accomplish..."></textarea>
-                                            <span asp-validation-for="Description" class="text-danger"></span>
+                                            <label class="form-label fw-bold text-dark">
+                                                <i class="fa-solid fa-calendar-day me-2" style="color: #3d1019;"></i>
+                                                Event Date & Time <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <label class="form-label text-muted small">Start</label>
+                                                    <input type="date" class="form-control mb-2" id="createEventStartDateInput"
+                                                           value="@(Model.StartDate?.ToString("yyyy-MM-dd") ?? "")" />
+                                                    <input type="time" class="form-control" id="createEventStartTimeInput"
+                                                           value="@(Model.StartDate?.ToString("HH:mm") ?? "")" />
+                                                    <input type="hidden" asp-for="StartDate" id="createEventStartDateValue" />
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <label class="form-label text-muted small">End</label>
+                                                    <input type="date" class="form-control mb-2" id="createEventEndDateInput"
+                                                           value="@(Model.DueDate?.ToString("yyyy-MM-dd") ?? "")" />
+                                                    <input type="time" class="form-control" id="createEventEndTimeInput"
+                                                           value="@(Model.DueDate?.ToString("HH:mm") ?? "")" />
+                                                    <input type="hidden" asp-for="DueDate" id="createEventEndDateValue" />
+                                                </div>
+                                            </div>
+                                            <span asp-validation-for="StartDate" class="text-danger"></span>
+                                        </div>
+
+                                        <div class="col-12 mb-4">
+                                            <label asp-for="Location" class="form-label fw-bold text-dark">
+                                                <i class="fas fa-map-marker-alt me-2" style="color: #3d1019;"></i>
+                                                Location <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="location-container" style="border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 0.75rem; background: #ffffff;">
+                                                <div class="location-search" style="position: relative;">
+                                                    <div class="search-input-group" style="position: relative;">
+                                                        <input asp-for="Location" class="form-control location-search-input" 
+                                                               id="createLocationSearchInput"
+                                                               placeholder="Start typing a location..." autocomplete="off" />
+                                                        <div class="search-loading-indicator" id="createSearchLoadingIndicator" style="display: none; position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%);">
+                                                            <i class="fas fa-spinner fa-spin"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="autocomplete-dropdown" id="createAutocompleteDropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); z-index: 1000; max-height: 300px; overflow-y: auto;">
+                                                        <ul class="autocomplete-list" id="createAutocompleteList" style="list-style: none; padding: 0.5rem 0; margin: 0;">
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                                <div class="map-container" id="createMapContainer" style="height: 160px; border-radius: 0.75rem; border: 1px dashed #e5e7eb; background: #f9fafb; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 0.75rem;">
+                                                    <div class="map-placeholder" style="text-align: center;">
+                                                        <i class="fas fa-map-marked-alt" style="font-size: 2.5rem; color: #d1d5db;"></i>
+                                                        <p class="text-muted mt-2 mb-0" id="createMapPlaceholderText">No location selected</p>
+                                                        <small class="text-muted">Search for a location to display it on the map</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <span asp-validation-for="Location" class="text-danger"></span>
                                         </div>
                                     </div>
 
@@ -211,6 +264,12 @@
                                     </div>
 
                                     <div class="row">
+                                        <div class="col-12 mb-4">
+                                            <label asp-for="Description" class="form-label fw-bold text-dark">Description</label>
+                                            <textarea asp-for="Description" class="form-control" rows="3" 
+                                                      placeholder="Describe what this @matterLabel.ToLower() aims to accomplish..."></textarea>
+                                            <span asp-validation-for="Description" class="text-danger"></span>
+                                        </div>
                                         <div class="col-md-6 mb-4">
                                             <label asp-for="Status" class="form-label fw-bold text-dark">
                                                 <i class="fas fa-clock me-2" style="color: #3d1019;"></i>
@@ -242,23 +301,26 @@
                                         </div>
 
                                         <div class="col-md-6 mb-4">
-                                            <label asp-for="StartDate" class="form-label fw-bold text-dark">
-                                                <i class="fas fa-calendar me-2" style="color: #3d1019;"></i>
-                                                Start Date
+                                            <label asp-for="GuestCount" class="form-label fw-bold text-dark">
+                                                <i class="fas fa-users me-2" style="color: #3d1019;"></i>
+                                                Guest Count
                                             </label>
-                                            <input asp-for="StartDate" type="date" class="form-control form-control-lg" 
-                                                   placeholder="Pick start date" />
-                                            <span asp-validation-for="StartDate" class="text-danger"></span>
+                                            <input asp-for="GuestCount" type="number" min="0" class="form-control form-control-lg" 
+                                                   placeholder="Enter guest count" />
+                                            <span asp-validation-for="GuestCount" class="text-danger"></span>
                                         </div>
 
                                         <div class="col-md-6 mb-4">
-                                            <label asp-for="DueDate" class="form-label fw-bold text-dark">
-                                                <i class="fas fa-calendar me-2" style="color: #3d1019;"></i>
-                                                Event Date
+                                            <label asp-for="Budget" class="form-label fw-bold text-dark">
+                                                <i class="fas fa-dollar-sign me-2" style="color: #3d1019;"></i>
+                                                Budget (optional)
                                             </label>
-                                            <input asp-for="DueDate" type="date" class="form-control form-control-lg" 
-                                                   placeholder="Pick event date" />
-                                            <span asp-validation-for="DueDate" class="text-danger"></span>
+                                            <div class="input-group input-group-lg">
+                                                <span class="input-group-text">$</span>
+                                                <input asp-for="Budget" type="number" min="0" step="0.01" class="form-control" 
+                                                       placeholder="Enter budget" />
+                                            </div>
+                                            <span asp-validation-for="Budget" class="text-danger"></span>
                                         </div>
 
                                         <div class="col-md-6 mb-4">
@@ -274,10 +336,10 @@
                                         <div class="col-md-6 mb-4">
                                             <label asp-for="StatuteOfLimitationsDate" class="form-label fw-bold text-dark">
                                                 <i class="fas fa-calendar me-2" style="color: #3d1019;"></i>
-                                                Vendor Confirmation Deadline
+                                                Final Confirmations Due <span class="text-danger">*</span>
                                             </label>
                                             <input asp-for="StatuteOfLimitationsDate" type="date" class="form-control form-control-lg" 
-                                                   placeholder="Pick vendor confirmation deadline" />
+                                                   placeholder="Pick confirmation deadline" />
                                             <span asp-validation-for="StatuteOfLimitationsDate" class="text-danger"></span>
                                         </div>
                                     </div>
@@ -564,9 +626,21 @@
                                                                 <div class="mb-2">
                                                                     <strong>Title:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.Title) ? "Not specified" : Model.Title)</span>
                                                                 </div>
-                                                                <div class="mb-0">
-                                                                    <strong>Description:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.Description) ? "Not specified" : Model.Description)</span>
-                                                                </div>
+                                                            <div class="mb-2">
+                                                                <strong>Description:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.Description) ? "Not specified" : Model.Description)</span>
+                                                            </div>
+                                                            <div class="mb-2">
+                                                                <strong>Location:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.Location) ? "Not specified" : Model.Location)</span>
+                                                            </div>
+                                                            <div class="mb-2">
+                                                                <strong>Event Date:</strong> <span class="text-muted">@(Model.StartDate?.ToString("MMM dd, yyyy") ?? "Not specified")</span>
+                                                            </div>
+                                                            <div class="mb-2">
+                                                                <strong>Start:</strong> <span class="text-muted">@(Model.StartDate?.ToString("h:mm tt") ?? "Not specified")</span>
+                                                            </div>
+                                                            <div class="mb-0">
+                                                                <strong>End:</strong> <span class="text-muted">@(Model.DueDate?.ToString("h:mm tt") ?? "Not specified")</span>
+                                                            </div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -591,14 +665,17 @@
                                                                     <strong>Status:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.Status) ? "Not specified" : Model.Status)</span>
                                                                 </div>
                                                                 <div class="mb-2">
-                                                                    <strong>Start Date:</strong> <span class="text-muted">@(Model.StartDate?.ToString("MMM dd, yyyy") ?? "Not specified")</span>
+                                                                <strong>Guest Count:</strong> <span class="text-muted">@(Model.GuestCount?.ToString() ?? "Not specified")</span>
                                                                 </div>
                                                                 <div class="mb-2">
-                                                                    <strong>Event Date:</strong> <span class="text-muted">@(Model.DueDate?.ToString("MMM dd, yyyy") ?? "Not specified")</span>
+                                                                <strong>Budget:</strong> <span class="text-muted">@(Model.Budget.HasValue ? Model.Budget.Value.ToString("C0") : "Not specified")</span>
                                                                 </div>
-                                                                <div class="mb-0">
-                                                                    <strong>Final Payment Due:</strong> <span class="text-muted">@(Model.PendingDate?.ToString("MMM dd, yyyy") ?? "Not specified")</span>
-                                                                </div>
+                                                            <div class="mb-2">
+                                                                <strong>Final Payment Due:</strong> <span class="text-muted">@(Model.PendingDate?.ToString("MMM dd, yyyy") ?? "Not specified")</span>
+                                                            </div>
+                                                            <div class="mb-0">
+                                                                <strong>Final Confirmations Due:</strong> <span class="text-muted">@(Model.StatuteOfLimitationsDate?.ToString("MMM dd, yyyy") ?? "Not specified")</span>
+                                                            </div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -844,7 +921,7 @@
                                 <div class="d-flex justify-content-between align-items-center text-muted small mb-2" style="font-size: 0.75rem;">
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-calendar me-1"></i>
-                                        <span class="due-date-text">@(Model.DueDate?.ToString("MMM dd, yyyy") ?? "No event date set")</span>
+                                        <span class="due-date-text">@(Model.StartDate?.ToString("MMM dd, yyyy") ?? "No event date set")</span>
                                     </div>
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-users me-1"></i>
@@ -1186,6 +1263,56 @@
 }
 
 @section Scripts {
+    @* Load Google Maps API for location search *@
+    @if (ViewBag.GoogleMapsEnabled == true && !string.IsNullOrEmpty(ViewBag.GoogleMapsApiKey as string))
+    {
+    <script>
+        (function() {
+            // Skip if already loaded or loading
+            if (window.google && google.maps && google.maps.places) {
+                window.googleMapsReady = true;
+                // Still call our init function if API already loaded
+                setTimeout(function() {
+                    if (typeof window.initializeCreateLocationSearch === 'function') {
+                        window.initializeCreateLocationSearch();
+                    }
+                }, 100);
+                return;
+            }
+            if (window.__googleMapsLoading) return;
+            
+            window.__googleMapsLoading = true;
+            
+            // Define callback for when Google Maps finishes loading
+            window.initGoogleMapsCreate = function() {
+                try {
+                    window.googleMapsReady = true;
+                    window.__googleMapsLoading = false;
+                    console.log('Google Maps API loaded for Create page');
+                    setTimeout(function() {
+                        if (typeof window.initializeCreateLocationSearch === 'function') {
+                            window.initializeCreateLocationSearch();
+                        }
+                    }, 100);
+                } catch (err) {
+                    console.error('Error in initGoogleMapsCreate:', err);
+                    window.__googleMapsLoading = false;
+                }
+            };
+            
+            // Dynamically inject script tag
+            const script = document.createElement('script');
+            script.src = 'https://maps.googleapis.com/maps/api/js?key=@ViewBag.GoogleMapsApiKey&libraries=places&callback=initGoogleMapsCreate';
+            script.async = true;
+            script.defer = true;
+            script.onerror = function() {
+                console.error('Failed to load Google Maps API');
+                window.__googleMapsLoading = false;
+            };
+            document.head.appendChild(script);
+        })();
+    </script>
+    }
     <script>
         // Real-time preview updates
         document.addEventListener('DOMContentLoaded', function() {
@@ -1195,12 +1322,15 @@
             let currentValues = {
                 title: @Html.Raw(Json.Serialize(Model.Title ?? "")),
                 description: @Html.Raw(Json.Serialize(Model.Description ?? "")),
+                location: @Html.Raw(Json.Serialize(Model.Location ?? "")),
                 category: @Html.Raw(Json.Serialize(Model.PracticeArea ?? "")),
                 status: @Html.Raw(Json.Serialize(Model.Status ?? "")),
-                dueDate: @Html.Raw(Json.Serialize(Model.DueDate?.ToString("yyyy-MM-dd") ?? "")),
-                startDate: @Html.Raw(Json.Serialize(Model.StartDate?.ToString("yyyy-MM-dd") ?? "")),
+                startDate: @Html.Raw(Json.Serialize(Model.StartDate?.ToString("yyyy-MM-ddTHH:mm") ?? "")),
+                dueDate: @Html.Raw(Json.Serialize(Model.DueDate?.ToString("yyyy-MM-ddTHH:mm") ?? "")),
                 pendingDate: @Html.Raw(Json.Serialize(Model.PendingDate?.ToString("yyyy-MM-dd") ?? "")),
                 statuteOfLimitationsDate: @Html.Raw(Json.Serialize(Model.StatuteOfLimitationsDate?.ToString("yyyy-MM-dd") ?? "")),
+                guestCount: @Html.Raw(Json.Serialize(Model.GuestCount?.ToString() ?? "")),
+                budget: @Html.Raw(Json.Serialize(Model.Budget?.ToString() ?? "")),
                 firmAssignments: @Html.Raw(Json.Serialize(Model.FirmAssignments
                     .Where(fa => fa.UserId.HasValue)
                     .Select(fa => new { 
@@ -1241,7 +1371,7 @@
                 updateStatusBadge(currentValues.status || 'Planning');
                 
                 // Update due date
-                updateDueDate(currentValues.dueDate);
+                updateDueDate(currentValues.startDate, currentValues.dueDate);
                 
                 // Update team avatar and assignees count
                 updateTeamAvatarAndAssignees();
@@ -1257,8 +1387,8 @@
                     // Clear Step 2 data when going back from Step 2 to Step 1
                     currentValues.category = '';
                     currentValues.status = '';
-                    currentValues.dueDate = '';
-                    currentValues.startDate = '';
+                    currentValues.guestCount = '';
+                    currentValues.budget = '';
                     currentValues.pendingDate = '';
                     currentValues.statuteOfLimitationsDate = '';
                 } else if (step === 3) {
@@ -1283,11 +1413,12 @@
                 }
             }
             
-            function updateDueDate(dueDate) {
+            function updateDueDate(startDate, dueDate) {
                 if (!previewDueDate) return;
-                
-                if (dueDate) {
-                    const date = new Date(dueDate);
+
+                const eventDateValue = startDate || dueDate;
+                if (eventDateValue) {
+                    const date = new Date(eventDateValue);
                     const formattedDate = date.toLocaleDateString('en-US', { 
                         year: 'numeric', 
                         month: 'short', 
@@ -1487,15 +1618,48 @@
             // Add event listeners for current step fields
             const titleInput = document.querySelector('input[name="Title"]');
             const descriptionInput = document.querySelector('textarea[name="Description"]');
+            const locationInput = document.querySelector('input[name="Location"]');
             const categorySelect = document.querySelector('select[name="PracticeArea"]');
             const statusSelect = document.querySelector('select[name="Status"]');
             const dueDateInput = document.querySelector('input[name="DueDate"]');
             const startDateInput = document.querySelector('input[name="StartDate"]');
             const pendingDateInput = document.querySelector('input[name="PendingDate"]');
             const statuteOfLimitationsDateInput = document.querySelector('input[name="StatuteOfLimitationsDate"]');
+            const guestCountInput = document.querySelector('input[name="GuestCount"]');
+            const budgetInput = document.querySelector('input[name="Budget"]');
             const firmAssignmentSelects = document.querySelectorAll('select.firm-assignment-select');
             const clientSelect = document.querySelector('select[name="ClientId"]');
             const teamSelect = document.querySelector('select[name="TeamId"]');
+            const createEventStartDateInput = document.getElementById('createEventStartDateInput');
+            const createEventStartTimeInput = document.getElementById('createEventStartTimeInput');
+            const createEventStartDateValue = document.getElementById('createEventStartDateValue');
+            const createEventEndDateInput = document.getElementById('createEventEndDateInput');
+            const createEventEndTimeInput = document.getElementById('createEventEndTimeInput');
+            const createEventEndDateValue = document.getElementById('createEventEndDateValue');
+
+            // Sync start date/time inputs to hidden field
+            function syncCreateStartDateTime() {
+                if (createEventStartDateInput && createEventStartDateValue) {
+                    const dateVal = createEventStartDateInput.value;
+                    const timeVal = createEventStartTimeInput?.value || '00:00';
+                    if (dateVal) {
+                        createEventStartDateValue.value = `${dateVal}T${timeVal}`;
+                        updateValue('startDate', createEventStartDateValue.value);
+                    }
+                }
+            }
+
+            // Sync end date/time inputs to hidden field
+            function syncCreateEndDateTime() {
+                if (createEventEndDateInput && createEventEndDateValue) {
+                    const dateVal = createEventEndDateInput.value;
+                    const timeVal = createEventEndTimeInput?.value || '00:00';
+                    if (dateVal) {
+                        createEventEndDateValue.value = `${dateVal}T${timeVal}`;
+                        updateValue('dueDate', createEventEndDateValue.value);
+                    }
+                }
+            }
             
             if (titleInput) {
                 titleInput.addEventListener('input', function() {
@@ -1506,6 +1670,12 @@
             if (descriptionInput) {
                 descriptionInput.addEventListener('input', function() {
                     updateValue('description', this.value);
+                });
+            }
+
+            if (locationInput) {
+                locationInput.addEventListener('input', function() {
+                    updateValue('location', this.value);
                 });
             }
             
@@ -1521,17 +1691,23 @@
                 });
             }
             
-            if (dueDateInput) {
-                dueDateInput.addEventListener('change', function() {
-                    updateValue('dueDate', this.value);
-                });
+            if (createEventStartDateInput) {
+                createEventStartDateInput.addEventListener('change', syncCreateStartDateTime);
+            }
+            if (createEventStartTimeInput) {
+                createEventStartTimeInput.addEventListener('change', syncCreateStartDateTime);
             }
             
-            if (startDateInput) {
-                startDateInput.addEventListener('change', function() {
-                    updateValue('startDate', this.value);
-                });
+            if (createEventEndDateInput) {
+                createEventEndDateInput.addEventListener('change', syncCreateEndDateTime);
             }
+            if (createEventEndTimeInput) {
+                createEventEndTimeInput.addEventListener('change', syncCreateEndDateTime);
+            }
+            
+            // Initial sync on page load
+            syncCreateStartDateTime();
+            syncCreateEndDateTime();
             
             if (pendingDateInput) {
                 pendingDateInput.addEventListener('change', function() {
@@ -1542,6 +1718,18 @@
             if (statuteOfLimitationsDateInput) {
                 statuteOfLimitationsDateInput.addEventListener('change', function() {
                     updateValue('statuteOfLimitationsDate', this.value);
+                });
+            }
+
+            if (guestCountInput) {
+                guestCountInput.addEventListener('input', function() {
+                    updateValue('guestCount', this.value);
+                });
+            }
+
+            if (budgetInput) {
+                budgetInput.addEventListener('input', function() {
+                    updateValue('budget', this.value);
                 });
             }
             
@@ -1642,7 +1830,198 @@
             }
             
             // Back button now posts with action=previous; client-side handler removed
+            
+            // Initialize Create Location Search with Google Places
+            initializeCreateLocationSearch();
         });
+
+        let createLocationSearchInitialized = false;
+        let createLocationJustSelected = false;
+        
+        function initializeCreateLocationSearch() {
+            if (createLocationSearchInitialized) return;
+            
+            const searchInput = document.getElementById('createLocationSearchInput');
+            const dropdown = document.getElementById('createAutocompleteDropdown');
+            const list = document.getElementById('createAutocompleteList');
+            const loadingIndicator = document.getElementById('createSearchLoadingIndicator');
+            const mapPlaceholderText = document.getElementById('createMapPlaceholderText');
+            const mapContainer = document.getElementById('createMapContainer');
+            
+            if (!searchInput) {
+                console.log('Create location search: input not found, retrying...');
+                setTimeout(initializeCreateLocationSearch, 500);
+                return;
+            }
+            
+            if (!window.google || !google.maps || !google.maps.places) {
+                console.log('Create location search: waiting for Google Maps API...');
+                setTimeout(initializeCreateLocationSearch, 500);
+                return;
+            }
+            
+            createLocationSearchInitialized = true;
+            console.log('Create location search initialized');
+
+            let typingTimeout = null;
+            let placesSessionToken = new google.maps.places.AutocompleteSessionToken();
+
+            searchInput.addEventListener('input', function() {
+                clearTimeout(typingTimeout);
+                
+                // Skip if we just selected a location
+                if (createLocationJustSelected) {
+                    createLocationJustSelected = false;
+                    return;
+                }
+                
+                const query = this.value.trim();
+                
+                if (query.length > 2) {
+                    typingTimeout = setTimeout(() => {
+                        showCreateAutocomplete(query);
+                    }, 300);
+                } else {
+                    dropdown.style.display = 'none';
+                }
+            });
+
+            // Hide dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.style.display = 'none';
+                }
+            });
+
+            function showCreateAutocomplete(query) {
+                if (!dropdown || !list) return;
+                loadingIndicator.style.display = 'block';
+
+                const service = new google.maps.places.AutocompleteService();
+                service.getPlacePredictions({
+                    input: query,
+                    types: ['establishment', 'geocode'],
+                    sessionToken: placesSessionToken
+                }, function(predictions, status) {
+                    loadingIndicator.style.display = 'none';
+                    
+                    if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
+                        list.innerHTML = '';
+                        predictions.slice(0, 5).forEach((prediction) => {
+                            const item = document.createElement('li');
+                            item.style.cssText = 'padding: 0.75rem 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.75rem;';
+                            item.addEventListener('mouseenter', () => item.style.backgroundColor = '#f3f4f6');
+                            item.addEventListener('mouseleave', () => item.style.backgroundColor = '');
+                            
+                            const description = prediction.description;
+                            const commaIndex = description.indexOf(', ');
+                            const primaryText = commaIndex > -1 ? description.substring(0, commaIndex) : description;
+                            const secondaryText = commaIndex > -1 ? description.substring(commaIndex + 2) : '';
+                            
+                            item.innerHTML = `
+                                <div style="color: #6b7280; font-size: 0.875rem;"><i class="fas fa-map-marker-alt"></i></div>
+                                <div style="flex: 1; overflow: hidden;">
+                                    <div style="font-weight: 500; color: #111827; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${primaryText}</div>
+                                    ${secondaryText ? `<div style="font-size: 0.75rem; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${secondaryText}</div>` : ''}
+                                </div>
+                            `;
+                            
+                            item.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                
+                                // Hide dropdown immediately
+                                dropdown.style.display = 'none';
+                                createLocationJustSelected = true;
+                                
+                                // Get place details to get geometry for map
+                                const placesService = new google.maps.places.PlacesService(document.createElement('div'));
+                                placesService.getDetails({
+                                    placeId: prediction.place_id,
+                                    fields: ['name', 'formatted_address', 'geometry'],
+                                    sessionToken: placesSessionToken
+                                }, function(place, detailStatus) {
+                                    if (detailStatus === google.maps.places.PlacesServiceStatus.OK && place) {
+                                        searchInput.value = prediction.description;
+                                        
+                                        // Load embedded map
+                                        loadCreateEmbeddedMap(place.geometry.location, place.name || 'Location', place.formatted_address);
+                                        
+                                        // Update preview
+                                        if (typeof updateValue === 'function') {
+                                            updateValue('location', prediction.description);
+                                        }
+                                    } else {
+                                        // Fallback: just update the text
+                                        searchInput.value = prediction.description;
+                                        if (mapPlaceholderText) {
+                                            mapPlaceholderText.textContent = prediction.description;
+                                        }
+                                        if (typeof updateValue === 'function') {
+                                            updateValue('location', prediction.description);
+                                        }
+                                    }
+                                });
+                                
+                                placesSessionToken = new google.maps.places.AutocompleteSessionToken();
+                            });
+                            
+                            list.appendChild(item);
+                        });
+                        dropdown.style.display = 'block';
+                    } else {
+                        dropdown.style.display = 'none';
+                    }
+                });
+            }
+
+            // Load embedded Google Map for Create
+            function loadCreateEmbeddedMap(location, name, address) {
+                if (!mapContainer) return;
+                
+                const locationStr = location.lat() + ',' + location.lng();
+                const encodedName = encodeURIComponent(name);
+                const encodedAddress = encodeURIComponent(address);
+                
+                const mapUrl = `https://maps.google.com/maps?q=${encodedName}|${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+                
+                mapContainer.innerHTML = `
+                    <iframe 
+                        style="width: 100%; height: 100%; border: none; border-radius: 0.75rem;"
+                        src="${mapUrl}"
+                        frameborder="0"
+                        allowfullscreen>
+                    </iframe>
+                `;
+            }
+            
+            // Load embedded map by address string (for pre-existing locations)
+            function loadCreateMapByAddress(address) {
+                if (!mapContainer || !address) return;
+                
+                const encodedAddress = encodeURIComponent(address);
+                const mapUrl = `https://maps.google.com/maps?q=${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+                
+                mapContainer.innerHTML = `
+                    <iframe 
+                        style="width: 100%; height: 100%; border: none; border-radius: 0.75rem;"
+                        src="${mapUrl}"
+                        frameborder="0"
+                        allowfullscreen>
+                    </iframe>
+                `;
+            }
+            
+            // Check for existing location and load map
+            const existingLocation = searchInput.value.trim();
+            if (existingLocation) {
+                console.log('Loading map for existing location:', existingLocation);
+                loadCreateMapByAddress(existingLocation);
+            }
+        }
+        
+        // Register the function globally so Google Maps callback can call it
+        window.initializeCreateLocationSearch = initializeCreateLocationSearch;
 
         // Relevant Contacts Management
         if (@Model.Step === 3) {
