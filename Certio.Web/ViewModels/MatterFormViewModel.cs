@@ -13,9 +13,18 @@ namespace Certio.Web.ViewModels
         
         [StringLength(1000, ErrorMessage = "Description cannot exceed 1000 characters")]
         public string Description { get; set; } = "";
+
+        [StringLength(300, ErrorMessage = "Location cannot exceed 300 characters")]
+        public string Location { get; set; } = "";
         
         [StringLength(100, ErrorMessage = "Event Type cannot exceed 100 characters")]
         public string PracticeArea { get; set; } = "";
+
+        [Range(0, 1000000, ErrorMessage = "Guest count must be between 0 and 1,000,000")]
+        public int? GuestCount { get; set; }
+
+        [Range(0, 1000000000, ErrorMessage = "Budget must be a positive value")]
+        public decimal? Budget { get; set; }
         
         // Step 2: Matter Settings
         [StringLength(50, ErrorMessage = "Status cannot exceed 50 characters")]

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Certio.Domain.Teams;
 using Certio.Domain.Users;
 using Certio.Domain.Services;
@@ -15,6 +16,9 @@ public class Matter
     
     [StringLength(1000)]
     public string Description { get; set; } = "";
+
+    [StringLength(300)]
+    public string Location { get; set; } = "";
     
     [Required]
     [StringLength(50)]
@@ -22,6 +26,11 @@ public class Matter
     
     [StringLength(100)]
     public string PracticeArea { get; set; } = ""; // Contract Review, LLC Formation, Real Estate, etc.
+
+    public int? GuestCount { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? Budget { get; set; }
     
     [StringLength(20)]
     public string AccessLevel { get; set; } = ""; // Everyone, Specific

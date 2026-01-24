@@ -103,13 +103,7 @@
             <div class="d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center gap-3">
                     <div class="matter-icon-badge">
-                        @{
-                            var initials = Model.Matter.Title.Split(' ')
-                                .Take(2)
-                                .Select(w => w.Length > 0 ? w[0].ToString().ToUpper() : "")
-                                .Aggregate((a, b) => a + b);
-                        }
-                        @initials
+                        @GetMatterInitials(Model.Matter.Title)
                     </div>
                     <div>
                         <h1 class="matter-title mb-1">@Model.Matter.Title</h1>
@@ -281,17 +275,70 @@
                                                                value="@Model.Matter.Title" 
                                                                style="font-size: 0.9rem;" />
                                                     </div>
-                                                    <div class="col-12 mb-3">
-                                                        <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">Description</label>
-                                                        <textarea class="form-control matter-carousel-input" 
-                                                                  data-field="description" 
-                                                                  rows="4" 
-                                                                  style="font-size: 0.9rem;">@Model.Matter.Description</textarea>
+                                                    <div class="col-12 mb-2">
+                                                        <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
+                                                            <i class="fa-solid fa-calendar-day me-2" style="color: #3d1019;"></i>
+                                                            Event Date & Time <span class="text-danger">*</span>
+                                                        </label>
+                                                        <div class="row">
+                                                            <div class="col-md-6 mb-2" style="padding-left:0;">
+                                                                <label class="form-label text-muted small">Start</label>
+                                                                <input type="date" class="form-control mb-2" id="eventStartDateInput"
+                                                                       value="@(Model.Matter.StartDate?.ToString("yyyy-MM-dd") ?? "")"
+                                                                       style="font-size: 0.9rem;" />
+                                                                <input type="time" class="form-control" id="eventStartTimeInput"
+                                                                       value="@(Model.Matter.StartDate?.ToString("HH:mm") ?? "")"
+                                                                       style="font-size: 0.9rem;" />
+                                                                <input type="hidden" class="matter-carousel-input" data-field="startDate" id="eventStartDateValue"
+                                                                       value="@(Model.Matter.StartDate?.ToString("yyyy-MM-ddTHH:mm") ?? "")" />
+                                                            </div>
+                                                            <div class="col-md-6 mb-2" style="padding-right:0;">
+                                                                <label class="form-label text-muted small">End</label>
+                                                                <input type="date" class="form-control mb-2" id="eventEndDateInput"
+                                                                       value="@(Model.Matter.DueDate?.ToString("yyyy-MM-dd") ?? "")"
+                                                                       style="font-size: 0.9rem;" />
+                                                                <input type="time" class="form-control" id="eventEndTimeInput"
+                                                                       value="@(Model.Matter.DueDate?.ToString("HH:mm") ?? "")"
+                                                                       style="font-size: 0.9rem;" />
+                                                                <input type="hidden" class="matter-carousel-input" data-field="dueDate" id="eventEndDateValue"
+                                                                       value="@(Model.Matter.DueDate?.ToString("yyyy-MM-ddTHH:mm") ?? "")" />
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                        <div class="row small text-muted" style="padding: 0rem;">
+                                                    <div class="col-12 mb-3">
+                                                        <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
+                                                            <i class="fas fa-map-marker-alt me-2" style="color: #3d1019;"></i>
+                                                            Location <span class="text-danger">*</span>
+                                                        </label>
+                                                        <div class="location-container" style="border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 0.75rem; background: #ffffff;">
+                                                            <div class="location-search" style="position: relative;">
+                                                                <div class="search-input-group" style="position: relative;">
+                                                                    <input type="text" class="form-control matter-carousel-input location-search-input" 
+                                                                           data-field="location"
+                                                                           id="matterLocationSearchInput"
+                                                                           value="@Model.Matter.Location"
+                                                                           placeholder="Start typing a location..." 
+                                                                           autocomplete="off"
+                                                                           style="font-size: 0.9rem;" />
+                                                                    <div class="search-loading-indicator" id="matterSearchLoadingIndicator" style="display: none; position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%);">
+                                                                        <i class="fas fa-spinner fa-spin"></i>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="autocomplete-dropdown" id="matterAutocompleteDropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); z-index: 1000; max-height: 300px; overflow-y: auto;">
+                                                                    <ul class="autocomplete-list" id="matterAutocompleteList" style="list-style: none; padding: 0.5rem 0; margin: 0;">
+                                                                    </ul>
+                                                                </div>
+                                                            </div>
+                                                            <div class="map-container" id="matterMapContainer" style="height: 140px; border-radius: 0.75rem; border: 1px dashed #e5e7eb; background: #f9fafb; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 0.75rem;">
+                                                                <div class="map-placeholder" style="text-align: center;">
+                                                                    <i class="fas fa-map-marked-alt" style="font-size: 2rem; color: #d1d5db;"></i>
+                                                                    <p class="text-muted mt-2 mb-0" style="font-size: 0.8rem;" id="matterMapPlaceholderText">@(string.IsNullOrEmpty(Model.Matter.Location) ? "No location selected" : Model.Matter.Location)</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row small text-muted" style="padding: 0rem;">
                                                         <div class="col-md-6 mb-2"><strong class="text-dark">Created:</strong> @Model.Matter.CreatedAt.ToString("MMM dd, yyyy")</div>
-                                                        <div class="col-md-6 mb-2"><strong class="text-dark">Event Date:</strong> @(Model.Matter.DueDate?.ToString("MMM dd, yyyy") ?? "Not specified")</div>
-                                                        <div class="col-md-6 mb-2"><strong class="text-dark">Vendor Confirmation:</strong> @(Model.Matter.StatuteOfLimitationsDate?.ToString("MMM dd, yyyy") ?? "Not specified")</div>
                                                         <div class="col-md-6 mb-2"><strong class="text-dark">Last Updated:</strong> @(Model.Matter.LastModifiedDate?.ToString("MMM dd, yyyy") ?? Model.Matter.CreatedAt.ToString("MMM dd, yyyy"))</div>
                                                     </div>
                                                 </div>
@@ -309,6 +356,13 @@
                                             </div>
                                             <div class="container-fluid px-0">
                                                 <div class="row">
+                                                    <div class="col-12 mb-3">
+                                                        <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">Description</label>
+                                                        <textarea class="form-control matter-carousel-input" 
+                                                                  data-field="description" 
+                                                                  rows="3" 
+                                                                  style="font-size: 0.9rem;">@Model.Matter.Description</textarea>
+                                                    </div>
                                                     <div class="col-md-6 mb-3">
                                                         <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
                                                             <i class="fas fa-clock me-2" style="color: #3d1019;"></i>
@@ -355,23 +409,27 @@
                                                     </div>
                                                     <div class="col-md-6 mb-3">
                                                         <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
-                                                            <i class="fas fa-calendar me-2" style="color: #3d1019;"></i>
-                                                            Start Date
+                                                            <i class="fas fa-users me-2" style="color: #3d1019;"></i>
+                                                            Guest Count
                                                         </label>
-                                                        <input type="date" class="form-control form-control-lg matter-carousel-input" 
-                                                               data-field="startDate" 
-                                                               value="@(Model.Matter.StartDate?.ToString("yyyy-MM-dd"))" 
+                                                        <input type="number" class="form-control form-control-lg matter-carousel-input" 
+                                                               data-field="guestCount" 
+                                                               value="@(Model.Matter.GuestCount?.ToString() ?? "")" 
                                                                style="font-size: 0.9rem;" />
                                                     </div>
                                                     <div class="col-md-6 mb-3">
                                                         <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
-                                                            <i class="fas fa-calendar me-2" style="color: #3d1019;"></i>
-                                                            Event Date
+                                                            <i class="fas fa-dollar-sign me-2" style="color: #3d1019;"></i>
+                                                            Budget (optional)
                                                         </label>
-                                                        <input type="date" class="form-control form-control-lg matter-carousel-input" 
-                                                               data-field="dueDate" 
-                                                               value="@(Model.Matter.DueDate?.ToString("yyyy-MM-dd"))" 
-                                                               style="font-size: 0.9rem;" />
+                                                        <div class="input-group input-group-lg">
+                                                            <span class="input-group-text">$</span>
+                                                            <input type="number" class="form-control matter-carousel-input" 
+                                                                   data-field="budget" 
+                                                                   value="@(Model.Matter.Budget?.ToString("0.##") ?? "")" 
+                                                                   step="0.01"
+                                                                   style="font-size: 0.9rem;" />
+                                                        </div>
                                                     </div>
                                                     <div class="col-md-6 mb-3">
                                                         <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
@@ -386,7 +444,7 @@
                                                     <div class="col-md-6 mb-3">
                                                         <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
                                                             <i class="fas fa-calendar me-2" style="color: #3d1019;"></i>
-                                                            Vendor Confirmation Deadline
+                                                            Final Confirmations Due
                                                         </label>
                                                         <input type="date" class="form-control form-control-lg matter-carousel-input" 
                                                                data-field="statuteOfLimitationsDate" 
@@ -1346,8 +1404,10 @@
                                     }
                                     else
                                     {
-                                            <div class="text-center py-3">
-                                                <p class="text-muted small mb-0">No change notices yet</p>
+                                            <div class="text-center py-5 text-muted" style="border: 1px dashed #e5e7eb; border-radius: 12px; background: #fff;">
+                                                <i class="fa-solid fa-bullhorn mb-2" style="font-size: 1.5rem;"></i>
+                                                <div style="font-weight: 600;">No action notices</div>
+                                                <div style="font-size: 0.875rem;">Create a notice to see it listed here.</div>
                                             </div>
                                         }
                                         </div>
@@ -1782,6 +1842,61 @@
     <script src="~/js/matter-details.js"></script>
     <script src="~/js/matter-info-carousel.js"></script>
     <script src="~/js/change-control.js" asp-append-version="true"></script>
+    @* Load Google Maps API for location search in Matter Details *@
+    @if (ViewBag.GoogleMapsEnabled == true && !string.IsNullOrEmpty(ViewBag.GoogleMapsApiKey as string))
+    {
+    <script>
+        (function() {
+            // Skip if already loaded or loading
+            if (window.google && google.maps && google.maps.places) {
+                window.googleMapsReady = true;
+                // Still call init function if API already loaded
+                setTimeout(function() {
+                    if (typeof window.initializeMatterLocationSearch === 'function') {
+                        window.initializeMatterLocationSearch();
+                    }
+                }, 100);
+                return;
+            }
+            if (window.__googleMapsLoading) return;
+            
+            window.__googleMapsLoading = true;
+            
+            // Define callback for when Google Maps finishes loading
+            window.initGoogleMapsDetails = function() {
+                try {
+                    window.googleMapsReady = true;
+                    window.__googleMapsLoading = false;
+                    console.log('Google Maps API loaded for Matter Details');
+                    setTimeout(function() {
+                        // Initialize Matter Details location search
+                        if (typeof window.initializeMatterLocationSearch === 'function') {
+                            window.initializeMatterLocationSearch();
+                        }
+                        // Also call tasks location search if it exists
+                        if (typeof window.initializeLocationSearch === 'function') {
+                            window.initializeLocationSearch();
+                        }
+                    }, 100);
+                } catch (err) {
+                    console.error('Error in initGoogleMapsDetails:', err);
+                    window.__googleMapsLoading = false;
+                }
+            };
+            
+            // Dynamically inject script tag
+            const script = document.createElement('script');
+            script.src = 'https://maps.googleapis.com/maps/api/js?key=@ViewBag.GoogleMapsApiKey&libraries=places&callback=initGoogleMapsDetails';
+            script.async = true;
+            script.defer = true;
+            script.onerror = function() {
+                console.error('Failed to load Google Maps API');
+                window.__googleMapsLoading = false;
+            };
+            document.head.appendChild(script);
+        })();
+    </script>
+    }
     <script>
         const matterId = @Model.Matter.Id;
         const organizationId = @ViewBag.OrganizationId;
@@ -1794,10 +1909,13 @@
         const originalValues = {
             title: '@Html.Raw(Model.Matter.Title.Replace("'", "\\'"))',
             description: '@Html.Raw((Model.Matter.Description ?? "").Replace("'", "\\'"))',
+            location: '@Html.Raw((Model.Matter.Location ?? "").Replace("'", "\\'"))',
             status: '@Model.Matter.Status',
             practiceArea: '@Model.Matter.PracticeArea',
-            startDate: '@(Model.Matter.StartDate?.ToString("yyyy-MM-dd") ?? "")',
-            dueDate: '@(Model.Matter.DueDate?.ToString("yyyy-MM-dd") ?? "")',
+            guestCount: '@(Model.Matter.GuestCount?.ToString() ?? "")',
+            budget: '@(Model.Matter.Budget?.ToString("0.##") ?? "")',
+            startDate: '@(Model.Matter.StartDate?.ToString("yyyy-MM-ddTHH:mm") ?? "")',
+            dueDate: '@(Model.Matter.DueDate?.ToString("yyyy-MM-ddTHH:mm") ?? "")',
             pendingDate: '@(Model.Matter.PendingDate?.ToString("yyyy-MM-dd") ?? "")',
             statuteOfLimitationsDate: '@(Model.Matter.StatuteOfLimitationsDate?.ToString("yyyy-MM-dd") ?? "")'
         };
@@ -1840,10 +1958,258 @@
         // Initialize on DOMContentLoaded or immediately if already loaded
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initializeCarouselInputs);
+            document.addEventListener('DOMContentLoaded', initializeEventDateTimeInputs);
         } else {
             // DOM is already loaded, run initialization immediately
             initializeCarouselInputs();
+            initializeEventDateTimeInputs();
         }
+
+        // Sync separate date/time inputs to hidden datetime values
+        function initializeEventDateTimeInputs() {
+            const startDateInput = document.getElementById('eventStartDateInput');
+            const startTimeInput = document.getElementById('eventStartTimeInput');
+            const startDateValue = document.getElementById('eventStartDateValue');
+            const endDateInput = document.getElementById('eventEndDateInput');
+            const endTimeInput = document.getElementById('eventEndTimeInput');
+            const endDateValue = document.getElementById('eventEndDateValue');
+
+            function syncStartDateTime() {
+                if (startDateInput && startTimeInput && startDateValue) {
+                    const dateVal = startDateInput.value;
+                    const timeVal = startTimeInput.value || '00:00';
+                    if (dateVal) {
+                        startDateValue.value = `${dateVal}T${timeVal}`;
+                        startDateValue.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                }
+            }
+
+            function syncEndDateTime() {
+                if (endDateInput && endTimeInput && endDateValue) {
+                    const dateVal = endDateInput.value;
+                    const timeVal = endTimeInput.value || '00:00';
+                    if (dateVal) {
+                        endDateValue.value = `${dateVal}T${timeVal}`;
+                        endDateValue.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                }
+            }
+
+            if (startDateInput) startDateInput.addEventListener('change', syncStartDateTime);
+            if (startTimeInput) startTimeInput.addEventListener('change', syncStartDateTime);
+            if (endDateInput) endDateInput.addEventListener('change', syncEndDateTime);
+            if (endTimeInput) endTimeInput.addEventListener('change', syncEndDateTime);
+        }
+
+        // Initialize Matter Location Search with Google Places
+        let matterLocationSearchInitialized = false;
+        let matterLocationJustSelected = false; // Flag to prevent showing dropdown after selection
+        
+        function initializeMatterLocationSearch() {
+            if (matterLocationSearchInitialized) return;
+            
+            const searchInput = document.getElementById('matterLocationSearchInput');
+            const dropdown = document.getElementById('matterAutocompleteDropdown');
+            const list = document.getElementById('matterAutocompleteList');
+            const loadingIndicator = document.getElementById('matterSearchLoadingIndicator');
+            const mapContainer = document.getElementById('matterMapContainer');
+            
+            if (!searchInput) {
+                console.log('Matter location search: input not found, retrying...');
+                setTimeout(initializeMatterLocationSearch, 500);
+                return;
+            }
+            
+            if (!window.google || !google.maps || !google.maps.places) {
+                console.log('Matter location search: waiting for Google Maps API...');
+                setTimeout(initializeMatterLocationSearch, 500);
+                return;
+            }
+            
+            matterLocationSearchInitialized = true;
+            console.log('Matter location search initialized');
+
+            let typingTimeout = null;
+            let placesSessionToken = new google.maps.places.AutocompleteSessionToken();
+
+            searchInput.addEventListener('input', function() {
+                clearTimeout(typingTimeout);
+                
+                // Skip if we just selected a location
+                if (matterLocationJustSelected) {
+                    matterLocationJustSelected = false;
+                    return;
+                }
+                
+                const query = this.value.trim();
+                
+                if (query.length > 2) {
+                    typingTimeout = setTimeout(() => {
+                        showMatterAutocomplete(query);
+                    }, 300);
+                } else {
+                    dropdown.style.display = 'none';
+                }
+            });
+
+            // Hide dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.style.display = 'none';
+                }
+            });
+
+            function showMatterAutocomplete(query) {
+                if (!dropdown || !list) return;
+                loadingIndicator.style.display = 'block';
+
+                const service = new google.maps.places.AutocompleteService();
+                service.getPlacePredictions({
+                    input: query,
+                    types: ['establishment', 'geocode'],
+                    sessionToken: placesSessionToken
+                }, function(predictions, status) {
+                    loadingIndicator.style.display = 'none';
+                    
+                    if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
+                        list.innerHTML = '';
+                        predictions.slice(0, 5).forEach((prediction) => {
+                            const item = document.createElement('li');
+                            item.style.cssText = 'padding: 0.75rem 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.75rem;';
+                            item.addEventListener('mouseenter', () => item.style.backgroundColor = '#f3f4f6');
+                            item.addEventListener('mouseleave', () => item.style.backgroundColor = '');
+                            
+                            const description = prediction.description;
+                            const commaIndex = description.indexOf(', ');
+                            const primaryText = commaIndex > -1 ? description.substring(0, commaIndex) : description;
+                            const secondaryText = commaIndex > -1 ? description.substring(commaIndex + 2) : '';
+                            
+                            item.innerHTML = `
+                                <div style="color: #6b7280; font-size: 0.875rem;"><i class="fas fa-map-marker-alt"></i></div>
+                                <div style="flex: 1; overflow: hidden;">
+                                    <div style="font-weight: 500; color: #111827; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${primaryText}</div>
+                                    ${secondaryText ? `<div style="font-size: 0.75rem; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${secondaryText}</div>` : ''}
+                                </div>
+                            `;
+                            
+                            item.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                
+                                // Hide dropdown immediately
+                                dropdown.style.display = 'none';
+                                matterLocationJustSelected = true;
+                                
+                                // Get place details to get geometry for map
+                                const placesService = new google.maps.places.PlacesService(document.createElement('div'));
+                                placesService.getDetails({
+                                    placeId: prediction.place_id,
+                                    fields: ['name', 'formatted_address', 'geometry'],
+                                    sessionToken: placesSessionToken
+                                }, function(place, detailStatus) {
+                                    if (detailStatus === google.maps.places.PlacesServiceStatus.OK && place) {
+                                        searchInput.value = prediction.description;
+                                        searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+                                        
+                                        // Load embedded map
+                                        loadMatterEmbeddedMap(place.geometry.location, place.name || 'Location', place.formatted_address);
+                                    } else {
+                                        // Fallback: just update the text
+                                        searchInput.value = prediction.description;
+                                        searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+                                        const mapPlaceholder = document.getElementById('matterMapPlaceholderText');
+                                        if (mapPlaceholder) {
+                                            mapPlaceholder.textContent = prediction.description;
+                                        }
+                                    }
+                                });
+                                
+                                placesSessionToken = new google.maps.places.AutocompleteSessionToken();
+                            });
+                            
+                            list.appendChild(item);
+                        });
+                        dropdown.style.display = 'block';
+                    } else {
+                        dropdown.style.display = 'none';
+                    }
+                });
+            }
+
+            // Load embedded Google Map for Matter
+            function loadMatterEmbeddedMap(location, name, address) {
+                if (!mapContainer) return;
+                
+                const locationStr = location.lat() + ',' + location.lng();
+                const encodedName = encodeURIComponent(name);
+                const encodedAddress = encodeURIComponent(address);
+                
+                const mapUrl = `https://maps.google.com/maps?q=${encodedName}|${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+                
+                mapContainer.innerHTML = `
+                    <iframe 
+                        style="width: 100%; height: 100%; border: none; border-radius: 0.75rem;"
+                        src="${mapUrl}"
+                        frameborder="0"
+                        allowfullscreen>
+                    </iframe>
+                `;
+            }
+            
+            // Load embedded map by address string (for pre-existing locations)
+            function loadMatterMapByAddress(address) {
+                if (!mapContainer || !address) return;
+                
+                const encodedAddress = encodeURIComponent(address);
+                const mapUrl = `https://maps.google.com/maps?q=${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+                
+                mapContainer.innerHTML = `
+                    <iframe 
+                        style="width: 100%; height: 100%; border: none; border-radius: 0.75rem;"
+                        src="${mapUrl}"
+                        frameborder="0"
+                        allowfullscreen>
+                    </iframe>
+                `;
+            }
+            
+            // Check for existing location and load map
+            const existingLocation = searchInput.value.trim();
+            if (existingLocation) {
+                console.log('Loading map for existing location:', existingLocation);
+                loadMatterMapByAddress(existingLocation);
+            }
+        }
+
+        // Register this function globally so it can be called when Google Maps is ready
+        window.initializeMatterLocationSearch = initializeMatterLocationSearch;
+        
+        // Initialize location search when Google Maps is ready
+        function tryInitMatterLocationSearch() {
+            // Check if Google Maps is already loaded and ready
+            if (window.googleMapsReady && window.google && google.maps && google.maps.places) {
+                console.log('Google Maps already ready, initializing Matter location search');
+                initializeMatterLocationSearch();
+            } else if (window.google && google.maps && google.maps.places) {
+                // Google Maps is loaded but googleMapsReady flag might not be set
+                console.log('Google Maps API available, initializing Matter location search');
+                initializeMatterLocationSearch();
+            } else {
+                console.log('Waiting for Google Maps API...');
+                setTimeout(tryInitMatterLocationSearch, 500);
+            }
+        }
+        
+        // Try initialization immediately
+        tryInitMatterLocationSearch();
+        
+        // Also reinitialize when carousel slides to ensure it works
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.carousel-nav-btn') || e.target.closest('.carousel-indicator')) {
+                setTimeout(initializeMatterLocationSearch, 100);
+            }
+        });
 
         // Function to show save indicator
         function showSaveIndicator() {
@@ -1939,6 +2305,14 @@
                             updatePayload[field] = null;
                         }
                     });
+
+                    if (updatePayload.guestCount !== undefined) {
+                        updatePayload.guestCount = updatePayload.guestCount === '' ? null : parseInt(updatePayload.guestCount, 10);
+                    }
+
+                    if (updatePayload.budget !== undefined) {
+                        updatePayload.budget = updatePayload.budget === '' ? null : parseFloat(updatePayload.budget);
+                    }
                     
                     const updateResponse = await fetch(`/Client/${organizationId}/Matter/${matterId}`, {
                         method: 'PUT',
@@ -2506,9 +2880,11 @@
             let matterEventDate = null;
 
             // Parse the matter's event date
+            const matterStartDateStr = '@(Model.Matter.StartDate?.ToString("yyyy-MM-dd") ?? "")';
             const matterDueDateStr = '@(Model.Matter.DueDate?.ToString("yyyy-MM-dd") ?? "")';
-            if (matterDueDateStr) {
-                matterEventDate = new Date(matterDueDateStr + 'T00:00:00');
+            const matterEventDateStr = matterStartDateStr || matterDueDateStr;
+            if (matterEventDateStr) {
+                matterEventDate = new Date(matterEventDateStr + 'T00:00:00');
             }
 
             function initTimeline() {
@@ -2879,6 +3255,34 @@
             "Planning" => "fas fa-clock text-muted",
             _ => "fas fa-clock text-muted"
         };
+    }
+
+    string GetMatterInitials(string title)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            return string.Empty;
+        }
+
+        var initials = new List<char>(2);
+        var parts = title.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+        foreach (var part in parts)
+        {
+            var cleaned = part.Replace("&", string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(cleaned))
+            {
+                continue;
+            }
+
+            initials.Add(char.ToUpperInvariant(cleaned[0]));
+            if (initials.Count == 2)
+            {
+                break;
+            }
+        }
+
+        return new string(initials.ToArray());
     }
 }
 

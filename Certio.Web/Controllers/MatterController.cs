@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Options;
 using Certio.Web.ViewModels;
+using Certio.Web.Configuration;
 using Certio.Domain.Matters;
 using Certio.Domain.Users;
 using Certio.Infrastructure.Data;
@@ -20,6 +22,7 @@ namespace Certio.Web.Controllers
         private readonly IMatterService _matterService;
         private readonly IFirmRelationshipCacheService _firmRelationshipCache;
         private readonly IChangeNoticeService _changeNoticeService;
+        private readonly GoogleMapsConfiguration _googleMapsConfig;
         private readonly ILogger<MatterController> _logger;
 
         public MatterController(
@@ -27,12 +30,14 @@ namespace Certio.Web.Controllers
             IMatterService matterService,
             IFirmRelationshipCacheService firmRelationshipCache,
             IChangeNoticeService changeNoticeService,
+            IOptions<GoogleMapsConfiguration> googleMapsConfig,
             ILogger<MatterController> logger)
         {
             _context = context;
             _matterService = matterService;
             _firmRelationshipCache = firmRelationshipCache;
             _changeNoticeService = changeNoticeService;
+            _googleMapsConfig = googleMapsConfig.Value;
             _logger = logger;
         }
 
@@ -106,8 +111,11 @@ namespace Certio.Web.Controllers
                 Id = dto.Id,
                 Title = dto.Title,
                 Description = dto.Description,
+                Location = dto.Location,
                 Status = dto.Status,
                 PracticeArea = dto.PracticeArea,
+                GuestCount = dto.GuestCount,
+                Budget = dto.Budget,
                 AccessLevel = dto.AccessLevel,
                 OrganizationId = dto.OrganizationId,
                 TeamId = dto.TeamId,
@@ -233,8 +241,11 @@ namespace Certio.Web.Controllers
                 Id = dto.Id,
                 Title = dto.Title,
                 Description = dto.Description,
+                Location = dto.Location,
                 Status = dto.Status,
                 PracticeArea = dto.PracticeArea,
+                GuestCount = dto.GuestCount,
+                Budget = dto.Budget,
                 AccessLevel = dto.AccessLevel,
                 OrganizationId = dto.OrganizationId,
                 TeamId = dto.TeamId,
@@ -341,6 +352,10 @@ namespace Certio.Web.Controllers
             viewModel.ChangeControlSummary = await _changeNoticeService.GetSummaryAsync(orgId, id.Value);
 
             ViewBag.RouteOrganizationId = orgId; // Keep route org for navigation/breadcrumbs if needed
+            
+            // Google Maps API for location search
+            ViewBag.GoogleMapsApiKey = _googleMapsConfig.ApiKey;
+            ViewBag.GoogleMapsEnabled = _googleMapsConfig.Enabled;
                         
             // Add Status and PracticeArea options for dropdowns
             ViewBag.Statuses = new List<string>
@@ -430,6 +445,10 @@ namespace Certio.Web.Controllers
                 .FirstOrDefaultAsync(o => o.Id == orgId);
             
             SetViewContext(user, orgId, organization?.Name, organization);
+            
+            // Google Maps API for location search
+            ViewBag.GoogleMapsApiKey = _googleMapsConfig.ApiKey;
+            ViewBag.GoogleMapsEnabled = _googleMapsConfig.Enabled;
 
             var viewModel = new MatterFormViewModel();
             await PopulateOrgMembersData(viewModel);
@@ -462,6 +481,10 @@ namespace Certio.Web.Controllers
                 .FirstOrDefaultAsync(o => o.Id == orgId);
             
             SetViewContext(user, orgId, organization?.Name, organization);
+            
+            // Google Maps API for location search (needed if view is re-rendered)
+            ViewBag.GoogleMapsApiKey = _googleMapsConfig.ApiKey;
+            ViewBag.GoogleMapsEnabled = _googleMapsConfig.Enabled;
             
             // Debug logging for assignments
             _logger.LogInformation($"Matter/Create POST - Step: {model.Step}, Action: {action}");
@@ -561,8 +584,11 @@ namespace Certio.Web.Controllers
                 {
                     Title = InputValidator.Sanitize(model.Title, InputValidator.MAX_TITLE_LENGTH),
                     Description = InputValidator.Sanitize(model.Description, InputValidator.MAX_DESCRIPTION_LENGTH),
+                Location = InputValidator.Sanitize(model.Location, 300),
                     PracticeArea = InputValidator.Sanitize(model.PracticeArea, 100),
                     Status = InputValidator.Sanitize(model.Status, 50),
+                GuestCount = model.GuestCount,
+                Budget = model.Budget,
                     StartDate = model.StartDate,
                     DueDate = model.DueDate,
                     PendingDate = model.PendingDate,
@@ -657,7 +683,17 @@ namespace Certio.Web.Controllers
                 // Validate Step 1 fields
                 if (string.IsNullOrWhiteSpace(model.Title))
                 {
-                    ModelState.AddModelError("Title", "Matter title is required");
+                    ModelState.AddModelError("Title", "Event title is required");
+                    isValid = false;
+                }
+                if (string.IsNullOrWhiteSpace(model.Location))
+                {
+                    ModelState.AddModelError("Location", "Location is required");
+                    isValid = false;
+                }
+                if (!model.StartDate.HasValue)
+                {
+                    ModelState.AddModelError("StartDate", "Event date and start time are required");
                     isValid = false;
                 }
             }
@@ -672,6 +708,11 @@ namespace Certio.Web.Controllers
                 if (string.IsNullOrWhiteSpace(model.Status))
                 {
                     ModelState.AddModelError("Status", "Please select a status");
+                    isValid = false;
+                }
+                if (!model.StatuteOfLimitationsDate.HasValue)
+                {
+                    ModelState.AddModelError("StatuteOfLimitationsDate", "Final confirmations due date is required");
                     isValid = false;
                 }
             }
@@ -705,7 +746,17 @@ namespace Certio.Web.Controllers
             // Validate Step 1 fields
             if (string.IsNullOrWhiteSpace(model.Title))
             {
-                ModelState.AddModelError("Title", "Matter title is required");
+                ModelState.AddModelError("Title", "Event title is required");
+                isValid = false;
+            }
+            if (string.IsNullOrWhiteSpace(model.Location))
+            {
+                ModelState.AddModelError("Location", "Location is required");
+                isValid = false;
+            }
+            if (!model.StartDate.HasValue)
+            {
+                ModelState.AddModelError("StartDate", "Event date and start time are required");
                 isValid = false;
             }
             if (string.IsNullOrWhiteSpace(model.PracticeArea))
@@ -718,6 +769,11 @@ namespace Certio.Web.Controllers
             if (string.IsNullOrWhiteSpace(model.Status))
             {
                 ModelState.AddModelError("Status", "Please select a status");
+                isValid = false;
+            }
+            if (!model.StatuteOfLimitationsDate.HasValue)
+            {
+                ModelState.AddModelError("StatuteOfLimitationsDate", "Final confirmations due date is required");
                 isValid = false;
             }
 
@@ -775,8 +831,8 @@ namespace Certio.Web.Controllers
                 // Clear Step 2 data when going back from Step 2 to Step 1
                 model.PracticeArea = "";
                 model.Status = "";
-                model.StartDate = null;
-                model.DueDate = null;
+                model.GuestCount = null;
+                model.Budget = null;
                 model.PendingDate = null;
                 model.StatuteOfLimitationsDate = null;
             }
@@ -1031,8 +1087,11 @@ namespace Certio.Web.Controllers
                 Id = dto.Id,
                 Title = dto.Title,
                 Description = dto.Description,
+                Location = dto.Location,
                 PracticeArea = dto.PracticeArea,
                 Status = dto.Status,
+                GuestCount = dto.GuestCount,
+                Budget = dto.Budget,
                 StartDate = dto.StartDate,
                 DueDate = dto.DueDate,
                 PendingDate = dto.PendingDate,
@@ -1091,6 +1150,10 @@ namespace Certio.Web.Controllers
             {
                 ModelState.AddModelError("Description", "Description must be less than 5000 characters");
             }
+            if (!InputValidator.IsValidString(model.Location, 300, required: true))
+            {
+                ModelState.AddModelError("Location", "Location is required and must be less than 300 characters");
+            }
 
             if (!ModelState.IsValid)
             {
@@ -1102,8 +1165,11 @@ namespace Certio.Web.Controllers
             {
                 Title = model.Title,
                 Description = model.Description,
+                Location = model.Location,
                 PracticeArea = model.PracticeArea,
                 Status = model.Status,
+                GuestCount = model.GuestCount,
+                Budget = model.Budget,
                 StartDate = model.StartDate,
                 DueDate = model.DueDate,
                 PendingDate = model.PendingDate,
@@ -1217,8 +1283,11 @@ namespace Certio.Web.Controllers
                 Id = dto.Id,
                 Title = dto.Title,
                 Description = dto.Description,
+                Location = dto.Location,
                 Status = dto.Status,
                 PracticeArea = dto.PracticeArea,
+                GuestCount = dto.GuestCount,
+                Budget = dto.Budget,
                 OrganizationId = dto.OrganizationId,
                 CreatedAt = dto.CreatedAt
             };
