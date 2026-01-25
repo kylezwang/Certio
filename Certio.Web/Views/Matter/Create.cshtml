@@ -74,8 +74,8 @@
                         }
                         else if (Model.Step == 3)
                         {
-                            <h1 class="display-6 fw-bold text-dark mb-2">Assign Relevant @attorneysLabel & Contacts</h1>
-                            <p class="lead text-muted" style="font-size: 1.1rem;">Select the @attorneysLabel.ToLower() and staff members who will be working on this @matterLabel.ToLower() to ensure proper collaboration and communication.</p>
+                            <h1 class="display-6 fw-bold text-dark mb-2">Assign Team & Contacts</h1>
+                            <p class="lead text-muted" style="font-size: 1.1rem;">Select the team members and contacts who will be working on this @matterLabel.ToLower() to ensure proper collaboration and communication.</p>
                         }
                         else if (Model.Step == 4)
                         {
@@ -359,7 +359,7 @@
                                         <i class="fas fa-building-columns fs-4 me-3" style="color: #3d1019;"></i>
                                         <div>
                                             <h3 class="fw-bold text-dark mb-1">Firm assignments</h3>
-                                            <p class="text-muted mb-0">Assign @attorneysLabel.ToLower() and staff responsible for this @matterLabel.ToLower().</p>
+                                            <p class="text-muted mb-0">Assign team members responsible for this @matterLabel.ToLower().</p>
                                         </div>
                                     </div>
 
@@ -372,54 +372,35 @@
                                                 <div class="col-md-6 mb-4">
                                                     <label class="form-label fw-bold text-dark">
                                                         <i class="fas fa-user-tie me-2" style="color: #3d1019;"></i>
-                                                        MC / Host
+                                                        Lead Coordinator
                                                     </label>
                                                     <select name="FirmAssignments[0].UserId" class="form-select form-select-lg firm-assignment-select" data-assignment-type="ResponsibleAttorney">
-                                                        <option value="">Select MC / Host</option>
+                                                        <option value="">Select Lead Coordinator</option>
                                                         @foreach (var member in Model.OrgMembers)
                                                         {
                                                             <option value="@member.Id">@member.Name (@member.Email)</option>
                                                         }
                                                     </select>
                                                     <input type="hidden" name="FirmAssignments[0].AssignmentType" value="ResponsibleAttorney" />
-                                                    <input type="hidden" name="FirmAssignments[0].Role" value="MC / Host" />
+                                                    <input type="hidden" name="FirmAssignments[0].Role" value="Lead Coordinator" />
                                                     <input type="hidden" name="FirmAssignments[0].IsNotifyRecipient" value="true" />
                                                 </div>
                                                 
                                                 <div class="col-md-6 mb-4">
                                                     <label class="form-label fw-bold text-dark">
                                                         <i class="fas fa-user me-2" style="color: #3d1019;"></i>
-                                                        Photobooth
+                                                        Assistant
                                                     </label>
                                                     <select name="FirmAssignments[1].UserId" class="form-select form-select-lg firm-assignment-select" data-assignment-type="ResponsibleStaff">
-                                                        <option value="">Select Photobooth</option>
+                                                        <option value="">Select Assistant</option>
                                                         @foreach (var member in Model.OrgMembers)
                                                         {
                                                             <option value="@member.Id">@member.Name (@member.Email)</option>
                                                         }
                                                     </select>
                                                     <input type="hidden" name="FirmAssignments[1].AssignmentType" value="ResponsibleStaff" />
-                                                    <input type="hidden" name="FirmAssignments[1].Role" value="Photobooth" />
+                                                    <input type="hidden" name="FirmAssignments[1].Role" value="Assistant" />
                                                     <input type="hidden" name="FirmAssignments[1].IsNotifyRecipient" value="true" />
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="row mb-4">
-                                                <div class="col-12 mb-4">
-                                                    <label class="form-label fw-bold text-dark">
-                                                        <i class="fas fa-user-tie me-2" style="color: #3d1019;"></i>
-                                                        DJ & Music
-                                                    </label>
-                                                    <select name="FirmAssignments[2].UserId" class="form-select form-select-lg firm-assignment-select" data-assignment-type="OriginatingAttorney">
-                                                        <option value="">Select DJ & Music</option>
-                                                        @foreach (var member in Model.OrgMembers)
-                                                        {
-                                                            <option value="@member.Id">@member.Name (@member.Email)</option>
-                                                        }
-                                                    </select>
-                                                    <input type="hidden" name="FirmAssignments[2].AssignmentType" value="OriginatingAttorney" />
-                                                    <input type="hidden" name="FirmAssignments[2].Role" value="DJ & Music" />
-                                                    <input type="hidden" name="FirmAssignments[2].IsNotifyRecipient" value="true" />
                                                 </div>
                                             </div>
                                         }
@@ -430,54 +411,35 @@
                                                 <div class="col-md-6 mb-4">
                                                     <label class="form-label fw-bold text-dark">
                                                         <i class="fas fa-user-tie me-2" style="color: #3d1019;"></i>
-                                                        MC / Host
+                                                        Lead Coordinator
                                                     </label>
                                                     <select name="FirmAssignments[0].UserId" class="form-select form-select-lg firm-assignment-select" data-assignment-type="ResponsibleAttorney">
-                                                        <option value="">Select MC / Host</option>
+                                                        <option value="">Select Lead Coordinator</option>
                                                         @foreach (var member in Model.OrgMembers)
                                                         {
                                                             <option value="@member.Id" selected="@(Model.FirmAssignments.FirstOrDefault(fa => fa.AssignmentType == "ResponsibleAttorney")?.UserId == member.Id)">@member.Name (@member.Email)</option>
                                                         }
                                                     </select>
                                                     <input type="hidden" name="FirmAssignments[0].AssignmentType" value="ResponsibleAttorney" />
-                                                    <input type="hidden" name="FirmAssignments[0].Role" value="MC / Host" />
+                                                    <input type="hidden" name="FirmAssignments[0].Role" value="Lead Coordinator" />
                                                     <input type="hidden" name="FirmAssignments[0].IsNotifyRecipient" value="true" />
                                                 </div>
                                                 
                                                 <div class="col-md-6 mb-4">
                                                     <label class="form-label fw-bold text-dark">
                                                         <i class="fas fa-user me-2" style="color: #3d1019;"></i>
-                                                        Photobooth
+                                                        Assistant
                                                     </label>
                                                     <select name="FirmAssignments[1].UserId" class="form-select form-select-lg firm-assignment-select" data-assignment-type="ResponsibleStaff">
-                                                        <option value="">Select Photobooth</option>
+                                                        <option value="">Select Assistant</option>
                                                         @foreach (var member in Model.OrgMembers)
                                                         {
                                                             <option value="@member.Id" selected="@(Model.FirmAssignments.FirstOrDefault(fa => fa.AssignmentType == "ResponsibleStaff")?.UserId == member.Id)">@member.Name (@member.Email)</option>
                                                         }
                                                     </select>
                                                     <input type="hidden" name="FirmAssignments[1].AssignmentType" value="ResponsibleStaff" />
-                                                    <input type="hidden" name="FirmAssignments[1].Role" value="Photobooth" />
+                                                    <input type="hidden" name="FirmAssignments[1].Role" value="Assistant" />
                                                     <input type="hidden" name="FirmAssignments[1].IsNotifyRecipient" value="true" />
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="row mb-4">
-                                                <div class="col-12 mb-4">
-                                                    <label class="form-label fw-bold text-dark">
-                                                        <i class="fas fa-user-tie me-2" style="color: #3d1019;"></i>
-                                                        DJ & Music
-                                                    </label>
-                                                    <select name="FirmAssignments[2].UserId" class="form-select form-select-lg firm-assignment-select" data-assignment-type="OriginatingAttorney">
-                                                        <option value="">Select DJ & Music</option>
-                                                        @foreach (var member in Model.OrgMembers)
-                                                        {
-                                                            <option value="@member.Id" selected="@(Model.FirmAssignments.FirstOrDefault(fa => fa.AssignmentType == "OriginatingAttorney")?.UserId == member.Id)">@member.Name (@member.Email)</option>
-                                                        }
-                                                    </select>
-                                                    <input type="hidden" name="FirmAssignments[2].AssignmentType" value="OriginatingAttorney" />
-                                                    <input type="hidden" name="FirmAssignments[2].Role" value="DJ & Music" />
-                                                    <input type="hidden" name="FirmAssignments[2].IsNotifyRecipient" value="true" />
                                                 </div>
                                             </div>
                                         }
@@ -494,11 +456,12 @@
                                         </div>
                                     </div>
 
-                                    <!-- Information Box -->
+                                    @* Information Box - Commented out
                                     <div class="alert alert-info mb-4">
                                         <i class="fas fa-info-circle me-2"></i>
                                         Information for relevant contacts appears on the @matterLabel.ToLower() dashboard.
                                     </div>
+                                    *@
 
                                     <!-- Relevant Contacts List -->
                                     <div id="relevant-contacts-container">
@@ -694,18 +657,14 @@
                                                             </div>
                                                             <div class="snapshot-content">
                                                                 @{
-                                                                    var originatingAttorney = Model.FirmAssignments.FirstOrDefault(fa => fa.AssignmentType == "OriginatingAttorney");
                                                                     var responsibleAttorney = Model.FirmAssignments.FirstOrDefault(fa => fa.AssignmentType == "ResponsibleAttorney");
                                                                     var responsibleStaff = Model.FirmAssignments.FirstOrDefault(fa => fa.AssignmentType == "ResponsibleStaff");
                                                                 }
                                                                 <div class="mb-2">
-                                                                    <strong>DJ & Music:</strong> <span class="text-muted">@(originatingAttorney != null ? Model.OrgMembers.FirstOrDefault(m => m.Id == originatingAttorney.UserId)?.Name ?? "Not specified" : "Not specified")</span>
+                                                                    <strong>Lead Coordinator:</strong> <span class="text-muted">@(responsibleAttorney != null ? Model.OrgMembers.FirstOrDefault(m => m.Id == responsibleAttorney.UserId)?.Name ?? "Not specified" : "Not specified")</span>
                                                                 </div>
                                                                 <div class="mb-2">
-                                                                    <strong>MC / Host:</strong> <span class="text-muted">@(responsibleAttorney != null ? Model.OrgMembers.FirstOrDefault(m => m.Id == responsibleAttorney.UserId)?.Name ?? "Not specified" : "Not specified")</span>
-                                                                </div>
-                                                                <div class="mb-2">
-                                                                    <strong>Photobooth:</strong> <span class="text-muted">@(responsibleStaff != null ? Model.OrgMembers.FirstOrDefault(m => m.Id == responsibleStaff.UserId)?.Name ?? "Not specified" : "Not specified")</span>
+                                                                    <strong>Assistant:</strong> <span class="text-muted">@(responsibleStaff != null ? Model.OrgMembers.FirstOrDefault(m => m.Id == responsibleStaff.UserId)?.Name ?? "Not specified" : "Not specified")</span>
                                                                 </div>
                                                                 <div class="mb-0">
                                                                     <strong>Relevant Contacts:</strong>
@@ -1737,9 +1696,8 @@
                 select.addEventListener('change', function() {
                     const assignmentType = this.getAttribute('data-assignment-type');
                     const roleMap = {
-                        'ResponsibleAttorney': 'MC / Host',
-                        'ResponsibleStaff': 'Photobooth',
-                        'OriginatingAttorney': 'DJ & Music'
+                        'ResponsibleAttorney': 'Lead Coordinator',
+                        'ResponsibleStaff': 'Assistant'
                     };
                     const role = roleMap[assignmentType] || '';
                     
@@ -1805,9 +1763,8 @@
                         } else {
                             // Add new assignment
                             let roleName = '';
-                            if (assignmentType === 'ResponsibleAttorney') roleName = 'MC / Host';
-                            else if (assignmentType === 'ResponsibleStaff') roleName = 'Photobooth';
-                            else if (assignmentType === 'OriginatingAttorney') roleName = 'DJ & Music';
+                            if (assignmentType === 'ResponsibleAttorney') roleName = 'Lead Coordinator';
+                            else if (assignmentType === 'ResponsibleStaff') roleName = 'Assistant';
                             
                             currentValues.firmAssignments.push({
                                 assignmentType: assignmentType,

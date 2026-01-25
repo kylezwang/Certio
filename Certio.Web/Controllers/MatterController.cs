@@ -718,20 +718,10 @@ namespace Certio.Web.Controllers
             }
             else if (model.Step == 3)
             {
-                // Step 3: require firm role selections
+                // Step 3: require firm role selections (only Lead Coordinator is required, Assistant is optional)
                 if (model.FirmAssignments == null || !model.FirmAssignments.Any(fa => fa.AssignmentType == "ResponsibleAttorney" && fa.UserId.HasValue))
                 {
-                    ModelState.AddModelError("FirmAssignments", "Responsible Attorney is required");
-                    isValid = false;
-                }
-                if (model.FirmAssignments == null || !model.FirmAssignments.Any(fa => fa.AssignmentType == "ResponsibleStaff" && fa.UserId.HasValue))
-                {
-                    ModelState.AddModelError("FirmAssignments", "Responsible Staff is required");
-                    isValid = false;
-                }
-                if (model.FirmAssignments == null || !model.FirmAssignments.Any(fa => fa.AssignmentType == "OriginatingAttorney" && fa.UserId.HasValue))
-                {
-                    ModelState.AddModelError("FirmAssignments", "Originating Attorney is required");
+                    ModelState.AddModelError("FirmAssignments", "Lead Coordinator is required");
                     isValid = false;
                 }
             }
@@ -777,20 +767,10 @@ namespace Certio.Web.Controllers
                 isValid = false;
             }
 
-            // Step 3 validation - firm assignments are required
+            // Step 3 validation - only Lead Coordinator is required (Assistant is optional)
             if (model.FirmAssignments == null || !model.FirmAssignments.Any(fa => fa.AssignmentType == "ResponsibleAttorney" && fa.UserId.HasValue))
             {
-                ModelState.AddModelError("FirmAssignments", "Responsible Attorney is required");
-                isValid = false;
-            }
-            if (model.FirmAssignments == null || !model.FirmAssignments.Any(fa => fa.AssignmentType == "ResponsibleStaff" && fa.UserId.HasValue))
-            {
-                ModelState.AddModelError("FirmAssignments", "Responsible Staff is required");
-                isValid = false;
-            }
-            if (model.FirmAssignments == null || !model.FirmAssignments.Any(fa => fa.AssignmentType == "OriginatingAttorney" && fa.UserId.HasValue))
-            {
-                ModelState.AddModelError("FirmAssignments", "Originating Attorney is required");
+                ModelState.AddModelError("FirmAssignments", "Lead Coordinator is required");
                 isValid = false;
             }
 

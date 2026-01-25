@@ -134,6 +134,10 @@
                     <i class="fas fa-chart-pie"></i>
                     <span>Summary</span>
                 </a>
+                <a href="#contacts" class="matter-tab-link" data-tab="contacts">
+                    <i class="fas fa-users"></i>
+                    <span>Contacts</span>
+                </a>
                 <a href="#tasks" class="matter-tab-link" data-tab="tasks">
                     <i class="fa-solid fa-bars-progress"></i>
                     <span>Tasks</span>
@@ -157,10 +161,6 @@
                 <a href="#billing" class="matter-tab-link" data-tab="billing">
                     <i class="fas fa-credit-card"></i>
                     <span>Billing</span>
-                </a>
-                <a href="#history" class="matter-tab-link" data-tab="history">
-                    <i class="fas fa-history"></i>
-                    <span>History</span>
                 </a>
             </div>
         </div>
@@ -466,7 +466,6 @@
                                             </div>
                                             <div class="container-fluid px-0">
                                                 @{
-                                                    var originatingAttorney = Model.Matter.Assignments?.FirstOrDefault(ma => ma.AssignmentType == "OriginatingAttorney");
                                                     var responsibleAttorney = Model.Matter.Assignments?.FirstOrDefault(ma => ma.AssignmentType == "ResponsibleAttorney");
                                                     var responsibleStaff = Model.Matter.Assignments?.FirstOrDefault(ma => ma.AssignmentType == "ResponsibleStaff");
                                                     var relevantContacts = Model.Matter.Assignments?.Where(ma => ma.AssignmentType == "RelevantContact").ToList() ?? new List<Certio.Domain.Matters.MatterAssignment>();
@@ -475,7 +474,7 @@
                                                     <div class="col-md-6 mb-3">
                                                         <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
                                                             <i class="fas fa-user-tie me-2" style="color: #3d1019;"></i>
-                                                            MC / Host
+                                                            Lead Coordinator
                                                         </label>
                                                         <div class="input-group input-group-lg">
                                                             <input type="text" class="form-control form-control-lg" id="responsibleAttorneyInput" 
@@ -494,7 +493,7 @@
                                                     <div class="col-md-6 mb-3">
                                                         <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
                                                             <i class="fas fa-user me-2" style="color: #3d1019;"></i>
-                                                            Photobooth
+                                                            Assistant
                                                         </label>
                                                         <div class="input-group input-group-lg">
                                                             <input type="text" class="form-control form-control-lg" id="responsibleStaffInput" 
@@ -504,25 +503,6 @@
                                                                     data-assignment-type="ResponsibleStaff" 
                                                                     data-assignment-id="@(responsibleStaff?.Id ?? 0)"
                                                                     data-current-user-id="@(responsibleStaff?.UserId ?? 0)"
-                                                                    onclick="showMatterAssignmentPopup(this)"
-                                                                    style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
-                                                                <i class="fas fa-edit"></i>
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-12 mb-3">
-                                                        <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
-                                                            <i class="fas fa-user-tie me-2" style="color: #3d1019;"></i>
-                                                            DJ & Music
-                                                        </label>
-                                                        <div class="input-group input-group-lg">
-                                                            <input type="text" class="form-control form-control-lg" id="originatingAttorneyInput" 
-                                                                   value="@(originatingAttorney?.User != null ? originatingAttorney.User.FirstName + " " + originatingAttorney.User.LastName : "Not specified")" 
-                                                                   style="font-size: 0.9rem;" disabled />
-                                                            <button class="btn btn-outline-secondary" type="button" 
-                                                                    data-assignment-type="OriginatingAttorney" 
-                                                                    data-assignment-id="@(originatingAttorney?.Id ?? 0)"
-                                                                    data-current-user-id="@(originatingAttorney?.UserId ?? 0)"
                                                                     onclick="showMatterAssignmentPopup(this)"
                                                                     style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
                                                                 <i class="fas fa-edit"></i>
@@ -1824,13 +1804,13 @@
             </div>
         </div>
 
-        <!-- History Tab (Placeholder) -->
-        <div id="tab-history" class="tab-content-section" style="display: none;">
+        <!-- Contacts Tab (Placeholder) -->
+        <div id="tab-contacts" class="tab-content-section" style="display: none;">
             <div class="container-fluid px-4 py-4">
                 <div class="text-center py-5">
-                    <i class="fas fa-history text-muted mb-3" style="font-size: 3rem;"></i>
-                    <h4 class="text-dark mb-2">@matterLabel History</h4>
-                    <p class="text-muted">This section will display the change history and audit log for this @matterLabel.ToLower().</p>
+                    <i class="fas fa-users text-muted mb-3" style="font-size: 3rem;"></i>
+                    <h4 class="text-dark mb-2">@matterLabel Contacts</h4>
+                    <p class="text-muted">This section will display contacts and stakeholders for this @matterLabel.ToLower().</p>
                     <p class="text-muted small">(To be implemented in a future phase)</p>
                 </div>
             </div>
@@ -2241,9 +2221,8 @@
 
             try {
                 const roleMap = {
-                    'ResponsibleAttorney': 'MC / Host',
-                    'ResponsibleStaff': 'Photobooth',
-                    'OriginatingAttorney': 'DJ & Music'
+                    'ResponsibleAttorney': 'Lead Coordinator',
+                    'ResponsibleStaff': 'Assistant'
                 };
 
                 // Save assignment changes
@@ -2376,9 +2355,8 @@
             
             // Get assignment type label
             const assignmentLabels = {
-                'ResponsibleAttorney': 'MC / Host',
-                'ResponsibleStaff': 'Photobooth',
-                'OriginatingAttorney': 'DJ & Music'
+                'ResponsibleAttorney': 'Lead Coordinator',
+                'ResponsibleStaff': 'Assistant'
             };
             const assignmentLabel = assignmentLabels[assignmentType] || assignmentType;
             
@@ -2602,15 +2580,13 @@
                 
                 // Update UI only
                 const roleMap = {
-                    'ResponsibleAttorney': 'MC / Host',
-                    'ResponsibleStaff': 'Photobooth',
-                    'OriginatingAttorney': 'DJ & Music'
+                    'ResponsibleAttorney': 'Lead Coordinator',
+                    'ResponsibleStaff': 'Assistant'
                 };
                 
                 // Update the input field
                 const inputId = assignmentType === 'ResponsibleAttorney' ? 'responsibleAttorneyInput' :
-                               assignmentType === 'ResponsibleStaff' ? 'responsibleStaffInput' :
-                               'originatingAttorneyInput';
+                               'responsibleStaffInput';
                 const input = document.getElementById(inputId);
                 
                 if (selectedUserId === 0) {
