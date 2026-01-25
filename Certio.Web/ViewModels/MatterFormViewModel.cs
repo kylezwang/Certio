@@ -13,7 +13,7 @@ namespace Certio.Web.ViewModels
         
         [StringLength(1000, ErrorMessage = "Description cannot exceed 1000 characters")]
         public string Description { get; set; } = "";
-
+        
         [StringLength(300, ErrorMessage = "Location cannot exceed 300 characters")]
         public string Location { get; set; } = "";
         

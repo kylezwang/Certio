@@ -217,6 +217,77 @@
         </div>
     </div>
 
+    <!-- Top Row: Upcoming Deadlines, Daily Briefing, Notal Suggestions -->
+    <div class="row gx-4">
+        <!-- Upcoming Deadlines -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 h-100 gd-card">
+                <div class="card-body p-4">
+                    <h5 class="card-title fw-bold mb-3"><i class="fa-solid fa-calendar-day me-2 text-muted" style="font-size: 0.75em;"></i>Upcoming Deadlines</h5>
+                    
+                    <div id="dashboardUpcomingDeadlinesList">
+                        <p class="text-muted small mb-2">Loading deadlines...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Briefing - AI Streaming -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 h-100 daily-briefing-card gd-card" id="dailyBriefingCard">
+                <div class="card-body p-4">
+                    <button class="btn btn-link text-muted p-0 briefing-fullscreen-btn" id="dailyBriefingFullscreenBtn" title="Toggle fullscreen">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fa-solid fa-chart-pie text-muted me-2" style="font-size: 0.9em;"></i>
+                        <h5 class="card-title fw-bold mb-0">Daily Briefing <span class="text-muted fw-normal" style="font-size: 0.75rem;">(Beta)</span></h5>
+                    </div>
+                    
+                    <!-- Summary Grid View (shown when not fullscreen) -->
+                    <div id="dailyBriefingSummary">
+                        <div class="briefing-loading">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <span class="ms-2 text-muted small">Generating briefing...</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Full Content View (shown when fullscreen) -->
+                    <div id="dailyBriefingContent" class="briefing-content" style="display: none;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notal Suggestions - AI Streaming -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 h-100 notal-suggestions-card gd-card" id="notalSuggestionsCard">
+                <div class="card-body p-4">
+                    <button class="btn btn-link text-muted p-0 suggestions-fullscreen-btn" id="notalSuggestionsFullscreenBtn" title="Toggle fullscreen">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                    <h5 class="card-title fw-bold mb-3"><img src="~/images/Notal_Banner_Logo_Large_Text.png" alt="Notal AI" style="height: 1.3rem; object-fit: contain; display: inline-block; margin-right: 0.25rem; margin-bottom: 0.2rem;" />Suggestions <span class="text-muted fw-normal" style="font-size: 0.75rem;">(Beta)</span></h5>
+                    
+                    <!-- Summary View (shown when not fullscreen) -->
+                    <div id="notalSuggestionsSummary" class="suggestions-summary">
+                        <div class="briefing-loading">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <span class="ms-2 text-muted small">Generating suggestions...</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Full Content View (shown when fullscreen) -->
+                    <div id="notalSuggestionsContent" class="suggestions-content" style="display: none;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Quick Access Section -->
     <div class="card mb-4 border-0 gd-card">
         <div class="card-body p-4">
@@ -323,77 +394,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Bottom Row: Upcoming Deadlines, Daily Briefing, Next Suggestions -->
-    <div class="row gx-4">
-        <!-- Upcoming Deadlines -->
-        <div class="col-md-4 mb-4">
-            <div class="card border-0 h-100 gd-card">
-                <div class="card-body p-4">
-                    <h5 class="card-title fw-bold mb-3"><i class="fa-solid fa-calendar-day me-2 text-muted" style="font-size: 0.75em;"></i>Upcoming Deadlines</h5>
-                    
-                    <div id="dashboardUpcomingDeadlinesList">
-                        <p class="text-muted small mb-2">Loading deadlines...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Daily Briefing - AI Streaming -->
-        <div class="col-md-4 mb-4">
-            <div class="card border-0 h-100 daily-briefing-card gd-card" id="dailyBriefingCard">
-                <div class="card-body p-4">
-                    <button class="btn btn-link text-muted p-0 briefing-fullscreen-btn" id="dailyBriefingFullscreenBtn" title="Toggle fullscreen">
-                        <i class="fas fa-expand"></i>
-                    </button>
-                    <div class="d-flex align-items-center mb-3">
-                        <i class="fa-solid fa-chart-pie text-muted me-2" style="font-size: 0.9em;"></i>
-                        <h5 class="card-title fw-bold mb-0">Daily Briefing <span class="text-muted fw-normal" style="font-size: 0.75rem;">(Beta)</span></h5>
-                    </div>
-                    
-                    <!-- Summary Grid View (shown when not fullscreen) -->
-                    <div id="dailyBriefingSummary">
-                        <div class="briefing-loading">
-                            <div class="spinner-border spinner-border-sm text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                            <span class="ms-2 text-muted small">Generating briefing...</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Full Content View (shown when fullscreen) -->
-                    <div id="dailyBriefingContent" class="briefing-content" style="display: none;">
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Notal Suggestions - AI Streaming -->
-        <div class="col-md-4 mb-4">
-            <div class="card border-0 h-100 notal-suggestions-card gd-card" id="notalSuggestionsCard">
-                <div class="card-body p-4">
-                    <button class="btn btn-link text-muted p-0 suggestions-fullscreen-btn" id="notalSuggestionsFullscreenBtn" title="Toggle fullscreen">
-                        <i class="fas fa-expand"></i>
-                    </button>
-                    <h5 class="card-title fw-bold mb-3"><img src="~/images/Notal_Banner_Logo_Large_Text.png" alt="Notal AI" style="height: 1.3rem; object-fit: contain; display: inline-block; margin-right: 0.25rem; margin-bottom: 0.2rem;" />Suggestions <span class="text-muted fw-normal" style="font-size: 0.75rem;">(Beta)</span></h5>
-                    
-                    <!-- Summary View (shown when not fullscreen) -->
-                    <div id="notalSuggestionsSummary" class="suggestions-summary">
-                        <div class="briefing-loading">
-                            <div class="spinner-border spinner-border-sm text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                            <span class="ms-2 text-muted small">Generating suggestions...</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Full Content View (shown when fullscreen) -->
-                    <div id="notalSuggestionsContent" class="suggestions-content" style="display: none;">
-                    </div>
-                </div>
-            </div>
-        </div>
-        </div>
     </div>
 </div>
 
