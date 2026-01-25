@@ -627,14 +627,14 @@
                                                                     <strong>Title:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.Title) ? "Not specified" : Model.Title)</span>
                                                                 </div>
                                                             <div class="mb-2">
-                                                                <strong>Description:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.Description) ? "Not specified" : Model.Description)</span>
-                                                            </div>
+                                                                    <strong>Description:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.Description) ? "Not specified" : Model.Description)</span>
+                                                                </div>
                                                             <div class="mb-2">
                                                                 <strong>Location:</strong> <span class="text-muted">@(string.IsNullOrEmpty(Model.Location) ? "Not specified" : Model.Location)</span>
                                                             </div>
                                                             <div class="mb-2">
                                                                 <strong>Event Date:</strong> <span class="text-muted">@(Model.StartDate?.ToString("MMM dd, yyyy") ?? "Not specified")</span>
-                                                            </div>
+                                                        </div>
                                                             <div class="mb-2">
                                                                 <strong>Start:</strong> <span class="text-muted">@(Model.StartDate?.ToString("h:mm tt") ?? "Not specified")</span>
                                                             </div>
@@ -671,8 +671,8 @@
                                                                 <strong>Budget:</strong> <span class="text-muted">@(Model.Budget.HasValue ? Model.Budget.Value.ToString("C0") : "Not specified")</span>
                                                                 </div>
                                                             <div class="mb-2">
-                                                                <strong>Final Payment Due:</strong> <span class="text-muted">@(Model.PendingDate?.ToString("MMM dd, yyyy") ?? "Not specified")</span>
-                                                            </div>
+                                                                    <strong>Final Payment Due:</strong> <span class="text-muted">@(Model.PendingDate?.ToString("MMM dd, yyyy") ?? "Not specified")</span>
+                                                                </div>
                                                             <div class="mb-0">
                                                                 <strong>Final Confirmations Due:</strong> <span class="text-muted">@(Model.StatuteOfLimitationsDate?.ToString("MMM dd, yyyy") ?? "Not specified")</span>
                                                             </div>
@@ -1415,7 +1415,7 @@
             
             function updateDueDate(startDate, dueDate) {
                 if (!previewDueDate) return;
-
+                
                 const eventDateValue = startDate || dueDate;
                 if (eventDateValue) {
                     const date = new Date(eventDateValue);
