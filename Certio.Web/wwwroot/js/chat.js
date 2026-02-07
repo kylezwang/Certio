@@ -706,16 +706,11 @@ async function generateAIResponse(userMessage) {
                     
                     try {
                         const eventData = JSON.parse(jsonData);
-                        console.log('📨 Chunk received:', eventData.content?.substring(0, 20), 'at', new Date().getMilliseconds());
-                        console.log('🔍 eventData:', eventData);
-                        console.log('🔍 eventData.content truthy?', !!eventData.content);
-                        console.log('🔍 messageTextDiv exists?', !!messageTextDiv);
                         
                         // Add delay between chunks for smooth visual streaming (30ms per chunk)
                         await new Promise(resolve => setTimeout(resolve, 30));
                         
                         if (eventData.error) {
-                            console.log('❌ Error in event data');
                             // Error occurred - ensure we have a message div to show error
                             if (!aiMessageDiv) {
                                 hideAIThinkingIndicator();
@@ -729,7 +724,6 @@ async function generateAIResponse(userMessage) {
                         }
                         
                         if (eventData.done) {
-                            console.log('✅ Stream done signal received');
                             // Always clear the "thinking" UI on done, even if we never received content chunks.
                             hideAIThinkingIndicator();
                             
@@ -809,8 +803,15 @@ async function generateAIResponse(userMessage) {
                         }
                         
                         if (eventData.content) {
-                            console.log('🎯 ENTERING DOM UPDATE BLOCK');
-                            
+                            // Safety net: if a single chunk is suspiciously large and would
+                            // roughly double the accumulated content, it is likely the full
+                            // completed text being echoed back (e.g. Responses API
+                            // "response.output_text.done"). Skip it to avoid duplication.
+                            if (fullContent.length > 100 && eventData.content.length >= fullContent.length * 0.9) {
+                                console.warn('⚠️ Skipping suspected duplicate full-response chunk (' + eventData.content.length + ' chars vs ' + fullContent.length + ' accumulated)');
+                                continue;
+                            }
+
                             // On first chunk: hide thinking indicator and create streaming placeholder
                             if (isFirstChunk) {
                                 hideAIThinkingIndicator();
@@ -826,7 +827,6 @@ async function generateAIResponse(userMessage) {
                             try {
                                 // Append chunk to full content
                                 fullContent += eventData.content;
-                                console.log('📝 fullContent length:', fullContent.length);
                                 
                                 // During streaming: keep HTML structure, only remove incomplete tags
                                 let displayText = fullContent
@@ -851,9 +851,6 @@ async function generateAIResponse(userMessage) {
                                     displayText = displayText.replace(/\[ACTION:[\s\S]*$/g, '').trim();
                                 }
                                 
-                                console.log('🔤 displayText:', displayText.substring(0, 50));
-                                console.log('🎯 About to update DOM...');
-                                
                                 // Update using innerHTML to preserve HTML formatting during streaming
                                 const tempDiv = document.createElement('div');
                                 tempDiv.innerHTML = displayText;
@@ -864,19 +861,14 @@ async function generateAIResponse(userMessage) {
                                     messageTextDiv.appendChild(tempDiv.firstChild);
                                 }
                                 
-                                console.log('✅ Text node updated!');
-                                
                                 // Auto-scroll only if user hasn't manually scrolled up
                                 if (chatMessages && !userHasScrolledUp) {
                                     chatMessages.scrollTop = chatMessages.scrollHeight;
                                     lastScrollHeight = chatMessages.scrollHeight;
                                 }
-                                console.log('✅ DOM update complete');
                             } catch (domError) {
                                 console.error('💥 ERROR in DOM update:', domError);
                             }
-                        } else {
-                            console.log('⚠️ No content in eventData');
                         }
                     } catch (e) {
                         console.error('💥 ERROR parsing SSE:', e);

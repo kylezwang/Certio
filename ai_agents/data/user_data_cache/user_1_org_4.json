@@ -3,17 +3,17 @@
   "organization_id": 4,
   "user_name": "Kyle Wang",
   "total_chunks": 22,
-  "last_synced": "2026-01-24T00:06:39.258082",
+  "last_synced": "2026-01-29T21:04:28.874855",
   "module_summaries": {
     "matters": {
       "totalMatters": 8,
       "activeMatters": 2,
       "completedMatters": 2,
       "practiceAreas": [
+        "Wedding",
         "Festival",
         "Holiday Party",
         "Corporate Event",
-        "Wedding",
         "Commercial Litigation",
         "Elder",
         "Securities / Mergers & Acquisitions",
@@ -41,12 +41,42 @@
   },
   "chunks": [
     {
-      "id": "6a69a24d-9c76-4e35-a000-02f380121354",
+      "id": "fa7ab54d-a21f-4d65-adc9-e4a73b18d068",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 5,
+      "title": "Daniel & Jessie's Wedding",
+      "content": "=== MATTER: Daniel & Jessie's Wedding ===\r\nMatter ID: 5\r\nClient/Organization: Apex Event Planning\r\nStatus: Review\r\nEvent Type: Wedding\r\nDescription: Wedding planning and execution for Daniel and Jessie, including timelines, vendors, and day-of coordination.\r\nStart Date: 2026-02-01\r\nEvent Date: 2026-02-01\r\nFinal Payment Due: 2026-02-10\r\nVendor Confirmation: 2026-01-30\r\nTasks Progress: 1/4 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\n  - Chloe Tang (OriginatingAttorney)\r\n  - Chloe Tang (ResponsibleAttorney)\r\nCreated: 2025-09-30\r\nLast Modified: 2026-01-24\r\n",
+      "metadata": {
+        "matterId": 5,
+        "organizationId": 4,
+        "organizationName": "Apex Event Planning",
+        "status": "Review",
+        "practiceArea": "Wedding",
+        "dueDate": "2026-02-01T20:00:00",
+        "tasksCompleted": 1,
+        "totalTasks": 4,
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall",
+          "Kyle Wang",
+          "Chloe Tang",
+          "Chloe Tang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-09-30T08:47:11.9083643",
+      "modified_at": "2026-01-24T20:37:00.3797927",
+      "relevance_score": 0
+    },
+    {
+      "id": "72327c5d-6e13-4b3a-8d51-39660351f0e0",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 14,
       "title": "Sunset Sessions Music Festival",
-      "content": "=== MATTER: Sunset Sessions Music Festival ===\r\nMatter ID: 14\r\nClient/Organization: Apex Event Planning\r\nStatus: Planning\r\nEvent Type: Festival\r\nDescription: 2-day outdoor music festival featuring 12 local bands across 3 stages. Coordinating sound engineers, stage managers, vendor booths, security teams, and equipment rentals. Managing setup schedules, artist arrival times, and stage transitions.\r\nStart Date: 2025-10-12\r\nEvent Date: 2026-02-25\r\nFinal Payment Due: 2026-02-01\r\nVendor Confirmation: 2026-02-09\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - John Marshall (ResponsibleAttorney)\r\n  - John Marshall (OriginatingAttorney)\r\n  - Kyle Wang (ResponsibleStaff)\r\n  - Chloe Tang (OriginatingAttorney)\r\n  - Chloe Tang (ResponsibleStaff)\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - Kyle Wang (ResponsibleStaff)\r\nCreated: 2025-10-12\r\nLast Modified: 2026-01-24\r\n",
+      "content": "=== MATTER: Sunset Sessions Music Festival ===\r\nMatter ID: 14\r\nClient/Organization: Apex Event Planning\r\nStatus: Planning\r\nEvent Type: Festival\r\nDescription: 2-day outdoor music festival featuring 12 local bands across 3 stages. Coordinating sound engineers, stage managers, vendor booths, security teams, and equipment rentals. Managing setup schedules, artist arrival times, and stage transitions.\r\nStart Date: 2025-10-22\r\nEvent Date: 2026-02-25\r\nFinal Payment Due: 2026-02-01\r\nVendor Confirmation: 2026-02-09\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - John Marshall (ResponsibleAttorney)\r\n  - John Marshall (OriginatingAttorney)\r\n  - Kyle Wang (ResponsibleStaff)\r\n  - Chloe Tang (OriginatingAttorney)\r\n  - Chloe Tang (ResponsibleStaff)\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - Kyle Wang (ResponsibleStaff)\r\nCreated: 2025-10-12\r\nLast Modified: 2026-01-24\r\n",
       "metadata": {
         "matterId": 14,
         "organizationId": 4,
@@ -69,11 +99,11 @@
         "legalRequirements": null
       },
       "created_at": "2025-10-12T23:06:45.952575",
-      "modified_at": "2026-01-24T00:06:09.609075",
+      "modified_at": "2026-01-24T19:06:11.0602898",
       "relevance_score": 0
     },
     {
-      "id": "21614786-da7a-4cc0-87ad-fdde1ca2343d",
+      "id": "e895ec72-1ef5-4ff1-ac49-45889ac9276b",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 16,
@@ -101,7 +131,7 @@
       "relevance_score": 0
     },
     {
-      "id": "572f662e-d755-469a-93b5-0d145b762ad6",
+      "id": "826d8a97-ea34-4aea-ab9f-c63018aa9db4",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 15,
@@ -129,37 +159,7 @@
       "relevance_score": 0
     },
     {
-      "id": "46aaad99-57bb-4230-a99f-a5ebc1b71a83",
-      "module_name": "matters",
-      "entity_type": "Matter",
-      "entity_id": 5,
-      "title": "Daniel & Jessie's Wedding",
-      "content": "=== MATTER: Daniel & Jessie's Wedding ===\r\nMatter ID: 5\r\nClient/Organization: Apex Event Planning\r\nStatus: Review\r\nEvent Type: Wedding\r\nDescription: Wedding planning and execution for Daniel and Jessie, including timelines, vendors, and day-of coordination.\r\nStart Date: 2025-09-29\r\nEvent Date: 2026-02-01\r\nFinal Payment Due: 2026-02-10\r\nVendor Confirmation: 2026-01-30\r\nTasks Progress: 1/4 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\n  - Chloe Tang (OriginatingAttorney)\r\n  - Chloe Tang (ResponsibleAttorney)\r\nCreated: 2025-09-30\r\nLast Modified: 2026-01-14\r\n",
-      "metadata": {
-        "matterId": 5,
-        "organizationId": 4,
-        "organizationName": "Apex Event Planning",
-        "status": "Review",
-        "practiceArea": "Wedding",
-        "dueDate": "2026-02-01T00:00:00",
-        "tasksCompleted": 1,
-        "totalTasks": 4,
-        "assignees": [
-          "Kyle Wang",
-          "John Marshall",
-          "Kyle Wang",
-          "Chloe Tang",
-          "Chloe Tang"
-        ],
-        "clientGoals": null,
-        "legalRequirements": null
-      },
-      "created_at": "2025-09-30T08:47:11.9083643",
-      "modified_at": "2026-01-14T21:01:36.7789712",
-      "relevance_score": 0
-    },
-    {
-      "id": "999d8769-7651-46cf-9724-7fb1eec3e419",
+      "id": "41ace5a4-98d7-446f-8b01-9599e03fb005",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 28,
@@ -187,7 +187,7 @@
       "relevance_score": 0
     },
     {
-      "id": "9df78066-99e0-417e-aa8f-1f598a6ceb7c",
+      "id": "3f94e6af-dace-47b4-aa02-6d32c20d1825",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 25,
@@ -215,7 +215,7 @@
       "relevance_score": 0
     },
     {
-      "id": "c32bd71c-7c3f-479d-87ff-37354e034ca1",
+      "id": "c80af152-f0b7-4620-a8e2-bc8cf46ed39c",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 19,
@@ -243,7 +243,7 @@
       "relevance_score": 0
     },
     {
-      "id": "f9209c7f-5d3f-4977-8074-9aef65dc632d",
+      "id": "dbb8c2c1-35bb-4494-96de-57eaad563f54",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 17,
@@ -271,7 +271,7 @@
       "relevance_score": 0
     },
     {
-      "id": "4d1d8fdc-684f-4f4f-8d71-04d8d06af908",
+      "id": "b577e00e-6896-4d37-b3c8-9aef47dbf870",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 19,
@@ -293,7 +293,7 @@
       "relevance_score": 0
     },
     {
-      "id": "29600901-5ee6-46d8-b4d2-9b0e12072fd7",
+      "id": "643241e7-e6a4-4a34-8a02-f4bb8a76cc4d",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 15,
@@ -314,7 +314,7 @@
       "relevance_score": 0
     },
     {
-      "id": "da9d0f13-302e-4b3d-ad72-9061998f62c0",
+      "id": "f6b941c4-304f-4dcf-ac3f-dbe2817ebf08",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 21,
@@ -335,7 +335,7 @@
       "relevance_score": 0
     },
     {
-      "id": "3c9571f2-7095-4382-8279-82a2a9a7b42c",
+      "id": "f31fc297-6662-4d5b-bc03-c1bfd009e3fd",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 9,
@@ -357,7 +357,7 @@
       "relevance_score": 0
     },
     {
-      "id": "c70112af-d8c5-450a-bc87-62d26c0eb790",
+      "id": "8f16cfea-5621-4708-8f44-94dd7156f673",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 18,
@@ -378,7 +378,7 @@
       "relevance_score": 0
     },
     {
-      "id": "6339c1d0-797e-4c31-a586-0aac3c98aa9f",
+      "id": "cdbe4ec2-5e31-4600-8fb6-9635daadc322",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 10,
@@ -401,7 +401,7 @@
       "relevance_score": 0
     },
     {
-      "id": "fbfc9727-3f59-47e9-927c-996c5fed4668",
+      "id": "0254017f-1a0c-4f87-965a-fc8ba108a2ec",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 17,
@@ -420,7 +420,7 @@
       "relevance_score": 0
     },
     {
-      "id": "c625f8b0-9383-4a63-8f8c-7e8ed07215b3",
+      "id": "8e1c96b9-2710-43b3-aa83-2b14a6298c29",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 52,
@@ -443,7 +443,7 @@
       "relevance_score": 0
     },
     {
-      "id": "d2403d1b-71ca-4b3d-9485-dcf973e8794e",
+      "id": "37264c8c-dd6c-4614-9e6a-686f418e6e50",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 56,
@@ -464,7 +464,7 @@
       "relevance_score": 0
     },
     {
-      "id": "3565181d-2818-4cab-9a0d-af106302426b",
+      "id": "fd634353-077a-4c42-9843-b961243a5980",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 53,
@@ -485,7 +485,7 @@
       "relevance_score": 0
     },
     {
-      "id": "d0209813-376a-41a3-a613-40d74ea9c41b",
+      "id": "e47a436a-291e-4a3a-b06b-6eaa1de1c61f",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 54,
@@ -506,7 +506,7 @@
       "relevance_score": 0
     },
     {
-      "id": "ca7f598a-bc54-4ea1-8cba-04709fa5a040",
+      "id": "b4384979-9fbc-4245-82f6-28950aad8ca0",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 45,
@@ -529,7 +529,7 @@
       "relevance_score": 0
     },
     {
-      "id": "84a717b7-aa4c-4a06-bdd2-5c0cebf3e3a4",
+      "id": "e7c59eca-fc32-487a-8b7b-84a13c4f2978",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -548,7 +548,7 @@
       "relevance_score": 0
     },
     {
-      "id": "4b8072cd-b05c-4d64-be03-7815decbce16",
+      "id": "95822e32-13b4-44d5-bdd1-ac9d68d10f03",
       "module_name": "clients",
       "entity_type": "User",
       "entity_id": 6,
