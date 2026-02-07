@@ -3162,53 +3162,48 @@ Respond as an intelligent assistant:"""
                 async for event_data in stream_response:
                     logger.debug(f"📨 Responses API event: {json.dumps(event_data)[:200]}")
                     
+                    # Check for completion signals first
+                    if event_data.get("done") or event_data.get("finish_reason"):
+                        break
+                    
+                    # Azure Responses API sends different event types:
+                    #   - "response.output_text.delta" → incremental text (the NEW chunk)
+                    #   - "response.output_text.done"  → contains the FULL completed text (NOT a delta!)
+                    #   - "response.output_item.done"  → output item completed
+                    #   - "response.completed"          → entire response completed with full output
+                    # We MUST skip "done"/"completed" events to avoid re-sending the full text.
+                    event_type = event_data.get("type", "")
+                    if event_type and (".done" in event_type or ".completed" in event_type):
+                        logger.debug(f"⏭️ Skipping non-delta event type: {event_type}")
+                        continue
+                    
                     # Azure Responses API can return content in various formats
                     content = None
                     
-                    # Format 1: Direct content field
-                    if "content" in event_data and event_data["content"]:
-                        content = event_data["content"]
-                    # Format 2: Text field
-                    elif "text" in event_data and event_data["text"]:
-                        content = event_data["text"]
-                    # Format 3: Delta with content
-                    elif "delta" in event_data:
+                    # Format 1: Delta field (primary format for streaming text deltas)
+                    if "delta" in event_data:
                         delta = event_data["delta"]
                         if isinstance(delta, dict) and delta.get("content"):
                             content = delta["content"]
-                        elif isinstance(delta, str):
+                        elif isinstance(delta, str) and delta:
                             content = delta
+                    # Format 2: Direct content field
+                    elif "content" in event_data and event_data["content"]:
+                        content = event_data["content"]
+                    # Format 3: Text field (only from delta events — done events are filtered above)
+                    elif "text" in event_data and event_data["text"]:
+                        content = event_data["text"]
                     # Format 4: Choices array (like Chat Completions)
                     elif "choices" in event_data and event_data["choices"]:
                         choice = event_data["choices"][0]
                         if "delta" in choice and choice["delta"].get("content"):
                             content = choice["delta"]["content"]
-                        elif "message" in choice and choice["message"].get("content"):
-                            content = choice["message"]["content"]
                         elif "text" in choice:
                             content = choice["text"]
-                    # Format 5: Output field (Responses API specific)
-                    elif "output" in event_data:
-                        output = event_data["output"]
-                        if isinstance(output, str):
-                            content = output
-                        elif isinstance(output, list) and output:
-                            # Output might be list of content items
-                            for item in output:
-                                if isinstance(item, dict) and item.get("content"):
-                                    content = item["content"]
-                                    break
-                                elif isinstance(item, str):
-                                    content = item
-                                    break
                     
                     if content:
                         full_content += content
                         yield f"data: {json.dumps({'content': content, 'done': False})}\n\n"
-                    
-                    # Check for completion signals
-                    if event_data.get("done") or event_data.get("finish_reason"):
-                        break
             else:
                 # Handle Chat Completions streaming (standard OpenAI format)
                 if is_azure and is_gpt5_model and not uses_responses and completion_params is None:

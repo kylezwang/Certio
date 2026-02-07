@@ -1033,12 +1033,9 @@ Rules:
         else if (messageLower.Contains("business") || messageLower.Contains("company"))
             contextualResponse = "I understand you have business-related questions. ";
         
-        return $"<strong>🤖 AI Assistant Temporarily Unavailable</strong><br><br>" +
-               $"{contextualResponse}While our AI services are being updated, you can still:<br><br>" +
-               "• Continue messaging with your legal team<br>" +
-               "• Access all previous conversations<br>" +
-               "• Use all chat features normally<br><br>" +
-               "Our AI assistant will be back online shortly to provide intelligent responses!";
+        return $"<strong>⚠️ AI Services Temporarily Unavailable</strong><br><br>" +
+               $"{contextualResponse}While our AI services are being updated, you can still use other services normally.<br><br>" +
+               "We apologize for any inconvenience. Our AI services will be back online shortly!";
     }
 
     private sealed record DashboardCardContext(

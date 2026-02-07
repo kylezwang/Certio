@@ -2906,6 +2906,12 @@
                                 }
                                 
                                 if (eventData.content) {
+                                    // Safety net: skip suspected duplicate full-response chunk
+                                    if (fullContent.length > 100 && eventData.content.length >= fullContent.length * 0.9) {
+                                        console.warn('⚠️ Dashboard: Skipping suspected duplicate full-response chunk');
+                                        continue;
+                                    }
+                                    
                                     // On first chunk: hide thinking indicator and create streaming placeholder
                                     if (isFirstChunk) {
                                         hideDashboardAIThinkingIndicator();

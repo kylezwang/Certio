@@ -966,9 +966,9 @@ public class AIAgentService : IAIAgentService
         else if (messageLower.Contains("legal") || messageLower.Contains("law"))
             contextHint = "I see you need legal guidance. ";
         
-        return $"<strong>🤖 AI Assistant Temporarily Unavailable</strong><br><br>" +
-               $"{contextHint}Our AI services are being updated. You can continue chatting with your legal team, " +
-               "and I'll be back online shortly to provide intelligent assistance!";
+        return $"<strong>⚠️ AI Services Temporarily Unavailable</strong><br><br>" +
+               $"{contextHint}Our AI services are being updated. You can continue other services normally, " +
+               "and I'll be back online shortly to provide assistance!";
     }
 
     private static Guid CreateDeterministicGuid(string namespacePrefix, int value)
