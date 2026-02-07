@@ -196,18 +196,14 @@ namespace Certio.Web.Controllers
                     ).ToList();
                 }
 
-                // Get matter titles for logs that have matter IDs
+                // Get matter titles for logs that have matter IDs (batch query instead of N+1)
                 var matterIds = auditLogs.Where(log => log.MatterId.HasValue).Select(log => log.MatterId!.Value).Distinct().ToList();
-                var matterTitles = new Dictionary<int, string>();
-                
-                foreach (var matterId in matterIds)
-                {
-                    var matterResult = await _matterService.GetMatterAsync(user.Id, matterId);
-                    if (matterResult.Success && matterResult.Data != null)
-                    {
-                        matterTitles[matterId] = matterResult.Data.Title;
-                    }
-                }
+                var matterTitles = matterIds.Any()
+                    ? await _context.Matters
+                        .AsNoTracking()
+                        .Where(m => matterIds.Contains(m.Id))
+                        .ToDictionaryAsync(m => m.Id, m => m.Title)
+                    : new Dictionary<int, string>();
 
                 // Format activities for the frontend
                 var allActivities = auditLogs.Select(log =>
