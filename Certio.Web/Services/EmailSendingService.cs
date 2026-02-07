@@ -115,8 +115,7 @@ public class EmailSendingService : IEmailSendingService
             Subject = subject,
             FromEmail = emailAccount.EmailAddress,
             ToEmails = JsonSerializer.Serialize(new[] { otherUser.Email }),
-            Body = body,
-            BodyText = body, // Simplified - in production, convert HTML to plain text
+            Preview = body != null && body.Length > 500 ? body[..500] : body, // Store truncated preview only
             IsRead = true, // Sent emails are marked as read
             ReceivedAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow

@@ -35,9 +35,8 @@ public class EmailMessage
     
     public string? BccEmails { get; set; } // JSON array of email addresses
     
-    public string? Body { get; set; } // HTML content
-    
-    public string? BodyText { get; set; } // Plain text version
+    [StringLength(500)]
+    public string? Preview { get; set; } // Truncated plain text preview (max 500 chars)
     
     public bool IsRead { get; set; } = false;
     

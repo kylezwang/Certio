@@ -473,17 +473,16 @@ public class EmailOAuthController : Controller
                 var trimmed = search!.Trim();
                 var searchPattern = $"%{EscapeLikePattern(trimmed)}%";
 
-                // Optimize search: exclude large HTML Body field, focus on indexed fields
-                // Search only Subject, FromName, FromEmail, and BodyText (plain text)
+                // Search Subject, FromName, FromEmail, and Preview
                 emailQuery = emailQuery.Where(em =>
                     (em.Subject != null && EF.Functions.Like(em.Subject, searchPattern)) ||
                     (em.FromName != null && EF.Functions.Like(em.FromName, searchPattern)) ||
                     (em.FromEmail != null && EF.Functions.Like(em.FromEmail, searchPattern)) ||
-                    (em.BodyText != null && EF.Functions.Like(em.BodyText, searchPattern))
+                    (em.Preview != null && EF.Functions.Like(em.Preview, searchPattern))
                 );
             }
 
-            // Order and project only needed fields to minimize payload (exclude HTML Body)
+            // Order and project only needed fields
             var orderedProjectedQuery = emailQuery
                 .OrderByDescending(em => em.ReceivedAt)
                 .Select(em => new
@@ -495,18 +494,11 @@ public class EmailOAuthController : Controller
                     em.Subject,
                     em.FromEmail,
                     em.FromName,
-                    em.BodyText,
+                    em.Preview,
                     em.ReceivedAt,
                     em.IsRead,
                     Provider = em.EmailAccount.Provider
                 });
-
-            // Helper to trim long previews safely
-            static string TrimPreview(string? text)
-            {
-                if (string.IsNullOrEmpty(text)) return "";
-                return text.Length > 500 ? text.Substring(0, 500) : text;
-            }
 
             // Fetch with efficient pagination
             var pageSize = Math.Min(take, 25);
@@ -571,8 +563,8 @@ public class EmailOAuthController : Controller
                     fromEmail = item.FromEmail,
                     fromName = item.FromName,
                     senderName = item.FromName ?? item.FromEmail,
-                    body = TrimPreview(item.BodyText),
-                    bodyText = TrimPreview(item.BodyText),
+                    body = item.Preview ?? "",
+                    bodyText = item.Preview ?? "",
                     receivedAt = item.ReceivedAt,
                     isRead = item.IsRead,
                     provider = item.Provider,
@@ -627,8 +619,8 @@ public class EmailOAuthController : Controller
                     fromEmail = item.FromEmail,
                     fromName = item.FromName,
                     senderName = item.FromName ?? item.FromEmail,
-                    body = TrimPreview(item.BodyText),
-                    bodyText = TrimPreview(item.BodyText),
+                    body = item.Preview ?? "",
+                    bodyText = item.Preview ?? "",
                     receivedAt = item.ReceivedAt,
                     isRead = item.IsRead,
                     provider = item.Provider,
