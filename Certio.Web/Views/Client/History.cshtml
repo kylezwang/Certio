@@ -867,12 +867,7 @@
                 hasMore = true;
                 allActivities = [];
                 if (container) {
-                    // Remove all children EXCEPT the loading state indicator
-                    Array.from(container.children).forEach(child => {
-                        if (child.id !== 'historyLoadingState') {
-                            child.remove();
-                        }
-                    });
+                    container.innerHTML = '';
                 }
             }
             
@@ -978,12 +973,7 @@
             if (!container) return;
             
             if (clearContainer) {
-                // Remove all children EXCEPT the loading state indicator so it isn't destroyed
-                Array.from(container.children).forEach(child => {
-                    if (child.id !== 'historyLoadingState') {
-                        child.remove();
-                    }
-                });
+                container.innerHTML = '';
             }
             
             // Only show empty state if we're not loading and there are truly no results
@@ -1103,24 +1093,13 @@
         // Show empty state
         function showEmptyState() {
             const container = document.getElementById('historyCardsContainer');
-            // Preserve the loading-state element and remove everything else
-            Array.from(container.children).forEach(child => {
-                if (child.id !== 'historyLoadingState') {
-                    child.remove();
-                }
-            });
-            // Hide the spinner if it's still visible
-            const loadingState = document.getElementById('historyLoadingState');
-            if (loadingState) loadingState.style.display = 'none';
-            
-            const emptyDiv = document.createElement('div');
-            emptyDiv.className = 'history-empty-state';
-            emptyDiv.innerHTML = `
-                <i class="fas fa-clock"></i>
-                <h5>No activity history</h5>
-                <p>Activity will appear here as actions are performed in your organization.</p>
+            container.innerHTML = `
+                <div class="history-empty-state">
+                    <i class="fas fa-clock"></i>
+                    <h5>No activity history</h5>
+                    <p>Activity will appear here as actions are performed in your organization.</p>
+                </div>
             `;
-            container.appendChild(emptyDiv);
         }
 
         // Show history detail modal
