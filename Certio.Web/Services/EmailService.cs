@@ -1038,7 +1038,7 @@ public class EmailService : IEmailService
                 receivedAt = parsedDate.ToUniversalTime();
             }
 
-            // Extract body
+            // Extract body — only keep a short plaintext preview (no HTML storage)
             var (body, bodyText) = ExtractGmailBody(message.Payload);
 
             // If we have HTML but no plain text, extract plain text from HTML
@@ -1046,6 +1046,9 @@ public class EmailService : IEmailService
             {
                 bodyText = StripHtmlToPlainText(body);
             }
+
+            // Truncate to 500-char preview
+            var preview = TruncatePreview(bodyText, 500);
 
             var emailMessage = new EmailMessage
             {
@@ -1059,8 +1062,7 @@ public class EmailService : IEmailService
                 ToEmails = System.Text.Json.JsonSerializer.Serialize(toEmails),
                 CcEmails = ccEmails.Any() ? System.Text.Json.JsonSerializer.Serialize(ccEmails) : null,
                 BccEmails = bccEmails.Any() ? System.Text.Json.JsonSerializer.Serialize(bccEmails) : null,
-                Body = body,
-                BodyText = bodyText,
+                Preview = preview,
                 IsRead = message.LabelIds?.Contains("UNREAD") != true,
                 ReceivedAt = receivedAt,
                 CreatedAt = DateTime.UtcNow
@@ -1140,6 +1142,10 @@ public class EmailService : IEmailService
             var isRead = messageData.ContainsKey("isRead") && 
                         messageData["isRead"] is bool read && read;
 
+            // Build plaintext preview — no HTML storage
+            var plainTextForPreview = bodyContentType == "Text" ? bodyContent : (plainText ?? StripHtmlToPlainText(bodyContent ?? ""));
+            var preview = TruncatePreview(plainTextForPreview, 500);
+
             var emailMessage = new EmailMessage
             {
                 Id = Guid.NewGuid(),
@@ -1151,8 +1157,7 @@ public class EmailService : IEmailService
                 FromName = fromName,
                 ToEmails = System.Text.Json.JsonSerializer.Serialize(toEmails),
                 CcEmails = ccEmails.Any() ? System.Text.Json.JsonSerializer.Serialize(ccEmails) : null,
-                Body = bodyContentType == "HTML" ? bodyContent : null,
-                BodyText = bodyContentType == "Text" ? bodyContent : (plainText ?? bodyContent),
+                Preview = preview,
                 IsRead = isRead,
                 ReceivedAt = receivedAt,
                 CreatedAt = DateTime.UtcNow
@@ -1259,6 +1264,16 @@ public class EmailService : IEmailService
         html = System.Text.RegularExpressions.Regex.Replace(html, @"\n[ \t]+", "\n");
         
         return html.Trim();
+    }
+
+    /// <summary>
+    /// Truncates text to a maximum length for preview storage.
+    /// </summary>
+    private static string? TruncatePreview(string? text, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        text = text.Trim();
+        return text.Length <= maxLength ? text : text[..maxLength];
     }
 
     private string DecodeBase64Url(string base64Url)

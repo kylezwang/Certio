@@ -89,9 +89,9 @@ public class EmailToDmService : IEmailToDmService
             ["ReceivedAt"] = emailMessage.ReceivedAt.ToString("O")
         };
 
-        // Create DirectMessage
+        // Create DirectMessage using preview text
         var newMessageDto = new Certio.Application.DTOs.NewMessageDto(
-            Body: emailMessage.BodyText ?? emailMessage.Body ?? "",
+            Body: emailMessage.Preview ?? "",
             MessageType: "Email",
             Metadata: emailMetadata
         );
