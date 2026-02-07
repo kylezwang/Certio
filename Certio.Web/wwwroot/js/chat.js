@@ -771,17 +771,6 @@ async function generateAIResponse(userMessage) {
                             
                             currentMessages.push(aiMessage);
                             
-                            // Update sessionStorage cache so the AI response persists across page navigations
-                            try {
-                                const orgId = getCurrentOrganizationId();
-                                if (orgId && currentConversationId) {
-                                    const cacheKey = `aiChatMessages:${orgId}:${currentConversationId}:limit:200`;
-                                    sessionStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), messages: currentMessages }));
-                                }
-                            } catch (e) {
-                                // ignore storage errors
-                            }
-                            
                             // Reinitialize sticky message after streaming is complete
                             initializeStickyMessage();
                             

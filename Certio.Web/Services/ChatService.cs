@@ -302,9 +302,6 @@ public class ChatService : IChatService
 
         await _context.SaveChangesAsync();
 
-        // Invalidate conversation message caches so next page load fetches fresh data
-        await InvalidateConversationMessageCacheAsync(conversationId);
-
         // Only process AI agents if the message is meaningful and not a simple greeting
         if (ShouldProcessAIAgents(content))
         {
@@ -1021,24 +1018,6 @@ Rules:
         }
 
         await _context.SaveChangesAsync();
-
-        // Invalidate conversation message caches so next page load fetches fresh data
-        await InvalidateConversationMessageCacheAsync(conversationId);
-    }
-
-    /// <summary>
-    /// Invalidate all Redis caches for a conversation's messages (limit-200, all, etc.)
-    /// </summary>
-    private async Task InvalidateConversationMessageCacheAsync(int conversationId)
-    {
-        try
-        {
-            await _cacheService.RemoveByPatternAsync($"conv_msgs:{conversationId}:*");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to invalidate message cache for conversation {ConversationId}", conversationId);
-        }
     }
 
     private string GenerateIntelligentFallbackResponse(string userMessage)
