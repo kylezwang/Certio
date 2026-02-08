@@ -637,17 +637,26 @@
     }
 
     // Adjust modal position to match Tasks modal behavior
+    // Reads directly from mainContentWrapper computed style so it works
+    // regardless of which right sidebar (AI chat, comms, notifications) is active
     function adjustBillingModalPosition(modal) {
         const mainContentWrapper = document.querySelector('.client-main-content-wrapper');
         if (!mainContentWrapper) return;
 
         const wrapperStyle = window.getComputedStyle(mainContentWrapper);
         const wrapperRight = wrapperStyle.right;
+        const wrapperLeft = wrapperStyle.left;
 
-        if (document.body.classList.contains('chat-hidden')) {
-            modal.style.right = '1rem';
-        } else if (wrapperRight && wrapperRight !== 'auto') {
+        if (wrapperRight && wrapperRight !== 'auto') {
             modal.style.right = wrapperRight;
+        } else {
+            modal.style.right = '';
+        }
+
+        if (wrapperLeft && wrapperLeft !== 'auto') {
+            modal.style.left = wrapperLeft;
+        } else {
+            modal.style.left = '';
         }
     }
 
@@ -1719,6 +1728,68 @@
         } catch (err) {
             console.error('[Billing] Failed to load recent activity:', err);
         }
+    }
+
+    // ── Adaptive modal positioning (mirrors Tasks / Clients page behavior) ──
+
+    // Snap every visible billing modal to the live main-content edges
+    function adjustAllVisibleBillingModals() {
+        const billingModals = document.querySelectorAll('.billing-modal.task-details-modal');
+        billingModals.forEach(function(modal) {
+            if (modal.style.display !== 'none' && modal.style.display !== '') {
+                adjustBillingModalPosition(modal);
+            }
+        });
+    }
+
+    // Expose as the global hook that chat.js already calls during resize-handle drags
+    window.adjustTaskDetailsModalPosition = adjustAllVisibleBillingModals;
+
+    // Re-snap on window resize
+    window.addEventListener('resize', adjustAllVisibleBillingModals);
+
+    // Observe body class changes (sidebar-hidden, chat-hidden toggling)
+    var billingModalPosObserver = new MutationObserver(function(mutations) {
+        for (var i = 0; i < mutations.length; i++) {
+            if (mutations[i].type === 'attributes' && mutations[i].attributeName === 'class') {
+                setTimeout(adjustAllVisibleBillingModals, 50);
+                break;
+            }
+        }
+    });
+    billingModalPosObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+    // Observe main content wrapper style changes (right sidebar width set via JS)
+    var billingMainContentWrapperEl = document.querySelector('.client-main-content-wrapper');
+    if (billingMainContentWrapperEl) {
+        var wrapperStyleObserver = new MutationObserver(function() {
+            setTimeout(adjustAllVisibleBillingModals, 50);
+        });
+        wrapperStyleObserver.observe(billingMainContentWrapperEl, { attributes: true, attributeFilter: ['style'] });
+    }
+
+    // Snap during resize-handle drag
+    var billingResizeHandle = document.getElementById('resizeHandle');
+    if (billingResizeHandle) {
+        var billingIsResizing = false;
+        var billingResizeTimeout;
+
+        billingResizeHandle.addEventListener('mousedown', function() {
+            billingIsResizing = true;
+        });
+
+        document.addEventListener('mousemove', function() {
+            if (!billingIsResizing) return;
+            clearTimeout(billingResizeTimeout);
+            billingResizeTimeout = setTimeout(adjustAllVisibleBillingModals, 16);
+        });
+
+        document.addEventListener('mouseup', function() {
+            if (billingIsResizing) {
+                billingIsResizing = false;
+                adjustAllVisibleBillingModals();
+            }
+        });
     }
 
     // Export functions for external use if needed

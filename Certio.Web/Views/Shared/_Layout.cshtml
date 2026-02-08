@@ -26,7 +26,7 @@
             width: 6vw;
             height: 100vh;
             background-color: #3d1019;
-            z-index: 1000;
+            z-index: 1003;
             display: flex;
             flex-direction: column;
             box-shadow: 2px 0 5px rgba(0,0,0,0.1);
@@ -179,7 +179,7 @@
             height: 100vh;
             background-color: #ffffff;
             box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
-            z-index: 999;
+            z-index: 1002;
             transform: translateX(-100%);
             transition: transform 0.3s ease;
             overflow: hidden;
@@ -333,6 +333,31 @@
             color: #6b7280;
             font-size: 0.8rem;
             margin: 0;
+        }
+
+        .client-email-row {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            min-width: 0;
+        }
+
+        .client-email-copy-btn {
+            background: none;
+            border: none;
+            padding: 2px 4px;
+            cursor: pointer;
+            color: #9ca3af;
+            font-size: 0.75rem;
+            line-height: 1;
+            flex-shrink: 0;
+            border-radius: 4px;
+            transition: color 0.15s ease, background-color 0.15s ease;
+        }
+
+        .client-email-copy-btn:hover {
+            color: #3d1019;
+            background-color: rgba(61, 16, 25, 0.08);
         }
 
         /* Join Code Section Styles */
@@ -1128,28 +1153,48 @@
                             ? '<i class="fas fa-user-clock" style="font-size: 1rem;"></i>'
                             : getInitials(ownerName);
                         
+                        // Build contact detail lines (email with copy btn + optional phone)
+                        let contactLines = '';
+                        if (!o.isExternalContacts) {
+                            const email = o.ownerEmail || '';
+                            const phone = o.ownerPhoneNumber || '';
+                            if (email) {
+                                contactLines += `<div class="client-email-row"><span class="client-status" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;" title="${email}">${email}</span><button class="client-email-copy-btn" data-email="${email}" title="Copy email"><i class="fa-regular fa-copy"></i></button></div>`;
+                            }
+                            if (phone) {
+                                contactLines += `<p class="client-status" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${phone}">${phone}</p>`;
+                            }
+                        }
+
                         clientItem.innerHTML = `
                             <div class="client-avatar" ${avatarStyle}>${avatarContent}</div>
                             <div class="client-item-content">
                                 <h5 class="client-name">${ownerName}</h5>
                                 <p class="client-company">${o.organizationName}</p>
-                                <p class="client-status">${o.isPrimary ? 'Primary' : (o.isPersonal ? 'Personal' : 'Active')}</p>
+                                ${contactLines}
                             </div>
                         `;
-                        clientItem.addEventListener('click', () => {
+                        clientItem.addEventListener('click', (e) => {
+                            // Don't navigate if clicking the copy button
+                            if (e.target.closest('.client-email-copy-btn')) return;
+
                             setLastOpenedClientOrgId(o.organizationId);
-                            // External Contacts should navigate to Clients list within the active firm context
+                            const activeFirmId = localStorage.getItem('activeFirmId');
+                            const firmId = activeFirmId || document.querySelector('[data-organization-id]')?.getAttribute('data-organization-id');
                             if (o.isExternalContacts) {
-                                const activeFirmId = localStorage.getItem('activeFirmId');
-                                if (activeFirmId) {
-                                    window.location.href = `/Client/${activeFirmId}/Clients`;
+                                // External Contacts: navigate to Clients page and scroll to External section
+                                if (firmId) {
+                                    window.location.href = `/Client/${firmId}/Clients?scrollTo=external`;
                                 } else {
-                                    // Fallback: try to use the current page's org ID if available
-                                    const currentOrgId = document.querySelector('[data-organization-id]')?.getAttribute('data-organization-id');
-                                    window.location.href = currentOrgId ? `/Client/${currentOrgId}/Clients` : '/';
+                                    window.location.href = '/';
                                 }
                             } else {
-                            window.location.href = `/Client/${o.organizationId}/Dashboard`;
+                                // Regular client: navigate and open their details modal
+                                if (firmId) {
+                                    window.location.href = `/Client/${firmId}/Clients?openClient=${o.organizationId}`;
+                                } else {
+                                    window.location.href = '/';
+                                }
                             }
                         });
                         clientsList.appendChild(clientItem);
@@ -1160,6 +1205,22 @@
                     clientsList.innerHTML = `<div class="client-item"><p class="client-status">Error loading contacts.</p></div>`;
                 }
             }
+
+            // Copy email button handler (delegated)
+            clientsList.addEventListener('click', function(e) {
+                const copyBtn = e.target.closest('.client-email-copy-btn');
+                if (!copyBtn) return;
+                e.stopPropagation();
+                const email = copyBtn.getAttribute('data-email');
+                if (!email) return;
+                navigator.clipboard.writeText(email).then(() => {
+                    const icon = copyBtn.querySelector('i');
+                    if (icon) {
+                        icon.className = 'fa-solid fa-check';
+                        setTimeout(() => { icon.className = 'fa-regular fa-copy'; }, 1500);
+                    }
+                }).catch(err => console.error('Copy failed:', err));
+            });
 
             // Show clients popup
             function showClientsPopup() {

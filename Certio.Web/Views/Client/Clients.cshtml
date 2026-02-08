@@ -102,6 +102,7 @@
                                 <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 client-card team-member-card" 
                                      data-name="@(userName.ToString().ToLower())" 
                                      data-org="@(orgName.ToString().ToLower())"
+                                     data-org-id="@orgId"
                                      data-status="@clientStatus"
                                      data-is-confirmed="@(isConfirmed && !isExternalGuests ? "true" : "false")"
                                      data-member-id="@userId"
@@ -157,6 +158,7 @@
                             <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 client-card team-member-card" 
                                  data-name="@(clientName.ToString().ToLower())" 
                                  data-org="@(orgName.ToString().ToLower())"
+                                 data-org-id="@orgId"
                                  data-status="@clientStatus"
                                  data-is-confirmed="@(isConfirmed && !isExternalGuests ? "true" : "false")"
                                  data-member-id="0"
@@ -483,13 +485,10 @@
 
             // Show modal
             modal.style.display = 'flex';
-            
-            // Add body class to handle sidebar adjustments
-            if (document.querySelector('.client-sidebar') && document.querySelector('.client-sidebar').style.transform === 'translateX(-100%)') {
-                document.body.classList.add('sidebar-hidden');
-            }
-            if (document.querySelector('.chat-panel') && document.querySelector('.chat-panel').style.display === 'none') {
-                document.body.classList.add('chat-hidden');
+
+            // Snap modal edges to match the live main-content area
+            if (typeof window.adjustTaskDetailsModalPosition === 'function') {
+                window.adjustTaskDetailsModalPosition();
             }
         }
 
@@ -544,6 +543,45 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            // Check for openClient query param to auto-open a client's modal
+            const urlParams = new URLSearchParams(window.location.search);
+            const openClientOrgId = urlParams.get('openClient');
+            if (openClientOrgId) {
+                const targetCard = document.querySelector(`.client-card[data-org-id="${openClientOrgId}"]`);
+                if (targetCard) {
+                    // Delay to ensure sidebar layout has been fully restored by _ClientLayout
+                    setTimeout(() => {
+                        showUserDetailsModal(targetCard);
+                        // Re-snap after sidebar transitions settle
+                        setTimeout(() => {
+                            if (typeof window.adjustTaskDetailsModalPosition === 'function') {
+                                window.adjustTaskDetailsModalPosition();
+                            }
+                        }, 350);
+                    }, 400);
+                }
+                // Clean up the URL without reloading
+                const cleanUrl = window.location.pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
+            }
+
+            // Check for scrollTo=external query param to scroll to External Contacts section
+            const scrollTo = urlParams.get('scrollTo');
+            if (scrollTo === 'external') {
+                setTimeout(() => {
+                    // Find the first client-section that contains an external card
+                    const externalCard = document.querySelector('.client-card[data-status="external"]');
+                    if (externalCard) {
+                        const section = externalCard.closest('.client-section');
+                        if (section) {
+                            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }
+                    // Clean up URL
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }, 300);
+            }
+
             // User Details Modal event handlers
             const modal = document.getElementById('userDetailsModal');
             if (modal) {
@@ -1055,6 +1093,86 @@
                 document.body.style.overflow = 'hidden';
             }
         });
+
+        // Keep User Details modal perfectly aligned with the live main-content edge,
+        // matching task details modal behavior (snaps in real time during resizing).
+        window.adjustTaskDetailsModalPosition = function() {
+            const modal = document.getElementById('userDetailsModal');
+            if (!modal || modal.style.display === 'none') return;
+
+            const mainContentWrapper = document.querySelector('.client-main-content-wrapper');
+            if (!mainContentWrapper) return;
+
+            // Read the live computed position of the main content wrapper
+            // This already reflects the actual sidebar state regardless of body classes
+            const wrapperStyle = window.getComputedStyle(mainContentWrapper);
+            const wrapperRight = wrapperStyle.right;
+            const wrapperLeft = wrapperStyle.left;
+
+            // Right edge: mirror the main content wrapper's right
+            if (wrapperRight && wrapperRight !== 'auto') {
+                modal.style.right = wrapperRight;
+            } else {
+                modal.style.right = '';
+            }
+
+            // Left edge: mirror the main content wrapper's left
+            if (wrapperLeft && wrapperLeft !== 'auto') {
+                modal.style.left = wrapperLeft;
+            } else {
+                modal.style.left = '';
+            }
+        };
+
+        // Re-snap on window resize
+        window.addEventListener('resize', () => window.adjustTaskDetailsModalPosition && window.adjustTaskDetailsModalPosition());
+
+        // Observe body class changes (sidebar-hidden, chat-hidden) for left sidebar toggle
+        const modalPosObserver = new MutationObserver(function(mutations) {
+            for (const mutation of mutations) {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                    setTimeout(() => window.adjustTaskDetailsModalPosition && window.adjustTaskDetailsModalPosition(), 50);
+                }
+            }
+        });
+        modalPosObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+        // Observe main content wrapper style changes (right sidebar width set via JS)
+        const mainContentWrapperEl = document.querySelector('.client-main-content-wrapper');
+        if (mainContentWrapperEl) {
+            const wrapperStyleObserver = new MutationObserver(function() {
+                setTimeout(() => window.adjustTaskDetailsModalPosition && window.adjustTaskDetailsModalPosition(), 50);
+            });
+            wrapperStyleObserver.observe(mainContentWrapperEl, { attributes: true, attributeFilter: ['style'] });
+        }
+
+        // Observe resize handle for position changes and update during drag
+        const resizeHandle = document.getElementById('resizeHandle');
+        if (resizeHandle) {
+            let isResizing = false;
+            let resizeTimeout;
+
+            resizeHandle.addEventListener('mousedown', function() {
+                isResizing = true;
+            });
+
+            document.addEventListener('mousemove', function() {
+                if (!isResizing) return;
+                const modal = document.getElementById('userDetailsModal');
+                if (!modal || modal.style.display === 'none') return;
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    window.adjustTaskDetailsModalPosition && window.adjustTaskDetailsModalPosition();
+                }, 16);
+            });
+
+            document.addEventListener('mouseup', function() {
+                if (isResizing) {
+                    isResizing = false;
+                    window.adjustTaskDetailsModalPosition && window.adjustTaskDetailsModalPosition();
+                }
+            });
+        }
     </script>
 }
 
@@ -1134,6 +1252,7 @@
         justify-content: center;
         padding: 2rem 1rem;
         border-radius: 20px 20px 0 0;
+        transition: left 0.3s ease, right 0.3s ease;
     }
 
     .sidebar-hidden #userDetailsModal.task-details-modal {
