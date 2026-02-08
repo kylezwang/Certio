@@ -2776,9 +2776,9 @@ async def conversational_response_stream(payload: dict, _: str = Depends(authent
             # Determine model selection based on tier preference
             force_model_type = None
             if is_dashboard_card:
-                # Always use mini for dashboard cards to reduce costs
-                force_model_type = ModelType.GPT_4O_MINI
-                logger.info("Dashboard card detected - forcing gpt-4o-mini for cost optimization")
+                # Use GPT-4o for dashboard cards (cached once per day so cost is minimal)
+                force_model_type = ModelType.GPT_4O
+                logger.info("Dashboard card detected - using gpt-4o (daily-cached)")
             elif ai_model_tier == "GPT4oMini":
                 force_model_type = ModelType.GPT_4O_MINI
                 logger.info("GPT4oMini tier selected")
@@ -3026,8 +3026,7 @@ Respond as an intelligent assistant:"""
                     # Auto mode: Use dynamic selection based on complexity
                     # Analyze task complexity for cost optimization
                     context_length = len(messages) if messages else 0
-                    # Force mini for dashboard cards by passing force_mini=True
-                    task_complexity = task_analyzer.analyze_task(user_message, context_length, user_type, force_mini=is_dashboard_card)
+                    task_complexity = task_analyzer.analyze_task(user_message, context_length, user_type)
                     optimal_model_type, estimated_cost = model_selector.select_optimal_model(task_complexity)
                     if optimal_model_type:
                         selected_model = get_model_name(optimal_model_type)

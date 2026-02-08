@@ -3094,14 +3094,34 @@
             }
         });
 
-        // Stream AI-powered briefing and suggestions (once per session)
+        // Stream AI-powered briefing and suggestions (once per day)
+        function getTodayKey() {
+            const now = new Date();
+            return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+        }
+        function cleanOldBriefingCache() {
+            const todayKey = getTodayKey();
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.startsWith('briefingCardsShown_') || key.startsWith('briefingContent_') || key.startsWith('suggestionsContent_'))) {
+                    if (!key.endsWith('_' + todayKey)) {
+                        keysToRemove.push(key);
+                    }
+                }
+            }
+            keysToRemove.forEach(k => localStorage.removeItem(k));
+        }
         async function streamDashboardBriefingCards() {
-            // Check if already shown this session
-            const briefingShown = sessionStorage.getItem('briefingCardsShown');
+            const todayKey = getTodayKey();
+            cleanOldBriefingCache();
+
+            // Check if already generated today
+            const briefingShown = localStorage.getItem('briefingCardsShown_' + todayKey);
             if (briefingShown === 'true') {
                 // Load cached content if available
-                const cachedBriefing = sessionStorage.getItem('briefingContent');
-                const cachedSuggestions = sessionStorage.getItem('suggestionsContent');
+                const cachedBriefing = localStorage.getItem('briefingContent_' + todayKey);
+                const cachedSuggestions = localStorage.getItem('suggestionsContent_' + todayKey);
                 
                 if (cachedBriefing) {
                     const contentElement = document.getElementById('dailyBriefingContent');
@@ -3211,8 +3231,8 @@
                     -> consider reassigning`
                 );
 
-                // Mark as shown for this session
-                sessionStorage.setItem('briefingCardsShown', 'true');
+                // Mark as shown for today (won't regenerate until tomorrow)
+                localStorage.setItem('briefingCardsShown_' + todayKey, 'true');
             } catch (error) {
                 console.error('Error streaming briefing cards:', error);
             }
@@ -3285,8 +3305,9 @@
                                 }
                                 
                                 if (eventData.done) {
-                                    // Cache the final content for session persistence
-                                    sessionStorage.setItem(contentElementId === 'dailyBriefingContent' ? 'briefingContent' : 'suggestionsContent', fullContent);
+                                    // Cache the final content for the day (persists across sessions)
+                                    const cacheKey = contentElementId === 'dailyBriefingContent' ? 'briefingContent_' : 'suggestionsContent_';
+                                    localStorage.setItem(cacheKey + getTodayKey(), fullContent);
                                     
                                     // Format full content for display
                                     let displayText = fullContent

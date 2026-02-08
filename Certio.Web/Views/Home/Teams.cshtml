@@ -664,7 +664,7 @@
                 modal = document.createElement('div');
                 modal.id = 'existingJoinCodeModal';
                 modal.className = 'task-details-modal';
-                modal.style.cssText = 'display: flex; position: fixed; top: 7vh; left: 20vw; right: 320px; bottom: 0; z-index: 1000; align-items: center; justify-content: center; background-color: rgba(0, 0, 0, 0.5); border-radius: 20px 20px 0px 0px;';
+                modal.style.cssText = 'display: flex; position: fixed; top: 7vh; left: 20vw; right: 320px; bottom: 0; z-index: 1000; align-items: center; justify-content: center; background-color: rgba(0, 0, 0, 0.5); border-radius: 20px 20px 0px 0px; transition: left 0.3s ease, right 0.3s ease;';
                 modal.innerHTML = `
                     <div class="modal-dialog" style="margin-bottom: 1.5rem; border-radius: 12px;">
                         <div class="task-details-content">
@@ -736,6 +736,9 @@
             
             modal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
+            if (typeof window.adjustTaskDetailsModalPosition === 'function') {
+                window.adjustTaskDetailsModalPosition();
+            }
             
             const copyBtn = document.getElementById('copyExistingJoinCodeBtn');
             const closeBtn = document.getElementById('closeExistingJoinCodeModal');
@@ -899,6 +902,9 @@
                         // Show modal using task-details-modal style
                         modalEl.style.display = 'flex';
                         document.body.style.overflow = 'hidden';
+                        if (typeof window.adjustTaskDetailsModalPosition === 'function') {
+                            window.adjustTaskDetailsModalPosition();
+                        }
                         
                         const copyBtn = document.getElementById('copyJoinCodeBtn');
                         const input = document.getElementById('joinCodeValue');
@@ -1003,6 +1009,7 @@
         justify-content: center;
         background-color: rgba(0, 0, 0, 0.5);
         pointer-events: auto;
+        transition: left 0.3s ease, right 0.3s ease;
     }
 
     #joinCodeModal.task-details-modal .modal-dialog {
@@ -1083,6 +1090,7 @@
         justify-content: center;
         padding: 2rem 1rem;
         border-radius: 20px 20px 0 0;
+        transition: left 0.3s ease, right 0.3s ease;
     }
 
     /* Adjust when sidebar is hidden */
@@ -1359,13 +1367,10 @@
 
         // Show modal
         modal.style.display = 'flex';
-        
-        // Add body class to handle sidebar adjustments
-        if (document.querySelector('.client-sidebar') && document.querySelector('.client-sidebar').style.transform === 'translateX(-100%)') {
-            document.body.classList.add('sidebar-hidden');
-        }
-        if (document.querySelector('.chat-panel') && document.querySelector('.chat-panel').style.display === 'none') {
-            document.body.classList.add('chat-hidden');
+
+        // Snap modal edges to match the live main-content area
+        if (typeof window.adjustTaskDetailsModalPosition === 'function') {
+            window.adjustTaskDetailsModalPosition();
         }
     }
 
@@ -1447,6 +1452,86 @@
                 });
                 
                 closeUserDetailsModal();
+            });
+        }
+
+        // Keep modals perfectly aligned with the live main-content edge
+        function snapModalToMainContent(modal) {
+            if (!modal || modal.style.display === 'none') return;
+
+            const mainContentWrapper = document.querySelector('.client-main-content-wrapper');
+            if (!mainContentWrapper) return;
+
+            const wrapperStyle = window.getComputedStyle(mainContentWrapper);
+            const wrapperRight = wrapperStyle.right;
+            const wrapperLeft = wrapperStyle.left;
+
+            if (wrapperRight && wrapperRight !== 'auto') {
+                modal.style.right = wrapperRight;
+            } else {
+                modal.style.right = '';
+            }
+
+            if (wrapperLeft && wrapperLeft !== 'auto') {
+                modal.style.left = wrapperLeft;
+            } else {
+                modal.style.left = '';
+            }
+        }
+
+        window.adjustTaskDetailsModalPosition = function() {
+            snapModalToMainContent(document.getElementById('userDetailsModal'));
+            snapModalToMainContent(document.getElementById('joinCodeModal'));
+            snapModalToMainContent(document.getElementById('existingJoinCodeModal'));
+        };
+
+        // Re-snap on window resize
+        window.addEventListener('resize', () => window.adjustTaskDetailsModalPosition && window.adjustTaskDetailsModalPosition());
+
+        // Observe body class changes (sidebar-hidden, chat-hidden)
+        const modalPosObserver = new MutationObserver(function(mutations) {
+            for (const mutation of mutations) {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                    setTimeout(() => window.adjustTaskDetailsModalPosition && window.adjustTaskDetailsModalPosition(), 50);
+                }
+            }
+        });
+        modalPosObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+        // Observe main content wrapper style changes (right sidebar width set via JS)
+        const mainContentWrapperEl = document.querySelector('.client-main-content-wrapper');
+        if (mainContentWrapperEl) {
+            const wrapperStyleObserver = new MutationObserver(function() {
+                setTimeout(() => window.adjustTaskDetailsModalPosition && window.adjustTaskDetailsModalPosition(), 50);
+            });
+            wrapperStyleObserver.observe(mainContentWrapperEl, { attributes: true, attributeFilter: ['style'] });
+        }
+
+        // Observe resize handle for position changes and update during drag
+        const resizeHandle = document.getElementById('resizeHandle');
+        if (resizeHandle) {
+            let isResizing = false;
+            let resizeTimeout;
+
+            resizeHandle.addEventListener('mousedown', function() {
+                isResizing = true;
+            });
+
+            document.addEventListener('mousemove', function() {
+                if (!isResizing) return;
+                const modal = document.getElementById('userDetailsModal');
+                if (!modal || modal.style.display === 'none') return;
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    window.adjustTaskDetailsModalPosition && window.adjustTaskDetailsModalPosition();
+                }, 16);
+            });
+
+            document.addEventListener('mouseup', function() {
+                if (isResizing) {
+                    isResizing = false;
+                    window.adjustTaskDetailsModalPosition && window.adjustTaskDetailsModalPosition();
+                }
             });
         }
     });

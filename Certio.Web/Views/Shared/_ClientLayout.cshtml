@@ -343,7 +343,7 @@
         left: 6vw;
         right: 0;
         height: 7vh;
-        z-index: 999;
+        z-index: 1001;
         display: flex;
         align-items: center;
         padding: 0 1rem;
@@ -1048,25 +1048,157 @@
         color: #3d1019;
         font-size: 1.05rem;
         font-weight: 500;
-        padding: 0.5rem 0.75rem;
+        padding: 0.5rem 1.5rem 0.5rem 0.75rem;
         margin-left: 0.5rem;
         background: none;
         border: none;
         border-radius: 0.5rem;
         transition: all 0.2s ease;
-        cursor: default;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        cursor: pointer;
         flex: 1;
         min-width: 200px;
         max-width: 400px;
         font-weight: 700;
+        position: relative;
+        user-select: none;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
     }
 
     .organization-name-field:hover {
         background-color: white;
         box-shadow: rgba(0, 0, 0, 0.25) 0px 2px 4px;
+    }
+
+    .org-name-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .org-switcher-arrow {
+        color: #3d1019;
+        font-size: 0.65rem;
+        position: absolute;
+        right: 0.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        transition: transform 0.2s ease;
+    }
+
+    .organization-name-field.open .org-switcher-arrow {
+        transform: translateY(-50%) rotate(180deg);
+    }
+
+    /* Organization Context Switcher Dropdown */
+    .org-switcher-dropdown {
+        display: none;
+        position: fixed;
+        min-width: 320px;
+        max-width: 380px;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        z-index: 10000;
+        overflow: hidden;
+        flex-direction: column;
+        max-height: 420px;
+    }
+
+    .org-switcher-dropdown.show {
+        display: flex;
+    }
+
+    .org-switcher-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0.5rem;
+    }
+
+    .org-switcher-list::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .org-switcher-list::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .org-switcher-list::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.15);
+        border-radius: 2px;
+    }
+
+    .org-switcher-item {
+        padding: 0.6rem 0.75rem;
+        cursor: pointer;
+        transition: background-color 0.15s ease, border-radius 0.15s ease;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.65rem;
+        border-radius: 8px;
+    }
+
+    .org-switcher-item:hover {
+        background-color: #f3f4f6;
+    }
+
+    .org-switcher-item.active {
+        background-color: #eef1f3;
+    }
+
+    .org-switcher-item-icon {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+        color: white;
+    }
+
+    .org-switcher-item-icon.home-icon {
+        background: linear-gradient(135deg, #a32b43, #3d1019);
+    }
+
+    .org-switcher-item-icon.client-icon {
+        background: #69848C;
+    }
+
+    .org-switcher-item-content {
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .org-switcher-item-name {
+        font-weight: 600;
+        color: #1f2937;
+        font-size: 0.875rem;
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .org-switcher-item-detail {
+        color: #6b7280;
+        font-size: 0.75rem;
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .org-switcher-divider {
+        height: 1px;
+        background-color: #e5e7eb;
+        margin: 0.25rem 0.5rem;
     }
 
     /* Hamburger hover container - match organization-name-field hover treatment */
@@ -1281,9 +1413,16 @@
         </button>
         </div>
         
-        <!-- Organization Name Field -->
-        <div class="organization-name-field d-none d-xl-block" title="@(ViewBag.OrganizationName ?? "Organization")">
-            @(ViewBag.OrganizationName ?? "Organization")
+        <!-- Organization Name Field (Context Switcher) -->
+        <div class="organization-name-field d-none d-xl-block" id="orgSwitcherTrigger" title="@(ViewBag.OrganizationName ?? "Organization")">
+            <span class="org-name-text" id="orgSwitcherName">@(ViewBag.OrganizationName ?? "Organization")</span>
+            <span class="org-switcher-arrow">▼</span>
+            <!-- Organization Context Switcher Dropdown -->
+            <div class="org-switcher-dropdown" id="orgSwitcherDropdown">
+                <div class="org-switcher-list" id="orgSwitcherList">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
         </div>
         
         <div class="d-flex justify-content-center align-items-center w-100">
@@ -3115,6 +3254,184 @@
                     });
                 });
             }
+
+            // --- Organization Context Switcher ---
+            (function initOrgSwitcher() {
+                const trigger = document.getElementById('orgSwitcherTrigger');
+                const dropdown = document.getElementById('orgSwitcherDropdown');
+                const list = document.getElementById('orgSwitcherList');
+                if (!trigger || !dropdown || !list) return;
+
+                let populated = false;
+
+                function getInitials(name) {
+                    if (!name) return '?';
+                    const parts = name.trim().split(' ');
+                    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+                    return (parts[0][0] + parts[1][0]).toUpperCase();
+                }
+
+                function toggleDropdown(e) {
+                    e.stopPropagation();
+                    const isOpen = dropdown.classList.contains('show');
+                    if (isOpen) {
+                        closeDropdown();
+                    } else {
+                        openDropdown();
+                    }
+                }
+
+                function openDropdown() {
+                    // Position dropdown below the trigger using fixed positioning
+                    const rect = trigger.getBoundingClientRect();
+                    dropdown.style.top = (rect.bottom + 4) + 'px';
+                    dropdown.style.left = rect.left + 'px';
+                    dropdown.classList.add('show');
+                    trigger.classList.add('open');
+                    if (!populated) {
+                        populateOrgList();
+                    }
+                }
+
+                function closeDropdown() {
+                    dropdown.classList.remove('show');
+                    trigger.classList.remove('open');
+                }
+
+                async function populateOrgList() {
+                    list.innerHTML = '<div style="padding: 0.75rem; color: #6b7280; font-size: 0.875rem; text-align: center;">Loading...</div>';
+
+                    try {
+                        const storedFirmId = localStorage.getItem('activeFirmId');
+                        const lastOpenedOrgId = (function() { try { return localStorage.getItem('lastOpenedClientOrgId'); } catch(e) { return null; } })();
+
+                        let url = '/Client/List';
+                        const params = new URLSearchParams();
+                        if (storedFirmId) params.append('firmOrgId', storedFirmId);
+                        if (lastOpenedOrgId) params.append('lastOpenedOrgId', lastOpenedOrgId);
+                        if (params.toString()) url += '?' + params.toString();
+
+                        const response = await fetch(url, { credentials: 'include' });
+                        const result = await response.json();
+
+                        if (!result.success) {
+                            list.innerHTML = '<div style="padding: 0.75rem; color: #6b7280; font-size: 0.875rem; text-align: center;">Unable to load organizations.</div>';
+                            return;
+                        }
+
+                        list.innerHTML = '';
+                        populated = true;
+
+                        // Determine current page context
+                        const currentPath = window.location.pathname;
+                        const urlMatch = currentPath.match(/^\/Client\/(\d+)/);
+                        const currentOrgId = urlMatch ? parseInt(urlMatch[1]) : null;
+                        const orgTypeMeta = document.querySelector('meta[name="organization-type"]');
+                        const currentOrgType = orgTypeMeta ? orgTypeMeta.getAttribute('content') : null;
+
+                        // --- Home (Firm) items ---
+                        if (result.myFirms && result.myFirms.length > 0) {
+                            result.myFirms.forEach(function(firm) {
+                                const item = document.createElement('div');
+                                const isActive = currentOrgId === firm.organizationId && (!currentOrgType || currentOrgType === 'LawFirm' || currentOrgType === 'EventPlanner');
+                                item.className = 'org-switcher-item' + (isActive ? ' active' : '');
+
+                                // Icon based on org type
+                                let iconClass = 'fa-solid fa-building-columns';
+                                const orgType = String(firm.organizationType || '').toLowerCase();
+                                if (orgType === 'eventplanner' || orgType === '4') {
+                                    iconClass = 'fa-solid fa-clipboard-list';
+                                }
+
+                                item.innerHTML =
+                                    '<div class="org-switcher-item-icon home-icon"><i class="' + iconClass + '"></i></div>' +
+                                    '<div class="org-switcher-item-content">' +
+                                        '<p class="org-switcher-item-name">' + firm.organizationName + '</p>' +
+                                        '<p class="org-switcher-item-detail">' + (firm.role || 'Member') + (firm.isPrimary ? ' \u2022 Primary' : '') + '</p>' +
+                                    '</div>';
+
+                                item.addEventListener('click', function(e) {
+                                    e.stopPropagation();
+                                    localStorage.setItem('activeFirmId', firm.organizationId);
+                                    window.location.href = '/Client/' + firm.organizationId + '/Dashboard';
+                                });
+                                list.appendChild(item);
+                            });
+                        }
+
+                        // --- Divider ---
+                        const clientOrgs = (result.organizations || []).filter(function(o) {
+                            return o.organizationType !== 'LawFirm' && o.isConfirmed === true;
+                        });
+                        if (clientOrgs.length > 0 && result.myFirms && result.myFirms.length > 0) {
+                            const divider = document.createElement('div');
+                            divider.className = 'org-switcher-divider';
+                            list.appendChild(divider);
+                        }
+
+                        // --- Client organization items ---
+                        clientOrgs.forEach(function(o) {
+                            const ownerName = o.displayOwnerName || ((o.ownerFirstName || '') + ' ' + (o.ownerLastName || '')).trim();
+                            const item = document.createElement('div');
+                            const isActive = currentOrgId === o.organizationId && currentOrgType && currentOrgType !== 'LawFirm' && currentOrgType !== 'EventPlanner';
+                            item.className = 'org-switcher-item' + (isActive ? ' active' : '');
+
+                            const isExternal = o.isExternalContacts;
+                            const avatarColor = isExternal ? '#aaaaaa' : '#69848C';
+                            const avatarContent = isExternal
+                                ? '<i class="fas fa-user-clock" style="font-size: 0.85rem;"></i>'
+                                : getInitials(ownerName);
+
+                            item.innerHTML =
+                                '<div class="org-switcher-item-icon client-icon" style="background: ' + avatarColor + '; border-radius: 50%;">' + avatarContent + '</div>' +
+                                '<div class="org-switcher-item-content">' +
+                                    '<p class="org-switcher-item-name">' + o.organizationName + '</p>' +
+                                    '<p class="org-switcher-item-detail">' + ownerName + '</p>' +
+                                '</div>';
+
+                            item.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                                try { localStorage.setItem('lastOpenedClientOrgId', o.organizationId.toString()); } catch(ex) {}
+                                if (isExternal) {
+                                    var activeFirmId = localStorage.getItem('activeFirmId');
+                                    if (activeFirmId) {
+                                        window.location.href = '/Client/' + activeFirmId + '/Clients';
+                                    } else {
+                                        window.location.href = '/';
+                                    }
+                                } else {
+                                    window.location.href = '/Client/' + o.organizationId + '/Dashboard';
+                                }
+                            });
+                            list.appendChild(item);
+                        });
+
+                        if (!result.myFirms?.length && clientOrgs.length === 0) {
+                            list.innerHTML = '<div style="padding: 0.75rem; color: #6b7280; font-size: 0.875rem; text-align: center;">No organizations found.</div>';
+                        }
+
+                    } catch (err) {
+                        console.error('Error loading org switcher:', err);
+                        list.innerHTML = '<div style="padding: 0.75rem; color: #6b7280; font-size: 0.875rem; text-align: center;">Error loading organizations.</div>';
+                    }
+                }
+
+                trigger.addEventListener('click', toggleDropdown);
+
+                // Close on click outside
+                document.addEventListener('click', function(e) {
+                    if (!trigger.contains(e.target)) {
+                        closeDropdown();
+                    }
+                });
+
+                // Close on Escape
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        closeDropdown();
+                    }
+                });
+            })();
             
             // Sticky Last Message on Scroll - with hysteresis to prevent jitter
             const chatMessages = document.getElementById('chatMessages');

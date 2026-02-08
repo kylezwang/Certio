@@ -224,6 +224,8 @@ namespace Certio.Web.Controllers
 
                         var ownerFirstName = targetOrg.Owner?.FirstName ?? "";
                         var ownerLastName = targetOrg.Owner?.LastName ?? "";
+                        var ownerEmail = targetOrg.Owner?.Email ?? "";
+                        var ownerPhone = targetOrg.Owner?.PhoneNumber ?? "";
                         var displayOwnerName = isExternalGuestsOrg 
                             ? "External Contacts" 
                             : $"{ownerFirstName} {ownerLastName}".Trim();
@@ -234,6 +236,8 @@ namespace Certio.Web.Controllers
                             organizationName = targetOrg.Name,
                             ownerFirstName = ownerFirstName,
                             ownerLastName = ownerLastName,
+                            ownerEmail = ownerEmail,
+                            ownerPhoneNumber = ownerPhone,
                             isPersonal = targetOrg.IsPersonal,
                             isPrimary = false, // Not applicable for client organizations in popup
                             organizationType = targetOrg.Type.ToString(),
@@ -252,6 +256,8 @@ namespace Certio.Web.Controllers
 
             // Also include direct organization memberships (non-law firm, non-event planner)
             var directOrgs = await _db.UserOrganizations
+                .Include(uo => uo.Organization)
+                .ThenInclude(o => o.Owner)
                 .Include(uo => uo.Organization)
                 .ThenInclude(o => o.UserOrganizations.Where(uo2 => uo2.IsActive))
                 .Where(uo => uo.UserId == customUser.Id && 
@@ -290,6 +296,8 @@ namespace Certio.Web.Controllers
 
                 var ownerFirstName = org.Owner?.FirstName ?? "";
                 var ownerLastName = org.Owner?.LastName ?? "";
+                var ownerEmail = org.Owner?.Email ?? "";
+                var ownerPhone = org.Owner?.PhoneNumber ?? "";
                 var displayOwnerName = isExternalGuestsOrg 
                     ? "External Contacts" 
                     : $"{ownerFirstName} {ownerLastName}".Trim();
@@ -300,6 +308,8 @@ namespace Certio.Web.Controllers
                     organizationName = org.Name,
                     ownerFirstName = ownerFirstName,
                     ownerLastName = ownerLastName,
+                    ownerEmail = ownerEmail,
+                    ownerPhoneNumber = ownerPhone,
                     isPersonal = org.IsPersonal,
                     isPrimary = false,
                     organizationType = org.Type.ToString(),
