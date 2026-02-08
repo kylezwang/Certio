@@ -23,7 +23,7 @@
         'time-entries': { text: 'New Time Entry', icon: 'fa-plus' },
         'expenses': { text: 'New Expense', icon: 'fa-plus' },
         'invoices': { text: 'New Invoice', icon: 'fa-plus' },
-        'trusts': { text: 'New Retainer', icon: 'fa-plus' }
+        'trusts': { text: 'New Budget', icon: 'fa-plus' }
     };
 
     let currentBillingFilter = 'all';
@@ -289,9 +289,15 @@
     }
 
     function handleInitialHash() {
+        const validTabs = ['overview', 'time-entries', 'expenses', 'invoices', 'trusts'];
         const hash = window.location.hash.substring(1);
-        if (hash && ['overview', 'time-entries', 'expenses', 'invoices', 'trusts'].includes(hash)) {
-            switchTab(hash);
+        // Support ?tab= query param (e.g. from Matter details Budget card)
+        const urlTab = new URLSearchParams(window.location.search).get('tab');
+        const target = (hash && validTabs.includes(hash)) ? hash
+                     : (urlTab && validTabs.includes(urlTab)) ? urlTab
+                     : null;
+        if (target) {
+            switchTab(target);
         } else {
             // Load the default tab (overview)
             switchTab('overview');
@@ -529,7 +535,7 @@
                 <i class="fas fa-file-invoice"></i> New Invoice
             </div>
             <div class="dropdown-item" data-type="trusts">
-                <i class="fas fa-hand-holding-usd"></i> New Retainer
+                <i class="fas fa-hand-holding-usd"></i> New Budget
             </div>
         `;
         
@@ -614,7 +620,7 @@
                 'timeEntryModal': 'New Time Entry',
                 'expenseModal': 'New Expense',
                 'invoiceModal': 'New Invoice',
-                'retainerModal': 'New Retainer'
+                'retainerModal': 'New Budget'
             };
             title.textContent = modalTitles[modalId] || 'New Item';
         }
@@ -1620,7 +1626,7 @@
             setInputValue(modal, '#invoiceTerms', d.terms || '');
             setSelectValue(modal, '#invoiceStatus', isNaN(status) ? '' : status);
         } else if (modalId === 'retainerModal') {
-            setModalTitle(modalId, 'Retainer');
+            setModalTitle(modalId, 'Budget');
             setSelectValue(modal, '#retainerMatter', isNaN(matterId) ? '' : matterId);
             setInputValue(modal, '#retainerAmount', d.initialAmount || '');
             setInputValue(modal, '#retainerNotes', d.notes || '');

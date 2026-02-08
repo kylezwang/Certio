@@ -172,65 +172,101 @@
         <div id="tab-summary" class="tab-content-section active">
             <div class="container-fluid" style="padding: 1.5rem 0rem;">
                 <!-- Stats Cards -->
-                <div class="row mb-3" style="--bs-gutter-x: 1rem;">
+                @{
+                    // Needs Action = tasks that are not completed
+                    var needsActionCount = Model.TotalTasksCount - Model.TasksCompleted;
+                    var needsActionLabel = needsActionCount == 1 ? "item" : "items";
+
+                    // Days until event (DueDate)
+                    var eventDate = Model.Matter.DueDate;
+                    int? daysUntilEvent = null;
+                    string eventDateLabel = "—";
+                    if (eventDate.HasValue)
+                    {
+                        daysUntilEvent = (int)Math.Ceiling((eventDate.Value.Date - DateTime.UtcNow.Date).TotalDays);
+                        eventDateLabel = eventDate.Value.ToString("MMM dd");
+                    }
+
+                    // Budget from Matter.Budget (total), spent loaded via JS from Billing API
+                    var totalBudget = Model.Matter.Budget ?? 0m;
+                    var budgetDisplay = totalBudget > 0 
+                        ? (totalBudget >= 1000 ? $"${totalBudget / 1000m:0.#}K" : $"${totalBudget:0}")
+                        : "$0";
+
+                    // Guest count placeholder
+                    var guestCount = Model.Matter.GuestCount ?? 0;
+                }
+                <div class="row mb-3" style="--bs-gutter-x: 1rem;" id="matterStatsCards">
+                    <!-- Guests Card -->
                     <div class="col-md-3">
-                        <div class="card h-100 border-0 stats-filter-card" data-filter-status="Total Billed" style="cursor: pointer;">
+                        <div class="card h-100 border-0 stats-filter-card" data-navigate-to="contacts" style="cursor: pointer;">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="p-3 icon-bg-primary rounded-3 me-3">
+                                        <i class="fa-solid fa-users fs-4" style="font-size: 1.35rem;"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-muted mb-1 small" style="font-size: 0.9rem;">Guests</p>
+                                        <h3 class="fw-bold text-dark mb-0" style="font-size: 1.6rem;">@(guestCount > 0 ? guestCount.ToString() : "150 / 200")</h3>
+                                        <p class="text-muted mb-0 small" style="font-size: 0.75rem;">@(guestCount > 0 ? "" : "(75% RSVP)")</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Budget Card -->
+                    <div class="col-md-3">
+                        <div class="card h-100 border-0 stats-filter-card" data-navigate-to="billing" data-billing-tab="trusts" style="cursor: pointer;">
                             <div class="card-body p-4">
                                 <div class="d-flex align-items-center">
                                     <div class="p-3 icon-bg-financial-earned rounded-3 me-3">
                                         <i class="fa-solid fa-money-check-dollar fs-4" style="font-size: 1.35rem;"></i>
                                     </div>
                                     <div>
-                                        <p class="text-muted mb-1 small" style="font-size: 0.9rem;">Total Billed</p>
-                                        <h3 class="fw-bold text-dark mb-0" style="font-size: 1.6rem;">$4500.00</h3>
+                                        <p class="text-muted mb-1 small" style="font-size: 0.9rem;">Budget</p>
+                                        <h3 class="fw-bold text-dark mb-0" style="font-size: 1.6rem;" id="budgetDisplay">
+                                            <span id="budgetSpent">$0</span> / @budgetDisplay
+                                        </h3>
+                                        <p class="text-muted mb-0 small" style="font-size: 0.75rem;" id="budgetPctLabel">—</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
+
+                    <!-- Needs Action Card -->
                     <div class="col-md-3">
-                        <div class="card h-100 border-0 stats-filter-card" data-filter-status="Unpaid Balance" style="cursor: pointer;">
+                        <div class="card h-100 border-0 stats-filter-card" data-navigate-to="tasks" style="cursor: pointer;">
                             <div class="card-body p-4">
                                 <div class="d-flex align-items-center">
                                     <div class="p-3 icon-bg-financial-debt rounded-3 me-3">
-                                        <i class="fa-solid fa-hourglass-half fs-4" style="font-size: 1.35rem;"></i>
+                                        <i class="fa-solid fa-triangle-exclamation fs-4" style="font-size: 1.35rem;"></i>
                                     </div>
                                     <div>
-                                        <p class="text-muted mb-1 small" style="font-size: 0.9rem;">Unpaid Balance</p>
-                                        <h3 class="fw-bold text-dark mb-0" style="font-size: 1.6rem;">$375.00</h3>
+                                        <p class="text-muted mb-1 small" style="font-size: 0.9rem;">Needs Action</p>
+                                        <h3 class="fw-bold text-dark mb-0" style="font-size: 1.6rem;">@needsActionCount @needsActionLabel</h3>
+                                        <p class="text-muted mb-0 small" style="font-size: 0.75rem;">@(needsActionCount > 0 ? "Requires attention" : "All done")</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
+
+                    <!-- Days Until Event Card -->
                     <div class="col-md-3">
-                        <div class="card h-100 border-0 stats-filter-card" data-filter-status="Billing Rate" style="cursor: pointer;">
+                        <div class="card h-100 border-0 stats-filter-card" data-navigate-to="calendar" style="cursor: pointer;">
                             <div class="card-body p-4">
                                 <div class="d-flex align-items-center">
                                     <div class="p-3 icon-bg-financial-rate rounded-3 me-3">
-                                        <i class="fa-solid fa-dollar-sign fs-4" style="font-size: 1.35rem;"></i>
+                                        <i class="fa-solid fa-hourglass-half fs-4" style="font-size: 1.35rem;"></i>
                                     </div>
                                     <div>
-                                        <p class="text-muted mb-1 small" style="font-size: 0.9rem;">Billing Rate</p>
-                                        <h3 class="fw-bold text-dark mb-0" style="font-size: 1.6rem;">$125/hr</h3>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-3">
-                        <div class="card h-100 border-0 stats-filter-card" data-filter-status="Hours Logged" style="cursor: pointer;">
-                            <div class="card-body p-4">
-                                <div class="d-flex align-items-center">
-                                    <div class="p-3 icon-bg-financial-time rounded-3 me-3">
-                                        <i class="fa-solid fa-stopwatch fs-4" style="font-size: 1.35rem;"></i>
-                                    </div>
-                                    <div>
-                                        <p class="mb-1 small" style="font-size: 0.9rem;">Hours Logged</p>
-                                        <h3 class="fw-bold mb-0" style="font-size: 1.6rem;">30 hrs</h3>
+                                        <p class="text-muted mb-1 small" style="font-size: 0.9rem;">Days Until Event</p>
+                                        <h3 class="fw-bold text-dark mb-0" style="font-size: 1.6rem;">
+                                            @(daysUntilEvent.HasValue ? $"{daysUntilEvent.Value} days" : "—")
+                                        </h3>
+                                        <p class="text-muted mb-0 small" style="font-size: 0.75rem;">@eventDateLabel</p>
                                     </div>
                                 </div>
                             </div>
@@ -1819,6 +1855,68 @@
 </div>
 
 @section Scripts {
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Stats card click handlers
+        document.querySelectorAll('.stats-filter-card[data-navigate-to]').forEach(function(card) {
+            card.addEventListener('click', function() {
+                var tabName = this.getAttribute('data-navigate-to');
+                var billingTab = this.getAttribute('data-billing-tab'); // e.g. "trusts"
+
+                // Budget card → navigate to Billing module Budgets tab
+                if (tabName === 'billing' && billingTab) {
+                    var orgId = document.querySelector('meta[name="organization-id"]')?.content;
+                    if (orgId) {
+                        window.location.href = '/Client/' + orgId + '/Billing?tab=' + billingTab;
+                    }
+                    return;
+                }
+
+                // Other cards → switch local matter tab
+                if (tabName) {
+                    var tabLink = document.querySelector('.matter-tab-link[data-tab="' + tabName + '"]');
+                    if (tabLink) tabLink.click();
+                }
+            });
+        });
+
+        // Load budget data from Billing API
+        var orgId = document.querySelector('meta[name="organization-id"]')?.content;
+        var matterId = document.querySelector('meta[name="matter-id"]')?.content;
+        if (orgId && matterId) {
+            fetch('/api/billing/' + orgId + '/retainers')
+                .then(function(r) { return r.json(); })
+                .then(function(result) {
+                    if (!result.success || !result.data) return;
+                    // Find retainers linked to this matter
+                    var mId = parseInt(matterId);
+                    var matterRetainers = result.data.filter(function(r) { return r.matterId === mId; });
+                    if (matterRetainers.length === 0) return;
+
+                    var totalDeposited = 0;
+                    var totalWithdrawn = 0;
+                    matterRetainers.forEach(function(r) {
+                        totalDeposited += r.totalDeposited || r.initialAmount || 0;
+                        totalWithdrawn += r.totalWithdrawn || 0;
+                    });
+
+                    function fmtK(v) {
+                        if (v >= 1000) return '$' + (v / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+                        return '$' + v.toFixed(0);
+                    }
+
+                    var spentEl = document.getElementById('budgetSpent');
+                    var pctEl = document.getElementById('budgetPctLabel');
+                    if (spentEl) spentEl.textContent = fmtK(totalWithdrawn);
+                    if (pctEl && totalDeposited > 0) {
+                        var pct = Math.round((totalWithdrawn / totalDeposited) * 100);
+                        pctEl.textContent = '(' + pct + '% used)';
+                    }
+                })
+                .catch(function(err) { console.warn('Budget stats load error:', err); });
+        }
+    });
+    </script>
     <script src="~/js/matter-details.js"></script>
     <script src="~/js/matter-info-carousel.js"></script>
     <script src="~/js/change-control.js" asp-append-version="true"></script>
