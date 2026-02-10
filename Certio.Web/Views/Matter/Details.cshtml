@@ -456,7 +456,7 @@
                                                     <div class="col-md-6 mb-3">
                                                         <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
                                                             <i class="fas fa-dollar-sign me-2" style="color: #3d1019;"></i>
-                                                            Budget (optional)
+                                                            Total Budget
                                                         </label>
                                                         <div class="input-group input-group-lg">
                                                             <span class="input-group-text">$</span>
@@ -654,9 +654,9 @@
                                     <div class="d-flex align-items-center" style="margin-left:0.25rem;">
                                         <i class="fa-solid fa-bullhorn fs-5 me-2" style="color: #3d1019; font-size: 1.35rem;"></i>
                                         <div>
-                                            <h5 class="card-title fw-bold mb-2" style="color: black; font-size: 1rem; line-height: 1.3;">Required Action Notices</h5>
+                                            <h5 class="card-title fw-bold mb-2" style="color: black; font-size: 1rem; line-height: 1.3;">Email Confirmations</h5>
                                             <p class="card-text text-muted mb-0" style="font-size: 0.8rem; line-height: 1.4;">
-                                                Create, send, and track notices that require acknowledgement from vendors and your team.
+                                                Create, send, and track email confirmations that require acknowledgement for your event.
                                             </p>
                                         </div>
                                     </div>
@@ -1279,7 +1279,7 @@
                                                 <div class="cc-add-card-icon">
                                                     <i class="fas fa-plus"></i>
                                                 </div>
-                                                <span class="cc-add-card-text">Draft new notice</span>
+                                                <span class="cc-add-card-text">Draft new email confirmation</span>
                                             </button>
                                         </div>
 
@@ -1422,8 +1422,8 @@
                                     {
                                             <div class="text-center py-5 text-muted" style="border: 1px dashed #e5e7eb; border-radius: 12px; background: #fff;">
                                                 <i class="fa-solid fa-bullhorn mb-2" style="font-size: 1.5rem;"></i>
-                                                <div style="font-weight: 600;">No action notices</div>
-                                                <div style="font-size: 0.875rem;">Create a notice to see it listed here.</div>
+                                                <div style="font-weight: 600;">No email confirmations</div>
+                                                <div style="font-size: 0.875rem;">Create an email confirmation to see it listed here.</div>
                                             </div>
                                         }
                                         </div>
@@ -1446,212 +1446,6 @@
 
                                     <pre id="change-control-summary-json" class="d-none"></pre>
                                 </div>
-
-                                <!-- Change Notice Modal (Tasks-style) - for Draft and Edit -->
-                                <div class="task-details-modal cc-modal" id="ccModal" style="display: none;">
-                                    <div class="modal-dialog" style="margin-bottom: 1.5rem;">
-                                        <div class="task-details-content">
-                                            <!-- Modal Header -->
-                                            <div class="task-details-header">
-                                                <div class="task-details-header-left">
-                                                    <div class="task-status-dropdown">
-                                                        <select class="form-select task-status-select" id="ccStatusDropdown" disabled>
-                                                            <option value="Draft">Draft</option>
-                                                            <option value="Sent">Sent</option>
-                                                            <option value="PartiallyAcknowledged">Partial</option>
-                                                            <option value="NeedsClarification">Response Required</option>
-                                                            <option value="Acknowledged">Confirmed</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div class="task-details-header-middle">
-                                                    <div class="header-progress" id="ccHeaderProgress" style="display: none;">
-                                                        <div class="progress" style="height: 8px;">
-                                                            <div class="progress-bar bg-success" style="width: 0%" id="ccProgressBar"></div>
-                                                        </div>
-                                                        <span class="progress-text" style="font-size: 0.875rem; font-weight: 500; color: #6b7280;" id="ccProgressText">0%</span>
-                                                    </div>
-                                                </div>
-                                                <div class="task-details-header-right">
-                                                    <button class="btn btn-sm btn-link task-header-btn" id="ccDeleteBtn" title="Delete" style="display: none;">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                    <button class="btn btn-sm btn-link task-header-btn" title="More options">
-                                                        <i class="fas fa-ellipsis-h"></i>
-                                                    </button>
-                                                    <button type="button" class="btn btn-sm btn-primary me-2" id="ccHeaderActionBtn" style="font-weight: 600; display: none;">
-                                                        <i class="fas fa-paper-plane me-1" style="vertical-align: middle; position: relative; top: 4px;"></i> <span id="ccHeaderActionBtnText">Send</span>
-                                                    </button>
-                                                    <button type="button" class="btn-close" id="cc-close-modal" aria-label="Close"></button>
-                                                </div>
-                                            </div>
-
-                                            <!-- Title Section -->
-                                            <div class="task-details-title-section">
-                                                <div class="task-title-container">
-                                                    <i class="fa-solid fa-bullhorn" style="color:#3d1019; font-size: 1.25rem;"></i>
-                                                    <input type="text" class="cc-title-input" id="ccTitleInput" placeholder="Change notice title" maxlength="200">
-                                                </div>
-                                            </div>
-
-                                            <!-- Recipients Section (like Assignees) -->
-                                            <div class="task-meta-section">
-                                                <div class="task-members">
-                                                    <span class="task-meta-label">Recipients</span>
-                                                    <div class="cc-recipients-container task-assignees-container" id="ccRecipientsContainer">
-                                                        <!-- Recipients will be dynamically rendered here -->
-                                                    </div>
-                                                    <button type="button" class="add-member-btn" id="ccAddRecipientBtn">
-                                                        <i class="fas fa-plus"></i>
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            <!-- Main Content Area (Two-column layout like Tasks) -->
-                                            <div class="task-details-body">
-                                                <!-- Left Panel -->
-                                                <div class="task-details-left">
-                                                    <form id="change-control-form">
-                                                        @Html.AntiForgeryToken()
-                                                        <input type="hidden" name="NoticeId" id="ccNoticeId" value="">
-                                                        <input type="hidden" name="RecipientEmails" id="ccRecipientEmailsHidden" value="">
-
-                                                        <!-- Description Section -->
-                                                        <div class="task-section">
-                                                            <div class="task-section-header">
-                                                                <h6 class="task-section-title">
-                                                                    <i class="fas fa-bars"></i> Description
-                                                                </h6>
-                                                            </div>
-                                                            <div class="task-section-content" style="margin-bottom: 1rem;">
-                                                                <textarea class="form-control" name="Description" id="ccDescription" rows="4" maxlength="2000" placeholder="Add a description for this change notice..." style="font-size: 0.875rem;"></textarea>
-                                                            </div>
-                                                        </div>
-
-                                                        <!-- Type & Priority Section -->
-                                                        <div class="task-section" id="cc-type-priority-section">
-                                                            <div class="task-section-header">
-                                                                <h6 class="task-section-title">
-                                                                    <i class="fas fa-cog"></i> Type & Priority
-                                                                </h6>
-                                                            </div>
-                                                            <div class="task-section-content">
-                                                                <div class="row">
-                                                                    <div class="col-md-6 mb-3">
-                                                                        <label class="form-label fw-bold" style="font-size: 0.875rem;">
-                                                                            <i class="fas fa-tag me-2" style="color: #3d1019;"></i>Type
-                                                                        </label>
-                                                                        <select class="form-select" name="ChangeType" id="ccChangeType" style="font-size: 0.875rem;">
-                                                                            <option value="General">General</option>
-                                                                            <option value="Schedule">Schedule</option>
-                                                                            <option value="Scope">Scope</option>
-                                                                            <option value="Budget">Budget</option>
-                                                                        </select>
-                                                                    </div>
-                                                                    <div class="col-md-6 mb-3">
-                                                                        <label class="form-label fw-bold" style="font-size: 0.875rem;">
-                                                                            <i class="fas fa-flag me-2" style="color: #3d1019;"></i>Priority
-                                                                        </label>
-                                                                        <select class="form-select" name="Priority" id="ccPriority" style="font-size: 0.875rem;">
-                                                                            <option value="Low">Low</option>
-                                                                            <option value="Medium" selected>Medium</option>
-                                                                            <option value="High">High</option>
-                                                                            <option value="Critical">Critical</option>
-                                                                        </select>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <!-- Due Date Section -->
-                                                        <div class="task-section" id="cc-due-section">
-                                                            <div class="task-section-header">
-                                                                <h6 class="task-section-title">
-                                                                    <i class="fa-solid fa-calendar"></i> Deadline & Reminders
-                                                                </h6>
-                                                            </div>
-                                                            <div class="task-section-content">
-                                                                <div class="row">
-                                                                    <div class="col-md-6 mb-3">
-                                                                        <label class="form-label fw-bold" style="font-size: 0.875rem;">
-                                                                            <i class="fa-solid fa-calendar-day me-2" style="color: #3d1019;"></i>Acknowledgement Due
-                                                                        </label>
-                                                                        <input class="form-control" type="datetime-local" name="AcknowledgementDueDate" id="ccDueDate" style="font-size: 0.875rem;">
-                                                                    </div>
-                                                                    <div class="col-md-6 mb-3">
-                                                                        <label class="form-label fw-bold" style="font-size: 0.875rem;">
-                                                                            <i class="fas fa-bell me-2" style="color: #3d1019;"></i>Auto Reminders
-                                                                        </label>
-                                                                        <select class="form-select" name="AutoReminderHoursBeforeDue" id="ccAutoReminders" style="font-size: 0.875rem;">
-                                                                            <option value="0" selected>Off</option>
-                                                                            <option value="24">24 hours before due</option>
-                                                                            <option value="48">48 hours before due</option>
-                                                                            <option value="72">72 hours before due</option>
-                                                                        </select>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <!-- Recipients Section (Detailed) -->
-                                                        <div class="task-section" id="cc-recipients-section" style="margin-bottom: 0;">
-                                                            <div class="task-section-header">
-                                                                <h6 class="task-section-title">
-                                                                    <i class="fas fa-users"></i> Recipients
-                                                                </h6>
-                                                                <button type="button" class="btn btn-sm btn-outline-secondary edit-btn" id="ccAddRecipientBtnAlt" style="border-radius: 0.5rem;">
-                                                                    <i class="fas fa-plus"></i> Add
-                                                                </button>
-                                                            </div>
-                                                            <div class="task-section-content">
-                                                                <div id="ccRecipientsList" class="cc-recipients-list">
-                                                                    <!-- Recipients list will be rendered here -->
-                                                                </div>
-                                                                <div class="mt-2">
-                                                                    <input type="text" class="form-control form-control-sm" id="ccAddRecipientEmail" placeholder="Add email address and press Enter" style="font-size: 0.875rem;">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </form>
-                                                </div>
-
-                                                <!-- Right Panel (Activity/Comments) -->
-                                                <div class="task-details-right">
-                                                    <div class="comments-section">
-                                                        <div class="comments-header">
-                                                            <h6 class="comments-title">
-                                                                <i class="fas fa-comment"></i> Activity & responses
-                                                            </h6>
-                                                        </div>
-                                                        <div class="comment-input-section">
-                                                            <textarea class="form-control comment-input" id="ccCommentInput" placeholder="Write a note..."></textarea>
-                                                            <div class="mt-2 d-flex align-items-center">
-                                                                <small class="text-muted" style="margin-right: 0.8rem; margin-left: 0.3rem; font-size: 0.8rem;">Type &#64; to mention users</small>
-                                                                <button class="btn btn-sm btn-primary" id="ccPostCommentBtn" style="font-weight: 600;"><i class="fas fa-paper-plane" style="vertical-align: middle; position: relative; top: -1px;"></i> Post</button>
-                                                            </div>
-                                                        </div>
-                                                        <div class="activity-log" id="ccActivityLog">
-                                                            <p class="text-muted small text-center">No activity yet.</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <!-- Footer with action buttons -->
-                                            <div class="task-details-footer" style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1.5rem; border-top: 1px solid #e5e7eb; background: #fff; flex-shrink: 0;">
-                                                <div id="ccModalMode" style="font-size: 0.8rem; color: #6b7280;"></div>
-                                                <div class="d-flex gap-2">
-                                                    <button type="button" class="btn btn-outline-secondary" id="cc-cancel-btn" style="font-size: 0.875rem;">Cancel</button>
-                                                    <button type="button" class="btn btn-primary" id="ccSaveBtn" style="font-weight: 600; font-size: 0.875rem; margin-top: 0;">
-                                                        <i class="fas fa-save me-1" style="vertical-align: middle; position: relative; top: 4px;"></i> <span id="ccSaveBtnText">Save</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Contact Selector Popup -->
-                                <div id="ccContactSelectorPopup" class="cc-contact-selector-popup" style="display: none;"></div>
                                 </div>
                         </div>
                     </div>
@@ -1704,7 +1498,7 @@
                         </div>
                     </div>
 
-                    <!-- Status Overview -->
+                    <!-- Event Readiness -->
                     <div class="col-lg-6 mb-3 matter-card-wrapper" style="order: 4;">
                         <div class="card h-100 border-0 matter-card" style="padding-top: 0.5rem; position: relative;">
                             <div class="card-header bg-transparent border-0 pb-0">
@@ -1712,80 +1506,99 @@
                                     <div class="d-flex align-items-start">
                                         <i class="fas fa-chart-pie fs-5 me-2 flex-shrink-0 text-muted" style="margin-top: 2px;"></i>
                                         <div class="flex-grow-1">
-                                            <h5 class="card-title fw-bold mb-2" style="color: black; font-size: 1rem; line-height: 1.3;">Status overview</h5>
+                                            <h5 class="card-title fw-bold mb-2" style="color: black; font-size: 1rem; line-height: 1.3;">Event Readiness</h5>
                                         </div>
                                     </div>
                                     <p class="card-text text-muted mb-0" style="font-size: 0.8rem; line-height: 1.4; padding-left: 30px;">
-                                        Get a snapshot of the status of your task items. 
-                                        <a href="/Client/@ViewBag.OrganizationId/Matter/@Model.Matter.Id/Tasks" class="text-primary text-decoration-none">View all task items</a>
+                                        Get a snapshot of the status of your event before the day-of.
                                     </p>
                                 </div>
                             </div>
-                                <div class="card-body pt-2 d-flex flex-column align-items-center justify-content-center">
-                                @if (Model.TotalTasksCount > 0)
-                                {
-                                        var r = 80.0; 
-                                        var c = 2 * Math.PI * r; 
-                                        var total = Math.Max(1, Model.TotalTasksCount);
-                                        var segPlanned = (double)Model.TasksPending / total * c; // Planned/Pending
-                                        var segInProgress = (double)Model.TasksInProgress / total * c;
-                                        var segReview = (double)Model.TasksInReview / total * c;
-                                        var segCompleted = (double)Model.TasksCompleted / total * c;
-                                        var offsetPlanned = 0.0;
-                                        var offsetInProgress = offsetPlanned + segPlanned;
-                                        var offsetReview = offsetInProgress + segInProgress;
-                                        var offsetCompleted = offsetReview + segReview;
-                                        <div class="position-relative mb-3" style="width: 192px; height: 192px;">
-                                            <svg class="w-100 h-100" style="transform: rotate(-90deg);" viewBox="0 0 192 192">
-                                                <!-- track -->
-                                                <circle cx="96" cy="96" r="80" stroke="#e5e7eb" stroke-width="16" fill="none" />
-                                                <!-- Planned / Pending (secondary gray) -->
-                                                @if (Model.TasksPending > 0)
+                            <div class="card-body pt-2">
+                                @{
+                                    /* Placeholder readiness data – label, current, total, color */
+                                    var readinessItems = new[] {
+                                        new { Label = "RSVPs",     Current = 112, Total = 150, Color = "rgba(var(--bs-secondary-rgb), 1)" },
+                                        new { Label = "Vendors",   Current = 8,   Total = 12,  Color = "rgba(var(--bs-primary-rgb), 1)"   },
+                                        new { Label = "Deposits",  Current = 3,   Total = 12,  Color = "rgba(var(--bs-warning-rgb), 1)"   },
+                                        new { Label = "Timeline",  Current = 1,   Total = 1,   Color = "rgba(var(--bs-success-rgb), 1)"   },
+                                        new { Label = "Tasks",     Current = 24,  Total = 50,  Color = "rgba(var(--bs-info-rgb), 1)"      }
+                                    };
+
+                                    /* Overall readiness */
+                                    var totalCurrent = readinessItems.Sum(i => i.Current);
+                                    var totalAll     = readinessItems.Sum(i => i.Total);
+                                    var readinessPct = totalAll > 0 ? (int)Math.Round((double)totalCurrent / totalAll * 100) : 0;
+
+                                    /* Circle geometry */
+                                    var erR = 80.0;
+                                    var erC = 2 * Math.PI * erR;
+                                    var erFilled = readinessPct / 100.0 * erC;
+
+                                    /* Per-item arc segments within the filled portion */
+                                    var safeTotalCurrent = Math.Max(1, totalCurrent);
+                                    var segSizes = readinessItems.Select(i => (double)i.Current / safeTotalCurrent * erFilled).ToArray();
+                                    var segOffsets = new double[readinessItems.Length];
+                                    for (var si = 0; si < segOffsets.Length; si++)
+                                    {
+                                        segOffsets[si] = si == 0 ? 0 : segOffsets[si - 1] + segSizes[si - 1];
+                                    }
+                                }
+
+                                <div class="d-flex align-items-start gap-4">
+                                    <!-- Donut chart (segmented) -->
+                                    <div class="position-relative flex-shrink-0" style="width: 140px; height: 140px;">
+                                        <svg class="w-100 h-100" style="transform: rotate(-90deg);" viewBox="0 0 192 192">
+                                            <!-- Background track -->
+                                            <circle cx="96" cy="96" r="80" stroke="#e5e7eb" stroke-width="16" fill="none" />
+                                            <!-- Colored segments (one per readiness item) -->
+                                            @for (var si = 0; si < readinessItems.Length; si++)
+                                            {
+                                                if (readinessItems[si].Current > 0)
                                                 {
-                                                    <circle cx="96" cy="96" r="80" style="stroke: rgba(var(--bs-secondary-rgb), 1); stroke-linecap: butt;" stroke-width="16" fill="none"
-                                                            stroke-dasharray="@segPlanned @c" stroke-dashoffset="-@offsetPlanned" />
+                                                    <circle cx="96" cy="96" r="80"
+                                                            style="stroke: @readinessItems[si].Color; stroke-linecap: butt;"
+                                                            stroke-width="16" fill="none"
+                                                            stroke-dasharray="@segSizes[si] @erC"
+                                                            stroke-dashoffset="-@segOffsets[si]" />
                                                 }
-                                                <!-- In Progress (primary) -->
-                                                @if (Model.TasksInProgress > 0)
-                                                {
-                                                    <circle cx="96" cy="96" r="80" style="stroke: rgba(var(--bs-primary-rgb), 1); stroke-linecap: butt;" stroke-width="16" fill="none"
-                                                            stroke-dasharray="@segInProgress @c" stroke-dashoffset="-@offsetInProgress" />
-                                                }
-                                                <!-- Review (amber) -->
-                                                @if (Model.TasksInReview > 0)
-                                                {
-                                                    <circle cx="96" cy="96" r="80" style="stroke: rgba(var(--bs-warning-rgb), 1); stroke-linecap: butt;" stroke-width="16" fill="none"
-                                                            stroke-dasharray="@segReview @c" stroke-dashoffset="-@offsetReview" />
-                                                }
-                                                <!-- Completed (green) -->
-                                                @if (Model.TasksCompleted > 0)
-                                                {
-                                                    <circle cx="96" cy="96" r="80" style="stroke: rgba(var(--bs-success-rgb), 1); stroke-linecap: butt;" stroke-width="16" fill="none"
-                                                            stroke-dasharray="@segCompleted @c" stroke-dashoffset="-@offsetCompleted" />
-                                                }
-                                            </svg>
-                                            <div class="position-absolute top-50 start-50 translate-middle text-center">
-                                                <div class="fs-1 fw-bold text-dark">@Model.TotalTasksCount</div>
-                                                <div class="small text-muted">Total task items</div>
-                                            </div>
-                                            </div>
-                                        <div class="d-flex flex-wrap justify-content-center gap-3 small">
-                                            <div class="d-flex align-items-center gap-2"><span class="rounded" style="width:12px;height:12px;background-color: rgba(var(--bs-secondary-rgb), 1); margin-top:0.6rem;"></span><span class="text-muted">Planned: @Model.TasksPending</span></div>
-                                            <div class="d-flex align-items-center gap-2"><span class="rounded" style="width:12px;height:12px;background-color: rgba(var(--bs-primary-rgb), 1); margin-top:0.6rem;"></span><span class="text-muted">In Progress: @Model.TasksInProgress</span></div>
-                                            <div class="d-flex align-items-center gap-2"><span class="rounded" style="width:12px;height:12px;background-color: rgba(var(--bs-warning-rgb), 1); margin-top:0.6rem;"></span><span class="text-muted">Review: @Model.TasksInReview</span></div>
-                                            <div class="d-flex align-items-center gap-2"><span class="rounded" style="width:12px;height:12px;background-color: rgba(var(--bs-success-rgb), 1); margin-top:0.6rem;"></span><span class="text-muted">Completed: @Model.TasksCompleted</span></div>
+                                            }
+                                        </svg>
+                                        <div class="position-absolute top-50 start-50 translate-middle text-center">
+                                            <div class="fw-bold text-dark" style="font-size: 1.5rem; line-height: 1.1;">@(readinessPct)%</div>
+                                            <div class="text-muted" style="font-size: 0.7rem;">Ready</div>
                                         </div>
-                                }
-                                else
-                                {
-                                        <div class="text-center py-5">
-                                            <div class="mb-3">
-                                                <i class="fa-solid fa-bars-progress text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
-                                            </div>
-                                            <h6 class="fw-semibold text-dark mb-2">No task items yet</h6>
-                                            <p class="text-muted small mb-0">Create tasks to track your work</p>
                                     </div>
-                                }
+
+                                    <!-- Readiness breakdown rows -->
+                                    <div class="flex-grow-1" style="min-width: 0;">
+                                        @for (var ri = 0; ri < readinessItems.Length; ri++)
+                                        {
+                                            var item = readinessItems[ri];
+                                            var pct = item.Total > 0 ? (int)Math.Round((double)item.Current / item.Total * 100) : 0;
+                                            var valueDisplay = item.Label == "Timeline"
+                                                ? (item.Current >= item.Total ? "<i class='fas fa-check'></i> Set" : "Not set")
+                                                : $"{item.Current}/{item.Total}";
+                                            <div class="mb-2">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <span class="rounded" style="width: 10px; height: 10px; flex-shrink: 0; background-color: @item.Color;"></span>
+                                                        <span class="text-dark" style="font-size: 0.85rem; font-weight: 500;">@item.Label</span>
+                                                    </div>
+                                                    <span class="d-flex align-items-center gap-2">
+                                                        <span class="text-muted" style="font-size: 0.8rem;">@Html.Raw(valueDisplay)</span>
+                                                        <span class="fw-semibold text-dark" style="font-size: 0.8rem; min-width: 32px; text-align: right;">@(pct)%</span>
+                                                    </span>
+                                                </div>
+                                                <div class="progress" style="height: 6px; border-radius: 3px;">
+                                                    <div class="progress-bar" role="progressbar"
+                                                         style="width: @(pct)%; background: @item.Color !important; border-radius: 3px;"
+                                                         aria-valuenow="@pct" aria-valuemin="0" aria-valuemax="100"></div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1840,19 +1653,217 @@
             </div>
         </div>
 
-        <!-- Contacts Tab (Placeholder) -->
+        <!-- Contacts Tab (AJAX loaded) -->
         <div id="tab-contacts" class="tab-content-section" style="display: none;">
-            <div class="container-fluid px-4 py-4">
-                <div class="text-center py-5">
-                    <i class="fas fa-users text-muted mb-3" style="font-size: 3rem;"></i>
-                    <h4 class="text-dark mb-2">@matterLabel Contacts</h4>
-                    <p class="text-muted">This section will display contacts and stakeholders for this @matterLabel.ToLower().</p>
-                    <p class="text-muted small">(To be implemented in a future phase)</p>
+        </div>
+    </div>
+</div>
+
+<!-- Change Notice Modal (page-level so it's always accessible regardless of active tab) -->
+<div class="task-details-modal cc-modal" id="ccModal" style="display: none;">
+    <div class="modal-dialog" style="margin-bottom: 1.5rem;">
+        <div class="task-details-content">
+            <!-- Modal Header -->
+            <div class="task-details-header">
+                <div class="task-details-header-left">
+                    <div class="task-status-dropdown">
+                        <select class="form-select task-status-select" id="ccStatusDropdown" disabled>
+                            <option value="Draft">Draft</option>
+                            <option value="Sent">Sent</option>
+                            <option value="PartiallyAcknowledged">Partial</option>
+                            <option value="NeedsClarification">Response Required</option>
+                            <option value="Acknowledged">Confirmed</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="task-details-header-middle">
+                    <div class="header-progress" id="ccHeaderProgress" style="display: none;">
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-success" style="width: 0%" id="ccProgressBar"></div>
+                        </div>
+                        <span class="progress-text" style="font-size: 0.875rem; font-weight: 500; color: #6b7280;" id="ccProgressText">0%</span>
+                    </div>
+                </div>
+                <div class="task-details-header-right">
+                    <button class="btn btn-sm btn-link task-header-btn" id="ccDeleteBtn" title="Delete" style="display: none;">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <button class="btn btn-sm btn-link task-header-btn" title="More options">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-primary me-2" id="ccHeaderActionBtn" style="font-weight: 600; display: none;">
+                        <i class="fas fa-paper-plane me-1" style="vertical-align: middle; position: relative; top: 4px;"></i> <span id="ccHeaderActionBtnText">Send</span>
+                    </button>
+                    <button type="button" class="btn-close" id="cc-close-modal" aria-label="Close"></button>
+                </div>
+            </div>
+
+            <!-- Title Section -->
+            <div class="task-details-title-section">
+                <div class="task-title-container">
+                    <i class="fa-solid fa-bullhorn" style="color:#3d1019; font-size: 1.25rem;"></i>
+                    <input type="text" class="cc-title-input" id="ccTitleInput" placeholder="Email confirmation title" maxlength="200">
+                </div>
+            </div>
+
+            <!-- Recipients Section (like Assignees) -->
+            <div class="task-meta-section">
+                <div class="task-members">
+                    <span class="task-meta-label">Recipients</span>
+                    <div class="cc-recipients-container task-assignees-container" id="ccRecipientsContainer">
+                        <!-- Recipients will be dynamically rendered here -->
+                    </div>
+                    <button type="button" class="add-member-btn" id="ccAddRecipientBtn">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Content Area (Two-column layout like Tasks) -->
+            <div class="task-details-body">
+                <!-- Left Panel -->
+                <div class="task-details-left">
+                    <form id="change-control-form">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="NoticeId" id="ccNoticeId" value="">
+                        <input type="hidden" name="RecipientEmails" id="ccRecipientEmailsHidden" value="">
+
+                        <!-- Description Section -->
+                        <div class="task-section">
+                            <div class="task-section-header">
+                                <h6 class="task-section-title">
+                                    <i class="fas fa-bars"></i> Description
+                                </h6>
+                            </div>
+                            <div class="task-section-content" style="margin-bottom: 1rem;">
+                                <textarea class="form-control" name="Description" id="ccDescription" rows="4" maxlength="2000" placeholder="Add a description for this email confirmation." style="font-size: 0.875rem;"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Type & Priority Section -->
+                        <div class="task-section" id="cc-type-priority-section">
+                            <div class="task-section-header">
+                                <h6 class="task-section-title">
+                                    <i class="fas fa-cog"></i> Type & Priority
+                                </h6>
+                            </div>
+                            <div class="task-section-content">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold" style="font-size: 0.875rem;">
+                                            <i class="fas fa-tag me-2" style="color: #3d1019;"></i>Type
+                                        </label>
+                                        <select class="form-select" name="ChangeType" id="ccChangeType" style="font-size: 0.875rem;">
+                                            <option value="General">General</option>
+                                            <option value="Schedule">Schedule</option>
+                                            <option value="Scope">Scope</option>
+                                            <option value="Budget">Budget</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold" style="font-size: 0.875rem;">
+                                            <i class="fas fa-flag me-2" style="color: #3d1019;"></i>Priority
+                                        </label>
+                                        <select class="form-select" name="Priority" id="ccPriority" style="font-size: 0.875rem;">
+                                            <option value="Low">Low</option>
+                                            <option value="Medium" selected>Medium</option>
+                                            <option value="High">High</option>
+                                            <option value="Critical">Critical</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Due Date Section -->
+                        <div class="task-section" id="cc-due-section">
+                            <div class="task-section-header">
+                                <h6 class="task-section-title">
+                                    <i class="fa-solid fa-calendar"></i> Deadline & Reminders
+                                </h6>
+                            </div>
+                            <div class="task-section-content">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold" style="font-size: 0.875rem;">
+                                            <i class="fa-solid fa-calendar-day me-2" style="color: #3d1019;"></i>Acknowledgement Due
+                                        </label>
+                                        <input class="form-control" type="datetime-local" name="AcknowledgementDueDate" id="ccDueDate" style="font-size: 0.875rem;">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold" style="font-size: 0.875rem;">
+                                            <i class="fas fa-bell me-2" style="color: #3d1019;"></i>Auto Reminders
+                                        </label>
+                                        <select class="form-select" name="AutoReminderHoursBeforeDue" id="ccAutoReminders" style="font-size: 0.875rem;">
+                                            <option value="0" selected>Off</option>
+                                            <option value="24">24 hours before due</option>
+                                            <option value="48">48 hours before due</option>
+                                            <option value="72">72 hours before due</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recipients Section (Detailed) -->
+                        <div class="task-section" id="cc-recipients-section" style="margin-bottom: 0;">
+                            <div class="task-section-header">
+                                <h6 class="task-section-title">
+                                    <i class="fas fa-users"></i> Recipients
+                                </h6>
+                                <button type="button" class="btn btn-sm btn-outline-secondary edit-btn" id="ccAddRecipientBtnAlt" style="border-radius: 0.5rem;">
+                                    <i class="fas fa-plus"></i> Add
+                                </button>
+                            </div>
+                            <div class="task-section-content">
+                                <div id="ccRecipientsList" class="cc-recipients-list">
+                                    <!-- Recipients list will be rendered here -->
+                                </div>
+                                <div class="mt-2">
+                                    <input type="text" class="form-control form-control-sm" id="ccAddRecipientEmail" placeholder="Add email address and press Enter" style="font-size: 0.875rem;">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Right Panel (Activity/Comments) -->
+                <div class="task-details-right">
+                    <div class="comments-section">
+                        <div class="comments-header">
+                            <h6 class="comments-title">
+                                <i class="fas fa-comment"></i> Activity & responses
+                            </h6>
+                        </div>
+                        <div class="comment-input-section">
+                            <textarea class="form-control comment-input" id="ccCommentInput" placeholder="Write a note..."></textarea>
+                            <div class="mt-2 d-flex align-items-center">
+                                <small class="text-muted" style="margin-right: 0.8rem; margin-left: 0.3rem; font-size: 0.8rem;">Type &#64; to mention users</small>
+                                <button class="btn btn-sm btn-primary" id="ccPostCommentBtn" style="font-weight: 600;"><i class="fas fa-paper-plane" style="vertical-align: middle; position: relative; top: -1px;"></i> Post</button>
+                            </div>
+                        </div>
+                        <div class="activity-log" id="ccActivityLog">
+                            <p class="text-muted small text-center">No activity yet.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Footer with action buttons -->
+            <div class="task-details-footer" style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1.5rem; border-top: 1px solid #e5e7eb; background: #fff; flex-shrink: 0;">
+                <div id="ccModalMode" style="font-size: 0.8rem; color: #6b7280;"></div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary" id="cc-cancel-btn" style="font-size: 0.875rem;">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="ccSaveBtn" style="font-weight: 600; font-size: 0.875rem; margin-top: 0;">
+                        <i class="fas fa-save me-1" style="vertical-align: middle; position: relative; top: 4px;"></i> <span id="ccSaveBtnText">Save</span>
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Contact Selector Popup (page-level) -->
+<div id="ccContactSelectorPopup" class="cc-contact-selector-popup" style="display: none;"></div>
 
 @section Scripts {
     <script>

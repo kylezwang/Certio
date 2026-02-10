@@ -405,6 +405,78 @@ namespace Certio.Web.Controllers
             return View(viewModel);
         }
 
+        // GET: /Client/{orgId}/Matter/{matterId}/Contacts - AJAX partial for Matter Details Contacts tab
+        [Authorize(Policy = "OrgMember")]
+        [HttpGet("/Client/{orgId:int}/Matter/{matterId:int}/Contacts")]
+        public async Task<IActionResult> MatterContacts(int orgId, int matterId)
+        {
+            var (user, organizationId) = GetUserContext();
+            if (user == null || organizationId == 0)
+            {
+                return Unauthorized();
+            }
+
+            // Verify matter access
+            var matterResult = await _matterService.GetMatterAsync(user.Id, matterId);
+            if (!matterResult.Success)
+            {
+                _logger.LogWarning("User {UserId} attempted to access contacts for unauthorized matter {MatterId}", 
+                    user.Id, matterId);
+                return NotFound();
+            }
+
+            var dto = matterResult.Data!;
+            var matter = new Matter
+            {
+                Id = dto.Id,
+                Title = dto.Title,
+                Description = dto.Description,
+                OrganizationId = dto.OrganizationId,
+                Assignments = dto.Assignments
+                    .Where(a => a.User != null)
+                    .Select(a => new MatterAssignment
+                    {
+                        Id = a.Id,
+                        MatterId = a.MatterId,
+                        UserId = a.UserId,
+                        AssignmentType = a.AssignmentType,
+                        Role = a.Role,
+                        IsNotifyRecipient = a.IsNotifyRecipient,
+                        AssignedAt = a.AssignedAt,
+                        User = a.User != null ? new User
+                        {
+                            Id = a.User.Id,
+                            FirstName = a.User.FirstName,
+                            LastName = a.User.LastName,
+                            Email = a.User.Email,
+                            PhoneNumber = a.User.PhoneNumber
+                        } : null
+                    }).ToList()
+            };
+
+            var viewModel = new MatterContactsViewModel
+            {
+                Matter = matter,
+                ChangeControlSummary = await _changeNoticeService.GetSummaryAsync(orgId, matterId)
+            };
+
+            // Set ViewBag for the partial view
+            ViewBag.OrganizationId = orgId;
+            ViewBag.MatterId = matterId;
+            ViewBag.CurrentUserId = user.Id;
+            ViewBag.CurrentUserName = $"{user.FirstName} {user.LastName}";
+            
+            // Set organization entity and type for terminology
+            var org = await _context.Organizations.FirstOrDefaultAsync(o => o.Id == orgId);
+            if (org != null)
+            {
+                ViewBag.OrganizationType = org.Type;
+                ViewBag.OrganizationEntity = org;
+            }
+
+            return PartialView("~/Views/Matter/_MatterContacts.cshtml", viewModel);
+        }
+
         // TEST: Simple endpoint to verify routing works
         [HttpGet("/Client/{orgId:int}/Matter/Create/Test")]
         public IActionResult CreateTest(int orgId)

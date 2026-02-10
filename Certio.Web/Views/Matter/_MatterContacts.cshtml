@@ -1,0 +1,1281 @@
+@model Certio.Web.ViewModels.MatterContactsViewModel
+@{
+    Layout = null;
+    var organizationId = ViewBag.OrganizationId ?? ViewContext.HttpContext.Items["CurrentOrganizationId"];
+    var matterId = ViewBag.MatterId ?? ViewContext.HttpContext.Items["CurrentMatterId"];
+    var orgType = ViewBag.OrganizationType != null 
+        ? (Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType 
+        : Certio.Domain.Organizations.OrganizationType.LawFirm;
+    var orgEntity = ViewBag.OrganizationEntity as Certio.Domain.Organizations.Organization;
+    var matterLabel = orgEntity != null 
+        ? Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgEntity) 
+        : Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
+    var mattersLabel = orgEntity != null 
+        ? Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgEntity) 
+        : Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType);
+}
+
+<!-- Organization and Matter ID for JavaScript access -->
+<div class="d-none" data-organization-id="@organizationId" data-matter-id="@matterId"></div>
+
+<div class="container-fluid" style="padding: 1.5rem 0rem;">
+    <div class="row" style="display: flex; flex-wrap: wrap;">
+        <!-- Staff & Contacts Card -->
+        <div class="col-lg-4 mb-3 matter-card-wrapper" style="order: 2;">
+            <div class="card h-100 border-0 matter-card" style="padding-top: 0.5rem; position: relative;">
+                <div class="card-body pt-2">
+                    <!-- Save Indicator Button (Top Right) -->
+                    <button id="contactsSaveBtn" class="btn btn-sm btn-success" 
+                            style="position: absolute; top: 0.5rem; right: 0.5rem; display: none; z-index: 10; border-radius: 0.375rem;"
+                            onclick="saveContactsChanges()"
+                            title="Save changes">
+                        <i class="fas fa-check"></i>
+                    </button>
+
+                    <div class="d-flex align-items-center mb-3" style="margin-left:0.25rem;">
+                        <i class="fas fa-building-columns fs-5 me-2" style="color: #3d1019; font-size: 1.35rem;"></i>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-1" style="font-size: 1rem;">Staff & Contacts</h6>
+                            <p class="text-muted mb-0 small" style="font-size: 0.8rem;">Assign your team members and relevant contacts for this event.</p>
+                        </div>
+                    </div>
+                    @{
+                        var responsibleAttorney = Model.Matter.Assignments?.FirstOrDefault(ma => ma.AssignmentType == "ResponsibleAttorney");
+                        var responsibleStaff = Model.Matter.Assignments?.FirstOrDefault(ma => ma.AssignmentType == "ResponsibleStaff");
+                        var relevantContacts = Model.Matter.Assignments?.Where(ma => ma.AssignmentType == "RelevantContact").ToList() ?? new List<Certio.Domain.Matters.MatterAssignment>();
+                    }
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
+                                <i class="fas fa-user-tie me-2" style="color: #3d1019;"></i>
+                                Lead Coordinator
+                            </label>
+                            <div class="input-group input-group-lg">
+                                <input type="text" class="form-control form-control-lg" id="contactsResponsibleAttorneyInput" 
+                                       value="@(responsibleAttorney?.User != null ? responsibleAttorney.User.FirstName + " " + responsibleAttorney.User.LastName : "Not specified")" 
+                                       style="font-size: 0.9rem;" disabled />
+                                <button class="btn btn-outline-secondary" type="button" 
+                                        data-assignment-type="ResponsibleAttorney" 
+                                        data-assignment-id="@(responsibleAttorney?.Id ?? 0)"
+                                        data-current-user-id="@(responsibleAttorney?.UserId ?? 0)"
+                                        onclick="showContactsAssignmentPopup(this)"
+                                        style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold text-dark" style="font-size: 0.9rem;">
+                                <i class="fas fa-user me-2" style="color: #3d1019;"></i>
+                                Assistant
+                            </label>
+                            <div class="input-group input-group-lg">
+                                <input type="text" class="form-control form-control-lg" id="contactsResponsibleStaffInput" 
+                                       value="@(responsibleStaff?.User != null ? responsibleStaff.User.FirstName + " " + responsibleStaff.User.LastName : "Not specified")" 
+                                       style="font-size: 0.9rem;" disabled />
+                                <button class="btn btn-outline-secondary" type="button" 
+                                        data-assignment-type="ResponsibleStaff" 
+                                        data-assignment-id="@(responsibleStaff?.Id ?? 0)"
+                                        data-current-user-id="@(responsibleStaff?.UserId ?? 0)"
+                                        onclick="showContactsAssignmentPopup(this)"
+                                        style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3" style="padding: 0rem 0.5rem;">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-users fs-6 me-2" style="color: #3d1019; font-size: 1.125rem;"></i>
+                                <h6 class="fw-bold text-dark mb-0" style="font-size: 0.9rem;">Relevant contacts</h6>
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="contactsAddRelevantContactBtn" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                                <i class="fas fa-plus me-1"></i> Add
+                            </button>
+                        </div>
+                        
+                        <!-- Relevant Contacts Container -->
+                        <div id="contacts-relevant-contacts-container" style="max-height: 200px; overflow-y: auto;">
+                            @if (relevantContacts.Count == 0)
+                            {
+                                <div class="text-muted small text-center py-2" id="contactsNoContactsMessage">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    No relevant contacts added yet.
+                                </div>
+                            }
+                            else
+                            {
+                                @foreach (var rc in relevantContacts)
+                                {
+                                    var contactName = rc.User != null ? ($"{rc.User.FirstName} {rc.User.LastName}") : "Unknown contact";
+                                    var contactRole = string.IsNullOrWhiteSpace(rc.Role) ? "Contact" : rc.Role;
+                                    <div class="relevant-contact-row d-flex align-items-center gap-2 mb-2 p-2 border rounded" data-assignment-id="@rc.Id" style="background-color: #f8f9fa;">
+                                        <div class="flex-grow-1">
+                                            <div class="fw-medium text-dark" style="font-size: 0.85rem;">@contactName</div>
+                                            <div class="text-muted" style="font-size: 0.75rem;">@contactRole</div>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-danger btn-sm contacts-remove-contact-btn" 
+                                                data-assignment-id="@rc.Id"
+                                                style="padding: 0.15rem 0.35rem; font-size: 0.7rem;">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Email Confirmations Card -->
+        <div class="col-lg-8 mb-3 matter-card-wrapper" style="order: 1;">
+            <div class="card h-100 border-0 matter-card" style="padding-top: 0.5rem; position: relative;">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <div class="mb-2">
+                        <div class="d-flex align-items-center" style="margin-left:0.25rem;">
+                            <i class="fa-solid fa-bullhorn fs-5 me-2" style="color: #3d1019; font-size: 1.35rem;"></i>
+                            <div>
+                                <h5 class="card-title fw-bold mb-2" style="color: black; font-size: 1rem; line-height: 1.3;">Email Confirmations</h5>
+                                <p class="card-text text-muted mb-0" style="font-size: 0.8rem; line-height: 1.4;">
+                                    Create, send, and track email confirmations that require acknowledgement for your event.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body pt-2">
+                    @{
+                        var cc = Model.ChangeControlSummary;
+                    }
+
+                    <div id="change-control-card" data-org-id="@organizationId" data-matter-id="@Model.Matter.Id">
+                        <style>
+                            /* Match Summary tab hover style for cards in Contacts tab */
+                            #tab-contacts .matter-card {
+                                transition: none !important;
+                            }
+                            #tab-contacts .matter-card:hover {
+                                background-color: #ffffff !important;
+                                transform: none !important;
+                                box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+                            }
+
+                            /* Scoped "drippy inbox list" styling for Change Control card */
+                            #change-control-card .cc-add-card-outer-container {
+                                background: white;
+                                border-radius: 8px;
+                                padding: 0.75rem 0.75rem 0.6rem 0.75rem;
+                                margin-bottom: 0.35rem;
+                                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+                                width: 100%;
+                            }
+
+                            #change-control-card .cc-add-card-container {
+                                margin-bottom: 0.5rem;
+                            }
+
+                            #change-control-card .cc-add-card-button {
+                                width: 100%;
+                                margin: 0;
+                                padding: 0.75rem 1rem;
+                                border: none;
+                                border-radius: 12px;
+                                background: #fff;
+                                color: #4a5568;
+                                font-size: 0.9rem;
+                                box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+                                transition: transform 0.2s ease, background-color 0.2s ease;
+                                cursor: pointer;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                gap: 0.5rem;
+                            }
+
+                            #change-control-card .cc-add-card-button:hover {
+                                background-color: #eef1f3;
+                                transform: translateY(-2px);
+                                box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2) !important;
+                            }
+
+                            #change-control-card .cc-add-card-icon {
+                                color: #a0aec0;
+                                font-size: 0.9rem;
+                            }
+
+                            #change-control-card .cc-add-card-text {
+                                color: #4a5568;
+                                font-weight: 600;
+                            }
+
+                            #change-control-card .cc-row {
+                                border: 1px solid #eeeeee;
+                                border-radius: 0.5rem;
+                                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                                transition: all 0.2s ease;
+                                background: #fff;
+                            }
+
+                            #change-control-card .cc-row[data-notice-id] {
+                                cursor: pointer;
+                            }
+
+                            #change-control-card .cc-row:hover {
+                                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                                transform: translateY(-2px);
+                                background-color: #fafafa;
+                                border-color: #cbd5e1;
+                            }
+
+                            #change-control-card .cc-row.cc-header {
+                                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                                padding: 0.6rem 1rem 0.2rem 1rem;
+                                margin-bottom: 0.4rem;
+                                cursor: default;
+                            }
+
+                            #change-control-card .cc-row.cc-header:hover {
+                                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                                transform: none;
+                                background: #fff;
+                                border-color: #eeeeee;
+                            }
+
+                            #change-control-card .cc-grid {
+                                display: grid;
+                                grid-template-columns: 180px 1fr 80px;
+                                gap: 0.75rem;
+                                align-items: start;
+                                width: 100%;
+                            }
+
+                            #change-control-card .cc-col-status {
+                                display: flex;
+                                align-items: center;
+                                justify-content: flex-start;
+                                gap: 0.5rem;
+                            }
+
+                            #change-control-card .cc-col-actions {
+                                display: flex;
+                                align-items: center;
+                                justify-content: flex-end;
+                                gap: 0.5rem;
+                            }
+
+                            #change-control-card .cc-title {
+                                font-weight: 600;
+                                color: #111827;
+                                font-size: 0.95rem;
+                                line-height: 1.25;
+                                text-align: left;
+                            }
+
+                            #change-control-card .cc-meta {
+                                font-size: 0.75rem;
+                                color: #6b7280;
+                                margin-top: 0.35rem;
+                                display: flex;
+                                flex-wrap: wrap;
+                                gap: 0.35rem;
+                            }
+
+                            #change-control-card .cc-status-pill {
+                                display: inline-flex;
+                                align-items: center;
+                                gap: 0.35rem;
+                                font-weight: 800;
+                                font-size: 0.75rem;
+                                padding: 0.35rem 0.6rem;
+                                border-radius: 999px;
+                                background-color: #1e1e1e89;
+                            }
+
+                            #change-control-card .cc-chip {
+                                display: inline-flex;
+                                align-items: center;
+                                gap: 0.35rem;
+                                padding: 0.15rem 0.45rem;
+                                border-radius: 999px;
+                                background: rgba(107, 114, 128, 0.12);
+                                color: #374151;
+                                font-weight: 600;
+                            }
+
+                            #change-control-card .cc-legend {
+                                display: flex;
+                                align-items: center;
+                                gap: 0.4rem;
+                                flex-wrap: wrap;
+                            }
+
+                            #change-control-card .cc-composer {
+                                border: 1px solid #eeeeee;
+                                border-radius: 12px;
+                                box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+                                background: #fff;
+                                overflow: hidden;
+                            }
+
+                            #change-control-card .cc-composer-header {
+                                display: flex;
+                                align-items: center;
+                                justify-content: space-between;
+                                padding: 0.75rem 1rem;
+                                background: #f9fafb;
+                                border-bottom: 1px solid #e5e7eb;
+                            }
+
+                            #change-control-card .cc-composer-title {
+                                display: flex;
+                                align-items: center;
+                                gap: 0.6rem;
+                                font-weight: 700;
+                                color: #111827;
+                            }
+
+                            #change-control-card .cc-composer-body {
+                                padding: 0.85rem 1rem 1rem 1rem;
+                            }
+
+                            #change-control-card .cc-form-actions {
+                                display: flex;
+                                justify-content: flex-end;
+                                gap: 0.5rem;
+                            }
+
+                            #change-control-card .cc-status-col {
+                                display: flex;
+                                flex-direction: column;
+                                align-items: flex-start;
+                                gap: 0.5rem;
+                            }
+
+                            #change-control-card .cc-status-counts {
+                                display: flex;
+                                flex-direction: column;
+                                gap: 0.35rem;
+                            }
+
+                            #change-control-card .cc-count-pill {
+                                display: inline-flex;
+                                align-items: center;
+                                padding: 0.2rem 0.55rem;
+                                border-radius: 999px;
+                                font-weight: 700;
+                                font-size: 0.75rem;
+                            }
+
+                            /* Modal styles are defined at page level in Details.cshtml */
+
+                            /* Recipients inline avatars */
+                            .cc-recipients-container {
+                                display: flex;
+                                align-items: center;
+                                gap: 0.25rem;
+                                flex-wrap: wrap;
+                            }
+                            .cc-recipient-avatar {
+                                width: 28px;
+                                height: 28px;
+                                border-radius: 50%;
+                                background: #3d1019;
+                                color: white;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                font-size: 0.7rem;
+                                font-weight: 600;
+                                cursor: pointer;
+                                transition: transform 0.15s ease;
+                            }
+                            .cc-recipient-avatar:hover {
+                                transform: scale(1.1);
+                            }
+                            .cc-recipient-more {
+                                background: #6b7280;
+                            }
+
+                            /* Recipients list in section */
+                            .cc-recipients-list {
+                                display: flex;
+                                flex-direction: column;
+                                gap: 0.5rem;
+                            }
+                            .cc-recipient-item {
+                                display: flex;
+                                align-items: center;
+                                justify-content: space-between;
+                                padding: 0.5rem 0.75rem;
+                                background: white;
+                                border: 1px solid #e5e7eb;
+                                border-radius: 0.375rem;
+                            }
+                            .cc-recipient-item .recipient-info {
+                                display: flex;
+                                align-items: center;
+                                gap: 0.75rem;
+                            }
+                            .cc-recipient-item .recipient-email {
+                                font-size: 0.875rem;
+                                color: #374151;
+                            }
+                            .cc-recipient-item .recipient-status {
+                                font-size: 0.75rem;
+                                padding: 0.125rem 0.5rem;
+                                border-radius: 0.25rem;
+                                display: inline-flex;
+                                align-items: center;
+                            }
+                            .cc-recipient-item .recipient-reply-btn {
+                                display: inline-flex;
+                                align-items: center;
+                                justify-content: center;
+                                height: 24px;
+                                line-height: 1;
+                            }
+                            .cc-recipient-item .recipient-reply-btn i {
+                                line-height: 1;
+                            }
+                            .cc-recipient-item .recipient-remove {
+                                color: #9ca3af;
+                                cursor: pointer;
+                                padding: 0.25rem;
+                                border-radius: 0.25rem;
+                                transition: all 0.15s ease;
+                                display: inline-flex;
+                                align-items: center;
+                                font-size: 0.875rem;
+                            }
+                            .cc-recipient-item .recipient-remove:hover {
+                                color: #ef4444;
+                                background: rgba(239, 68, 68, 0.1);
+                            }
+
+                            /* Contact Selector Popup */
+                            .cc-contact-selector-popup {
+                                position: fixed;
+                                background: white;
+                                border-radius: 0.5rem;
+                                padding: 1rem;
+                                width: 380px;
+                                max-height: 450px;
+                                overflow-y: auto;
+                                box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+                                border: 1px solid #dee2e6;
+                                z-index: 1200;
+                            }
+                            .cc-contact-selector-popup .contact-item {
+                                display: flex;
+                                align-items: center;
+                                padding: 0.5rem;
+                                border-radius: 0.375rem;
+                                cursor: pointer;
+                                transition: background 0.15s ease;
+                            }
+                            .cc-contact-selector-popup .contact-item:hover {
+                                background: #f3f4f6;
+                            }
+                            .cc-contact-selector-popup .contact-item.selected {
+                                background: rgba(61, 16, 25, 0.1);
+                            }
+                            .cc-contact-selector-popup .contact-avatar {
+                                width: 32px;
+                                height: 32px;
+                                border-radius: 50%;
+                                background: #3d1019;
+                                color: white;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                font-size: 0.75rem;
+                                font-weight: 600;
+                                margin-right: 0.75rem;
+                            }
+                            .cc-contact-selector-popup .contact-info {
+                                flex: 1;
+                            }
+                            .cc-contact-selector-popup .contact-name {
+                                font-size: 0.875rem;
+                                font-weight: 600;
+                                color: #374151;
+                            }
+                            .cc-contact-selector-popup .contact-email {
+                                font-size: 0.75rem;
+                                color: #6b7280;
+                            }
+
+                            .sidebar-hidden body:has(.client-main-content-wrapper.global-dashboard-layout) #ccDraftModal.task-details-modal {
+                                left: calc(6vw + 1rem) !important;
+                            }
+                        </style>
+
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge bg-secondary" style="font-weight: 600;">Draft: <span data-cc-count="draft">@((cc?.DraftCount) ?? 0)</span></span>
+                                <span class="badge bg-primary" style="margin-top:0; background-color: rgba(var(--bs-primary-rgb), 1) !important; font-weight: 600;">Pending: <span data-cc-count="pending">@((cc?.PendingCount) ?? 0)</span></span>
+                                <span class="badge bg-warning text-dark" style="margin-top:0; font-weight: 600;">Response Required: <span data-cc-count="clarify">@((cc?.NeedsClarificationCount) ?? 0)</span></span>
+                                <span class="badge bg-success" style="margin-top:0; font-weight: 600;">All Confirmed: <span data-cc-count="ack">@((cc?.AcknowledgedCount) ?? 0)</span></span>
+                            </div>
+                            <button id="cc-refresh-btn" class="btn btn-sm btn-outline-secondary" style="font-weight: 600;">
+                                <i class="fas fa-rotate-right me-1"></i> Refresh
+                            </button>
+                        </div>
+
+                        <!-- Draft composer toggle -->
+                        <div id="cc-add-container" class="cc-add-card-outer-container">
+                            <div class="cc-add-card-container">
+                                <button class="cc-add-card-button" id="cc-open-composer-btn" type="button">
+                                    <div class="cc-add-card-icon">
+                                        <i class="fas fa-plus"></i>
+                                    </div>
+                                    <span class="cc-add-card-text">Draft new email confirmation</span>
+                                </button>
+                            </div>
+
+                        <!-- Column headers -->
+                        <div id="cc-list-header" class="cc-row cc-header mb-2">
+                            <div class="cc-grid">
+                                <div>
+                                    <button class="btn btn-sm" style="padding: 0.375rem 0.5rem; border: none; background: white; color: #2d3748; font-size: 0.75rem; font-weight: 700; border-radius: 0.5rem; cursor: default; text-align: left; width: 100%;">Status</button>
+                                </div>
+                                <div>
+                                    <button class="btn btn-sm" style="padding: 0.375rem 0.5rem; border: none; background: white; color: #2d3748; font-size: 0.75rem; font-weight: 700; border-radius: 0.5rem; cursor: default; text-align: left; width: 100%;">Title</button>
+                                </div>
+                                <div>
+                                    <button class="btn btn-sm" style="padding: 0.375rem 0.5rem; border: none; background: white; color: #2d3748; font-size: 0.75rem; font-weight: 700; border-radius: 0.5rem; cursor: default; text-align: right; width: 100%;">Actions</button>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+
+                        <div id="change-control-notice-list">
+                            @if (cc?.Notices != null && cc.Notices.Any())
+                            {
+                                var maxVisible = 2;
+                                var noticeList = cc.Notices.ToList();
+                                var visibleNotices = noticeList.Take(maxVisible).ToList();
+                                var hasMore = noticeList.Count > maxVisible;
+                                var hiddenCount = noticeList.Count - maxVisible;
+
+                                foreach (var n in visibleNotices)
+                                {
+                                    var badgeClass = n.Status == "Acknowledged"
+                                        ? "bg-success"
+                                        : n.Status == "NeedsClarification"
+                                            ? ""
+                                            : (n.Status == "Sent" || n.Status == "PartiallyAcknowledged")
+                                                ? ""
+                                                : "";
+                                    var sendLabel = n.Status == "Draft" ? "Send" : "Nudge";
+                                    var sendDisabled = n.Status == "Acknowledged";
+                                    var statusLabel = n.Status == "Acknowledged" ? "Confirmed"
+                                        : n.Status == "NeedsClarification" ? "Response Required"
+                                        : n.Status == "PartiallyAcknowledged" ? "Partial"
+                                        : n.Status;
+                                    var statusIcon = n.Status == "Acknowledged" ? "fas fa-check-circle"
+                                        : n.Status == "NeedsClarification" ? "fas fa-circle-question"
+                                        : (n.Status == "Sent" || n.Status == "PartiallyAcknowledged") ? "fas fa-paper-plane"
+                                        : "fas fa-pen";
+
+                                    <div class="cc-row cc-visible-row p-3 mb-2" data-notice-id="@n.Id">
+                                        <div class="cc-grid">
+                                            <div class="cc-status-col">
+                                                <span class="cc-status-pill badge @badgeClass">
+                                                    <i class="@statusIcon"></i> @statusLabel
+                                                </span>
+                                                <div class="cc-status-counts">
+                                                    <span class="cc-count-pill" style="background: rgba(var(--bs-success-rgb), 0.12); color: #065f46;">Confirmed @n.AcknowledgedRecipientCount / @n.RecipientCount</span>
+                                                    <span class="cc-count-pill" style="background: rgba(var(--bs-warning-rgb), 0.16); color: #92400e;">Response Required @n.NeedsClarificationRecipientCount / @n.RecipientCount</span>
+                                                    <span class="cc-count-pill" style="background: rgba(var(--bs-primary-rgb), 0.12); color: #1d4ed8;">Pending @n.PendingRecipientCount / @n.RecipientCount</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="cc-title">@n.Title</div>
+                                                <div class="cc-meta">
+                                                    <span class="cc-chip"><i class="fas fa-tag" style="opacity:0.75;"></i> @n.ChangeType</span>
+                                                    <span class="cc-chip"><i class="fas fa-flag" style="opacity:0.75;"></i> @n.Priority</span>
+                                                    <span class="cc-chip"><i class="fas fa-users" style="opacity:0.75;"></i> @n.RecipientCount</span>
+                                                </div>
+                                                @if (!string.IsNullOrWhiteSpace(n.Description))
+                                                {
+                                                    <div class="cc-description" style="font-size: 0.8rem; color: #6b7280; margin-top: 0.25rem; line-height: 1.4;">@n.Description</div>
+                                                }
+                                            </div>
+                                            <div class="cc-col-actions">
+                                                <button class="btn btn-sm btn-outline-primary cc-send-btn" style="font-weight:600; padding: 0.2rem 0.5rem;" data-notice-id="@n.Id" @(sendDisabled ? "disabled" : "")>@sendLabel</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+
+                                @* Hidden items (collapsed by default) *@
+                                @foreach (var n in noticeList.Skip(maxVisible))
+                                {
+                                    var badgeClass = n.Status == "Acknowledged"
+                                        ? "bg-success"
+                                        : n.Status == "NeedsClarification"
+                                            ? ""
+                                            : (n.Status == "Sent" || n.Status == "PartiallyAcknowledged")
+                                                ? ""
+                                                : "";
+                                    var sendLabel = n.Status == "Draft" ? "Send" : "Nudge";
+                                    var sendDisabled = n.Status == "Acknowledged";
+                                    var statusLabel = n.Status == "Acknowledged" ? "Confirmed"
+                                        : n.Status == "NeedsClarification" ? "Response Required"
+                                        : n.Status == "PartiallyAcknowledged" ? "Partial"
+                                        : n.Status;
+                                    var statusIcon = n.Status == "Acknowledged" ? "fas fa-check-circle"
+                                        : n.Status == "NeedsClarification" ? "fas fa-circle-question"
+                                        : (n.Status == "Sent" || n.Status == "PartiallyAcknowledged") ? "fas fa-paper-plane"
+                                        : "fas fa-pen";
+
+                                    <div class="cc-row cc-hidden-row p-3 mb-2" data-notice-id="@n.Id" style="display: none;">
+                                        <div class="cc-grid">
+                                            <div class="cc-status-col">
+                                                <span class="cc-status-pill badge @badgeClass">
+                                                    <i class="@statusIcon"></i> @statusLabel
+                                                </span>
+                                                <div class="cc-status-counts">
+                                                    <span class="cc-count-pill" style="background: rgba(var(--bs-success-rgb), 0.12); color: #065f46;">Confirmed @n.AcknowledgedRecipientCount / @n.RecipientCount</span>
+                                                    <span class="cc-count-pill" style="background: rgba(var(--bs-warning-rgb), 0.16); color: #92400e;">Clarify @n.NeedsClarificationRecipientCount / @n.RecipientCount</span>
+                                                    <span class="cc-count-pill" style="background: rgba(var(--bs-primary-rgb), 0.12); color: #1d4ed8;">Pending @n.PendingRecipientCount / @n.RecipientCount</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="cc-title">@n.Title</div>
+                                                <div class="cc-meta">
+                                                    <span class="cc-chip"><i class="fas fa-tag" style="opacity:0.75;"></i> @n.ChangeType</span>
+                                                    <span class="cc-chip"><i class="fas fa-flag" style="opacity:0.75;"></i> @n.Priority</span>
+                                                    <span class="cc-chip"><i class="fas fa-users" style="opacity:0.75;"></i> @n.RecipientCount</span>
+                                                </div>
+                                                @if (!string.IsNullOrWhiteSpace(n.Description))
+                                                {
+                                                    <div class="cc-description" style="font-size: 0.8rem; color: #6b7280; margin-top: 0.25rem; line-height: 1.4;">@n.Description</div>
+                                                }
+                                            </div>
+                                            <div class="cc-col-actions">
+                                                <button class="btn btn-sm btn-outline-primary cc-send-btn" style="font-weight:600; padding: 0.2rem 0.5rem;" data-notice-id="@n.Id" @(sendDisabled ? "disabled" : "")>@sendLabel</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+
+                                @if (hasMore)
+                                {
+                                    <div class="cc-toggle-row text-center py-2" id="cc-show-more-toggle" style="cursor: pointer; color: #6b7280; font-size: 0.8rem; border-top: 1px solid #e5e7eb;" onclick="toggleCCHiddenRows()">
+                                        <i class="fas fa-chevron-down"></i> Show @hiddenCount more
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="text-center py-5 text-muted" style="border: 1px dashed #e5e7eb; border-radius: 12px; background: #fff;">
+                                    <i class="fa-solid fa-bullhorn mb-2" style="font-size: 1.5rem;"></i>
+                                    <div style="font-weight: 600;">No email confirmations</div>
+                                    <div style="font-size: 0.875rem;">Create an email confirmation to see it listed here.</div>
+                                </div>
+                            }
+                        </div>
+                        <script>
+                            function toggleCCHiddenRows() {
+                                const hiddenRows = document.querySelectorAll('.cc-hidden-row');
+                                const toggle = document.getElementById('cc-show-more-toggle');
+                                const isExpanded = toggle.dataset.expanded === 'true';
+                                
+                                hiddenRows.forEach(row => {
+                                    row.style.display = isExpanded ? 'none' : 'block';
+                                });
+                                
+                                toggle.dataset.expanded = !isExpanded;
+                                toggle.innerHTML = isExpanded 
+                                    ? '<i class="fas fa-chevron-down"></i> Show @(cc?.Notices?.Count() > 2 ? cc.Notices.Count() - 2 : 0) more'
+                                    : '<i class="fas fa-chevron-up"></i> Show less';
+                            }
+                        </script>
+
+                        <pre id="change-control-summary-json" class="d-none"></pre>
+                    </div>
+                    <!-- Modal and Contact Selector are at page level in Details.cshtml -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- task-details-modal.css is already loaded on the page from Details.cshtml -->
+
+<script>
+(function() {
+    // Contacts tab scoped variables
+    const contactsOrgId = @organizationId;
+    const contactsMatterId = @matterId;
+    let contactsAllUsers = [];
+    let contactsHasUnsavedChanges = false;
+    let pendingContactsAssignmentChanges = {};
+
+    // Show / hide save indicator (green check button)
+    function showContactsSaveIndicator() {
+        contactsHasUnsavedChanges = true;
+        const saveBtn = document.getElementById('contactsSaveBtn');
+        if (saveBtn) {
+            saveBtn.style.display = 'block';
+        }
+    }
+
+    function hideContactsSaveIndicator() {
+        contactsHasUnsavedChanges = false;
+        const saveBtn = document.getElementById('contactsSaveBtn');
+        if (saveBtn) {
+            saveBtn.style.display = 'none';
+        }
+    }
+
+    // Save all pending assignment changes to backend
+    window.saveContactsChanges = async function() {
+        const hasAssignmentChanges = Object.keys(pendingContactsAssignmentChanges).length > 0;
+
+        if (!contactsHasUnsavedChanges || !hasAssignmentChanges) {
+            hideContactsSaveIndicator();
+            return;
+        }
+
+        try {
+            const roleMap = {
+                'ResponsibleAttorney': 'Lead Coordinator',
+                'ResponsibleStaff': 'Assistant'
+            };
+
+            for (const [assignmentType, change] of Object.entries(pendingContactsAssignmentChanges)) {
+                const { userId, assignmentId, clearAssignment } = change;
+
+                if (clearAssignment) {
+                    if (assignmentId > 0) {
+                        const removeResponse = await fetch(`/Client/${contactsOrgId}/Matter/${contactsMatterId}/Assignment/${assignmentId}`, {
+                            method: 'DELETE',
+                            credentials: 'include',
+                            headers: { 'Content-Type': 'application/json' }
+                        });
+                        if (!removeResponse.ok) {
+                            const errorData = await removeResponse.json();
+                            console.error('Error removing assignment:', errorData);
+                            alert(`Error removing ${assignmentType} assignment. Please try again.`);
+                            return;
+                        }
+                    }
+                } else if (userId > 0) {
+                    const assignResponse = await fetch(`/Client/${contactsOrgId}/Matter/${contactsMatterId}/Assignment`, {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            userId: userId,
+                            assignmentType: assignmentType,
+                            role: roleMap[assignmentType] || '',
+                            isNotifyRecipient: true
+                        })
+                    });
+                    if (!assignResponse.ok) {
+                        const errorData = await assignResponse.json();
+                        console.error('Error assigning user:', errorData);
+                        alert(`Error assigning ${assignmentType}. Please try again.`);
+                        return;
+                    }
+                }
+            }
+
+            // Clear pending changes and refresh page
+            pendingContactsAssignmentChanges = {};
+            hideContactsSaveIndicator();
+            location.reload();
+
+        } catch (error) {
+            console.error('Error saving changes:', error);
+            alert('An error occurred while saving changes. Please try again.');
+        }
+    };
+
+    // Load users for assignment popup
+    async function loadContactsUsers() {
+        if (contactsAllUsers.length > 0) return contactsAllUsers;
+        
+        try {
+            const response = await fetch(`/Client/${contactsOrgId}/Matter/${contactsMatterId}/Users`, {
+                credentials: 'include'
+            });
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success && result.users) {
+                    contactsAllUsers = result.users.map(u => ({
+                        id: u.id,
+                        name: u.name || `${u.firstName || ''} ${u.lastName || ''}`.trim(),
+                        initials: u.initials || `${(u.firstName || '')[0] || ''}${(u.lastName || '')[0] || ''}`.toUpperCase(),
+                        email: u.email
+                    }));
+                }
+            }
+        } catch (error) {
+            console.error('Error loading users:', error);
+        }
+        return contactsAllUsers;
+    }
+
+    // Show assignment popup for Lead Coordinator / Assistant
+    window.showContactsAssignmentPopup = async function(button) {
+        const assignmentType = button.dataset.assignmentType;
+        const assignmentId = parseInt(button.dataset.assignmentId) || 0;
+        const currentUserId = parseInt(button.dataset.currentUserId) || 0;
+        
+        const assignmentLabels = {
+            'ResponsibleAttorney': 'Lead Coordinator',
+            'ResponsibleStaff': 'Assistant'
+        };
+        const assignmentLabel = assignmentLabels[assignmentType] || assignmentType;
+        
+        await loadContactsUsers();
+        
+        const popup = document.createElement('div');
+        popup.className = 'matter-assignment-popup';
+        
+        const btnRect = button.getBoundingClientRect();
+        
+        popup.style.cssText = `
+            position: fixed;
+            top: ${btnRect.top}px;
+            left: ${btnRect.right + 10}px;
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            width: 400px;
+            max-height: 500px;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            border: 1px solid #dee2e6;
+            z-index: 1100;
+        `;
+        
+        const popupWidth = 400;
+        const screenWidth = window.innerWidth;
+        if (btnRect.right + popupWidth + 10 > screenWidth) {
+            popup.style.left = `${btnRect.left - popupWidth - 10}px`;
+        }
+        
+        const popupHeight = 500;
+        const screenHeight = window.innerHeight;
+        if (btnRect.top + popupHeight > screenHeight) {
+            popup.style.top = `${Math.max(10, screenHeight - popupHeight - 10)}px`;
+        }
+        
+        let selectedUserId = currentUserId;
+        
+        popup.innerHTML = `
+            <div class="mb-2">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-user-plus me-2" style="color: #3d1019; font-size: 1rem;"></i>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-0" style="font-size: 0.9rem;">Select ${assignmentLabel}</h6>
+                            <p class="text-muted mb-0" style="font-size: 0.75rem;">Choose a user for this assignment.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-2">
+                <label class="form-label fw-bold text-dark mb-1" style="font-size: 0.85rem;">Search Users</label>
+                <div class="input-group input-group-sm">
+                    <input type="text" class="form-control" id="contactsAssignmentUserSearch" placeholder="Search by name or email..." style="font-size: 0.875rem;">
+                    <button class="btn btn-outline-secondary" type="button">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="mb-2">
+                <label class="form-label fw-bold text-dark mb-1" style="font-size: 0.85rem;">Selected User</label>
+                <div id="contactsAssignmentSelectedUser" class="border rounded p-2" style="min-height: 50px; background-color: #f8f9fa; font-size: 0.875rem;">
+                    <p class="text-muted mb-0 small">No user selected yet.</p>
+                </div>
+            </div>
+            
+            <div class="mb-2">
+                <label class="form-label fw-bold text-dark mb-1" style="font-size: 0.85rem;">Available Users</label>
+                <div id="contactsAssignmentAvailableUsers" class="border rounded" style="max-height: 10rem; overflow-y: auto; padding-left: 1.75rem;">
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-end mt-2">
+                <button class="btn btn-secondary btn-sm" id="contactsAssignmentCancel" style="border-radius: 0.5rem;">Cancel</button>
+                <button class="btn btn-primary btn-sm" id="contactsAssignmentDone" style="border-radius: 0.5rem; margin-left: 0.5rem;">Done</button>
+            </div>
+        `;
+        
+        document.body.appendChild(popup);
+        
+        const availableUsersList = popup.querySelector('#contactsAssignmentAvailableUsers');
+        const selectedUserDisplay = popup.querySelector('#contactsAssignmentSelectedUser');
+        const searchInput = popup.querySelector('#contactsAssignmentUserSearch');
+        
+        function renderUsers(filterText = '') {
+            if (!contactsAllUsers || contactsAllUsers.length === 0) {
+                availableUsersList.innerHTML = '<p class="text-muted mb-0" style="font-size: 0.75rem;">No users available.</p>';
+                return;
+            }
+            
+            const filtered = contactsAllUsers.filter(u => 
+                !filterText || 
+                u.name.toLowerCase().includes(filterText.toLowerCase()) || 
+                (u.email && u.email.toLowerCase().includes(filterText.toLowerCase()))
+            );
+            
+            availableUsersList.innerHTML = filtered.map(user => `
+                <div class="form-check user-item" style="padding: 0.4rem;">
+                    <input class="form-check-input user-radio" type="radio" 
+                           name="contactsAssignmentUser" 
+                           id="contacts_user_${user.id}" 
+                           value="${user.id}"
+                           ${selectedUserId === user.id ? 'checked' : ''}
+                           style="margin-top: 0.75rem;">
+                    <label class="form-check-label" for="contacts_user_${user.id}" style="cursor: pointer; font-size: 0.875rem;">
+                        <strong>${user.name}</strong>
+                        ${user.email ? `<small class="text-muted d-block" style="font-size: 0.75rem;">${user.email}</small>` : ''}
+                    </label>
+                </div>
+            `).join('');
+            
+            const noneOption = `
+                <div class="form-check user-item" style="padding: 0.4rem; border-bottom: 1px solid #dee2e6; margin-bottom: 0.25rem;">
+                    <input class="form-check-input user-radio" type="radio" 
+                           name="contactsAssignmentUser" 
+                           id="contacts_user_0" 
+                           value="0"
+                           ${selectedUserId === 0 ? 'checked' : ''}
+                           style="margin-top: 0.75rem;">
+                    <label class="form-check-label" for="contacts_user_0" style="cursor: pointer; font-size: 0.875rem;">
+                        <strong class="text-muted">None (Clear assignment)</strong>
+                    </label>
+                </div>
+            `;
+            availableUsersList.innerHTML = noneOption + availableUsersList.innerHTML;
+            
+            const radios = availableUsersList.querySelectorAll('.user-radio');
+            radios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    selectedUserId = parseInt(this.value);
+                    updateSelectedDisplay();
+                });
+                radio.addEventListener('click', function() {
+                    selectedUserId = parseInt(this.value);
+                    updateSelectedDisplay();
+                });
+            });
+            
+            const labels = availableUsersList.querySelectorAll('label[for^="contacts_user_"]');
+            labels.forEach(label => {
+                label.addEventListener('click', function(e) {
+                    const radioId = this.getAttribute('for');
+                    const radioBtn = document.getElementById(radioId);
+                    if (radioBtn) {
+                        radioBtn.checked = true;
+                        selectedUserId = parseInt(radioBtn.value);
+                        updateSelectedDisplay();
+                    }
+                });
+            });
+        }
+        
+        function updateSelectedDisplay() {
+            if (selectedUserId === 0) {
+                selectedUserDisplay.innerHTML = '<p class="text-muted mb-0 small">No user selected (assignment will be cleared).</p>';
+                return;
+            }
+            
+            const selectedUser = contactsAllUsers.find(u => u.id === selectedUserId);
+            if (selectedUser) {
+                const initials = selectedUser.initials || selectedUser.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+                selectedUserDisplay.innerHTML = `
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="member-avatar" style="width: 2rem; height: 2rem; font-size: 0.75rem;">
+                            ${initials}
+                        </div>
+                        <div>
+                            <div class="fw-bold" style="font-size: 0.875rem;">${selectedUser.name}</div>
+                            ${selectedUser.email ? `<small class="text-muted d-block" style="font-size: 0.75rem;">${selectedUser.email}</small>` : ''}
+                        </div>
+                    </div>
+                `;
+            } else {
+                selectedUserDisplay.innerHTML = '<p class="text-muted mb-0 small">No user selected yet.</p>';
+            }
+        }
+        
+        renderUsers();
+        updateSelectedDisplay();
+        
+        if (currentUserId > 0) {
+            selectedUserId = currentUserId;
+            updateSelectedDisplay();
+        }
+        
+        searchInput.addEventListener('input', function() {
+            renderUsers(this.value);
+            updateSelectedDisplay();
+        });
+        
+        // Handle Done button - only update UI and store pending change (like Summary tab)
+        popup.querySelector('#contactsAssignmentDone').addEventListener('click', function() {
+            if (selectedUserId === currentUserId) {
+                popup.remove();
+                document.removeEventListener('click', outsideClickHandler);
+                return;
+            }
+            
+            // Update UI only
+            const inputId = assignmentType === 'ResponsibleAttorney' ? 'contactsResponsibleAttorneyInput' : 'contactsResponsibleStaffInput';
+            const input = document.getElementById(inputId);
+            
+            if (selectedUserId === 0) {
+                // Clearing assignment
+                if (input) input.value = 'Not specified';
+                pendingContactsAssignmentChanges[assignmentType] = {
+                    userId: 0,
+                    assignmentId: assignmentId,
+                    clearAssignment: true
+                };
+                button.dataset.currentUserId = '0';
+                button.dataset.assignmentId = '0';
+            } else {
+                // Assigning user
+                const selectedUser = contactsAllUsers.find(u => u.id === selectedUserId);
+                if (input && selectedUser) input.value = selectedUser.name;
+                pendingContactsAssignmentChanges[assignmentType] = {
+                    userId: selectedUserId,
+                    assignmentType: assignmentType,
+                    assignmentId: assignmentId,
+                    clearAssignment: false
+                };
+                button.dataset.currentUserId = selectedUserId;
+            }
+            
+            // Show save indicator
+            showContactsSaveIndicator();
+            
+            // Close popup
+            popup.remove();
+            document.removeEventListener('click', outsideClickHandler);
+        });
+        
+        popup.querySelector('#contactsAssignmentCancel').addEventListener('click', function() {
+            popup.remove();
+            document.removeEventListener('click', outsideClickHandler);
+        });
+        
+        const outsideClickHandler = function(e) {
+            if (!popup.contains(e.target) && e.target !== button) {
+                popup.remove();
+                document.removeEventListener('click', outsideClickHandler);
+            }
+        };
+        
+        setTimeout(() => {
+            document.addEventListener('click', outsideClickHandler);
+        }, 100);
+    };
+
+    // Add relevant contact popup
+    async function showContactsAddRelevantContactPopup() {
+        await loadContactsUsers();
+        
+        const addBtn = document.getElementById('contactsAddRelevantContactBtn');
+        const btnRect = addBtn.getBoundingClientRect();
+        
+        const popupHeight = 320;
+        const popup = document.createElement('div');
+        popup.className = 'relevant-contact-popup';
+        popup.style.cssText = `
+            position: fixed;
+            top: ${btnRect.top - popupHeight - 10}px;
+            left: ${btnRect.right - 350}px;
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            width: 350px;
+            max-height: 400px;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            border: 1px solid #dee2e6;
+            z-index: 1100;
+        `;
+        
+        const screenWidth = window.innerWidth;
+        if (btnRect.right - 350 < 10) {
+            popup.style.left = '10px';
+        }
+        if (btnRect.top - popupHeight - 10 < 10) {
+            popup.style.top = `${btnRect.bottom + 10}px`;
+        }
+        
+        popup.innerHTML = `
+            <div class="mb-3">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-user-plus me-2" style="color: #3d1019; font-size: 1rem;"></i>
+                    <div>
+                        <h6 class="fw-bold text-dark mb-0" style="font-size: 0.9rem;">Add Relevant Contact</h6>
+                        <p class="text-muted mb-0" style="font-size: 0.75rem;">Select a contact and their role.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label fw-bold text-dark mb-1" style="font-size: 0.85rem;">Contact</label>
+                <select id="contactsNewContactUserSelect" class="form-select form-select-sm">
+                    <option value="">Select a contact...</option>
+                    ${contactsAllUsers.map(u => `<option value="${u.id}">${u.name}${u.email ? ' (' + u.email + ')' : ''}</option>`).join('')}
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label fw-bold text-dark mb-1" style="font-size: 0.85rem;">Involvement / Role</label>
+                <input type="text" id="contactsNewContactRole" class="form-control form-control-sm" placeholder="e.g., Decision maker, Billing contact">
+            </div>
+            
+            <div class="mb-3">
+                <div class="form-check">
+                    <input type="checkbox" id="contactsNewContactNotify" class="form-check-input" checked>
+                    <label class="form-check-label" style="font-size: 0.85rem;">Notify recipient</label>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-end">
+                <button class="btn btn-secondary btn-sm" id="contactsCancelAddContact" style="border-radius: 0.5rem;">Cancel</button>
+                <button class="btn btn-primary btn-sm" id="contactsConfirmAddContact" style="border-radius: 0.5rem; margin-left: 0.5rem;">Add Contact</button>
+            </div>
+        `;
+        
+        document.body.appendChild(popup);
+        
+        popup.querySelector('#contactsCancelAddContact').addEventListener('click', function() {
+            popup.remove();
+        });
+        
+        popup.querySelector('#contactsConfirmAddContact').addEventListener('click', async function() {
+            const userId = popup.querySelector('#contactsNewContactUserSelect').value;
+            const role = popup.querySelector('#contactsNewContactRole').value.trim();
+            const notify = popup.querySelector('#contactsNewContactNotify').checked;
+            
+            if (!userId) {
+                alert('Please select a contact.');
+                return;
+            }
+            
+            if (!role) {
+                alert('Please enter an involvement/role.');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/Client/${contactsOrgId}/Matter/${contactsMatterId}/Assignment`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: parseInt(userId),
+                        assignmentType: 'RelevantContact',
+                        role: role,
+                        isNotifyRecipient: notify
+                    })
+                });
+                
+                if (response.ok) {
+                    popup.remove();
+                    // Reload just the contacts tab
+                    const tabContent = document.getElementById('tab-contacts');
+                    if (tabContent && typeof window.__reloadContactsTab === 'function') {
+                        window.__reloadContactsTab();
+                    } else {
+                        location.reload();
+                    }
+                } else {
+                    const errorData = await response.json();
+                    console.error('Error adding contact:', errorData);
+                    alert('Error adding contact. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error adding contact:', error);
+                alert('An error occurred. Please try again.');
+            }
+        });
+        
+        const outsideClickHandler = function(e) {
+            if (!popup.contains(e.target) && e.target !== addBtn) {
+                popup.remove();
+                document.removeEventListener('click', outsideClickHandler);
+            }
+        };
+        
+        setTimeout(() => {
+            document.addEventListener('click', outsideClickHandler);
+        }, 100);
+    }
+
+    // Remove relevant contact
+    async function removeContactsRelevantContact(assignmentId, rowElement) {
+        if (!confirm('Are you sure you want to remove this contact?')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/Client/${contactsOrgId}/Matter/${contactsMatterId}/Assignment/${assignmentId}`, {
+                method: 'DELETE',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                rowElement.remove();
+                
+                const container = document.getElementById('contacts-relevant-contacts-container');
+                if (container && container.querySelectorAll('.relevant-contact-row').length === 0) {
+                    container.innerHTML = `
+                        <div class="text-muted small text-center py-2" id="contactsNoContactsMessage">
+                            <i class="fas fa-info-circle me-1"></i>
+                            No relevant contacts added yet.
+                        </div>
+                    `;
+                }
+            } else {
+                const errorData = await response.json();
+                console.error('Error removing contact:', errorData);
+                alert('Error removing contact. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error removing contact:', error);
+            alert('An error occurred. Please try again.');
+        }
+    }
+
+    // Initialize event listeners
+    const addContactBtn = document.getElementById('contactsAddRelevantContactBtn');
+    if (addContactBtn) {
+        addContactBtn.addEventListener('click', showContactsAddRelevantContactPopup);
+    }
+    
+    document.querySelectorAll('.contacts-remove-contact-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const assignmentId = this.dataset.assignmentId;
+            removeContactsRelevantContact(assignmentId, this.closest('.relevant-contact-row'));
+        });
+    });
+
+    // The change-control.js script is already loaded globally in Details.cshtml
+    // and uses document-level event delegation, so it will auto-initialize
+    // based on the #change-control-card element present in this partial view.
+})();
+</script>

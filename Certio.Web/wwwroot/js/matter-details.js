@@ -99,6 +99,9 @@
         // Load content based on tab type
         let url;
         switch (tabName) {
+            case 'contacts':
+                url = `/Client/${orgId}/Matter/${matterId}/Contacts`;
+                break;
             case 'tasks':
                 url = `/Client/${orgId}/Matter/${matterId}/Tasks`;
                 break;
@@ -360,6 +363,21 @@
                 console.log('=== Timeline scripts initialization complete ===');
                 break;
             
+            case 'contacts':
+                // Initialize contacts tab scripts
+                console.log('Initializing contacts scripts for Matter Details Contacts tab...');
+                
+                // The contacts scripts are already loaded and initialized via inline scripts in the partial view
+                // Dispatch event to notify contacts tab is active
+                const contactsTabEvent = new CustomEvent('matterTabChanged', { 
+                    detail: { tabName: 'contacts' } 
+                });
+                document.dispatchEvent(contactsTabEvent);
+                console.log('✓ Dispatched matterTabChanged event for contacts');
+                
+                console.log('=== Contacts scripts initialization complete ===');
+                break;
+
             // Add other tab-specific initializations here as needed
         }
     }

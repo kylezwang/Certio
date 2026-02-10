@@ -313,7 +313,7 @@
                                         <div class="col-md-6 mb-4">
                                             <label asp-for="Budget" class="form-label fw-bold text-dark">
                                                 <i class="fas fa-dollar-sign me-2" style="color: #3d1019;"></i>
-                                                Budget (optional)
+                                                Total Budget
                                             </label>
                                             <div class="input-group input-group-lg">
                                                 <span class="input-group-text">$</span>
@@ -631,7 +631,7 @@
                                                                 <strong>Guest Count:</strong> <span class="text-muted">@(Model.GuestCount?.ToString() ?? "Not specified")</span>
                                                                 </div>
                                                                 <div class="mb-2">
-                                                                <strong>Budget:</strong> <span class="text-muted">@(Model.Budget.HasValue ? Model.Budget.Value.ToString("C0") : "Not specified")</span>
+                                                                <strong>Total Budget:</strong> <span class="text-muted">@(Model.Budget.HasValue ? Model.Budget.Value.ToString("C0") : "Not specified")</span>
                                                                 </div>
                                                             <div class="mb-2">
                                                                     <strong>Final Payment Due:</strong> <span class="text-muted">@(Model.PendingDate?.ToString("MMM dd, yyyy") ?? "Not specified")</span>

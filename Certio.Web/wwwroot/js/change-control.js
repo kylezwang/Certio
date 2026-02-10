@@ -401,7 +401,7 @@
             const txt = document.getElementById('ccHeaderActionBtnText');
             if (txt) txt.textContent = 'Send';
         }
-        if (modalModeEl) modalModeEl.textContent = 'Creating new change notice';
+        if (modalModeEl) modalModeEl.textContent = 'Creating new email confirmation';
 
         renderRecipientAvatars();
         renderRecipientsList();
@@ -500,7 +500,7 @@
             adjustChangeNoticeModalPosition();
         } catch (error) {
             console.error('Error loading notice:', error);
-            alert('Failed to load change notice details.');
+            alert('Failed to load email confirmation details.');
         }
     }
 
@@ -664,11 +664,12 @@
         recipientEmails = [];
     }
 
-    // Render summary (list view)
+    // Render summary (list view) — updates ALL instances of the change control card on the page
     function renderSummary(summary) {
-        const el = document.getElementById('change-control-summary-json');
-        if (!el) return;
-        el.textContent = JSON.stringify(summary);
+        // Update all summary JSON holders
+        document.querySelectorAll('#change-control-summary-json').forEach(el => {
+            el.textContent = JSON.stringify(summary);
+        });
 
         const counters = [
             ['draft', summary.draftCount],
@@ -677,21 +678,27 @@
             ['ack', summary.acknowledgedCount]
         ];
         counters.forEach(([key, value]) => {
-            const span = document.querySelector(`[data-cc-count="${key}"]`);
-            if (span) span.textContent = value;
+            // Update ALL matching counter badges (across tabs)
+            document.querySelectorAll(`[data-cc-count="${key}"]`).forEach(span => {
+                span.textContent = value;
+            });
         });
 
-        const list = document.getElementById('change-control-notice-list');
-        if (!list) return;
-        list.innerHTML = '';
-
-        const header = document.getElementById('cc-list-header');
-        if (header) {
+        // Update ALL notice lists and headers
+        document.querySelectorAll('#change-control-notice-list').forEach(list => {
+            list.innerHTML = '';
+        });
+        document.querySelectorAll('#cc-list-header').forEach(header => {
             header.classList.toggle('d-none', !summary.notices || summary.notices.length === 0);
-        }
+        });
+
+        const lists = document.querySelectorAll('#change-control-notice-list');
+        if (lists.length === 0) return;
 
         if (!summary.notices || summary.notices.length === 0) {
-            list.innerHTML = `<div class="text-center py-3"><p class="text-muted small mb-0">No change notices yet</p></div>`;
+            lists.forEach(list => {
+                list.innerHTML = `<div class="text-center py-3"><p class="text-muted small mb-0">No email confirmations yet</p></div>`;
+            });
             return;
         }
 
@@ -702,28 +709,31 @@
         let isExpanded = false;
 
         function renderNoticeList() {
-            list.innerHTML = '';
-            const visibleCount = isExpanded ? notices.length : Math.min(notices.length, MAX_VISIBLE);
-            
-            for (let i = 0; i < visibleCount; i++) {
-                const n = notices[i];
-                list.appendChild(createNoticeRow(n));
-            }
-            
-            if (hasMore) {
-                const toggleRow = document.createElement('div');
-                toggleRow.className = 'cc-toggle-row text-center py-2';
-                toggleRow.style.cssText = 'cursor: pointer; color: #6b7280; font-size: 0.8rem; border-top: 1px solid #e5e7eb;';
-                const remainingCount = notices.length - MAX_VISIBLE;
-                toggleRow.innerHTML = isExpanded 
-                    ? `<i class="fas fa-chevron-up"></i> Show less`
-                    : `<i class="fas fa-chevron-down"></i> Show ${remainingCount} more`;
-                toggleRow.addEventListener('click', () => {
-                    isExpanded = !isExpanded;
-                    renderNoticeList();
-                });
-                list.appendChild(toggleRow);
-            }
+            // Update ALL notice list instances across tabs
+            lists.forEach(list => {
+                list.innerHTML = '';
+                const visibleCount = isExpanded ? notices.length : Math.min(notices.length, MAX_VISIBLE);
+                
+                for (let i = 0; i < visibleCount; i++) {
+                    const n = notices[i];
+                    list.appendChild(createNoticeRow(n));
+                }
+                
+                if (hasMore) {
+                    const toggleRow = document.createElement('div');
+                    toggleRow.className = 'cc-toggle-row text-center py-2';
+                    toggleRow.style.cssText = 'cursor: pointer; color: #6b7280; font-size: 0.8rem; border-top: 1px solid #e5e7eb;';
+                    const remainingCount = notices.length - MAX_VISIBLE;
+                    toggleRow.innerHTML = isExpanded 
+                        ? `<i class="fas fa-chevron-up"></i> Show less`
+                        : `<i class="fas fa-chevron-down"></i> Show ${remainingCount} more`;
+                    toggleRow.addEventListener('click', () => {
+                        isExpanded = !isExpanded;
+                        renderNoticeList();
+                    });
+                    list.appendChild(toggleRow);
+                }
+            });
         }
 
         function createNoticeRow(n) {
@@ -857,7 +867,8 @@
 
     // Event handlers
     document.addEventListener('click', async function (e) {
-        const root = document.getElementById('change-control-card');
+        // Find the closest change-control-card from the click target, or fall back to the first one
+        const root = e.target.closest('#change-control-card') || document.getElementById('change-control-card');
         if (!root) return;
 
         const orgId = root.getAttribute('data-org-id');
