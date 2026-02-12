@@ -1,18 +1,86 @@
 version: '3.8'
 
+# ─────────────────────────────────────────────────────────────
+# Notal Local Development Stack
+# ─────────────────────────────────────────────────────────────
+# Usage:
+#   Full stack:       docker-compose up -d
+#   Infrastructure:   docker-compose up -d sqlserver redis
+#   AI service only:  docker-compose up -d ai-service
+#   Stop all:         docker-compose down
+#   Reset data:       docker-compose down -v
+# ─────────────────────────────────────────────────────────────
+
 services:
+  # ───────────── SQL Server (Database) ─────────────
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: certio-sqlserver
     environment:
       - ACCEPT_EULA=Y
-      - SA_PASSWORD=${SQL_PASSWORD}
+      - SA_PASSWORD=${SQL_PASSWORD:-YourStrong!Passw0rd}
       - MSSQL_PID=Express
     ports:
       - "1433:1433"
     volumes:
       - sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$${SA_PASSWORD}" -C -Q "SELECT 1" -b -o /dev/null || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     restart: unless-stopped
+    networks:
+      - notal-network
+
+  # ───────────── Redis (Distributed Cache) ─────────────
+  redis:
+    image: redis:7-alpine
+    container_name: certio-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - notal-network
+
+  # ───────────── Python FastAPI AI Service ─────────────
+  ai-service:
+    build:
+      context: ./ai_agents
+      dockerfile: Dockerfile
+    container_name: certio-ai-service
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./ai_agents/.env
+    environment:
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+    networks:
+      - notal-network
 
 volumes:
   sqlserver_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  notal-network:
+    driver: bridge

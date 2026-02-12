@@ -1,0 +1,130 @@
+# PR Validation Pipeline
+# Runs on every pull request to catch issues before merge.
+# No deployment — only build, test, and migration safety checks.
+
+name: PR Validation
+
+on:
+  pull_request:
+    branches:
+      - production
+      - main
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '9.x'
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # ─────────────────────────────────────────────
+  # .NET: Build & Test
+  # ─────────────────────────────────────────────
+  dotnet-build-test:
+    name: .NET Build & Test
+    runs-on: windows-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Run tests
+        run: dotnet test --configuration Release --no-restore --verbosity normal --logger "trx;LogFileName=test-results.trx" --collect:"XPlat Code Coverage"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dotnet-test-results
+          path: |
+            **/TestResults/**/*.trx
+            **/TestResults/**/coverage.cobertura.xml
+          retention-days: 7
+
+  # ─────────────────────────────────────────────
+  # .NET: Migration Safety Check
+  # ─────────────────────────────────────────────
+  migration-check:
+    name: Migration Safety Check
+    runs-on: windows-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install EF Core tools
+        run: dotnet tool install --global dotnet-ef
+
+      - name: Verify migrations build
+        run: dotnet ef migrations script --idempotent --project Certio.Infrastructure/Certio.Infrastructure.csproj --startup-project Certio.Web/Certio.Web.csproj --output migrations-check.sql
+        env:
+          DOTNET_ENVIRONMENT: Production
+
+      - name: Report migration script size
+        run: |
+          $fileInfo = Get-Item migrations-check.sql
+          Write-Host "Migration script generated successfully: $($fileInfo.Length) bytes"
+          Write-Host "Lines: $((Get-Content migrations-check.sql | Measure-Object -Line).Lines)"
+
+  # ─────────────────────────────────────────────
+  # Python: Lint & Test
+  # ─────────────────────────────────────────────
+  python-lint-test:
+    name: Python Lint & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        working-directory: ai_agents
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-minimal.txt
+          pip install pytest pytest-asyncio httpx
+
+      - name: Compile check (all core modules)
+        working-directory: ai_agents
+        run: |
+          python -m py_compile main.py
+          python -m py_compile simplified_cost_optimization.py
+          python -m py_compile context_manager.py
+          python -m py_compile background_agents.py
+          python -m py_compile intelligent_routing.py
+          python -m py_compile user_data_rag_system.py
+          python -m py_compile cost_analytics.py
+          python -m py_compile certio_rag_system.py
+          python -m py_compile certio_rag_system_enhanced.py
+          python -m py_compile certio_rag_system_fallback.py
+          python -m py_compile certio_knowledge_base.py
+          python -m py_compile certio_onboarding_knowledge.py
+          echo "All modules compile successfully."
+
+      - name: Run tests
+        working-directory: ai_agents
+        env:
+          AI_API_KEY: test-secret
+          AI_API_RATE_LIMIT_PER_MINUTE: '60'
+        run: python -m pytest tests/ -v --tb=short

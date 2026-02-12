@@ -1,5 +1,5 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
+# Multi-stage CI/CD pipeline for Notal .NET Platform
+# Build -> Test -> Migrate -> Deploy -> Health Check
 
 name: Build and deploy ASP.Net Core app to Azure Web App - Notal-app
 
@@ -7,13 +7,28 @@ on:
   push:
     branches:
       - production
+    paths:
+      - 'Certio.Web/**'
+      - 'Certio.Domain/**'
+      - 'Certio.Application/**'
+      - 'Certio.Infrastructure/**'
+      - 'Certio.Tests/**'
+      - '*.sln'
   workflow_dispatch:
 
+env:
+  DOTNET_VERSION: '9.x'
+  AZURE_WEBAPP_NAME: 'Notal-app'
+
 jobs:
+  # ─────────────────────────────────────────────
+  # Stage 1: Build
+  # ─────────────────────────────────────────────
   build:
+    name: Build
     runs-on: windows-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -21,38 +36,152 @@ jobs:
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.x'
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Build with dotnet
-        run: dotnet build --configuration Release
+      - name: Restore dependencies
+        run: dotnet restore
 
-      - name: dotnet publish
-        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+      - name: Build solution (Release)
+        run: dotnet build --configuration Release --no-restore
 
-      - name: Upload artifact for deployment job
+      - name: Publish web project
+        run: dotnet publish Certio.Web/Certio.Web.csproj -c Release -o "${{env.DOTNET_ROOT}}/myapp" --no-build
+
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
           path: ${{env.DOTNET_ROOT}}/myapp
+          retention-days: 7
 
-  deploy:
+  # ─────────────────────────────────────────────
+  # Stage 2: Test (parallel with Build)
+  # ─────────────────────────────────────────────
+  test:
+    name: Test
     runs-on: windows-latest
-    needs: build
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
 
     steps:
-      - name: Download artifact from build job
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Run tests with coverage
+        run: dotnet test --configuration Release --no-restore --verbosity normal --logger "trx;LogFileName=test-results.trx" --collect:"XPlat Code Coverage"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            **/TestResults/**/*.trx
+            **/TestResults/**/coverage.cobertura.xml
+          retention-days: 7
+
+  # ─────────────────────────────────────────────
+  # Stage 3: Generate Migration Script (parallel)
+  # ─────────────────────────────────────────────
+  migration-script:
+    name: Generate Migration Script
+    runs-on: windows-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install EF Core tools
+        run: dotnet tool install --global dotnet-ef
+
+      - name: Generate idempotent SQL migration script
+        run: dotnet ef migrations script --idempotent --project Certio.Infrastructure/Certio.Infrastructure.csproj --startup-project Certio.Web/Certio.Web.csproj --output migrations.sql
+        env:
+          DOTNET_ENVIRONMENT: Production
+
+      - name: Upload migration script
+        uses: actions/upload-artifact@v4
+        with:
+          name: migration-script
+          path: migrations.sql
+          retention-days: 30
+
+  # ─────────────────────────────────────────────
+  # Stage 4: Deploy to Production
+  # ─────────────────────────────────────────────
+  deploy:
+    name: Deploy to Production
+    runs-on: windows-latest
+    needs: [build, test]
+    permissions:
+      contents: read
+    environment:
+      name: 'Production'
+      url: https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net
+
+    steps:
+      - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-      
+
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'Notal-app'
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
           slot-name: 'Production'
           package: .
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          
+
+  # ─────────────────────────────────────────────
+  # Stage 5: Post-Deploy Health Check
+  # ─────────────────────────────────────────────
+  health-check:
+    name: Verify Production Health
+    runs-on: windows-latest
+    needs: deploy
+
+    steps:
+      - name: Wait for app to warm up
+        run: Start-Sleep -Seconds 20
+
+      - name: Health check production
+        run: |
+          $maxRetries = 5
+          $retryDelay = 10
+          $prodUrl = "https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/healthz"
+
+          for ($i = 1; $i -le $maxRetries; $i++) {
+            Write-Host "Health check attempt $i of $maxRetries..."
+            try {
+              $response = Invoke-RestMethod -Uri $prodUrl -Method Get -TimeoutSec 15
+              if ($response.ok -eq $true) {
+                Write-Host "Production health check passed: $($response | ConvertTo-Json)"
+                exit 0
+              } else {
+                Write-Host "Unexpected response: $($response | ConvertTo-Json)"
+              }
+            } catch {
+              Write-Host "Health check failed: $($_.Exception.Message)"
+            }
+            if ($i -lt $maxRetries) {
+              Write-Host "Retrying in $retryDelay seconds..."
+              Start-Sleep -Seconds $retryDelay
+            }
+          }
+          Write-Error "Production health check failed after $maxRetries attempts. Investigate immediately."
+          exit 1

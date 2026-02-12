@@ -1,9 +1,10 @@
 # Certio Platform - Comprehensive Technical Architecture Document
 
 **Project:** Certio - AI-Powered Legal Management Platform  
-**Date:** October 13, 2025  
-**Version:** 4.0.0  
-**Status:** Production Ready
+**Date:** February 11, 2026  
+**Version:** 5.0.0  
+**Status:** Production  
+**Previous Version:** 4.0.0 (October 13, 2025)
 
 ---
 
@@ -39,21 +40,24 @@
 - **AI Integration:** Python FastAPI microservice with 4 specialized AI agents (GPT-4 powered)
 - **Multi-Tenancy:** Organization-scoped with law firm-client relationship support
 - **Real-time:** SignalR-based communication with presence tracking
-- **Database:** SQL Server (Azure SQL + Local Docker) with 46 migrations
+- **Database:** SQL Server (Azure SQL + Local Docker) with 42 migrations (85 files incl. Designer)
 - **Caching:** Two-tier (Memory L1 + Redis L2) with intelligent TTLs
-- **Authorization:** 23 fine-grained permissions across 4 permission layers
+- **Authorization:** 23 fine-grained permissions across 6 permission categories
 - **Audit:** Automatic change tracking via EF Core interceptor with full provenance
 
-### Project Scale
+### Project Scale (Updated February 2026)
 
-- **Total Lines of Code:** ~50,000+ lines
-- **Domain Entities:** 40+ entities with complex relationships
-- **Service Layer:** 11 service implementations with 100% permission coverage
-- **Controllers:** 10+ controllers fully refactored to thin pattern
-- **Database Migrations:** 46 migrations with comprehensive indexes
-- **AI Agents:** 4 specialized agents with cost optimization
-- **Test Coverage:** 47+ unit tests for permission system
-- **Documentation Files:** 30+ technical documentation files
+- **Total Lines of Code:** ~159,000+ lines (excl. migrations, third-party libraries)
+- **C# Code Lines:** ~58,500 lines (excl. migrations)
+- **Domain Entities:** 62+ entities with complex relationships
+- **Service Layer:** 50+ service implementations across Application and Web layers
+- **Controllers:** 34 controllers (MVC + API) across multiple namespaces
+- **Razor Views:** 57 .cshtml view files
+- **Database Migrations:** 42 migrations (85 files incl. Designer)
+- **AI Agents:** Specialized agents with cost optimization (Python FastAPI)
+- **Test Files:** 17 test files covering services, controllers, hubs, and security
+- **SignalR Hubs:** 4 hubs (Chat, Direct, Notifications, Updates)
+- **Documentation Files:** 190+ markdown documentation files
 
 ---
 
@@ -114,7 +118,7 @@
 │  │  Certio.Infrastructure                                │  │
 │  │  • ApplicationDbContext (886 lines)                   │  │
 │  │  • EF Core Configurations                             │  │
-│  │  • Migrations (46 migrations)                         │  │
+│  │  • Migrations (42 migrations)                         │  │
 │  │  • AuditInterceptor (520 lines)                       │  │
 │  │  • Database Relationships                             │  │
 │  └──────────────────────────────────────────────────────┘  │
@@ -234,7 +238,7 @@ public bool IsLawFirmPartner()
 #### 2. Organization Entity (`Certio.Domain.Organizations.Organization`)
 
 **Features:**
-- Supports 4 organization types: Client, LawFirm, Government, NonProfit
+- Supports 5 organization types: Client, LawFirm, EventPlanner, Government, NonProfit
 - Many-to-many relationship with users
 - Owner-based hierarchy
 - Join code system for invitations
@@ -398,7 +402,7 @@ if (matter == null)
 
 **Fine-Grained Authorization:**
 
-**23 Permissions Across 5 Categories:**
+**23+ Permissions Across 6 Categories:**
 
 1. **Document Permissions (5)**
    - ViewDocuments, DownloadDocuments, UploadDocuments
@@ -416,6 +420,10 @@ if (matter == null)
 
 5. **System (3)**
    - ViewAuditLogs, ManageSystemSettings, AccessAdminPanel
+
+6. **Agent & Inbox (4)**
+   - ViewAgentActions, ProposeAgentActions, ApproveAgentActions, RollbackAgentActions
+   - ViewInbox, ManageInbox
 
 **Custom Authorization Attributes:**
 
@@ -2009,14 +2017,14 @@ public class OrganizationRelationshipAssignedUser
 
 ### Continuous Improvements
 
-**Documentation Created (30+ files):**
-- Phase implementation summaries (4 files)
-- Quick start guides (3 files)
-- Architecture documents (5 files)
-- Fix summaries (8 files)
-- Testing guides (3 files)
-- Deployment guides (3 files)
-- API documentation (AI_CHAT_SYSTEM.md)
+**Documentation Created (190+ markdown files):**
+- Phase implementation summaries
+- Quick start and setup guides
+- Architecture and technical documents
+- Feature implementation and fix summaries
+- Testing and deployment guides
+- AI system and RAG documentation
+- API and integration documentation
 
 **Testing Evolution:**
 - Manual security tests (Phase 1)
@@ -2033,7 +2041,7 @@ public class OrganizationRelationshipAssignedUser
 **Achievements:**
 - ✅ Zero IDOR vulnerabilities (26/26 patched)
 - ✅ Defense-in-depth architecture (6 security layers)
-- ✅ Fine-grained permissions (23 permissions across 5 categories)
+- ✅ Fine-grained permissions (23+ permissions across 6 categories)
 - ✅ Comprehensive audit logging (100% coverage)
 - ✅ Multi-tenant data isolation
 - ✅ Input validation and sanitization
@@ -2135,7 +2143,7 @@ public class OrganizationRelationshipAssignedUser
 ### 7. Real-Time Communication
 
 **Achievements:**
-- ✅ Three SignalR hubs (Chat, Notifications, Updates)
+- ✅ Four SignalR hubs (Chat, Direct, Notifications, Updates)
 - ✅ User presence tracking
 - ✅ Channel-based messaging
 - ✅ Direct messages support
@@ -2168,7 +2176,7 @@ public class OrganizationRelationshipAssignedUser
 ### 9. Extensive Documentation
 
 **Achievements:**
-- ✅ 30+ technical documentation files
+- ✅ 190+ markdown documentation files
 - ✅ Phase implementation summaries
 - ✅ Architecture documents
 - ✅ API documentation
@@ -2185,8 +2193,8 @@ public class OrganizationRelationshipAssignedUser
 ### 10. Database Architecture Excellence
 
 **Achievements:**
-- ✅ 46 migrations with full history
-- ✅ 40+ domain entities
+- ✅ 42 migrations with full history (85 files incl. Designer)
+- ✅ 62+ domain entities
 - ✅ Complex relationship configurations
 - ✅ Soft delete implementation
 - ✅ Comprehensive indexes
@@ -2246,9 +2254,9 @@ public class OrganizationRelationshipAssignedUser
 
 | Aspect | Status | Details |
 |--------|--------|---------|
-| **Schema** | ✅ Stable | 46 migrations completed |
+| **Schema** | ✅ Stable | 42 migrations completed (85 files incl. Designer) |
 | **Indexes** | ✅ Optimized | 23 audit indexes + core indexes |
-| **Relationships** | ✅ Configured | 17 relationship config methods |
+| **Relationships** | ✅ Configured | Complex relationship configurations |
 | **Migrations** | ✅ Tested | Azure SQL + Local SQL Server |
 | **Backups** | ⚠️ Setup | Requires Azure configuration |
 
@@ -2301,17 +2309,23 @@ public class OrganizationRelationshipAssignedUser
 2. **Load Testing:** Not performed (recommended before scale)
 3. **Monitoring Dashboard:** Basic logging only (APM recommended)
 4. **Backup Strategy:** Requires Azure configuration
-5. **CI/CD Pipeline:** Not documented (likely exists)
+5. **CI/CD Pipeline:** ✅ Implemented via GitHub Actions (2 workflows: .NET app + Python AI service)
 
 **Future Enhancements (Optional):**
 1. **Mobile App:** Native iOS/Android support
 2. **Advanced Analytics:** BI dashboards and reporting
-3. **Document OCR:** AI-powered document analysis
+3. **Document OCR:** AI-powered document analysis (Azure Document Intelligence partially integrated)
 4. **Voice Integration:** Speech-to-text, text-to-speech
 5. **Multi-Language:** Internationalization support
-6. **Workflow Engine:** Advanced workflow automation
+6. **Workflow Engine:** Advanced workflow automation (Workflow entity exists but not fully utilized)
 7. **E-Signature Integration:** DocuSign, Adobe Sign, etc.
-8. **Calendar Integration:** Outlook, Google Calendar sync
+
+**Already Implemented (previously listed as future):**
+- ✅ **Calendar Integration:** Google Calendar and Outlook Calendar sync fully implemented
+- ✅ **Unified Inbox:** Cross-channel aggregated inbox
+- ✅ **Agent Actions:** AI-powered workflow automation with approval system
+- ✅ **Change Control:** Change notice management with recipient acknowledgement
+- ✅ **Billing:** Time entries, expenses, invoices, and retainer/trust accounting
 
 ### Production Deployment Checklist
 
@@ -2360,16 +2374,19 @@ public class OrganizationRelationshipAssignedUser
 7. **Scalability:** Distributed caching, SignalR backplane, horizontal scale ready
 8. **Maintainability:** Comprehensive documentation and testing
 
-**Key Metrics:**
-- **Lines of Code:** ~50,000+
+**Key Metrics (Updated February 2026):**
+- **Total Lines of Code:** ~159,000+ (excl. migrations, third-party libs)
+- **C# Code Lines:** ~58,500 (excl. migrations)
 - **Development Phases:** 4 phases completed
 - **Security Fixes:** 26 IDOR vulnerabilities patched
-- **Services:** 11 service implementations
-- **Permissions:** 23 fine-grained permissions
-- **Database Entities:** 40+ entities
-- **Migrations:** 46 migrations
-- **Test Coverage:** 47+ automated tests
-- **Documentation:** 30+ technical documents
+- **Services:** 50+ service implementations across layers
+- **Controllers:** 34 controllers (MVC + API)
+- **Permissions:** 23+ fine-grained permissions across 6 categories
+- **Domain Entities:** 62+ entities
+- **Migrations:** 42 migrations (85 files incl. Designer)
+- **Test Files:** 17 test files
+- **SignalR Hubs:** 4 (Chat, Direct, Notifications, Updates)
+- **Documentation:** 190+ markdown files
 
 **Production Readiness:** ✅ READY with minor enhancements recommended (load testing, monitoring dashboard, rate limiting)
 
@@ -2378,8 +2395,8 @@ public class OrganizationRelationshipAssignedUser
 ---
 
 **Document Prepared By:** AI Architecture Analysis  
-**Date:** October 13, 2025  
-**Version:** 1.0.0  
-**Status:** COMPLETE
+**Original Date:** October 13, 2025 (v1.0.0)  
+**Last Updated:** February 11, 2026 (v5.0.0)  
+**Status:** COMPLETE - Fact-checked and updated
 
 
