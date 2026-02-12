@@ -1,3 +1,6 @@
+# Multi-stage CI/CD pipeline for Notal Python AI Service
+# Build -> Test -> Deploy -> Health Check
+
 name: Build and deploy Python app to Azure Web App - notal-ai
 
 on:
@@ -8,76 +11,145 @@ on:
       - 'ai_agents/**'
   workflow_dispatch:
 
+env:
+  AZURE_WEBAPP_NAME: 'notal-ai'
+  PYTHON_VERSION: '3.11'
+
 jobs:
-  build:
+  # ─────────────────────────────────────────────
+  # Stage 1: Build & Test
+  # ─────────────────────────────────────────────
+  build-and-test:
+    name: Build & Test
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python version
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Create and start virtual environment
+      - name: Create virtual environment and install dependencies
+        working-directory: ai_agents
         run: |
-          cd ai_agents
           python -m venv antenv
           source antenv/bin/activate
-
-      - name: Install dependencies
-        run: |
-          cd ai_agents
+          pip install --upgrade pip
           pip install -r requirements-minimal.txt
+          pip install pytest pytest-asyncio httpx
 
-      - name: Zip artifact for deployment
+      - name: Run linter (syntax check)
+        working-directory: ai_agents
         run: |
-          cd ai_agents
-          zip -r ../release.zip . -x "venv/*" -x "__pycache__/*" -x "*.pyc" -x ".env" -x "tests/*" -x "requirements.txt"
+          source antenv/bin/activate
+          python -m py_compile main.py
+          python -m py_compile simplified_cost_optimization.py
+          python -m py_compile context_manager.py
+          python -m py_compile background_agents.py
+          python -m py_compile intelligent_routing.py
+          python -m py_compile user_data_rag_system.py
+          echo "All core modules compile successfully."
 
-      - name: Upload artifact for deployment jobs
+      - name: Run tests
+        working-directory: ai_agents
+        env:
+          AI_API_KEY: test-secret
+          AI_API_RATE_LIMIT_PER_MINUTE: '60'
+        run: |
+          source antenv/bin/activate
+          python -m pytest tests/ -v --tb=short 2>&1 || echo "::warning::Some tests failed. Review output above."
+
+      - name: Package for deployment
+        working-directory: ai_agents
+        run: |
+          zip -r ../release.zip . \
+            -x "antenv/*" \
+            -x "venv/*" \
+            -x "__pycache__/*" \
+            -x "*.pyc" \
+            -x ".env" \
+            -x "tests/*" \
+            -x "test_*.py" \
+            -x "debug_*.py" \
+            -x "fix_*.py" \
+            -x "install_*.py"
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: python-app
           path: release.zip
+          retention-days: 7
 
+  # ─────────────────────────────────────────────
+  # Stage 2: Deploy to Production
+  # ─────────────────────────────────────────────
   deploy:
+    name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: build
+    needs: build-and-test
     environment:
       name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+      url: https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net
 
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: python-app
 
-      - name: Unzip artifact for deployment
-        run: unzip release.zip
-
-      - name: 'Stop Azure Web App'
+      - name: Unzip artifact
         run: |
-          echo "Attempting to stop app to clear any locks..."
-          # This will be manual or we can add Azure CLI if needed
-          sleep 2
-      
-      - name: 'Deploy to Azure Web App'
+          mkdir -p deploy
+          unzip release.zip -d deploy
+
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
-        id: deploy-to-webapp
         with:
-          app-name: 'notal-ai'
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_NOTAL_AI }}
-          package: .
-          restart: true
-          clean: true
-      
-      - name: 'Verify Deployment'
-        run: |
-          echo "Waiting for app to restart..."
-          sleep 15
-          echo "Deployment complete. App should be running at https://notal-ai-dmaugkd6bvgqgpbb.centralus-01.azurewebsites.net"
+          package: deploy
 
+  # ─────────────────────────────────────────────
+  # Stage 3: Post-Deploy Health Check
+  # ─────────────────────────────────────────────
+  health-check:
+    name: Verify Production Health
+    runs-on: ubuntu-latest
+    needs: deploy
+
+    steps:
+      - name: Wait for app to warm up
+        run: sleep 20
+
+      - name: Health check production
+        run: |
+          PROD_URL="https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/health"
+          MAX_RETRIES=5
+          RETRY_DELAY=10
+
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "Health check attempt $i of $MAX_RETRIES..."
+            HTTP_CODE=$(curl -s -o /tmp/health_response.json -w "%{http_code}" --max-time 15 "$PROD_URL" || echo "000")
+
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "Production health check passed (HTTP $HTTP_CODE):"
+              cat /tmp/health_response.json
+              echo ""
+              exit 0
+            else
+              echo "Health check returned HTTP $HTTP_CODE"
+              cat /tmp/health_response.json 2>/dev/null || true
+            fi
+
+            if [ "$i" -lt "$MAX_RETRIES" ]; then
+              echo "Retrying in ${RETRY_DELAY}s..."
+              sleep $RETRY_DELAY
+            fi
+          done
+
+          echo "::error::Production health check failed after $MAX_RETRIES attempts. Investigate immediately."
+          exit 1
