@@ -10,7 +10,7 @@ import logging
 from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass
 from enum import Enum
-from collections import defaultdict, deque
+from collections import defaultdict, deque, OrderedDict
 import hashlib
 
 logger = logging.getLogger(__name__)
@@ -405,24 +405,28 @@ class UsageTracker:
         }
 
 class IntelligentCacheManager:
-    """Simple cache manager for cost optimization"""
+    """LRU cache manager for cost optimization"""
     
     def __init__(self):
-        self.cache = {}
+        self.cache: OrderedDict[str, Any] = OrderedDict()
         self.max_size = 1000
         
     def get_cached_response(self, cache_key: str) -> Optional[Any]:
-        """Get cached response"""
-        return self.cache.get(cache_key)
+        """Get cached response, promoting to most-recently-used on hit"""
+        if cache_key in self.cache:
+            self.cache.move_to_end(cache_key)
+            return self.cache[cache_key]
+        return None
     
     def cache_response(self, cache_key: str, response: Any):
-        """Cache response"""
-        if len(self.cache) >= self.max_size:
-            # Remove oldest entry
-            oldest_key = next(iter(self.cache))
-            del self.cache[oldest_key]
-        
-        self.cache[cache_key] = response
+        """Cache response with LRU eviction"""
+        if cache_key in self.cache:
+            self.cache.move_to_end(cache_key)
+            self.cache[cache_key] = response
+        else:
+            if len(self.cache) >= self.max_size:
+                self.cache.popitem(last=False)
+            self.cache[cache_key] = response
 
 # Global instances for use across the application
 model_selector = SimplifiedModelSelector()
