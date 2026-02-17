@@ -116,7 +116,7 @@ jobs:
 
       - name: Health check production
         run: |
-          PROD_URL="https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/health"
+          PROD_URL="https://${{ env.AZURE_WEBAPP_NAME }}-dmaugkd6bvgqgpbb.centralus-01.azurewebsites.net/health"
           MAX_RETRIES=10
           RETRY_DELAY=15
 
