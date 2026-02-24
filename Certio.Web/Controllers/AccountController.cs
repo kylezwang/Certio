@@ -441,7 +441,7 @@ namespace Certio.Web.Controllers
             else if (!string.IsNullOrEmpty(organizationName))
             {
                 // Create new organization
-                var orgType = organizationType == "lawfirm" ? OrganizationType.LawFirm : OrganizationType.EventPlanner;
+                var orgType = OrganizationType.LawFirm;
                 
                 var organization = new Organization
                 {
