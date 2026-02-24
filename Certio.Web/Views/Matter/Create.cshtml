@@ -182,7 +182,7 @@
                                                 Event Title <span class="text-danger">*</span>
                                             </label>
                                             <input asp-for="Title" class="form-control form-control-lg" 
-                                                   placeholder="e.g., Contract Review Automation" />
+                                                   placeholder="e.g., Daniel & Jessie's Wedding" />
                                             <span asp-validation-for="Title" class="text-danger"></span>
                                         </div>
 
@@ -244,11 +244,11 @@
                                         </div>
                                     </div>
 
-                                    <!-- Example Matter Names -->
+                                    @*<!-- Example Matter Names -->
                                     <div class="mt-4">
                                         <h6 class="fw-bold mb-3" style="color: #3d1019;">Example @matterLabel.ToLower() names:</h6>
                                         <p class="text-muted">@(orgType == Certio.Domain.Organizations.OrganizationType.EventPlanner ? "Corporate Gala, Product Launch Event, Annual Conference, Team Building Retreat" : "Contract Review Automation, Client Portal Dashboard, Compliance Tracking System, Legal Research Assistant")</p>
-                                    </div>
+                                    </div>*@
                                 </div>
                             }
                             else if (Model.Step == 2)
@@ -903,8 +903,8 @@
                                                 var member = Model.OrgMembers.FirstOrDefault(m => m.Id == userId);
                                                 if (member != null)
                                                 {
-                                                    var initials = "";
-                                                    var nameParts = member.Name.Split(' ');
+                                                    var initials = "?";
+                                                    var nameParts = member.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                                                     if (nameParts.Length >= 2)
                                                     {
                                                         initials = $"{nameParts[0][0]}{nameParts[1][0]}";
@@ -912,6 +912,10 @@
                                                     else if (nameParts.Length == 1 && nameParts[0].Length >= 2)
                                                     {
                                                         initials = nameParts[0].Substring(0, 2);
+                                                    }
+                                                    else if (nameParts.Length == 1)
+                                                    {
+                                                        initials = nameParts[0][0].ToString();
                                                     }
                                                     <div class="assignee-avatar me-1" style="width: 24px; height: 24px; font-size: 0.6rem;">
                                                         @initials.ToUpper()

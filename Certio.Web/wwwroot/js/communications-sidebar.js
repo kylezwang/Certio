@@ -21,8 +21,6 @@ let commsSidebarState = {
 
 // Initialize Communications Sidebar
 function initializeCommsSidebar() {
-    console.log('Initializing Communications Sidebar...');
-    
     // Restore saved width immediately to prevent overflow on reload
     const commsSidebarPanel = document.getElementById('commsSidebarPanel');
     const savedWidth = parseInt(
@@ -70,16 +68,11 @@ function initializeCommsSidebar() {
     commsSidebarState.currentUserId = getCurrentUserId();
     commsSidebarState.currentUserName = getCurrentUserName();
     
-    console.log('Comms Sidebar - Org ID:', commsSidebarState.organizationId);
-    console.log('Comms Sidebar - User ID:', commsSidebarState.currentUserId);
-    console.log('Comms Sidebar - User Name:', commsSidebarState.currentUserName);
-    
     // If user ID not found, try again after a delay (page scripts might not be loaded yet)
     if (!commsSidebarState.currentUserId) {
         setTimeout(() => {
             commsSidebarState.currentUserId = getCurrentUserId();
             commsSidebarState.currentUserName = getCurrentUserName();
-            console.log('Retried - User ID:', commsSidebarState.currentUserId, 'User Name:', commsSidebarState.currentUserName);
             
             // If user ID or name was found after retry AND team members are already loaded, re-render them
             if ((commsSidebarState.currentUserId || commsSidebarState.currentUserName) && commsSidebarState.teamMembers && commsSidebarState.teamMembers.length > 0) {
@@ -97,8 +90,6 @@ function initializeCommsSidebar() {
     
     // Mark as initialized
     commsSidebarState.isInitialized = true;
-    
-    console.log('Communications Sidebar initialized successfully');
 }
 
 // Setup Event Listeners
@@ -133,7 +124,6 @@ function setupCommsSidebarEventListeners() {
         inboxCard.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            console.log('Inbox card clicked in sidebar - navigating to Communications with inbox open');
             
             // Get organization ID for proper routing
             const orgId = getCurrentOrgId();
@@ -246,8 +236,6 @@ function showChatView() {
 
 // Load Channels from Server
 async function loadCommsChannels() {
-    console.log('Loading communications channels...');
-    
     if (!commsSidebarState.organizationId) {
         console.error('Organization ID not found');
         return;
@@ -265,9 +253,6 @@ async function loadCommsChannels() {
         if (!data.success) {
             throw new Error(data.message || 'Failed to load channels');
         }
-        
-        console.log('Loaded channel data:', data);
-        console.log('Team members with colors:', data.teamMembers?.map(m => ({ name: m.name, color: m.color || m.Color, isExternal: m.isExternalContacts })));
         
         // Store channel categories and team members
         commsSidebarState.channelCategories = data.channelCategories;
@@ -291,7 +276,6 @@ async function loadCommsChannels() {
         });
         
         commsSidebarState.channels = channels;
-        console.log('Total channels loaded:', channels.length);
         
         // Render channels in sidebar
         renderCommsChannelCategories(data.channelCategories);
@@ -626,8 +610,6 @@ function setupDMClickListeners() {
             const userId = this.dataset.userId;
             const userName = this.dataset.userName;
             
-            console.log('Opening DM with:', userName, 'ID:', userId);
-            
             // Open direct message thread
             openCommsDM(userId, userName);
         });
@@ -637,8 +619,6 @@ function setupDMClickListeners() {
 // Open Direct Message Thread - Match direct-messages.js exactly
 async function openCommsDM(otherUserId, otherUserName) {
     try {
-        console.log('Opening DM thread with:', otherUserName, 'userId:', otherUserId);
-        
         // Ensure currentUserId is set before loading messages
         if (!commsSidebarState.currentUserId) {
             commsSidebarState.currentUserId = getCurrentUserId();
@@ -662,7 +642,6 @@ async function openCommsDM(otherUserId, otherUserName) {
         renderActiveMembers(otherUserId, otherUserName);
         
         // Create or get DM thread - exact same endpoint as Communications page
-        console.log('Creating/fetching DM thread...');
         const response = await fetch(`/api/dm/threads?orgId=${commsSidebarState.organizationId}`, {
             method: 'POST',
             headers: {
@@ -677,7 +656,6 @@ async function openCommsDM(otherUserId, otherUserName) {
         }
 
         const result = await response.json();
-        console.log('DM thread response:', result);
         
             if (result.success && result.thread) {
             // Store thread ID for sending messages (this is a GUID)
@@ -685,21 +663,15 @@ async function openCommsDM(otherUserId, otherUserName) {
             const threadIdOriginal = result.thread.id.toString();
             commsSidebarState.currentChannelId = threadIdOriginal; // Store original format
             commsSidebarState.currentChannelType = 'dm';
-            console.log('Thread ID stored:', threadIdOriginal);
             
             // Join SignalR thread group (use original format for API call)
             if (commsSidebarState.directSignalRConnection && 
                 commsSidebarState.directSignalRConnection.state === signalR.HubConnectionState.Connected) {
                 try {
-                    console.log('🚪 Joining DirectHub thread group:', threadIdOriginal);
                     await commsSidebarState.directSignalRConnection.invoke("JoinThread", threadIdOriginal);
-                    console.log('✅ Successfully joined DirectHub thread group:', threadIdOriginal);
                 } catch (err) {
                     console.error('❌ Error joining thread group:', err);
                 }
-            } else {
-                console.warn('⚠️ DirectHub not connected, cannot join thread. State:', 
-                    commsSidebarState.directSignalRConnection ? commsSidebarState.directSignalRConnection.state : 'null');
             }
             
             // Load DM messages
@@ -722,8 +694,6 @@ async function openCommsDM(otherUserId, otherUserName) {
 
 // Load DM Messages - Match direct-messages.js exactly
 async function loadDMMessages(threadId) {
-    console.log('Loading DM messages for thread:', threadId);
-    
     const messagesList = document.getElementById('commsMessagesList');
     if (!messagesList) return;
     
@@ -733,7 +703,6 @@ async function loadDMMessages(threadId) {
     try {
         // Use exact same endpoint as Communications page
         const url = `/api/dm/threads/${threadId}/messages?orgId=${commsSidebarState.organizationId}&take=50`;
-        console.log(`Loading DM messages from: ${url}`);
         
         const response = await fetch(url);
         
@@ -743,11 +712,9 @@ async function loadDMMessages(threadId) {
         }
         
         const result = await response.json();
-        console.log('DM API response:', result);
         
         if (result.success && result.messages && result.messages.length > 0) {
             const messages = result.messages;
-            console.log(`Loaded ${messages.length} DM messages`, messages);
             
             // Messages come newest first from API, reverse for display (oldest at top, newest at bottom)
             const reversedMessages = [...messages].reverse();
@@ -763,7 +730,6 @@ async function loadDMMessages(threadId) {
                 }
             }, 100);
         } else {
-            console.log('No DM messages found or empty response');
             messagesList.innerHTML = '<div style="text-align: center; padding: 2rem; color: #9ca3af;">No messages yet. Start the conversation!</div>';
         }
     } catch (error) {
@@ -774,8 +740,6 @@ async function loadDMMessages(threadId) {
 
 // Select a Channel
 function selectCommsChannel(channelId, channelName, channelType, channelIcon) {
-    console.log('Selecting channel:', channelName, 'ID:', channelId);
-    
     // Ensure currentUserId is set before loading messages
     if (!commsSidebarState.currentUserId) {
         commsSidebarState.currentUserId = getCurrentUserId();
@@ -821,9 +785,7 @@ function selectCommsChannel(channelId, channelName, channelType, channelIcon) {
         const channelIdStr = channelId ? channelId.toString() : null;
         if (channelIdStr) {
             commsSidebarState.signalRConnection.invoke("JoinChannel", channelIdStr)
-                .then(() => {
-                    console.log('Successfully joined channel:', channelIdStr);
-                })
+                .then(() => {})
                 .catch(err => {
                     console.error('Error joining channel:', err);
                 });
@@ -839,8 +801,6 @@ function selectCommsChannel(channelId, channelName, channelType, channelIcon) {
 
 // Load Messages for Channel - Use Same Endpoint as Communications Page
 async function loadCommsMessages(channelId) {
-    console.log('Loading messages for channel:', channelId);
-    
     const messagesList = document.getElementById('commsMessagesList');
     if (!messagesList) return;
     
@@ -856,7 +816,6 @@ async function loadCommsMessages(channelId) {
     try {
         // Use the same endpoint as Communications page
         const url = `/Client/${commsSidebarState.organizationId}/Chat/channel/${channelId}/messages`;
-        console.log(`Loading messages from: ${url}`);
         
         const response = await fetch(url);
         
@@ -872,7 +831,6 @@ async function loadCommsMessages(channelId) {
         }
         
         const messages = await response.json();
-        console.log(`Loaded ${messages.length} messages`);
         commsSidebarState.messages = messages;
         
         renderCommsMessages(messages);
@@ -911,11 +869,8 @@ function renderCommsMessages(messages) {
     if (!commsSidebarState.currentUserId) {
         setTimeout(() => {
             commsSidebarState.currentUserId = getCurrentUserId();
-            console.log('Retried getting currentUserId:', commsSidebarState.currentUserId);
         }, 500);
     }
-    
-    console.log('Rendering messages with currentUserId:', commsSidebarState.currentUserId);
     
     let html = '';
     let previousMessage = null;
@@ -927,8 +882,6 @@ function renderCommsMessages(messages) {
         const isCurrentUser = messageUserId && commsSidebarState.currentUserId && 
             (parseInt(messageUserId) === parseInt(commsSidebarState.currentUserId) || 
              messageUserId.toString() === commsSidebarState.currentUserId.toString());
-        
-        console.log('Message from userId:', messageUserId, 'isCurrentUser:', isCurrentUser);
         
         // Check if we should group this message with the previous one
         let isGrouped = false;
@@ -1224,9 +1177,6 @@ async function sendCommsMessage() {
         return;
     }
     
-    console.log('Sending message:', message, 'Type:', commsSidebarState.currentChannelType);
-    console.log('User ID:', commsSidebarState.currentUserId, 'Channel ID:', commsSidebarState.currentChannelId);
-    
     // Clear input immediately
     input.value = '';
     input.style.height = 'auto';
@@ -1243,19 +1193,12 @@ async function sendCommsMessage() {
                 throw new Error('Not connected to direct messaging');
             }
             
-            console.log('📤 Sending DM to thread:', threadId);
-            console.log('📤 Current channel type:', commsSidebarState.currentChannelType);
-            console.log('📤 DirectHub connection state:', commsSidebarState.directSignalRConnection.state);
-            
             // Ensure threadId is in proper format for backend
             const threadIdForSend = threadId ? threadId.toString() : null;
             
             if (!threadIdForSend) {
                 throw new Error('Invalid thread ID');
             }
-            
-            console.log('📤 Normalized threadId for send:', threadIdForSend);
-            console.log('📤 Invoking DirectHub.SendMessage with:', { threadId: threadIdForSend, message, messageType: 'Text' });
             
             // Create optimistic message for immediate display
             const optimisticMessage = {
@@ -1278,9 +1221,6 @@ async function sendCommsMessage() {
             
             // Send via DirectHub SignalR
             await commsSidebarState.directSignalRConnection.invoke("SendMessage", threadIdForSend, message, "Text");
-            
-            console.log('✅ DM message sent successfully via SignalR');
-            console.log('⏳ Waiting for ReceiveDirectMessage event...');
         } else {
             // Send channel message via ChatHub SignalR
             if (!commsSidebarState.signalRConnection || 
@@ -1288,8 +1228,6 @@ async function sendCommsMessage() {
                 console.error('Channel SignalR connection not available');
                 throw new Error('Not connected to chat');
             }
-            
-            console.log('Sending channel message to:', commsSidebarState.currentChannelId);
             
             // Ensure we have valid string values
             const channelId = commsSidebarState.currentChannelId ? commsSidebarState.currentChannelId.toString() : null;
@@ -1310,8 +1248,6 @@ async function sendCommsMessage() {
                 null, // replyToMessageId
                 commsSidebarState.currentUserName || "User"
             );
-            
-            console.log('Channel message sent successfully');
         }
     } catch (error) {
         console.error('Error sending message:', error);
@@ -1346,7 +1282,6 @@ function addMessageToUI(message) {
     if (messageId) {
         const existingMessage = messagesList.querySelector(`[data-message-id="${messageId}"]`);
         if (existingMessage) {
-            console.log('Message already exists in UI, skipping:', messageId);
             return;
         }
     }
@@ -1372,7 +1307,6 @@ function addMessageToUI(message) {
 function initializeCommsSignalR() {
     // Check if SignalR is available
     if (typeof signalR === 'undefined') {
-        console.log('SignalR not available for communications sidebar');
         return;
     }
     
@@ -1384,14 +1318,8 @@ function initializeCommsSignalR() {
     
     // Handle incoming channel messages
     commsSidebarState.signalRConnection.on("ReceiveChannelMessage", function(message) {
-        console.log('Received channel message via SignalR:', message);
-        console.log('Current channel ID:', commsSidebarState.currentChannelId);
-        console.log('Current channel type:', commsSidebarState.currentChannelType);
-        console.log('Message ConversationId:', message.ConversationId, 'ChannelId:', message.ChannelId);
-        
         // Only show channel messages if we're NOT in DM mode
         if (commsSidebarState.currentChannelType === 'dm') {
-            console.log('Ignoring channel message - sidebar is in DM mode');
             return;
         }
         
@@ -1404,10 +1332,7 @@ function initializeCommsSignalR() {
         const messageChannelIdStr = messageChannelId ? messageChannelId.toString() : null;
         const currentChannelIdStr = currentChannelId ? currentChannelId.toString() : null;
         
-        console.log('Comparing:', messageChannelIdStr, '===', currentChannelIdStr);
-        
         if (messageChannelIdStr === currentChannelIdStr) {
-            console.log('Message matches current channel, adding to UI');
             
             // Ensure message has the right format
             const formattedMessage = {
@@ -1436,8 +1361,6 @@ function initializeCommsSignalR() {
                     container.scrollTop = container.scrollHeight;
                 }
             }, 100);
-        } else {
-            console.log('Message does not match current channel, ignoring');
         }
         
         // Update unread badge
@@ -1453,7 +1376,6 @@ function initializeCommsSignalR() {
     commsSidebarState.signalRConnection.on("UserOnline", function(data) {
         const userId = data.UserId || data.userId;
         if (userId) {
-            console.log('User came online:', userId);
             updateUserStatus(userId, 'online');
         }
     });
@@ -1461,7 +1383,6 @@ function initializeCommsSignalR() {
     commsSidebarState.signalRConnection.on("UserOffline", function(data) {
         const userId = data.UserId || data.userId;
         if (userId) {
-            console.log('User went offline:', userId);
             updateUserStatus(userId, 'offline');
         }
     });
@@ -1469,8 +1390,6 @@ function initializeCommsSignalR() {
     // Start connection
     commsSidebarState.signalRConnection.start()
         .then(function() {
-            console.log('Communications SignalR (ChatHub) connected');
-            
             // Join current channel if one is selected
             if (commsSidebarState.currentChannelId && commsSidebarState.currentChannelType !== 'dm') {
                 commsSidebarState.signalRConnection.invoke("JoinChannel", commsSidebarState.currentChannelId.toString())
@@ -1486,12 +1405,10 @@ function initializeCommsSignalR() {
 function initializeDirectSignalR() {
     // Check if SignalR is available
     if (typeof signalR === 'undefined') {
-        console.log('SignalR not available for direct messaging');
         return;
     }
     
     if (!commsSidebarState.organizationId) {
-        console.log('Organization ID not set, skipping DirectHub connection');
         return;
     }
     
@@ -1503,20 +1420,11 @@ function initializeDirectSignalR() {
     
     // Handle incoming direct messages
     commsSidebarState.directSignalRConnection.on("ReceiveDirectMessage", function(message) {
-        console.log('🔔 ReceiveDirectMessage FIRED!', message);
-        console.log('🔍 Full message object:', JSON.stringify(message, null, 2));
-        console.log('🔍 Message keys:', Object.keys(message));
-        console.log('📧 Message ThreadId (capital T):', message.ThreadId);
-        console.log('📧 Message threadId (lowercase t):', message.threadId);
-        console.log('📍 Current thread ID:', commsSidebarState.currentChannelId);
-        console.log('🔖 Current channel type:', commsSidebarState.currentChannelType);
-        
         // Remove optimistic message if it exists (by checking if we have a temp message)
         const messagesList = document.getElementById('commsMessagesList');
         if (messagesList) {
             const tempMessage = messagesList.querySelector('[data-message-id^="temp-"]');
             if (tempMessage) {
-                console.log('🗑️ Removing optimistic message');
                 tempMessage.remove();
             }
         }
@@ -1533,20 +1441,13 @@ function initializeDirectSignalR() {
         // If message doesn't have ThreadId but we're in the right thread, use current thread ID
         // This handles cases where backend doesn't include ThreadId in broadcast
         if (!messageThreadId && commsSidebarState.currentChannelType === 'dm') {
-            console.log('⚠️ Message missing ThreadId, but we are in DM mode. Using current thread ID.');
             messageThreadId = normalizeGuid(commsSidebarState.currentChannelId);
         }
         
         const currentThreadId = normalizeGuid(commsSidebarState.currentChannelId);
         
-        console.log('✨ Normalized message ThreadId:', messageThreadId);
-        console.log('✨ Normalized current thread ID:', currentThreadId);
-        console.log('🔍 Thread IDs match?', messageThreadId === currentThreadId);
-        console.log('🔍 Is DM mode?', commsSidebarState.currentChannelType === 'dm');
-        
         // Only process if we're in DM mode and thread IDs match
         if (commsSidebarState.currentChannelType === 'dm' && messageThreadId === currentThreadId) {
-            console.log('✅ Message matches current thread, adding to UI');
             
             // SignalR may camelCase properties, so check both cases
             const senderId = message.SenderId || message.senderId;
@@ -1596,15 +1497,12 @@ function initializeDirectSignalR() {
                     container.scrollTop = container.scrollHeight;
                 }
             }, 100);
-        } else {
-            console.log('Message does not match current thread or not in DM mode. ThreadId:', messageThreadId, 'Current:', currentThreadId, 'Type:', commsSidebarState.currentChannelType);
         }
     });
     
     // Handle typing indicators
     commsSidebarState.directSignalRConnection.on("UserTyping", function(data) {
         // Could add typing indicator here if needed
-        console.log('User typing:', data);
     });
     
     // Handle errors
@@ -1615,14 +1513,9 @@ function initializeDirectSignalR() {
     // Start connection
     commsSidebarState.directSignalRConnection.start()
         .then(function() {
-            console.log('✅ DirectHub SignalR connected successfully');
-            console.log('🔌 Connection ID:', commsSidebarState.directSignalRConnection.connectionId);
-            
             // Join current thread if one is selected
             if (commsSidebarState.currentChannelId && commsSidebarState.currentChannelType === 'dm') {
-                console.log('🚪 Rejoining existing thread:', commsSidebarState.currentChannelId);
                 commsSidebarState.directSignalRConnection.invoke("JoinThread", commsSidebarState.currentChannelId.toString())
-                    .then(() => console.log('✅ Rejoined thread successfully'))
                     .catch(err => console.error('❌ Error joining thread:', err));
             }
         })
