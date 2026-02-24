@@ -4,9 +4,8 @@
 
     // Configuration - can be disabled if needed
     const config = {
-        enabled: false, // Set to false to disable AJAX navigation - DISABLED UNTIL PAGES ARE AJAX-READY
-        debug: false, // Set to false to reduce console logging
-        fallbackOnError: true // Automatically fallback to full page load on errors
+        enabled: false,
+        fallbackOnError: true
     };
 
     // Track loaded pages to avoid reloading
@@ -16,7 +15,6 @@
     // Initialize on DOM ready
     document.addEventListener('DOMContentLoaded', function() {
         if (!config.enabled) {
-            console.log('AJAX navigation is disabled');
             return;
         }
         
@@ -24,7 +22,6 @@
             initializeNavigation();
         } catch (error) {
             console.error('Error initializing AJAX navigation:', error);
-            console.log('Falling back to traditional navigation');
         }
     });
 
@@ -40,16 +37,12 @@
         const navLinks = document.querySelectorAll('.sidebar-navigation .nav-link');
         
         if (!navLinks || navLinks.length === 0) {
-            if (config.debug) {
-                console.warn('No navigation links found with selector: .sidebar-navigation .nav-link');
-            }
+            
             // Don't throw error, just silently skip if not found
             return;
         }
         
-        if (config.debug) {
-            console.log(`Initializing AJAX navigation for ${navLinks.length} links`);
-        }
+        
         
         navLinks.forEach(link => {
             // Skip if it's a logout link or form submission
@@ -60,7 +53,6 @@
             
             // Validate URL is safe for AJAX navigation
             if (!isValidNavigationUrl(href)) {
-                console.warn('Skipping invalid navigation URL:', href);
                 return;
             }
             
@@ -110,22 +102,18 @@
 
     function loadPage(url, pushHistory = true) {
         if (isNavigating) {
-            console.log('Navigation already in progress, skipping');
             return;
         }
         
         // Validate URL before loading
         if (!isValidNavigationUrl(url)) {
-            console.warn('Invalid navigation URL, falling back to full page load:', url);
             window.location.href = url;
             return;
         }
         
         isNavigating = true;
         
-        if (config.debug) {
-            console.log('Loading page via AJAX:', url);
-        }
+        
 
         // Update active state immediately for better UX
         updateActiveNavLink(url);
@@ -273,9 +261,7 @@
         for (const selector of selectors) {
             const element = document.querySelector(selector);
             if (element) {
-                if (config.debug) {
-                    console.log('Found main content with selector:', selector);
-                }
+                
                 return element;
             }
         }
@@ -360,8 +346,7 @@
     }
 
     function initializePageScripts(url) {
-        // Initialize page-specific scripts based on the URL
-        console.log('Initializing page scripts for:', url);
+        
         
         // Determine page type from URL
         if (url.includes('/Dashboard')) {
@@ -387,59 +372,41 @@
             try {
                 initializeChat();
             } catch (e) {
-                console.log('Chat already initialized or not available');
             }
         }
     }
 
     function initializeDashboardScripts() {
-        console.log('Initializing Dashboard scripts');
-        // Dashboard-specific initialization
-        // The dashboard scripts should already be loaded from inline scripts
     }
 
     function initializeMatterListScripts() {
-        console.log('Initializing Matter List scripts');
-        // Matter list initialization
         if (typeof window.initializeMatterCarousel === 'function') {
             window.initializeMatterCarousel();
         }
     }
 
     function initializeTasksScripts() {
-        console.log('Initializing Tasks scripts');
-        // Tasks initialization
         if (typeof window.initializeTasks === 'function') {
             window.initializeTasks();
         }
     }
 
     function initializeCommunicationsScripts() {
-        console.log('Initializing Communications scripts');
-        // Communications initialization
         if (typeof window.initializeCommunicationsPage === 'function') {
             window.initializeCommunicationsPage();
         }
     }
 
     function initializeCalendarScripts() {
-        console.log('Initializing Calendar scripts');
-        // Calendar initialization
     }
 
     function initializeTeamsScripts() {
-        console.log('Initializing Teams scripts');
-        // Teams initialization
     }
 
     function initializeSettingsScripts() {
-        console.log('Initializing Settings scripts');
-        // Settings initialization
     }
 
     function initializeDocumentsScripts() {
-        console.log('Initializing Documents scripts');
-        // Documents initialization
     }
 
     function restoreSidebarState() {
@@ -456,8 +423,7 @@
             return;
         }
         
-        // Make sure the appropriate sidebar is shown
-        console.log('Restoring sidebar state:', activeSidebar);
+        
         
         if (activeSidebar === 'ai' && typeof window.showAIChatPanel === 'function') {
             // Delay slightly to ensure DOM is ready
@@ -487,13 +453,11 @@
     // Allow disabling AJAX navigation at runtime
     window.disableAjaxNavigation = function() {
         config.enabled = false;
-        console.log('AJAX navigation disabled');
     };
 
     // Allow enabling AJAX navigation at runtime
     window.enableAjaxNavigation = function() {
         config.enabled = true;
-        console.log('AJAX navigation enabled');
         initializeNavigation();
     };
 

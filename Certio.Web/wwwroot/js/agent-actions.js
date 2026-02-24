@@ -88,9 +88,6 @@ function initializeAgentActions() {
     
     // Try to sync with org's AI model tier setting
     syncOrgModelTier();
-    
-    console.log('[AgentActions] Initialized with correlationId:', AgentActionsState.correlationId);
-    console.log('[AgentActions] Mode:', AgentActionsState.mode, 'ModelTier:', AgentActionsState.modelTier);
 }
 
 // Sync with organization's AI model tier from settings
@@ -114,8 +111,6 @@ async function syncOrgModelTier() {
                         settingsSelect.value = result.tier;
                         settingsSelect.setAttribute('data-original', result.tier);
                     }
-                    
-                    console.log('[AgentActions] Model tier loaded from server:', AgentActionsState.modelTier);
                 }
             }
         } catch (error) {
@@ -133,7 +128,6 @@ async function syncOrgModelTier() {
             AgentActionsState.modelTier = newTier;
             localStorage.setItem('aiModelTier', newTier);
             syncModelToUI();
-            console.log('[AgentActions] Model tier synced from settings select:', AgentActionsState.modelTier);
         });
     }
 }
@@ -303,8 +297,6 @@ function initializeSingleModeSelector(selectorId, dropdownId, labelId, badgeId) 
             // Close dropdown
             closeDropdownPortal(dropdown);
             selector.classList.remove('open');
-            
-            console.log('[AgentActions] Mode changed to:', mode);
         });
     });
 }
@@ -343,8 +335,6 @@ function initializeSingleModelSelector(selectorId, dropdownId, labelId) {
             
             // Also update the organization's setting if we have access
             await updateOrgModelTier(tier);
-            
-            console.log('[AgentActions] Model tier changed to:', tier);
         });
     });
 }
@@ -364,8 +354,6 @@ async function updateOrgModelTier(tier) {
         });
         
         if (response.ok) {
-            console.log('[AgentActions] Org AI model tier updated successfully');
-            
             // Also sync with the settings page select if it exists
             const settingsSelect = document.getElementById('aiModelTier');
             if (settingsSelect) {
@@ -432,8 +420,6 @@ function syncModelFromSettings(tier) {
     AgentActionsState.modelTier = tier;
     localStorage.setItem('aiModelTier', tier);
     syncModelToUI();
-    
-    console.log('[AgentActions] Model tier synced from settings page:', tier);
 }
 
 // Close dropdowns when clicking outside
@@ -1635,7 +1621,6 @@ function showActionNotification(message, type = 'info') {
 function parseAIResponseForActions(content) {
     // Only parse actions if we're in agent mode
     if (!isAgentMode()) {
-        console.log('[AgentActions] Skipping action parsing - not in agent mode');
         return [];
     }
     
@@ -1655,7 +1640,6 @@ function parseAIResponseForActions(content) {
                 payload: payload,
                 rawMatch: match[0] // Store the raw match for removal later
             });
-            console.log('[AgentActions] Parsed action:', actionType, payload);
         } catch (e) {
             console.warn('[AgentActions] Failed to parse action payload:', e, match[2]);
         }
@@ -1760,7 +1744,6 @@ function parseNaturalLanguageActions(content) {
                 detected: true,
                 confidence: 'natural_language'
             });
-            console.log('[AgentActions] NL detected CreateTask:', title);
         }
     }
     
@@ -1783,7 +1766,6 @@ function parseNaturalLanguageActions(content) {
                 detected: true,
                 confidence: 'natural_language'
             });
-            console.log('[AgentActions] NL detected NavigateTo:', match[1]);
             break;
         }
     }
@@ -1807,7 +1789,6 @@ function parseNaturalLanguageActions(content) {
             detected: true,
             confidence: 'natural_language'
         });
-        console.log('[AgentActions] NL detected AddNote');
     }
     
     // Detect timer start intent
@@ -1826,7 +1807,6 @@ function parseNaturalLanguageActions(content) {
             detected: true,
             confidence: 'natural_language'
         });
-        console.log('[AgentActions] NL detected StartTimer');
     }
     
     return actions;
@@ -1902,8 +1882,6 @@ async function processDetectedActions(actions, conversationId) {
     
     for (const actionData of uniqueActions) {
         try {
-            console.log('[AgentActions] Proposing action:', actionData.actionType, actionData.payload);
-            
             // Propose the action
             const payloadMatterId = actionData?.payload?.matterId || actionData?.payload?.MatterId;
 
@@ -2035,8 +2013,6 @@ async function processDetectedActions(actions, conversationId) {
                 }
             );
             
-            console.log('[AgentActions] Propose result:', result);
-            
             // Add to our tracking array
             const action = result.action || result;
             const actionId = action.id || action.Id;
@@ -2139,7 +2115,6 @@ function saveActionsToSession() {
             isVisible: AgentActionsState.isVisible
         };
         sessionStorage.setItem('agentActions', JSON.stringify(stateToSave));
-        console.log('[AgentActions] Saved to session:', stateToSave.actions.length, 'actions');
     } catch (e) {
         console.warn('[AgentActions] Could not save to sessionStorage:', e);
     }
@@ -2174,7 +2149,6 @@ function restoreActionsFromSession() {
                     AgentActionsState.orgId = state.orgId;
                 }
                 
-                console.log('[AgentActions] Restored from session:', state.actions.length, 'actions');
                 showActionTracker();
                 updateTrackerDisplay();
                 return true;
@@ -2276,7 +2250,6 @@ function saveActionCardStatusToSession(actionId, status, title) {
         const savedStatuses = JSON.parse(sessionStorage.getItem('actionCardStatuses') || '{}');
         savedStatuses[String(actionId)] = { status, title, timestamp: Date.now() };
         sessionStorage.setItem('actionCardStatuses', JSON.stringify(savedStatuses));
-        console.log(`[AgentActions] Saved card status to session: ${actionId} = ${status}`);
     } catch (e) {
         console.warn('[AgentActions] Failed to save card status:', e);
     }
@@ -2349,8 +2322,6 @@ function applyStatusToCard(card, status, title = null) {
 
 // Update an action card's status in the chat UI
 function updateActionCardStatus(actionId, newStatus, newTitle = null) {
-    console.log(`[AgentActions] updateActionCardStatus called: id=${actionId}, status=${newStatus}, title=${newTitle}`);
-    
     // Save to sessionStorage for persistence
     saveActionCardStatusToSession(actionId, newStatus, newTitle);
     
@@ -2362,7 +2333,6 @@ function updateActionCardStatus(actionId, newStatus, newTitle = null) {
     
     // Strategy 1: Find by exact action ID (as string)
     cards = Array.from(document.querySelectorAll(`.agent-action-attachment[data-action-id="${actionIdStr}"]`));
-    console.log(`[AgentActions] Strategy 1 (exact ID ${actionIdStr}): found ${cards.length} cards`);
     
     // Strategy 2: If not found, find by temporary ID pattern that includes action type
     if (cards.length === 0) {
@@ -2375,7 +2345,6 @@ function updateActionCardStatus(actionId, newStatus, newTitle = null) {
             // Find cards with temporary IDs of this action type
             const tempCards = document.querySelectorAll(`.agent-action-attachment[data-action-id^="action-${actionType}"]`);
             cards = Array.from(tempCards);
-            console.log(`[AgentActions] Strategy 2 (by type ${actionType}): found ${cards.length} cards`);
         }
     }
     
@@ -2391,7 +2360,6 @@ function updateActionCardStatus(actionId, newStatus, newTitle = null) {
                 const status = badge?.getAttribute('data-status') || badge?.textContent?.toLowerCase();
                 return status === 'pending';
             });
-            console.log(`[AgentActions] Strategy 3 (pending by type): found ${cards.length} cards`);
         }
     }
     
@@ -2403,7 +2371,6 @@ function updateActionCardStatus(actionId, newStatus, newTitle = null) {
             const status = badge?.getAttribute('data-status') || badge?.textContent?.toLowerCase();
             return status === 'pending';
         });
-        console.log(`[AgentActions] Strategy 4 (any pending): found ${cards.length} cards`);
     }
     
     // Strategy 5: Search specifically within chat containers
@@ -2419,7 +2386,6 @@ function updateActionCardStatus(actionId, newStatus, newTitle = null) {
                     return status === 'pending';
                 });
                 if (cards.length > 0) {
-                    console.log(`[AgentActions] Strategy 5 (chat container ${selector}): found ${cards.length} cards`);
                     break;
                 }
             }
@@ -2428,12 +2394,6 @@ function updateActionCardStatus(actionId, newStatus, newTitle = null) {
     
     if (cards.length === 0) {
         console.warn(`[AgentActions] No cards found to update for action ${actionId}`);
-        // Log all cards in document for debugging
-        const debugCards = document.querySelectorAll('.agent-action-attachment');
-        console.log(`[AgentActions] Total cards in document: ${debugCards.length}`);
-        debugCards.forEach((card, i) => {
-            console.log(`[AgentActions] Card ${i}: id=${card.getAttribute('data-action-id')}, type=${card.getAttribute('data-action-type')}, status=${card.querySelector('.agent-action-badge')?.getAttribute('data-status')}`);
-        });
         return;
     }
     
@@ -2476,8 +2436,6 @@ function updateActionCardStatus(actionId, newStatus, newTitle = null) {
         // Update card styling based on status
         card.classList.remove('action-pending', 'action-done', 'action-failed', 'action-rejected', 'action-rolledback');
         card.classList.add(`action-${newStatus.toLowerCase()}`);
-        
-        console.log(`[AgentActions] Updated card for action ${actionId} to status ${newStatus}`);
     });
 }
 
@@ -2530,8 +2488,6 @@ function generateCardIdFromPayload(actionType, payload) {
 
 // Link a temporary card ID to the actual action ID from the backend
 function linkCardToActionId(tempCardId, actualActionId, actionType = null, payload = null) {
-    console.log(`[AgentActions] linkCardToActionId: tempId=${tempCardId}, actualId=${actualActionId}, type=${actionType}`);
-    
     let linked = false;
     
     // Strategy 1: Find by exact temporary ID
@@ -2541,7 +2497,6 @@ function linkCardToActionId(tempCardId, actualActionId, actionType = null, paylo
             card.setAttribute('data-action-id', actualActionId);
             linked = true;
         });
-        console.log(`[AgentActions] Linked ${cards.length} cards by exact tempId`);
     }
     
     // Strategy 2: Find by action type prefix
@@ -2554,7 +2509,6 @@ function linkCardToActionId(tempCardId, actualActionId, actionType = null, paylo
                 if (currentId && currentId.startsWith('action-')) {
                     card.setAttribute('data-action-id', actualActionId);
                     linked = true;
-                    console.log(`[AgentActions] Linked card by type prefix: ${actionType}`);
                     break;
                 }
             }
@@ -2572,7 +2526,6 @@ function linkCardToActionId(tempCardId, actualActionId, actionType = null, paylo
             if (status === 'pending' && currentId && currentId.startsWith('action-')) {
                 card.setAttribute('data-action-id', actualActionId);
                 linked = true;
-                console.log(`[AgentActions] Linked pending card by type: ${actionType}`);
                 break;
             }
         }
@@ -2589,7 +2542,6 @@ function linkCardToActionId(tempCardId, actualActionId, actionType = null, paylo
             if (status === 'pending' && currentId && currentId.startsWith('action-')) {
                 card.setAttribute('data-action-id', actualActionId);
                 linked = true;
-                console.log(`[AgentActions] Linked first pending card`);
                 break;
             }
         }

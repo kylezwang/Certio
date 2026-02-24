@@ -14,17 +14,12 @@ let userMessageElements = []; // Array to store only user message elements
 
 // Initialize SignalR connection
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, initializing chat...');
-    
     // Initialize chat layout immediately (synchronous, fast)
     initializeChatLayout();
     
     // Load conversations immediately after DOM is ready
     // No delay needed since we're using Redis caching for fast responses
     window.addEventListener('load', () => {
-        console.log('Page fully loaded, now loading AI conversations...');
-        console.log('AI chat panel exists:', document.getElementById('chatPanel') !== null);
-        console.log('Tab list exists:', document.querySelector('.tab-list') !== null);
         loadAIConversationsForPanel();
     });
     
@@ -39,13 +34,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Start connection
                 connection.start().then(function () {
-                    console.log("SignalR Connected");
                 }).catch(function (err) {
                     console.error("SignalR Connection Error: ", err.toString());
                 });
             }
         } else {
-            console.log("SignalR not available, using fallback communication");
+            // SignalR not available, using fallback communication
         }
     }, 1000); // 1 second delay for SignalR
 
@@ -65,8 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle NEW conversation button (Plus button) - returns to landing state
     document.getElementById('newConversationBtn')?.addEventListener('click', function(e) {
         e.preventDefault();
-        console.log('Returning to landing state...');
-        
+
         // Clear current conversation ID (new conversation will be created on first message)
         currentConversationId = null;
         
@@ -128,14 +121,11 @@ document.addEventListener('DOMContentLoaded', function() {
             messageInput.value = '';
             messageInput.focus();
         }
-        
-        console.log('Landing state ready - conversation will be created on first message');
     });
     
     // Handle conversation creation form (from modal - kept for backward compatibility)
     document.getElementById('createConversationForm')?.addEventListener('submit', function(e) {
         e.preventDefault();
-        console.log('Form submitted, creating conversation...');
         const formData = new FormData(this);
         
         const orgId = getCurrentOrganizationId();
@@ -143,14 +133,12 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Organization ID not found');
             return;
         }
-        
-        console.log('Creating conversation with orgId:', orgId);
+
         fetch(`/Client/${orgId}/Chat/CreateConversation`, {
             method: 'POST',
             body: formData
         })
         .then(response => {
-            console.log('Response received:', response.status);
             if (response.ok) {
                 // Close modal
                 const modal = bootstrap.Modal.getInstance(document.getElementById('newConversationModal'));
@@ -162,7 +150,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.reset();
                 
                 // Refresh conversations instead of reloading page
-                console.log('Refreshing conversations...');
                 refreshConversations();
             } else {
                 console.error('Failed to create conversation:', response.statusText);
@@ -175,15 +162,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Conversation selection - use event delegation
     document.addEventListener('click', function(event) {
-        console.log('Click detected on:', event.target);
         const conversationItem = event.target.closest('.conversation-tab');
-        console.log('Conversation item found:', conversationItem);
-        
+
         if (conversationItem) {
             const conversationId = conversationItem.dataset.conversationId;
-            console.log('Conversation ID:', conversationId);
             if (conversationId) {
-                console.log('Loading conversation:', conversationId);
                 loadConversation(conversationId);
             } else {
                 console.error('No conversation ID found in dataset');
@@ -212,7 +195,6 @@ function initializeChat(conversationId) {
 
 // Load conversation messages
 async function loadConversationMessages(conversationId) {
-    console.log('Loading messages for conversation:', conversationId);
     try {
         const orgId = getCurrentOrganizationId();
         if (!orgId) {
@@ -227,7 +209,6 @@ async function loadConversationMessages(conversationId) {
             try {
                 const cached = JSON.parse(cachedRaw);
                 if (cached && cached.ts && (Date.now() - cached.ts) < 60000 && Array.isArray(cached.messages)) {
-                    console.log('⚡ Using cached messages for conversation:', conversationId);
                     currentMessages = cached.messages;
                     lastMessageCount = cached.messages.length;
 
@@ -248,14 +229,12 @@ async function loadConversationMessages(conversationId) {
         }
 
         const response = await fetch(`/Client/${orgId}/Chat/GetMessages/${conversationId}?limit=200`);
-        console.log('Response status:', response.status);
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const messages = await response.json();
-        console.log('Loaded messages:', messages);
         currentMessages = messages;
         lastMessageCount = messages.length;
 
@@ -468,7 +447,6 @@ async function uploadAttachment(file) {
         const data = await response.json();
         
         if (data.success) {
-            console.log(`Attachment processed: ${data.fileName} (${data.contentLength} chars extracted)`);
             window._uploadingAttachment = false;
             return {
                 fileName: data.fileName,
@@ -613,12 +591,10 @@ async function generateAIResponse(userMessage) {
         if (typeof window.AgentActions !== 'undefined') {
             requestBody.aiMode = window.AgentActions.getMode();
             requestBody.aiModel = window.AgentActions.getModel();
-            console.log('[AgentActions] Sending with mode:', requestBody.aiMode, 'model:', requestBody.aiModel);
         }
         
         // Wait for pendingAttachment if it's still being processed (max 30 seconds)
         if (pendingAttachment === null && window._uploadingAttachment) {
-            console.log('Waiting for attachment upload to complete...');
             const maxWait = 30000; // 30 seconds
             const startWait = Date.now();
             while (pendingAttachment === null && window._uploadingAttachment && (Date.now() - startWait) < maxWait) {
@@ -630,7 +606,6 @@ async function generateAIResponse(userMessage) {
         if (pendingAttachment) {
             requestBody.attachmentContent = pendingAttachment.extractedContent;
             requestBody.attachmentFileName = pendingAttachment.fileName;
-            console.log(`Including attachment in AI request: ${pendingAttachment.fileName}`);
             // Clear pending attachment after including it
             pendingAttachment = null;
         }
@@ -660,7 +635,6 @@ async function generateAIResponse(userMessage) {
             if (done) {
                 // Stream ended without an explicit { done: true } event.
                 // Finalize the UI so the user doesn't get stuck on "AI loading".
-                console.log('⚠️ Stream reader ended (no explicit done event). Finalizing...');
 
                 // If we never got any content chunks, show a friendly error
                 if (!aiMessageDiv) {
@@ -734,7 +708,6 @@ async function generateAIResponse(userMessage) {
                             
                             // If stream completed without any content, create error message
                             if (!aiMessageDiv) {
-                                console.log('⚠️ Stream ended without content - showing error');
                                 aiMessageDiv = createStreamingAIMessagePlaceholder();
                                 messageTextDiv = aiMessageDiv.querySelector('.message-text');
                                 messageTextDiv.innerHTML = 'Sorry, I was unable to generate a response. The AI model may be unavailable. Please try again or select a different model.';
@@ -779,7 +752,6 @@ async function generateAIResponse(userMessage) {
                                 try {
                                     const detectedActions = window.AgentActions.parseResponse(fullContent);
                                     if (detectedActions && detectedActions.length > 0) {
-                                        console.log('[AgentActions] Detected actions in AI response:', detectedActions);
                                         window.AgentActions.processActions(detectedActions, currentConversationId);
                                     }
                                 } catch (agentError) {
@@ -808,7 +780,6 @@ async function generateAIResponse(userMessage) {
                             // completed text being echoed back (e.g. Responses API
                             // "response.output_text.done"). Skip it to avoid duplication.
                             if (fullContent.length > 100 && eventData.content.length >= fullContent.length * 0.9) {
-                                console.warn('⚠️ Skipping suspected duplicate full-response chunk (' + eventData.content.length + ' chars vs ' + fullContent.length + ' accumulated)');
                                 continue;
                             }
 
@@ -959,12 +930,10 @@ async function sendMessageInternal(message, conversationId, fileInfo = null, cap
         
         // If we have a file to process and haven't processed it yet, do it in background
         if (capturedFile && !pendingAttachment) {
-            console.log('Processing attachment in background:', capturedFile.name);
             // Start upload but don't await - let it run in parallel with message send
             uploadAttachment(capturedFile).then(result => {
                 if (result) {
                     pendingAttachment = result;
-                    console.log('Background file processing complete');
                 }
             }).catch(err => {
                 console.error('Background file processing failed:', err);
@@ -989,7 +958,6 @@ async function sendMessageInternal(message, conversationId, fileInfo = null, cap
         const data = await response.json();
         
         if (data.success) {
-            console.log('Message sent successfully');
             // Generate intelligent AI response (will include attachment content if pendingAttachment is set)
             await generateAIResponse(message);
             return true;
@@ -1137,32 +1105,23 @@ function getCurrentUserType() {
 
 // Get current organization ID from URL or data attribute
 function getCurrentOrganizationId() {
-    console.log('getCurrentOrganizationId() called');
-    console.log('currentOrganizationId cached:', currentOrganizationId);
-    
     if (currentOrganizationId) {
-        console.log('Returning cached orgId:', currentOrganizationId);
         return currentOrganizationId;
     }
-    
+
     // Try to get from URL path (e.g., /Client/123/Chat/... or /Client/123/Matter)
-    console.log('Checking URL path:', window.location.pathname);
     const pathMatch = window.location.pathname.match(/\/Client\/(\d+)\/(?:Dashboard|Chat|Matter|Services|Documents|Teams|Settings|Tasks|Calendar|Communications|History)/);
     if (pathMatch) {
         currentOrganizationId = parseInt(pathMatch[1]);
-        console.log('Found orgId from URL:', currentOrganizationId);
         return currentOrganizationId;
     }
-    
+
     // Try to get from /Home/Communications or similar paths - look for organization in ViewBag/ViewContext
-    console.log('Checking data-organization-id element...');
     const orgIdElement = document.querySelector('[data-organization-id]');
     if (orgIdElement) {
         const orgId = orgIdElement.dataset.organizationId;
-        console.log('Found data-organization-id:', orgId);
         if (orgId && orgId !== '') {
             currentOrganizationId = parseInt(orgId);
-            console.log('Parsed orgId from data attribute:', currentOrganizationId);
             return currentOrganizationId;
         }
     }
@@ -1292,21 +1251,12 @@ function addMessageToChat(message) {
 function initializeStickyMessage() {
     const chatMessages = document.getElementById('chatMessages');
     const stickyOverlay = document.getElementById('stickyLastMessage');
-    
-    console.log('initializeStickyMessage called', {
-        chatMessages: !!chatMessages,
-        stickyOverlay: !!stickyOverlay,
-        totalMessages: messageElements.length,
-        userMessages: userMessageElements.length
-    });
-    
+
     if (!chatMessages || !stickyOverlay) {
-        console.warn('Missing required elements for sticky message');
         return;
     }
-    
+
     if (userMessageElements.length === 0) {
-        console.log('No user messages yet, skipping sticky message initialization');
         // Hide the overlay if no user messages
         stickyOverlay.style.display = 'none';
         return;
@@ -1322,8 +1272,6 @@ function initializeStickyMessage() {
     
     // Add scroll listener for dynamic updates
     chatMessages.addEventListener('scroll', handleStickyMessageScroll);
-    
-    console.log('✅ Sticky message initialized with', userMessageElements.length, 'user messages');
 }
 
 // Update the sticky message overlay content
@@ -1331,50 +1279,34 @@ function updateStickyMessage() {
     const stickyOverlay = document.getElementById('stickyLastMessage');
     const stickyContent = stickyOverlay?.querySelector('.sticky-message-content');
     const chatMessages = document.getElementById('chatMessages');
-    
-    console.log('updateStickyMessage called', {
-        hasOverlay: !!stickyOverlay,
-        hasContent: !!stickyContent,
-        userMessageCount: userMessageElements.length,
-        stickyIndex: stickyMessageIndex
-    });
-    
+
     if (!stickyOverlay || !stickyContent || userMessageElements.length === 0) {
-        console.warn('Cannot update sticky message - missing elements or no user messages');
         return;
     }
-    
+
     // Calculate actual index (from the end of user messages only)
     const actualIndex = userMessageElements.length - 1 - stickyMessageIndex;
-    
-    console.log('Calculated actualIndex:', actualIndex, 'from userMessageElements.length:', userMessageElements.length, 'and stickyMessageIndex:', stickyMessageIndex);
-    
+
     // If we've reached beyond the first user message, hide the sticky overlay
     if (actualIndex < 0 || stickyMessageIndex >= userMessageElements.length) {
-        console.log('Hiding sticky overlay - out of bounds');
         stickyOverlay.style.display = 'none';
         stickyOverlay.classList.remove('visible');
         return;
     }
-    
+
     const messageElement = userMessageElements[actualIndex];
-    console.log('User message element:', messageElement);
-    
+
     // Clone the message content for the sticky overlay
     const clonedMessage = messageElement.cloneNode(true);
     stickyContent.innerHTML = '';
     stickyContent.appendChild(clonedMessage);
-    
+
     // Show the sticky overlay
-    console.log('Showing sticky overlay...');
     stickyOverlay.style.display = 'block';
     // Use setTimeout to ensure display change is applied before adding visible class
     setTimeout(() => {
         stickyOverlay.classList.add('visible');
-        console.log('✅ Sticky overlay now visible with class');
     }, 10);
-    
-    console.log('✅ Sticky message updated to show user message at index', actualIndex);
 }
 
 // Handle scroll events to update sticky message
@@ -1424,7 +1356,6 @@ function handleStickyMessageScroll() {
     // Update sticky message if index changed
     if (newStickyIndex !== stickyMessageIndex) {
         stickyMessageIndex = newStickyIndex;
-        console.log('Scroll detected, updating sticky to index:', stickyMessageIndex);
         updateStickyMessage();
     }
 }
@@ -2135,7 +2066,6 @@ function processAIInsights(messages) {
 // Load AI insights for current conversation
 async function loadAIInsights() {
     if (!currentConversationId) {
-        console.log('No conversation selected');
         return;
     }
 
@@ -2319,24 +2249,15 @@ function nuclearCleanText(text) {
 
 // Debug function to help troubleshoot formatting issues
 function debugMessageFormatting(content) {
-    console.log('Original content:', content);
-    console.log('Has \\n:', content.includes('\\n'));
-    console.log('Has actual newlines:', content.includes('\n'));
-    
     const converted = convertMarkdownToHtml(content);
-    console.log('Converted content:', converted);
-    
     return converted;
 }
 
 // Test function you can call from browser console
 function testNewlineFix() {
     const testText = "Hello! I understand your concerns regarding the audit and whether it might be a precursor to your termination. While I cannot speculate on your employer's intentions, I can provide some insights that may help you navigate this situation.\\n\\n\\nThe purpose of a SOC certification audit is primarily to evaluate a company's adherence to data security and compliance standards. It is not inherently linked to employee performance or terminations. However, there are a few considerations to keep in mind:\\n\\n\\n\\n• Performance Evaluation: Sometimes, audits can lead to a broader review of an employee's performance and adherence to company policies. If there are areas of concern identified during the audit related to your work, it could prompt further evaluation.\\n\\n• Compliance Issues: If the audit uncovers compliance violations or data security risks associated with your actions, it may...";
-    
-    console.log('Testing newline fix...');
-    console.log('Original text:', testText);
+
     const result = formatIntelligentResponse(testText);
-    console.log('Formatted result:', result);
     return result;
 }
 
@@ -2434,7 +2355,6 @@ function initializeChatLayout() {
 
 // Load AI-only conversations for the global chat panel
 async function loadAIConversationsForPanel(forceReload = false) {
-    console.log('Loading conversations for panel...', { forceReload });
     const tabList = document.querySelector('.tab-list');
     if (!tabList) {
         console.error('Tab list not found');
@@ -2446,18 +2366,12 @@ async function loadAIConversationsForPanel(forceReload = false) {
     const hasConversationTabs = tabList.querySelector('.conversation-tab') !== null;
     const isEmpty = tabList.innerHTML.trim() === '';
     if (hasConversationTabs && !isEmpty && !forceReload) {
-        console.log('Conversations already loaded, skipping reload');
         return;
     }
-    
-    console.log('Loading AI conversations...');
 
     try {
         const orgId = getCurrentOrganizationId();
-        console.log('getCurrentOrganizationId() returned:', orgId);
-        console.log('Current URL:', window.location.pathname);
-        console.log('data-organization-id element:', document.querySelector('[data-organization-id]'));
-        
+
         if (!orgId) {
             console.error('Organization ID not found');
             // Clear loading indicator and show message
@@ -2473,7 +2387,6 @@ async function loadAIConversationsForPanel(forceReload = false) {
                 try {
                     const cached = JSON.parse(cachedRaw);
                     if (cached && cached.ts && (Date.now() - cached.ts) < 60000 && Array.isArray(cached.conversations)) {
-                        console.log('⚡ Using cached AI conversations list');
                         // Render from cache immediately
                         tabList.innerHTML = '';
                         cached.conversations.forEach(conversation => {
@@ -2508,14 +2421,12 @@ async function loadAIConversationsForPanel(forceReload = false) {
         
         const response = await fetch(`/Client/${orgId}/Chat/GetAIConversations`);
         if (!response.ok) {
-            console.log('No conversations endpoint available, using fallback');
             // Clear loading indicator
             tabList.innerHTML = '<div style="padding: 1rem; text-align: center; color: #9ca3af; font-size: 0.875rem;">No AI conversations yet</div>';
             return;
         }
         
         const conversations = await response.json();
-        console.log('Loaded conversations:', conversations);
 
         try {
             sessionStorage.setItem(convCacheKey, JSON.stringify({ ts: Date.now(), conversations }));
@@ -2545,7 +2456,6 @@ async function loadAIConversationsForPanel(forceReload = false) {
                     deleteBtn.addEventListener('click', function(e) {
                         e.stopPropagation();
                         e.preventDefault();
-                        console.log('Delete button clicked for conversation:', conversation.id);
                         deleteConversation(conversation.id.toString());
                     });
                 }
@@ -2760,7 +2670,6 @@ function initializeResizeHandle() {
 
 // Update conversation selection to work with new tab layout
 function loadConversation(conversationId) {
-    console.log('loadConversation called with ID:', conversationId);
     currentConversationId = parseInt(conversationId);
     
     // Save the selected conversation to localStorage for persistence
@@ -2773,7 +2682,6 @@ function loadConversation(conversationId) {
     const selectedTab = document.querySelector(`.conversation-tab[data-conversation-id="${conversationId}"]`);
     if (selectedTab) {
         selectedTab.classList.add('active');
-        console.log('Selected conversation tab:', selectedTab);
     } else {
         console.error('Could not find conversation tab with ID:', conversationId);
     }
@@ -2856,8 +2764,6 @@ function showConversationContextMenu(event, conversationItem) {
 
 // Update delete conversation to work with tabs and dashboard
 function deleteConversation(conversationId) {
-    console.log('deleteConversation called with ID:', conversationId, 'type:', typeof conversationId);
-    
     if (!confirm('Are you sure you want to delete this note? This action cannot be undone.')) {
         return;
     }
@@ -2870,8 +2776,7 @@ function deleteConversation(conversationId) {
     
     const convId = parseInt(conversationId);
     const convIdStr = String(conversationId);
-    console.log('Deleting conversation:', convId, 'for org:', orgId);
-    
+
     fetch(`/Client/${orgId}/Chat/DeleteConversation`, {
         method: 'POST',
         headers: {
@@ -2882,11 +2787,9 @@ function deleteConversation(conversationId) {
         })
     })
         .then(response => {
-            console.log('Delete response status:', response.status);
             return response.json();
         })
         .then(data => {
-            console.log('Delete response data:', data);
             if (data.success) {
                 // Remove the conversation from the UI - check both sidebar and dashboard
                 // Try sidebar first (.conversation-tab)
@@ -3043,20 +2946,12 @@ function renameConversation(conversationId, currentTitle) {
 function initializeTabScrolling() {
     const tabList = document.querySelector('.tab-list');
     const conversationTabs = document.querySelector('.conversation-tabs');
-    
-    console.log('Tab list found:', tabList);
-    console.log('Conversation tabs found:', conversationTabs);
-    
+
     if (!tabList) {
         console.error('Tab list not found!');
         return;
     }
-    
-    // Check if scrolling is needed
-    console.log('Tab list scrollWidth:', tabList.scrollWidth);
-    console.log('Tab list clientWidth:', tabList.clientWidth);
-    console.log('Can scroll:', tabList.scrollWidth > tabList.clientWidth);
-    
+
     // Enable wheel scrolling on the entire conversation tabs container
     if (conversationTabs) {
         conversationTabs.addEventListener('wheel', function(e) {
@@ -3064,7 +2959,6 @@ function initializeTabScrolling() {
             e.stopPropagation();
             const scrollAmount = e.deltaY * 0.8;
             tabList.scrollLeft += scrollAmount;
-            console.log('Wheel scroll on container:', scrollAmount, 'New scrollLeft:', tabList.scrollLeft);
         }, { passive: false });
     }
     
@@ -3074,7 +2968,6 @@ function initializeTabScrolling() {
         e.stopPropagation();
         const scrollAmount = e.deltaY * 0.8;
         tabList.scrollLeft += scrollAmount;
-        console.log('Wheel scroll on tab list:', scrollAmount, 'New scrollLeft:', tabList.scrollLeft);
     }, { passive: false });
     
     // Enable drag scrolling on the entire container
@@ -3094,7 +2987,6 @@ function initializeTabScrolling() {
         dragContainer.style.cursor = 'grabbing';
         startX = e.pageX;
         scrollLeft = tabList.scrollLeft;
-        console.log('Started dragging at:', startX, 'scrollLeft:', scrollLeft);
     });
     
     dragContainer.addEventListener('mouseleave', function() {
@@ -3108,7 +3000,6 @@ function initializeTabScrolling() {
         if (isDragging) {
             isDragging = false;
             dragContainer.style.cursor = 'grab';
-            console.log('Stopped dragging');
         }
     });
     
@@ -3123,7 +3014,6 @@ function initializeTabScrolling() {
         const newScrollLeft = scrollLeft - walk;
         
         tabList.scrollLeft = newScrollLeft;
-        console.log('Dragging - walk:', walk, 'newScrollLeft:', newScrollLeft);
     });
 }
 
@@ -3137,9 +3027,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function testTabScroll() {
     const tabList = document.querySelector('.tab-list');
     if (tabList) {
-        console.log('Current scrollLeft:', tabList.scrollLeft);
         tabList.scrollLeft += 100;
-        console.log('New scrollLeft:', tabList.scrollLeft);
     } else {
         console.error('Tab list not found for testing');
     }
@@ -3149,7 +3037,6 @@ function testTabScroll() {
 function saveSelectedConversation(conversationId) {
     try {
         localStorage.setItem('selectedConversationId', conversationId);
-        console.log('Saved selected conversation:', conversationId);
     } catch (error) {
         console.error('Error saving selected conversation:', error);
     }
@@ -3167,7 +3054,6 @@ function getSelectedConversation() {
 function clearSelectedConversation() {
     try {
         localStorage.removeItem('selectedConversationId');
-        console.log('Cleared selected conversation');
     } catch (error) {
         console.error('Error clearing selected conversation:', error);
     }
@@ -3175,20 +3061,15 @@ function clearSelectedConversation() {
 
 function restoreSelectedConversation() {
     const savedConversationId = getSelectedConversation();
-    console.log('Attempting to restore conversation:', savedConversationId);
-    
+
     if (savedConversationId) {
         // Check if the conversation tab exists - only look for sidebar tabs, not dashboard items
         const conversationTab = document.querySelector(`.conversation-tab[data-conversation-id="${savedConversationId}"]`);
         if (conversationTab) {
-            console.log('Restoring conversation:', savedConversationId);
             loadConversation(savedConversationId);
         } else {
-            console.log('Saved conversation not found in current tabs, clearing selection');
             clearSelectedConversation();
         }
-    } else {
-        console.log('No saved conversation to restore');
     }
 }
 
