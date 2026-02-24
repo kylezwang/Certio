@@ -2194,11 +2194,22 @@
                 }
             });
             
-            // On submit, write hidden inputs for selected users
+            // On submit, write hidden inputs for selected users and prevent double-submit
+            var isCreating = false;
             form.addEventListener('submit', function(e) {
                 // Only when creating on step 4
                 const createAction = e.submitter && e.submitter.name === 'action' && e.submitter.value === 'create';
                 if (!createAction) return;
+
+                if (isCreating) {
+                    e.preventDefault();
+                    return;
+                }
+                isCreating = true;
+
+                var btn = e.submitter;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Creating...';
                 
                 // Clear existing hidden inputs
                 const existing = form.querySelectorAll('input[name^="PermissionUserIds["]');

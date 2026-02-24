@@ -740,6 +740,12 @@ namespace Certio.Web.Controllers
         {
             var storedEmail = TempData["RegistrationEmail"]?.ToString();
             
+            // For authenticated OAuth users, fall back to their identity if TempData was lost
+            if (string.IsNullOrEmpty(storedEmail) && User.Identity?.IsAuthenticated == true)
+            {
+                storedEmail = User.Identity.Name;
+            }
+
             if (string.IsNullOrEmpty(storedEmail))
             {
                 TempData["Error"] = "Registration session expired. Please start over.";
@@ -748,14 +754,14 @@ namespace Certio.Web.Controllers
 
             // Validate organization type
             if (string.IsNullOrEmpty(organizationType) || 
-                (organizationType != "client" && organizationType != "lawfirm" && organizationType != "eventplanner" && organizationType != "join"))
+                (organizationType != "lawfirm" && organizationType != "join"))
             {
                 TempData["Error"] = "Please select a valid organization type.";
                 return RedirectToAction("Register", new { step = 2 });
             }
 
             // Validate organization name for new organizations
-            if ((organizationType == "client" || organizationType == "lawfirm" || organizationType == "eventplanner") && string.IsNullOrWhiteSpace(organizationName))
+            if (organizationType == "lawfirm" && string.IsNullOrWhiteSpace(organizationName))
             {
                 TempData["Error"] = "Please enter an organization name.";
                 return RedirectToAction("Register", new { step = 2 });
@@ -836,10 +842,10 @@ namespace Certio.Web.Controllers
             var firstName = TempData["OAuthFirstName"]?.ToString();
             var lastName = TempData["OAuthLastName"]?.ToString();
 
+            // Default to "lawfirm" if TempData was lost (the only non-join option)
             if (string.IsNullOrEmpty(organizationType))
             {
-                TempData["Error"] = "Registration session expired. Please start over.";
-                return RedirectToAction("Index");
+                organizationType = "lawfirm";
             }
 
             try
@@ -853,6 +859,10 @@ namespace Certio.Web.Controllers
                     TempData["Error"] = "User account not found. Please try registering again.";
                     return RedirectToAction("Index");
                 }
+
+                // Fall back to database for name if TempData was lost
+                if (string.IsNullOrEmpty(firstName)) firstName = customUser.FirstName;
+                if (string.IsNullOrEmpty(lastName)) lastName = customUser.LastName;
 
                 // Handle join code if provided
                 Certio.Domain.Organizations.OrganizationJoinCode? validJoin = null;
@@ -908,34 +918,15 @@ namespace Certio.Web.Controllers
                     userType = Certio.Domain.Users.UserTypes.LawFirm;
                     organizationRole = Certio.Domain.Users.OrganizationRoles.ManagingPartner;
                 }
-                else if (organizationType == "eventplanner")
-                {
-                    // Create new event planning organization
-                    var org = new Certio.Domain.Organizations.Organization
-                    {
-                        Name = organizationName ?? $"{firstName} {lastName}'s Event Planning Company",
-                        Description = "Event Planning Organization",
-                        OwnerId = customUser.Id,
-                        Type = Certio.Domain.Organizations.OrganizationType.EventPlanner,
-                        IsPersonal = false,
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow
-                    };
-                    _context.Organizations.Add(org);
-                    await _context.SaveChangesAsync();
-                    organizationId = org.Id;
-                    userType = Certio.Domain.Users.UserTypes.LawFirm; // Reuse LawFirm type
-                    organizationRole = Certio.Domain.Users.OrganizationRoles.ManagingPartner;
-                }
                 else
                 {
-                    // Create client organization (default)
+                    // Create new event planning organization (default for all new orgs)
                     var org = new Certio.Domain.Organizations.Organization
                     {
                         Name = organizationName ?? $"{firstName} {lastName}'s Organization",
-                        Description = "Client Organization",
+                        Description = "Event Planning Organization",
                         OwnerId = customUser.Id,
-                        Type = Certio.Domain.Organizations.OrganizationType.Client,
+                        Type = Certio.Domain.Organizations.OrganizationType.LawFirm,
                         IsPersonal = false,
                         IsActive = true,
                         CreatedAt = DateTime.UtcNow
@@ -943,8 +934,8 @@ namespace Certio.Web.Controllers
                     _context.Organizations.Add(org);
                     await _context.SaveChangesAsync();
                     organizationId = org.Id;
-                    userType = Certio.Domain.Users.UserTypes.Client;
-                    organizationRole = Certio.Domain.Users.OrganizationRoles.Owner;
+                    userType = Certio.Domain.Users.UserTypes.LawFirm;
+                    organizationRole = Certio.Domain.Users.OrganizationRoles.ManagingPartner;
                 }
 
                 // Add user to organization
@@ -1284,17 +1275,15 @@ namespace Certio.Web.Controllers
                     userType = Certio.Domain.Users.UserTypes.LawFirm;
                     organizationRole = Certio.Domain.Users.OrganizationRoles.ManagingPartner; // Law firm creator is Managing Partner
                 }
-                else if (organizationType == "eventplanner")
+                else
                 {
-                    // Create new event planning organization
-                    // NOTE: EventPlanner orgs use LawFirm UserType internally (aliasing approach)
-                    // The OrganizationType.EventPlanner determines UI display (Managing Director, Director, etc.)
+                    // Default: Create event planning organization (type 1)
                     var org = new Certio.Domain.Organizations.Organization
                     {
-                        Name = organizationName ?? $"{firstName} {lastName}'s Event Planning Company",
+                        Name = organizationName ?? $"{firstName} {lastName}'s Organization",
                         Description = "Event Planning Organization",
                         OwnerId = customUser.Id,
-                        Type = Certio.Domain.Organizations.OrganizationType.EventPlanner,
+                        Type = Certio.Domain.Organizations.OrganizationType.LawFirm,
                         IsPersonal = false,
                         IsActive = true,
                         CreatedAt = DateTime.UtcNow
@@ -1302,31 +1291,8 @@ namespace Certio.Web.Controllers
                     _context.Organizations.Add(org);
                     await _context.SaveChangesAsync();
                     organizationId = org.Id;
-                    userType = Certio.Domain.Users.UserTypes.LawFirm; // Reuse LawFirm type (aliasing)
-                    organizationRole = Certio.Domain.Users.OrganizationRoles.ManagingPartner; // Stored as ManagingPartner, displays as Managing Director
-                }
-                else
-                {
-                    // Default: Create client organization
-                    var org = new Certio.Domain.Organizations.Organization
-                    {
-                        Name = $"{firstName} {lastName}'s Organization",
-                        Description = "Client Organization",
-                        OwnerId = customUser.Id,
-                        Type = Certio.Domain.Organizations.OrganizationType.Client,
-                        IsPersonal = true,
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow
-                    };
-                    _context.Organizations.Add(org);
-                    await _context.SaveChangesAsync();
-                    organizationId = org.Id;
-                    userType = Certio.Domain.Users.UserTypes.Client;
-                    organizationRole = Certio.Domain.Users.OrganizationRoles.Owner;
-
-                    // Update user to reflect personal organization
-                    customUser.IsPersonalOrganization = true;
-                    _context.Users.Update(customUser);
+                    userType = Certio.Domain.Users.UserTypes.LawFirm;
+                    organizationRole = Certio.Domain.Users.OrganizationRoles.ManagingPartner;
                 }
 
                 // Add user to organization (check for existing membership first)
