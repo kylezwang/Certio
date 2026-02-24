@@ -168,7 +168,7 @@ namespace Certio.Application.Services
                 var matter = await _context.Matters
                     .Include(m => m.Assignments)
                     .Include(m => m.Permissions)
-                    .FirstOrDefaultAsync(m => m.Id == matterId);
+                    .FirstOrDefaultAsync(m => m.Id == matterId && !m.IsDeleted);
 
                 if (matter == null)
                 {
@@ -239,7 +239,7 @@ namespace Certio.Application.Services
             try
             {
                 var matter = await _context.Matters
-                    .FirstOrDefaultAsync(m => m.Id == matterId);
+                    .FirstOrDefaultAsync(m => m.Id == matterId && !m.IsDeleted);
 
                 if (matter == null)
                 {
@@ -258,10 +258,9 @@ namespace Certio.Application.Services
                     throw new UnauthorizedOperationException(userId, "delete", "Matter", "Lacks DeleteMatters permission");
                 }
 
-                // Soft delete by setting a deleted flag or status
-                // For now, we'll just remove it (hard delete)
-                // In production, you'd want to implement soft delete
-                _context.Matters.Remove(matter);
+                matter.IsDeleted = true;
+                matter.DeletedAt = DateTime.UtcNow;
+                matter.DeletedById = userId;
                 await _context.SaveChangesAsync();
 
                 // Audit log
@@ -292,7 +291,7 @@ namespace Certio.Application.Services
                     .Include(m => m.Permissions)
                         .ThenInclude(p => p.User)
                     .Include(m => m.TaskItems)
-                    .FirstOrDefaultAsync(m => m.Id == matterId);
+                    .FirstOrDefaultAsync(m => m.Id == matterId && !m.IsDeleted);
 
                 if (matter == null)
                 {
@@ -342,7 +341,7 @@ namespace Certio.Application.Services
                     .Include(m => m.Permissions)
                         .ThenInclude(p => p.User)
                     .Include(m => m.TaskItems)
-                    .Where(m => m.OrganizationId == organizationId);
+                    .Where(m => m.OrganizationId == organizationId && !m.IsDeleted);
 
                 // Apply access filtering based on membership type
                 var hasFirmAccess = await _permissionService.HasFirmBasedAccessAsync(userId, organizationId);
@@ -494,7 +493,7 @@ namespace Certio.Application.Services
             {
                 var matter = await _context.Matters
                     .Include(m => m.Assignments)
-                    .FirstOrDefaultAsync(m => m.Id == matterId);
+                    .FirstOrDefaultAsync(m => m.Id == matterId && !m.IsDeleted);
 
                 if (matter == null)
                 {
@@ -585,7 +584,7 @@ namespace Certio.Application.Services
             {
                 var matter = await _context.Matters
                     .Include(m => m.Assignments)
-                    .FirstOrDefaultAsync(m => m.Id == matterId);
+                    .FirstOrDefaultAsync(m => m.Id == matterId && !m.IsDeleted);
 
                 if (matter == null)
                 {
@@ -645,7 +644,7 @@ namespace Certio.Application.Services
             {
                 var matter = await _context.Matters
                     .Include(m => m.Permissions)
-                    .FirstOrDefaultAsync(m => m.Id == matterId);
+                    .FirstOrDefaultAsync(m => m.Id == matterId && !m.IsDeleted);
 
                 if (matter == null)
                 {
@@ -720,7 +719,7 @@ namespace Certio.Application.Services
             {
                 var matter = await _context.Matters
                     .Include(m => m.Permissions)
-                    .FirstOrDefaultAsync(m => m.Id == matterId);
+                    .FirstOrDefaultAsync(m => m.Id == matterId && !m.IsDeleted);
 
                 if (matter == null)
                 {

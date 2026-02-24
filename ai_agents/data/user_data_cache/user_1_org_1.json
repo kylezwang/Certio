@@ -2,28 +2,28 @@
   "user_id": 1,
   "organization_id": 1,
   "user_name": "Kyle Wang",
-  "total_chunks": 149,
-  "last_synced": "2026-02-10T03:01:52.446262",
+  "total_chunks": 148,
+  "last_synced": "2026-02-24T21:26:41.034207",
   "module_summaries": {
     "matters": {
-      "totalMatters": 29,
+      "totalMatters": 28,
       "activeMatters": 6,
-      "completedMatters": 4,
+      "completedMatters": 3,
       "practiceAreas": [
+        "Commercial Litigation",
+        "Securities / Mergers & Acquisitions",
+        "Corporate Litigation",
         "Wedding",
         "Festival",
         "Holiday Party",
         "Corporate Event",
         "Personal Injury",
         "Family",
-        "Commercial Litigation",
         "Criminal",
         "Construction",
         "Elder",
-        "Corporate Litigation",
         "Medical Malpractice",
         "Healthcare",
-        "Securities / Mergers & Acquisitions",
         "Wills & Estates",
         "Product Liability",
         "Employment / Labor",
@@ -35,9 +35,9 @@
     },
     "tasks": {
       "totalTasks": 35,
-      "pendingTasks": 14,
-      "inProgressTasks": 3,
-      "completedTasks": 8,
+      "pendingTasks": 13,
+      "inProgressTasks": 2,
+      "completedTasks": 11,
       "highPriorityTasks": 18
     },
     "communications": {
@@ -68,20 +68,104 @@
   },
   "chunks": [
     {
-      "id": "dd2680bb-e37a-43c9-a499-22a21fe4f342",
+      "id": "e417d7f0-2388-4eda-b939-d8ef40d2714e",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 28,
+      "title": "Executive Retreat at Tahoe",
+      "content": "=== MATTER: Executive Retreat at Tahoe ===\r\nMatter ID: 28\r\nClient/Organization: Apex Event Planning\r\nStatus: Planning\r\nEvent Type: Commercial Litigation\r\nDescription: Testing if new channel is created for client communications after matter creation. Channels are created now after matter creation in law firm organization.\r\nStart Date: 2025-10-14\r\nEvent Date: 2025-10-17\r\nFinal Payment Due: 2025-10-15\r\nVendor Confirmation: 2025-10-16\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\nCreated: 2025-10-15\r\nLast Modified: 2026-02-10\r\n",
+      "metadata": {
+        "matterId": 28,
+        "organizationId": 4,
+        "organizationName": "Apex Event Planning",
+        "status": "Planning",
+        "practiceArea": "Commercial Litigation",
+        "dueDate": "2025-10-17T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 0,
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall",
+          "Kyle Wang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-15T03:08:16.8780907",
+      "modified_at": "2026-02-10T03:13:29.3818631",
+      "relevance_score": 0
+    },
+    {
+      "id": "6bc566f1-d38a-4eef-9703-2da4cf4f3465",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 19,
+      "title": "Thompson Beach Ceremony & Reception",
+      "content": "=== MATTER: Thompson Beach Ceremony & Reception ===\r\nMatter ID: 19\r\nClient/Organization: Apex Event Planning\r\nStatus: Review\r\nEvent Type: Securities / Mergers & Acquisitions\r\nDescription: Testing new audit and compliance frameworks inside Certio.\r\nStart Date: 2025-10-13\r\nEvent Date: 2025-10-14\r\nFinal Payment Due: 2025-10-13\r\nVendor Confirmation: 2025-10-14\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - John Marshall (ResponsibleAttorney)\r\n  - Kyle Wang (ResponsibleStaff)\r\n  - John Marshall (OriginatingAttorney)\r\nCreated: 2025-10-13\r\nLast Modified: 2026-02-10\r\n",
+      "metadata": {
+        "matterId": 19,
+        "organizationId": 4,
+        "organizationName": "Apex Event Planning",
+        "status": "Review",
+        "practiceArea": "Securities / Mergers & Acquisitions",
+        "dueDate": "2025-10-14T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 0,
+        "assignees": [
+          "John Marshall",
+          "Kyle Wang",
+          "John Marshall"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-13T19:41:22.3798493",
+      "modified_at": "2026-02-10T03:13:10.5705376",
+      "relevance_score": 0
+    },
+    {
+      "id": "05a2bba8-b5fa-472f-be25-52de73b77baf",
+      "module_name": "matters",
+      "entity_type": "Matter",
+      "entity_id": 17,
+      "title": "Sarah & Michael's Garden Wedding",
+      "content": "=== MATTER: Sarah & Michael's Garden Wedding ===\r\nMatter ID: 17\r\nClient/Organization: Apex Event Planning\r\nStatus: Completed\r\nEvent Type: Corporate Litigation\r\nDescription: Here is the final test to check whether or not duplicate assignments are allowed for full auditability.\r\nStart Date: 2025-10-12\r\nEvent Date: 2025-10-13\r\nFinal Payment Due: 2025-10-12\r\nVendor Confirmation: 2025-10-13\r\nTasks Progress: 0/1 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\nCreated: 2025-10-12\r\nLast Modified: 2026-02-10\r\n",
+      "metadata": {
+        "matterId": 17,
+        "organizationId": 4,
+        "organizationName": "Apex Event Planning",
+        "status": "Completed",
+        "practiceArea": "Corporate Litigation",
+        "dueDate": "2025-10-13T00:00:00",
+        "tasksCompleted": 0,
+        "totalTasks": 1,
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall",
+          "Kyle Wang"
+        ],
+        "clientGoals": null,
+        "legalRequirements": null
+      },
+      "created_at": "2025-10-12T23:54:43.5042715",
+      "modified_at": "2026-02-10T03:13:03.2865945",
+      "relevance_score": 0
+    },
+    {
+      "id": "bcb95270-9427-48e8-ac32-f583d9150879",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 5,
       "title": "Daniel & Jessie's Wedding",
-      "content": "=== MATTER: Daniel & Jessie's Wedding ===\r\nMatter ID: 5\r\nClient/Organization: Apex Event Planning\r\nStatus: Review\r\nEvent Type: Wedding\r\nDescription: Wedding planning and execution for Daniel and Jessie, including timelines, vendors, and day-of coordination.\r\nStart Date: 2026-02-01\r\nEvent Date: 2026-02-01\r\nFinal Payment Due: 2026-02-10\r\nVendor Confirmation: 2026-01-30\r\nTasks Progress: 1/4 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\n  - Chloe Tang (OriginatingAttorney)\r\n  - Chloe Tang (ResponsibleAttorney)\r\n  - Chloe Tang (ResponsibleAttorney)\r\n  - Chloe Tang (ResponsibleStaff)\r\nCreated: 2025-09-30\r\nLast Modified: 2026-01-24\r\n",
+      "content": "=== MATTER: Daniel & Jessie's Wedding ===\r\nMatter ID: 5\r\nClient/Organization: Apex Event Planning\r\nStatus: Review\r\nEvent Type: Wedding\r\nDescription: Wedding planning and execution for Daniel and Jessie, including timelines, vendors, and day-of coordination.\r\nStart Date: 2026-02-20\r\nEvent Date: 2026-02-20\r\nFinal Payment Due: 2026-02-10\r\nVendor Confirmation: 2026-01-30\r\nTasks Progress: 4/4 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\n  - Chloe Tang (OriginatingAttorney)\r\n  - Chloe Tang (ResponsibleAttorney)\r\n  - Chloe Tang (ResponsibleAttorney)\r\n  - Chloe Tang (ResponsibleStaff)\r\nCreated: 2025-09-30\r\nLast Modified: 2026-02-10\r\n",
       "metadata": {
         "matterId": 5,
         "organizationId": 4,
         "organizationName": "Apex Event Planning",
         "status": "Review",
         "practiceArea": "Wedding",
-        "dueDate": "2026-02-01T20:00:00",
-        "tasksCompleted": 1,
+        "dueDate": "2026-02-20T20:00:00",
+        "tasksCompleted": 4,
         "totalTasks": 4,
         "assignees": [
           "Kyle Wang",
@@ -96,11 +180,11 @@
         "legalRequirements": null
       },
       "created_at": "2025-09-30T08:47:11.9083643",
-      "modified_at": "2026-01-24T20:37:00.3797927",
+      "modified_at": "2026-02-10T03:11:27.4630694",
       "relevance_score": 0
     },
     {
-      "id": "a42ac4fa-0fdf-4d22-9dda-be61e37b8b49",
+      "id": "440a3d58-683d-4987-aafc-24ff88d9b5f7",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 14,
@@ -132,7 +216,7 @@
       "relevance_score": 0
     },
     {
-      "id": "f02f074d-a493-4ce1-b67b-98e3fc824dfb",
+      "id": "d373b6a6-efa1-4725-b5f8-37364c5fa019",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 16,
@@ -160,7 +244,7 @@
       "relevance_score": 0
     },
     {
-      "id": "eeee4ee6-f403-437c-90d5-2a5146d06775",
+      "id": "48862ca2-7603-4ea2-8c0b-d5a809f833f9",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 15,
@@ -188,7 +272,7 @@
       "relevance_score": 0
     },
     {
-      "id": "2c6f7760-6a62-4de9-94b6-1b10bb165b0c",
+      "id": "1f3f64ea-840a-47a1-aa23-5f80580c8d9d",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 30,
@@ -216,7 +300,7 @@
       "relevance_score": 0
     },
     {
-      "id": "68fdca36-6947-4ad4-b9e4-88ca418237ef",
+      "id": "0ad78527-a703-43c0-a617-ffa70af5df00",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 29,
@@ -240,35 +324,7 @@
       "relevance_score": 0
     },
     {
-      "id": "94a3fbbf-3c17-436a-8da7-bb76bdfbdcc4",
-      "module_name": "matters",
-      "entity_type": "Matter",
-      "entity_id": 28,
-      "title": "Client Ready Communications II",
-      "content": "=== MATTER: Client Ready Communications II ===\r\nMatter ID: 28\r\nClient/Organization: Apex Event Planning\r\nStatus: Planning\r\nEvent Type: Commercial Litigation\r\nDescription: Testing if new channel is created for client communications after matter creation. Channels are created now after matter creation in law firm organization.\r\nStart Date: 2025-10-14\r\nEvent Date: 2025-10-17\r\nFinal Payment Due: 2025-10-15\r\nVendor Confirmation: 2025-10-16\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\nCreated: 2025-10-15\r\n",
-      "metadata": {
-        "matterId": 28,
-        "organizationId": 4,
-        "organizationName": "Apex Event Planning",
-        "status": "Planning",
-        "practiceArea": "Commercial Litigation",
-        "dueDate": "2025-10-17T00:00:00",
-        "tasksCompleted": 0,
-        "totalTasks": 0,
-        "assignees": [
-          "Kyle Wang",
-          "John Marshall",
-          "Kyle Wang"
-        ],
-        "clientGoals": null,
-        "legalRequirements": null
-      },
-      "created_at": "2025-10-15T03:08:16.8780907",
-      "modified_at": null,
-      "relevance_score": 0
-    },
-    {
-      "id": "ec194afd-7a5a-4591-8c00-c406591289df",
+      "id": "1b241308-24dd-4960-a58a-2f87cb678bb6",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 27,
@@ -296,7 +352,7 @@
       "relevance_score": 0
     },
     {
-      "id": "356aaed2-1f03-4e98-beff-af174b4d296e",
+      "id": "62f5d293-89b8-49f8-a607-58a45cd0439c",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 26,
@@ -324,7 +380,7 @@
       "relevance_score": 0
     },
     {
-      "id": "ce273e34-417d-4c09-bf24-e3efb85b7964",
+      "id": "7a031bfd-27aa-4c4f-8452-9bca1dc92e9e",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 25,
@@ -352,7 +408,7 @@
       "relevance_score": 0
     },
     {
-      "id": "5089bb07-2177-4fcc-a711-e152746c6114",
+      "id": "b2d971cf-e665-4504-b554-1af79ea48071",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 24,
@@ -380,7 +436,7 @@
       "relevance_score": 0
     },
     {
-      "id": "ed65d777-1949-436a-8f3b-903c983e52ab",
+      "id": "c0d8d09f-8b6f-48e9-9970-606a1066dbf6",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 23,
@@ -404,7 +460,7 @@
       "relevance_score": 0
     },
     {
-      "id": "a41d701f-55eb-4051-be77-cd13da3b2ee0",
+      "id": "a9abaffb-4acb-40ea-b127-e71e760a71a9",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 22,
@@ -432,7 +488,7 @@
       "relevance_score": 0
     },
     {
-      "id": "aa290407-f5c7-4d5c-82fb-e2d55e8ddd68",
+      "id": "26e29d5c-bb8d-400c-9b08-c02e1e3275f5",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 21,
@@ -460,7 +516,7 @@
       "relevance_score": 0
     },
     {
-      "id": "06710012-b29e-444a-b2e7-ab59ce7e3ec1",
+      "id": "1f2bcf75-9211-456c-822a-a566cacde257",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 20,
@@ -488,35 +544,7 @@
       "relevance_score": 0
     },
     {
-      "id": "655844b2-11ce-4352-a947-fc98b1f73bb9",
-      "module_name": "matters",
-      "entity_type": "Matter",
-      "entity_id": 19,
-      "title": "Audit Log Verification",
-      "content": "=== MATTER: Audit Log Verification ===\r\nMatter ID: 19\r\nClient/Organization: Apex Event Planning\r\nStatus: Review\r\nEvent Type: Securities / Mergers & Acquisitions\r\nDescription: Testing new audit and compliance frameworks inside Certio.\r\nStart Date: 2025-10-13\r\nEvent Date: 2025-10-14\r\nFinal Payment Due: 2025-10-13\r\nVendor Confirmation: 2025-10-14\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - John Marshall (ResponsibleAttorney)\r\n  - Kyle Wang (ResponsibleStaff)\r\n  - John Marshall (OriginatingAttorney)\r\nCreated: 2025-10-13\r\n",
-      "metadata": {
-        "matterId": 19,
-        "organizationId": 4,
-        "organizationName": "Apex Event Planning",
-        "status": "Review",
-        "practiceArea": "Securities / Mergers & Acquisitions",
-        "dueDate": "2025-10-14T00:00:00",
-        "tasksCompleted": 0,
-        "totalTasks": 0,
-        "assignees": [
-          "John Marshall",
-          "Kyle Wang",
-          "John Marshall"
-        ],
-        "clientGoals": null,
-        "legalRequirements": null
-      },
-      "created_at": "2025-10-13T19:41:22.3798493",
-      "modified_at": null,
-      "relevance_score": 0
-    },
-    {
-      "id": "fe0752ad-4170-4c89-a28d-8939aa9642c5",
+      "id": "42af9715-0128-47db-9b80-53faa5604889",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 18,
@@ -544,35 +572,7 @@
       "relevance_score": 0
     },
     {
-      "id": "26545811-fc3c-429f-a083-c9c51ea17372",
-      "module_name": "matters",
-      "entity_type": "Matter",
-      "entity_id": 17,
-      "title": "SLA V Finale",
-      "content": "=== MATTER: SLA V Finale ===\r\nMatter ID: 17\r\nClient/Organization: Apex Event Planning\r\nStatus: Completed\r\nEvent Type: Corporate Litigation\r\nDescription: Here is the final test to check whether or not duplicate assignments are allowed for full auditability.\r\nStart Date: 2025-10-12\r\nEvent Date: 2025-10-13\r\nFinal Payment Due: 2025-10-12\r\nVendor Confirmation: 2025-10-13\r\nTasks Progress: 0/1 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\nCreated: 2025-10-12\r\n",
-      "metadata": {
-        "matterId": 17,
-        "organizationId": 4,
-        "organizationName": "Apex Event Planning",
-        "status": "Completed",
-        "practiceArea": "Corporate Litigation",
-        "dueDate": "2025-10-13T00:00:00",
-        "tasksCompleted": 0,
-        "totalTasks": 1,
-        "assignees": [
-          "Kyle Wang",
-          "John Marshall",
-          "Kyle Wang"
-        ],
-        "clientGoals": null,
-        "legalRequirements": null
-      },
-      "created_at": "2025-10-12T23:54:43.5042715",
-      "modified_at": null,
-      "relevance_score": 0
-    },
-    {
-      "id": "57b51db5-d79d-4251-b26d-6fead9cc1bc9",
+      "id": "e98539af-9435-4d94-9fe2-ab287f75b75f",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 13,
@@ -596,36 +596,7 @@
       "relevance_score": 0
     },
     {
-      "id": "8f419283-8179-4ae3-9a85-f2806171eaf5",
-      "module_name": "matters",
-      "entity_type": "Matter",
-      "entity_id": 12,
-      "title": "Redundant Extermination Corporation",
-      "content": "=== MATTER: Redundant Extermination Corporation ===\r\nMatter ID: 12\r\nClient/Organization: Atlas Events Group\r\nStatus: Completed\r\nEvent Type: Healthcare\r\nDescription: This is an example matter for cleaning up matter creation.\r\nStart Date: 2025-10-11\r\nEvent Date: 2025-10-11\r\nFinal Payment Due: 2025-10-11\r\nVendor Confirmation: 2025-10-11\r\nTasks Progress: 0/0 tasks completed\r\nTeam Members:\r\n  - Kyle Wang (ResponsibleAttorney)\r\n  - John Marshall (ResponsibleStaff)\r\n  - Kyle Wang (OriginatingAttorney)\r\n  - David Wang (RelevantContact)\r\nCreated: 2025-10-12\r\n",
-      "metadata": {
-        "matterId": 12,
-        "organizationId": 1,
-        "organizationName": "Atlas Events Group",
-        "status": "Completed",
-        "practiceArea": "Healthcare",
-        "dueDate": "2025-10-11T00:00:00",
-        "tasksCompleted": 0,
-        "totalTasks": 0,
-        "assignees": [
-          "Kyle Wang",
-          "John Marshall",
-          "Kyle Wang",
-          "David Wang"
-        ],
-        "clientGoals": null,
-        "legalRequirements": null
-      },
-      "created_at": "2025-10-12T04:37:21.2721969",
-      "modified_at": null,
-      "relevance_score": 0
-    },
-    {
-      "id": "4f74f791-99e2-4a5f-94af-5fa0382ef222",
+      "id": "2f034d5c-ac94-4309-bbbb-86e3a647cf1e",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 11,
@@ -654,7 +625,7 @@
       "relevance_score": 0
     },
     {
-      "id": "eea6b348-34b5-420f-885c-493c3f67d164",
+      "id": "191272d7-b86f-4da6-8ae0-eee85537815c",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 10,
@@ -683,7 +654,7 @@
       "relevance_score": 0
     },
     {
-      "id": "ba2ca258-1157-42be-afad-1ddafe2edd4d",
+      "id": "582de634-b45a-4d2e-8351-a33691c2862d",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 9,
@@ -712,7 +683,7 @@
       "relevance_score": 0
     },
     {
-      "id": "c565c485-28bf-4ba2-af00-1a61867b6341",
+      "id": "30c20213-0c29-426f-be07-273ec5ddb227",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 8,
@@ -741,7 +712,7 @@
       "relevance_score": 0
     },
     {
-      "id": "2debf071-0e9b-4c9f-807e-f2a7139ad38d",
+      "id": "b54dd1fc-2843-4f55-ba91-ec27815fb458",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 7,
@@ -770,7 +741,7 @@
       "relevance_score": 0
     },
     {
-      "id": "356cc4b1-927f-4c69-88ed-bcc07fbab94f",
+      "id": "acf7177a-6e2a-4312-bbe6-fb51313c2b42",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 6,
@@ -799,7 +770,7 @@
       "relevance_score": 0
     },
     {
-      "id": "147ae030-69d4-4713-91c3-b96ddb0382b7",
+      "id": "79b6f45f-2fde-44a5-a3ab-8e462de4a67c",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 4,
@@ -828,7 +799,7 @@
       "relevance_score": 0
     },
     {
-      "id": "b66f5555-440b-40ed-a765-7c083c7038c8",
+      "id": "f1cc7a61-b629-4d54-9a24-68a70e2e6780",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 2,
@@ -857,7 +828,7 @@
       "relevance_score": 0
     },
     {
-      "id": "56e90d23-2eef-44b2-a892-82352c4441b5",
+      "id": "d21c2d07-a16d-45ed-b4a4-60cea4832206",
       "module_name": "matters",
       "entity_type": "Matter",
       "entity_id": 1,
@@ -886,12 +857,248 @@
       "relevance_score": 0
     },
     {
-      "id": "a571f541-7854-410d-b066-22d20b0d84c1",
+      "id": "7ef4abda-9765-41a3-a7be-f7cc28e6f146",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 10,
+      "title": "Confirm vendor backup equipment availability",
+      "content": "Task: Confirm vendor backup equipment availability\r\nStatus: Completed\r\nPriority: Low\r\nDescription: This is the second Visible Matters task to test whether or not the pre-assignee permission system is implemented.\r\nRelated Matter: Daniel & Jessie's Wedding\r\nEvent Date: 2025-10-10\r\nAssigned to: Kyle Wang, Chloe Tang, John Marshall\r\n",
+      "metadata": {
+        "status": "Completed",
+        "priority": "Low",
+        "dueDate": "2025-10-10T00:00:00",
+        "matterId": 5,
+        "matterTitle": "Daniel & Jessie's Wedding",
+        "assignees": [
+          "Kyle Wang",
+          "Chloe Tang",
+          "John Marshall"
+        ]
+      },
+      "created_at": "2025-10-09T07:01:15.9612594",
+      "modified_at": "2026-02-10T03:11:08.5564122",
+      "relevance_score": 0
+    },
+    {
+      "id": "3944e751-57f9-4560-b8d0-1635b9a57331",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 9,
+      "title": "Create rain plan for outdoor ceremony",
+      "content": "Task: Create rain plan for outdoor ceremony\r\nStatus: Completed\r\nPriority: Critical\r\nDescription: Here's the first example Visible Matters task. Example revision.\r\nRelated Matter: Daniel & Jessie's Wedding\r\nEvent Date: 2025-10-08\r\nAssigned to: Kyle Wang, John Marshall\r\n",
+      "metadata": {
+        "status": "Completed",
+        "priority": "Critical",
+        "dueDate": "2025-10-08T00:00:00",
+        "matterId": 5,
+        "matterTitle": "Daniel & Jessie's Wedding",
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall"
+        ]
+      },
+      "created_at": "2025-10-09T06:23:14.651272",
+      "modified_at": "2026-02-10T03:10:59.3073",
+      "relevance_score": 0
+    },
+    {
+      "id": "589a9afe-be51-4400-987f-c379bc2fa46e",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 20,
+      "title": "Coordinate welcome party vendor setup",
+      "content": "Task: Coordinate welcome party vendor setup\r\nStatus: Completed\r\nPriority: Critical\r\nDescription: The service layer architecture finale test.\r\nRelated Matter: SLA\r\nEvent Date: 2025-10-12\r\nAssigned to: Kyle Wang, John Marshall\r\n",
+      "metadata": {
+        "status": "Completed",
+        "priority": "Critical",
+        "dueDate": "2025-10-12T00:00:00",
+        "matterId": 18,
+        "matterTitle": "SLA",
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall"
+        ]
+      },
+      "created_at": "2025-10-13T04:57:28.545631",
+      "modified_at": "2026-02-10T03:10:09.9190631",
+      "relevance_score": 0
+    },
+    {
+      "id": "7e6d6b40-9d91-4d79-a01d-e01294e97a59",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 12,
+      "title": "Archive couple's design inspiration photos",
+      "content": "Task: Archive couple's design inspiration photos\r\nStatus: Completed\r\nPriority: Medium\r\nDescription: Fall 2025 quarter\nProfessor: Zhou Li\nTAs: Chengheng Lyu, Xuesong Bai, Xun Li\nFinal Grade: ?\r\nRelated Matter: Kyle's University Education\r\nEvent Date: 2025-12-12\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Completed",
+        "priority": "Medium",
+        "dueDate": "2025-12-12T00:00:00",
+        "matterId": 11,
+        "matterTitle": "Kyle's University Education",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-10-09T07:31:26.514444",
+      "modified_at": "2026-02-10T03:09:53.0164529",
+      "relevance_score": 0
+    },
+    {
+      "id": "c0cbe1cf-b0e0-47bc-8029-213dd1b9b63f",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 14,
+      "title": "Create emergency contact list for day-of",
+      "content": "Task: Create emergency contact list for day-of\r\nStatus: Completed\r\nPriority: Low\r\nDescription: Fall 2025 quarter\nProfessor: Salma Elmalaki\nTAs: tzhao15@uci.edu, yashuow@uci.edu\nFinal Grade: ?\r\nRelated Matter: Kyle's University Education\r\nEvent Date: 2025-12-12\r\nAssigned to: Kyle Wang, Chloe Tang\r\n",
+      "metadata": {
+        "status": "Completed",
+        "priority": "Low",
+        "dueDate": "2025-12-12T00:00:00",
+        "matterId": 11,
+        "matterTitle": "Kyle's University Education",
+        "assignees": [
+          "Kyle Wang",
+          "Chloe Tang"
+        ]
+      },
+      "created_at": "2025-10-09T07:38:21.6348772",
+      "modified_at": "2026-02-10T03:09:37.0257987",
+      "relevance_score": 0
+    },
+    {
+      "id": "e482b33e-f958-4233-b81c-ccf50c13cfdb",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 7,
+      "title": "Schedule cake cutting + bouquet toss timing",
+      "content": "Task: Schedule cake cutting + bouquet toss timing\r\nStatus: Completed\r\nPriority: Critical\r\nDescription: This is an example task to check if the new Assignees implementation and Matters scoping works properly.\r\nRelated Matter: David's New Matter\r\nEvent Date: 2025-10-07\r\nAssigned to: Kyle Wang, John Marshall, Chloe Tang\r\n",
+      "metadata": {
+        "status": "Completed",
+        "priority": "Critical",
+        "dueDate": "2025-10-07T00:00:00",
+        "matterId": 10,
+        "matterTitle": "David's New Matter",
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall",
+          "Chloe Tang"
+        ]
+      },
+      "created_at": "2025-10-07T07:20:12.2370488",
+      "modified_at": "2026-02-10T03:09:20.0100934",
+      "relevance_score": 0
+    },
+    {
+      "id": "06fcebc1-ad51-4e89-9e71-b187a6863afc",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 5,
+      "title": "Plan grand entrance + first dance timing",
+      "content": "Task: Plan grand entrance + first dance timing\r\nStatus: Completed\r\nPriority: Critical\r\nDescription: This is an example task for Sesame Street LLC\r\nRelated Matter: Sesame Street LLC\r\nEvent Date: 2025-10-14\r\n",
+      "metadata": {
+        "status": "Completed",
+        "priority": "Critical",
+        "dueDate": "2025-10-14T00:00:00",
+        "matterId": 2,
+        "matterTitle": "Sesame Street LLC",
+        "assignees": []
+      },
+      "created_at": "2025-10-05T03:23:12.9938417",
+      "modified_at": "2026-02-10T03:09:06.6392282",
+      "relevance_score": 0
+    },
+    {
+      "id": "c36ac818-5e97-40cf-8a26-db5967cb57ef",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 2,
+      "title": "Confirm kids menu count with caterer",
+      "content": "Task: Confirm kids menu count with caterer\r\nStatus: Completed\r\nPriority: Medium\r\nDescription: The first task added into the Certio desktop development database! Here's a test update. Another test update.\r\nRelated Matter: Brand New Day Document Review\r\nEvent Date: 2025-10-05\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Completed",
+        "priority": "Medium",
+        "dueDate": "2025-10-05T00:00:00",
+        "matterId": 9,
+        "matterTitle": "Brand New Day Document Review",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-10-04T11:40:34.087416",
+      "modified_at": "2026-02-10T03:08:57.4719411",
+      "relevance_score": 0
+    },
+    {
+      "id": "9f3fad84-916a-423c-9758-031b8ced1453",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 18,
+      "title": "Create name cards for place settings",
+      "content": "Task: Create name cards for place settings\r\nStatus: Completed\r\nPriority: High\r\nDescription: Example task to check whether the task assignments work and also if the Subtasks get displayed properly.\r\nRelated Matter: Chen Family Lunar New Year Celebration\r\nEvent Date: 2025-10-13\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Completed",
+        "priority": "High",
+        "dueDate": "2025-10-13T00:00:00",
+        "matterId": 16,
+        "matterTitle": "Chen Family Lunar New Year Celebration",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-10-13T01:26:54.9097378",
+      "modified_at": "2026-02-10T03:08:49.1912031",
+      "relevance_score": 0
+    },
+    {
+      "id": "ca9d2c92-c986-4a60-8e6a-866afc1c1157",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 11,
+      "title": "Process late RSVPs + update headcount",
+      "content": "Task: Process late RSVPs + update headcount\r\nStatus: Review\r\nPriority: Medium\r\nDescription: Fall 2025 quarter\nProfessor: zhiying@uci.edu\nTAs: ruijied@uci.edu, weishil1@uci.edu\nFinal Grade: ?\r\nRelated Matter: Kyle's University Education\r\nEvent Date: 2025-12-12\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Review",
+        "priority": "Medium",
+        "dueDate": "2025-12-12T00:00:00",
+        "matterId": 11,
+        "matterTitle": "Kyle's University Education",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-10-09T07:27:49.2459413",
+      "modified_at": "2026-02-10T03:08:40.0925018",
+      "relevance_score": 0
+    },
+    {
+      "id": "e54e5310-c395-4470-9525-dac45a7df9f6",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 42,
+      "title": "Update seating chart with dietary restrictions",
+      "content": "Task: Update seating chart with dietary restrictions\r\nStatus: Review\r\nPriority: Medium\r\nRelated Matter: HK Desktop Recoveries LLC\r\nEvent Date: 2025-12-21\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Review",
+        "priority": "Medium",
+        "dueDate": "2025-12-21T00:00:00",
+        "matterId": 1,
+        "matterTitle": "HK Desktop Recoveries LLC",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-12-19T01:13:18.6756316",
+      "modified_at": "2026-02-10T03:08:28.7476118",
+      "relevance_score": 0
+    },
+    {
+      "id": "f9041262-75fe-4d19-9bb9-04a690fd16c4",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 43,
-      "title": "Duplicate testing",
-      "content": "Task: Duplicate testing\r\nStatus: Review\r\nPriority: Medium\r\nRelated Matter: HK Desktop Recoveries LLC\r\nEvent Date: 2026-01-03\r\nAssigned to: Kyle Wang\r\n",
+      "title": "Send RSVP deadline reminder to stragglers",
+      "content": "Task: Send RSVP deadline reminder to stragglers\r\nStatus: Review\r\nPriority: Medium\r\nRelated Matter: HK Desktop Recoveries LLC\r\nEvent Date: 2026-01-03\r\nAssigned to: Kyle Wang\r\n",
       "metadata": {
         "status": "Review",
         "priority": "Medium",
@@ -903,16 +1110,330 @@
         ]
       },
       "created_at": "2026-01-01T00:59:00.7269396",
-      "modified_at": null,
+      "modified_at": "2026-02-10T03:08:21.1284186",
       "relevance_score": 0
     },
     {
-      "id": "482077c1-020a-4eeb-9ee2-7e4bacfe7fcd",
+      "id": "daaefc97-b40f-49e2-b2a7-9261eed39268",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 6,
+      "title": "Verify cocktail hour location with venue",
+      "content": "Task: Verify cocktail hour location with venue\r\nStatus: Review\r\nPriority: Low\r\nDescription: This is a demo task for David's Matter\r\nRelated Matter: David's New Matter\r\nEvent Date: 2025-10-15\r\nAssigned to: David Wang\r\n",
+      "metadata": {
+        "status": "Review",
+        "priority": "Low",
+        "dueDate": "2025-10-15T00:00:00",
+        "matterId": 10,
+        "matterTitle": "David's New Matter",
+        "assignees": [
+          "David Wang"
+        ]
+      },
+      "created_at": "2025-10-06T01:18:06.32427",
+      "modified_at": "2026-02-10T03:08:04.7596767",
+      "relevance_score": 0
+    },
+    {
+      "id": "2695737c-9c0a-4d57-9322-befb4453300e",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 17,
+      "title": "Send venue floor plan to rental company",
+      "content": "Task: Send venue floor plan to rental company\r\nStatus: Review\r\nPriority: Critical\r\nDescription: Testing task creation for clients through organization relationships.\r\nRelated Matter: Sarah & Michael's Garden Wedding\r\nEvent Date: 2025-10-13\r\n",
+      "metadata": {
+        "status": "Review",
+        "priority": "Critical",
+        "dueDate": "2025-10-13T00:00:00",
+        "matterId": 17,
+        "matterTitle": "Sarah & Michael's Garden Wedding",
+        "assignees": []
+      },
+      "created_at": "2025-10-13T01:04:49.3782262",
+      "modified_at": "2026-02-10T03:07:57.4120265",
+      "relevance_score": 0
+    },
+    {
+      "id": "34d66e0b-e86e-48b9-9c6e-0325c427604f",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 23,
+      "title": "Confirm venue overtime rates & cutoff time",
+      "content": "Task: Confirm venue overtime rates & cutoff time\r\nStatus: Review\r\nPriority: Critical\r\nDescription: A complex task for security layer architecture to demo the tasks and work feature.\r\nRelated Matter: Intro Client Matter\r\nEvent Date: 2025-11-02\r\nAssigned to: Kyle Wang, John Marshall\r\n",
+      "metadata": {
+        "status": "Review",
+        "priority": "Critical",
+        "dueDate": "2025-11-02T00:00:00",
+        "matterId": 30,
+        "matterTitle": "Intro Client Matter",
+        "assignees": [
+          "Kyle Wang",
+          "John Marshall"
+        ]
+      },
+      "created_at": "2025-10-30T23:53:12.874957",
+      "modified_at": "2026-02-10T03:07:51.0698403",
+      "relevance_score": 0
+    },
+    {
+      "id": "3e3d6bc8-0637-4bec-bfcb-d981960254fc",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 15,
+      "title": "Verify parking instructions for vendors",
+      "content": "Task: Verify parking instructions for vendors\r\nStatus: Completed\r\nPriority: Critical\r\nDescription: The third Visible Matters task to check whether or not adding new matter-scoped tasks still works after UI polish.\r\nRelated Matter: Daniel & Jessie's Wedding\r\nEvent Date: 2025-10-10\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Completed",
+        "priority": "Critical",
+        "dueDate": "2025-10-10T00:00:00",
+        "matterId": 5,
+        "matterTitle": "Daniel & Jessie's Wedding",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-10-09T22:36:30.1964673",
+      "modified_at": "2026-02-10T03:07:44.9130453",
+      "relevance_score": 0
+    },
+    {
+      "id": "92ac8061-7616-49e0-8bbd-60246f271bf0",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 40,
+      "title": "Send load-in schedule to venue manager",
+      "content": "Task: Send load-in schedule to venue manager\r\nStatus: Pending\r\nPriority: Medium\r\nRelated Matter: HK Desktop Recoveries LLC\r\nEvent Date: 2025-12-21\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Pending",
+        "priority": "Medium",
+        "dueDate": "2025-12-21T00:00:00",
+        "matterId": 1,
+        "matterTitle": "HK Desktop Recoveries LLC",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-12-19T00:42:00.2169498",
+      "modified_at": "2026-02-10T03:07:26.1355626",
+      "relevance_score": 0
+    },
+    {
+      "id": "c4576e05-9010-4dcd-a8ca-b8dcd365ef66",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 41,
+      "title": "Confirm ceremony start time with venue coordinator",
+      "content": "Task: Confirm ceremony start time with venue coordinator\r\nStatus: Pending\r\nPriority: Medium\r\nRelated Matter: HK Desktop Recoveries LLC\r\nEvent Date: 2025-12-21\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Pending",
+        "priority": "Medium",
+        "dueDate": "2025-12-21T00:00:00",
+        "matterId": 1,
+        "matterTitle": "HK Desktop Recoveries LLC",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-12-19T00:48:22.0639616",
+      "modified_at": "2026-02-10T03:07:19.5675035",
+      "relevance_score": 0
+    },
+    {
+      "id": "3417fce5-69b6-4c37-a0cb-0c69e9dbce66",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 25,
+      "title": "Review day-of timeline with bride & groom",
+      "content": "Task: Review day-of timeline with bride & groom\r\nStatus: Pending\r\nPriority: Medium\r\nDescription: This task is to ensure the successful completion of the initial agent task.\r\nRelated Matter: HK Desktop Recoveries LLC\r\nEvent Date: 2025-10-20\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Pending",
+        "priority": "Medium",
+        "dueDate": "2025-10-20T00:00:00",
+        "matterId": 1,
+        "matterTitle": "HK Desktop Recoveries LLC",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-12-15T05:02:00.7712615",
+      "modified_at": "2026-02-10T03:07:08.6171205",
+      "relevance_score": 0
+    },
+    {
+      "id": "0aa820c9-f616-4882-a217-740afefd1c1c",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 38,
+      "title": "Confirm honeymoon suite reservation details",
+      "content": "Task: Confirm honeymoon suite reservation details\r\nStatus: Pending\r\nPriority: Medium\r\nRelated Matter: Ready Communications LLC\r\nEvent Date: 2025-12-19\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Pending",
+        "priority": "Medium",
+        "dueDate": "2025-12-19T00:00:00",
+        "matterId": 24,
+        "matterTitle": "Ready Communications LLC",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-12-19T00:27:58.7357033",
+      "modified_at": "2026-02-10T03:07:00.9244459",
+      "relevance_score": 0
+    },
+    {
+      "id": "c1b6df82-97eb-4616-bf77-d0d7a174fe1b",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 39,
+      "title": "Send ceremony rehearsal schedule to wedding party",
+      "content": "Task: Send ceremony rehearsal schedule to wedding party\r\nStatus: Pending\r\nPriority: Medium\r\nRelated Matter: HK Desktop Recoveries LLC\r\nEvent Date: 2025-12-20\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Pending",
+        "priority": "Medium",
+        "dueDate": "2025-12-20T00:00:00",
+        "matterId": 1,
+        "matterTitle": "HK Desktop Recoveries LLC",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-12-19T00:31:39.1839734",
+      "modified_at": "2026-02-10T03:06:54.3352323",
+      "relevance_score": 0
+    },
+    {
+      "id": "c341c13b-a1aa-4c21-b00a-9810a0f4747d",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 29,
+      "title": "Send final headcount confirmation to bride",
+      "content": "Task: Send final headcount confirmation to bride\r\nStatus: Pending\r\nPriority: High\r\nDescription: Complete the analysis and design for the soldering technology and RC circuits as outlined in Lab 2.\r\nRelated Matter: HK Desktop Recoveries LLC\r\nEvent Date: 2025-02-19\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Pending",
+        "priority": "High",
+        "dueDate": "2025-02-19T00:00:00",
+        "matterId": 1,
+        "matterTitle": "HK Desktop Recoveries LLC",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-12-15T06:16:55.4787005",
+      "modified_at": "2026-02-10T03:06:41.0229048",
+      "relevance_score": 0
+    },
+    {
+      "id": "86aaa55b-ca7e-4d4e-88b9-878e5af387d0",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 37,
+      "title": "Confirm honeymoon suite reservation details",
+      "content": "Task: Confirm honeymoon suite reservation details\r\nStatus: Pending\r\nPriority: Medium\r\nDescription: This task involves the progress report for the EECS 50 project, focusing on designing a digital low-pass filter system to remove high-frequency noise using AI. The project aims to understand the performance of traditional discrete-time systems in comparison to modern learned filters. Key components include: 1. Background & Motivation: Understanding the impact of high-frequency noise in applications like DSP. 2. Problem Definition: Implementing FIR filters and comparing performance with AI methods. 3. Expected Results: Evaluating the effectiveness of both FIR and AI approaches in noise reduction. Group Members: Kyle Wang and Isaac Mays, with task breakdowns specified in the project report.\r\nRelated Matter: Sesame Street LLC\r\nEvent Date: 2025-12-18\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Pending",
+        "priority": "Medium",
+        "dueDate": "2025-12-18T00:00:00",
+        "matterId": 2,
+        "matterTitle": "Sesame Street LLC",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-12-18T00:08:00.7859096",
+      "modified_at": "2026-02-10T03:06:33.2890844",
+      "relevance_score": 0
+    },
+    {
+      "id": "5facb9bf-6ad7-4a29-a243-d042bb3bd67b",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 30,
+      "title": "Confirm officiant ceremony script revisions",
+      "content": "Task: Confirm officiant ceremony script revisions\r\nStatus: Pending\r\nPriority: Medium\r\nDescription: General task for EECS 50.\r\nRelated Matter: Sesame Street LLC\r\nEvent Date: 2025-10-13\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Pending",
+        "priority": "Medium",
+        "dueDate": "2025-10-13T00:00:00",
+        "matterId": 2,
+        "matterTitle": "Sesame Street LLC",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-12-15T06:19:00.3835466",
+      "modified_at": "2026-02-10T03:06:26.3181063",
+      "relevance_score": 0
+    },
+    {
+      "id": "2c349fb4-37b0-4cd1-9f4f-d657301be6ae",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 28,
+      "title": "Verify rental delivery window with venue",
+      "content": "Task: Verify rental delivery window with venue\r\nStatus: Pending\r\nPriority: High\r\nDescription: Conduct further analysis on the RISC-V single cycle processor design and prepare for presentation.\r\nRelated Matter: HK Desktop Recoveries LLC\r\nEvent Date: 2025-03-15\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Pending",
+        "priority": "High",
+        "dueDate": "2025-03-15T00:00:00",
+        "matterId": 1,
+        "matterTitle": "HK Desktop Recoveries LLC",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-12-15T05:58:58.2195286",
+      "modified_at": "2026-02-10T03:06:19.479969",
+      "relevance_score": 0
+    },
+    {
+      "id": "fda3cf60-ab0b-4fa9-a074-88c3f7aa2ae3",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 27,
+      "title": "Verify bartender liquor order quantities",
+      "content": "Task: Verify bartender liquor order quantities\r\nStatus: Pending\r\nPriority: High\r\nDescription: Complete the design and analysis for the RISC-V single cycle processor as outlined in Lab 4.\r\nRelated Matter: HK Desktop Recoveries LLC\r\nEvent Date: 2025-03-10\r\nAssigned to: Kyle Wang\r\n",
+      "metadata": {
+        "status": "Pending",
+        "priority": "High",
+        "dueDate": "2025-03-10T00:00:00",
+        "matterId": 1,
+        "matterTitle": "HK Desktop Recoveries LLC",
+        "assignees": [
+          "Kyle Wang"
+        ]
+      },
+      "created_at": "2025-12-15T05:23:55.9827632",
+      "modified_at": "2026-02-10T03:06:10.8965549",
+      "relevance_score": 0
+    },
+    {
+      "id": "a6c8fe88-a398-4c6b-8099-1f27cd650f27",
+      "module_name": "tasks",
+      "entity_type": "Task",
+      "entity_id": 8,
+      "title": "Send DJ final timeline + special song list",
+      "content": "Task: Send DJ final timeline + special song list\r\nStatus: Review\r\nPriority: Medium\r\nDescription: for misbehaving\r\nRelated Matter: Cane's Paradise Formation\r\nEvent Date: 2025-10-11\r\nAssigned to: Chloe Tang\r\n",
+      "metadata": {
+        "status": "Review",
+        "priority": "Medium",
+        "dueDate": "2025-10-11T00:00:00",
+        "matterId": 4,
+        "matterTitle": "Cane's Paradise Formation",
+        "assignees": [
+          "Chloe Tang"
+        ]
+      },
+      "created_at": "2025-10-08T04:39:54.5862528",
+      "modified_at": "2026-02-10T03:05:48.3416818",
+      "relevance_score": 0
+    },
+    {
+      "id": "40d8ebfd-cf8a-4f3a-9a67-de931a5b5d35",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 19,
-      "title": "Second SLA IV Task",
-      "content": "Task: Second SLA IV Task\r\nStatus: Review\r\nPriority: Critical\r\nDescription: This is a test to check whether tasks can be created for a client organization within the law firm organization.\r\nRelated Matter: Chen Family Lunar New Year Celebration\r\nEvent Date: 2025-12-31\r\nAssigned to: Kyle Wang, John Marshall\r\n",
+      "title": "Review photographer shot list with couple",
+      "content": "Task: Review photographer shot list with couple\r\nStatus: Review\r\nPriority: Critical\r\nDescription: This is a test to check whether tasks can be created for a client organization within the law firm organization.\r\nRelated Matter: Chen Family Lunar New Year Celebration\r\nEvent Date: 2025-12-31\r\nAssigned to: Kyle Wang, John Marshall\r\n",
       "metadata": {
         "status": "Review",
         "priority": "Critical",
@@ -925,268 +1446,16 @@
         ]
       },
       "created_at": "2025-10-13T01:28:18.313094",
-      "modified_at": "2025-12-31T23:09:58.9937648",
+      "modified_at": "2026-02-10T03:05:38.8517417",
       "relevance_score": 0
     },
     {
-      "id": "dfd8d980-e0cb-44e6-813b-1b0d6e86c83c",
-      "module_name": "tasks",
-      "entity_type": "Task",
-      "entity_id": 25,
-      "title": "Kyle's First Agent Task",
-      "content": "Task: Kyle's First Agent Task\r\nStatus: Pending\r\nPriority: Medium\r\nDescription: This task is to ensure the successful completion of the initial agent task.\r\nRelated Matter: HK Desktop Recoveries LLC\r\nEvent Date: 2025-10-20\r\nAssigned to: Kyle Wang\r\n",
-      "metadata": {
-        "status": "Pending",
-        "priority": "Medium",
-        "dueDate": "2025-10-20T00:00:00",
-        "matterId": 1,
-        "matterTitle": "HK Desktop Recoveries LLC",
-        "assignees": [
-          "Kyle Wang"
-        ]
-      },
-      "created_at": "2025-12-15T05:02:00.7712615",
-      "modified_at": "2025-12-31T22:47:28.6647508",
-      "relevance_score": 0
-    },
-    {
-      "id": "7e1e7c96-5e04-47db-87d5-7f1335d5554f",
-      "module_name": "tasks",
-      "entity_type": "Task",
-      "entity_id": 42,
-      "title": "Connect with Coby LinkedIn",
-      "content": "Task: Connect with Coby LinkedIn\r\nStatus: Review\r\nPriority: Medium\r\nRelated Matter: HK Desktop Recoveries LLC\r\nEvent Date: 2025-12-21\r\nAssigned to: Kyle Wang\r\n",
-      "metadata": {
-        "status": "Review",
-        "priority": "Medium",
-        "dueDate": "2025-12-21T00:00:00",
-        "matterId": 1,
-        "matterTitle": "HK Desktop Recoveries LLC",
-        "assignees": [
-          "Kyle Wang"
-        ]
-      },
-      "created_at": "2025-12-19T01:13:18.6756316",
-      "modified_at": null,
-      "relevance_score": 0
-    },
-    {
-      "id": "5cb9a226-7189-4800-83c8-e6d7b118c1aa",
-      "module_name": "tasks",
-      "entity_type": "Task",
-      "entity_id": 41,
-      "title": "Chloe's shift ends",
-      "content": "Task: Chloe's shift ends\r\nStatus: Pending\r\nPriority: Medium\r\nRelated Matter: HK Desktop Recoveries LLC\r\nEvent Date: 2025-12-21\r\nAssigned to: Kyle Wang\r\n",
-      "metadata": {
-        "status": "Pending",
-        "priority": "Medium",
-        "dueDate": "2025-12-21T00:00:00",
-        "matterId": 1,
-        "matterTitle": "HK Desktop Recoveries LLC",
-        "assignees": [
-          "Kyle Wang"
-        ]
-      },
-      "created_at": "2025-12-19T00:48:22.0639616",
-      "modified_at": null,
-      "relevance_score": 0
-    },
-    {
-      "id": "212a3741-838e-478b-b5d7-fac1e73717ea",
-      "module_name": "tasks",
-      "entity_type": "Task",
-      "entity_id": 40,
-      "title": "Check PC fix",
-      "content": "Task: Check PC fix\r\nStatus: Pending\r\nPriority: Medium\r\nRelated Matter: HK Desktop Recoveries LLC\r\nEvent Date: 2025-12-21\r\nAssigned to: Kyle Wang\r\n",
-      "metadata": {
-        "status": "Pending",
-        "priority": "Medium",
-        "dueDate": "2025-12-21T00:00:00",
-        "matterId": 1,
-        "matterTitle": "HK Desktop Recoveries LLC",
-        "assignees": [
-          "Kyle Wang"
-        ]
-      },
-      "created_at": "2025-12-19T00:42:00.2169498",
-      "modified_at": null,
-      "relevance_score": 0
-    },
-    {
-      "id": "01ba025d-91c1-43f8-88b7-4e710b90c91a",
-      "module_name": "tasks",
-      "entity_type": "Task",
-      "entity_id": 39,
-      "title": "Follow up with Coby",
-      "content": "Task: Follow up with Coby\r\nStatus: Pending\r\nPriority: Medium\r\nRelated Matter: HK Desktop Recoveries LLC\r\nEvent Date: 2025-12-20\r\nAssigned to: Kyle Wang\r\n",
-      "metadata": {
-        "status": "Pending",
-        "priority": "Medium",
-        "dueDate": "2025-12-20T00:00:00",
-        "matterId": 1,
-        "matterTitle": "HK Desktop Recoveries LLC",
-        "assignees": [
-          "Kyle Wang"
-        ]
-      },
-      "created_at": "2025-12-19T00:31:39.1839734",
-      "modified_at": null,
-      "relevance_score": 0
-    },
-    {
-      "id": "17af31e8-3d72-4850-aeb9-507f1a36c5bc",
-      "module_name": "tasks",
-      "entity_type": "Task",
-      "entity_id": 38,
-      "title": "Pick up Chloe from work",
-      "content": "Task: Pick up Chloe from work\r\nStatus: Pending\r\nPriority: Medium\r\nRelated Matter: Ready Communications LLC\r\nEvent Date: 2025-12-19\r\nAssigned to: Kyle Wang\r\n",
-      "metadata": {
-        "status": "Pending",
-        "priority": "Medium",
-        "dueDate": "2025-12-19T00:00:00",
-        "matterId": 24,
-        "matterTitle": "Ready Communications LLC",
-        "assignees": [
-          "Kyle Wang"
-        ]
-      },
-      "created_at": "2025-12-19T00:27:58.7357033",
-      "modified_at": null,
-      "relevance_score": 0
-    },
-    {
-      "id": "56174d65-6ae4-4d64-bafd-1448a0ea69de",
-      "module_name": "tasks",
-      "entity_type": "Task",
-      "entity_id": 37,
-      "title": "EECS 50 Project Progress",
-      "content": "Task: EECS 50 Project Progress\r\nStatus: Pending\r\nPriority: Medium\r\nDescription: This task involves the progress report for the EECS 50 project, focusing on designing a digital low-pass filter system to remove high-frequency noise using AI. The project aims to understand the performance of traditional discrete-time systems in comparison to modern learned filters. Key components include: 1. Background & Motivation: Understanding the impact of high-frequency noise in applications like DSP. 2. Problem Definition: Implementing FIR filters and comparing performance with AI methods. 3. Expected Results: Evaluating the effectiveness of both FIR and AI approaches in noise reduction. Group Members: Kyle Wang and Isaac Mays, with task breakdowns specified in the project report.\r\nRelated Matter: Sesame Street LLC\r\nEvent Date: 2025-12-18\r\nAssigned to: Kyle Wang\r\n",
-      "metadata": {
-        "status": "Pending",
-        "priority": "Medium",
-        "dueDate": "2025-12-18T00:00:00",
-        "matterId": 2,
-        "matterTitle": "Sesame Street LLC",
-        "assignees": [
-          "Kyle Wang"
-        ]
-      },
-      "created_at": "2025-12-18T00:08:00.7859096",
-      "modified_at": null,
-      "relevance_score": 0
-    },
-    {
-      "id": "1fce8d6c-d51c-443f-a2ae-255b0afdb57d",
-      "module_name": "tasks",
-      "entity_type": "Task",
-      "entity_id": 30,
-      "title": "EECS 50",
-      "content": "Task: EECS 50\r\nStatus: Pending\r\nPriority: Medium\r\nDescription: General task for EECS 50.\r\nRelated Matter: Sesame Street LLC\r\nEvent Date: 2025-10-13\r\nAssigned to: Kyle Wang\r\n",
-      "metadata": {
-        "status": "Pending",
-        "priority": "Medium",
-        "dueDate": "2025-10-13T00:00:00",
-        "matterId": 2,
-        "matterTitle": "Sesame Street LLC",
-        "assignees": [
-          "Kyle Wang"
-        ]
-      },
-      "created_at": "2025-12-15T06:19:00.3835466",
-      "modified_at": null,
-      "relevance_score": 0
-    },
-    {
-      "id": "711efeec-61b5-44a3-b3aa-11eb64753789",
-      "module_name": "tasks",
-      "entity_type": "Task",
-      "entity_id": 29,
-      "title": "EECS 170A Lab 2",
-      "content": "Task: EECS 170A Lab 2\r\nStatus: Pending\r\nPriority: High\r\nDescription: Complete the analysis and design for the soldering technology and RC circuits as outlined in Lab 2.\r\nRelated Matter: HK Desktop Recoveries LLC\r\nEvent Date: 2025-02-19\r\nAssigned to: Kyle Wang\r\n",
-      "metadata": {
-        "status": "Pending",
-        "priority": "High",
-        "dueDate": "2025-02-19T00:00:00",
-        "matterId": 1,
-        "matterTitle": "HK Desktop Recoveries LLC",
-        "assignees": [
-          "Kyle Wang"
-        ]
-      },
-      "created_at": "2025-12-15T06:16:55.4787005",
-      "modified_at": null,
-      "relevance_score": 0
-    },
-    {
-      "id": "6b122a54-3a7f-4e63-8475-96b811836c61",
-      "module_name": "tasks",
-      "entity_type": "Task",
-      "entity_id": 28,
-      "title": "EECS 170A Lab 4 - Additional Task",
-      "content": "Task: EECS 170A Lab 4 - Additional Task\r\nStatus: Pending\r\nPriority: High\r\nDescription: Conduct further analysis on the RISC-V single cycle processor design and prepare for presentation.\r\nRelated Matter: HK Desktop Recoveries LLC\r\nEvent Date: 2025-03-15\r\nAssigned to: Kyle Wang\r\n",
-      "metadata": {
-        "status": "Pending",
-        "priority": "High",
-        "dueDate": "2025-03-15T00:00:00",
-        "matterId": 1,
-        "matterTitle": "HK Desktop Recoveries LLC",
-        "assignees": [
-          "Kyle Wang"
-        ]
-      },
-      "created_at": "2025-12-15T05:58:58.2195286",
-      "modified_at": null,
-      "relevance_score": 0
-    },
-    {
-      "id": "a8a55d4b-8181-491e-be70-384a515dfee3",
-      "module_name": "tasks",
-      "entity_type": "Task",
-      "entity_id": 27,
-      "title": "EECS 170A Lab 4",
-      "content": "Task: EECS 170A Lab 4\r\nStatus: Pending\r\nPriority: High\r\nDescription: Complete the design and analysis for the RISC-V single cycle processor as outlined in Lab 4.\r\nRelated Matter: HK Desktop Recoveries LLC\r\nEvent Date: 2025-03-10\r\nAssigned to: Kyle Wang\r\n",
-      "metadata": {
-        "status": "Pending",
-        "priority": "High",
-        "dueDate": "2025-03-10T00:00:00",
-        "matterId": 1,
-        "matterTitle": "HK Desktop Recoveries LLC",
-        "assignees": [
-          "Kyle Wang"
-        ]
-      },
-      "created_at": "2025-12-15T05:23:55.9827632",
-      "modified_at": null,
-      "relevance_score": 0
-    },
-    {
-      "id": "f0ecea26-4d4f-4480-8142-233d7f22e82e",
-      "module_name": "tasks",
-      "entity_type": "Task",
-      "entity_id": 26,
-      "title": "EECS 170A Lab 3",
-      "content": "Task: EECS 170A Lab 3\r\nStatus: Pending\r\nPriority: High\r\nDescription: Complete the design for the D Flip-Flop and Instruction Memory as outlined in Lab 3.\r\nRelated Matter: HK Desktop Recoveries LLC\r\nEvent Date: 2025-02-23\r\nAssigned to: Kyle Wang\r\n",
-      "metadata": {
-        "status": "Pending",
-        "priority": "High",
-        "dueDate": "2025-02-23T00:00:00",
-        "matterId": 1,
-        "matterTitle": "HK Desktop Recoveries LLC",
-        "assignees": [
-          "Kyle Wang"
-        ]
-      },
-      "created_at": "2025-12-15T05:02:45.4268701",
-      "modified_at": null,
-      "relevance_score": 0
-    },
-    {
-      "id": "737cda50-e747-4b97-a394-8da5179325b8",
+      "id": "3c249f54-43a2-4cc6-a45a-a1205a70652b",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 24,
-      "title": "Kyle's First Agent Task",
-      "content": "Task: Kyle's First Agent Task\r\nStatus: Pending\r\nPriority: Medium\r\nDescription: This task is to ensure the successful completion of the initial agent task.\r\nRelated Matter: HK Desktop Recoveries LLC\r\nEvent Date: 2025-10-20\r\nAssigned to: Kyle Wang\r\n",
+      "title": "Send venue arrival time to florist",
+      "content": "Task: Send venue arrival time to florist\r\nStatus: Pending\r\nPriority: Medium\r\nDescription: This task is to ensure the successful completion of the initial agent task.\r\nRelated Matter: HK Desktop Recoveries LLC\r\nEvent Date: 2025-10-20\r\nAssigned to: Kyle Wang\r\n",
       "metadata": {
         "status": "Pending",
         "priority": "Medium",
@@ -1198,53 +1467,53 @@
         ]
       },
       "created_at": "2025-12-15T04:20:42.0113261",
-      "modified_at": null,
+      "modified_at": "2026-02-10T03:05:28.2227164",
       "relevance_score": 0
     },
     {
-      "id": "cecce35e-98ee-4a11-af1e-26480b78c780",
+      "id": "1119f6b0-fec9-4f18-b348-8ea563ad83da",
       "module_name": "tasks",
       "entity_type": "Task",
-      "entity_id": 2,
-      "title": "Brand New Day's First Task",
-      "content": "Task: Brand New Day's First Task\r\nStatus: Completed\r\nPriority: Medium\r\nDescription: The first task added into the Certio desktop development database! Here's a test update. Another test update.\r\nRelated Matter: Brand New Day Document Review\r\nEvent Date: 2025-10-05\r\nAssigned to: Kyle Wang\r\n",
+      "entity_id": 13,
+      "title": "Confirm caterer headcount & dietary restrictions",
+      "content": "Task: Confirm caterer headcount & dietary restrictions\r\nStatus: Pending\r\nPriority: High\r\nDescription: Fall 2025 quarter\nProfessor: ?\nTAs: ?\nFinal Grade: ?\r\nRelated Matter: Kyle's University Education\r\nEvent Date: 2025-12-12\r\nAssigned to: Kyle Wang\r\n",
       "metadata": {
-        "status": "Completed",
-        "priority": "Medium",
-        "dueDate": "2025-10-05T00:00:00",
-        "matterId": 9,
-        "matterTitle": "Brand New Day Document Review",
+        "status": "Pending",
+        "priority": "High",
+        "dueDate": "2025-12-12T00:00:00",
+        "matterId": 11,
+        "matterTitle": "Kyle's University Education",
         "assignees": [
           "Kyle Wang"
         ]
       },
-      "created_at": "2025-10-04T11:40:34.087416",
-      "modified_at": "2025-12-07T10:14:07.4790494",
+      "created_at": "2025-10-09T07:35:21.4981315",
+      "modified_at": "2026-02-10T03:05:20.7050217",
       "relevance_score": 0
     },
     {
-      "id": "fa44ca1b-1fcc-4841-b942-82678f5851d3",
+      "id": "f0b28bfa-845e-45fd-9cb8-86f5a45875f5",
       "module_name": "tasks",
       "entity_type": "Task",
-      "entity_id": 15,
-      "title": "Third Visible Matters Task",
-      "content": "Task: Third Visible Matters Task\r\nStatus: Review\r\nPriority: Critical\r\nDescription: The third Visible Matters task to check whether or not adding new matter-scoped tasks still works after UI polish.\r\nRelated Matter: Daniel & Jessie's Wedding\r\nEvent Date: 2025-10-10\r\nAssigned to: Kyle Wang\r\n",
+      "entity_id": 26,
+      "title": "Schedule\u00a0Bride and Groom Entrance",
+      "content": "Task: Schedule\u00a0Bride and Groom Entrance\r\nStatus: Pending\r\nPriority: High\r\nDescription: Complete the design for the D Flip-Flop and Instruction Memory as outlined in Lab 3.\r\nRelated Matter: HK Desktop Recoveries LLC\r\nEvent Date: 2025-02-23\r\nAssigned to: Kyle Wang\r\n",
       "metadata": {
-        "status": "Review",
-        "priority": "Critical",
-        "dueDate": "2025-10-10T00:00:00",
-        "matterId": 5,
-        "matterTitle": "Daniel & Jessie's Wedding",
+        "status": "Pending",
+        "priority": "High",
+        "dueDate": "2025-02-23T00:00:00",
+        "matterId": 1,
+        "matterTitle": "HK Desktop Recoveries LLC",
         "assignees": [
           "Kyle Wang"
         ]
       },
-      "created_at": "2025-10-09T22:36:30.1964673",
-      "modified_at": "2025-11-11T02:22:38.6427262",
+      "created_at": "2025-12-15T05:02:45.4268701",
+      "modified_at": "2026-02-10T03:05:07.2481921",
       "relevance_score": 0
     },
     {
-      "id": "65632e4a-0d9c-47e6-9ff4-1f4d4923e882",
+      "id": "e8513b11-f191-4559-8e2a-7eee9f860030",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 21,
@@ -1265,138 +1534,7 @@
       "relevance_score": 0
     },
     {
-      "id": "ddf409cc-735f-46d2-ad39-2ee0346e91d5",
-      "module_name": "tasks",
-      "entity_type": "Task",
-      "entity_id": 9,
-      "title": "First Visible Matters Task",
-      "content": "Task: First Visible Matters Task\r\nStatus: Pending\r\nPriority: Critical\r\nDescription: Here's the first example Visible Matters task. Example revision.\r\nRelated Matter: Daniel & Jessie's Wedding\r\nEvent Date: 2025-10-08\r\nAssigned to: Kyle Wang, John Marshall\r\n",
-      "metadata": {
-        "status": "Pending",
-        "priority": "Critical",
-        "dueDate": "2025-10-08T00:00:00",
-        "matterId": 5,
-        "matterTitle": "Daniel & Jessie's Wedding",
-        "assignees": [
-          "Kyle Wang",
-          "John Marshall"
-        ]
-      },
-      "created_at": "2025-10-09T06:23:14.651272",
-      "modified_at": "2025-11-10T02:35:00.0084564",
-      "relevance_score": 0
-    },
-    {
-      "id": "e2cce20f-8fe5-4478-8ff0-720001b43763",
-      "module_name": "tasks",
-      "entity_type": "Task",
-      "entity_id": 18,
-      "title": "SLA IV Task",
-      "content": "Task: SLA IV Task\r\nStatus: Completed\r\nPriority: High\r\nDescription: Example task to check whether the task assignments work and also if the Subtasks get displayed properly.\r\nRelated Matter: Chen Family Lunar New Year Celebration\r\nEvent Date: 2025-10-13\r\nAssigned to: Kyle Wang\r\n",
-      "metadata": {
-        "status": "Completed",
-        "priority": "High",
-        "dueDate": "2025-10-13T00:00:00",
-        "matterId": 16,
-        "matterTitle": "Chen Family Lunar New Year Celebration",
-        "assignees": [
-          "Kyle Wang"
-        ]
-      },
-      "created_at": "2025-10-13T01:26:54.9097378",
-      "modified_at": "2025-11-07T08:13:16.0443547",
-      "relevance_score": 0
-    },
-    {
-      "id": "74aa4fbf-2d72-4ab7-9c6e-fbf46cbf487d",
-      "module_name": "tasks",
-      "entity_type": "Task",
-      "entity_id": 12,
-      "title": "EECS 40",
-      "content": "Task: EECS 40\r\nStatus: Completed\r\nPriority: Medium\r\nDescription: Fall 2025 quarter\nProfessor: Zhou Li\nTAs: Chengheng Lyu, Xuesong Bai, Xun Li\nFinal Grade: ?\r\nRelated Matter: Kyle's University Education\r\nEvent Date: 2025-12-12\r\nAssigned to: Kyle Wang\r\n",
-      "metadata": {
-        "status": "Completed",
-        "priority": "Medium",
-        "dueDate": "2025-12-12T00:00:00",
-        "matterId": 11,
-        "matterTitle": "Kyle's University Education",
-        "assignees": [
-          "Kyle Wang"
-        ]
-      },
-      "created_at": "2025-10-09T07:31:26.514444",
-      "modified_at": "2025-11-07T07:45:47.3629403",
-      "relevance_score": 0
-    },
-    {
-      "id": "6ddc89fd-325a-4a87-95be-f0cfe7e65e9b",
-      "module_name": "tasks",
-      "entity_type": "Task",
-      "entity_id": 14,
-      "title": "EECS 112L",
-      "content": "Task: EECS 112L\r\nStatus: Completed\r\nPriority: Low\r\nDescription: Fall 2025 quarter\nProfessor: Salma Elmalaki\nTAs: tzhao15@uci.edu, yashuow@uci.edu\nFinal Grade: ?\r\nRelated Matter: Kyle's University Education\r\nEvent Date: 2025-12-12\r\nAssigned to: Kyle Wang, Chloe Tang\r\n",
-      "metadata": {
-        "status": "Completed",
-        "priority": "Low",
-        "dueDate": "2025-12-12T00:00:00",
-        "matterId": 11,
-        "matterTitle": "Kyle's University Education",
-        "assignees": [
-          "Kyle Wang",
-          "Chloe Tang"
-        ]
-      },
-      "created_at": "2025-10-09T07:38:21.6348772",
-      "modified_at": "2025-11-07T07:45:45.1518326",
-      "relevance_score": 0
-    },
-    {
-      "id": "42594141-8771-47a7-baca-01d9d991f3d3",
-      "module_name": "tasks",
-      "entity_type": "Task",
-      "entity_id": 10,
-      "title": "Second Visible Matters Task",
-      "content": "Task: Second Visible Matters Task\r\nStatus: InProgress\r\nPriority: Low\r\nDescription: This is the second Visible Matters task to test whether or not the pre-assignee permission system is implemented.\r\nRelated Matter: Daniel & Jessie's Wedding\r\nEvent Date: 2025-10-10\r\nAssigned to: Kyle Wang, Chloe Tang, John Marshall\r\n",
-      "metadata": {
-        "status": "InProgress",
-        "priority": "Low",
-        "dueDate": "2025-10-10T00:00:00",
-        "matterId": 5,
-        "matterTitle": "Daniel & Jessie's Wedding",
-        "assignees": [
-          "Kyle Wang",
-          "Chloe Tang",
-          "John Marshall"
-        ]
-      },
-      "created_at": "2025-10-09T07:01:15.9612594",
-      "modified_at": "2025-11-07T03:09:25.4390927",
-      "relevance_score": 0
-    },
-    {
-      "id": "a03c6248-5a44-45cf-8099-b84784fca1e4",
-      "module_name": "tasks",
-      "entity_type": "Task",
-      "entity_id": 23,
-      "title": "Security Layer Architecture Task",
-      "content": "Task: Security Layer Architecture Task\r\nStatus: Review\r\nPriority: Critical\r\nDescription: A complex task for security layer architecture to demo the tasks and work feature.\r\nRelated Matter: Intro Client Matter\r\nEvent Date: 2025-11-02\r\nAssigned to: Kyle Wang, John Marshall\r\n",
-      "metadata": {
-        "status": "Review",
-        "priority": "Critical",
-        "dueDate": "2025-11-02T00:00:00",
-        "matterId": 30,
-        "matterTitle": "Intro Client Matter",
-        "assignees": [
-          "Kyle Wang",
-          "John Marshall"
-        ]
-      },
-      "created_at": "2025-10-30T23:53:12.874957",
-      "modified_at": "2025-10-30T23:53:34.3888592",
-      "relevance_score": 0
-    },
-    {
-      "id": "881ecac8-bb14-4c20-b63b-1f7ab91900a0",
+      "id": "f14f0f59-fd6c-44e2-86d0-82abd3a289e2",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 22,
@@ -1417,7 +1555,7 @@
       "relevance_score": 0
     },
     {
-      "id": "6d4c5727-6050-499e-8803-9a13105d1bc0",
+      "id": "37fa62da-d8ce-496e-80ee-d0651e03aac3",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 4,
@@ -1436,174 +1574,7 @@
       "relevance_score": 0
     },
     {
-      "id": "3d6b8705-ac9d-4f51-aad4-f1702cdd984d",
-      "module_name": "tasks",
-      "entity_type": "Task",
-      "entity_id": 13,
-      "title": "EECS 170A/LA",
-      "content": "Task: EECS 170A/LA\r\nStatus: Pending\r\nPriority: High\r\nDescription: Fall 2025 quarter\nProfessor: ?\nTAs: ?\nFinal Grade: ?\r\nRelated Matter: Kyle's University Education\r\nEvent Date: 2025-12-12\r\nAssigned to: Kyle Wang\r\n",
-      "metadata": {
-        "status": "Pending",
-        "priority": "High",
-        "dueDate": "2025-12-12T00:00:00",
-        "matterId": 11,
-        "matterTitle": "Kyle's University Education",
-        "assignees": [
-          "Kyle Wang"
-        ]
-      },
-      "created_at": "2025-10-09T07:35:21.4981315",
-      "modified_at": "2025-10-16T21:40:58.885997",
-      "relevance_score": 0
-    },
-    {
-      "id": "6bd65467-b210-42f7-8a87-c3d59687cebf",
-      "module_name": "tasks",
-      "entity_type": "Task",
-      "entity_id": 11,
-      "title": "EECS 50",
-      "content": "Task: EECS 50\r\nStatus: Review\r\nPriority: Medium\r\nDescription: Fall 2025 quarter\nProfessor: zhiying@uci.edu\nTAs: ruijied@uci.edu, weishil1@uci.edu\nFinal Grade: ?\r\nRelated Matter: Kyle's University Education\r\nEvent Date: 2025-12-12\r\nAssigned to: Kyle Wang\r\n",
-      "metadata": {
-        "status": "Review",
-        "priority": "Medium",
-        "dueDate": "2025-12-12T00:00:00",
-        "matterId": 11,
-        "matterTitle": "Kyle's University Education",
-        "assignees": [
-          "Kyle Wang"
-        ]
-      },
-      "created_at": "2025-10-09T07:27:49.2459413",
-      "modified_at": "2025-10-14T07:22:43.4367418",
-      "relevance_score": 0
-    },
-    {
-      "id": "d75f7f5f-2ad9-4d1e-98e6-15d277384f32",
-      "module_name": "tasks",
-      "entity_type": "Task",
-      "entity_id": 20,
-      "title": "Finale SLA",
-      "content": "Task: Finale SLA\r\nStatus: Completed\r\nPriority: Critical\r\nDescription: The service layer architecture finale test.\r\nRelated Matter: SLA\r\nEvent Date: 2025-10-12\r\nAssigned to: Kyle Wang, John Marshall\r\n",
-      "metadata": {
-        "status": "Completed",
-        "priority": "Critical",
-        "dueDate": "2025-10-12T00:00:00",
-        "matterId": 18,
-        "matterTitle": "SLA",
-        "assignees": [
-          "Kyle Wang",
-          "John Marshall"
-        ]
-      },
-      "created_at": "2025-10-13T04:57:28.545631",
-      "modified_at": null,
-      "relevance_score": 0
-    },
-    {
-      "id": "ace747dc-ba3c-437f-93a2-41ac537faee4",
-      "module_name": "tasks",
-      "entity_type": "Task",
-      "entity_id": 17,
-      "title": "First SLA Task",
-      "content": "Task: First SLA Task\r\nStatus: Review\r\nPriority: Critical\r\nDescription: Testing task creation for clients through organization relationships.\r\nRelated Matter: SLA V Finale\r\nEvent Date: 2025-10-13\r\n",
-      "metadata": {
-        "status": "Review",
-        "priority": "Critical",
-        "dueDate": "2025-10-13T00:00:00",
-        "matterId": 17,
-        "matterTitle": "SLA V Finale",
-        "assignees": []
-      },
-      "created_at": "2025-10-13T01:04:49.3782262",
-      "modified_at": null,
-      "relevance_score": 0
-    },
-    {
-      "id": "e87432a6-e654-4eb6-bd83-fe91d90b78b9",
-      "module_name": "tasks",
-      "entity_type": "Task",
-      "entity_id": 8,
-      "title": "beat kyle up",
-      "content": "Task: beat kyle up\r\nStatus: Review\r\nPriority: Medium\r\nDescription: for misbehaving\r\nRelated Matter: Cane's Paradise Formation\r\nEvent Date: 2025-10-11\r\nAssigned to: Chloe Tang\r\n",
-      "metadata": {
-        "status": "Review",
-        "priority": "Medium",
-        "dueDate": "2025-10-11T00:00:00",
-        "matterId": 4,
-        "matterTitle": "Cane's Paradise Formation",
-        "assignees": [
-          "Chloe Tang"
-        ]
-      },
-      "created_at": "2025-10-08T04:39:54.5862528",
-      "modified_at": null,
-      "relevance_score": 0
-    },
-    {
-      "id": "8f00a6ec-9a4d-44fb-95e8-70d2e2df3053",
-      "module_name": "tasks",
-      "entity_type": "Task",
-      "entity_id": 7,
-      "title": "Assignees and Matters Scoping",
-      "content": "Task: Assignees and Matters Scoping\r\nStatus: Completed\r\nPriority: Critical\r\nDescription: This is an example task to check if the new Assignees implementation and Matters scoping works properly.\r\nRelated Matter: David's New Matter\r\nEvent Date: 2025-10-07\r\nAssigned to: Kyle Wang, John Marshall, Chloe Tang\r\n",
-      "metadata": {
-        "status": "Completed",
-        "priority": "Critical",
-        "dueDate": "2025-10-07T00:00:00",
-        "matterId": 10,
-        "matterTitle": "David's New Matter",
-        "assignees": [
-          "Kyle Wang",
-          "John Marshall",
-          "Chloe Tang"
-        ]
-      },
-      "created_at": "2025-10-07T07:20:12.2370488",
-      "modified_at": null,
-      "relevance_score": 0
-    },
-    {
-      "id": "2bcbec95-5a5f-439f-93e0-78530cb6ae9a",
-      "module_name": "tasks",
-      "entity_type": "Task",
-      "entity_id": 6,
-      "title": "David's New Task",
-      "content": "Task: David's New Task\r\nStatus: Review\r\nPriority: Low\r\nDescription: This is a demo task for David's Matter\r\nRelated Matter: David's New Matter\r\nEvent Date: 2025-10-15\r\nAssigned to: David Wang\r\n",
-      "metadata": {
-        "status": "Review",
-        "priority": "Low",
-        "dueDate": "2025-10-15T00:00:00",
-        "matterId": 10,
-        "matterTitle": "David's New Matter",
-        "assignees": [
-          "David Wang"
-        ]
-      },
-      "created_at": "2025-10-06T01:18:06.32427",
-      "modified_at": null,
-      "relevance_score": 0
-    },
-    {
-      "id": "005e8b3c-8905-4fc1-9a80-0f7983925a5e",
-      "module_name": "tasks",
-      "entity_type": "Task",
-      "entity_id": 5,
-      "title": "Sesame Street Example Task",
-      "content": "Task: Sesame Street Example Task\r\nStatus: Completed\r\nPriority: Critical\r\nDescription: This is an example task for Sesame Street LLC\r\nRelated Matter: Sesame Street LLC\r\nEvent Date: 2025-10-14\r\n",
-      "metadata": {
-        "status": "Completed",
-        "priority": "Critical",
-        "dueDate": "2025-10-14T00:00:00",
-        "matterId": 2,
-        "matterTitle": "Sesame Street LLC",
-        "assignees": []
-      },
-      "created_at": "2025-10-05T03:23:12.9938417",
-      "modified_at": null,
-      "relevance_score": 0
-    },
-    {
-      "id": "75dbef8a-3673-498c-99ff-ab07e8d82e84",
+      "id": "c069a34b-089b-4631-96fb-710c05700624",
       "module_name": "tasks",
       "entity_type": "Task",
       "entity_id": 3,
@@ -1622,7 +1593,7 @@
       "relevance_score": 0
     },
     {
-      "id": "54500c04-4f5a-45fc-95a7-89f9fa25246e",
+      "id": "933be028-7c74-42c3-a8a6-8a67f9b7278e",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1641,7 +1612,7 @@
       "relevance_score": 1
     },
     {
-      "id": "87691ae8-ef8d-44fd-947b-0376185c24f5",
+      "id": "6a931e3d-20bc-4fd3-abac-801bdabb4016",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1660,7 +1631,7 @@
       "relevance_score": 1
     },
     {
-      "id": "4ef19da6-d7ff-4088-a49b-77c5787435fa",
+      "id": "5ec6290c-0cf3-48ef-86fb-a947a790b962",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 29,
@@ -1682,7 +1653,7 @@
       "relevance_score": 0
     },
     {
-      "id": "1eb37bc9-1a06-4160-a010-35a94c5e00cd",
+      "id": "32c20046-fff0-4fcd-834f-9d4aa2337d26",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 44,
@@ -1703,7 +1674,7 @@
       "relevance_score": 0
     },
     {
-      "id": "da12311b-ed1a-43ef-90eb-d4c283d0d752",
+      "id": "3a55edfe-5a92-4309-98e1-39970135a389",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 55,
@@ -1725,7 +1696,7 @@
       "relevance_score": 0
     },
     {
-      "id": "0ec8687b-6244-4e72-9a5c-ea0192677aef",
+      "id": "c4decada-cf8a-4a84-81f1-367ca00cf861",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 28,
@@ -1747,7 +1718,7 @@
       "relevance_score": 0
     },
     {
-      "id": "5ef5333a-b4da-4448-9af0-37436a0dce10",
+      "id": "c71d7b6b-c384-4111-a13a-b63a2dae3f29",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 27,
@@ -1770,7 +1741,7 @@
       "relevance_score": 0
     },
     {
-      "id": "ab621a01-38ba-4a12-9624-ebbc3e9fd282",
+      "id": "5e062e12-7452-4a2e-bcdd-a779af5dba11",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 52,
@@ -1793,7 +1764,7 @@
       "relevance_score": 0
     },
     {
-      "id": "75b6393a-b9a9-4854-8c0a-2d0db5d61b04",
+      "id": "af2ac1cc-4f06-435a-abfb-aa5bfd28003e",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 56,
@@ -1814,7 +1785,7 @@
       "relevance_score": 0
     },
     {
-      "id": "8431fd70-5efe-44aa-99e3-93b689dd96a2",
+      "id": "b981310a-04c2-494b-9af1-97a780d4b68b",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 59,
@@ -1835,7 +1806,7 @@
       "relevance_score": 0
     },
     {
-      "id": "061be47b-5a09-4ade-aae3-63654dae8a55",
+      "id": "512d45c3-27c9-4377-9428-7ac4ac21f68b",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 43,
@@ -1857,7 +1828,7 @@
       "relevance_score": 0
     },
     {
-      "id": "fccff7f8-0ddf-49d0-8c8b-784a5a750b5a",
+      "id": "cc9c00ba-ac5a-493a-8cb4-eaaf1901bf90",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 53,
@@ -1878,7 +1849,7 @@
       "relevance_score": 0
     },
     {
-      "id": "dd77e6bc-5755-49d3-ae25-ca05cb9ca21d",
+      "id": "387d3ee4-0cbc-4b03-93ff-2e35e3ac938d",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 54,
@@ -1899,7 +1870,7 @@
       "relevance_score": 0
     },
     {
-      "id": "1b96a443-64b7-4908-952a-82675c9ecc50",
+      "id": "4491e1f7-c362-4772-950e-9579d8be1895",
       "module_name": "communications",
       "entity_type": "Channel",
       "entity_id": 45,
@@ -1922,7 +1893,7 @@
       "relevance_score": 0
     },
     {
-      "id": "191b7473-39d6-4c09-b70c-8548c3ede0c8",
+      "id": "db73785d-7310-48e7-abfb-275c7de91d68",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1941,7 +1912,7 @@
       "relevance_score": 0
     },
     {
-      "id": "2500ce01-2c4d-4e21-b788-556fb6302e85",
+      "id": "0f6a8c7c-1d2e-4650-8b7e-071f7b9da93e",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1960,7 +1931,7 @@
       "relevance_score": 0
     },
     {
-      "id": "74e13068-058c-4e20-8e66-113c3fad17bf",
+      "id": "d2d0d7f8-3be0-46b4-90b7-5d8ea66da546",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1979,7 +1950,7 @@
       "relevance_score": 0
     },
     {
-      "id": "346d5f15-940e-4bea-9929-0ff12b701256",
+      "id": "52c25c34-9b90-4286-a65f-a9335d7a6518",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -1998,7 +1969,7 @@
       "relevance_score": 0
     },
     {
-      "id": "da6b9e8b-485c-4227-8105-00338bc0a1c5",
+      "id": "214bd6a5-eb29-4937-94ef-8bc7d291c0b2",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2017,7 +1988,7 @@
       "relevance_score": 0
     },
     {
-      "id": "856286ff-1004-4322-a55f-1c30e55c9eb8",
+      "id": "4bc62868-2518-4ed7-9d7d-1803a96a13fe",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2036,7 +2007,7 @@
       "relevance_score": 0
     },
     {
-      "id": "0d0005bb-a5f5-4fda-b122-f0d3c6681a25",
+      "id": "707c54bd-dba0-49bd-8e69-3b9803893965",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2055,7 +2026,7 @@
       "relevance_score": 0
     },
     {
-      "id": "bb3a710c-50d4-4e27-a32b-6f2bd727d9ec",
+      "id": "d55c594d-c5e5-4bb1-bdd3-c97975bfe5ff",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2074,7 +2045,7 @@
       "relevance_score": 0
     },
     {
-      "id": "aecb81b5-f0f0-44b4-a0c3-8ef713f38dee",
+      "id": "9d085070-a87d-473e-a814-877b041f1f7c",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2093,7 +2064,7 @@
       "relevance_score": 0
     },
     {
-      "id": "a073a21a-9c80-47ee-81e9-e83629e41cb9",
+      "id": "3823b184-a7be-4927-b23c-c649fa1b7b19",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2112,7 +2083,7 @@
       "relevance_score": 0
     },
     {
-      "id": "a1c29870-f1c9-4f53-9973-ae634546648f",
+      "id": "4300076a-7884-4215-b16f-a7dc6f2dae1f",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2131,7 +2102,7 @@
       "relevance_score": 0
     },
     {
-      "id": "47d15610-a87a-485e-8ad5-f61e54e9136b",
+      "id": "69c71a6c-b030-4360-a866-a95091ed615e",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2150,7 +2121,7 @@
       "relevance_score": 0
     },
     {
-      "id": "bbc37ff8-303a-4f3e-bbc6-fd25fff61478",
+      "id": "cbe55d81-d911-45d2-8723-76497dc22994",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2169,7 +2140,7 @@
       "relevance_score": 0
     },
     {
-      "id": "cb61d3df-86f6-45ab-837e-a45156663890",
+      "id": "643ed1dd-361c-48ff-a07c-454463081bbd",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2188,7 +2159,7 @@
       "relevance_score": 0
     },
     {
-      "id": "7c30f77a-92ee-4e38-811b-d1245f6457d4",
+      "id": "9d024251-146e-43ca-9ed0-b38fdd240827",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2207,7 +2178,7 @@
       "relevance_score": 0
     },
     {
-      "id": "af3f7a50-7f9a-4e0e-801a-4ae58d8cd1d4",
+      "id": "5d3e6818-861c-4523-b7cf-f8b04793f74c",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2226,7 +2197,7 @@
       "relevance_score": 0
     },
     {
-      "id": "f0660a08-9160-4b27-9e23-18de92de937b",
+      "id": "8d9bdd21-d2e8-46c8-a5eb-2ccd72709a3d",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2245,7 +2216,7 @@
       "relevance_score": 0
     },
     {
-      "id": "a1fe4b98-4ece-4ac9-bf05-8c71d8b049fc",
+      "id": "e4aedafa-810c-4462-b7b3-aa057ae486af",
       "module_name": "communications",
       "entity_type": "DirectThread",
       "entity_id": 0,
@@ -2264,7 +2235,7 @@
       "relevance_score": 0
     },
     {
-      "id": "f6b1d410-8c5d-44ca-86d5-afe75274b8ad",
+      "id": "45c3946d-83a4-456c-9866-9b6007ac8467",
       "module_name": "clients",
       "entity_type": "User",
       "entity_id": 1,
@@ -2281,7 +2252,7 @@
       "relevance_score": 0
     },
     {
-      "id": "82c7489e-d481-46b4-a8b4-5b5d2518e84d",
+      "id": "f425e133-ee56-40a8-b678-c1341914a080",
       "module_name": "clients",
       "entity_type": "User",
       "entity_id": 3,
@@ -2298,7 +2269,7 @@
       "relevance_score": 0
     },
     {
-      "id": "96a2437f-d03d-4007-8317-4b4298ed87df",
+      "id": "0e39d3e1-764b-44f6-8176-4effce08b9a6",
       "module_name": "clients",
       "entity_type": "User",
       "entity_id": 5,
@@ -2315,7 +2286,7 @@
       "relevance_score": 0
     },
     {
-      "id": "30e576f6-19fd-42bc-b163-cc2202de3e30",
+      "id": "c6d41b61-460a-4f1b-97a6-87bb66b33d06",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2339,7 +2310,7 @@
       "relevance_score": 0
     },
     {
-      "id": "e8483651-735d-4612-90fc-b9a39ecd9b51",
+      "id": "b3650758-ca78-4ad8-86fc-54608c12b18f",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2363,7 +2334,7 @@
       "relevance_score": 0
     },
     {
-      "id": "5342f0ee-d8fb-4ad9-b34e-465e850ecbf5",
+      "id": "bac0637e-cc75-4023-83f1-3cd49e1ccd36",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2387,7 +2358,7 @@
       "relevance_score": 0
     },
     {
-      "id": "7a46d3fd-7edf-4e0b-8c27-8d900670c338",
+      "id": "2f208cb8-e8c7-48a1-b602-1e49b7519e66",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2411,7 +2382,7 @@
       "relevance_score": 0
     },
     {
-      "id": "edcf752d-0249-4f3a-a426-3c28281cb634",
+      "id": "3d2bd0d0-0ad0-4cf1-996f-f15d4b83f511",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2435,7 +2406,7 @@
       "relevance_score": 0
     },
     {
-      "id": "eea707ef-c974-43ef-9580-efca83cfcd7a",
+      "id": "efdf0d42-bb64-49df-a443-50920d1ce97e",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2459,7 +2430,7 @@
       "relevance_score": 0
     },
     {
-      "id": "4b34686d-2f7d-4f54-bff9-30ed8c82074a",
+      "id": "727d83ae-80c1-4070-9874-5fdfa0e349f3",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2483,7 +2454,7 @@
       "relevance_score": 0
     },
     {
-      "id": "55893fec-3638-4802-9135-2c2d74e83d83",
+      "id": "5761478e-a55f-4299-8d37-82011b3205cc",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2507,7 +2478,7 @@
       "relevance_score": 0
     },
     {
-      "id": "70f27ab6-55a2-4f62-95b8-eab21b0c5652",
+      "id": "bb3516be-26f5-427c-b1ab-00a6be05650b",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2531,7 +2502,7 @@
       "relevance_score": 0
     },
     {
-      "id": "fc395c26-2b5d-48bf-85a8-91d0e5c90a0b",
+      "id": "f887c14f-e306-435c-99ed-818721ebfcdf",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2555,7 +2526,7 @@
       "relevance_score": 0
     },
     {
-      "id": "0a123a8c-44e4-48a4-8353-a957dd92c20c",
+      "id": "5810d891-57bd-4e91-a316-35a7ec220316",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2579,7 +2550,7 @@
       "relevance_score": 0
     },
     {
-      "id": "9e361c7a-fb95-4e44-aa85-5dab3ec9c8fd",
+      "id": "8c5c61e4-36ae-4940-a941-d4579420b103",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2603,7 +2574,7 @@
       "relevance_score": 0
     },
     {
-      "id": "54068de3-0952-42ea-96f2-b2c730be2fc2",
+      "id": "bd0941ee-ce7e-463e-bccc-faebc3146fc7",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2627,7 +2598,7 @@
       "relevance_score": 0
     },
     {
-      "id": "8fc1611a-f1e2-4610-afd1-987de2d6a060",
+      "id": "583ec581-c1a4-40f0-8274-b7c711d03e42",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2651,7 +2622,7 @@
       "relevance_score": 0
     },
     {
-      "id": "edbb4daa-1057-42b7-9af0-ac3866cffe12",
+      "id": "88846fa3-c2bf-45b6-8b74-6337581ebffe",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2675,7 +2646,7 @@
       "relevance_score": 0
     },
     {
-      "id": "d97078e8-3459-40ad-bf9d-a921931d92a6",
+      "id": "9308a790-9918-474f-915b-9254b28bc137",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2699,7 +2670,7 @@
       "relevance_score": 0
     },
     {
-      "id": "1a36a94b-169a-4f40-90f5-a4d06d2e7e27",
+      "id": "92866a4e-60a1-4059-908d-0edca9fa0b42",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2723,7 +2694,7 @@
       "relevance_score": 0
     },
     {
-      "id": "f9f89a77-65c3-4a14-8940-4e9fbafe107a",
+      "id": "416f58bc-2930-4ffc-9672-baa92fed926c",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2747,7 +2718,7 @@
       "relevance_score": 0
     },
     {
-      "id": "884afb0f-a304-4c9d-9283-b5ea5f240e06",
+      "id": "4a4e8f86-c6b8-496f-bb1b-0a861d3bbbcc",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2771,7 +2742,7 @@
       "relevance_score": 0
     },
     {
-      "id": "3858f5f5-29ac-4b73-bd61-86331ce947d9",
+      "id": "2ce048a3-27f5-484a-9bcd-8e28046d7a25",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2795,7 +2766,7 @@
       "relevance_score": 0
     },
     {
-      "id": "47760665-09fe-4016-b9a6-c562e5360ab7",
+      "id": "2f58ac2b-1c64-435a-9750-6ec986eb1347",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2819,7 +2790,7 @@
       "relevance_score": 0
     },
     {
-      "id": "703082a2-9d57-4bb6-91c9-3f79688b278e",
+      "id": "314811f4-e8ef-4cdc-b6ee-2f8676079e86",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2843,7 +2814,7 @@
       "relevance_score": 0
     },
     {
-      "id": "222d08fe-2dc0-44d6-aa65-ee67f51fdfeb",
+      "id": "80584a06-7586-43bf-bbe4-f8a0acca7579",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2867,7 +2838,7 @@
       "relevance_score": 0
     },
     {
-      "id": "996d47e1-08f1-44ca-9fa0-a8d7e3db0efa",
+      "id": "e16a5227-c8c5-4422-bb63-a3d2aba7af7c",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2891,7 +2862,7 @@
       "relevance_score": 0
     },
     {
-      "id": "085c9257-9b9b-46bd-8125-33ac599fd07a",
+      "id": "ad82aceb-1aef-4807-aaa4-bbc953551308",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2915,7 +2886,7 @@
       "relevance_score": 0
     },
     {
-      "id": "85d83475-c546-4cdb-a4b5-2bc1de4e41a2",
+      "id": "582ffec1-e29d-4030-8dc6-8185a87aec91",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2939,7 +2910,7 @@
       "relevance_score": 0
     },
     {
-      "id": "98baa8a3-8291-472f-9eea-aa18fa34c0f4",
+      "id": "d4b1b852-cb4a-42ff-b4f3-f5f93f528e06",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2963,7 +2934,7 @@
       "relevance_score": 0
     },
     {
-      "id": "88fe6792-429b-4de7-8622-810ef133cf1e",
+      "id": "5fe1b99c-0413-4558-b38d-1f85b8a729b2",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -2987,7 +2958,7 @@
       "relevance_score": 0
     },
     {
-      "id": "b58dd84d-ddca-4ba5-aaee-32467ccd1e6c",
+      "id": "e75011c1-c2ff-4fbf-88ac-004a7b4d7e74",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3011,7 +2982,7 @@
       "relevance_score": 0
     },
     {
-      "id": "aa177834-c7b5-489e-9fd6-a6883be217dc",
+      "id": "bc757c95-4d5c-48a8-b1eb-383512977ded",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3035,7 +3006,7 @@
       "relevance_score": 0
     },
     {
-      "id": "216ab9af-f9a7-4acc-a67a-4cec1dc9150c",
+      "id": "ed97a694-97a2-4162-9271-9c8f02fd7dae",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3059,7 +3030,7 @@
       "relevance_score": 0
     },
     {
-      "id": "5002a44a-b577-4e92-8f6e-a509d0770559",
+      "id": "81deeb3e-0677-4bdb-9585-75954586dc6f",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3083,7 +3054,7 @@
       "relevance_score": 0
     },
     {
-      "id": "e98057ce-c8c8-4aed-858d-6af0ba870b79",
+      "id": "fd82dc6a-967b-44ac-b8b2-9d5006d27e01",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3107,7 +3078,7 @@
       "relevance_score": 0
     },
     {
-      "id": "89f4d215-1347-4756-b314-394bf38fe602",
+      "id": "edf8b8db-4aef-42d0-9758-4e94ae564001",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3131,7 +3102,7 @@
       "relevance_score": 0
     },
     {
-      "id": "4aef39a5-5be0-4d85-b168-be07481e2d1e",
+      "id": "5c1d8487-f82f-42fe-92ed-d5babc62d38f",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3155,7 +3126,7 @@
       "relevance_score": 0
     },
     {
-      "id": "8614d352-8f47-49df-91d0-a3b9083d9286",
+      "id": "f2ec1b16-177a-4e13-9255-1c1afad5b8b8",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3179,7 +3150,7 @@
       "relevance_score": 0
     },
     {
-      "id": "5e5ffdb3-704e-4fe4-bb99-7f86fab5a26e",
+      "id": "a3e13cf4-e3ab-4c15-ba40-88da13e54377",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3203,7 +3174,7 @@
       "relevance_score": 0
     },
     {
-      "id": "e674fb20-01e7-4643-b033-590e77840b99",
+      "id": "94fff3f3-c535-449c-9733-3d1c44c48582",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3227,7 +3198,7 @@
       "relevance_score": 0
     },
     {
-      "id": "39a1ec07-e02d-4a2b-b51f-fa23486ef333",
+      "id": "9ad2c17e-dd90-477c-b4d8-eb1c5d6aaac1",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3251,7 +3222,7 @@
       "relevance_score": 0
     },
     {
-      "id": "3171278b-cec4-45e6-98bf-61b804768484",
+      "id": "19d3f9e7-609f-4500-81b2-3117b58e1f28",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3275,7 +3246,7 @@
       "relevance_score": 0
     },
     {
-      "id": "acedeaaf-3dd9-41d9-a288-b6f97b179fc1",
+      "id": "668201b7-0013-4d78-b507-69f0063b6aec",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3299,7 +3270,7 @@
       "relevance_score": 0
     },
     {
-      "id": "792cae65-70d4-46fa-98cc-e0805f360f71",
+      "id": "438a4e5b-f665-4a4a-8843-3b4e28e9c379",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3323,7 +3294,7 @@
       "relevance_score": 0
     },
     {
-      "id": "d603a623-375a-46eb-bb45-342e7c8356fd",
+      "id": "c4f15fd9-1be7-4fb4-82cd-31db7fe14ecc",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3347,7 +3318,7 @@
       "relevance_score": 0
     },
     {
-      "id": "15f0b3fc-195d-4641-b103-d1c949ba1f03",
+      "id": "7aeb7d9f-78cc-4df3-a2bd-57c5ec5efd3f",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3371,7 +3342,7 @@
       "relevance_score": 0
     },
     {
-      "id": "a7f0dd68-d3db-4b06-af28-d91a16b8ee02",
+      "id": "4e17d709-54ae-4422-a148-4a16d71589fa",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3395,7 +3366,7 @@
       "relevance_score": 0
     },
     {
-      "id": "247abbca-d14b-4551-a41d-97d5972df542",
+      "id": "0d2e70d8-e1eb-4fbd-a372-307a66d36e93",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3419,7 +3390,7 @@
       "relevance_score": 0
     },
     {
-      "id": "0aca14d2-6526-4d01-bbe8-8c6d80f32e9b",
+      "id": "ef2fe1aa-28f2-4cb3-9390-3faf5f489d89",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3443,7 +3414,7 @@
       "relevance_score": 0
     },
     {
-      "id": "d1c7612a-0b26-41ef-9500-5c746d0cbbe2",
+      "id": "45c9ad5a-44d5-424d-926b-4cd0e9ea86a9",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3467,7 +3438,7 @@
       "relevance_score": 0
     },
     {
-      "id": "9fa6a7da-b850-4db6-83f5-edffa1f3ec93",
+      "id": "245285b8-37c9-47d0-88ca-07955b054d54",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,
@@ -3491,7 +3462,7 @@
       "relevance_score": 0
     },
     {
-      "id": "e4ba9378-a958-49da-a577-7336fdf39219",
+      "id": "fe8ce591-3ebe-4e0d-bef0-a9fb8e7d8987",
       "module_name": "documents",
       "entity_type": "Document",
       "entity_id": 0,

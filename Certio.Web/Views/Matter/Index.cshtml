@@ -170,6 +170,9 @@
             <div class="col-lg-6 mb-3 matter-card-wrapper" data-matter-status="@matter.Status?.ToLowerInvariant().Replace(" ", "-")" data-matter-title="@matter.Title?.ToLowerInvariant()">
                 <a href="/Client/@ViewBag.OrganizationId/Matter/Details/@matter.Id" class="text-decoration-none" style="color: inherit;">
                     <div class="card h-100 border-0 matter-card" style="padding-top: 0.5rem; position: relative;">
+                    <button type="button" class="matter-kebab-btn" data-matter-id="@matter.Id" data-matter-title="@matter.Title" title="More options" onclick="event.preventDefault(); event.stopPropagation(); toggleMatterMenu(this);">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
                     <div class="card-header bg-transparent border-0 pb-0">
                         <div class="mb-2">
                             <div class="d-flex align-items-start" style="gap: 1rem;">
@@ -277,8 +280,10 @@
 
     string GetInitials(string name)
     {
-        var parts = name.Split(' ');
-        return parts.Length >= 2 ? $"{parts[0][0]}{parts[1][0]}" : name.Substring(0, Math.Min(2, name.Length));
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2) return $"{parts[0][0]}{parts[1][0]}";
+        if (parts.Length == 1) return parts[0].Substring(0, Math.Min(2, parts[0].Length));
+        return "?";
     }
 
     string GetMatterInitials(string title)
@@ -519,7 +524,129 @@
     .matter-card-wrapper.filtered-out {
         display: none;
     }
+
+    /* Three-dot kebab menu */
+    .matter-kebab-btn {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        z-index: 10;
+        background: none;
+        border: none;
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #9ca3af;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        padding: 0;
+    }
+
+    .matter-kebab-btn:hover {
+        background-color: #f3f4f6;
+        color: #374151;
+    }
+
+    .matter-context-menu {
+        position: absolute;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 1050;
+        min-width: 160px;
+        padding: 4px 0;
+    }
+
+    .matter-context-menu .context-menu-item {
+        padding: 8px 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        transition: background-color 0.15s ease;
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .matter-context-menu .context-menu-item:hover {
+        background-color: #f3f4f6;
+    }
+
+    .matter-context-menu .context-menu-item.delete-item {
+        color: #dc2626;
+    }
+
+    .matter-context-menu .context-menu-item.delete-item:hover {
+        background-color: #fef2f2;
+    }
+
+    .matter-context-menu .context-menu-item i {
+        width: 14px;
+        font-size: 12px;
+    }
 </style>
+
+<form id="matterDeleteForm" method="post" style="display: none;">
+    @Html.AntiForgeryToken()
+</form>
+
+<script>
+    function toggleMatterMenu(btn) {
+        closeMatterMenu();
+
+        var matterId = btn.getAttribute('data-matter-id');
+        var matterTitle = btn.getAttribute('data-matter-title');
+
+        var menu = document.createElement('div');
+        menu.id = 'matterContextMenu';
+        menu.className = 'matter-context-menu';
+        menu.innerHTML =
+            '<div class="context-menu-item delete-item" data-matter-id="' + matterId + '" data-matter-title="' + matterTitle.replace(/'/g, '&#39;').replace(/"/g, '&quot;') + '">' +
+                '<i class="fas fa-trash"></i> Delete @matterLabel' +
+            '</div>';
+
+        document.body.appendChild(menu);
+
+        var rect = btn.getBoundingClientRect();
+        menu.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+        menu.style.left = (rect.right + window.scrollX - menu.offsetWidth) + 'px';
+
+        menu.querySelector('.delete-item').addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var id = this.getAttribute('data-matter-id');
+            var title = this.getAttribute('data-matter-title');
+            closeMatterMenu();
+            if (confirm('Are you sure you want to delete "' + title + '"? This action cannot be undone.')) {
+                var form = document.getElementById('matterDeleteForm');
+                form.action = '/Client/@ViewBag.OrganizationId/Matter/Delete/' + id;
+                form.submit();
+            }
+        });
+
+        setTimeout(function () {
+            document.addEventListener('click', closeMatterMenuOnClickOutside);
+        }, 0);
+    }
+
+    function closeMatterMenu() {
+        var existing = document.getElementById('matterContextMenu');
+        if (existing) existing.remove();
+        document.removeEventListener('click', closeMatterMenuOnClickOutside);
+    }
+
+    function closeMatterMenuOnClickOutside(e) {
+        var menu = document.getElementById('matterContextMenu');
+        if (menu && !menu.contains(e.target)) {
+            closeMatterMenu();
+        }
+    }
+</script>
 
 <script>
     // Handle responsive search placeholder

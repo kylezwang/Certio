@@ -241,6 +241,22 @@
           }
         }
       },
+      "Microsoft.AspNetCore.Authentication.Google/9.0.0": {
+        "runtime": {
+          "lib/net9.0/Microsoft.AspNetCore.Authentication.Google.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.24.52903"
+          }
+        }
+      },
+      "Microsoft.AspNetCore.Authentication.MicrosoftAccount/9.0.0": {
+        "runtime": {
+          "lib/net9.0/Microsoft.AspNetCore.Authentication.MicrosoftAccount.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.24.52903"
+          }
+        }
+      },
       "Microsoft.AspNetCore.Connections.Abstractions/9.0.9": {
         "dependencies": {
           "Microsoft.Extensions.Features": "9.0.9"
@@ -2496,6 +2512,14 @@
           "System.Xml.ReaderWriter": "4.3.0"
         }
       },
+      "TimeZoneConverter/7.2.0": {
+        "runtime": {
+          "lib/net9.0/TimeZoneConverter.dll": {
+            "assemblyVersion": "7.2.0.0",
+            "fileVersion": "7.2.0.0"
+          }
+        }
+      },
       "xunit/2.9.2": {
         "dependencies": {
           "xunit.analyzers": "1.16.0",
@@ -2596,6 +2620,8 @@
           "DotNetEnv": "3.1.1",
           "Google.Apis.Gmail.v1": "1.68.0.3287",
           "MailKit": "4.14.1",
+          "Microsoft.AspNetCore.Authentication.Google": "9.0.0",
+          "Microsoft.AspNetCore.Authentication.MicrosoftAccount": "9.0.0",
           "Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore": "8.0.14",
           "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "9.0.8",
           "Microsoft.AspNetCore.Identity.UI": "9.0.8",
@@ -2610,7 +2636,8 @@
           "Microsoft.SemanticKernel": "1.4.0",
           "Microsoft.SemanticKernel.Connectors.OpenAI": "1.4.0",
           "StackExchange.Redis": "2.8.16",
-          "Swashbuckle.AspNetCore": "9.0.4"
+          "Swashbuckle.AspNetCore": "9.0.4",
+          "TimeZoneConverter": "7.2.0"
         },
         "runtime": {
           "Certio.Web.dll": {
@@ -2759,6 +2786,20 @@
       "sha512": "sha512-Rawu+h3lSSjKra0AxR+IUB99VQ7jWI+MvxThekqLhf+ic7VQ7a69lmPFW+LXuRYHla4ADcn3x16Gsvju3LTq9w==",
       "path": "mailkit/4.14.1",
       "hashPath": "mailkit.4.14.1.nupkg.sha512"
+    },
+    "Microsoft.AspNetCore.Authentication.Google/9.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-aO8Yeg1BaWGdWuLOZXAOxq9zYTSXObsYs75SlayR5ntPVQGyVXzvvn2NhrDdyonmz/z7Q86qZhdr42Cq1gMcNA==",
+      "path": "microsoft.aspnetcore.authentication.google/9.0.0",
+      "hashPath": "microsoft.aspnetcore.authentication.google.9.0.0.nupkg.sha512"
+    },
+    "Microsoft.AspNetCore.Authentication.MicrosoftAccount/9.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-asq6Ognwp/TxFQaNO6rFBZByGOGWjpQZphgTqzmDcq649zoYm7C+t/HapWo45foq1Hoj7QU6+xkDha8zfCJ78w==",
+      "path": "microsoft.aspnetcore.authentication.microsoftaccount/9.0.0",
+      "hashPath": "microsoft.aspnetcore.authentication.microsoftaccount.9.0.0.nupkg.sha512"
     },
     "Microsoft.AspNetCore.Connections.Abstractions/9.0.9": {
       "type": "package",
@@ -4145,6 +4186,13 @@
       "sha512": "sha512-5zJ0XDxAIg8iy+t4aMnQAu0MqVbqyvfoUVl1yDV61xdo3Vth45oA2FoY4pPkxYAH5f8ixpmTqXeEIya95x0aCQ==",
       "path": "system.xml.xdocument/4.3.0",
       "hashPath": "system.xml.xdocument.4.3.0.nupkg.sha512"
+    },
+    "TimeZoneConverter/7.2.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-4Poqu79dTmacVETqUJ53g3x4U21V/cmWPSlehdsVE4Q00akavvlRq+SRjcg/CmfO9ibOCjRl6TeUV7hkC5RC4w==",
+      "path": "timezoneconverter/7.2.0",
+      "hashPath": "timezoneconverter.7.2.0.nupkg.sha512"
     },
     "xunit/2.9.2": {
       "type": "package",
