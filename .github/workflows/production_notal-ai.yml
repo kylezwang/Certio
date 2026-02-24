@@ -16,6 +16,7 @@ env:
   AZURE_WEBAPP_NAME: 'notal-ai'
   ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
   IMAGE_NAME: 'notal-ai'
+  HEALTH_CHECK_URL: 'https://notal-ai-dmaugkd6bvgqgpbb.centralus-01.azurewebsites.net/health'
 
 jobs:
   # ─────────────────────────────────────────────
@@ -116,7 +117,7 @@ jobs:
 
       - name: Health check production
         run: |
-          PROD_URL="https://${{ env.AZURE_WEBAPP_NAME }}-dmaugkd6bvgqgpbb.centralus-01.azurewebsites.net/health"
+          PROD_URL="${{ env.HEALTH_CHECK_URL }}"
           MAX_RETRIES=10
           RETRY_DELAY=15
 

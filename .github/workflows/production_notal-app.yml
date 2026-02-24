@@ -19,6 +19,7 @@ on:
 env:
   DOTNET_VERSION: '9.x'
   AZURE_WEBAPP_NAME: 'Notal-app'
+  HEALTH_CHECK_URL: 'https://notal-app-d3hrf0bhafabdxch.centralus-01.azurewebsites.net/healthz'
 
 jobs:
   # ─────────────────────────────────────────────
@@ -104,6 +105,9 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
+      - name: Restore dependencies
+        run: dotnet restore
+
       - name: Install EF Core tools
         run: dotnet tool install --global dotnet-ef
 
@@ -163,7 +167,7 @@ jobs:
         run: |
           $maxRetries = 5
           $retryDelay = 10
-          $prodUrl = "https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/healthz"
+          $prodUrl = "${{ env.HEALTH_CHECK_URL }}"
 
           for ($i = 1; $i -le $maxRetries; $i++) {
             Write-Host "Health check attempt $i of $maxRetries..."
