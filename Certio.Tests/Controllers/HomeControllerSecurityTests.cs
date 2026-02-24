@@ -122,7 +122,7 @@ public class HomeControllerSecurityTests : IDisposable
         userManagerMock.Setup(m => m.SetTwoFactorEnabledAsync(user, true)).ReturnsAsync(IdentityResult.Success);
         userManagerMock.Setup(m => m.UpdateAsync(user)).ReturnsAsync(IdentityResult.Success);
 
-        var model = new TwoFactorVerificationViewModel { VerificationCode = "123456", Token = "token-123" };
+        var model = new TwoFactorVerificationViewModel { VerificationCode = "123456", Token = "token-123", RememberMe = true };
 
         // Act
         var result = await controller.VerifyLoginTwoFactor(model);
