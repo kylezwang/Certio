@@ -191,7 +191,7 @@ namespace Certio.Web.Controllers
                     Id = m.Id,
                     Title = m.Title,
                     PracticeArea = m.PracticeArea,
-                    AssignedUserIds = m.Assignments.Select(a => a.UserId).ToList()
+                    AssignedUserIds = m.Assignments.Where(a => a.UserId.HasValue).Select(a => a.UserId!.Value).ToList()
                 }).ToList(),
                 Users = users
             };
@@ -337,7 +337,7 @@ namespace Certio.Web.Controllers
                         Id = matter.Id,
                         Title = matter.Title,
                         PracticeArea = matter.PracticeArea,
-                        AssignedUserIds = matter.Assignments.Select(a => a.UserId).ToList()
+                        AssignedUserIds = matter.Assignments.Where(a => a.UserId.HasValue).Select(a => a.UserId!.Value).ToList()
                     }
                 },
                 Users = users
@@ -477,7 +477,7 @@ namespace Certio.Web.Controllers
                         Id = matter.Id,
                         Title = matter.Title,
                         PracticeArea = matter.PracticeArea,
-                        AssignedUserIds = matter.Assignments.Select(a => a.UserId).ToList()
+                        AssignedUserIds = matter.Assignments.Where(a => a.UserId.HasValue).Select(a => a.UserId!.Value).ToList()
                     }
                 },
                 Users = users

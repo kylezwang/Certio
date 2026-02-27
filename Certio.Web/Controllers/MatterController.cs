@@ -433,14 +433,27 @@ namespace Certio.Web.Controllers
                 Description = dto.Description,
                 OrganizationId = dto.OrganizationId,
                 Assignments = dto.Assignments
-                    .Where(a => a.User != null)
+                    .Where(a => a.User != null || a.AssignmentType == "Vendor" || a.AssignmentType == "Guest")
                     .Select(a => new MatterAssignment
                     {
                         Id = a.Id,
                         MatterId = a.MatterId,
                         UserId = a.UserId,
+                        Email = a.Email,
+                        FirstName = a.FirstName,
+                        LastName = a.LastName,
+                        PhoneNumber = a.PhoneNumber,
                         AssignmentType = a.AssignmentType,
                         Role = a.Role,
+                        VendorCategory = a.VendorCategory,
+                        VendorStatus = a.VendorStatus,
+                        ContractAmount = a.ContractAmount,
+                        AmountPaid = a.AmountPaid,
+                        RsvpStatus = a.RsvpStatus,
+                        PartySize = a.PartySize,
+                        TableNumber = a.TableNumber,
+                        DietaryRestrictions = a.DietaryRestrictions,
+                        MealChoice = a.MealChoice,
                         IsNotifyRecipient = a.IsNotifyRecipient,
                         AssignedAt = a.AssignedAt,
                         User = a.User != null ? new User
@@ -456,8 +469,7 @@ namespace Certio.Web.Controllers
 
             var viewModel = new MatterContactsViewModel
             {
-                Matter = matter,
-                ChangeControlSummary = await _changeNoticeService.GetSummaryAsync(orgId, matterId)
+                Matter = matter
             };
 
             // Set ViewBag for the partial view
@@ -1247,13 +1259,13 @@ namespace Certio.Web.Controllers
             var currentMatter = await _matterService.GetMatterAsync(user.Id, id);
             if (currentMatter.Success && currentMatter.Data!.Assignments.Any())
             {
-                // Remove all existing assignments
-                foreach (var assignment in currentMatter.Data.Assignments)
+                // Remove all existing team-member assignments
+                foreach (var assignment in currentMatter.Data.Assignments.Where(a => a.UserId.HasValue))
                 {
                     await _matterService.RemoveUserFromMatterAsync(
                         user.Id,
                         id,
-                        assignment.UserId,
+                        assignment.UserId!.Value,
                         GetIpAddress(),
                         GetUserAgent());
                 }
@@ -1518,7 +1530,7 @@ namespace Certio.Web.Controllers
                 await _matterService.RemoveUserFromMatterAsync(
                     user.Id,
                     matterId,
-                    existingTypeAssignment.UserId,
+                    existingTypeAssignment.UserId!.Value,
                     GetIpAddress(),
                     GetUserAgent());
             }
@@ -1563,10 +1575,15 @@ namespace Certio.Web.Controllers
                 return NotFound(new { success = false, message = "Assignment not found" });
             }
 
+            if (!assignment.UserId.HasValue)
+            {
+                return BadRequest(new { success = false, message = "Cannot remove a non-user assignment via this endpoint" });
+            }
+
             var result = await _matterService.RemoveUserFromMatterAsync(
                 user.Id,
                 matterId,
-                assignment.UserId,
+                assignment.UserId.Value,
                 GetIpAddress(),
                 GetUserAgent());
 
@@ -1574,6 +1591,72 @@ namespace Certio.Web.Controllers
             {
                 return BadRequest(new { success = false, message = result.ErrorMessage });
             }
+
+            return Json(new { success = true });
+        }
+
+        // POST: /Client/{orgId}/Matter/{matterId}/Contact - Add guest/vendor contact
+        [Authorize(Policy = "OrgMember")]
+        [HttpPost("/Client/{orgId:int}/Matter/{matterId:int}/Contact")]
+        public async Task<IActionResult> AddContactToMatter(int orgId, int matterId, [FromBody] AddContactToMatterDto contactDto)
+        {
+            var (user, _) = GetUserContext();
+            if (user == null)
+                return Unauthorized(new { success = false, message = "User not authenticated" });
+
+            var matterResult = await _matterService.GetMatterAsync(user.Id, matterId);
+            if (!matterResult.Success || matterResult.Data!.OrganizationId != orgId)
+                return BadRequest(new { success = false, message = "Matter not found or access denied" });
+
+            var result = await _matterService.AddContactToMatterAsync(
+                user.Id, matterId, contactDto, GetIpAddress(), GetUserAgent());
+
+            if (!result.Success)
+                return BadRequest(new { success = false, message = result.ErrorMessage });
+
+            return Json(new { success = true, assignment = result.Data });
+        }
+
+        // PUT: /Client/{orgId}/Matter/{matterId}/Contact/{assignmentId} - Update guest/vendor contact
+        [Authorize(Policy = "OrgMember")]
+        [HttpPut("/Client/{orgId:int}/Matter/{matterId:int}/Contact/{assignmentId:int}")]
+        public async Task<IActionResult> UpdateContactOnMatter(int orgId, int matterId, int assignmentId, [FromBody] AddContactToMatterDto contactDto)
+        {
+            var (user, _) = GetUserContext();
+            if (user == null)
+                return Unauthorized(new { success = false, message = "User not authenticated" });
+
+            var matterResult = await _matterService.GetMatterAsync(user.Id, matterId);
+            if (!matterResult.Success || matterResult.Data!.OrganizationId != orgId)
+                return BadRequest(new { success = false, message = "Matter not found or access denied" });
+
+            var result = await _matterService.UpdateContactOnMatterAsync(
+                user.Id, matterId, assignmentId, contactDto, GetIpAddress(), GetUserAgent());
+
+            if (!result.Success)
+                return BadRequest(new { success = false, message = result.ErrorMessage });
+
+            return Json(new { success = true, assignment = result.Data });
+        }
+
+        // DELETE: /Client/{orgId}/Matter/{matterId}/Contact/{assignmentId} - Remove guest/vendor contact
+        [Authorize(Policy = "OrgMember")]
+        [HttpDelete("/Client/{orgId:int}/Matter/{matterId:int}/Contact/{assignmentId:int}")]
+        public async Task<IActionResult> RemoveContactFromMatter(int orgId, int matterId, int assignmentId)
+        {
+            var (user, _) = GetUserContext();
+            if (user == null)
+                return Unauthorized(new { success = false, message = "User not authenticated" });
+
+            var matterResult = await _matterService.GetMatterAsync(user.Id, matterId);
+            if (!matterResult.Success || matterResult.Data!.OrganizationId != orgId)
+                return BadRequest(new { success = false, message = "Matter not found or access denied" });
+
+            var result = await _matterService.RemoveContactFromMatterAsync(
+                user.Id, matterId, assignmentId, GetIpAddress(), GetUserAgent());
+
+            if (!result.Success)
+                return BadRequest(new { success = false, message = result.ErrorMessage });
 
             return Json(new { success = true });
         }

@@ -240,29 +240,29 @@
       <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"qzeuzqdpg9"},{"Name":"integrity","Value":"sha256-mp1I7GE7NWKfWe4VlpeUjPdj\u002BYcKLJu8bCvTwOMBE04="},{"Name":"label","Value":"_content/Certio.Web/js/agent-actions.js"}]]]></EndpointProperties>
       <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"99259"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u0022mp1I7GE7NWKfWe4VlpeUjPdj\u002BYcKLJu8bCvTwOMBE04=\u0022"},{"Name":"Last-Modified","Value":"Tue, 24 Feb 2026 21:07:45 GMT"}]]]></ResponseHeaders>
     </StaticWebAssetEndpoint>
-    <StaticWebAssetEndpoint Include="_content/Certio.Web/js/billing.79czulvc1z.js">
+    <StaticWebAssetEndpoint Include="_content/Certio.Web/js/billing.bto1czwmyr.js">
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\billing.js'))</AssetFile>
       <Selectors><![CDATA[[]]]></Selectors>
-      <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"79czulvc1z"},{"Name":"integrity","Value":"sha256-y2pEX425aGlWMC7NB/QMdoBpBpmi5GEyy5DkVcnlmzA="},{"Name":"label","Value":"_content/Certio.Web/js/billing.js"}]]]></EndpointProperties>
-      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"75126"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u0022y2pEX425aGlWMC7NB/QMdoBpBpmi5GEyy5DkVcnlmzA=\u0022"},{"Name":"Last-Modified","Value":"Sun, 08 Feb 2026 06:55:21 GMT"}]]]></ResponseHeaders>
+      <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"bto1czwmyr"},{"Name":"integrity","Value":"sha256-IVT9\u002BOFo/5XuaWbThylE1FS9ad3AMrp7G85bcKwD8yw="},{"Name":"label","Value":"_content/Certio.Web/js/billing.js"}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"75133"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u0022IVT9\u002BOFo/5XuaWbThylE1FS9ad3AMrp7G85bcKwD8yw=\u0022"},{"Name":"Last-Modified","Value":"Fri, 27 Feb 2026 00:36:20 GMT"}]]]></ResponseHeaders>
     </StaticWebAssetEndpoint>
     <StaticWebAssetEndpoint Include="_content/Certio.Web/js/billing.js">
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\billing.js'))</AssetFile>
       <Selectors><![CDATA[[]]]></Selectors>
-      <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-y2pEX425aGlWMC7NB/QMdoBpBpmi5GEyy5DkVcnlmzA="}]]]></EndpointProperties>
-      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"75126"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u0022y2pEX425aGlWMC7NB/QMdoBpBpmi5GEyy5DkVcnlmzA=\u0022"},{"Name":"Last-Modified","Value":"Sun, 08 Feb 2026 06:55:21 GMT"}]]]></ResponseHeaders>
-    </StaticWebAssetEndpoint>
-    <StaticWebAssetEndpoint Include="_content/Certio.Web/js/change-control.8u6ns3d9nw.js">
-      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\change-control.js'))</AssetFile>
-      <Selectors><![CDATA[[]]]></Selectors>
-      <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"8u6ns3d9nw"},{"Name":"integrity","Value":"sha256-YBoJX5b7p/193pVKrCmzyJu1LkzR89i4jg1njOlGUcw="},{"Name":"label","Value":"_content/Certio.Web/js/change-control.js"}]]]></EndpointProperties>
-      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"46802"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u0022YBoJX5b7p/193pVKrCmzyJu1LkzR89i4jg1njOlGUcw=\u0022"},{"Name":"Last-Modified","Value":"Mon, 09 Feb 2026 09:44:10 GMT"}]]]></ResponseHeaders>
+      <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-IVT9\u002BOFo/5XuaWbThylE1FS9ad3AMrp7G85bcKwD8yw="}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"75133"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u0022IVT9\u002BOFo/5XuaWbThylE1FS9ad3AMrp7G85bcKwD8yw=\u0022"},{"Name":"Last-Modified","Value":"Fri, 27 Feb 2026 00:36:20 GMT"}]]]></ResponseHeaders>
     </StaticWebAssetEndpoint>
     <StaticWebAssetEndpoint Include="_content/Certio.Web/js/change-control.js">
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\change-control.js'))</AssetFile>
       <Selectors><![CDATA[[]]]></Selectors>
-      <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-YBoJX5b7p/193pVKrCmzyJu1LkzR89i4jg1njOlGUcw="}]]]></EndpointProperties>
-      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"46802"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u0022YBoJX5b7p/193pVKrCmzyJu1LkzR89i4jg1njOlGUcw=\u0022"},{"Name":"Last-Modified","Value":"Mon, 09 Feb 2026 09:44:10 GMT"}]]]></ResponseHeaders>
+      <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-ioA\u002BykJMdJbi6GpnZGHxkvFYvV2z8GVgDE3IrUFlENI="}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"46866"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u0022ioA\u002BykJMdJbi6GpnZGHxkvFYvV2z8GVgDE3IrUFlENI=\u0022"},{"Name":"Last-Modified","Value":"Fri, 27 Feb 2026 03:59:18 GMT"}]]]></ResponseHeaders>
+    </StaticWebAssetEndpoint>
+    <StaticWebAssetEndpoint Include="_content/Certio.Web/js/change-control.mwqxxaticg.js">
+      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\change-control.js'))</AssetFile>
+      <Selectors><![CDATA[[]]]></Selectors>
+      <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"mwqxxaticg"},{"Name":"integrity","Value":"sha256-ioA\u002BykJMdJbi6GpnZGHxkvFYvV2z8GVgDE3IrUFlENI="},{"Name":"label","Value":"_content/Certio.Web/js/change-control.js"}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"46866"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u0022ioA\u002BykJMdJbi6GpnZGHxkvFYvV2z8GVgDE3IrUFlENI=\u0022"},{"Name":"Last-Modified","Value":"Fri, 27 Feb 2026 03:59:18 GMT"}]]]></ResponseHeaders>
     </StaticWebAssetEndpoint>
     <StaticWebAssetEndpoint Include="_content/Certio.Web/js/chat.js">
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\chat.js'))</AssetFile>

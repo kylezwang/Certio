@@ -870,24 +870,17 @@
             // --- Other Links (Calendar, Billing, History) ---
             // These should also respect the active firm context
 
-            async function initializeCalendarLink() {
-                // Use activeFirmId from localStorage if available
-                const storedFirmId = localStorage.getItem('activeFirmId');
-                if (storedFirmId) {
-                    calendarLink.href = `/Client/${storedFirmId}/Calendar`;
-                    updateCalendarActiveState(storedFirmId);
-                } else {
-                    // Fallback to fetch if no stored ID
-                    try {
-                        const response = await fetch('/Client/List', { credentials: 'include' });
-                        const result = await response.json();
-                        if (result.success && result.activeFirmId) {
-                            calendarLink.href = `/Client/${result.activeFirmId}/Calendar`;
-                            updateCalendarActiveState(result.activeFirmId);
-                        }
-                    } catch (e) {
-                        calendarLink.href = '#';
+            function initializeCalendarLink() {
+                calendarLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    var firmId = localStorage.getItem('activeFirmId');
+                    if (firmId) {
+                        window.location.href = '/Client/' + firmId + '/Calendar';
                     }
+                });
+                var storedFirmId = localStorage.getItem('activeFirmId');
+                if (storedFirmId) {
+                    updateCalendarActiveState(storedFirmId);
                 }
             }
 
@@ -901,22 +894,17 @@
                 }
             }
 
-            async function initializeBillingLink() {
-                const storedFirmId = localStorage.getItem('activeFirmId');
-                if (storedFirmId) {
-                    billingLink.href = `/Client/${storedFirmId}/Billing`;
-                    updateBillingActiveState(storedFirmId);
-                } else {
-                    try {
-                        const response = await fetch('/Client/List', { credentials: 'include' });
-                        const result = await response.json();
-                        if (result.success && result.activeFirmId) {
-                            billingLink.href = `/Client/${result.activeFirmId}/Billing`;
-                            updateBillingActiveState(result.activeFirmId);
-                        }
-                    } catch (e) {
-                        billingLink.href = '#';
+            function initializeBillingLink() {
+                billingLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    var firmId = localStorage.getItem('activeFirmId');
+                    if (firmId) {
+                        window.location.href = '/Client/' + firmId + '/Billing';
                     }
+                });
+                var storedFirmId = localStorage.getItem('activeFirmId');
+                if (storedFirmId) {
+                    updateBillingActiveState(storedFirmId);
                 }
             }
 
@@ -930,24 +918,17 @@
                 }
             }
 
-            async function initializeHistoryLink() {
-                const storedFirmId = localStorage.getItem('activeFirmId');
-                if (storedFirmId) {
-                    historyLink.href = `/Client/${storedFirmId}/History`;
-                    updateHistoryActiveState(storedFirmId);
-                } else {
-                    try {
-                        const response = await fetch('/Client/List', { credentials: 'include' });
-                        const result = await response.json();
-                        if (result.success && result.activeFirmId) {
-                            historyLink.href = `/Client/${result.activeFirmId}/History`;
-                            updateHistoryActiveState(result.activeFirmId);
-                        } else {
-                            historyLink.href = '#';
-                        }
-                    } catch (e) {
-                        historyLink.href = '#';
+            function initializeHistoryLink() {
+                historyLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    var firmId = localStorage.getItem('activeFirmId');
+                    if (firmId) {
+                        window.location.href = '/Client/' + firmId + '/History';
                     }
+                });
+                var storedFirmId = localStorage.getItem('activeFirmId');
+                if (storedFirmId) {
+                    updateHistoryActiveState(storedFirmId);
                 }
             }
 

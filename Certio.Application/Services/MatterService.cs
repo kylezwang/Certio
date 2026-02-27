@@ -633,6 +633,177 @@ namespace Certio.Application.Services
             }
         }
 
+        public async Task<ServiceResult<MatterAssignmentDto>> AddContactToMatterAsync(
+            int userId,
+            int matterId,
+            AddContactToMatterDto dto,
+            string? ipAddress = null,
+            string? userAgent = null)
+        {
+            try
+            {
+                var matter = await _context.Matters
+                    .Include(m => m.Assignments)
+                    .FirstOrDefaultAsync(m => m.Id == matterId && !m.IsDeleted);
+
+                if (matter == null)
+                    throw new ResourceNotFoundException("Matter", matterId);
+
+                if (!await _permissionService.CanAccessMatterAsync(userId, matterId))
+                    throw new UnauthorizedOperationException(userId, "add-contact", "Matter", "No access to matter");
+
+                if (!await _permissionService.HasPermissionAsync(userId, matter.OrganizationId, Permission.ManageMatterSettings))
+                    throw new UnauthorizedOperationException(userId, "add-contact", "Matter", "Lacks ManageMatterSettings permission");
+
+                var assignment = new MatterAssignment
+                {
+                    MatterId = matterId,
+                    UserId = null,
+                    AssignmentType = dto.AssignmentType,
+                    Email = dto.Email,
+                    FirstName = dto.FirstName,
+                    LastName = dto.LastName,
+                    PhoneNumber = dto.PhoneNumber,
+                    Role = dto.Role,
+                    VendorCategory = dto.VendorCategory,
+                    VendorStatus = dto.VendorStatus,
+                    ContractAmount = dto.ContractAmount,
+                    AmountPaid = dto.AmountPaid,
+                    RsvpStatus = dto.RsvpStatus,
+                    PartySize = dto.PartySize,
+                    TableNumber = dto.TableNumber,
+                    DietaryRestrictions = dto.DietaryRestrictions,
+                    MealChoice = dto.MealChoice,
+                    AssignedAt = DateTime.UtcNow
+                };
+
+                _context.MatterAssignments.Add(assignment);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("User {UserId} added {Type} contact to matter {MatterId}",
+                    userId, dto.AssignmentType, matterId);
+
+                return ServiceResult<MatterAssignmentDto>.SuccessResult(MapToMatterAssignmentDto(assignment));
+            }
+            catch (DomainException ex)
+            {
+                _logger.LogWarning(ex, "Domain exception adding contact to matter {MatterId}", matterId);
+                return ServiceResult<MatterAssignmentDto>.FailureResult(ex.Message, ex.ErrorCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding contact to matter {MatterId}", matterId);
+                return ServiceResult<MatterAssignmentDto>.FailureResult("An error occurred while adding contact to matter", "ERROR");
+            }
+        }
+
+        public async Task<ServiceResult<MatterAssignmentDto>> UpdateContactOnMatterAsync(
+            int userId,
+            int matterId,
+            int assignmentId,
+            AddContactToMatterDto dto,
+            string? ipAddress = null,
+            string? userAgent = null)
+        {
+            try
+            {
+                var matter = await _context.Matters
+                    .Include(m => m.Assignments)
+                    .FirstOrDefaultAsync(m => m.Id == matterId && !m.IsDeleted);
+
+                if (matter == null)
+                    throw new ResourceNotFoundException("Matter", matterId);
+
+                if (!await _permissionService.CanAccessMatterAsync(userId, matterId))
+                    throw new UnauthorizedOperationException(userId, "update-contact", "Matter", "No access to matter");
+
+                if (!await _permissionService.HasPermissionAsync(userId, matter.OrganizationId, Permission.ManageMatterSettings))
+                    throw new UnauthorizedOperationException(userId, "update-contact", "Matter", "Lacks ManageMatterSettings permission");
+
+                var assignment = matter.Assignments.FirstOrDefault(a => a.Id == assignmentId && a.RemovedAt == null);
+                if (assignment == null)
+                    throw new ResourceNotFoundException("MatterAssignment", assignmentId);
+
+                assignment.Email = dto.Email;
+                assignment.FirstName = dto.FirstName;
+                assignment.LastName = dto.LastName;
+                assignment.PhoneNumber = dto.PhoneNumber;
+                assignment.Role = dto.Role;
+                assignment.VendorCategory = dto.VendorCategory;
+                assignment.VendorStatus = dto.VendorStatus;
+                assignment.ContractAmount = dto.ContractAmount;
+                assignment.AmountPaid = dto.AmountPaid;
+                assignment.RsvpStatus = dto.RsvpStatus;
+                assignment.PartySize = dto.PartySize;
+                assignment.TableNumber = dto.TableNumber;
+                assignment.DietaryRestrictions = dto.DietaryRestrictions;
+                assignment.MealChoice = dto.MealChoice;
+
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("User {UserId} updated contact {AssignmentId} on matter {MatterId}",
+                    userId, assignmentId, matterId);
+
+                return ServiceResult<MatterAssignmentDto>.SuccessResult(MapToMatterAssignmentDto(assignment));
+            }
+            catch (DomainException ex)
+            {
+                _logger.LogWarning(ex, "Domain exception updating contact on matter {MatterId}", matterId);
+                return ServiceResult<MatterAssignmentDto>.FailureResult(ex.Message, ex.ErrorCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating contact on matter {MatterId}", matterId);
+                return ServiceResult<MatterAssignmentDto>.FailureResult("An error occurred while updating contact on matter", "ERROR");
+            }
+        }
+
+        public async Task<ServiceResult> RemoveContactFromMatterAsync(
+            int userId,
+            int matterId,
+            int assignmentId,
+            string? ipAddress = null,
+            string? userAgent = null)
+        {
+            try
+            {
+                var matter = await _context.Matters
+                    .Include(m => m.Assignments)
+                    .FirstOrDefaultAsync(m => m.Id == matterId && !m.IsDeleted);
+
+                if (matter == null)
+                    throw new ResourceNotFoundException("Matter", matterId);
+
+                if (!await _permissionService.CanAccessMatterAsync(userId, matterId))
+                    throw new UnauthorizedOperationException(userId, "remove-contact", "Matter", "No access to matter");
+
+                if (!await _permissionService.HasPermissionAsync(userId, matter.OrganizationId, Permission.ManageMatterSettings))
+                    throw new UnauthorizedOperationException(userId, "remove-contact", "Matter", "Lacks ManageMatterSettings permission");
+
+                var assignment = matter.Assignments.FirstOrDefault(a => a.Id == assignmentId && a.RemovedAt == null);
+                if (assignment == null)
+                    throw new ResourceNotFoundException("MatterAssignment", assignmentId);
+
+                assignment.RemovedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("User {UserId} removed contact {AssignmentId} from matter {MatterId}",
+                    userId, assignmentId, matterId);
+
+                return ServiceResult.SuccessResult();
+            }
+            catch (DomainException ex)
+            {
+                _logger.LogWarning(ex, "Domain exception removing contact from matter {MatterId}", matterId);
+                return ServiceResult.FailureResult(ex.Message, ex.ErrorCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error removing contact from matter {MatterId}", matterId);
+                return ServiceResult.FailureResult("An error occurred while removing contact from matter", "ERROR");
+            }
+        }
+
         public async Task<ServiceResult> GrantMatterAccessAsync(
             int userId, 
             int matterId, 
@@ -851,8 +1022,21 @@ namespace Certio.Application.Services
                 Id = assignment.Id,
                 MatterId = assignment.MatterId,
                 UserId = assignment.UserId,
+                Email = assignment.Email,
+                FirstName = assignment.FirstName,
+                LastName = assignment.LastName,
+                PhoneNumber = assignment.PhoneNumber,
                 AssignmentType = assignment.AssignmentType,
                 Role = assignment.Role,
+                VendorCategory = assignment.VendorCategory,
+                VendorStatus = assignment.VendorStatus,
+                ContractAmount = assignment.ContractAmount,
+                AmountPaid = assignment.AmountPaid,
+                RsvpStatus = assignment.RsvpStatus,
+                PartySize = assignment.PartySize,
+                TableNumber = assignment.TableNumber,
+                DietaryRestrictions = assignment.DietaryRestrictions,
+                MealChoice = assignment.MealChoice,
                 IsNotifyRecipient = assignment.IsNotifyRecipient,
                 AssignedAt = assignment.AssignedAt,
                 User = assignment.User != null ? MapToUserSummaryDto(assignment.User) : null

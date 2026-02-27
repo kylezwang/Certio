@@ -535,7 +535,7 @@
                 <i class="fas fa-file-invoice"></i> New Invoice
             </div>
             <div class="dropdown-item" data-type="trusts">
-                <i class="fas fa-hand-holding-usd"></i> New Budget
+                <i class="fa-solid fa-money-check-dollar"></i> New Budget
             </div>
         `;
         
