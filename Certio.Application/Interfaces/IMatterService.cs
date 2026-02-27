@@ -72,6 +72,28 @@ namespace Certio.Application.Interfaces
             string? ipAddress = null,
             string? userAgent = null);
 
+        Task<ServiceResult<MatterAssignmentDto>> AddContactToMatterAsync(
+            int userId,
+            int matterId,
+            AddContactToMatterDto dto,
+            string? ipAddress = null,
+            string? userAgent = null);
+
+        Task<ServiceResult<MatterAssignmentDto>> UpdateContactOnMatterAsync(
+            int userId,
+            int matterId,
+            int assignmentId,
+            AddContactToMatterDto dto,
+            string? ipAddress = null,
+            string? userAgent = null);
+
+        Task<ServiceResult> RemoveContactFromMatterAsync(
+            int userId,
+            int matterId,
+            int assignmentId,
+            string? ipAddress = null,
+            string? userAgent = null);
+
         /// <summary>
         /// Grants specific matter access to a user (for AccessLevel = "Specific")
         /// </summary>

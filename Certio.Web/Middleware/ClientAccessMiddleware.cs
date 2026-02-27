@@ -71,7 +71,7 @@ namespace Certio.Web.Middleware
                         _logger.LogWarning("ClientAccessMiddleware: Access DENIED for User {UserId} to Org {OrgId}. Path: {Path}", 
                             customUser.Id, orgId, path);
                         context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                        await context.Response.WriteAsync("Forbidden: You are not a member of this client and do not have firm-based access.");
+                        await context.Response.WriteAsync("Forbidden: You are not a member of this client and do not have access to this organization.");
                         return;
                     }
                 }

@@ -93,10 +93,19 @@ public class Matter
     public string? ApprovalNotes { get; set; }
     
     // Computed properties for views
+    private static readonly HashSet<string> TeamMemberAssignmentTypes = new()
+    {
+        "OriginatingAttorney", "ResponsibleAttorney", "ResponsibleStaff", "RelevantContact"
+    };
+
     public int TasksCompleted => TaskItems.Count(ti => ti.Status == "Completed");
     public int TotalTasks => TaskItems.Count;
-    public string Assignees => string.Join(", ", Assignments.Select(a => a.User.FirstName + " " + a.User.LastName));
-    public int UniqueAssigneeCount => Assignments.Select(a => a.UserId).Distinct().Count();
+    public string Assignees => string.Join(", ",
+        Assignments.Where(a => TeamMemberAssignmentTypes.Contains(a.AssignmentType) && a.User != null)
+                   .Select(a => a.User!.FirstName + " " + a.User.LastName));
+    public int UniqueAssigneeCount =>
+        Assignments.Where(a => TeamMemberAssignmentTypes.Contains(a.AssignmentType))
+                   .Select(a => a.UserId).Distinct().Count();
     
     // Helper properties for firm assignments
     public User? OriginatingAttorney => Assignments.FirstOrDefault(a => a.AssignmentType == "OriginatingAttorney")?.User;
@@ -118,16 +127,45 @@ public class MatterAssignment
     public int Id { get; set; }
     
     public int MatterId { get; set; }
-    public int UserId { get; set; }
-    
-    [Required]
-    [StringLength(20)]
-    public string AssignmentType { get; set; } = "RelevantContact"; // OriginatingAttorney, ResponsibleAttorney, ResponsibleStaff, RelevantContact
-    
-    [Required]
+    public int? UserId { get; set; }
+
+    [StringLength(200)]
+    public string? Email { get; set; }
     [StringLength(100)]
-    public string Role { get; set; } = ""; // Free-text involvement description
+    public string? FirstName { get; set; }
+    [StringLength(100)]
+    public string? LastName { get; set; }
+    [StringLength(20)]
+    public string? PhoneNumber { get; set; }
     
+    [Required]
+    [StringLength(30)]
+    public string AssignmentType { get; set; } = "RelevantContact";
+    // OriginatingAttorney, ResponsibleAttorney, ResponsibleStaff, RelevantContact, Vendor, Guest
+    
+    [StringLength(100)]
+    public string? Role { get; set; }
+    
+    // Vendor-specific
+    [StringLength(100)]
+    public string? VendorCategory { get; set; }
+    [StringLength(30)]
+    public string? VendorStatus { get; set; }
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? ContractAmount { get; set; }
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? AmountPaid { get; set; }
+
+    // Guest-specific
+    [StringLength(30)]
+    public string? RsvpStatus { get; set; }
+    public int? PartySize { get; set; }
+    public int? TableNumber { get; set; }
+    [StringLength(500)]
+    public string? DietaryRestrictions { get; set; }
+    [StringLength(200)]
+    public string? MealChoice { get; set; }
+
     public bool IsNotifyRecipient { get; set; } = true;
     
     public DateTime AssignedAt { get; set; } = DateTime.UtcNow;
@@ -135,7 +173,7 @@ public class MatterAssignment
     
     // Navigation properties
     public virtual Matter Matter { get; set; } = null!;
-    public virtual User User { get; set; } = null!;
+    public virtual User? User { get; set; }
 }
 
 public class MatterPermission

@@ -18,6 +18,8 @@
         : Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType);
 }
 
+<div class="d-none" data-organization-id="@ViewBag.OrganizationId"></div>
+
 <div class="settings-container">
     <!-- Header with Save Button -->
     <div class="settings-header" style="display: flex; justify-content: space-between; align-items: center;">
@@ -587,15 +589,139 @@
                             <p>Manage your subscription and billing settings</p>
                         </div>
                         <div class="settings-section-content">
+                            <div class="subscription-plan-content">
+                                <div class="subscription-plan">
+                                    <span class="plan-name">Free Plan</span>
+                                    <span class="plan-price">($0/month)</span>
+                                    <span class="plan-separator">•</span>
+                                    <span class="plan-billing">Next billing: <strong id="nextBillingDate">N/A</strong></span>
+                                </div>
+                                <div class="subscription-payment">
+                                    <span class="payment-label">Payment:</span>
+                                    <span class="payment-method">Visa ••••4141</span>
+                                    <span class="plan-separator">•</span>
+                                    <a href="/Client/@ViewBag.OrganizationId/Settings#billing" class="subscription-link">Manage Plan</a>
+                                    <a href="#" class="subscription-link" id="viewBillingHistoryLink">Billing History</a>
+                                </div>
+                                <div class="subscription-thank-you">
+                                    <span class="thank-you-text">"Thank you so much for your support!" -Kyle</span>
+                                </div>
+                                <!-- Billing History Section (Hidden by default) -->
+                                <div id="billingHistorySection" class="billing-history-section" style="display: none;">
+                                    <div class="billing-history-header-card">
+                                        <div class="billing-history-date-col">Date</div>
+                                        <div class="billing-history-desc-col">Description</div>
+                                        <div class="billing-history-amount-col">Amount</div>
+                                        <div class="billing-history-status-col">Status</div>
+                                    </div>
+                                    <div class="billing-history-cards-container">
+                                        <div class="text-center py-5 text-muted billing-history-empty">
+                                            <i class="fas fa-inbox mb-2" style="font-size: 1.5rem;"></i>
+                                            <div style="font-weight: 600;">No billing history</div>
+                                            <div style="font-size: 0.875rem;">Charges to your credit card will appear here.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Current Plan</h3>
+                            <p>Manage your subscription</p>
+                        </div>
+                        <div class="settings-section-content">
                             <div class="settings-row">
                                 <div class="settings-row-content">
-                                    <label class="settings-row-label">Full Billing & Plan Settings</label>
-                                    <p class="settings-row-description">View and manage your subscription, payment methods, usage, and invoices</p>
+                                    <label class="settings-row-label">Notal Plan</label>
+                                    <p class="settings-row-description">$50/month per seat</p>
                                 </div>
-                                <a href="/Client/@ViewBag.OrganizationId/Settings#billing" class="btn btn-primary btn-sm">
-                                    Organization Settings
-                                    <i class="fas fa-arrow-right ms-2"></i>
-                                </a>
+                                <button class="btn btn-outline-secondary btn-sm">Change Plan</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Payment Method</h3>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Credit Card</label>
+                                    <p class="settings-row-description">•••• 4242 • Expires 12/25</p>
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm">Update</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>Usage & Billing</h3>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Team seats</label>
+                                    <p class="settings-row-description">8/10 seats used</p>
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm">Add Seats</button>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Storage used</label>
+                                    <p class="settings-row-description">45GB / 100GB</p>
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm">Upgrade</button>
+                            </div>
+                            <div class="settings-row">
+                                <div class="settings-row-content">
+                                    <label class="settings-row-label">Invoices</label>
+                                    <p class="settings-row-description">Download this month's billing history</p>
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-download me-2"></i>
+                                    Download
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-header">
+                            <h3>AI Usage</h3>
+                            <p>Track your organization's AI API usage and costs over time</p>
+                        </div>
+                        <div class="settings-section-content">
+                            <div class="ai-usage-summary" style="display: flex; gap: 1.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                                <div class="usage-stat-card" style="flex: 1; min-width: 140px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 12px; padding: 1rem 1.25rem; border: 1px solid #e2e8f0;">
+                                    <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Total Cost (30d)</div>
+                                    <div id="totalCostValue" style="font-size: 1.5rem; font-weight: 600; color: #0f172a;">$0.00</div>
+                                </div>
+                                <div class="usage-stat-card" style="flex: 1; min-width: 140px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 12px; padding: 1rem 1.25rem; border: 1px solid #e2e8f0;">
+                                    <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">API Calls</div>
+                                    <div id="totalCallsValue" style="font-size: 1.5rem; font-weight: 600; color: #0f172a;">0</div>
+                                </div>
+                                <div class="usage-stat-card" style="flex: 1; min-width: 140px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 12px; padding: 1rem 1.25rem; border: 1px solid #e2e8f0;">
+                                    <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Tokens Used</div>
+                                    <div id="totalTokensValue" style="font-size: 1.5rem; font-weight: 600; color: #0f172a;">0</div>
+                                </div>
+                            </div>
+                            <div class="ai-usage-chart-container" style="position: relative; height: 250px; background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 1rem;">
+                                <canvas id="aiUsageChart"></canvas>
+                                <div id="aiUsageLoading" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #64748b;">
+                                    <i class="fas fa-spinner fa-spin me-2"></i>Loading usage data...
+                                </div>
+                                <div id="aiUsageEmpty" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #94a3b8; display: none; text-align: center;">
+                                    <i class="fas fa-chart-line" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
+                                    No usage data yet
+                                </div>
+                            </div>
+                            <div class="ai-usage-model-breakdown" id="modelBreakdown" style="margin-top: 1rem; display: none;">
+                                <div style="font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.75rem;">Cost by Model</div>
+                                <div id="modelBreakdownContent" style="display: flex; gap: 1rem; flex-wrap: wrap;"></div>
                             </div>
                         </div>
                     </div>
@@ -605,7 +731,137 @@
     </div>
 </div>
 
+@section PageStyles {
+<style>
+    /* Your Notal Plan - Billing section in Account Settings */
+    #billing-content .subscription-plan-content {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    #billing-content .subscription-plan {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.375rem;
+        font-size: 0.875rem;
+        color: #64748b;
+    }
+
+    #billing-content .plan-name {
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    #billing-content .plan-price {
+        color: #64748b;
+    }
+
+    #billing-content .plan-separator {
+        color: #cbd5e1;
+        margin: 0 0.125rem;
+    }
+
+    #billing-content .plan-billing {
+        color: #64748b;
+    }
+
+    #billing-content .plan-billing strong {
+        color: #1e293b;
+        font-weight: 500;
+    }
+
+    #billing-content .subscription-payment {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.375rem;
+        font-size: 0.875rem;
+        color: #64748b;
+    }
+
+    #billing-content .payment-label {
+        color: #94a3b8;
+    }
+
+    #billing-content .payment-method {
+        color: #1e293b;
+    }
+
+    #billing-content .subscription-link {
+        color: #3d1019;
+        text-decoration: none;
+        padding: 0.25rem 0.625rem;
+        border-radius: 6px;
+        background: rgba(61, 16, 25, 0.08);
+        transition: all 0.2s ease;
+        font-weight: 500;
+        font-size: 0.8125rem;
+    }
+
+    #billing-content .subscription-link:hover {
+        background: rgba(61, 16, 25, 0.15);
+        color: #3d1019;
+    }
+
+    #billing-content .subscription-link.active {
+        background: linear-gradient(135deg, #3d1019 0%, #5a1a26 100%);
+        color: #ffffff;
+    }
+
+    #billing-content .subscription-thank-you {
+        margin-top: 0.25rem;
+    }
+
+    #billing-content .thank-you-text {
+        font-size: 0.8125rem;
+        font-style: italic;
+        color: #64748b;
+        padding: 0.5rem 1rem;
+        background: #f8fafc;
+        border-radius: 8px;
+        border-left: 3px solid #3d1019;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        display: inline-block;
+    }
+
+    /* Billing History Section */
+    #billing-content .billing-history-section {
+        border-top: 1px solid #e5e7eb;
+        padding-top: 0.75rem;
+        margin-top: 0.75rem;
+    }
+
+    #billing-content .billing-history-header-card {
+        display: grid;
+        grid-template-columns: 1fr 3fr 1fr 1fr;
+        gap: 0.75rem;
+        align-items: center;
+        padding: 0.6rem 0 0.2rem 0;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #2d3748;
+    }
+
+    #billing-content .billing-history-amount-col {
+        text-align: right;
+    }
+
+    #billing-content .billing-history-status-col {
+        text-align: center;
+    }
+
+    #billing-content .billing-history-empty {
+        border: 1px dashed #e5e7eb;
+        border-radius: 12px;
+        background: #fff;
+    }
+</style>
+}
+
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Populate timezone dropdown with comprehensive list
@@ -626,6 +882,181 @@
             // Initialize Join Code
             initializeJoinCode();
 
+            // Billing history toggle (Account Settings Billing section)
+            const viewBillingHistoryLink = document.getElementById('viewBillingHistoryLink');
+            const billingHistorySection = document.getElementById('billingHistorySection');
+            if (viewBillingHistoryLink && billingHistorySection) {
+                viewBillingHistoryLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const isVisible = billingHistorySection.style.display !== 'none';
+                    if (isVisible) {
+                        billingHistorySection.style.display = 'none';
+                        viewBillingHistoryLink.classList.remove('active');
+                    } else {
+                        billingHistorySection.style.display = 'block';
+                        viewBillingHistoryLink.classList.add('active');
+                    }
+                });
+            }
+
+            // Get organization ID for AI Usage
+            const orgIdElement = document.querySelector('[data-organization-id]');
+            const orgId = orgIdElement ? parseInt(orgIdElement.getAttribute('data-organization-id')) : null;
+
+            // AI Usage Chart functionality
+            let aiUsageChart = null;
+            let aiUsageDataLoaded = false;
+
+            async function loadAIUsageData() {
+                const loadingEl = document.getElementById('aiUsageLoading');
+                const emptyEl = document.getElementById('aiUsageEmpty');
+                const chartCanvas = document.getElementById('aiUsageChart');
+
+                if (!orgId || !chartCanvas) return;
+
+                try {
+                    const response = await fetch(`/Client/${orgId}/Settings/AIUsage?days=30`);
+                    const result = await response.json();
+
+                    if (loadingEl) loadingEl.style.display = 'none';
+
+                    if (result.success && result.data) {
+                        const data = result.data;
+
+                        // Update summary stats
+                        const totalCostEl = document.getElementById('totalCostValue');
+                        const totalCallsEl = document.getElementById('totalCallsValue');
+                        const totalTokensEl = document.getElementById('totalTokensValue');
+
+                        if (totalCostEl) totalCostEl.textContent = `$${data.totalCost.toFixed(2)}`;
+                        if (totalCallsEl) totalCallsEl.textContent = data.totalCalls.toLocaleString();
+                        if (totalTokensEl) totalTokensEl.textContent = data.totalTokens.toLocaleString();
+
+                        // Check if there's any data
+                        if (data.totalCalls === 0) {
+                            if (emptyEl) emptyEl.style.display = 'block';
+                            return;
+                        }
+
+                        // Prepare chart data
+                        const labels = data.dataPoints.map(dp => {
+                            const date = new Date(dp.date);
+                            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                        });
+                        const costs = data.dataPoints.map(dp => dp.cost);
+
+                        // Create or update chart
+                        const ctx = chartCanvas.getContext('2d');
+
+                        if (aiUsageChart) {
+                            aiUsageChart.destroy();
+                        }
+
+                        aiUsageChart = new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: labels,
+                                datasets: [{
+                                    label: 'Cost ($)',
+                                    data: costs,
+                                    borderColor: '#6366f1',
+                                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                                    borderWidth: 2,
+                                    fill: true,
+                                    tension: 0.4,
+                                    pointRadius: 2,
+                                    pointHoverRadius: 6,
+                                    pointBackgroundColor: '#6366f1',
+                                    pointBorderColor: '#fff',
+                                    pointBorderWidth: 2
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                interaction: {
+                                    intersect: false,
+                                    mode: 'index'
+                                },
+                                plugins: {
+                                    legend: {
+                                        display: false
+                                    },
+                                    tooltip: {
+                                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                        padding: 12,
+                                        titleFont: { size: 13, weight: '600' },
+                                        bodyFont: { size: 12 },
+                                        callbacks: {
+                                            label: function(context) {
+                                                return `Cost: $${context.parsed.y.toFixed(4)}`;
+                                            }
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    x: {
+                                        grid: {
+                                            display: false
+                                        },
+                                        ticks: {
+                                            maxTicksLimit: 8,
+                                            font: { size: 11 },
+                                            color: '#64748b'
+                                        }
+                                    },
+                                    y: {
+                                        beginAtZero: true,
+                                        grid: {
+                                            color: 'rgba(148, 163, 184, 0.1)'
+                                        },
+                                        ticks: {
+                                            font: { size: 11 },
+                                            color: '#64748b',
+                                            callback: function(value) {
+                                                return '$' + value.toFixed(2);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+
+                        // Update model breakdown
+                        const modelBreakdownEl = document.getElementById('modelBreakdown');
+                        const modelBreakdownContent = document.getElementById('modelBreakdownContent');
+
+                        if (data.costByModel && Object.keys(data.costByModel).length > 0 && modelBreakdownEl && modelBreakdownContent) {
+                            modelBreakdownEl.style.display = 'block';
+
+                            const modelColors = {
+                                'gpt-4o-mini': '#22c55e',
+                                'gpt-4o': '#6366f1',
+                                'gpt-5': '#f59e0b'
+                            };
+
+                            modelBreakdownContent.innerHTML = Object.entries(data.costByModel)
+                                .map(([model, cost]) => `
+                                    <div style="display: flex; align-items: center; gap: 0.5rem; background: #f8fafc; padding: 0.5rem 0.75rem; border-radius: 8px;">
+                                        <div style="width: 8px; height: 8px; border-radius: 50%; background: ${modelColors[model] || '#94a3b8'};"></div>
+                                        <span style="font-size: 0.875rem; color: #475569;">${model}</span>
+                                        <span style="font-size: 0.875rem; font-weight: 500; color: #0f172a;">$${cost.toFixed(4)}</span>
+                                    </div>
+                                `).join('');
+                        }
+                    } else {
+                        if (emptyEl) emptyEl.style.display = 'block';
+                    }
+                } catch (error) {
+                    console.error('Error loading AI usage data:', error);
+                    if (loadingEl) loadingEl.style.display = 'none';
+                    if (emptyEl) {
+                        emptyEl.innerHTML = '<i class="fas fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>Error loading usage data';
+                        emptyEl.style.display = 'block';
+                    }
+                }
+            }
+
             // Load sessions and devices
             initializeSessionsAndDevices();
             
@@ -642,6 +1073,12 @@
                 
                 if (navItem) navItem.classList.add('active');
                 if (targetContent) targetContent.classList.add('active');
+
+                // Load AI usage data when billing tab is shown
+                if (tabId === 'billing' && orgId && !aiUsageDataLoaded) {
+                    aiUsageDataLoaded = true;
+                    loadAIUsageData();
+                }
             }
 
             navItems.forEach(item => {

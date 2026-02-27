@@ -80,9 +80,22 @@ namespace Certio.Application.DTOs
     {
         public int Id { get; set; }
         public int MatterId { get; set; }
-        public int UserId { get; set; }
+        public int? UserId { get; set; }
+        public string? Email { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string? PhoneNumber { get; set; }
         public string AssignmentType { get; set; } = "";
-        public string Role { get; set; } = "";
+        public string? Role { get; set; }
+        public string? VendorCategory { get; set; }
+        public string? VendorStatus { get; set; }
+        public decimal? ContractAmount { get; set; }
+        public decimal? AmountPaid { get; set; }
+        public string? RsvpStatus { get; set; }
+        public int? PartySize { get; set; }
+        public int? TableNumber { get; set; }
+        public string? DietaryRestrictions { get; set; }
+        public string? MealChoice { get; set; }
         public bool IsNotifyRecipient { get; set; }
         public DateTime AssignedAt { get; set; }
         public UserSummaryDto? User { get; set; }
@@ -105,6 +118,25 @@ namespace Certio.Application.DTOs
         public string AssignmentType { get; set; } = "RelevantContact";
         public string Role { get; set; } = "";
         public bool IsNotifyRecipient { get; set; } = true;
+    }
+
+    public class AddContactToMatterDto
+    {
+        public string AssignmentType { get; set; } = "Guest";
+        public string? Email { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string? Role { get; set; }
+        public string? VendorCategory { get; set; }
+        public string? VendorStatus { get; set; }
+        public decimal? ContractAmount { get; set; }
+        public decimal? AmountPaid { get; set; }
+        public string? RsvpStatus { get; set; }
+        public int? PartySize { get; set; }
+        public int? TableNumber { get; set; }
+        public string? DietaryRestrictions { get; set; }
+        public string? MealChoice { get; set; }
     }
 }
 

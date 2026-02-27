@@ -549,7 +549,7 @@
                                                 <div class="mb-3" style="padding: 0rem 0.5rem;">
                                                     <div class="d-flex align-items-center justify-content-between mb-2">
                                                         <div class="d-flex align-items-center">
-                                                            <i class="fas fa-users fs-6 me-2" style="color: #3d1019; font-size: 1.125rem;"></i>
+                                                            <i class="fas fa-user-circle fs-6 me-2" style="color: #3d1019; font-size: 1.125rem;"></i>
                                                             <h6 class="fw-bold text-dark mb-0" style="font-size: 0.9rem;">Relevant contacts</h6>
                                                         </div>
                                                         <button type="button" class="btn btn-outline-primary btn-sm" id="addRelevantContactBtn" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
@@ -667,7 +667,7 @@
                                     var cc = Model.ChangeControlSummary;
                                 }
 
-                                <div id="change-control-card" data-org-id="@ViewBag.OrganizationId" data-matter-id="@Model.Matter.Id">
+                                <div id="change-control-card" class="change-control-card" data-org-id="@ViewBag.OrganizationId" data-matter-id="@Model.Matter.Id">
                                     <style>
                                         /* Scoped "drippy inbox list" styling for Change Control card (inspired by Tasks/History/Billing) */
                                         #change-control-card .cc-add-card-outer-container {
@@ -1267,7 +1267,7 @@
                                             <span class="badge bg-warning text-dark" style="margin-top:0; font-weight: 600;">Response Required: <span data-cc-count="clarify">@((cc?.NeedsClarificationCount) ?? 0)</span></span>
                                             <span class="badge bg-success" style="margin-top:0; font-weight: 600;">All Confirmed: <span data-cc-count="ack">@((cc?.AcknowledgedCount) ?? 0)</span></span>
                                         </div>
-                                        <button id="cc-refresh-btn" class="btn btn-sm btn-outline-secondary" style="font-weight: 600;">
+                                        <button class="cc-refresh-btn btn btn-sm btn-outline-secondary" style="font-weight: 600;">
                                             <i class="fas fa-rotate-right me-1"></i> Refresh
                                         </button>
                                     </div>
@@ -1275,7 +1275,7 @@
                                     <!-- Draft composer toggle (Tasks-inspired) -->
                                     <div id="cc-add-container" class="cc-add-card-outer-container">
                                         <div class="cc-add-card-container">
-                                            <button class="cc-add-card-button" id="cc-open-composer-btn" type="button">
+                                            <button class="cc-add-card-button cc-open-composer-btn" type="button">
                                                 <div class="cc-add-card-icon">
                                                     <i class="fas fa-plus"></i>
                                                 </div>
@@ -1284,7 +1284,7 @@
                                         </div>
 
                                     <!-- Column headers (History/Billing inspired) -->
-                                    <div id="cc-list-header" class="cc-row cc-header mb-2">
+                                    <div class="cc-list-header cc-row cc-header mb-2">
                                         <div class="cc-grid">
                                             <div>
                                                 <button class="btn btn-sm" style="padding: 0.375rem 0.5rem; border: none; background: white; color: #2d3748; font-size: 0.75rem; font-weight: 700; border-radius: 0.5rem; cursor: default; text-align: left; width: 100%;">Status</button>
@@ -1299,7 +1299,7 @@
                                     </div>
                                     </div>
 
-                                    <div id="change-control-notice-list">
+                                    <div class="change-control-notice-list">
                                         @if (cc?.Notices != null && cc.Notices.Any())
                                         {
                                             var maxVisible = 2;
@@ -1444,7 +1444,7 @@
                                         }
                                     </script>
 
-                                    <pre id="change-control-summary-json" class="d-none"></pre>
+                                    <pre class="change-control-summary-json d-none"></pre>
                                 </div>
                                 </div>
                         </div>

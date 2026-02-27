@@ -19,9 +19,9 @@
 <div class="d-none" data-organization-id="@organizationId" data-matter-id="@matterId"></div>
 
 <div class="container-fluid" style="padding: 1.5rem 0rem;">
-    <div class="row" style="display: flex; flex-wrap: wrap;">
-        <!-- Staff & Contacts Card -->
-        <div class="col-lg-4 mb-3 matter-card-wrapper" style="order: 2;">
+    <div class="row" id="contacts-matters-grid" style="display: flex; flex-wrap: wrap; --bs-gutter-x: 1rem;">
+        <!-- Staff & Contacts Card (left) -->
+        <div class="col-lg-4 mb-3 matter-card-wrapper" style="order: 1;">
             <div class="card h-100 border-0 matter-card" style="padding-top: 0.5rem; position: relative;">
                 <div class="card-body pt-2">
                     <!-- Save Indicator Button (Top Right) -->
@@ -35,7 +35,7 @@
                     <div class="d-flex align-items-center mb-3" style="margin-left:0.25rem;">
                         <i class="fas fa-building-columns fs-5 me-2" style="color: #3d1019; font-size: 1.35rem;"></i>
                         <div>
-                            <h6 class="fw-bold text-dark mb-1" style="font-size: 1rem;">Staff & Contacts</h6>
+                            <h6 class="fw-bold text-dark mb-1" style="font-size: 1rem;">Team Members & Contacts</h6>
                             <p class="text-muted mb-0 small" style="font-size: 0.8rem;">Assign your team members and relevant contacts for this event.</p>
                         </div>
                     </div>
@@ -87,10 +87,10 @@
                     <div class="mb-3" style="padding: 0rem 0.5rem;">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <div class="d-flex align-items-center">
-                                <i class="fas fa-users fs-6 me-2" style="color: #3d1019; font-size: 1.125rem;"></i>
+                                <i class="fas fa-user-circle fs-6 me-2" style="color: #3d1019; font-size: 1.125rem;"></i>
                                 <h6 class="fw-bold text-dark mb-0" style="font-size: 0.9rem;">Relevant contacts</h6>
                             </div>
-                            <button type="button" class="btn btn-outline-primary btn-sm" id="contactsAddRelevantContactBtn" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="contactsAddRelevantContactBtn" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; font-weight: 600;">
                                 <i class="fas fa-plus me-1"></i> Add
                             </button>
                         </div>
@@ -129,576 +129,328 @@
             </div>
         </div>
 
-        <!-- Email Confirmations Card -->
-        <div class="col-lg-8 mb-3 matter-card-wrapper" style="order: 1;">
+        <!-- Vendors Card (right) -->
+        <div class="col-lg-8 mb-3 matter-card-wrapper" style="order: 2;">
             <div class="card h-100 border-0 matter-card" style="padding-top: 0.5rem; position: relative;">
                 <div class="card-header bg-transparent border-0 pb-0">
                     <div class="mb-2">
-                        <div class="d-flex align-items-center" style="margin-left:0.25rem;">
-                            <i class="fa-solid fa-bullhorn fs-5 me-2" style="color: #3d1019; font-size: 1.35rem;"></i>
-                            <div>
-                                <h5 class="card-title fw-bold mb-2" style="color: black; font-size: 1rem; line-height: 1.3;">Email Confirmations</h5>
-                                <p class="card-text text-muted mb-0" style="font-size: 0.8rem; line-height: 1.4;">
-                                    Create, send, and track email confirmations that require acknowledgement for your event.
-                                </p>
+                        <div class="d-flex align-items-center justify-content-between" style="margin-left:0.25rem;">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-truck fs-5 me-2" style="color: #3d1019; font-size: 1.35rem;"></i>
+                                <div>
+                                    <h5 class="card-title fw-bold mb-1" style="color: black; font-size: 1rem; line-height: 1.3;">Vendors</h5>
+                                    <p class="card-text text-muted mb-0" style="font-size: 0.8rem; line-height: 1.4;">
+                                        Track vendors and service providers for this event.
+                                    </p>
+                                </div>
                             </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="addVendorBtn" style="font-size: 0.8rem; padding: 0.35rem 0.75rem; font-weight: 600;">
+                                <i class="fas fa-plus me-1"></i> Add Vendor
+                            </button>
                         </div>
                     </div>
                 </div>
                 <div class="card-body pt-2">
                     @{
-                        var cc = Model.ChangeControlSummary;
+                        var vendors = Model.Matter.Assignments?.Where(ma => ma.AssignmentType == "Vendor" && ma.RemovedAt == null).ToList() ?? new List<Certio.Domain.Matters.MatterAssignment>();
                     }
 
-                    <div id="change-control-card" data-org-id="@organizationId" data-matter-id="@Model.Matter.Id">
+                    <div id="vendors-card" data-org-id="@organizationId" data-matter-id="@Model.Matter.Id">
                         <style>
-                            /* Match Summary tab hover style for cards in Contacts tab */
-                            #tab-contacts .matter-card {
-                                transition: none !important;
-                            }
-                            #tab-contacts .matter-card:hover {
-                                background-color: #ffffff !important;
-                                transform: none !important;
-                                box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
-                            }
+                            #tab-contacts .matter-card { transition: none !important; }
+                            #tab-contacts .matter-card:hover { background-color: #ffffff !important; transform: none !important; box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important; }
+                            .vendor-add-card { border: 2px dashed #dee2e6; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 220px; }
+                            .vendor-add-card:hover { border-color: #3d1019; background: rgba(61,16,25,0.03); transform: translateY(-2px); }
+                            .vendor-status-confirmed { background: rgba(var(--bs-success-rgb), 0.12); color: #065f46; }
+                            .vendor-status-pending { background: rgba(var(--bs-warning-rgb), 0.16); color: #92400e; }
+                            .vendor-status-cancelled { background: rgba(var(--bs-danger-rgb), 0.12); color: #991b1b; }
+                            .vendor-payment-paid { color: #065f46; }
+                            .vendor-payment-due { color: #92400e; }
+                            .vendor-payment-overdue { color: #991b1b; }
+                            .guest-grid { display: grid; grid-template-columns: 1fr 90px 80px 1fr 120px 60px; gap: 0.75rem; align-items: center; width: 100%; }
+                            .guest-row { border: 1px solid #eeeeee; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: all 0.2s ease; background: #fff; padding: 0.6rem 1rem; margin-bottom: 0.35rem; }
+                            .guest-row:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: translateY(-1px); background-color: #fafafa; }
+                            .guest-header { box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 0.6rem 1rem; margin-bottom: 0.4rem; border: 1px solid #eee; border-radius: 0.5rem; background: #fff; }
+                            .guest-avatar { width: 28px; height: 28px; border-radius: 50%; background: #3d1019; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 600; flex-shrink: 0; }
+                            .rsvp-accepted { background: rgba(var(--bs-success-rgb), 0.12); color: #065f46; }
+                            .rsvp-declined { background: rgba(var(--bs-danger-rgb), 0.12); color: #991b1b; }
+                            .rsvp-pending { background: rgba(107,114,128, 0.12); color: #374151; }
+                            .rsvp-invited { background: rgba(var(--bs-primary-rgb), 0.12); color: #1d4ed8; }
+                            .rsvp-maybe { background: rgba(var(--bs-warning-rgb), 0.16); color: #92400e; }
 
-                            /* Scoped "drippy inbox list" styling for Change Control card */
-                            #change-control-card .cc-add-card-outer-container {
-                                background: white;
-                                border-radius: 8px;
-                                padding: 0.75rem 0.75rem 0.6rem 0.75rem;
-                                margin-bottom: 0.35rem;
-                                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-                                width: 100%;
-                            }
-
-                            #change-control-card .cc-add-card-container {
-                                margin-bottom: 0.5rem;
-                            }
-
-                            #change-control-card .cc-add-card-button {
-                                width: 100%;
-                                margin: 0;
-                                padding: 0.75rem 1rem;
-                                border: none;
-                                border-radius: 12px;
-                                background: #fff;
-                                color: #4a5568;
-                                font-size: 0.9rem;
-                                box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-                                transition: transform 0.2s ease, background-color 0.2s ease;
-                                cursor: pointer;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                gap: 0.5rem;
-                            }
-
-                            #change-control-card .cc-add-card-button:hover {
-                                background-color: #eef1f3;
-                                transform: translateY(-2px);
-                                box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2) !important;
-                            }
-
-                            #change-control-card .cc-add-card-icon {
-                                color: #a0aec0;
-                                font-size: 0.9rem;
-                            }
-
-                            #change-control-card .cc-add-card-text {
-                                color: #4a5568;
-                                font-weight: 600;
-                            }
-
-                            #change-control-card .cc-row {
-                                border: 1px solid #eeeeee;
-                                border-radius: 0.5rem;
-                                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-                                transition: all 0.2s ease;
-                                background: #fff;
-                            }
-
-                            #change-control-card .cc-row[data-notice-id] {
-                                cursor: pointer;
-                            }
-
-                            #change-control-card .cc-row:hover {
-                                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                                transform: translateY(-2px);
-                                background-color: #fafafa;
-                                border-color: #cbd5e1;
-                            }
-
-                            #change-control-card .cc-row.cc-header {
-                                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                                padding: 0.6rem 1rem 0.2rem 1rem;
-                                margin-bottom: 0.4rem;
-                                cursor: default;
-                            }
-
-                            #change-control-card .cc-row.cc-header:hover {
-                                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                                transform: none;
-                                background: #fff;
-                                border-color: #eeeeee;
-                            }
-
-                            #change-control-card .cc-grid {
-                                display: grid;
-                                grid-template-columns: 180px 1fr 80px;
-                                gap: 0.75rem;
-                                align-items: start;
-                                width: 100%;
-                            }
-
-                            #change-control-card .cc-col-status {
-                                display: flex;
-                                align-items: center;
-                                justify-content: flex-start;
-                                gap: 0.5rem;
-                            }
-
-                            #change-control-card .cc-col-actions {
-                                display: flex;
-                                align-items: center;
-                                justify-content: flex-end;
-                                gap: 0.5rem;
-                            }
-
-                            #change-control-card .cc-title {
-                                font-weight: 600;
-                                color: #111827;
-                                font-size: 0.95rem;
-                                line-height: 1.25;
-                                text-align: left;
-                            }
-
-                            #change-control-card .cc-meta {
-                                font-size: 0.75rem;
-                                color: #6b7280;
-                                margin-top: 0.35rem;
-                                display: flex;
-                                flex-wrap: wrap;
-                                gap: 0.35rem;
-                            }
-
-                            #change-control-card .cc-status-pill {
-                                display: inline-flex;
-                                align-items: center;
-                                gap: 0.35rem;
-                                font-weight: 800;
-                                font-size: 0.75rem;
-                                padding: 0.35rem 0.6rem;
-                                border-radius: 999px;
-                                background-color: #1e1e1e89;
-                            }
-
-                            #change-control-card .cc-chip {
-                                display: inline-flex;
-                                align-items: center;
-                                gap: 0.35rem;
-                                padding: 0.15rem 0.45rem;
-                                border-radius: 999px;
-                                background: rgba(107, 114, 128, 0.12);
-                                color: #374151;
-                                font-weight: 600;
-                            }
-
-                            #change-control-card .cc-legend {
-                                display: flex;
-                                align-items: center;
-                                gap: 0.4rem;
-                                flex-wrap: wrap;
-                            }
-
-                            #change-control-card .cc-composer {
-                                border: 1px solid #eeeeee;
-                                border-radius: 12px;
-                                box-shadow: 0 2px 8px rgba(0,0,0,0.18);
-                                background: #fff;
-                                overflow: hidden;
-                            }
-
-                            #change-control-card .cc-composer-header {
-                                display: flex;
-                                align-items: center;
-                                justify-content: space-between;
-                                padding: 0.75rem 1rem;
-                                background: #f9fafb;
-                                border-bottom: 1px solid #e5e7eb;
-                            }
-
-                            #change-control-card .cc-composer-title {
-                                display: flex;
-                                align-items: center;
-                                gap: 0.6rem;
-                                font-weight: 700;
-                                color: #111827;
-                            }
-
-                            #change-control-card .cc-composer-body {
-                                padding: 0.85rem 1rem 1rem 1rem;
-                            }
-
-                            #change-control-card .cc-form-actions {
-                                display: flex;
-                                justify-content: flex-end;
-                                gap: 0.5rem;
-                            }
-
-                            #change-control-card .cc-status-col {
-                                display: flex;
-                                flex-direction: column;
-                                align-items: flex-start;
-                                gap: 0.5rem;
-                            }
-
-                            #change-control-card .cc-status-counts {
-                                display: flex;
-                                flex-direction: column;
-                                gap: 0.35rem;
-                            }
-
-                            #change-control-card .cc-count-pill {
-                                display: inline-flex;
-                                align-items: center;
-                                padding: 0.2rem 0.55rem;
-                                border-radius: 999px;
-                                font-weight: 700;
-                                font-size: 0.75rem;
-                            }
-
-                            /* Modal styles are defined at page level in Details.cshtml */
-
-                            /* Recipients inline avatars */
-                            .cc-recipients-container {
-                                display: flex;
-                                align-items: center;
-                                gap: 0.25rem;
-                                flex-wrap: wrap;
-                            }
-                            .cc-recipient-avatar {
-                                width: 28px;
-                                height: 28px;
-                                border-radius: 50%;
-                                background: #3d1019;
-                                color: white;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                font-size: 0.7rem;
-                                font-weight: 600;
-                                cursor: pointer;
-                                transition: transform 0.15s ease;
-                            }
-                            .cc-recipient-avatar:hover {
-                                transform: scale(1.1);
-                            }
-                            .cc-recipient-more {
-                                background: #6b7280;
-                            }
-
-                            /* Recipients list in section */
-                            .cc-recipients-list {
-                                display: flex;
-                                flex-direction: column;
-                                gap: 0.5rem;
-                            }
-                            .cc-recipient-item {
-                                display: flex;
-                                align-items: center;
-                                justify-content: space-between;
-                                padding: 0.5rem 0.75rem;
-                                background: white;
-                                border: 1px solid #e5e7eb;
-                                border-radius: 0.375rem;
-                            }
-                            .cc-recipient-item .recipient-info {
-                                display: flex;
-                                align-items: center;
-                                gap: 0.75rem;
-                            }
-                            .cc-recipient-item .recipient-email {
-                                font-size: 0.875rem;
-                                color: #374151;
-                            }
-                            .cc-recipient-item .recipient-status {
-                                font-size: 0.75rem;
-                                padding: 0.125rem 0.5rem;
-                                border-radius: 0.25rem;
-                                display: inline-flex;
-                                align-items: center;
-                            }
-                            .cc-recipient-item .recipient-reply-btn {
-                                display: inline-flex;
-                                align-items: center;
-                                justify-content: center;
-                                height: 24px;
-                                line-height: 1;
-                            }
-                            .cc-recipient-item .recipient-reply-btn i {
-                                line-height: 1;
-                            }
-                            .cc-recipient-item .recipient-remove {
-                                color: #9ca3af;
-                                cursor: pointer;
-                                padding: 0.25rem;
-                                border-radius: 0.25rem;
-                                transition: all 0.15s ease;
-                                display: inline-flex;
-                                align-items: center;
-                                font-size: 0.875rem;
-                            }
-                            .cc-recipient-item .recipient-remove:hover {
-                                color: #ef4444;
-                                background: rgba(239, 68, 68, 0.1);
-                            }
-
-                            /* Contact Selector Popup */
-                            .cc-contact-selector-popup {
+                            /* Vendor & Guest Details Modal positioning */
+                            #vendorDetailsModal.task-details-modal,
+                            #guestDetailsModal.task-details-modal {
                                 position: fixed;
-                                background: white;
-                                border-radius: 0.5rem;
-                                padding: 1rem;
-                                width: 380px;
-                                max-height: 450px;
-                                overflow-y: auto;
-                                box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-                                border: 1px solid #dee2e6;
-                                z-index: 1200;
-                            }
-                            .cc-contact-selector-popup .contact-item {
-                                display: flex;
-                                align-items: center;
-                                padding: 0.5rem;
-                                border-radius: 0.375rem;
-                                cursor: pointer;
-                                transition: background 0.15s ease;
-                            }
-                            .cc-contact-selector-popup .contact-item:hover {
-                                background: #f3f4f6;
-                            }
-                            .cc-contact-selector-popup .contact-item.selected {
-                                background: rgba(61, 16, 25, 0.1);
-                            }
-                            .cc-contact-selector-popup .contact-avatar {
-                                width: 32px;
-                                height: 32px;
-                                border-radius: 50%;
-                                background: #3d1019;
-                                color: white;
-                                display: flex;
-                                align-items: center;
+                                top: 7vh;
+                                left: 20vw;
+                                right: 320px;
+                                bottom: 0;
+                                width: auto;
+                                height: auto;
+                                background: rgba(0, 0, 0, 0.5);
+                                z-index: 1050;
+                                align-items: flex-start;
                                 justify-content: center;
-                                font-size: 0.75rem;
-                                font-weight: 600;
-                                margin-right: 0.75rem;
+                                padding: 2rem 1rem;
+                                border-radius: 20px 20px 0 0;
+                                transition: left 0.3s ease, right 0.3s ease;
                             }
-                            .cc-contact-selector-popup .contact-info {
-                                flex: 1;
+                            .sidebar-hidden #vendorDetailsModal.task-details-modal,
+                            .sidebar-hidden #guestDetailsModal.task-details-modal {
+                                left: calc(6vw + 1rem);
                             }
-                            .cc-contact-selector-popup .contact-name {
-                                font-size: 0.875rem;
-                                font-weight: 600;
-                                color: #374151;
+                            .chat-hidden #vendorDetailsModal.task-details-modal,
+                            .chat-hidden #guestDetailsModal.task-details-modal {
+                                right: 1rem;
                             }
-                            .cc-contact-selector-popup .contact-email {
-                                font-size: 0.75rem;
-                                color: #6b7280;
+                            #vendorDetailsModal .modal-dialog,
+                            #guestDetailsModal .modal-dialog {
+                                width: 100%;
+                                margin: 0 auto;
                             }
-
-                            .sidebar-hidden body:has(.client-main-content-wrapper.global-dashboard-layout) #ccDraftModal.task-details-modal {
-                                left: calc(6vw + 1rem) !important;
+                            #vendorDetailsModal .task-details-content,
+                            #guestDetailsModal .task-details-content {
+                                background: white;
+                                border-radius: 12px;
+                                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+                                max-height: calc(100vh - 10vh);
+                                overflow-y: auto;
+                                padding-bottom: 1rem;
                             }
                         </style>
 
-                        <div class="d-flex align-items-center justify-content-between mb-3">
-                            <div class="d-flex flex-wrap gap-2">
-                                <span class="badge bg-secondary" style="font-weight: 600;">Draft: <span data-cc-count="draft">@((cc?.DraftCount) ?? 0)</span></span>
-                                <span class="badge bg-primary" style="margin-top:0; background-color: rgba(var(--bs-primary-rgb), 1) !important; font-weight: 600;">Pending: <span data-cc-count="pending">@((cc?.PendingCount) ?? 0)</span></span>
-                                <span class="badge bg-warning text-dark" style="margin-top:0; font-weight: 600;">Response Required: <span data-cc-count="clarify">@((cc?.NeedsClarificationCount) ?? 0)</span></span>
-                                <span class="badge bg-success" style="margin-top:0; font-weight: 600;">All Confirmed: <span data-cc-count="ack">@((cc?.AcknowledgedCount) ?? 0)</span></span>
+                        <div class="row" id="vendors-grid" style="--bs-gutter-x: 0.75rem;">
+                            <!-- Add Vendor Card -->
+                            <div class="col-12 col-sm-6 col-md-4 col-lg-4 mb-3">
+                                <div class="vendor-add-card p-3" onclick="showAddVendorPopup()">
+                                    <i class="fas fa-plus mb-2" style="font-size: 1.5rem; color: #9ca3af;"></i>
+                                    <span style="font-weight: 600; color: #6b7280; font-size: 0.85rem;">Add Vendor</span>
+                                </div>
                             </div>
-                            <button id="cc-refresh-btn" class="btn btn-sm btn-outline-secondary" style="font-weight: 600;">
-                                <i class="fas fa-rotate-right me-1"></i> Refresh
+                            @if (vendors.Any())
+                            {
+                                @foreach (var v in vendors)
+                                {
+                                    var vName = !string.IsNullOrWhiteSpace(v.FirstName) ? $"{v.FirstName} {v.LastName}".Trim() : (v.User != null ? $"{v.User.FirstName} {v.User.LastName}" : "Unknown");
+                                    var vInitials = string.Join("", vName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(w => w[0])).ToUpper();
+                                    var vCategory = !string.IsNullOrWhiteSpace(v.VendorCategory) ? v.VendorCategory : "General";
+                                    var vStatus = !string.IsNullOrWhiteSpace(v.VendorStatus) ? v.VendorStatus : "Pending";
+                                    var statusClass = vStatus == "Confirmed" ? "vendor-status-confirmed" : vStatus == "Cancelled" ? "vendor-status-cancelled" : "vendor-status-pending";
+                                    var contract = v.ContractAmount ?? 0;
+                                    var paid = v.AmountPaid ?? 0;
+                                    var due = contract - paid;
+                                    var paymentLabel = paid >= contract && contract > 0 ? $"Paid ${paid:N0}" : due > 0 ? $"Due ${due:N0}" : "";
+                                    var paymentClass = paid >= contract && contract > 0 ? "vendor-payment-paid" : "vendor-payment-due";
+                                    var paymentIcon = paid >= contract && contract > 0 ? "fas fa-check-circle" : "fas fa-hourglass-half";
+                                    var primaryAction = vStatus == "Confirmed" ? "Contact" : vStatus == "Pending" ? "Nudge" : "Contact";
+
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-4 mb-3 vendor-card-col" data-assignment-id="@v.Id"
+                                         data-first-name="@v.FirstName" data-last-name="@v.LastName"
+                                         data-email="@v.Email" data-phone="@v.PhoneNumber"
+                                         data-vendor-category="@v.VendorCategory" data-vendor-status="@vStatus"
+                                         data-contract-amount="@(v.ContractAmount?.ToString() ?? "")"
+                                         data-amount-paid="@(v.AmountPaid?.ToString() ?? "")"
+                                         data-role="@v.Role">
+                                        <div class="card h-100 border-0 hover-shadow transition-smooth team-member-card" style="border-radius: 12px;">
+                                            <div class="card-body d-flex flex-column align-items-center text-center p-3">
+                                                <div class="mb-2">
+                                                    <div class="team-member-avatar" style="background-color: #3d1019; width: 56px; height: 56px; font-size: 1.1rem;">
+                                                        @vInitials
+                                                    </div>
+                                                </div>
+                                                <h6 class="fw-bold mb-0" style="font-size: 0.9rem;">@vName</h6>
+                                                <p class="text-muted small mb-2" style="font-size: 0.75rem;">@vCategory</p>
+                                                <div class="d-flex flex-column align-items-center gap-1 mb-2">
+                                                    <span class="badge @statusClass" style="font-weight: 600; font-size: 0.7rem; padding: 0.25rem 0.5rem; border-radius: 999px;">
+                                                        <i class="@(vStatus == "Confirmed" ? "fas fa-check-circle" : vStatus == "Cancelled" ? "fas fa-times-circle" : "fas fa-clock") me-1"></i>@vStatus
+                                                    </span>
+                                                    @if (!string.IsNullOrEmpty(paymentLabel))
+                                                    {
+                                                        <span class="@paymentClass" style="font-weight: 600; font-size: 0.7rem;">
+                                                            <i class="@paymentIcon me-1"></i>@paymentLabel
+                                                        </span>
+                                                    }
+                                                    @if (contract > 0)
+                                                    {
+                                                        <span class="text-muted" style="font-size: 0.7rem;">$@contract.ToString("N0") total</span>
+                                                    }
+                                                </div>
+                                                <div class="d-flex gap-2 mt-auto">
+                                                    <button class="btn btn-sm btn-outline-primary" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;" onclick="editVendor(@v.Id)">
+                                                        <i class="fas fa-edit me-1"></i>Edit
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;" onclick="removeVendor(@v.Id)">
+                                                        <i class="fas fa-times me-1"></i>Remove
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Guests (Invitations & RSVPs) Card (full-width) -->
+        <div class="col-12 mb-3 matter-card-wrapper" style="order: 3;">
+            <div class="card h-100 border-0 matter-card" style="padding-top: 0.5rem; position: relative;">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <div class="mb-2">
+                        <div class="d-flex align-items-center justify-content-between" style="margin-left:0.25rem;">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-users fs-5 me-2" style="color: #3d1019; font-size: 1.35rem;"></i>
+                                <div>
+                                    <h5 class="card-title fw-bold mb-1" style="color: black; font-size: 1rem; line-height: 1.3;">Guests (Invitations & RSVPs)</h5>
+                                    <p class="card-text text-muted mb-0" style="font-size: 0.8rem; line-height: 1.4;">
+                                        Manage guest invitations and track RSVPs for this event.
+                                    </p>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="addGuestBtn" style="font-size: 0.8rem; padding: 0.35rem 0.75rem; font-weight: 600;">
+                                <i class="fas fa-plus me-1"></i> Add Guest
                             </button>
                         </div>
+                    </div>
+                </div>
+                <div class="card-body pt-2">
+                    @{
+                        var guests = Model.Matter.Assignments?.Where(ma => ma.AssignmentType == "Guest" && ma.RemovedAt == null).ToList() ?? new List<Certio.Domain.Matters.MatterAssignment>();
+                        var acceptedCount = guests.Count(g => g.RsvpStatus == "Accepted");
+                        var declinedCount = guests.Count(g => g.RsvpStatus == "Declined");
+                        var pendingGuestCount = guests.Count(g => g.RsvpStatus == "Pending" || string.IsNullOrEmpty(g.RsvpStatus));
+                        var invitedCount = guests.Count(g => g.RsvpStatus == "Invited");
+                    }
 
-                        <!-- Draft composer toggle -->
-                        <div id="cc-add-container" class="cc-add-card-outer-container">
-                            <div class="cc-add-card-container">
-                                <button class="cc-add-card-button" id="cc-open-composer-btn" type="button">
-                                    <div class="cc-add-card-icon">
-                                        <i class="fas fa-plus"></i>
-                                    </div>
-                                    <span class="cc-add-card-text">Draft new email confirmation</span>
-                                </button>
+                    <div id="guests-card" data-org-id="@organizationId" data-matter-id="@Model.Matter.Id">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge" style="background: #374151; font-weight: 600;">Total: @guests.Count</span>
+                                <span class="badge bg-success" style="font-weight: 600; margin-top: 0;">Accepted: @acceptedCount</span>
+                                <span class="badge bg-danger" style="font-weight: 600; margin-top: 0;">Declined: @declinedCount</span>
+                                <span class="badge" style="background: rgba(107,114,128,0.8); font-weight: 600; margin-top: 0;">Pending: @pendingGuestCount</span>
+                                <span class="badge bg-primary" style="background: rgba(var(--bs-primary-rgb), 1) !important; font-weight: 600; margin-top: 0;">Invited: @invitedCount</span>
                             </div>
+                        </div>
 
                         <!-- Column headers -->
-                        <div id="cc-list-header" class="cc-row cc-header mb-2">
-                            <div class="cc-grid">
-                                <div>
-                                    <button class="btn btn-sm" style="padding: 0.375rem 0.5rem; border: none; background: white; color: #2d3748; font-size: 0.75rem; font-weight: 700; border-radius: 0.5rem; cursor: default; text-align: left; width: 100%;">Status</button>
-                                </div>
-                                <div>
-                                    <button class="btn btn-sm" style="padding: 0.375rem 0.5rem; border: none; background: white; color: #2d3748; font-size: 0.75rem; font-weight: 700; border-radius: 0.5rem; cursor: default; text-align: left; width: 100%;">Title</button>
-                                </div>
-                                <div>
-                                    <button class="btn btn-sm" style="padding: 0.375rem 0.5rem; border: none; background: white; color: #2d3748; font-size: 0.75rem; font-weight: 700; border-radius: 0.5rem; cursor: default; text-align: right; width: 100%;">Actions</button>
-                                </div>
+                        <div class="guest-header">
+                            <div class="guest-grid">
+                                <div style="font-size: 0.75rem; font-weight: 700; color: #2d3748;">Name</div>
+                                <div style="font-size: 0.75rem; font-weight: 700; color: #2d3748;">Party Size</div>
+                                <div style="font-size: 0.75rem; font-weight: 700; color: #2d3748;">Table #</div>
+                                <div style="font-size: 0.75rem; font-weight: 700; color: #2d3748;">Dietary</div>
+                                <div style="font-size: 0.75rem; font-weight: 700; color: #2d3748;">RSVP Status</div>
+                                <div style="font-size: 0.75rem; font-weight: 700; color: #2d3748; text-align: right;">Actions</div>
                             </div>
                         </div>
-                        </div>
 
-                        <div id="change-control-notice-list">
-                            @if (cc?.Notices != null && cc.Notices.Any())
+                        <div id="guests-list">
+                            @if (guests.Any())
                             {
-                                var maxVisible = 2;
-                                var noticeList = cc.Notices.ToList();
-                                var visibleNotices = noticeList.Take(maxVisible).ToList();
-                                var hasMore = noticeList.Count > maxVisible;
-                                var hiddenCount = noticeList.Count - maxVisible;
+                                var maxVisibleGuests = 5;
+                                var visibleGuests = guests.Take(maxVisibleGuests).ToList();
+                                var hasMoreGuests = guests.Count > maxVisibleGuests;
+                                var hiddenGuestCount = guests.Count - maxVisibleGuests;
 
-                                foreach (var n in visibleNotices)
+                                @foreach (var g in visibleGuests)
                                 {
-                                    var badgeClass = n.Status == "Acknowledged"
-                                        ? "bg-success"
-                                        : n.Status == "NeedsClarification"
-                                            ? ""
-                                            : (n.Status == "Sent" || n.Status == "PartiallyAcknowledged")
-                                                ? ""
-                                                : "";
-                                    var sendLabel = n.Status == "Draft" ? "Send" : "Nudge";
-                                    var sendDisabled = n.Status == "Acknowledged";
-                                    var statusLabel = n.Status == "Acknowledged" ? "Confirmed"
-                                        : n.Status == "NeedsClarification" ? "Response Required"
-                                        : n.Status == "PartiallyAcknowledged" ? "Partial"
-                                        : n.Status;
-                                    var statusIcon = n.Status == "Acknowledged" ? "fas fa-check-circle"
-                                        : n.Status == "NeedsClarification" ? "fas fa-circle-question"
-                                        : (n.Status == "Sent" || n.Status == "PartiallyAcknowledged") ? "fas fa-paper-plane"
-                                        : "fas fa-pen";
+                                    var gName = !string.IsNullOrWhiteSpace(g.FirstName) ? $"{g.FirstName} {g.LastName}".Trim() : (g.User != null ? $"{g.User.FirstName} {g.User.LastName}" : "Unknown");
+                                    var gInitials = string.Join("", gName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(w => w[0])).ToUpper();
+                                    var rsvp = !string.IsNullOrWhiteSpace(g.RsvpStatus) ? g.RsvpStatus : "Pending";
+                                    var rsvpClass = rsvp == "Accepted" ? "rsvp-accepted" : rsvp == "Declined" ? "rsvp-declined" : rsvp == "Invited" ? "rsvp-invited" : rsvp == "Maybe" ? "rsvp-maybe" : "rsvp-pending";
+                                    var dietary = !string.IsNullOrWhiteSpace(g.DietaryRestrictions) ? g.DietaryRestrictions : "None";
 
-                                    <div class="cc-row cc-visible-row p-3 mb-2" data-notice-id="@n.Id">
-                                        <div class="cc-grid">
-                                            <div class="cc-status-col">
-                                                <span class="cc-status-pill badge @badgeClass">
-                                                    <i class="@statusIcon"></i> @statusLabel
-                                                </span>
-                                                <div class="cc-status-counts">
-                                                    <span class="cc-count-pill" style="background: rgba(var(--bs-success-rgb), 0.12); color: #065f46;">Confirmed @n.AcknowledgedRecipientCount / @n.RecipientCount</span>
-                                                    <span class="cc-count-pill" style="background: rgba(var(--bs-warning-rgb), 0.16); color: #92400e;">Response Required @n.NeedsClarificationRecipientCount / @n.RecipientCount</span>
-                                                    <span class="cc-count-pill" style="background: rgba(var(--bs-primary-rgb), 0.12); color: #1d4ed8;">Pending @n.PendingRecipientCount / @n.RecipientCount</span>
+                                    <div class="guest-row guest-visible-row" data-assignment-id="@g.Id"
+                                         data-first-name="@g.FirstName" data-last-name="@g.LastName"
+                                         data-email="@g.Email" data-phone="@g.PhoneNumber"
+                                         data-party-size="@(g.PartySize ?? 1)" data-table-number="@(g.TableNumber?.ToString() ?? "")"
+                                         data-dietary="@g.DietaryRestrictions" data-meal-choice="@g.MealChoice"
+                                         data-rsvp-status="@rsvp">
+                                        <div class="guest-grid">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="guest-avatar">@gInitials</div>
+                                                <div>
+                                                    <div class="fw-medium" style="font-size: 0.85rem;">@gName</div>
+                                                    @if (!string.IsNullOrWhiteSpace(g.Email))
+                                                    {
+                                                        <div class="text-muted" style="font-size: 0.7rem;">@g.Email</div>
+                                                    }
                                                 </div>
                                             </div>
+                                            <div style="font-size: 0.85rem;">@(g.PartySize ?? 1)</div>
+                                            <div style="font-size: 0.85rem;">@(g.TableNumber.HasValue ? g.TableNumber.Value.ToString() : "---")</div>
+                                            <div style="font-size: 0.8rem; color: #6b7280;">@dietary</div>
                                             <div>
-                                                <div class="cc-title">@n.Title</div>
-                                                <div class="cc-meta">
-                                                    <span class="cc-chip"><i class="fas fa-tag" style="opacity:0.75;"></i> @n.ChangeType</span>
-                                                    <span class="cc-chip"><i class="fas fa-flag" style="opacity:0.75;"></i> @n.Priority</span>
-                                                    <span class="cc-chip"><i class="fas fa-users" style="opacity:0.75;"></i> @n.RecipientCount</span>
-                                                </div>
-                                                @if (!string.IsNullOrWhiteSpace(n.Description))
-                                                {
-                                                    <div class="cc-description" style="font-size: 0.8rem; color: #6b7280; margin-top: 0.25rem; line-height: 1.4;">@n.Description</div>
-                                                }
+                                                <span class="badge @rsvpClass" style="font-weight: 600; font-size: 0.7rem; padding: 0.25rem 0.5rem; border-radius: 999px;">@rsvp</span>
                                             </div>
-                                            <div class="cc-col-actions">
-                                                <button class="btn btn-sm btn-outline-primary cc-send-btn" style="font-weight:600; padding: 0.2rem 0.5rem;" data-notice-id="@n.Id" @(sendDisabled ? "disabled" : "")>@sendLabel</button>
+                                            <div class="d-flex justify-content-end gap-1">
+                                                <button class="btn btn-sm btn-outline-secondary" style="padding: 0.15rem 0.35rem; font-size: 0.7rem;" onclick="editGuest(@g.Id)" title="Edit"><i class="fas fa-edit"></i></button>
+                                                <button class="btn btn-sm btn-outline-danger" style="padding: 0.15rem 0.35rem; font-size: 0.7rem;" onclick="removeGuest(@g.Id)" title="Remove"><i class="fas fa-times"></i></button>
                                             </div>
                                         </div>
                                     </div>
                                 }
 
-                                @* Hidden items (collapsed by default) *@
-                                @foreach (var n in noticeList.Skip(maxVisible))
+                                @foreach (var g in guests.Skip(maxVisibleGuests))
                                 {
-                                    var badgeClass = n.Status == "Acknowledged"
-                                        ? "bg-success"
-                                        : n.Status == "NeedsClarification"
-                                            ? ""
-                                            : (n.Status == "Sent" || n.Status == "PartiallyAcknowledged")
-                                                ? ""
-                                                : "";
-                                    var sendLabel = n.Status == "Draft" ? "Send" : "Nudge";
-                                    var sendDisabled = n.Status == "Acknowledged";
-                                    var statusLabel = n.Status == "Acknowledged" ? "Confirmed"
-                                        : n.Status == "NeedsClarification" ? "Response Required"
-                                        : n.Status == "PartiallyAcknowledged" ? "Partial"
-                                        : n.Status;
-                                    var statusIcon = n.Status == "Acknowledged" ? "fas fa-check-circle"
-                                        : n.Status == "NeedsClarification" ? "fas fa-circle-question"
-                                        : (n.Status == "Sent" || n.Status == "PartiallyAcknowledged") ? "fas fa-paper-plane"
-                                        : "fas fa-pen";
+                                    var gName = !string.IsNullOrWhiteSpace(g.FirstName) ? $"{g.FirstName} {g.LastName}".Trim() : (g.User != null ? $"{g.User.FirstName} {g.User.LastName}" : "Unknown");
+                                    var gInitials = string.Join("", gName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(w => w[0])).ToUpper();
+                                    var rsvp = !string.IsNullOrWhiteSpace(g.RsvpStatus) ? g.RsvpStatus : "Pending";
+                                    var rsvpClass = rsvp == "Accepted" ? "rsvp-accepted" : rsvp == "Declined" ? "rsvp-declined" : rsvp == "Invited" ? "rsvp-invited" : rsvp == "Maybe" ? "rsvp-maybe" : "rsvp-pending";
+                                    var dietary = !string.IsNullOrWhiteSpace(g.DietaryRestrictions) ? g.DietaryRestrictions : "None";
 
-                                    <div class="cc-row cc-hidden-row p-3 mb-2" data-notice-id="@n.Id" style="display: none;">
-                                        <div class="cc-grid">
-                                            <div class="cc-status-col">
-                                                <span class="cc-status-pill badge @badgeClass">
-                                                    <i class="@statusIcon"></i> @statusLabel
-                                                </span>
-                                                <div class="cc-status-counts">
-                                                    <span class="cc-count-pill" style="background: rgba(var(--bs-success-rgb), 0.12); color: #065f46;">Confirmed @n.AcknowledgedRecipientCount / @n.RecipientCount</span>
-                                                    <span class="cc-count-pill" style="background: rgba(var(--bs-warning-rgb), 0.16); color: #92400e;">Clarify @n.NeedsClarificationRecipientCount / @n.RecipientCount</span>
-                                                    <span class="cc-count-pill" style="background: rgba(var(--bs-primary-rgb), 0.12); color: #1d4ed8;">Pending @n.PendingRecipientCount / @n.RecipientCount</span>
+                                    <div class="guest-row guest-hidden-row" data-assignment-id="@g.Id" style="display: none;"
+                                         data-first-name="@g.FirstName" data-last-name="@g.LastName"
+                                         data-email="@g.Email" data-phone="@g.PhoneNumber"
+                                         data-party-size="@(g.PartySize ?? 1)" data-table-number="@(g.TableNumber?.ToString() ?? "")"
+                                         data-dietary="@g.DietaryRestrictions" data-meal-choice="@g.MealChoice"
+                                         data-rsvp-status="@rsvp">
+                                        <div class="guest-grid">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="guest-avatar">@gInitials</div>
+                                                <div>
+                                                    <div class="fw-medium" style="font-size: 0.85rem;">@gName</div>
+                                                    @if (!string.IsNullOrWhiteSpace(g.Email))
+                                                    {
+                                                        <div class="text-muted" style="font-size: 0.7rem;">@g.Email</div>
+                                                    }
                                                 </div>
                                             </div>
+                                            <div style="font-size: 0.85rem;">@(g.PartySize ?? 1)</div>
+                                            <div style="font-size: 0.85rem;">@(g.TableNumber.HasValue ? g.TableNumber.Value.ToString() : "---")</div>
+                                            <div style="font-size: 0.8rem; color: #6b7280;">@dietary</div>
                                             <div>
-                                                <div class="cc-title">@n.Title</div>
-                                                <div class="cc-meta">
-                                                    <span class="cc-chip"><i class="fas fa-tag" style="opacity:0.75;"></i> @n.ChangeType</span>
-                                                    <span class="cc-chip"><i class="fas fa-flag" style="opacity:0.75;"></i> @n.Priority</span>
-                                                    <span class="cc-chip"><i class="fas fa-users" style="opacity:0.75;"></i> @n.RecipientCount</span>
-                                                </div>
-                                                @if (!string.IsNullOrWhiteSpace(n.Description))
-                                                {
-                                                    <div class="cc-description" style="font-size: 0.8rem; color: #6b7280; margin-top: 0.25rem; line-height: 1.4;">@n.Description</div>
-                                                }
+                                                <span class="badge @rsvpClass" style="font-weight: 600; font-size: 0.7rem; padding: 0.25rem 0.5rem; border-radius: 999px;">@rsvp</span>
                                             </div>
-                                            <div class="cc-col-actions">
-                                                <button class="btn btn-sm btn-outline-primary cc-send-btn" style="font-weight:600; padding: 0.2rem 0.5rem;" data-notice-id="@n.Id" @(sendDisabled ? "disabled" : "")>@sendLabel</button>
+                                            <div class="d-flex justify-content-end gap-1">
+                                                <button class="btn btn-sm btn-outline-secondary" style="padding: 0.15rem 0.35rem; font-size: 0.7rem;" onclick="editGuest(@g.Id)" title="Edit"><i class="fas fa-edit"></i></button>
+                                                <button class="btn btn-sm btn-outline-danger" style="padding: 0.15rem 0.35rem; font-size: 0.7rem;" onclick="removeGuest(@g.Id)" title="Remove"><i class="fas fa-times"></i></button>
                                             </div>
                                         </div>
                                     </div>
                                 }
 
-                                @if (hasMore)
+                                @if (hasMoreGuests)
                                 {
-                                    <div class="cc-toggle-row text-center py-2" id="cc-show-more-toggle" style="cursor: pointer; color: #6b7280; font-size: 0.8rem; border-top: 1px solid #e5e7eb;" onclick="toggleCCHiddenRows()">
-                                        <i class="fas fa-chevron-down"></i> Show @hiddenCount more
+                                    <div class="guest-toggle-row text-center py-2" style="cursor: pointer; color: #6b7280; font-size: 0.8rem; border-top: 1px solid #e5e7eb;" onclick="toggleGuestHiddenRows(this)">
+                                        <i class="fas fa-chevron-down"></i> Show @hiddenGuestCount more
                                     </div>
                                 }
                             }
                             else
                             {
                                 <div class="text-center py-5 text-muted" style="border: 1px dashed #e5e7eb; border-radius: 12px; background: #fff;">
-                                    <i class="fa-solid fa-bullhorn mb-2" style="font-size: 1.5rem;"></i>
-                                    <div style="font-weight: 600;">No email confirmations</div>
-                                    <div style="font-size: 0.875rem;">Create an email confirmation to see it listed here.</div>
+                                    <i class="fas fa-users mb-2" style="font-size: 1.5rem;"></i>
+                                    <div style="font-weight: 600;">No guests added yet</div>
+                                    <div style="font-size: 0.875rem;">Add guests to manage invitations and track RSVPs.</div>
                                 </div>
                             }
                         </div>
-                        <script>
-                            function toggleCCHiddenRows() {
-                                const hiddenRows = document.querySelectorAll('.cc-hidden-row');
-                                const toggle = document.getElementById('cc-show-more-toggle');
-                                const isExpanded = toggle.dataset.expanded === 'true';
-                                
-                                hiddenRows.forEach(row => {
-                                    row.style.display = isExpanded ? 'none' : 'block';
-                                });
-                                
-                                toggle.dataset.expanded = !isExpanded;
-                                toggle.innerHTML = isExpanded 
-                                    ? '<i class="fas fa-chevron-down"></i> Show @(cc?.Notices?.Count() > 2 ? cc.Notices.Count() - 2 : 0) more'
-                                    : '<i class="fas fa-chevron-up"></i> Show less';
-                            }
-                        </script>
-
-                        <pre id="change-control-summary-json" class="d-none"></pre>
                     </div>
-                    <!-- Modal and Contact Selector are at page level in Details.cshtml -->
                 </div>
             </div>
         </div>
@@ -707,6 +459,184 @@
 </div>
 
 <!-- task-details-modal.css is already loaded on the page from Details.cshtml -->
+
+<!-- Vendor Details Modal -->
+<div class="task-details-modal" id="vendorDetailsModal" style="display: none;">
+    <div class="modal-dialog" style="max-width: 600px;">
+        <div class="task-details-content">
+            <div class="task-details-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
+                <div class="task-details-header-left" style="display: flex; align-items: center; gap: 0.75rem; flex: 1;">
+                    <i class="fas fa-truck" style="color: #3d1019; font-size: 1.25rem;"></i>
+                    <h2 class="task-title" id="vendorModalTitle" style="cursor: default; margin: 0; font-size: 1.25rem; font-weight: 600; color: #3d1019;">Add Vendor</h2>
+                </div>
+                <button type="button" class="btn-close" onclick="closeVendorModal()" aria-label="Close" style="margin: 0;"></button>
+            </div>
+            <div class="task-details-body" style="padding: 2rem; max-height: 70vh; display: block;">
+                <div class="text-center mb-4">
+                    <div id="vendorModalAvatar" style="width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.75rem; font-weight: 600; color: white; margin: 0 auto; background-color: #3d1019;">
+                        V
+                    </div>
+                </div>
+                <form id="vendorDetailsForm" onsubmit="return false;">
+                    <input type="hidden" id="vendorEditId" value="">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-4">
+                                <label for="vendorFirstName" class="form-label fw-bold text-dark">First Name</label>
+                                <input type="text" class="form-control form-control-lg" id="vendorFirstName" placeholder="Enter first name">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-4">
+                                <label for="vendorLastName" class="form-label fw-bold text-dark">Last Name</label>
+                                <input type="text" class="form-control form-control-lg" id="vendorLastName" placeholder="Enter last name">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group mb-4">
+                        <label for="vendorEmail" class="form-label fw-bold text-dark">Email Address</label>
+                        <input type="email" class="form-control form-control-lg" id="vendorEmail" placeholder="vendor@example.com">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-4">
+                                <label for="vendorPhone" class="form-label fw-bold text-dark">Phone</label>
+                                <input type="text" class="form-control form-control-lg" id="vendorPhone" placeholder="(555) 123-4567">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-4">
+                                <label for="vendorCategory" class="form-label fw-bold text-dark">Category</label>
+                                <input type="text" class="form-control form-control-lg" id="vendorCategory" placeholder="e.g., Catering, Photography">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group mb-4">
+                        <label for="vendorStatus" class="form-label fw-bold text-dark">Status</label>
+                        <select class="form-select form-select-lg" id="vendorStatus">
+                            <option value="Pending">Pending</option>
+                            <option value="Confirmed">Confirmed</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-4">
+                                <label for="vendorContractAmount" class="form-label fw-bold text-dark">Contract Amount ($)</label>
+                                <input type="number" class="form-control form-control-lg" id="vendorContractAmount" placeholder="0.00" step="0.01">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-4">
+                                <label for="vendorAmountPaid" class="form-label fw-bold text-dark">Amount Paid ($)</label>
+                                <input type="number" class="form-control form-control-lg" id="vendorAmountPaid" placeholder="0.00" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group mb-4">
+                        <label for="vendorRole" class="form-label fw-bold text-dark">Role / Notes</label>
+                        <input type="text" class="form-control form-control-lg" id="vendorRole" placeholder="e.g., Main caterer">
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-secondary" onclick="closeVendorModal()">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="vendorSaveBtn" style="margin-left: 0.5rem;" onclick="saveVendor()">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Guest Details Modal -->
+<div class="task-details-modal" id="guestDetailsModal" style="display: none;">
+    <div class="modal-dialog" style="max-width: 600px;">
+        <div class="task-details-content">
+            <div class="task-details-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
+                <div class="task-details-header-left" style="display: flex; align-items: center; gap: 0.75rem; flex: 1;">
+                    <i class="fas fa-users" style="color: #3d1019; font-size: 1.25rem;"></i>
+                    <h2 class="task-title" id="guestModalTitle" style="cursor: default; margin: 0; font-size: 1.25rem; font-weight: 600; color: #3d1019;">Add Guest</h2>
+                </div>
+                <button type="button" class="btn-close" onclick="closeGuestModal()" aria-label="Close" style="margin: 0;"></button>
+            </div>
+            <div class="task-details-body" style="padding: 2rem; max-height: 70vh; display: block;">
+                <div class="text-center mb-4">
+                    <div id="guestModalAvatar" style="width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.75rem; font-weight: 600; color: white; margin: 0 auto; background-color: #3d1019;">
+                        G
+                    </div>
+                </div>
+                <form id="guestDetailsForm" onsubmit="return false;">
+                    <input type="hidden" id="guestEditId" value="">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-4">
+                                <label for="guestFirstName" class="form-label fw-bold text-dark">First Name</label>
+                                <input type="text" class="form-control form-control-lg" id="guestFirstName" placeholder="Enter first name">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-4">
+                                <label for="guestLastName" class="form-label fw-bold text-dark">Last Name</label>
+                                <input type="text" class="form-control form-control-lg" id="guestLastName" placeholder="Enter last name">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-4">
+                                <label for="guestEmail" class="form-label fw-bold text-dark">Email Address</label>
+                                <input type="email" class="form-control form-control-lg" id="guestEmail" placeholder="guest@example.com">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-4">
+                                <label for="guestPhone" class="form-label fw-bold text-dark">Phone</label>
+                                <input type="text" class="form-control form-control-lg" id="guestPhone" placeholder="(555) 123-4567">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group mb-4">
+                                <label for="guestPartySize" class="form-label fw-bold text-dark">Party Size</label>
+                                <input type="number" class="form-control form-control-lg" id="guestPartySize" value="1" min="1">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-4">
+                                <label for="guestTableNumber" class="form-label fw-bold text-dark">Table #</label>
+                                <input type="number" class="form-control form-control-lg" id="guestTableNumber" placeholder="">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-4">
+                                <label for="guestRsvpStatus" class="form-label fw-bold text-dark">RSVP Status</label>
+                                <select class="form-select form-select-lg" id="guestRsvpStatus">
+                                    <option value="Pending">Pending</option>
+                                    <option value="Invited">Invited</option>
+                                    <option value="Accepted">Accepted</option>
+                                    <option value="Declined">Declined</option>
+                                    <option value="Maybe">Maybe</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group mb-4">
+                        <label for="guestDietary" class="form-label fw-bold text-dark">Dietary Restrictions</label>
+                        <input type="text" class="form-control form-control-lg" id="guestDietary" placeholder="e.g., Vegetarian, Nut allergy">
+                    </div>
+                    <div class="form-group mb-4">
+                        <label for="guestMealChoice" class="form-label fw-bold text-dark">Meal Choice</label>
+                        <input type="text" class="form-control form-control-lg" id="guestMealChoice" placeholder="e.g., Chicken, Fish, Vegetarian">
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-secondary" onclick="closeGuestModal()">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="guestSaveBtn" style="margin-left: 0.5rem;" onclick="saveGuest()">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
 (function() {
@@ -1274,8 +1204,263 @@
         });
     });
 
-    // The change-control.js script is already loaded globally in Details.cshtml
-    // and uses document-level event delegation, so it will auto-initialize
-    // based on the #change-control-card element present in this partial view.
+    // --- Vendor Modal Management ---
+    function getInitials(first, last) {
+        return ((first || '')[0] || '') + ((last || '')[0] || '').toUpperCase() || 'V';
+    }
+
+    function openContactModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+        modal.style.display = 'flex';
+        snapContactModalToMainContent(modal);
+    }
+
+    function closeContactModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) modal.style.display = 'none';
+    }
+
+    function snapContactModalToMainContent(modal) {
+        if (!modal || modal.style.display === 'none') return;
+        const wrapper = document.querySelector('.client-main-content-wrapper');
+        if (!wrapper) return;
+        const style = window.getComputedStyle(wrapper);
+        if (style.right && style.right !== 'auto') modal.style.right = style.right;
+        else modal.style.right = '';
+        if (style.left && style.left !== 'auto') modal.style.left = style.left;
+        else modal.style.left = '';
+    }
+
+    function snapAllContactModals() {
+        snapContactModalToMainContent(document.getElementById('vendorDetailsModal'));
+        snapContactModalToMainContent(document.getElementById('guestDetailsModal'));
+    }
+
+    window.showAddVendorPopup = function() {
+        document.getElementById('vendorModalTitle').textContent = 'Add Vendor';
+        document.getElementById('vendorEditId').value = '';
+        document.getElementById('vendorModalAvatar').textContent = 'V';
+        document.getElementById('vendorFirstName').value = '';
+        document.getElementById('vendorLastName').value = '';
+        document.getElementById('vendorEmail').value = '';
+        document.getElementById('vendorPhone').value = '';
+        document.getElementById('vendorCategory').value = '';
+        document.getElementById('vendorStatus').value = 'Pending';
+        document.getElementById('vendorContractAmount').value = '';
+        document.getElementById('vendorAmountPaid').value = '';
+        document.getElementById('vendorRole').value = '';
+        openContactModal('vendorDetailsModal');
+    };
+
+    window.closeVendorModal = function() {
+        closeContactModal('vendorDetailsModal');
+    };
+
+    window.editVendor = function(assignmentId) {
+        const card = document.querySelector(`.vendor-card-col[data-assignment-id="${assignmentId}"]`);
+        if (!card) return;
+        document.getElementById('vendorModalTitle').textContent = 'Vendor Details';
+        document.getElementById('vendorEditId').value = assignmentId;
+        const fn = card.dataset.firstName || '';
+        const ln = card.dataset.lastName || '';
+        document.getElementById('vendorModalAvatar').textContent = getInitials(fn, ln);
+        document.getElementById('vendorFirstName').value = fn;
+        document.getElementById('vendorLastName').value = ln;
+        document.getElementById('vendorEmail').value = card.dataset.email || '';
+        document.getElementById('vendorPhone').value = card.dataset.phone || '';
+        document.getElementById('vendorCategory').value = card.dataset.vendorCategory || '';
+        document.getElementById('vendorStatus').value = card.dataset.vendorStatus || 'Pending';
+        document.getElementById('vendorContractAmount').value = card.dataset.contractAmount || '';
+        document.getElementById('vendorAmountPaid').value = card.dataset.amountPaid || '';
+        document.getElementById('vendorRole').value = card.dataset.role || '';
+        openContactModal('vendorDetailsModal');
+    };
+
+    window.saveVendor = async function() {
+        const editId = document.getElementById('vendorEditId').value;
+        const data = {
+            assignmentType: 'Vendor',
+            firstName: document.getElementById('vendorFirstName').value,
+            lastName: document.getElementById('vendorLastName').value,
+            email: document.getElementById('vendorEmail').value,
+            phoneNumber: document.getElementById('vendorPhone').value,
+            vendorCategory: document.getElementById('vendorCategory').value,
+            vendorStatus: document.getElementById('vendorStatus').value,
+            contractAmount: parseFloat(document.getElementById('vendorContractAmount').value) || null,
+            amountPaid: parseFloat(document.getElementById('vendorAmountPaid').value) || null,
+            role: document.getElementById('vendorRole').value
+        };
+        try {
+            const url = editId
+                ? `/Client/${contactsOrgId}/Matter/${contactsMatterId}/Contact/${editId}`
+                : `/Client/${contactsOrgId}/Matter/${contactsMatterId}/Contact`;
+            const resp = await fetch(url, {
+                method: editId ? 'PUT' : 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (resp.ok) { closeVendorModal(); location.reload(); }
+            else alert('Error saving vendor.');
+        } catch (e) { console.error(e); alert('Error saving vendor.'); }
+    };
+
+    window.removeVendor = async function(assignmentId) {
+        if (!confirm('Remove this vendor?')) return;
+        try {
+            const resp = await fetch(`/Client/${contactsOrgId}/Matter/${contactsMatterId}/Contact/${assignmentId}`, { method: 'DELETE', credentials: 'include', headers: { 'Content-Type': 'application/json' } });
+            if (resp.ok) location.reload();
+            else alert('Error removing vendor.');
+        } catch (e) { console.error(e); alert('Error removing vendor.'); }
+    };
+
+    // --- Guest Modal Management ---
+    window.showAddGuestPopup = function() {
+        document.getElementById('guestModalTitle').textContent = 'Add Guest';
+        document.getElementById('guestEditId').value = '';
+        document.getElementById('guestModalAvatar').textContent = 'G';
+        document.getElementById('guestFirstName').value = '';
+        document.getElementById('guestLastName').value = '';
+        document.getElementById('guestEmail').value = '';
+        document.getElementById('guestPhone').value = '';
+        document.getElementById('guestPartySize').value = '1';
+        document.getElementById('guestTableNumber').value = '';
+        document.getElementById('guestRsvpStatus').value = 'Pending';
+        document.getElementById('guestDietary').value = '';
+        document.getElementById('guestMealChoice').value = '';
+        openContactModal('guestDetailsModal');
+    };
+
+    window.closeGuestModal = function() {
+        closeContactModal('guestDetailsModal');
+    };
+
+    window.editGuest = function(assignmentId) {
+        const row = document.querySelector(`.guest-row[data-assignment-id="${assignmentId}"]`);
+        if (!row) return;
+        document.getElementById('guestModalTitle').textContent = 'Guest Details';
+        document.getElementById('guestEditId').value = assignmentId;
+        const fn = row.dataset.firstName || '';
+        const ln = row.dataset.lastName || '';
+        document.getElementById('guestModalAvatar').textContent = getInitials(fn, ln);
+        document.getElementById('guestFirstName').value = fn;
+        document.getElementById('guestLastName').value = ln;
+        document.getElementById('guestEmail').value = row.dataset.email || '';
+        document.getElementById('guestPhone').value = row.dataset.phone || '';
+        document.getElementById('guestPartySize').value = row.dataset.partySize || '1';
+        document.getElementById('guestTableNumber').value = row.dataset.tableNumber || '';
+        document.getElementById('guestRsvpStatus').value = row.dataset.rsvpStatus || 'Pending';
+        document.getElementById('guestDietary').value = row.dataset.dietary || '';
+        document.getElementById('guestMealChoice').value = row.dataset.mealChoice || '';
+        openContactModal('guestDetailsModal');
+    };
+
+    window.saveGuest = async function() {
+        const editId = document.getElementById('guestEditId').value;
+        const data = {
+            assignmentType: 'Guest',
+            firstName: document.getElementById('guestFirstName').value,
+            lastName: document.getElementById('guestLastName').value,
+            email: document.getElementById('guestEmail').value,
+            phoneNumber: document.getElementById('guestPhone').value,
+            partySize: parseInt(document.getElementById('guestPartySize').value) || 1,
+            tableNumber: parseInt(document.getElementById('guestTableNumber').value) || null,
+            rsvpStatus: document.getElementById('guestRsvpStatus').value,
+            dietaryRestrictions: document.getElementById('guestDietary').value,
+            mealChoice: document.getElementById('guestMealChoice').value
+        };
+        try {
+            const url = editId
+                ? `/Client/${contactsOrgId}/Matter/${contactsMatterId}/Contact/${editId}`
+                : `/Client/${contactsOrgId}/Matter/${contactsMatterId}/Contact`;
+            const resp = await fetch(url, {
+                method: editId ? 'PUT' : 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (resp.ok) { closeGuestModal(); location.reload(); }
+            else alert('Error saving guest.');
+        } catch (e) { console.error(e); alert('Error saving guest.'); }
+    };
+
+    window.removeGuest = async function(assignmentId) {
+        if (!confirm('Remove this guest?')) return;
+        try {
+            const resp = await fetch(`/Client/${contactsOrgId}/Matter/${contactsMatterId}/Contact/${assignmentId}`, { method: 'DELETE', credentials: 'include', headers: { 'Content-Type': 'application/json' } });
+            if (resp.ok) location.reload();
+            else alert('Error removing guest.');
+        } catch (e) { console.error(e); alert('Error removing guest.'); }
+    };
+
+    window.toggleGuestHiddenRows = function(toggleEl) {
+        const card = toggleEl.closest('#guests-card');
+        if (!card) return;
+        const hiddenRows = card.querySelectorAll('.guest-hidden-row');
+        const isExpanded = toggleEl.dataset.expanded === 'true';
+        hiddenRows.forEach(row => { row.style.display = isExpanded ? 'none' : 'block'; });
+        toggleEl.dataset.expanded = !isExpanded;
+        const count = hiddenRows.length;
+        toggleEl.innerHTML = isExpanded
+            ? '<i class="fas fa-chevron-down"></i> Show ' + count + ' more'
+            : '<i class="fas fa-chevron-up"></i> Show less';
+    };
+
+    // Wire up add buttons
+    const addVendorBtn = document.getElementById('addVendorBtn');
+    if (addVendorBtn) addVendorBtn.addEventListener('click', showAddVendorPopup);
+
+    const addGuestBtn = document.getElementById('addGuestBtn');
+    if (addGuestBtn) addGuestBtn.addEventListener('click', showAddGuestPopup);
+
+    // Close modals on background click
+    ['vendorDetailsModal', 'guestDetailsModal'].forEach(function(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) closeContactModal(id);
+            });
+        }
+    });
+
+    // Dynamic positioning: snap modals to main-content wrapper
+    const origAdjust = window.adjustTaskDetailsModalPosition;
+    window.adjustTaskDetailsModalPosition = function() {
+        if (typeof origAdjust === 'function') origAdjust();
+        snapAllContactModals();
+    };
+
+    window.addEventListener('resize', snapAllContactModals);
+
+    const mcObserver = new MutationObserver(function(mutations) {
+        for (const m of mutations) {
+            if (m.type === 'attributes' && m.attributeName === 'class') {
+                setTimeout(snapAllContactModals, 50);
+            }
+        }
+    });
+    mcObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+    const mcWrapper = document.querySelector('.client-main-content-wrapper');
+    if (mcWrapper) {
+        const wObs = new MutationObserver(function() { setTimeout(snapAllContactModals, 50); });
+        wObs.observe(mcWrapper, { attributes: true, attributeFilter: ['style'] });
+    }
+
+    const mcHandle = document.getElementById('resizeHandle');
+    if (mcHandle) {
+        let mcResizing = false;
+        let mcResizeTimeout;
+        mcHandle.addEventListener('mousedown', function() { mcResizing = true; });
+        document.addEventListener('mousemove', function() {
+            if (!mcResizing) return;
+            clearTimeout(mcResizeTimeout);
+            mcResizeTimeout = setTimeout(snapAllContactModals, 16);
+        });
+        document.addEventListener('mouseup', function() {
+            if (mcResizing) { mcResizing = false; snapAllContactModals(); }
+        });
+    }
 })();
 </script>

@@ -667,7 +667,7 @@
     // Render summary (list view) — updates ALL instances of the change control card on the page
     function renderSummary(summary) {
         // Update all summary JSON holders
-        document.querySelectorAll('#change-control-summary-json').forEach(el => {
+        document.querySelectorAll('.change-control-summary-json').forEach(el => {
             el.textContent = JSON.stringify(summary);
         });
 
@@ -685,14 +685,14 @@
         });
 
         // Update ALL notice lists and headers
-        document.querySelectorAll('#change-control-notice-list').forEach(list => {
+        document.querySelectorAll('.change-control-notice-list').forEach(list => {
             list.innerHTML = '';
         });
-        document.querySelectorAll('#cc-list-header').forEach(header => {
+        document.querySelectorAll('.cc-list-header').forEach(header => {
             header.classList.toggle('d-none', !summary.notices || summary.notices.length === 0);
         });
 
-        const lists = document.querySelectorAll('#change-control-notice-list');
+        const lists = document.querySelectorAll('.change-control-notice-list');
         if (lists.length === 0) return;
 
         if (!summary.notices || summary.notices.length === 0) {
@@ -868,7 +868,7 @@
     // Event handlers
     document.addEventListener('click', async function (e) {
         // Find the closest change-control-card from the click target, or fall back to the first one
-        const root = e.target.closest('#change-control-card') || document.getElementById('change-control-card');
+        const root = e.target.closest('.change-control-card') || document.querySelector('.change-control-card');
         if (!root) return;
 
         const orgId = root.getAttribute('data-org-id');
@@ -878,7 +878,7 @@
         const target = e.target;
 
         // Refresh button
-        const refreshBtn = target.closest?.('#cc-refresh-btn');
+        const refreshBtn = target.closest?.('.cc-refresh-btn');
         if (refreshBtn) {
             e.preventDefault();
             await refreshSummary(orgId, matterId);
@@ -886,7 +886,7 @@
         }
 
         // Open new draft
-        const openComposerBtn = target.closest?.('#cc-open-composer-btn');
+        const openComposerBtn = target.closest?.('.cc-open-composer-btn');
         if (openComposerBtn) {
             e.preventDefault();
             await loadContacts(orgId, matterId);
@@ -932,7 +932,8 @@
                 const saved = await createOrUpdateDraft(orgId, matterId, true);
                 if (!saved) return;
                 // Get the ID from the summary
-                const summary = JSON.parse(document.getElementById('change-control-summary-json').textContent || '{}');
+                const summaryEl = document.querySelector('.change-control-summary-json');
+                const summary = JSON.parse(summaryEl ? summaryEl.textContent || '{}' : '{}');
                 if (summary.notices && summary.notices.length > 0) {
                     const newNotice = summary.notices[0];
                     await sendNotice(orgId, matterId, newNotice.id);

@@ -700,6 +700,7 @@ namespace Certio.Infrastructure.Data
                 .HasOne(pa => pa.User)
                 .WithMany(u => u.MatterAssignments)
                 .HasForeignKey(pa => pa.UserId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
 
