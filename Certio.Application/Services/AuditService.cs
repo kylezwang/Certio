@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using System.Text;
+using Certio.Application.Configuration;
 using Certio.Application.DTOs;
 using Certio.Application.Interfaces;
 using Certio.Domain.Audit;
@@ -7,16 +8,19 @@ using Certio.Domain.Matters;
 using Certio.Domain.Tasks;
 using Certio.Domain.Documents;
 using Certio.Infrastructure.Data;
+using Microsoft.Extensions.Logging;
 
 namespace Certio.Application.Services
 {
     public class AuditService : IAuditService
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<AuditService> _logger;
 
-        public AuditService(ApplicationDbContext context)
+        public AuditService(ApplicationDbContext context, ILogger<AuditService> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public async Task<List<AuditLog>> GetEntityHistoryAsync(string entityType, int entityId)
@@ -24,6 +28,7 @@ namespace Certio.Application.Services
             return await _context.AuditLogs
                 .Where(a => a.EntityType == entityType && a.EntityId == entityId)
                 .OrderByDescending(a => a.Timestamp)
+                .Take(QueryLimits.DefaultMaxResults)
                 .ToListAsync();
         }
 
@@ -39,6 +44,7 @@ namespace Certio.Application.Services
 
             return await query
                 .OrderByDescending(a => a.Timestamp)
+                .Take(QueryLimits.DefaultMaxResults)
                 .ToListAsync();
         }
 
@@ -57,6 +63,7 @@ namespace Certio.Application.Services
 
             return await query
                 .OrderByDescending(a => a.Timestamp)
+                .Take(QueryLimits.DefaultMaxResults)
                 .ToListAsync();
         }
 
@@ -126,6 +133,7 @@ namespace Certio.Application.Services
 
             return await query
                 .OrderByDescending(a => a.Timestamp)
+                .Take(QueryLimits.DefaultMaxResults)
                 .ToListAsync();
         }
 
@@ -141,6 +149,7 @@ namespace Certio.Application.Services
 
             return await query
                 .OrderByDescending(a => a.Timestamp)
+                .Take(QueryLimits.DefaultMaxResults)
                 .ToListAsync();
         }
 

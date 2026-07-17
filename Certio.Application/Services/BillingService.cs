@@ -1,3 +1,4 @@
+using Certio.Application.Configuration;
 using Certio.Application.Interfaces;
 using Certio.Domain.Billing;
 using Certio.Infrastructure.Data;
@@ -32,7 +33,19 @@ namespace Certio.Application.Services
             if (endDate.HasValue)
                 query = query.Where(te => te.Date <= endDate.Value);
 
-            return await query.OrderByDescending(te => te.Date).ThenByDescending(te => te.CreatedAt).ToListAsync();
+            var entries = await query
+                .OrderByDescending(te => te.Date).ThenByDescending(te => te.CreatedAt)
+                .Take(QueryLimits.DefaultMaxResults)
+                .ToListAsync();
+
+            if (entries.Count == QueryLimits.DefaultMaxResults)
+            {
+                _logger.LogWarning(
+                    "GetTimeEntriesAsync truncated results at {MaxResults} for org {OrgId} - narrow the date range or add real pagination",
+                    QueryLimits.DefaultMaxResults, orgId);
+            }
+
+            return entries;
         }
 
         public async Task<TimeEntry?> GetTimeEntryByIdAsync(int id, int orgId)
@@ -104,7 +117,19 @@ namespace Certio.Application.Services
             if (endDate.HasValue)
                 query = query.Where(e => e.Date <= endDate.Value);
 
-            return await query.OrderByDescending(e => e.Date).ThenByDescending(e => e.CreatedAt).ToListAsync();
+            var expenses = await query
+                .OrderByDescending(e => e.Date).ThenByDescending(e => e.CreatedAt)
+                .Take(QueryLimits.DefaultMaxResults)
+                .ToListAsync();
+
+            if (expenses.Count == QueryLimits.DefaultMaxResults)
+            {
+                _logger.LogWarning(
+                    "GetExpensesAsync truncated results at {MaxResults} for org {OrgId} - narrow the date range or add real pagination",
+                    QueryLimits.DefaultMaxResults, orgId);
+            }
+
+            return expenses;
         }
 
         public async Task<Expense?> GetExpenseByIdAsync(int id, int orgId)
@@ -174,7 +199,19 @@ namespace Certio.Application.Services
             if (endDate.HasValue)
                 query = query.Where(i => i.InvoiceDate <= endDate.Value);
 
-            return await query.OrderByDescending(i => i.InvoiceDate).ThenByDescending(i => i.CreatedAt).ToListAsync();
+            var invoices = await query
+                .OrderByDescending(i => i.InvoiceDate).ThenByDescending(i => i.CreatedAt)
+                .Take(QueryLimits.DefaultMaxResults)
+                .ToListAsync();
+
+            if (invoices.Count == QueryLimits.DefaultMaxResults)
+            {
+                _logger.LogWarning(
+                    "GetInvoicesAsync truncated results at {MaxResults} for org {OrgId} - narrow the date range or add real pagination",
+                    QueryLimits.DefaultMaxResults, orgId);
+            }
+
+            return invoices;
         }
 
         public async Task<Invoice?> GetInvoiceByIdAsync(int id, int orgId)
