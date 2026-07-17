@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Text.Json;
 using Certio.Domain.Matters;
 using Certio.Domain.Services;
@@ -178,6 +180,56 @@ namespace Certio.Infrastructure.Data
             ConfigureUnifiedInboxRelationships(builder);
             ConfigureChangeControlRelationships(builder);
             ConfigureBillingRelationships(builder);
+
+            // Safety net: every entity used to be filtered by "!IsDeleted" (or
+            // "DeletedAt == null") manually, per-query, across ~25 services. Any
+            // missed filter meant soft-deleted rows silently leaked back into the
+            // app (lists, search, AI context, exports). This applies the same rule
+            // globally so a forgotten `.Where(!x.IsDeleted)` degrades gracefully
+            // instead of leaking data. Call `.IgnoreQueryFilters()` explicitly for
+            // the rare admin/restore/audit query that must see deleted rows.
+            ApplySoftDeleteQueryFilters(builder);
+        }
+
+        /// <summary>
+        /// Applies a global "not soft-deleted" query filter to every entity that
+        /// exposes an <c>IsDeleted</c> bool property, or (if it has no <c>IsDeleted</c>
+        /// property) a nullable <c>DeletedAt</c> property. Reflection-based rather than
+        /// requiring every entity to implement <see cref="ISoftDeletable"/>, because most
+        /// entities in this model declare the properties directly instead of via the
+        /// shared interface/base class.
+        /// </summary>
+        private static void ApplySoftDeleteQueryFilters(ModelBuilder builder)
+        {
+            foreach (var entityType in builder.Model.GetEntityTypes())
+            {
+                var clrType = entityType.ClrType;
+                if (clrType.IsAbstract)
+                {
+                    continue;
+                }
+
+                var isDeletedProperty = clrType.GetProperty("IsDeleted", BindingFlags.Public | BindingFlags.Instance);
+                if (isDeletedProperty != null && isDeletedProperty.PropertyType == typeof(bool))
+                {
+                    var parameter = Expression.Parameter(clrType, "e");
+                    var body = Expression.Equal(
+                        Expression.Property(parameter, isDeletedProperty),
+                        Expression.Constant(false));
+                    builder.Entity(clrType).HasQueryFilter(Expression.Lambda(body, parameter));
+                    continue;
+                }
+
+                var deletedAtProperty = clrType.GetProperty("DeletedAt", BindingFlags.Public | BindingFlags.Instance);
+                if (deletedAtProperty != null && deletedAtProperty.PropertyType == typeof(DateTime?))
+                {
+                    var parameter = Expression.Parameter(clrType, "e");
+                    var body = Expression.Equal(
+                        Expression.Property(parameter, deletedAtProperty),
+                        Expression.Constant(null, typeof(DateTime?)));
+                    builder.Entity(clrType).HasQueryFilter(Expression.Lambda(body, parameter));
+                }
+            }
         }
 
         private void ConfigureBillingRelationships(ModelBuilder builder)

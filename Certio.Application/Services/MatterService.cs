@@ -1,3 +1,4 @@
+using Certio.Application.Configuration;
 using Certio.Application.DTOs;
 using Certio.Application.Interfaces;
 using Certio.Domain.Exceptions;
@@ -460,7 +461,20 @@ namespace Certio.Application.Services
                     }
                 }
 
-                var matters = await query.ToListAsync();
+                // Safety cap: this endpoint has no pagination contract yet, so a
+                // very large org could previously load every matter (with nested
+                // assignments/permissions/tasks) into memory in one request. Order
+                // deterministically first so the cap is stable across pages.
+                query = query.OrderByDescending(m => m.CreatedAt);
+                var matters = await query.Take(QueryLimits.DefaultMaxResults).ToListAsync();
+
+                if (matters.Count == QueryLimits.DefaultMaxResults)
+                {
+                    _logger.LogWarning(
+                        "ListMattersAsync truncated results at {MaxResults} for org {OrgId} - real pagination is needed for this org's matter volume",
+                        QueryLimits.DefaultMaxResults, organizationId);
+                }
+
                 var matterDtos = new List<MatterDto>();
 
                 foreach (var matter in matters)
@@ -978,10 +992,18 @@ namespace Certio.Application.Services
 
         private async Task<MatterDto> MapToMatterDto(Matter matter)
         {
-            // Load task items for computed properties
-            await _context.Entry(matter)
-                .Collection(m => m.TaskItems)
-                .LoadAsync();
+            // TaskItems must be loaded for the computed TasksCompleted/TotalTasks
+            // properties below. Calling Collection().LoadAsync() unconditionally
+            // issues a fresh query even when TaskItems was already eager-loaded via
+            // .Include() (explicit Load ignores IsLoaded), which turned every matter
+            // list page into N+1 extra round trips. Only fall back to an explicit
+            // load when the caller didn't already include the collection.
+            if (!_context.Entry(matter).Collection(m => m.TaskItems).IsLoaded)
+            {
+                await _context.Entry(matter)
+                    .Collection(m => m.TaskItems)
+                    .LoadAsync();
+            }
 
             return new MatterDto
             {

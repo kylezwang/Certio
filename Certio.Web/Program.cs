@@ -612,8 +612,9 @@ builder.Services.AddMemoryCache();
 // Otherwise use in-memory distributed cache to avoid timeouts in production.
 var redisConnection = builder.Configuration.GetConnectionString("Redis");
 var useRedis = (builder.Configuration["Caching:UseRedis"] ?? Environment.GetEnvironmentVariable("USE_REDIS")) == "true";
+var redisEnabled = !string.IsNullOrWhiteSpace(redisConnection) && (useRedis || redisConnection.Contains(".redis.cache.windows.net", StringComparison.OrdinalIgnoreCase));
 
-if (!string.IsNullOrWhiteSpace(redisConnection) && (useRedis || redisConnection.Contains(".redis.cache.windows.net", StringComparison.OrdinalIgnoreCase)))
+if (redisEnabled)
 {
     try
     {
@@ -622,17 +623,18 @@ if (!string.IsNullOrWhiteSpace(redisConnection) && (useRedis || redisConnection.
             options.Configuration = redisConnection;
             options.InstanceName = "Certio_";
         });
-        Console.WriteLine($"✅ Redis cache configured: {redisConnection}");
+        Console.WriteLine($"[Cache] Redis cache configured: {redisConnection}");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"⚠️ Redis not available, using in-memory cache only: {ex.Message}");
+        Console.WriteLine($"[Cache] Redis not available, using in-memory cache only: {ex.Message}");
         builder.Services.AddDistributedMemoryCache();
+        redisEnabled = false;
     }
 }
 else
 {
-    Console.WriteLine("ℹ️ Redis connection string not provided or USE_REDIS!=true. Using in-memory distributed cache.");
+    Console.WriteLine("[Cache] Redis connection string not provided or USE_REDIS!=true. Using in-memory distributed cache.");
     builder.Services.AddDistributedMemoryCache();
 }
 
@@ -690,7 +692,26 @@ builder.Services.AddControllersWithViews()
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.WriteIndented = true;
     });
-builder.Services.AddSignalR();
+
+// Without a shared backplane, each SignalR hub (chat/direct/notifications/updates)
+// only knows about connections on its own process. Behind a load balancer with
+// more than one instance, a message sent from instance A never reaches a client
+// connected to instance B - notifications, chat messages, and typing indicators
+// silently fail to deliver depending on which instance handled the request. Reuse
+// the same Redis connection already configured for distributed caching above.
+var signalRBuilder = builder.Services.AddSignalR();
+if (redisEnabled)
+{
+    signalRBuilder.AddStackExchangeRedis(redisConnection!, options =>
+    {
+        options.Configuration.ChannelPrefix = StackExchange.Redis.RedisChannel.Literal("Certio_SignalR");
+    });
+    Console.WriteLine("[SignalR] Redis backplane enabled - hubs will fan out across all instances");
+}
+else
+{
+    Console.WriteLine("[SignalR] Redis backplane disabled (single-instance mode) - configure ConnectionStrings:Redis before scaling to multiple instances");
+}
 
 // swagger
 builder.Services.AddEndpointsApiExplorer();

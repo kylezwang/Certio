@@ -52,7 +52,7 @@ namespace Certio.Web.Services
                 });
         }
 
-        public async Task NotifyEntityChangeAsync(string entityType, int entityId, string action, int? userId = null)
+        public async Task NotifyEntityChangeAsync(string entityType, int entityId, string action, int organizationId, int? userId = null)
         {
             var notification = new
             {
@@ -60,26 +60,27 @@ namespace Certio.Web.Services
                 entityId,
                 action,
                 userId,
+                organizationId,
                 timestamp = DateTime.UtcNow
             };
 
-            // Notify based on entity type
+            // Every case below is scoped to the owning organization's group. This
+            // used to fall back to Clients.All for tasks and any unrecognized
+            // entity type, which meant every connected client - across every
+            // tenant - received every task/entity change in the system. Matters
+            // additionally fan out to their own matter group for clients already
+            // subscribed to that matter.
             switch (entityType.ToLower())
             {
                 case "matter":
                     await _hubContext.Clients.Group($"matter_{entityId}")
                         .SendAsync("EntityChanged", notification);
-                    break;
-
-                case "taskitem":
-                case "task":
-                    // Notify users following this task
-                    await _hubContext.Clients.All
+                    await _hubContext.Clients.Group($"org_{organizationId}")
                         .SendAsync("EntityChanged", notification);
                     break;
 
                 default:
-                    await _hubContext.Clients.All
+                    await _hubContext.Clients.Group($"org_{organizationId}")
                         .SendAsync("EntityChanged", notification);
                     break;
             }
