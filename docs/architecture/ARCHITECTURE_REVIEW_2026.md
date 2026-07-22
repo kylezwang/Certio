@@ -30,31 +30,24 @@ below are where it now creates real risk as tenants/data grow.
 | AI service | `ai_agents/main.py` is a ~4,300-line FastAPI monolith; document/user-data RAG assembled in .NET and POSTed to Python over HTTP with an API key | confirmed by reading `main.py` and `AIAgentService.cs` |
 | Tests | `Certio.Tests` has focused coverage (permissions, hub security, auth attributes, email webhooks) — 57 tests total, not broad service/controller coverage relative to codebase size | `dotnet test` output |
 
-## Phase roadmap
+## Status after Phase 1
 
-**Phase 1 — correctness & lowest-risk scale fixes (completed):**
-see `docs/architecture/PHASE_1_SCALABILITY_FIXES.md`.
+**Completed (Phase 1):** see [`PHASE_1_SCALABILITY_FIXES.md`](PHASE_1_SCALABILITY_FIXES.md).
+
 - Global soft-delete query filter safety net
 - Matter list N+1 fix
 - Bounded list queries (defensive cap, not full pagination)
 - `Clients.All` fan-out fix in `NotificationService`
 - SignalR Redis backplane (opt-in via existing Redis config)
 
-**Phase 2 — distributed state & real pagination (proposed, not started):**
-- Move `UserPresenceService`, `ChatHub._typingUsers`, `FirmRelationshipCacheService`,
-  and `EmbeddingJobQueue` off process-local storage onto Redis (or equivalent)
-  so they behave correctly with more than one app instance.
-- Design and ship real pagination (API query params + UI controls) for matter,
-  billing, and audit list endpoints, replacing the Phase 1 safety cap.
-- Fix remaining sync-over-async call sites.
+**Remaining work:** deferred to the engineering backlog (not an active phase roadmap).
 
-**Phase 3 — structural cleanup (proposed, not started):**
-- Introduce a persistence port/interface in `Certio.Application` so it no
-  longer depends on `Certio.Infrastructure` directly.
-- Split the largest controllers/services (`HomeController`, `ClientController`,
-  `EmailService`, `ChatService`) into focused, testable units.
-- Unify the `int`/`Guid` ID split in the Documents subsystem.
-- Move document vector search to a dedicated vector store.
+See [`../BACKLOG/SCALABILITY_AND_ARCHITECTURE.md`](../BACKLOG/SCALABILITY_AND_ARCHITECTURE.md) for:
+
+- Distributed process-local state (presence, typing, firm cache, embedding queue)
+- Sync-over-async cleanup
+- Real pagination (replacing Phase 1 safety caps)
+- Structural technical debt (ports/adapters, fat controllers, ID unification, vector store, etc.)
 
 ## Cross-check notes
 

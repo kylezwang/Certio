@@ -2,7 +2,7 @@
 
 **Status:** Completed
 **Scope:** P0 items from the July 2026 architecture review
-**Related:** `docs/architecture/CERTIO_TECHNICAL_ARCHITECTURE_DOCUMENT.md`
+**Related:** [`ARCHITECTURE_REVIEW_2026.md`](ARCHITECTURE_REVIEW_2026.md), [`../BACKLOG/SCALABILITY_AND_ARCHITECTURE.md`](../BACKLOG/SCALABILITY_AND_ARCHITECTURE.md)
 
 ## Why this phase exists
 
@@ -15,7 +15,8 @@ organization, and SignalR had no shared state across multiple app instances.
 
 This phase fixes the highest-severity, lowest-risk items first: the ones that
 cause silent data correctness problems or fall over first under load, without
-requiring a UI/API contract redesign (that is Phase 2+).
+requiring a UI/API contract redesign. Remaining work is tracked as engineering
+backlog (see below), not as an active Phase 2/3 roadmap.
 
 ## What changed
 
@@ -119,13 +120,14 @@ changed — every existing caller still gets a `List<T>`/`IEnumerable<T>` back,
 just capped instead of unbounded. Real cursor- or offset-based pagination
 (with `Skip`/`Take` exposed through the service interface, controller query
 params, and the corresponding views) is a larger, UI-touching change and is
-scoped to Phase 2 — see `docs/architecture/ARCHITECTURE_REVIEW_2026.md`.
+tracked in the backlog — see [`../BACKLOG/SCALABILITY_AND_ARCHITECTURE.md`](../BACKLOG/SCALABILITY_AND_ARCHITECTURE.md).
 
 **Deliberately left unbounded:** `AuditService.ExportAuditLogsAsync` (CSV
 export) and `GetAuditSummaryAsync` (aggregate report) still return every
 matching row — capping an export or an aggregate would silently produce
 incomplete/incorrect output, which is worse than a slow request. These need
-a different fix (e.g. streaming export, background job) in a later phase.
+a different fix (e.g. streaming export, background job) and are listed in the
+backlog.
 
 ### 4. Fixed `Clients.All` fan-out in `NotificationService.NotifyEntityChangeAsync`
 
@@ -180,28 +182,27 @@ log line noting the backplane is disabled. **This does not, by itself, fix
 presence tracking (`UserPresenceService`), typing indicators
 (`ChatHub._typingUsers`), or the in-process embedding queue
 (`EmbeddingJobQueue`) — those still hold state in a static/local collection
-per instance and are tracked as separate Phase 2 items.** The SignalR
-backplane only fixes message delivery between hub connections; it does not
-retroactively distribute application-level in-memory state.
+per instance and are tracked in the backlog.** The SignalR backplane only
+fixes message delivery between hub connections; it does not retroactively
+distribute application-level in-memory state.
 
 ## What Phase 1 deliberately did not touch
 
-To keep this phase additive and independently verifiable, the following
-known issues from the architecture review were **not** addressed here and
-remain for Phase 2+:
+To keep this phase additive and independently verifiable, remaining issues
+from the architecture review were **not** addressed here. They are deferred
+engineering backlog (known limitations / technical debt), not an open phase
+roadmap:
 
-- `UserPresenceService`, `ChatHub._typingUsers`, `FirmRelationshipCacheService`,
-  and `EmbeddingJobQueue` are still process-local state (not distributed).
-- Sync-over-async calls (`.Result`, `.GetAwaiter().GetResult()`) in
-  `AccountController`, `DriveOAuthController`, `CalendarOAuthController`.
-- No real pagination contract (API query params, UI page controls) — only the
-  defensive cap described above.
-- `Application` layer still depends on `Infrastructure`'s `ApplicationDbContext`
-  directly (no repository/port abstraction).
-- Fat controllers/services (`HomeController`, `ClientController`, `EmailService`,
-  `ChatService`) were not refactored.
-- Document vector search still lives in SQL Server via `sklearn`/TF-IDF on the
-  Python side rather than a dedicated vector store.
+**See:** [`../BACKLOG/SCALABILITY_AND_ARCHITECTURE.md`](../BACKLOG/SCALABILITY_AND_ARCHITECTURE.md)
+
+Summary of deferred items:
+
+- Process-local state: `UserPresenceService`, `ChatHub._typingUsers`,
+  `FirmRelationshipCacheService`, `EmbeddingJobQueue`
+- Sync-over-async in OAuth/account controllers
+- Real pagination (API + UI) beyond the defensive list cap
+- Structural debt: Application→Infrastructure coupling, fat controllers,
+  `int`/`Guid` ID split, dedicated vector store, AI packaging, audit outbox
 
 ## Verification performed
 
