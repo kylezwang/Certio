@@ -1,7 +1,7 @@
 """
 User Data RAG System for Notal
 Provides AI agents with comprehensive access to user-scoped data across all modules
-(Matters, Tasks, Calendar, Communications, Clients, Teams)
+(Events, Tasks, Calendar, Communications, Clients, Teams)
 """
 
 import json
@@ -65,7 +65,7 @@ class UserDataSearchResult:
 class UserDataRAGSystem:
     """
     RAG system for user-scoped data across all Notal modules
-    Provides AI with contextual knowledge about user's matters, tasks, calendar, etc.
+    Provides AI with contextual knowledge about user's events, tasks, calendar, etc.
     """
     
     def __init__(self, cache_dir: str = "./data/user_data_cache"):
@@ -376,25 +376,25 @@ class UserDataRAGSystem:
         query_lower = query.lower()
         
         module_keyword_map = {
-            "matters": ['matter', 'matters', 'case', 'cases', 'engagement'],
+            "events": ['event', 'events', 'engagement', 'matter', 'matters', 'case', 'cases'],
             "tasks": ['task', 'tasks', 'checklist', 'to-do', 'todo'],
             "communications": ['message', 'messages', 'conversation', 'conversations', 'channel', 'chat', 'dm', 'direct message'],
-            "calendar": ['calendar', 'event', 'events', 'meeting', 'meetings', 'deadline', 'deadlines', 'schedule']
+            "calendar": ['calendar', 'meeting', 'meetings', 'deadline', 'deadlines', 'schedule']
         }
         module_mentions = {
             module: any(keyword in query_lower for keyword in keywords)
             for module, keywords in module_keyword_map.items()
         }
         
-        # Check if asking about a specific named matter/task (contains proper nouns or specific names)
-        is_specific_matter_query = any(word in query_lower for word in ['about', 'tell me about', 'describe', 'what is']) and \
-                                   module_mentions["matters"]
+        # Check if asking about a specific named event/task (contains proper nouns or specific names)
+        is_specific_event_query = any(word in query_lower for word in ['about', 'tell me about', 'describe', 'what is']) and \
+                                   module_mentions["events"]
         
         is_specific_task_query = any(word in query_lower for word in ['about', 'tell me about', 'describe', 'what is']) and \
                                  module_mentions["tasks"]
         
         # Only include ALL if it's a general query, not specific
-        include_all_matters = module_mentions["matters"] and not is_specific_matter_query
+        include_all_events = module_mentions["events"] and not is_specific_event_query
         include_all_tasks = module_mentions["tasks"] and not is_specific_task_query
         include_all_comms = module_mentions["communications"]
         
@@ -420,12 +420,12 @@ class UserDataRAGSystem:
         # If asking about specific module, include ALL chunks from that module
         from dataclasses import replace
         
-        if include_all_matters:
-            matter_chunks = [c for c in index.chunks if c.module_name == 'matters']
-            # Set base relevance score for all matters
-            matter_chunks_with_score = [replace(c, relevance_score=1.0) for c in matter_chunks[:15]]
-            chunks_to_include.extend(matter_chunks_with_score)
-            logger.info(f"📋 Including ALL matters: {len(matter_chunks)} matter chunks")
+        if include_all_events:
+            event_chunks = [c for c in index.chunks if c.module_name == 'events']
+            # Set base relevance score for all events
+            event_chunks_with_score = [replace(c, relevance_score=1.0) for c in event_chunks[:15]]
+            chunks_to_include.extend(event_chunks_with_score)
+            logger.info(f"📋 Including ALL events: {len(event_chunks)} event chunks")
         
         if include_all_comms:
             comm_chunks = [c for c in index.chunks if c.module_name == 'communications']
@@ -433,17 +433,17 @@ class UserDataRAGSystem:
             chunks_to_include.extend(comm_chunks_with_score)
             logger.info(f"💬 Including ALL communications: {len(comm_chunks)} comm chunks")
             
-            # When including communications, also include related matters for context
-            # Extract matter names from channel names and find corresponding matters
-            matter_chunks = [c for c in index.chunks if c.module_name == 'matters']
-            for matter_chunk in matter_chunks[:10]:  # Check up to 10 matters
-                matter_title_lower = matter_chunk.title.lower()
-                # Check if any communication mentions this matter
+            # When including communications, also include related events for context
+            # Extract event names from channel names and find corresponding events
+            event_chunks = [c for c in index.chunks if c.module_name == 'events']
+            for event_chunk in event_chunks[:10]:  # Check up to 10 events
+                event_title_lower = event_chunk.title.lower()
+                # Check if any communication mentions this event
                 for comm_chunk in comm_chunks[:10]:
-                    if any(word in comm_chunk.title.lower() for word in matter_title_lower.split()):
-                        if matter_chunk.id not in [c.id for c in chunks_to_include]:
-                            chunks_to_include.append(replace(matter_chunk, relevance_score=0.9))
-                            logger.info(f"📋 Auto-including matter '{matter_chunk.title}' (related to communications)")
+                    if any(word in comm_chunk.title.lower() for word in event_title_lower.split()):
+                        if event_chunk.id not in [c.id for c in chunks_to_include]:
+                            chunks_to_include.append(replace(event_chunk, relevance_score=0.9))
+                            logger.info(f"📋 Auto-including event '{event_chunk.title}' (related to communications)")
                             break
         
         if include_all_tasks:
@@ -478,19 +478,19 @@ class UserDataRAGSystem:
         
         # Dynamically increase limit when user explicitly asked for entire module
         max_chunks = top_k * 2
-        if include_all_matters:
-            max_chunks = max(max_chunks, 60)  # matters need broader context
+        if include_all_events:
+            max_chunks = max(max_chunks, 60)  # events need broader context
         elif include_all_tasks or include_all_comms:
             max_chunks = max(max_chunks, 40)
         
         final_chunks = chunks_to_include[:max_chunks]
 
-        # If the user clearly asked about one module (e.g., "what matters"), keep only that module
+        # If the user clearly asked about one module (e.g., "what events"), keep only that module
         if primary_focus_module:
             focused_chunks = [c for c in final_chunks if c.module_name == primary_focus_module]
-            # If this is a general matter query, keep ALL matters rather than trimming to top-k
-            if primary_focus_module == "matters" and include_all_matters:
-                focused_chunks = [c for c in chunks_to_include if c.module_name == "matters"][:max_chunks]
+            # If this is a general event query, keep ALL events rather than trimming to top-k
+            if primary_focus_module == "events" and include_all_events:
+                focused_chunks = [c for c in chunks_to_include if c.module_name == "events"][:max_chunks]
             
             if focused_chunks:
                 logger.info(f"🎯 Filtering context to module '{primary_focus_module}' ({len(focused_chunks)} chunks)")
@@ -515,7 +515,7 @@ class UserDataRAGSystem:
         context_parts.append("3. You MUST use ONLY this exact data when answering questions")
         context_parts.append("4. DO NOT make up or hallucinate information that is not explicitly shown below")
         context_parts.append("5. If data is missing or 'Not specified', say so - don't invent it")
-        context_parts.append("6. When showing matter/task details, ONLY show what was explicitly asked for")
+        context_parts.append("6. When showing event/task details, ONLY show what was explicitly asked for")
         context_parts.append("")
         context_parts.append("📄 DOCUMENT CITATION RULES:")
         context_parts.append("1. When you FIND the requested document in the data below, CITE IT DIRECTLY")
@@ -548,15 +548,15 @@ class UserDataRAGSystem:
         context_parts.append("## USER'S ACTUAL DATA (Use this exact information - DO NOT hallucinate):")
         context_parts.append("")
         
-        # If this is a matter query, list ALL matter titles first for easy reference
-        if include_all_matters:
-            matter_titles = [c.title for c in final_chunks if c.module_name == 'matters']
-            if matter_titles:
-                context_parts.append("📋 COMPLETE LIST OF ALL MATTERS (for reference):")
-                for title in matter_titles:
+        # If this is an event query, list ALL event titles first for easy reference
+        if include_all_events:
+            event_titles = [c.title for c in final_chunks if c.module_name == 'events']
+            if event_titles:
+                context_parts.append("📋 COMPLETE LIST OF ALL EVENTS (for reference):")
+                for title in event_titles:
                     context_parts.append(f"  • {title}")
                 context_parts.append("")
-                context_parts.append("⚠️ If the user asks about a matter not in this list, it does NOT exist.")
+                context_parts.append("⚠️ If the user asks about an event not in this list, it does NOT exist.")
                 context_parts.append("Tell them it's not in their current data and list what IS available.")
                 context_parts.append("")
         
@@ -608,9 +608,9 @@ This could mean:
 - The data was synced but this query doesn't match anything
 
 INSTRUCTION TO AI:
-If the user is asking about a specific matter/task/conversation that you can't find:
+If the user is asking about a specific event/task/conversation that you can't find:
 1. Tell them you don't have that specific item in their current data
-2. List what you DO have available (e.g., "I have access to these matters: X, Y, Z")
+2. List what you DO have available (e.g., "I have access to these events: X, Y, Z")
 3. Ask if they meant one of those, or if the item might be in a different organization
 4. Suggest they check if the item was deleted or is in a different workspace
 

@@ -153,7 +153,7 @@ namespace Certio.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating matter for user {UserId} in org {OrgId}", userId, organizationId);
-                return ServiceResult<MatterDto>.FailureResult("An error occurred while creating the matter", "ERROR");
+                return ServiceResult<MatterDto>.FailureResult("An error occurred while creating the event", "ERROR");
             }
         }
 
@@ -227,7 +227,7 @@ namespace Certio.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating matter {MatterId} for user {UserId}", matterId, userId);
-                return ServiceResult<MatterDto>.FailureResult("An error occurred while updating the matter", "ERROR");
+                return ServiceResult<MatterDto>.FailureResult("An error occurred while updating the event", "ERROR");
             }
         }
 
@@ -278,7 +278,7 @@ namespace Certio.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting matter {MatterId} for user {UserId}", matterId, userId);
-                return ServiceResult.FailureResult("An error occurred while deleting the matter", "ERROR");
+                return ServiceResult.FailureResult("An error occurred while deleting the event", "ERROR");
             }
         }
 
@@ -315,7 +315,7 @@ namespace Certio.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting matter {MatterId} for user {UserId}", matterId, userId);
-                return ServiceResult<MatterDto>.FailureResult("An error occurred while retrieving the matter", "ERROR");
+                return ServiceResult<MatterDto>.FailureResult("An error occurred while retrieving the event", "ERROR");
             }
         }
 
@@ -492,7 +492,7 @@ namespace Certio.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error listing matters for user {UserId} in org {OrgId}", userId, organizationId);
-                return ServiceResult<List<MatterDto>>.FailureResult("An error occurred while listing matters", "ERROR");
+                return ServiceResult<List<MatterDto>>.FailureResult("An error occurred while listing events", "ERROR");
             }
         }
 
@@ -549,7 +549,7 @@ namespace Certio.Application.Services
                 if (existingAssignment != null)
                 {
                     throw new BusinessRuleViolationException("DuplicateAssignment", 
-                        $"User is already assigned as {assignmentDto.AssignmentType} to this matter");
+                        $"User is already assigned as {assignmentDto.AssignmentType} to this event");
                 }
 
                 var assignment = new MatterAssignment
@@ -583,7 +583,7 @@ namespace Certio.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error assigning user to matter {MatterId}", matterId);
-                return ServiceResult<MatterAssignmentDto>.FailureResult("An error occurred while assigning user to matter", "ERROR");
+                return ServiceResult<MatterAssignmentDto>.FailureResult("An error occurred while assigning user to event", "ERROR");
             }
         }
 
@@ -643,7 +643,7 @@ namespace Certio.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error removing user from matter {MatterId}", matterId);
-                return ServiceResult.FailureResult("An error occurred while removing user from matter", "ERROR");
+                return ServiceResult.FailureResult("An error occurred while removing user from event", "ERROR");
             }
         }
 
@@ -707,7 +707,7 @@ namespace Certio.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error adding contact to matter {MatterId}", matterId);
-                return ServiceResult<MatterAssignmentDto>.FailureResult("An error occurred while adding contact to matter", "ERROR");
+                return ServiceResult<MatterAssignmentDto>.FailureResult("An error occurred while adding contact to event", "ERROR");
             }
         }
 
@@ -768,7 +768,7 @@ namespace Certio.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating contact on matter {MatterId}", matterId);
-                return ServiceResult<MatterAssignmentDto>.FailureResult("An error occurred while updating contact on matter", "ERROR");
+                return ServiceResult<MatterAssignmentDto>.FailureResult("An error occurred while updating contact on event", "ERROR");
             }
         }
 
@@ -814,7 +814,7 @@ namespace Certio.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error removing contact from matter {MatterId}", matterId);
-                return ServiceResult.FailureResult("An error occurred while removing contact from matter", "ERROR");
+                return ServiceResult.FailureResult("An error occurred while removing contact from event", "ERROR");
             }
         }
 
@@ -860,7 +860,7 @@ namespace Certio.Application.Services
 
                 if (existingPermission != null)
                 {
-                    throw new BusinessRuleViolationException("DuplicatePermission", "User already has access to this matter");
+                    throw new BusinessRuleViolationException("DuplicatePermission", "User already has access to this event");
                 }
 
                 var permission = new MatterPermission
@@ -889,7 +889,7 @@ namespace Certio.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error granting matter access for matter {MatterId}", matterId);
-                return ServiceResult.FailureResult("An error occurred while granting matter access", "ERROR");
+                return ServiceResult.FailureResult("An error occurred while granting event access", "ERROR");
             }
         }
 
@@ -950,7 +950,7 @@ namespace Certio.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error revoking matter access for matter {MatterId}", matterId);
-                return ServiceResult.FailureResult("An error occurred while revoking matter access", "ERROR");
+                return ServiceResult.FailureResult("An error occurred while revoking event access", "ERROR");
             }
         }
 

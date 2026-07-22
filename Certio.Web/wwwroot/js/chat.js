@@ -1675,9 +1675,9 @@ function escapeHtml(text) {
 // Generate sources section for AI responses
 function generateSourcesSection() {
     const sources = [
-        'Legal Documentation',
-        'Help Center: Legal Services',
-        'FAQs: Legal Questions'
+        'Event Planning Documentation',
+        'Help Center: Event Planning Services',
+        'FAQs: Event Planning Questions'
     ];
     
     // Keep for future use, but do not show to users yet.
@@ -1951,7 +1951,7 @@ function displayReplySuggestions(suggestions) {
             <div class="suggestion-meta">
                 <span class="badge bg-${getToneColor(suggestions.tone)}">${suggestions.tone}</span>
                 <span class="badge bg-info">${suggestions.purpose}</span>
-                ${suggestions.requiresLegalReview ? '<span class="badge bg-warning">Requires Legal Review</span>' : ''}
+                ${suggestions.requiresLegalReview ? '<span class="badge bg-warning">Requires Review</span>' : ''}
             </div>
             <div class="suggestion-text">${suggestions.suggestedReply}</div>
             <div class="suggestion-keypoints">
@@ -2146,8 +2146,8 @@ function showIntelligentAIThinkingIndicator(userMessage) {
         thinkingMessage = "Preparing personalized greeting...";
     } else if (messageLower.includes("help") || messageLower.includes("assistance")) {
         thinkingMessage = "Identifying best assistance approach...";
-    } else if (messageLower.includes("legal") || messageLower.includes("law")) {
-        thinkingMessage = "Processing legal inquiry...";
+    } else if (messageLower.includes("vendor") || messageLower.includes("venue")) {
+        thinkingMessage = "Processing your event planning question...";
     } else if (messageLower.includes("question") || messageLower.includes("?")) {
         thinkingMessage = "Formulating detailed response...";
     }

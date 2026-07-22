@@ -70,7 +70,7 @@ class NotalRAGSystem:
                 metadata={
                     "feature_name": feature_name,
                     "user_types": feature.user_types,
-                    "legal_areas": feature.legal_areas,
+                    "event_categories": feature.legal_areas,
                     "api_endpoints": feature.api_endpoints
                 }
             )
@@ -86,19 +86,19 @@ class NotalRAGSystem:
                 metadata={
                     "workflow_name": workflow_name,
                     "participants": workflow.participants,
-                    "legal_requirements": workflow.legal_requirements,
+                    "requirements": workflow.legal_requirements,
                     "ai_agents": workflow.ai_agents_involved
                 }
             )
             chunks.append(chunk)
         
-        # Add legal domain knowledge
+        # Add event category knowledge
         for domain, info in notal_kb.legal_domains.items():
             chunk = KnowledgeChunk(
-                id=f"legal_{domain}",
+                id=f"event_category_{domain}",
                 content=f"{domain.replace('_', ' ').title()}: {info['description']}. Common documents: {', '.join(info['common_documents'])}. Key terms: {', '.join(info['key_terms'])}",
                 source="certio_knowledge_base",
-                category="legal_domain",
+                category="event_category",
                 metadata={
                     "domain": domain,
                     "common_documents": info['common_documents'],
@@ -148,21 +148,21 @@ class NotalRAGSystem:
     def _add_project_patterns(self, chunks: List[KnowledgeChunk]):
         """Add project-specific patterns and examples"""
         
-        # Legal conversation patterns
-        legal_patterns = [
+        # Event planning conversation patterns
+        event_patterns = [
             "Client asks about contract terms → ClarityAgent explains in simple terms → ReplySuggester provides professional response",
-            "Business needs compliance help → ClientGoalExtractor identifies requirements → Matter creation with compliance tasks",
-            "Document review request → AI analyzes document → Legal team reviews → Client feedback → Final approval",
-            "Urgent legal matter → ChatSummarizer detects urgency → Priority routing → Immediate lawyer assignment"
+            "Business needs compliance help → ClientGoalExtractor identifies requirements → Event creation with compliance tasks",
+            "Document review request → AI analyzes document → Planning team reviews → Client feedback → Final approval",
+            "Urgent event matter → ChatSummarizer detects urgency → Priority routing → Immediate planner assignment"
         ]
         
-        for i, pattern in enumerate(legal_patterns):
+        for i, pattern in enumerate(event_patterns):
             chunk = KnowledgeChunk(
                 id=f"pattern_{i}",
-                content=f"Legal workflow pattern: {pattern}",
+                content=f"Event planning workflow pattern: {pattern}",
                 source="project_patterns",
                 category="workflow_pattern",
-                metadata={"pattern_type": "legal_conversation", "example": pattern}
+                metadata={"pattern_type": "event_conversation", "example": pattern}
             )
             chunks.append(chunk)
         
@@ -171,7 +171,7 @@ class NotalRAGSystem:
             "ChatSummarizer analyzes conversation sentiment and urgency",
             "ClientGoalExtractor identifies primary and secondary business goals",
             "ReplySuggester generates contextually appropriate professional responses",
-            "ClarityAgent simplifies legal language for client understanding"
+            "ClarityAgent simplifies contract and vendor language for client understanding"
         ]
         
         for i, pattern in enumerate(ai_patterns):
@@ -184,23 +184,23 @@ class NotalRAGSystem:
             )
             chunks.append(chunk)
         
-        # Common legal scenarios
-        legal_scenarios = [
-            "Startup incorporation: Business formation, corporate governance, compliance requirements",
-            "Contract negotiation: Terms analysis, risk assessment, liability protection",
-            "Employment issues: Discrimination, harassment, termination, severance",
-            "Intellectual property: Patent filing, trademark registration, copyright protection",
-            "Litigation support: Case analysis, document review, settlement negotiation",
-            "Compliance management: Regulatory requirements, audit preparation, risk mitigation"
+        # Common event planning scenarios
+        event_scenarios = [
+            "New venue booking: Contract review, deposit terms, cancellation policy",
+            "Vendor contract negotiation: Terms analysis, risk assessment, liability protection",
+            "Staffing coordination: Vendor no-shows, day-of coordination, backup planning",
+            "Guest experience: Seating charts, dietary requirements, accessibility needs",
+            "Large-scale event support: Logistics analysis, run-of-show review, on-site coordination",
+            "Compliance management: Permit requirements, insurance verification, risk mitigation"
         ]
         
-        for i, scenario in enumerate(legal_scenarios):
+        for i, scenario in enumerate(event_scenarios):
             chunk = KnowledgeChunk(
                 id=f"scenario_{i}",
-                content=f"Legal scenario: {scenario}",
+                content=f"Event planning scenario: {scenario}",
                 source="project_patterns",
-                category="legal_scenario",
-                metadata={"scenario_type": "common_legal_case", "description": scenario}
+                category="event_scenario",
+                metadata={"scenario_type": "common_event_case", "description": scenario}
             )
             chunks.append(chunk)
     
@@ -272,10 +272,10 @@ class NotalRAGSystem:
         
         # Agent-specific category filters
         agent_categories = {
-            "ChatSummarizer": ["workflow", "legal_scenario", "ai_pattern"],
-            "ClientGoalExtractor": ["legal_domain", "workflow", "user_type"],
-            "ReplySuggester": ["workflow_pattern", "user_type", "legal_scenario"],
-            "ClarityAgent": ["legal_domain", "legal_scenario", "feature"]
+            "ChatSummarizer": ["workflow", "event_scenario", "ai_pattern"],
+            "ClientGoalExtractor": ["event_category", "workflow", "user_type"],
+            "ReplySuggester": ["workflow_pattern", "user_type", "event_scenario"],
+            "ClarityAgent": ["event_category", "event_scenario", "feature"]
         }
         
         # Retrieve relevant knowledge
@@ -319,7 +319,7 @@ class NotalRAGSystem:
 {base_prompt}
 
 # Additional Context
-Use the relevant knowledge above to provide more accurate, project-specific responses. Consider the Notal platform's features, workflows, and legal domain expertise when generating your response.
+Use the relevant knowledge above to provide more accurate, project-specific responses. Consider the Notal platform's features, workflows, and event planning expertise when generating your response.
 """
         
         return enhanced_prompt

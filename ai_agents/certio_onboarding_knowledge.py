@@ -40,30 +40,30 @@ class NotalOnboardingKnowledgeBase:
     def _initialize_getting_started_guides(self) -> Dict[str, OnboardingGuide]:
         """Initialize getting started guides for different user types"""
         return {
-            "first_login_lawyer": OnboardingGuide(
-                title="Getting Started as a Lawyer",
-                user_types=["Lawyer", "Partner", "Associate"],
-                content="""Welcome to Notal! As a legal professional, you'll use Notal to manage matters, track tasks, collaborate with clients and team members, and leverage AI assistance for legal work. The platform streamlines your daily workflow with an intuitive interface and powerful automation. Start by connecting your own email account through Communications, then you can Notalize client emails to bring them into the platform.""",
+            "first_login_planner": OnboardingGuide(
+                title="Getting Started as an Event Planner",
+                user_types=["Director", "Planner", "Coordinator"],
+                content="""Welcome to Notal! As an event planner, you'll use Notal to manage events, track tasks, collaborate with clients and team members, and leverage AI assistance for your event work. The platform streamlines your daily workflow with an intuitive interface and powerful automation. Start by connecting your own email account through Communications, then you can Notalize client emails to bring them into the platform.""",
                 steps=[
                     "Log in and explore the Dashboard - Your central hub showing upcoming deadlines, calendar, recent activity, and quick access to all features",
-                    "Review the left sidebar navigation - Access Dashboard, Matters, Tasks, Calendar, Communications, Documents, Teams, and Settings",
+                    "Review the left sidebar navigation - Access Dashboard, Events, Tasks, Calendar, Communications, Documents, Teams, and Settings",
                     "Go to Communications - Navigate to Communications in the sidebar to access email integration features",
                     "Sync your own email account first - Connect your Gmail or Outlook account through secure OAuth authentication. This allows you to view your inbox within Notal",
                     "View your inbox - Once your email is synced, you'll be able to see your email inbox in the Communications hub",
                     "Notalize client emails - After your inbox is visible, you can start notalizing client emails. Click 'Notalize' on emails from clients to process and transfer them to the Notal platform",
                     "Add the new client through the new client flow once confirmed - After notalizing client emails, use the 'New Client' flow to formally add them to your organization",
                     "Select your client in the clients sidebar on the left - Once added, you'll see them in the clients list for easy access",
-                    "Begin by analyzing the client's intake through the Communications hub - Review their Notalized emails and communications to understand their needs and legal situation",
-                    "Create your first matter - Click 'Matters' in the sidebar, then '+ New Matter' button, and link it to the client you just added",
-                    "Create tasks and subtasks - Break down matter work into actionable tasks with subtasks for detailed tracking",
-                    "Set up calendar events - Schedule important deadlines, meetings, and court dates in the Calendar section",
+                    "Begin by analyzing the client's intake through the Communications hub - Review their Notalized emails and communications to understand their needs and event vision",
+                    "Create your first event - Click 'Events' in the sidebar, then '+ New Event' button, and link it to the client you just added",
+                    "Create tasks and subtasks - Break down event work into actionable tasks with subtasks for detailed tracking",
+                    "Set up calendar events - Schedule important deadlines, vendor walkthroughs, and meetings in the Calendar section",
                     "Try the Notal AI Assistant - Click the chat icon in the top-right to get instant help and guidance throughout your workflow"
                 ],
-                related_features=["dashboard", "matters", "tasks", "notal_ai_assistant", "calendar", "communications", "teams", "email_integration", "Notalize"],
+                related_features=["dashboard", "events", "tasks", "notal_ai_assistant", "calendar", "communications", "teams", "email_integration", "Notalize"],
                 common_questions=[
                     "How do I invite a new client?",
                     "How does the Notalize email sync work?",
-                    "How do I create my first matter?",
+                    "How do I create my first event?",
                     "Where can I see all my deadlines?",
                     "How do I communicate with my team?",
                     "Can I sync client emails automatically?"
@@ -75,37 +75,37 @@ class NotalOnboardingKnowledgeBase:
                     "Use Notalize to bring client communications into Notal - this automatically transfers their emails for seamless management",
                     "The new client flow guides you through adding clients properly after notalizing their emails",
                     "Use the clients sidebar to quickly switch between different client organizations",
-                    "Analyze client intake in Communications before creating matters - this ensures you have all the context from their Notalized emails",
+                    "Analyze client intake in Communications before creating events - this ensures you have all the context from their Notalized emails",
                     "Use the Quick Access grid on the dashboard to jump to frequently used features",
-                    "The Notal AI Assistant can answer questions about the platform and help with legal tasks",
-                    "Each matter automatically gets its own communications channel for team collaboration",
-                    "Profile icons show you who's assigned to each matter and task at a glance"
+                    "The Notal AI Assistant can answer questions about the platform and help with event planning tasks",
+                    "Each event automatically gets its own communications channel for team collaboration",
+                    "Profile icons show you who's assigned to each event and task at a glance"
                 ]
             ),
             
             "first_login_client": OnboardingGuide(
                 title="Getting Started as a Client",
                 user_types=["Client"],
-                content="""Welcome to Notal! As a client, you'll use Notal to track your legal matters, communicate with your legal team, view important documents, and get instant answers through our AI assistant. Everything you need to stay informed about your legal work is in one place.""",
+                content="""Welcome to Notal! As a client, you'll use Notal to track your events, communicate with your event planning team, view important documents, and get instant answers through our AI assistant. Everything you need to stay informed about your event is in one place.""",
                 steps=[
-                    "Log in and view your Dashboard - See an overview of your matters, upcoming deadlines, and recent activity",
-                    "Ask the Notal AI Assistant - Click the chat icon to ask questions about your case or get legal guidance",
-                    "View your matters - Click 'Matters' to see all your active legal matters and their progress",
-                    "Check Communications - See messages from your legal team in the Communications section",
-                    "Review documents - Access case documents in the Documents section (coming soon with full features)",
+                    "Log in and view your Dashboard - See an overview of your events, upcoming deadlines, and recent activity",
+                    "Ask the Notal AI Assistant - Click the chat icon to ask questions about your event or get planning guidance",
+                    "View your events - Click 'Events' to see all your active events and their progress",
+                    "Check Communications - See messages from your event planning team in the Communications section",
+                    "Review documents - Access event documents in the Documents section (coming soon with full features)",
                     "Stay updated on deadlines - Your calendar shows all important dates and meetings"
                 ],
-                related_features=["dashboard", "notal_ai_assistant", "matters", "communications", "calendar"],
+                related_features=["dashboard", "notal_ai_assistant", "events", "communications", "calendar"],
                 common_questions=[
-                    "How do I ask my lawyer a question?",
-                    "Where can I see the status of my case?",
+                    "How do I ask my event planner a question?",
+                    "Where can I see the status of my event?",
                     "How do I know when I have new messages?",
                     "Can I access my documents anytime?"
                 ],
                 tips=[
-                    "The Notal AI can answer common legal questions 24/7 when your lawyer isn't available",
+                    "The Notal AI can answer common event planning questions 24/7 when your planner isn't available",
                     "You'll receive notifications for new messages and important updates",
-                    "Click on any matter to see detailed information, tasks, and conversation history",
+                    "Click on any event to see detailed information, tasks, and conversation history",
                     "The dashboard Daily Briefing shows you what needs your attention today"
                 ]
             ),
@@ -113,26 +113,26 @@ class NotalOnboardingKnowledgeBase:
             "first_login_business": OnboardingGuide(
                 title="Getting Started as a Business User",
                 user_types=["Business"],
-                content="""Welcome to Notal! As a business user, you'll manage your company's legal matters, coordinate with your legal team, track compliance requirements, and oversee multiple legal projects. Notal provides the tools to keep your business's legal affairs organized and efficient.""",
+                content="""Welcome to Notal! As a business user, you'll manage your company's events, coordinate with your event planning team, track compliance requirements, and oversee multiple events. Notal provides the tools to keep your business's event operations organized and efficient.""",
                 steps=[
-                    "Access your Dashboard - View all active matters, metrics, and firm summary",
-                    "Review business matters - Click 'Matters' to see all legal projects for your business",
-                    "Invite team members - Add colleagues who need access to legal matters in the Teams section",
-                    "Set up compliance tracking - Create matters for ongoing compliance requirements",
-                    "Use Communications - Coordinate with your legal team and business stakeholders",
-                    "Monitor progress - Track task completion and matter status across all your legal work"
+                    "Access your Dashboard - View all active events, metrics, and firm summary",
+                    "Review business events - Click 'Events' to see all events for your business",
+                    "Invite team members - Add colleagues who need access to events in the Teams section",
+                    "Set up compliance tracking - Create events for ongoing compliance requirements",
+                    "Use Communications - Coordinate with your event planning team and business stakeholders",
+                    "Monitor progress - Track task completion and event status across all your events"
                 ],
-                related_features=["dashboard", "matters", "tasks", "teams", "communications", "compliance"],
+                related_features=["dashboard", "events", "tasks", "teams", "communications", "compliance"],
                 common_questions=[
-                    "How do I track multiple legal projects?",
-                    "Can multiple team members access our legal matters?",
+                    "How do I track multiple events?",
+                    "Can multiple team members access our events?",
                     "How do I monitor our compliance requirements?",
-                    "Where can I see overall progress across all matters?"
+                    "Where can I see overall progress across all events?"
                 ],
                 tips=[
-                    "The Firm Summary card shows key metrics across all your legal work",
-                    "Create separate matters for different legal areas (contracts, compliance, litigation, etc.)",
-                    "Use the filter feature in Matters to focus on specific status or priority items",
+                    "The Firm Summary card shows key metrics across all your events",
+                    "Create separate events for different event types (weddings, corporate events, galas, conferences, etc.)",
+                    "Use the filter feature in Events to focus on specific status or priority items",
                     "The History page provides a complete audit trail of all activities"
                 ]
             ),
@@ -140,29 +140,29 @@ class NotalOnboardingKnowledgeBase:
             "platform_overview": OnboardingGuide(
                 title="Notal Platform Overview - Complete Feature Guide",
                 user_types=["All"],
-                content="""Notal is a comprehensive legal practice management platform with AI-powered assistance. This guide explains what each feature does and when to use it.""",
+                content="""Notal is a comprehensive event planning management platform with AI-powered assistance. This guide explains what each feature does and when to use it.""",
                 steps=[
                     "Dashboard: Your daily starting point with AI chat, deadlines, calendar, and quick access to everything",
-                    "Matters: Create and manage legal cases with team assignments, status tracking, and progress monitoring",
-                    "Tasks: Assign work items, track progress, set priorities, and manage subtasks across all matters",
-                    "Calendar: Schedule events, meetings, deadlines, and manage attendees with full calendar views",
-                    "Communications: Real-time team chat with matter-specific channels and direct messaging",
-                    "Documents: Store and organize case files (full features coming soon - currently shows UI preview)",
+                    "Events: Create and manage events with team assignments, status tracking, and progress monitoring",
+                    "Tasks: Assign work items, track progress, set priorities, and manage subtasks across all events",
+                    "Calendar: Schedule meetings, deadlines, and manage attendees with full calendar views",
+                    "Communications: Real-time team chat with event-specific channels and direct messaging",
+                    "Documents: Store and organize event files (full features coming soon - currently shows UI preview)",
                     "Teams: Manage organization members, roles, and permissions",
                     "Settings: Configure firm details, user management, and preferences",
                     "History: Complete audit log of all platform activities",
                     "Notal AI: Intelligent assistant available throughout the platform for instant help"
                 ],
-                related_features=["dashboard", "matters", "tasks", "calendar", "communications", "documents", "teams", "firm_settings", "history", "notal_ai_assistant"],
+                related_features=["dashboard", "events", "tasks", "calendar", "communications", "documents", "teams", "firm_settings", "history", "notal_ai_assistant"],
                 common_questions=[
-                    "What's the difference between Matters and Tasks?",
+                    "What's the difference between Events and Tasks?",
                     "Where should I start each day?",
                     "How do I communicate with my team?",
                     "What can the Notal AI help me with?"
                 ],
                 tips=[
                     "Start each day on the Dashboard to see what needs your attention",
-                    "Matters are the big picture (cases), Tasks are the specific work items within them",
+                    "Events are the big picture (weddings, galas, conferences, etc.), Tasks are the specific work items within them",
                     "Use Communications for quick team coordination without email overload",
                     "Ask Notal AI anything - it understands the platform and can guide you to the right feature"
                 ]
@@ -175,60 +175,60 @@ class NotalOnboardingKnowledgeBase:
             # Navigation FAQs
             FAQ(
                 question="How do I navigate between different sections of Notal?",
-                answer="Use the left sidebar navigation which contains icons and labels for Dashboard, Matters, Tasks, Calendar, Communications, Documents, Teams, and Settings. Click any icon to go to that section. On mobile, tap the menu icon to open the navigation.",
+                answer="Use the left sidebar navigation which contains icons and labels for Dashboard, Events, Tasks, Calendar, Communications, Documents, Teams, and Settings. Click any icon to go to that section. On mobile, tap the menu icon to open the navigation.",
                 category="navigation",
                 user_types=["All"],
                 related_features=["navigation_system"]
             ),
             FAQ(
                 question="Where can I see all my upcoming deadlines?",
-                answer="Upcoming deadlines appear in three places: (1) The Upcoming Deadlines card on the left side of your Dashboard, (2) The Calendar page with full month/week/day views, and (3) On individual matter pages under the Details tab.",
+                answer="Upcoming deadlines appear in three places: (1) The Upcoming Deadlines card on the left side of your Dashboard, (2) The Calendar page with full month/week/day views, and (3) On individual event pages under the Details tab.",
                 category="navigation",
                 user_types=["All"],
-                related_features=["dashboard", "calendar", "matters"]
+                related_features=["dashboard", "calendar", "events"]
             ),
             FAQ(
                 question="How do I access the AI assistant?",
-                answer="Click the Notal AI chat icon in the top-right corner of any page. A chat panel will slide in from the right where you can ask questions, get help, and receive legal guidance. The AI assistant knows about your matters and can provide contextual help.",
+                answer="Click the Notal AI chat icon in the top-right corner of any page. A chat panel will slide in from the right where you can ask questions, get help, and receive event planning guidance. The AI assistant knows about your events and can provide contextual help.",
                 category="ai_features",
                 user_types=["All"],
                 related_features=["notal_ai_assistant"]
             ),
             
-            # Matter Management FAQs
+            # Event Management FAQs
             FAQ(
-                question="How do I create a new matter?",
-                answer="Go to the Matters page using the sidebar navigation, then click the blue '+ New Matter' button at the top of the page. Fill in the matter details including client name, matter type, description, and status. You can also assign team members during creation or add them later.",
-                category="matters",
-                user_types=["Lawyer", "Partner", "Associate"],
-                related_features=["matters"]
+                question="How do I create a new event?",
+                answer="Go to the Events page using the sidebar navigation, then click the blue '+ New Event' button at the top of the page. Fill in the event details including client name, event type, description, and status. You can also assign team members during creation or add them later.",
+                category="events",
+                user_types=["Director", "Planner", "Coordinator"],
+                related_features=["events"]
             ),
             FAQ(
-                question="Can I see all tasks for a specific matter?",
-                answer="Yes! Navigate to a matter by clicking it in the Matters list, then click the 'Tasks' tab in the matter details page. This shows all tasks associated with that matter. You can also filter tasks by matter on the main Tasks page.",
-                category="matters",
+                question="Can I see all tasks for a specific event?",
+                answer="Yes! Navigate to an event by clicking it in the Events list, then click the 'Tasks' tab in the event details page. This shows all tasks associated with that event. You can also filter tasks by event on the main Tasks page.",
+                category="events",
                 user_types=["All"],
-                related_features=["matters", "tasks"]
+                related_features=["events", "tasks"]
             ),
             FAQ(
-                question="What do the status badges on matters mean?",
-                answer="Status badges indicate the current state: 'Critical' (red) means urgent attention needed, 'Review' (yellow) means awaiting review, 'In Progress' (blue) means active work is happening, and 'Completed' (green) means the matter is finished. You can customize statuses when creating or editing matters.",
-                category="matters",
+                question="What do the status badges on events mean?",
+                answer="Status badges indicate the current state: 'Critical' (red) means urgent attention needed, 'Review' (yellow) means awaiting review, 'In Progress' (blue) means active work is happening, and 'Completed' (green) means the event is finished. You can customize statuses when creating or editing events.",
+                category="events",
                 user_types=["All"],
-                related_features=["matters"]
+                related_features=["events"]
             ),
             FAQ(
-                question="How do I assign team members to a matter?",
-                answer="Open the matter details page, click the 'Details' or 'Overview' tab, and look for the Team Members section. Click 'Add Team Member' or the edit icon, then select from your organization's members. Each member's profile picture will appear on the matter card.",
-                category="matters",
-                user_types=["Lawyer", "Partner", "Associate"],
-                related_features=["matters", "teams"]
+                question="How do I assign team members to an event?",
+                answer="Open the event details page, click the 'Details' or 'Overview' tab, and look for the Team Members section. Click 'Add Team Member' or the edit icon, then select from your organization's members. Each member's profile picture will appear on the event card.",
+                category="events",
+                user_types=["Director", "Planner", "Coordinator"],
+                related_features=["events", "teams"]
             ),
             
             # Task Management FAQs
             FAQ(
                 question="How do I create a task?",
-                answer="Click 'Tasks' in the sidebar navigation, then click '+ New Task'. Fill in the task name, description, assign to a team member, set a due date and priority, and optionally link it to a matter. You can also create tasks directly from a matter's Tasks tab.",
+                answer="Click 'Tasks' in the sidebar navigation, then click '+ New Task'. Fill in the task name, description, assign to a team member, set a due date and priority, and optionally link it to an event. You can also create tasks directly from an event's Tasks tab.",
                 category="tasks",
                 user_types=["All"],
                 related_features=["tasks"]
@@ -242,14 +242,14 @@ class NotalOnboardingKnowledgeBase:
             ),
             FAQ(
                 question="How do I see only my assigned tasks?",
-                answer="On the Tasks page, use the filter options at the top. Click the 'Filter' button and select 'Assigned to Me' or use the assignee dropdown to filter by specific team members. You can also filter by status (To Do, In Progress, Completed) and by matter.",
+                answer="On the Tasks page, use the filter options at the top. Click the 'Filter' button and select 'Assigned to Me' or use the assignee dropdown to filter by specific team members. You can also filter by status (To Do, In Progress, Completed) and by event.",
                 category="tasks",
                 user_types=["All"],
                 related_features=["tasks"]
             ),
             FAQ(
                 question="What happens when I complete a task?",
-                answer="When you mark a task as completed, it moves to the 'Completed' status, appears in the completed filter, and is logged in the matter history (if linked to a matter). Your team members may receive notifications, and the task progress updates on the matter card.",
+                answer="When you mark a task as completed, it moves to the 'Completed' status, appears in the completed filter, and is logged in the event history (if linked to an event). Your team members may receive notifications, and the task progress updates on the event card.",
                 category="tasks",
                 user_types=["All"],
                 related_features=["tasks", "history"]
@@ -260,61 +260,61 @@ class NotalOnboardingKnowledgeBase:
                 question="How do I get started with client onboarding?",
                 answer="First, go to Communications in the sidebar. You must sync your own email account (Gmail or Outlook) through OAuth authentication before you can Notalize client emails. Once your inbox is visible, you can click 'Notalize' on emails from clients to process and transfer them to the Notal platform. After notalizing client emails, add them through the new client flow.",
                 category="communications",
-                user_types=["Lawyer", "Partner", "Associate"],
+                user_types=["Director", "Planner", "Coordinator"],
                 related_features=["communications", "email_integration", "Notalize"]
             ),
             FAQ(
                 question="What is Notalize and how does it work?",
                 answer="Notalize is a feature that processes and transfers client emails into the Notal platform. After you've synced your own email account and can view your inbox in Communications, you can click 'Notalize' on emails from clients. This processes the emails and transfers them to Notal's Communications hub, allowing you to analyze client intake and manage communications in one place.",
                 category="communications",
-                user_types=["Lawyer", "Partner", "Associate"],
+                user_types=["Director", "Planner", "Coordinator"],
                 related_features=["Notalize", "email_integration", "communications"]
             ),
             FAQ(
                 question="How do I sync my email account?",
                 answer="Go to Communications in the sidebar. You'll need to connect your Gmail or Outlook account through secure OAuth authentication. This allows you to view your inbox within Notal. Once your inbox is visible, you can then Notalize client emails. The OAuth process is secure and uses industry-standard OAuth 2.0 with encrypted token storage.",
                 category="communications",
-                user_types=["Lawyer", "Partner", "Associate"],
+                user_types=["Director", "Planner", "Coordinator"],
                 related_features=["email_integration", "communications"]
             ),
             FAQ(
                 question="Can I Notalize client emails before syncing my own email?",
                 answer="No, you must first sync your own email account (Gmail or Outlook) through OAuth in the Communications hub. Once your inbox is visible, you can then start notalizing client emails. This ensures you have access to your email inbox first, which is required for the notalization process.",
                 category="communications",
-                user_types=["Lawyer", "Partner", "Associate"],
+                user_types=["Director", "Planner", "Coordinator"],
                 related_features=["email_integration", "Notalize", "communications"]
             ),
             FAQ(
                 question="Is the OAuth email integration secure?",
                 answer="Yes! The OAuth email integration uses industry-standard OAuth 2.0 protocol with encrypted token storage. Your client's email credentials are never stored - only secure access tokens are used. The connection is managed through Gmail and Outlook's secure authentication systems, and all data is encrypted in transit and at rest.",
                 category="security",
-                user_types=["Lawyer", "Partner", "Associate", "Client"],
+                user_types=["Director", "Planner", "Coordinator", "Client"],
                 related_features=["email_integration", "security_privacy"]
             ),
             FAQ(
                 question="What email providers does Notal support?",
                 answer="Notal currently supports Gmail and Outlook (Microsoft 365) email integration through OAuth. When you click Notalize, you can choose which provider the client uses. The OAuth flow will guide them through the secure connection process specific to their email provider.",
                 category="communications",
-                user_types=["Lawyer", "Partner", "Associate"],
+                user_types=["Director", "Planner", "Coordinator"],
                 related_features=["email_integration", "Notalize"]
             ),
             FAQ(
                 question="How do I send a message to my team?",
-                answer="Go to Communications in the sidebar. You'll see channels for each matter and direct message options. Click a channel to send messages to everyone in that matter, or click a team member's name to send a direct message. Messages are delivered in real-time.",
+                answer="Go to Communications in the sidebar. You'll see channels for each event and direct message options. Click a channel to send messages to everyone in that event, or click a team member's name to send a direct message. Messages are delivered in real-time.",
                 category="communications",
                 user_types=["All"],
                 related_features=["communications"]
             ),
             FAQ(
                 question="What's the difference between channels and direct messages?",
-                answer="Channels are group conversations tied to specific matters where all team members can see messages. Direct messages are private one-on-one conversations between you and another team member. Use channels for matter-related discussions and DMs for private conversations.",
+                answer="Channels are group conversations tied to specific events where all team members can see messages. Direct messages are private one-on-one conversations between you and another team member. Use channels for event-related discussions and DMs for private conversations.",
                 category="communications",
                 user_types=["All"],
                 related_features=["communications"]
             ),
             FAQ(
                 question="Can I message someone from a different organization?",
-                answer="Yes! Notal supports cross-organization direct messaging. This is useful when a lawyer from a law firm needs to communicate with a client from a business organization. Just search for the person and send them a direct message.",
+                answer="Yes! Notal supports cross-organization direct messaging. This is useful when a planner from an event planning company needs to communicate with a client from a business organization. Just search for the person and send them a direct message.",
                 category="communications",
                 user_types=["All"],
                 related_features=["communications"]
@@ -353,16 +353,16 @@ class NotalOnboardingKnowledgeBase:
             # Teams & Settings FAQs
             FAQ(
                 question="How do I add new team members to my organization?",
-                answer="Go to Settings, then look for the 'Add Person' or team management section. Enter the person's name, email, and select their role (Partner, Associate, Paralegal, Client). They'll receive an invitation to join your organization on Notal.",
+                answer="Go to Settings, then look for the 'Add Person' or team management section. Enter the person's name, email, and select their role (Director, Planner, Coordinator, Client). They'll receive an invitation to join your organization on Notal.",
                 category="teams",
-                user_types=["Partner", "Lawyer"],
+                user_types=["Director"],
                 related_features=["teams", "firm_settings"]
             ),
             FAQ(
                 question="What are the different user roles and what can they do?",
-                answer="Partner: Full access to all features, can manage organization, add members, view all matters. Associate: Can create/manage matters, tasks, and collaborate. Paralegal: Can assist with tasks, documents, and matter support. Client: Can view their own matters, communicate with legal team, and access their documents. Each role has appropriate permissions.",
+                answer="Director: Full access to all features, can manage organization, add members, view all events. Planner: Can create/manage events, tasks, and collaborate. Coordinator: Can assist with tasks, documents, and event support. Client: Can view their own events, communicate with the event planning team, and access their documents. Each role has appropriate permissions.",
                 category="teams",
-                user_types=["Partner", "Lawyer"],
+                user_types=["Director"],
                 related_features=["teams", "firm_settings"]
             ),
             FAQ(
@@ -376,21 +376,21 @@ class NotalOnboardingKnowledgeBase:
             # AI Assistant FAQs
             FAQ(
                 question="What can the Notal AI assistant help me with?",
-                answer="Notal AI can: (1) Answer questions about using the platform, (2) Explain legal terms in simple language, (3) Analyze your conversations and extract key goals, (4) Suggest professional responses, (5) Provide guidance on legal matters, (6) Help you navigate to the right features, and (7) Summarize conversations and identify action items.",
+                answer="Notal AI can: (1) Answer questions about using the platform, (2) Explain contract and vendor terms in simple language, (3) Analyze your conversations and extract key goals, (4) Suggest professional responses, (5) Provide event planning guidance, (6) Help you navigate to the right features, and (7) Summarize conversations and identify action items.",
                 category="ai_features",
                 user_types=["All"],
                 related_features=["notal_ai_assistant"]
             ),
             FAQ(
                 question="Is my conversation with the AI assistant private?",
-                answer="Yes! Your AI conversations are private and tied to your account. They're stored securely and can be accessed from the conversation tabs in the AI chat panel. The AI uses context from your matters to provide better assistance, but always maintains confidentiality.",
+                answer="Yes! Your AI conversations are private and tied to your account. They're stored securely and can be accessed from the conversation tabs in the AI chat panel. The AI uses context from your events to provide better assistance, but always maintains confidentiality.",
                 category="ai_features",
                 user_types=["All"],
                 related_features=["notal_ai_assistant"]
             ),
             FAQ(
-                question="Can the AI help me understand legal documents?",
-                answer="Yes! The AI's ClarityAgent feature specializes in explaining legal language in simple, understandable terms. You can ask it to explain contracts, legal documents, or specific legal terms, and it will break them down into plain English.",
+                question="Can the AI help me understand vendor contracts?",
+                answer="Yes! The AI's ClarityAgent feature specializes in explaining contract and vendor language in simple, understandable terms. You can ask it to explain venue contracts, vendor agreements, or specific contract terms, and it will break them down into plain English.",
                 category="ai_features",
                 user_types=["Client", "Business"],
                 related_features=["notal_ai_assistant"]
@@ -405,15 +405,15 @@ class NotalOnboardingKnowledgeBase:
                 related_features=["security_privacy"]
             ),
             FAQ(
-                question="Who can see my matters and communications?",
-                answer="Only team members assigned to a specific matter can see its details, tasks, and communications. Partners and administrators have broader access to manage the organization. Clients can only see matters they're involved in. Everything is controlled by role-based permissions and organization membership.",
+                question="Who can see my events and communications?",
+                answer="Only team members assigned to a specific event can see its details, tasks, and communications. Directors and administrators have broader access to manage the organization. Clients can only see events they're involved in. Everything is controlled by role-based permissions and organization membership.",
                 category="security",
                 user_types=["All"],
                 related_features=["security_privacy", "teams"]
             ),
             FAQ(
-                question="Can I see a history of all actions taken on my matters?",
-                answer="Yes! Go to the History page from the sidebar or view matter-specific history on each matter's History tab. You'll see a complete audit trail of all activities including who created/updated matters, completed tasks, sent messages, and made changes. Each entry includes timestamps and user attribution.",
+                question="Can I see a history of all actions taken on my events?",
+                answer="Yes! Go to the History page from the sidebar or view event-specific history on each event's History tab. You'll see a complete audit trail of all activities including who created/updated events, completed tasks, sent messages, and made changes. Each entry includes timestamps and user attribution.",
                 category="security",
                 user_types=["All"],
                 related_features=["history"]
@@ -422,7 +422,7 @@ class NotalOnboardingKnowledgeBase:
             # General Platform FAQs
             FAQ(
                 question="I'm stuck! How do I get help?",
-                answer="Several ways to get help: (1) Ask the Notal AI assistant - click the chat icon and ask your question, (2) Look for the '?' help icon in various sections, (3) Check the Daily Briefing and Next Suggestions on your Dashboard for guidance, (4) Contact your organization's administrator or your legal team for specific questions.",
+                answer="Several ways to get help: (1) Ask the Notal AI assistant - click the chat icon and ask your question, (2) Look for the '?' help icon in various sections, (3) Check the Daily Briefing and Next Suggestions on your Dashboard for guidance, (4) Contact your organization's administrator or your event planning team for specific questions.",
                 category="general",
                 user_types=["All"],
                 related_features=["notal_ai_assistant", "dashboard"]
@@ -436,9 +436,9 @@ class NotalOnboardingKnowledgeBase:
             ),
             FAQ(
                 question="Where should I start if I'm completely new?",
-                answer="For law firm users, start by going to Communications. First, sync your own email account (Gmail or Outlook) through OAuth authentication. Once your inbox is visible, you can then Notalize client emails by clicking 'Notalize' on emails from clients - this processes and transfers them to the Notal platform. After notalizing client emails, add them through the new client flow. Once added, select them in the clients sidebar, analyze their intake through Communications, then create matters, tasks, subtasks, and calendar events. You can also start at the Dashboard - it's designed as your daily starting point. From there: (1) Try the Notal AI chat to ask questions (try 'How do I get started?' or 'Notal, let's get started'), (2) Click through the Quick Access grid to explore features, (3) Check the Daily Briefing for today's important items, (4) Review the Next Suggestions for guided next steps. The AI assistant can walk you through any feature.",
+                answer="For event planning company users, start by going to Communications. First, sync your own email account (Gmail or Outlook) through OAuth authentication. Once your inbox is visible, you can then Notalize client emails by clicking 'Notalize' on emails from clients - this processes and transfers them to the Notal platform. After notalizing client emails, add them through the new client flow. Once added, select them in the clients sidebar, analyze their intake through Communications, then create events, tasks, subtasks, and calendar entries. You can also start at the Dashboard - it's designed as your daily starting point. From there: (1) Try the Notal AI chat to ask questions (try 'How do I get started?' or 'Notal, let's get started'), (2) Click through the Quick Access grid to explore features, (3) Check the Daily Briefing for today's important items, (4) Review the Next Suggestions for guided next steps. The AI assistant can walk you through any feature.",
                 category="general",
-                user_types=["Lawyer", "Partner", "Associate"],
+                user_types=["Director", "Planner", "Coordinator"],
                 related_features=["dashboard", "notal_ai_assistant", "communications", "email_integration", "Notalize"]
             ),
             FAQ(
@@ -453,65 +453,65 @@ class NotalOnboardingKnowledgeBase:
     def _initialize_task_tutorials(self) -> Dict[str, OnboardingGuide]:
         """Initialize step-by-step task tutorials"""
         return {
-            "create_first_matter": OnboardingGuide(
-                title="Tutorial: Creating Your First Matter",
-                user_types=["Lawyer", "Partner", "Associate"],
-                content="""A matter (also called a case) is the central organizational unit in Notal. Everything - tasks, communications, documents - connects to a matter. Here's how to create your first one.""",
+            "create_first_event": OnboardingGuide(
+                title="Tutorial: Creating Your First Event",
+                user_types=["Director", "Planner", "Coordinator"],
+                content="""An event (also called an engagement) is the central organizational unit in Notal. Everything - tasks, communications, documents - connects to an event. Here's how to create your first one.""",
                 steps=[
-                    "Click 'Matters' in the left sidebar navigation",
-                    "Look for the blue '+ New Matter' button at the top of the Matters page and click it",
+                    "Click 'Events' in the left sidebar navigation",
+                    "Look for the blue '+ New Event' button at the top of the Events page and click it",
                     "Enter the Client Name (e.g., 'Acme Corporation' or 'John Smith')",
-                    "Choose the Matter Type from the dropdown (Contract Review, Litigation, Corporate, etc.)",
-                    "Write a brief Description explaining what this matter is about",
+                    "Choose the Event Type from the dropdown (Wedding, Corporate Event, Conference, Gala, etc.)",
+                    "Write a brief Description explaining what this event is about",
                     "Set the Status (Active, In Review, etc.) - you can change this anytime",
                     "Optionally set a Due Date if there's a major deadline",
-                    "Click 'Add Team Member' to assign lawyers, paralegals, or the client",
-                    "Click 'Create Matter' or 'Save' to finish",
-                    "Your new matter appears in the Matters list with a card showing key info",
-                    "Click the matter card to open the details page with Overview, Details, Tasks, Conversations, and History tabs"
+                    "Click 'Add Team Member' to assign planners, coordinators, or the client",
+                    "Click 'Create Event' or 'Save' to finish",
+                    "Your new event appears in the Events list with a card showing key info",
+                    "Click the event card to open the details page with Overview, Details, Tasks, Conversations, and History tabs"
                 ],
-                related_features=["matters"],
+                related_features=["events"],
                 common_questions=[
-                    "Can I edit the matter details later? Yes, click the matter and use the edit button",
+                    "Can I edit the event details later? Yes, click the event and use the edit button",
                     "Do I have to assign team members now? No, you can add them anytime",
                     "What if I don't know the due date yet? Leave it blank and add it later"
                 ],
                 tips=[
-                    "Use descriptive matter names so team members instantly know what it's about",
+                    "Use descriptive event names so team members instantly know what it's about",
                     "Assign yourself and relevant team members right away for better collaboration",
-                    "Each matter automatically gets its own Communications channel",
-                    "You can create tasks directly from the matter page after creation"
+                    "Each event automatically gets its own Communications channel",
+                    "You can create tasks directly from the event page after creation"
                 ]
             ),
             
             "assign_first_task": OnboardingGuide(
                 title="Tutorial: Assigning Your First Task",
-                user_types=["Lawyer", "Partner", "Associate", "Paralegal"],
-                content="""Tasks are specific work items that need to be completed. They can be standalone or linked to a matter. Here's how to create and assign your first task.""",
+                user_types=["Director", "Planner", "Coordinator"],
+                content="""Tasks are specific work items that need to be completed. They can be standalone or linked to an event. Here's how to create and assign your first task.""",
                 steps=[
                     "Click 'Tasks' in the left sidebar navigation",
                     "Click the '+ New Task' button at the top of the Tasks page",
-                    "Enter a clear Task Title (e.g., 'Draft employment agreement' or 'Review contract clauses')",
+                    "Enter a clear Task Title (e.g., 'Confirm venue booking' or 'Review vendor contract')",
                     "Write a Description with details about what needs to be done",
                     "Click 'Assign To' and select a team member (or assign to yourself)",
                     "Set a Due Date using the date picker",
                     "Choose a Priority level: Low, Medium, or High",
-                    "Optionally link to a Matter using the matter dropdown",
+                    "Optionally link to an Event using the event dropdown",
                     "Click 'Create Task' or 'Save'",
                     "The assignee will see the task in their task list",
-                    "The task appears on the linked matter's Tasks tab",
+                    "The task appears on the linked event's Tasks tab",
                     "Track progress by updating Status: To Do → In Progress → Completed"
                 ],
-                related_features=["tasks", "matters"],
+                related_features=["tasks", "events"],
                 common_questions=[
                     "Can I reassign a task later? Yes, edit the task and change the assignee",
-                    "What happens when someone completes a task? It moves to Completed status and appears in matter history",
+                    "What happens when someone completes a task? It moves to Completed status and appears in event history",
                     "Can one task have multiple assignees? Currently one primary assignee, but you can use subtasks for team collaboration"
                 ],
                 tips=[
-                    "Use clear, action-oriented task titles (start with verbs: Draft, Review, File, Schedule)",
+                    "Use clear, action-oriented task titles (start with verbs: Confirm, Review, Book, Schedule)",
                     "Add detailed descriptions so the assignee knows exactly what to do",
-                    "Link tasks to matters for better organization and tracking",
+                    "Link tasks to events for better organization and tracking",
                     "Create subtasks for complex work that needs multiple steps",
                     "Use High priority for urgent items that need immediate attention"
                 ]
@@ -520,11 +520,11 @@ class NotalOnboardingKnowledgeBase:
             "start_team_conversation": OnboardingGuide(
                 title="Tutorial: Starting a Team Conversation",
                 user_types=["All"],
-                content="""Communications in Notal provides real-time team chat. Each matter has its own channel, and you can send direct messages to any team member. Here's how to start communicating.""",
+                content="""Communications in Notal provides real-time team chat. Each event has its own channel, and you can send direct messages to any team member. Here's how to start communicating.""",
                 steps=[
                     "Click 'Communications' in the left sidebar navigation",
-                    "You'll see two sections: Channels (for matters) and Direct Messages",
-                    "For matter discussions: Click a matter channel from the channels list",
+                    "You'll see two sections: Channels (for events) and Direct Messages",
+                    "For event discussions: Click an event channel from the channels list",
                     "For private conversations: Click 'New Message' or a team member's name in Direct Messages",
                     "Type your message in the input box at the bottom",
                     "Press Enter or click Send to deliver the message",
@@ -533,30 +533,30 @@ class NotalOnboardingKnowledgeBase:
                     "Upload files by clicking the attachment icon (if available)",
                     "Use @mentions to notify specific team members in channels"
                 ],
-                related_features=["communications", "matters"],
+                related_features=["communications", "events"],
                 common_questions=[
-                    "Can clients see all communications? No, only channels for matters they're assigned to",
-                    "Are messages private? Direct messages are private. Channel messages are visible to all matter team members",
+                    "Can clients see all communications? No, only channels for events they're assigned to",
+                    "Are messages private? Direct messages are private. Channel messages are visible to all event team members",
                     "Can I search old messages? Yes, most implementations include message search"
                 ],
                 tips=[
-                    "Use matter channels for case-related discussions so everyone stays informed",
+                    "Use event channels for event-related discussions so everyone stays informed",
                     "Use direct messages for quick one-on-one questions",
                     "Check the online status indicators to see who's available",
-                    "Communications are organized by matter, making it easy to find relevant conversations",
-                    "Important decisions made in chat should be documented in matter notes or history"
+                    "Communications are organized by event, making it easy to find relevant conversations",
+                    "Important decisions made in chat should be documented in event notes or history"
                 ]
             ),
             
             "use_ai_assistant": OnboardingGuide(
                 title="Tutorial: Using the Notal AI Assistant",
                 user_types=["All"],
-                content="""The Notal AI Assistant is your intelligent helper available 24/7. It understands the platform, can answer questions, explain legal concepts, and guide you through features. Here's how to use it effectively.""",
+                content="""The Notal AI Assistant is your intelligent helper available 24/7. It understands the platform, can answer questions, explain contract and vendor terms, and guide you through features. Here's how to use it effectively.""",
                 steps=[
                     "Click the Notal AI chat icon in the top-right corner of any page",
                     "A chat panel slides in from the right side",
                     "Type your question or request in the message box",
-                    "Examples: 'How do I create a matter?', 'Explain breach of contract', 'Show me my upcoming deadlines'",
+                    "Examples: 'How do I create an event?', 'Explain our cancellation policy', 'Show me my upcoming deadlines'",
                     "Press Enter or click Send",
                     "Watch the thinking indicator as the AI processes your request",
                     "The AI responds with helpful information, formatted clearly with bullet points and explanations",
@@ -566,13 +566,13 @@ class NotalOnboardingKnowledgeBase:
                 ],
                 related_features=["notal_ai_assistant"],
                 common_questions=[
-                    "What can I ask the AI? Anything about using Notal, legal questions, case guidance, feature explanations",
-                    "Does the AI know about my matters? Yes, it has context about your matters and can provide personalized help",
+                    "What can I ask the AI? Anything about using Notal, event planning questions, event guidance, feature explanations",
+                    "Does the AI know about my events? Yes, it has context about your events and can provide personalized help",
                     "Is it really available 24/7? Yes, the AI is always available, even when your team is offline"
                 ],
                 tips=[
                     "Ask clear, specific questions for the best results",
-                    "The AI can explain legal terms in simple language - great for clients",
+                    "The AI can explain contract and vendor terms in simple language - great for clients",
                     "Use it to navigate: 'How do I find my calendar?' or 'Where do I add team members?'",
                     "The AI can analyze your conversations and extract goals or action items",
                     "Try asking for step-by-step guidance: 'Walk me through creating a task'",
@@ -588,18 +588,18 @@ class NotalOnboardingKnowledgeBase:
                     "Click 'Calendar' in the left sidebar (this may redirect to the global dashboard with calendar widget)",
                     "Navigate to the full Calendar view",
                     "Click '+ New Event' button or click directly on a date/time in the calendar",
-                    "Enter the Event Title (e.g., 'Client consultation' or 'Case strategy meeting')",
+                    "Enter the Event Title (e.g., 'Client consultation' or 'Event planning meeting')",
                     "Add a Description with meeting details or agenda",
-                    "Enter the Location (office address, Zoom link, or 'Virtual')",
+                    "Enter the Location (venue address, Zoom link, or 'Virtual')",
                     "Set the Start Date and Time",
                     "Set the End Date and Time",
                     "Click 'Add Attendees' and select team members who should attend",
-                    "Optionally link to a Matter if the meeting is case-related",
+                    "Optionally link to an Event if the meeting is event-related",
                     "Click 'Create Event' or 'Save'",
                     "The event appears on your calendar and attendees' calendars",
                     "View the event by clicking it in any calendar view"
                 ],
-                related_features=["calendar", "matters"],
+                related_features=["calendar", "events"],
                 common_questions=[
                     "Do attendees get notified? Depending on settings, yes - check notification preferences",
                     "Can I create recurring events? Yes, look for the recurring event option when creating",
@@ -608,41 +608,41 @@ class NotalOnboardingKnowledgeBase:
                 tips=[
                     "Include video meeting links in the Location field for remote meetings",
                     "Add an agenda in the Description so everyone comes prepared",
-                    "Link events to matters to keep everything organized",
+                    "Link meetings to events to keep everything organized",
                     "Use the Week or Day view for detailed scheduling of back-to-back meetings",
                     "Check the Upcoming Deadlines card on the Dashboard for a quick overview",
                     "Color-code or categorize events for easy visual scanning"
                 ]
             ),
             
-            "navigate_matter_details": OnboardingGuide(
-                title="Tutorial: Navigating Matter Details",
+            "navigate_event_details": OnboardingGuide(
+                title="Tutorial: Navigating Event Details",
                 user_types=["All"],
-                content="""The Matter Details page is your command center for each case. It has multiple tabs with different information. Here's how to navigate and use it effectively.""",
+                content="""The Event Details page is your command center for each event. It has multiple tabs with different information. Here's how to navigate and use it effectively.""",
                 steps=[
-                    "Go to Matters in the sidebar and click any matter card",
-                    "You're now in the Matter Details page - notice the tabs at the top",
-                    "OVERVIEW tab: See matter summary, key info, status, team members, and quick stats",
-                    "DETAILS tab: View complete matter information, client details, dates, description, and edit button",
-                    "TASKS tab: See all tasks for this matter, create new tasks, and track progress",
-                    "CONVERSATIONS tab: Access the matter's communications channel and message history",
-                    "HISTORY tab: Review complete audit trail of all activities on this matter",
-                    "Use the matter carousel (if visible) to navigate between matters without going back to the list",
-                    "Click the Edit button (on Details tab) to modify matter information",
-                    "Click breadcrumbs or back button to return to the Matters list"
+                    "Go to Events in the sidebar and click any event card",
+                    "You're now in the Event Details page - notice the tabs at the top",
+                    "OVERVIEW tab: See event summary, key info, status, team members, and quick stats",
+                    "DETAILS tab: View complete event information, client details, dates, description, and edit button",
+                    "TASKS tab: See all tasks for this event, create new tasks, and track progress",
+                    "CONVERSATIONS tab: Access the event's communications channel and message history",
+                    "HISTORY tab: Review complete audit trail of all activities on this event",
+                    "Use the event carousel (if visible) to navigate between events without going back to the list",
+                    "Click the Edit button (on Details tab) to modify event information",
+                    "Click breadcrumbs or back button to return to the Events list"
                 ],
-                related_features=["matters", "tasks", "communications", "history"],
+                related_features=["events", "tasks", "communications", "history"],
                 common_questions=[
                     "Which tab should I check daily? Overview for quick status, Tasks for work items",
                     "Where do I see who's working on what? Overview and Tasks tabs show assignees",
                     "How do I know what's changed recently? Check the History tab for all changes"
                 ],
                 tips=[
-                    "The Overview tab gives you the quickest snapshot of matter status",
+                    "The Overview tab gives you the quickest snapshot of event status",
                     "Tasks tab is where daily work happens - check it frequently",
-                    "Conversations tab keeps all case discussions in one place",
+                    "Conversations tab keeps all event discussions in one place",
                     "History tab is essential for audit trails and compliance",
-                    "Use the carousel to quickly jump between related matters",
+                    "Use the carousel to quickly jump between related events",
                     "Profile icons show team members at a glance - click to see their details"
                 ]
             )
@@ -654,11 +654,11 @@ class NotalOnboardingKnowledgeBase:
             "sidebar_navigation": """
 The left sidebar is your main navigation hub. From top to bottom:
 - **Dashboard**: Your daily starting point with overview and quick access
-- **Matters** (briefcase icon): All your legal cases and matters
+- **Events** (briefcase icon): All your events
 - **Tasks** (progress bars icon): Work items and assignments
 - **Calendar** (calendar icon): Events, meetings, and deadlines
 - **Communications** (chat icon): Team chat and direct messages
-- **Documents** (folder icon): Case files and documents
+- **Documents** (folder icon): Event files and documents
 - **Teams** (people icon): Organization members and roles
 - **Settings** (gear icon): Firm and account configuration
 - **Logout** (at bottom): Sign out of your account
@@ -676,24 +676,24 @@ The Dashboard has two main columns:
 
 **Right Column (72% width):**
 - **Notal AI Chat**: Large "What can I help with?" search box
-- **Quick Access Grid**: 4x2 grid of main features (Clients, Calendar, Billing, History, Matters, Tasks, Communications, Documents)
-- **Firm Summary**: Key metrics and trends (active matters, completed tasks, billing backlog, team utilization)
+- **Quick Access Grid**: 4x2 grid of main features (Clients, Calendar, Billing, History, Events, Tasks, Communications, Documents)
+- **Firm Summary**: Key metrics and trends (active events, completed tasks, billing backlog, team utilization)
 - **Daily Briefing**: Today's important items
 - **Next Suggestions**: AI-powered recommendations for next actions
 
 All cards have rounded corners (12px radius) and subtle shadows.
 """,
             
-            "matter_card_anatomy": """
-Each matter card shows:
-- **Client/Matter Name** (top, bold)
+            "event_card_anatomy": """
+Each event card shows:
+- **Client/Event Name** (top, bold)
 - **Status Badge** (colored): Critical (red), Review (yellow), In Progress (blue), Completed (green)
 - **Progress Indicator**: "X of Y tasks completed"
 - **Due Date**: With calendar icon if set
 - **Team Member Profile Pictures**: Circular avatars of assigned team
 - **Hover Effect**: Card lifts with shadow when you hover over it
 
-Click anywhere on the card to open the full matter details page.
+Click anywhere on the card to open the full event details page.
 """,
             
             "ai_chat_panel": """
@@ -720,7 +720,7 @@ The top bar (header) contains:
   - Notal AI chat icon
   - User profile picture dropdown (Account Settings, Billing & Plan, Logout)
 
-On the global dashboard, there's also a "Clients" button for law firms managing multiple client organizations.
+On the global dashboard, there's also a "Clients" button for event planning companies managing multiple client organizations.
 """,
             
             "quick_access_grid": """
@@ -733,7 +733,7 @@ The Quick Access grid on the Dashboard provides one-click access to main feature
 - History: Audit log and activity trail
 
 **Row 2:**
-- Matters: All your legal cases
+- Events: All your events
 - Tasks: Work items and assignments
 - Communications: Team chat and DM
 - Documents: Files and documents (preview)
@@ -747,8 +747,8 @@ Each card has an icon, label, and hover effect. Click to go directly to that fea
         return {
             "new_client_onboarding": OnboardingGuide(
                 title="Scenario: Onboarding a New Client",
-                user_types=["Lawyer", "Partner", "Associate"],
-                content="""A new client just signed an engagement letter. Here's the complete workflow to onboard them into Notal using the modern client flow with Communications hub and email integration. You must first sync your own email account before you can Notalize client emails.""",
+                user_types=["Director", "Planner", "Coordinator"],
+                content="""A new client just signed a contract. Here's the complete workflow to onboard them into Notal using the modern client flow with Communications hub and email integration. You must first sync your own email account before you can Notalize client emails.""",
                 steps=[
                     "Go to Communications - Navigate to Communications in the sidebar to access email integration features",
                     "Sync your own email account first - Connect your Gmail or Outlook account through secure OAuth authentication. This allows you to view your inbox within Notal",
@@ -757,25 +757,25 @@ Each card has an icon, label, and hover effect. Click to go directly to that fea
                     "Wait for notalization to complete - Once Notalized, the client's emails will be processed and transferred into Notal's Communications hub",
                     "Add the new client through the new client flow - After notalizing client emails, navigate to the New Client page and use the join code system to formally add them to your organization",
                     "Select your client in the clients sidebar on the left - Once added, you'll see them in the clients list for easy access",
-                    "Begin by analyzing the client's intake through the Communications hub - Review their Notalized emails and communications to understand their needs, legal situation, and key goals",
-                    "Create a new matter for their case: Click Matters → + New Matter",
-                    "Add matter details including client name, case type, and description based on your intake analysis",
-                    "Assign yourself and any team members (associates, paralegals) to the matter",
-                    "Add the client as a team member on the matter so they can view progress",
-                    "Create initial tasks: Go to the matter's Tasks tab → + New Task",
-                    "Create tasks for client intake, document collection, initial research, etc., based on insights from the Communications hub",
+                    "Begin by analyzing the client's intake through the Communications hub - Review their Notalized emails and communications to understand their needs, event vision, and key goals",
+                    "Create a new event for their occasion: Click Events → + New Event",
+                    "Add event details including client name, event type, and description based on your intake analysis",
+                    "Assign yourself and any team members (planners, coordinators) to the event",
+                    "Add the client as a team member on the event so they can view progress",
+                    "Create initial tasks: Go to the event's Tasks tab → + New Task",
+                    "Create tasks for client intake, vendor research, initial venue scouting, etc., based on insights from the Communications hub",
                     "Create subtasks for complex work items - Break down larger tasks into manageable subtasks",
-                    "Send a welcome message: Go to Communications → find the matter channel → send introduction",
+                    "Send a welcome message: Go to Communications → find the event channel → send introduction",
                     "Schedule a kickoff meeting: Go to Calendar → + New Event → add client as attendee",
                     "The client receives their invitation and can log in to see everything, including their Notalized emails"
                 ],
-                related_features=["matters", "teams", "tasks", "communications", "calendar", "email_integration", "Notalize"],
+                related_features=["events", "teams", "tasks", "communications", "calendar", "email_integration", "Notalize"],
                 common_questions=[
                     "Do I need to sync my own email first? Yes, you must sync your own Gmail or Outlook account in Communications before you can Notalize client emails",
                     "What if I can't see my inbox? Make sure you've completed the OAuth authentication process for your email account in Communications",
                     "Can I Notalize client emails before syncing my own email? No, you must sync your own email and view your inbox first before notalizing client emails",
                     "How secure is the OAuth email integration? Very secure - uses industry-standard OAuth 2.0 with encrypted token storage",
-                    "What if the client has never used legal software? The Notal AI can guide them through, and Notalized emails make it seamless",
+                    "What if the client has never used event planning software? The Notal AI can guide them through, and Notalized emails make it seamless",
                     "Can I customize what the client sees? Yes, through role-based permissions"
                 ],
                 tips=[
@@ -783,37 +783,37 @@ Each card has an icon, label, and hover effect. Click to go directly to that fea
                     "Go to Communications first - this is where you'll sync your email and access your inbox",
                     "Once your inbox is visible, you can Notalize client emails - this processes and transfers emails to the Notal platform",
                     "Use Notalize to bring client communications into Notal - this automatically transfers their emails for seamless management",
-                    "Analyze client intake in Communications before creating matters - this ensures you have all the context and goals from their Notalized emails",
+                    "Analyze client intake in Communications before creating events - this ensures you have all the context and goals from their Notalized emails",
                     "The new client flow guides you through proper client addition after notalizing their emails",
                     "Use the clients sidebar to quickly switch between different client organizations",
-                    "Create a matter template for common case types to speed up onboarding after intake analysis",
+                    "Create an event template for common event types to speed up onboarding after intake analysis",
                     "Send a welcome message immediately so the client knows you're ready",
                     "Add tasks with near-term deadlines to show immediate progress",
                     "Use subtasks to break down complex work into manageable pieces",
                     "Schedule a brief platform walkthrough meeting for new clients",
-                    "The client can use Notal AI 24/7 to ask questions about their case"
+                    "The client can use Notal AI 24/7 to ask questions about their event"
                 ]
             ),
             
-            "daily_workflow_lawyer": OnboardingGuide(
-                title="Scenario: Daily Workflow for Lawyers",
-                user_types=["Lawyer", "Partner", "Associate"],
-                content="""How to use Notal efficiently in your daily legal practice.""",
+            "daily_workflow_planner": OnboardingGuide(
+                title="Scenario: Daily Workflow for Event Planners",
+                user_types=["Director", "Planner", "Coordinator"],
+                content="""How to use Notal efficiently in your daily event planning workflow.""",
                 steps=[
                     "Start your day at the Dashboard - review Upcoming Deadlines and Daily Briefing",
                     "Check the Firm Summary card for overnight changes in metrics",
                     "Click Communications to review any messages from clients or team overnight",
                     "Go to Tasks and filter 'Assigned to Me' to see your work for today",
                     "Update task statuses as you complete work (To Do → In Progress → Completed)",
-                    "Open high-priority matters from the Matters page to check progress",
-                    "Use Notal AI to ask questions like 'summarize this contract' or 'explain force majeure'",
+                    "Open high-priority events from the Events page to check progress",
+                    "Use Notal AI to ask questions like 'summarize this vendor contract' or 'explain our cancellation policy'",
                     "When clients ask questions, use the ReplySuggester feature for professional responses",
                     "Create new tasks as work items emerge during the day",
                     "Schedule any new meetings or deadlines in the Calendar",
                     "End your day by reviewing the Daily Briefing to ensure nothing was missed",
-                    "Check History if you need to recall what happened on any matter"
+                    "Check History if you need to recall what happened on any event"
                 ],
-                related_features=["dashboard", "matters", "tasks", "communications", "notal_ai_assistant", "calendar"],
+                related_features=["dashboard", "events", "tasks", "communications", "notal_ai_assistant", "calendar"],
                 common_questions=[
                     "Do I need to keep Notal open all day? No, but check it 2-3 times for updates",
                     "How do I avoid missing important deadlines? Check Dashboard deadlines daily",
@@ -823,65 +823,65 @@ Each card has an icon, label, and hover effect. Click to go directly to that fea
                     "Dashboard first, always - it shows what needs attention",
                     "Mark tasks as 'In Progress' when you start so team knows you're on it",
                     "Use Communications instead of email for faster team coordination",
-                    "Ask Notal AI for quick legal research or term explanations",
+                    "Ask Notal AI for quick vendor research or contract explanations",
                     "End each day with a quick Dashboard check to plan tomorrow"
                 ]
             ),
             
-            "urgent_matter_handling": OnboardingGuide(
-                title="Scenario: Handling an Urgent Legal Matter",
-                user_types=["Lawyer", "Partner", "Associate"],
-                content="""A client contacts you with an urgent legal issue. Here's how to handle it quickly in Notal.""",
+            "urgent_event_handling": OnboardingGuide(
+                title="Scenario: Handling an Urgent Event",
+                user_types=["Director", "Planner", "Coordinator"],
+                content="""A client contacts you with an urgent event issue. Here's how to handle it quickly in Notal.""",
                 steps=[
-                    "Immediately create a new matter: Matters → + New Matter",
-                    "Set the status to 'Critical' and add URGENT to the matter name",
+                    "Immediately create a new event: Events → + New Event",
+                    "Set the status to 'Critical' and add URGENT to the event name",
                     "Add a clear description of the urgent issue and deadline",
                     "Set the due date to the deadline date",
                     "Assign all relevant team members who need to work on this",
                     "Create high-priority tasks with specific owners and near-term deadlines",
-                    "Go to Communications and message the team in the matter channel about urgency",
+                    "Go to Communications and message the team in the event channel about urgency",
                     "Or send direct messages to each team member if immediate action needed",
-                    "Add a calendar event for any urgent hearings or deadlines",
-                    "Use Notal AI to quickly research or analyze relevant legal issues",
-                    "Update the matter regularly as status changes",
+                    "Add a calendar event for any urgent vendor deadlines or walkthroughs",
+                    "Use Notal AI to quickly research vendors or analyze relevant contract terms",
+                    "Update the event regularly as status changes",
                     "Keep the client informed through Communications or DM",
                     "Document everything in History for the audit trail"
                 ],
-                related_features=["matters", "tasks", "communications", "calendar", "notal_ai_assistant"],
+                related_features=["events", "tasks", "communications", "calendar", "notal_ai_assistant"],
                 common_questions=[
                     "How do I make sure everyone sees this is urgent? Use Critical status, high priority tasks, and message the team",
-                    "Can I escalate to partners quickly? Yes, assign them to the matter and DM them",
+                    "Can I escalate to directors quickly? Yes, assign them to the event and DM them",
                     "What if it's after hours? Communications and tasks work 24/7, team sees them when they log in"
                 ],
                 tips=[
                     "Use 'Critical' status and visual indicators to signal urgency",
-                    "Break down the urgent matter into immediate tasks with hourly/daily deadlines",
+                    "Break down the urgent event into immediate tasks with hourly/daily deadlines",
                     "Over-communicate in the early hours - message the team multiple times",
                     "Use Calendar to block time for urgent work",
-                    "Notal AI can help with quick legal research while you coordinate the team",
+                    "Notal AI can help with quick vendor research while you coordinate the team",
                     "Update the client frequently through Communications to manage expectations"
                 ]
             ),
             
             "cross_team_collaboration": OnboardingGuide(
                 title="Scenario: Collaborating Across Teams",
-                user_types=["Lawyer", "Partner", "Associate", "Paralegal"],
-                content="""A complex matter requires collaboration between multiple team members. Here's how to coordinate effectively.""",
+                user_types=["Director", "Planner", "Coordinator"],
+                content="""A complex event requires collaboration between multiple team members. Here's how to coordinate effectively.""",
                 steps=[
-                    "Ensure all team members are assigned to the matter",
+                    "Ensure all team members are assigned to the event",
                     "Break down the work into specific tasks, each with a clear owner",
-                    "Use the matter's Communications channel for all case-related discussions",
+                    "Use the event's Communications channel for all event-related discussions",
                     "Create a shared Calendar event for a team strategy meeting",
                     "In Communications, use @mentions to notify specific team members",
                     "Share documents in the Documents section (when fully available)",
                     "Update task statuses regularly so everyone knows progress",
                     "Use subtasks if a task requires multiple people",
-                    "Check the matter's History tab to see what others have done",
+                    "Check the event's History tab to see what others have done",
                     "Hold regular check-ins through Calendar events",
                     "Use Direct Messages for quick one-on-one questions",
                     "Keep the client informed through periodic updates in Communications"
                 ],
-                related_features=["matters", "tasks", "communications", "calendar", "teams"],
+                related_features=["events", "tasks", "communications", "calendar", "teams"],
                 common_questions=[
                     "How do I know what others are working on? Check the Tasks tab and filter by assignee",
                     "What if team members are in different time zones? Async communication via Communications works well",
@@ -889,11 +889,11 @@ Each card has an icon, label, and hover effect. Click to go directly to that fea
                 ],
                 tips=[
                     "Assign clear task owners - no ambiguity about who does what",
-                    "Use matter channels for group discussions, DMs for quick questions",
+                    "Use event channels for group discussions, DMs for quick questions",
                     "Check online status in Communications to see who's available now",
                     "Regular status updates prevent confusion and duplication",
-                    "The History tab shows everything everyone has done on the matter",
-                    "Schedule recurring team check-in meetings for complex, long-running matters"
+                    "The History tab shows everything everyone has done on the event",
+                    "Schedule recurring team check-in meetings for complex, long-running events"
                 ]
             )
         }
@@ -913,14 +913,14 @@ Each card has an icon, label, and hover effect. Click to go directly to that fea
                 """
             },
             
-            "no_matters_showing": {
-                "problem": "My matters list is empty or not showing expected matters",
+            "no_events_showing": {
+                "problem": "My events list is empty or not showing expected events",
                 "solutions": """
-1. Check if you have filters applied at the top of the Matters page - clear them
+1. Check if you have filters applied at the top of the Events page - clear them
 2. Verify you're in the correct organization (check org name at top)
-3. If you're a client, you only see matters you're assigned to
-4. Check the status filter - matters might be in a different status category
-5. If you just created a matter, try refreshing the page
+3. If you're a client, you only see events you're assigned to
+4. Check the status filter - events might be in a different status category
+5. If you just created an event, try refreshing the page
 6. Ask your administrator if your permissions are set correctly
                 """
             },
@@ -929,7 +929,7 @@ Each card has an icon, label, and hover effect. Click to go directly to that fea
                 "problem": "I can't assign tasks to certain team members",
                 "solutions": """
 1. Verify the team member is part of your organization (check Teams page)
-2. Confirm they're assigned to the relevant matter if it's a matter-specific task
+2. Confirm they're assigned to the relevant event if it's an event-specific task
 3. Check if your user role has permission to create/assign tasks
 4. Ensure the person hasn't left the organization
 5. Try refreshing the team member list in the task assignment dropdown
@@ -1020,4 +1020,3 @@ Each card has an icon, label, and hover effect. Click to go directly to that fea
 
 # Global instance
 notal_onboarding_kb = NotalOnboardingKnowledgeBase()
-

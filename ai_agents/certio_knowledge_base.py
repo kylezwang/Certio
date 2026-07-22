@@ -45,8 +45,8 @@ class NotalKnowledgeBase:
                 name="Notal Dashboard [FULLY IMPLEMENTED]",
                 description="Central hub with AI chat, upcoming deadlines, calendar, quick access to all features, firm summary, daily briefing, and next suggestions",
                 technical_details="**STATUS: FULLY IMPLEMENTED** - Responsive layout with left column (deadlines, calendar, recent activity) and right column (AI chat, quick access grid, firm metrics). Features real-time data updates, personalized views for different user roles. Pulls real data from database for deadlines, firm metrics, suggestions.",
-                user_types=["Lawyer", "Client", "Business", "Partner", "Associate", "Paralegal"],
-                legal_areas=["All legal practice areas"],
+                user_types=["Director", "Client", "Business", "Planner", "Coordinator"],
+                legal_areas=["All event categories"],
                 api_endpoints=["/Client/{orgId}/Dashboard"],
                 business_value="Provides at-a-glance overview of all critical information, reduces time to find information, improves daily workflow efficiency"
             ),
@@ -55,28 +55,28 @@ class NotalKnowledgeBase:
                 name="Notal AI Assistant [FULLY IMPLEMENTED]",
                 description="Intelligent AI assistant integrated throughout platform with conversational interface, accessible via chat panel",
                 technical_details="**STATUS: FULLY IMPLEMENTED** - Uses 4 specialized AI agents (ChatSummarizer, ClientGoalExtractor, ReplySuggester, ClarityAgent) with intelligent model selection, cost optimization, GPT-4o and GPT-4o-mini. Features context-aware responses, conversation history, real-time insights panel, intelligent thinking indicators, sticky message navigation. All agents operational with RAG system for Notal-specific knowledge.",
-                user_types=["Client", "Lawyer", "Business", "Partner", "Associate", "Paralegal"],
-                legal_areas=["All legal practice areas"],
+                user_types=["Client", "Director", "Business", "Planner", "Coordinator"],
+                legal_areas=["All event categories"],
                 api_endpoints=["/agents/summarize", "/agents/extract-goals", "/agents/suggest-reply", "/agents/explain-clarity", "/Chat/GenerateAIResponse", "/Chat/SendMessage"],
-                business_value="Automates conversation analysis, provides instant legal guidance, reduces response time, improves client satisfaction, available 24/7"
+                business_value="Automates conversation analysis, provides instant event planning guidance, reduces response time, improves client satisfaction, available 24/7"
             ),
             
-            "matters": NotalFeature(
-                name="Matters Management System [FULLY IMPLEMENTED]",
-                description="Comprehensive legal matter/case management with status tracking, tasks, team assignments, and detailed matter information pages with tabs for Overview, Details, Tasks, Conversations, and History",
-                technical_details="**STATUS: FULLY IMPLEMENTED** - Entity Framework Core with Azure SQL/SQLite, hierarchical status items, team assignments, progress tracking, matter carousel navigation, status cards (Active, In Review, Completed), search and filtering, critical status indicators, due dates, team member assignments with profile pictures, full CRUD operations, matter details with tabbed interface.",
-                user_types=["Lawyer", "Client", "Partner", "Associate", "Business"],
-                legal_areas=["All legal practice areas"],
+            "events": NotalFeature(
+                name="Events Management System [FULLY IMPLEMENTED]",
+                description="Comprehensive event/engagement management with status tracking, tasks, team assignments, and detailed event information pages with tabs for Overview, Details, Tasks, Conversations, and History",
+                technical_details="**STATUS: FULLY IMPLEMENTED** - Entity Framework Core with Azure SQL/SQLite, hierarchical status items, team assignments, progress tracking, event carousel navigation, status cards (Active, In Review, Completed), search and filtering, critical status indicators, due dates, team member assignments with profile pictures, full CRUD operations, event details with tabbed interface.",
+                user_types=["Director", "Client", "Planner", "Business"],
+                legal_areas=["All event categories"],
                 api_endpoints=["/Client/{orgId}/Matter", "/Matter/Create", "/Matter/Edit", "/Matter/Details/{matterId}"],
-                business_value="Centralizes case information, improves collaboration, tracks progress efficiently, provides complete matter lifecycle management"
+                business_value="Centralizes event information, improves collaboration, tracks progress efficiently, provides complete event lifecycle management"
             ),
             
             "tasks": NotalFeature(
                 name="Tasks Management System [FULLY IMPLEMENTED]",
-                description="Comprehensive task management with filtering, assignment, status tracking, subtasks, and integration with matters",
-                technical_details="**STATUS: FULLY IMPLEMENTED** - Task creation, assignment, due dates, priority levels, status tracking (To Do, In Progress, Completed), filtering by status/assignee/matter, subtask management, task dependencies, bulk operations. Full database integration with audit logging.",
-                user_types=["Lawyer", "Client", "Partner", "Associate", "Paralegal", "Business"],
-                legal_areas=["All legal practice areas"],
+                description="Comprehensive task management with filtering, assignment, status tracking, subtasks, and integration with events",
+                technical_details="**STATUS: FULLY IMPLEMENTED** - Task creation, assignment, due dates, priority levels, status tracking (To Do, In Progress, Completed), filtering by status/assignee/event, subtask management, task dependencies, bulk operations. Full database integration with audit logging.",
+                user_types=["Director", "Client", "Planner", "Coordinator", "Business"],
+                legal_areas=["All event categories"],
                 api_endpoints=["/Client/{orgId}/Tasks", "/Tasks/Create", "/Tasks/Update"],
                 business_value="Improves task tracking, ensures accountability, prevents missed deadlines, enables workload management"
             ),
@@ -85,28 +85,28 @@ class NotalKnowledgeBase:
                 name="Calendar and Events System [FULLY IMPLEMENTED]",
                 description="Full-featured calendar with event creation, attendee management, meeting scheduling, and deadline tracking",
                 technical_details="**STATUS: FULLY IMPLEMENTED** - Monthly/weekly/daily views, event creation with title/description/location, attendee management with profile icons, time zone support, recurring events, calendar integration, deadline reminders, upcoming deadlines sidebar. Full CRUD operations with database persistence and audit logging.",
-                user_types=["Lawyer", "Client", "Partner", "Associate", "Paralegal", "Business"],
-                legal_areas=["All legal practice areas"],
+                user_types=["Director", "Client", "Planner", "Coordinator", "Business"],
+                legal_areas=["All event categories"],
                 api_endpoints=["/Client/{orgId}/Calendar", "/Calendar/CreateEvent", "/Calendar/UpdateEvent"],
                 business_value="Prevents scheduling conflicts, improves time management, ensures important dates are tracked, facilitates team coordination"
             ),
             
             "communications": NotalFeature(
                 name="Communications and Team Chat [FULLY IMPLEMENTED]",
-                description="Real-time team communications with channels, direct messages, matter-specific channels, and cross-organization messaging",
-                technical_details="**STATUS: FULLY IMPLEMENTED** - SignalR real-time messaging, channel-based communication, direct messaging between users, matter channels, active member status, message history, file sharing in channels, @mentions, unread indicators. Full WebSocket implementation with Redis caching for performance.",
-                user_types=["Lawyer", "Client", "Partner", "Associate", "Paralegal", "Business"],
-                legal_areas=["All legal practice areas"],
+                description="Real-time team communications with channels, direct messages, event-specific channels, and cross-organization messaging",
+                technical_details="**STATUS: FULLY IMPLEMENTED** - SignalR real-time messaging, channel-based communication, direct messaging between users, event channels, active member status, message history, file sharing in channels, @mentions, unread indicators. Full WebSocket implementation with Redis caching for performance.",
+                user_types=["Director", "Client", "Planner", "Coordinator", "Business"],
+                legal_areas=["All event categories"],
                 api_endpoints=["/Client/{orgId}/Communications", "/Communications/SendMessage", "/api/DirectMessages"],
-                business_value="Reduces email overhead, improves team collaboration, enables quick decision-making, keeps communication organized by matter"
+                business_value="Reduces email overhead, improves team collaboration, enables quick decision-making, keeps communication organized by event"
             ),
             
             "documents": NotalFeature(
                 name="Document Management System [IN DEVELOPMENT - UI PLACEHOLDER]",
                 description="Document management interface with sample data - full implementation in development",
-                technical_details="**STATUS: UI PLACEHOLDER WITH SAMPLE DATA** - Current: Documents page with folders and file list UI, search bar, filter buttons, matter folders section. **Planned**: Real document upload/download, version control, folder organization, access permissions, document sharing, file preview, AI document analysis, metadata tracking. Currently shows sample documents and folders for UI demonstration only.",
-                user_types=["Lawyer", "Client", "Partner", "Associate", "Paralegal", "Business"],
-                legal_areas=["Contract Law", "Litigation", "Compliance", "All legal areas"],
+                technical_details="**STATUS: UI PLACEHOLDER WITH SAMPLE DATA** - Current: Documents page with folders and file list UI, search bar, filter buttons, event folders section. **Planned**: Real document upload/download, version control, folder organization, access permissions, document sharing, file preview, AI document analysis, metadata tracking. Currently shows sample documents and folders for UI demonstration only.",
+                user_types=["Director", "Client", "Planner", "Coordinator", "Business"],
+                legal_areas=["Vendor Contracts", "Venue Agreements", "Permits and Compliance", "All event categories"],
                 api_endpoints=["/Client/{orgId}/Documents (view only)"],
                 business_value="[IN DEVELOPMENT] Will ensure document security, enable collaboration, maintain audit trail, support compliance"
             ),
@@ -114,9 +114,9 @@ class NotalKnowledgeBase:
             "teams": NotalFeature(
                 name="Teams and People Management [FULLY IMPLEMENTED]",
                 description="Team member management with role-based permissions, adding people to organizations, and team collaboration",
-                technical_details="**STATUS: FULLY IMPLEMENTED** - Multi-tenant architecture, policy-based authorization (OrgMember policy), role management (Partner, Associate, Paralegal, Client), team member invitations, permission levels, organization member management. Full integration with user management and permissions system.",
-                user_types=["Partner", "Lawyer", "Business Owner"],
-                legal_areas=["All legal practice areas"],
+                technical_details="**STATUS: FULLY IMPLEMENTED** - Multi-tenant architecture, policy-based authorization (OrgMember policy), role management (Director, Planner, Coordinator, Client), team member invitations, permission levels, organization member management. Full integration with user management and permissions system.",
+                user_types=["Director", "Business Owner"],
+                legal_areas=["All event categories"],
                 api_endpoints=["/Client/{orgId}/Teams", "/Settings/AddPerson"],
                 business_value="Enables scalable team management, ensures proper access control, facilitates collaboration, maintains security"
             ),
@@ -124,21 +124,21 @@ class NotalKnowledgeBase:
             "firm_settings": NotalFeature(
                 name="Firm Settings and Configuration [FULLY IMPLEMENTED]",
                 description="Organization-wide settings including firm details, user management, and configuration",
-                technical_details="**STATUS: FULLY IMPLEMENTED** - Organization configuration, user management, notification preferences, security settings, firm details. Settings controller with full CRUD operations, policy-based access control for Partners and Administrators.",
-                user_types=["Partner", "Business Owner", "Administrator"],
-                legal_areas=["All legal practice areas"],
+                technical_details="**STATUS: FULLY IMPLEMENTED** - Organization configuration, user management, notification preferences, security settings, firm details. Settings controller with full CRUD operations, policy-based access control for Directors and Administrators.",
+                user_types=["Director", "Business Owner", "Administrator"],
+                legal_areas=["All event categories"],
                 api_endpoints=["/Client/{orgId}/Settings", "/Settings/Update"],
                 business_value="Centralizes firm management, streamlines administration, ensures consistency across organization"
             ),
             
             "history": NotalFeature(
                 name="Activity History and Audit Log [FULLY IMPLEMENTED]",
-                description="Comprehensive audit log of all platform activities including matter updates, document changes, user actions",
-                technical_details="**STATUS: FULLY IMPLEMENTED** - Comprehensive audit logging for all critical actions, timestamped entries, user attribution, filterable history, activity feed, matter-specific history. Full database integration with AuditController, searchable and filterable audit logs.",
-                user_types=["Partner", "Lawyer", "Administrator"],
-                legal_areas=["All legal practice areas"],
+                description="Comprehensive audit log of all platform activities including event updates, document changes, user actions",
+                technical_details="**STATUS: FULLY IMPLEMENTED** - Comprehensive audit logging for all critical actions, timestamped entries, user attribution, filterable history, activity feed, event-specific history. Full database integration with AuditController, searchable and filterable audit logs.",
+                user_types=["Director", "Administrator"],
+                legal_areas=["All event categories"],
                 api_endpoints=["/Client/{orgId}/History", "/Audit/GetLogs"],
-                business_value="Provides accountability, supports compliance, enables investigation, tracks matter progress"
+                business_value="Provides accountability, supports compliance, enables investigation, tracks event progress"
             ),
             
             "account_settings": NotalFeature(
@@ -146,7 +146,7 @@ class NotalKnowledgeBase:
                 description="Complete user profile management with account settings, security, notifications, and preferences",
                 technical_details="**STATUS: FULLY IMPLEMENTED** - Profile management (name, email, photo), security settings (password, 2FA), notification preferences, personal preferences. Tabbed interface with sections: Account, Security, Notifications, Preferences, and Billing & Plan link. Real user data editing and updates.",
                 user_types=["All users"],
-                legal_areas=["All legal practice areas"],
+                legal_areas=["All event categories"],
                 api_endpoints=["/Client/{orgId}/AccountSettings"],
                 business_value="Empowers users to customize their experience, enhances security, improves notification management"
             ),
@@ -155,59 +155,59 @@ class NotalKnowledgeBase:
                 name="Billing and Subscription Management [PLACEHOLDER]",
                 description="Billing metrics displayed in dashboard - full billing system in development",
                 technical_details="**STATUS: PLACEHOLDER** - Current: Quick access button on dashboard, billing backlog percentage in firm summary card, link in account settings dropdown to 'Billing & Plan'. **Not Implemented**: Full billing system, invoice management, payment processing, subscription management, time tracking integration. Dashboard shows sample billing metrics only.",
-                user_types=["Partner", "Business Owner", "Administrator"],
-                legal_areas=["All legal practice areas"],
+                user_types=["Director", "Business Owner", "Administrator"],
+                legal_areas=["All event categories"],
                 api_endpoints=["No API endpoints yet"],
                 business_value="[IN DEVELOPMENT] Will enable invoicing, payment tracking, subscription management, financial reporting"
             ),
             
             "clients_management": NotalFeature(
-                name="Clients Management (Law Firms) [FULLY IMPLEMENTED]",
-                description="Client organization management for law firms to manage multiple client organizations and matters",
-                technical_details="**STATUS: FULLY IMPLEMENTED** - Client organization listing via global dashboard button/popup, matter associations, client contacts, cross-organization communication via Communications, client-specific permissions via OrgMember policy. Full multi-tenant architecture supporting law firms managing multiple client organizations.",
-                user_types=["Partner", "Lawyer", "Associate"],
-                legal_areas=["All legal practice areas"],
+                name="Clients Management (Event Planning Companies) [FULLY IMPLEMENTED]",
+                description="Client organization management for event planning companies to manage multiple client organizations and events",
+                technical_details="**STATUS: FULLY IMPLEMENTED** - Client organization listing via global dashboard button/popup, event associations, client contacts, cross-organization communication via Communications, client-specific permissions via OrgMember policy. Full multi-tenant architecture supporting event planning companies managing multiple client organizations.",
+                user_types=["Director", "Planner"],
+                legal_areas=["All event categories"],
                 api_endpoints=["/Global/Clients", "/Client/{orgId}/Matter"],
-                business_value="Enables law firms to manage multiple clients efficiently, improves client service, centralizes client information"
+                business_value="Enables event planning companies to manage multiple clients efficiently, improves client service, centralizes client information"
             )
         }
     
     def _initialize_workflows(self) -> Dict[str, NotalWorkflow]:
         """Initialize key business workflows"""
         return {
-            "matter_lifecycle": NotalWorkflow(
-                name="Complete Matter Lifecycle",
-                description="End-to-end workflow for managing legal matters from creation to completion",
+            "event_lifecycle": NotalWorkflow(
+                name="Complete Event Lifecycle",
+                description="End-to-end workflow for managing events from creation to completion",
                 steps=[
-                    "Matter created with client information and details",
+                    "Event created with client information and details",
                     "Team members assigned with appropriate roles",
                     "Tasks created and distributed among team",
-                    "Communications channel established for matter",
+                    "Communications channel established for event",
                     "Documents uploaded and organized",
                     "Calendar events scheduled for deadlines",
                     "Regular status updates and task completion",
-                    "Matter review and completion",
+                    "Event review and completion",
                     "History logged and archived"
                 ],
-                participants=["Partner", "Associate", "Paralegal", "Client"],
-                legal_requirements=["Client confidentiality", "Conflict of interest check", "Engagement letter", "Audit trail"],
+                participants=["Director", "Planner", "Coordinator", "Client"],
+                legal_requirements=["Client confidentiality", "Signed contract", "Vendor agreements", "Audit trail"],
                 ai_agents_involved=["Notal AI Assistant", "ChatSummarizer", "ClientGoalExtractor"]
             ),
             
             "client_intake": NotalWorkflow(
                 name="Client Intake and Onboarding",
-                description="Streamlined client onboarding with AI-assisted goal extraction and matter creation",
+                description="Streamlined client onboarding with AI-assisted goal extraction and event creation",
                 steps=[
                     "Client registers or is invited to organization",
                     "Initial consultation via Communications or AI chat",
-                    "Notal AI analyzes conversation for client goals and legal needs",
-                    "System suggests practice area and matter type",
+                    "Notal AI analyzes conversation for client goals and event needs",
+                    "System suggests event type and category",
                     "Team assignment based on expertise and availability",
-                    "Matter created with AI-extracted requirements",
+                    "Event created with AI-extracted requirements",
                     "Welcome package and next steps communicated"
                 ],
-                participants=["Client", "Partner", "Associate", "Notal AI"],
-                legal_requirements=["Client confidentiality", "Conflict of interest check", "Engagement letter", "Fee agreement"],
+                participants=["Client", "Director", "Planner", "Notal AI"],
+                legal_requirements=["Client confidentiality", "Signed contract", "Deposit and payment terms"],
                 ai_agents_involved=["ClientGoalExtractor", "ChatSummarizer", "ReplySuggester"]
             ),
             
@@ -215,7 +215,7 @@ class NotalKnowledgeBase:
                 name="Document Collaboration Workflow",
                 description="Team collaboration on document creation, review, and approval",
                 steps=[
-                    "Document uploaded to matter folder in Documents",
+                    "Document uploaded to event folder in Documents",
                     "Document shared with relevant team members via permissions",
                     "Notal AI provides initial analysis and key term identification",
                     "Team members review and annotate using Communications channel",
@@ -224,8 +224,8 @@ class NotalKnowledgeBase:
                     "Final approval documented in History",
                     "Document marked as approved in system"
                 ],
-                participants=["Partner", "Associate", "Paralegal", "Client"],
-                legal_requirements=["Attorney-client privilege", "Document retention", "Version control", "Audit trail"],
+                participants=["Director", "Planner", "Coordinator", "Client"],
+                legal_requirements=["Client confidentiality", "Document retention", "Version control", "Audit trail"],
                 ai_agents_involved=["ClarityAgent", "ChatSummarizer", "Notal AI Assistant"]
             ),
             
@@ -233,26 +233,26 @@ class NotalKnowledgeBase:
                 name="Task Creation and Completion Workflow",
                 description="Complete workflow for task lifecycle from creation to completion",
                 steps=[
-                    "Task created from matter or dashboard",
+                    "Task created from event or dashboard",
                     "Task assigned to team member with due date and priority",
                     "Assignee receives notification",
                     "Task appears in assignee's task list and calendar",
                     "Subtasks created if needed for complex tasks",
                     "Task status updated (To Do → In Progress → Completed)",
-                    "Task completion logged in matter history",
+                    "Task completion logged in event history",
                     "Team notified via Communications channel"
                 ],
-                participants=["Partner", "Associate", "Paralegal"],
+                participants=["Director", "Planner", "Coordinator"],
                 legal_requirements=["Task accountability", "Deadline tracking", "Workload documentation"],
                 ai_agents_involved=["ChatSummarizer", "Notal AI Assistant"]
             ),
             
             "team_communication_workflow": NotalWorkflow(
                 name="Team Communication and Collaboration",
-                description="Real-time team communication workflow across matters and organizations",
+                description="Real-time team communication workflow across events and organizations",
                 steps=[
-                    "Team members join organization and matters",
-                    "Communications channels automatically created for matters",
+                    "Team members join organization and events",
+                    "Communications channels automatically created for events",
                     "Team members send messages in relevant channels",
                     "Direct messages for private conversations",
                     "Files shared in channel threads",
@@ -260,71 +260,71 @@ class NotalKnowledgeBase:
                     "Communications history searchable and archived"
                 ],
                 participants=["All team members", "Clients"],
-                legal_requirements=["Communication confidentiality", "Message retention", "Privileged communication protection"],
+                legal_requirements=["Communication confidentiality", "Message retention"],
                 ai_agents_involved=["ReplySuggester", "ChatSummarizer"]
             ),
             
             "ai_assisted_guidance": NotalWorkflow(
-                name="AI-Assisted Legal Guidance",
-                description="Client receives instant legal guidance through Notal AI assistant",
+                name="AI-Assisted Event Planning Guidance",
+                description="Client receives instant event planning guidance through Notal AI assistant",
                 steps=[
                     "Client opens Notal AI chat from dashboard or panel",
-                    "Client asks legal question or describes situation",
-                    "Notal AI analyzes query using context from matters and conversations",
-                    "AI provides clear explanation using ClarityAgent for legal terms",
-                    "AI suggests next steps or relevant matter actions",
-                    "If needed, AI connects client with appropriate lawyer",
+                    "Client asks an event planning question or describes their situation",
+                    "Notal AI analyzes query using context from events and conversations",
+                    "AI provides clear explanation using ClarityAgent for contract and vendor terms",
+                    "AI suggests next steps or relevant event actions",
+                    "If needed, AI connects client with the appropriate planner",
                     "Conversation saved in history for future reference"
                 ],
-                participants=["Client", "Notal AI", "Lawyer if escalated"],
+                participants=["Client", "Notal AI", "Planner if escalated"],
                 legal_requirements=["Accurate information", "Clear AI disclaimers", "Professional responsibility", "Client confidentiality"],
                 ai_agents_involved=["ClarityAgent", "ReplySuggester", "ClientGoalExtractor", "ChatSummarizer"]
             )
         }
     
     def _initialize_legal_domains(self) -> Dict[str, Dict[str, Any]]:
-        """Initialize legal domain knowledge"""
+        """Initialize event category knowledge"""
         return {
-            "corporate_law": {
-                "description": "Business formation, governance, and corporate transactions",
-                "common_documents": ["Articles of Incorporation", "Bylaws", "Shareholder Agreements", "Merger Agreements"],
-                "key_terms": ["incorporation", "board of directors", "shareholders", "merger", "acquisition"],
-                "ai_applications": ["Contract analysis", "Compliance checking", "Risk assessment"]
+            "weddings": {
+                "description": "Wedding planning, ceremony and reception coordination, and bridal party logistics",
+                "common_documents": ["Venue Contracts", "Catering Agreements", "Vendor Contracts", "Timeline and Run-of-Show"],
+                "key_terms": ["ceremony", "reception", "bridal party", "vendor coordination", "seating chart"],
+                "ai_applications": ["Vendor contract analysis", "Timeline generation", "Budget tracking"]
             },
             
-            "contract_law": {
-                "description": "Agreement drafting, negotiation, and enforcement",
-                "common_documents": ["Service Agreements", "Employment Contracts", "NDAs", "Purchase Agreements"],
-                "key_terms": ["liability", "breach", "damages", "indemnification", "force majeure"],
-                "ai_applications": ["Contract review", "Clause analysis", "Risk identification"]
+            "corporate_events": {
+                "description": "Corporate meetings, product launches, conferences, and company celebrations",
+                "common_documents": ["Venue Agreements", "Sponsorship Agreements", "AV/Production Contracts", "Attendee Lists"],
+                "key_terms": ["agenda", "keynote", "sponsorship", "branding", "attendee registration"],
+                "ai_applications": ["Contract review", "Budget analysis", "Vendor comparison"]
             },
             
-            "employment_law": {
-                "description": "Workplace rights, discrimination, and employment disputes",
-                "common_documents": ["Employment Contracts", "Employee Handbooks", "Severance Agreements", "Settlement Agreements"],
-                "key_terms": ["discrimination", "harassment", "termination", "severance", "non-compete"],
-                "ai_applications": ["Policy review", "Compliance monitoring", "Dispute analysis"]
+            "galas_and_fundraisers": {
+                "description": "Galas, fundraisers, and non-profit benefit events",
+                "common_documents": ["Venue Contracts", "Catering Agreements", "Sponsorship Packages", "Auction Documentation"],
+                "key_terms": ["honoree", "silent auction", "sponsorship tiers", "seating arrangement", "program"],
+                "ai_applications": ["Budget tracking", "Sponsorship analysis", "Guest list management"]
             },
             
-            "intellectual_property": {
-                "description": "Patents, trademarks, copyrights, and trade secrets",
-                "common_documents": ["Patent Applications", "Trademark Filings", "Copyright Registrations", "License Agreements"],
-                "key_terms": ["patent", "trademark", "copyright", "trade secret", "infringement"],
-                "ai_applications": ["Prior art search", "Infringement analysis", "Portfolio management"]
+            "conferences_and_conventions": {
+                "description": "Multi-day conferences, trade shows, and conventions with sessions and exhibitors",
+                "common_documents": ["Exhibitor Agreements", "Venue Contracts", "Speaker Agreements", "Registration Terms"],
+                "key_terms": ["exhibitor booth", "session tracks", "speaker lineup", "registration tiers", "badge scanning"],
+                "ai_applications": ["Schedule optimization", "Exhibitor contract review", "Attendee analytics"]
             },
             
-            "litigation": {
-                "description": "Court proceedings, disputes, and legal representation",
-                "common_documents": ["Complaints", "Motions", "Discovery Requests", "Settlement Agreements"],
-                "key_terms": ["plaintiff", "defendant", "jurisdiction", "precedent", "settlement"],
-                "ai_applications": ["Case analysis", "Document review", "Strategy development"]
+            "vendor_and_venue_management": {
+                "description": "Coordinating vendors, venues, and suppliers across events",
+                "common_documents": ["Vendor Contracts", "Venue Rental Agreements", "Certificates of Insurance", "Deposit Receipts"],
+                "key_terms": ["deposit", "cancellation policy", "liability", "indemnification", "force majeure"],
+                "ai_applications": ["Contract analysis", "Vendor comparison", "Risk identification"]
             },
             
-            "compliance": {
-                "description": "Regulatory compliance and risk management",
-                "common_documents": ["Compliance Policies", "Audit Reports", "Regulatory Filings", "Risk Assessments"],
-                "key_terms": ["compliance", "regulation", "audit", "risk", "governance"],
-                "ai_applications": ["Compliance monitoring", "Risk assessment", "Policy analysis"]
+            "compliance_and_permits": {
+                "description": "Permits, insurance, and regulatory requirements for hosting events",
+                "common_documents": ["Event Permits", "Certificates of Insurance", "Fire/Safety Approvals", "Alcohol Licenses"],
+                "key_terms": ["permit", "occupancy limit", "liability insurance", "safety compliance", "licensing"],
+                "ai_applications": ["Compliance checklist generation", "Risk assessment", "Permit tracking"]
             }
         }
     
@@ -332,24 +332,24 @@ class NotalKnowledgeBase:
         """Initialize user type definitions"""
         return {
             "client": {
-                "description": "Individual or business seeking legal services",
-                "permissions": ["View own matters", "Upload documents", "Participate in conversations"],
+                "description": "Individual or business hosting an event and seeking event planning services",
+                "permissions": ["View own events", "Upload documents", "Participate in conversations"],
                 "ai_interactions": ["Clarity explanations", "Goal extraction", "Conversation analysis"],
-                "typical_needs": ["Legal guidance", "Document understanding", "Progress updates"]
+                "typical_needs": ["Event planning guidance", "Vendor and contract understanding", "Progress updates"]
             },
             
             "business": {
-                "description": "Business entity requiring legal services",
-                "permissions": ["View business matters", "Manage team members", "Access analytics"],
+                "description": "Business entity hosting corporate events or requiring ongoing event planning services",
+                "permissions": ["View business events", "Manage team members", "Access analytics"],
                 "ai_interactions": ["Business goal analysis", "Compliance assistance", "Contract review"],
-                "typical_needs": ["Compliance management", "Contract negotiation", "Risk assessment"]
+                "typical_needs": ["Compliance and permit management", "Vendor contract negotiation", "Risk assessment"]
             },
             
-            "lawyer": {
-                "description": "Licensed attorneys providing legal expertise",
-                "permissions": ["Legal document review", "Client representation", "Case strategy"],
-                "ai_interactions": ["Document analysis", "Legal research assistance", "Client communication"],
-                "typical_needs": ["Legal research", "Document review", "Client consultation"]
+            "event_planner": {
+                "description": "Event planning professionals coordinating events, vendors, and clients",
+                "permissions": ["Event document review", "Client representation", "Event strategy"],
+                "ai_interactions": ["Document analysis", "Vendor research assistance", "Client communication"],
+                "typical_needs": ["Vendor research", "Contract review", "Client consultation"]
             }
         }
     
@@ -378,7 +378,7 @@ class NotalKnowledgeBase:
                 "framework": "ASP.NET Razor Pages with modern JavaScript",
                 "real_time": "SignalR for live chat, notifications, and real-time updates",
                 "ui_components": "Bootstrap 5 with custom CSS, responsive mobile-first design",
-                "interactive_features": "AI chat panel with sticky messages, Communications sidebar, Calendar views, Matter carousel, Profile icons, Real-time notifications",
+                "interactive_features": "AI chat panel with sticky messages, Communications sidebar, Calendar views, Event carousel, Profile icons, Real-time notifications",
                 "styling": "Modern card-based layouts, shadow effects, smooth transitions, global scrollbar styling"
             },
             
@@ -392,7 +392,7 @@ class NotalKnowledgeBase:
             
             "data_architecture": {
                 "multi_tenancy": "Organization-based isolation with OrgMember policy",
-                "entity_relationships": "Organizations → Users, Matters → Tasks, Matters → Communications, Documents → Matters",
+                "entity_relationships": "Organizations → Users, Events → Tasks, Events → Communications, Documents → Events",
                 "audit_trail": "Comprehensive audit logging for all critical operations",
                 "soft_delete": "Soft delete pattern for data recovery and audit compliance"
             }
@@ -401,16 +401,16 @@ class NotalKnowledgeBase:
     def get_project_context(self) -> str:
         """Get comprehensive project context for LLM training"""
         context = f"""
-# Notal Legal Services Platform - Comprehensive Overview
+# Notal Event Planning Platform - Comprehensive Overview
 
 ## Project Purpose
-Notal is an AI-powered legal services platform that revolutionizes legal practice management by integrating advanced AI capabilities throughout the entire workflow. The platform combines matter management, task tracking, team communications, document management, calendar scheduling, and intelligent AI assistance to provide a comprehensive solution for law firms and legal departments.
+Notal is an AI-powered event planning platform that streamlines event management by integrating advanced AI capabilities throughout the entire workflow. The platform combines event management, task tracking, team communications, document management, calendar scheduling, and intelligent AI assistance to provide a comprehensive solution for event planning companies and vendors.
 
 ## Brand Identity
 - **Name**: Notal (formerly Certio)
 - **AI Assistant**: Notal AI
-- **Positioning**: Modern, AI-first legal practice management platform
-- **Target Users**: Law firms, legal departments, businesses, and clients
+- **Positioning**: Modern, AI-first event planning management platform
+- **Target Users**: Event planning companies, vendors, businesses, and clients
 
 ## Core Architecture
 - **Backend**: ASP.NET Core 9.0 with Entity Framework Core
@@ -431,7 +431,7 @@ Notal is an AI-powered legal services platform that revolutionizes legal practic
 - **Description**: {feature.description}
 - **Technical Details**: {feature.technical_details}
 - **User Types**: {', '.join(feature.user_types)}
-- **Legal Areas**: {', '.join(feature.legal_areas)}
+- **Event Categories**: {', '.join(feature.legal_areas)}
 - **Business Value**: {feature.business_value}
 """
         
@@ -449,7 +449,7 @@ Notal is an AI-powered legal services platform that revolutionizes legal practic
 """
         
         context += """
-## Legal Domain Expertise
+## Event Category Expertise
 """
         
         for domain, info in self.legal_domains.items():
@@ -494,7 +494,7 @@ Notal is an AI-powered legal services platform that revolutionizes legal practic
 ## User Types
 {', '.join(feature.user_types)}
 
-## Legal Areas Covered
+## Event Categories Covered
 {', '.join(feature.legal_areas)}
 
 ## API Endpoints
@@ -522,7 +522,7 @@ Notal is an AI-powered legal services platform that revolutionizes legal practic
 ## Participants
 {', '.join(workflow.participants)}
 
-## Legal Requirements
+## Requirements
 {', '.join(workflow.legal_requirements)}
 
 ## AI Agents Involved
@@ -530,13 +530,13 @@ Notal is an AI-powered legal services platform that revolutionizes legal practic
 """
     
     def get_legal_domain_context(self, domain: str) -> str:
-        """Get detailed context for a specific legal domain"""
+        """Get detailed context for a specific event category"""
         if domain not in self.legal_domains:
-            return f"Legal domain '{domain}' not found in knowledge base"
+            return f"Event category '{domain}' not found in knowledge base"
         
         info = self.legal_domains[domain]
         return f"""
-# {domain.replace('_', ' ').title()} - Legal Domain Context
+# {domain.replace('_', ' ').title()} - Event Category Context
 
 ## Description
 {info['description']}
@@ -544,7 +544,7 @@ Notal is an AI-powered legal services platform that revolutionizes legal practic
 ## Common Documents
 {', '.join(info['common_documents'])}
 
-## Key Legal Terms
+## Key Terms
 {', '.join(info['key_terms'])}
 
 ## AI Applications
@@ -568,7 +568,7 @@ Notal is an AI-powered legal services platform that revolutionizes legal practic
         # Prioritize UI layout searches
         if any(term in query_lower for term in ['layout', 'interface', 'button', 'navigation', 'sidebar', 'panel', 'page', 'walk me through']):
             # Add UI-specific features first
-            ui_features = ['ui_navigation', 'matters_interface', 'ai_assistant_panel']
+            ui_features = ['ui_navigation', 'events_ui', 'ai_assistant_panel']
             for feature_name in ui_features:
                 if feature_name in self.features:
                     feature = self.features[feature_name]
@@ -587,11 +587,11 @@ Notal is an AI-powered legal services platform that revolutionizes legal practic
                 query_lower in workflow.description.lower()):
                 results.append(f"Workflow: {workflow.name} - {workflow.description}")
         
-        # Search legal domains
+        # Search event categories
         for domain, info in self.legal_domains.items():
             if (query_lower in domain.lower() or 
                 query_lower in info['description'].lower()):
-                results.append(f"Legal Domain: {domain.replace('_', ' ').title()} - {info['description']}")
+                results.append(f"Event Category: {domain.replace('_', ' ').title()} - {info['description']}")
         
         return results
 
@@ -600,30 +600,30 @@ def add_ui_layout_knowledge():
     """Add UI layout knowledge to the global knowledge base"""
     notal_kb.features["navigation_system"] = NotalFeature(
         name="Notal Platform Navigation",
-        description="Intuitive left sidebar navigation with Dashboard, Matters, Tasks, Calendar, Communications, Documents, Teams, and Firm Settings. Global dashboard sidebar for Calendar and History pages.",
-        technical_details="Main navigation in client sidebar: Dashboard (overview with AI chat and quick access), Matters (briefcase icon), Tasks (progress bars icon), Calendar (calendar icon, redirects to global dashboard), Communications (comments icon), Documents (file icon), Teams (user group icon), Firm Settings (cog icon), and Logout button at bottom. Global dashboard sidebar appears for Calendar and History pages with upcoming deadlines card, calendar widget, and recent activity. Mobile responsive with hamburger menu and offcanvas navigation.",
-        user_types=["Client", "Lawyer", "Business", "Partner", "Associate", "Paralegal"],
-        legal_areas=["All legal practice areas"],
+        description="Intuitive left sidebar navigation with Dashboard, Events, Tasks, Calendar, Communications, Documents, Teams, and Firm Settings. Global dashboard sidebar for Calendar and History pages.",
+        technical_details="Main navigation in client sidebar: Dashboard (overview with AI chat and quick access), Events (briefcase icon), Tasks (progress bars icon), Calendar (calendar icon, redirects to global dashboard), Communications (comments icon), Documents (file icon), Teams (user group icon), Firm Settings (cog icon), and Logout button at bottom. Global dashboard sidebar appears for Calendar and History pages with upcoming deadlines card, calendar widget, and recent activity. Mobile responsive with hamburger menu and offcanvas navigation.",
+        user_types=["Client", "Director", "Business", "Planner", "Coordinator"],
+        legal_areas=["All event categories"],
         api_endpoints=["/Client/{orgId}/Dashboard", "/Client/{orgId}/Matter", "/Client/{orgId}/Tasks", "/Client/{orgId}/Calendar", "/Client/{orgId}/Communications", "/Client/{orgId}/Documents", "/Client/{orgId}/Teams", "/Client/{orgId}/Settings"],
         business_value="Streamlined navigation improves user efficiency and reduces time to find features"
     )
     
-    notal_kb.features["matters_ui"] = NotalFeature(
-        name="Matters User Interface",
-        description="Modern matters page with status cards, matter carousel, search, filtering, and detailed matter view with tabbed interface",
-        technical_details="Status overview cards: Active Matters, In Review, Completed, Team Members with counts. Blue '+ New Matter' button. Search bar, Filter and Date Range buttons. Matter cards with: client/matter name, status badges (Critical, Review, In Progress), progress indicators (X/Y tasks), due dates, team member profile pictures, card shadow hover effects. Matter details page with carousel navigation between matters, tabs for Overview, Details, Tasks, Conversations, History. Modern card-based design with 12px border-radius and shadow effects.",
-        user_types=["Lawyer", "Client", "Partner", "Associate", "Business"],
-        legal_areas=["All legal practice areas"],
+    notal_kb.features["events_ui"] = NotalFeature(
+        name="Events User Interface",
+        description="Modern events page with status cards, event carousel, search, filtering, and detailed event view with tabbed interface",
+        technical_details="Status overview cards: Active Events, In Review, Completed, Team Members with counts. Blue '+ New Event' button. Search bar, Filter and Date Range buttons. Event cards with: client/event name, status badges (Critical, Review, In Progress), progress indicators (X/Y tasks), due dates, team member profile pictures, card shadow hover effects. Event details page with carousel navigation between events, tabs for Overview, Details, Tasks, Conversations, History. Modern card-based design with 12px border-radius and shadow effects.",
+        user_types=["Director", "Client", "Planner", "Business"],
+        legal_areas=["All event categories"],
         api_endpoints=["/Client/{orgId}/Matter", "/Matter/Create", "/Matter/Details/{matterId}"],
-        business_value="Visual, intuitive interface improves matter tracking and team collaboration"
+        business_value="Visual, intuitive interface improves event tracking and team collaboration"
     )
     
     notal_kb.features["dashboard_ui"] = NotalFeature(
         name="Dashboard User Interface",
         description="Central dashboard with left column (deadlines, calendar, recent files) and right column (AI chat, quick access grid 4x2, firm summary, daily briefing, suggestions)",
-        technical_details="Left column (28% width, gray background): Upcoming Deadlines card with priority indicators, Calendar widget with month view and today highlight, Recent Activity with file icons. Right column (72% width): 'What can I help with?' AI chat with large search input, Quick Access 4x2 grid (Clients/Teams, Calendar, Billing, History, Matters, Tasks, Communications, Documents) with icons and hover effects, Firm Summary with metrics and trends, Daily Briefing with today's items, Next Suggestions with AI-powered recommendations. All cards have border-radius: 12px and shadow: 0 2px 8px rgba(0,0,0,0.25).",
-        user_types=["Lawyer", "Client", "Partner", "Associate", "Paralegal", "Business"],
-        legal_areas=["All legal practice areas"],
+        technical_details="Left column (28% width, gray background): Upcoming Deadlines card with priority indicators, Calendar widget with month view and today highlight, Recent Activity with file icons. Right column (72% width): 'What can I help with?' AI chat with large search input, Quick Access 4x2 grid (Clients/Teams, Calendar, Billing, History, Events, Tasks, Communications, Documents) with icons and hover effects, Firm Summary with metrics and trends, Daily Briefing with today's items, Next Suggestions with AI-powered recommendations. All cards have border-radius: 12px and shadow: 0 2px 8px rgba(0,0,0,0.25).",
+        user_types=["Director", "Client", "Planner", "Coordinator", "Business"],
+        legal_areas=["All event categories"],
         api_endpoints=["/Client/{orgId}/Dashboard"],
         business_value="At-a-glance overview of all critical information saves time and improves daily workflow"
     )
@@ -631,9 +631,9 @@ def add_ui_layout_knowledge():
     notal_kb.features["ai_chat_ui"] = NotalFeature(
         name="AI Chat Panel User Interface",
         description="Floating AI chat panel with conversation tabs, message history, sticky message navigation, and real-time thinking indicators",
-        technical_details="Chat panel accessible from top-right button. Features: conversation tabs with pills design, message history with user/AI messages, sticky message overlay for reviewing past messages with navigation arrows, intelligent thinking indicators ('Analyzing document requirements...', 'Processing legal inquiry...'), profile icons for users, 'Notal AI' branding for AI messages, timestamp display, send button, attachment support. Panel slides in from right with smooth animation. Messages support HTML formatting with <p>, <strong>, <ul><li> tags.",
+        technical_details="Chat panel accessible from top-right button. Features: conversation tabs with pills design, message history with user/AI messages, sticky message overlay for reviewing past messages with navigation arrows, intelligent thinking indicators ('Analyzing event requirements...', 'Processing your request...'), profile icons for users, 'Notal AI' branding for AI messages, timestamp display, send button, attachment support. Panel slides in from right with smooth animation. Messages support HTML formatting with <p>, <strong>, <ul><li> tags.",
         user_types=["All users"],
-        legal_areas=["All legal practice areas"],
+        legal_areas=["All event categories"],
         api_endpoints=["/Chat/SendMessage", "/Chat/GenerateAIResponse", "/Chat/LoadConversations"],
         business_value="Always-accessible AI assistant improves user productivity and provides instant help"
     )
@@ -641,19 +641,19 @@ def add_ui_layout_knowledge():
     notal_kb.features["security_privacy"] = NotalFeature(
         name="Security and Data Privacy Infrastructure",
         description="Enterprise-grade security measures using Azure OpenAI and Azure SQL with comprehensive data protection",
-        technical_details="Azure OpenAI Service provides enterprise security with data residency controls, encryption at rest and in transit, Azure Active Directory integration, and private endpoints. Azure SQL Database offers advanced threat protection, transparent data encryption, row-level security, dynamic data masking, and Always Encrypted. Notal implements zero-trust architecture with multi-factor authentication, role-based access control (Partner, Associate, Paralegal, Client), OrgMember policy authorization, and comprehensive audit logging. All data processing occurs within Azure's secure cloud infrastructure with geographic data residency controls. Azure provides built-in compliance frameworks including SOC 2 Type II, ISO 27001, and GDPR compliance capabilities that Notal leverages. Notal is currently working toward its own SOC 2 Type II certification.",
-        user_types=["Client", "Lawyer", "Business", "All users"],
-        legal_areas=["All legal practice areas"],
+        technical_details="Azure OpenAI Service provides enterprise security with data residency controls, encryption at rest and in transit, Azure Active Directory integration, and private endpoints. Azure SQL Database offers advanced threat protection, transparent data encryption, row-level security, dynamic data masking, and Always Encrypted. Notal implements zero-trust architecture with multi-factor authentication, role-based access control (Director, Planner, Coordinator, Client), OrgMember policy authorization, and comprehensive audit logging. All data processing occurs within Azure's secure cloud infrastructure with geographic data residency controls. Azure provides built-in compliance frameworks including SOC 2 Type II, ISO 27001, and GDPR compliance capabilities that Notal leverages. Notal is currently working toward its own SOC 2 Type II certification.",
+        user_types=["Client", "Director", "Business", "All users"],
+        legal_areas=["All event categories"],
         api_endpoints=["/Audit/GetLogs", "/Security/Settings"],
-        business_value="Enterprise-grade security ensures client confidentiality and data protection for sensitive legal matters"
+        business_value="Enterprise-grade security ensures client confidentiality and data protection for sensitive event and vendor information"
     )
     
     notal_kb.features["notal_compliance_status"] = NotalFeature(
         name="Notal Compliance and Certification Status",
         description="Current compliance status and certification efforts for Notal platform",
         technical_details="Notal is currently working toward SOC 2 Type II certification. While Notal leverages Azure's built-in compliance frameworks and certifications (SOC 2, ISO 27001, GDPR), Notal itself is in the process of obtaining independent compliance certifications. The platform implements comprehensive security measures and data protection controls that align with industry standards and regulatory requirements. Organizations using Notal should consult with their compliance teams to ensure specific regulatory requirements are met for their use case. Notal provides comprehensive audit logging, data encryption, access controls, and privacy features to support compliance efforts.",
-        user_types=["Partner", "Business Owner", "Lawyer"],
-        legal_areas=["All legal practice areas"],
+        user_types=["Director", "Business Owner"],
+        legal_areas=["All event categories"],
         api_endpoints=["/Audit/GetLogs", "/Security/Compliance"],
         business_value="Transparent communication about compliance status builds trust with clients and supports procurement decisions"
     )
