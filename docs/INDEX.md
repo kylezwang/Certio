@@ -1,6 +1,6 @@
 # Certio Documentation
 
-**Last Updated:** July 1, 2026
+**Last Updated:** July 21, 2026
 
 This index covers all documentation organized into the following sections. All docs live under `docs/` with the exception of project-level READMEs that remain in their respective module folders.
 
@@ -11,6 +11,7 @@ This index covers all documentation organized into the following sections. All d
 ```
 docs/
 ├── architecture/   — System design, domain model, data schemas, service contracts
+├── BACKLOG/        — Deferred engineering backlog (known limitations / technical debt)
 ├── features/       — Per-feature implementation guides and reference docs
 ├── operations/     — Deployment, testing, monitoring, cost management
 ├── security/       — Security assessments, permission system, vulnerability reports
@@ -34,6 +35,19 @@ docs/
 | [`architecture/DATA_SYNC_STRATEGY.md`](architecture/DATA_SYNC_STRATEGY.md) | Data synchronization approach |
 | [`architecture/COMMUNICATIONS_CONTROLLER_ARCHITECTURE.md`](architecture/COMMUNICATIONS_CONTROLLER_ARCHITECTURE.md) | Communications layer design |
 | [`architecture/ENTERPRISE_SECURITY_ARCHITECTURE.md`](architecture/ENTERPRISE_SECURITY_ARCHITECTURE.md) | Enterprise-grade security architecture |
+| [`architecture/ARCHITECTURE_REVIEW_2026.md`](architecture/ARCHITECTURE_REVIEW_2026.md) | July 2026 code-verified architecture review |
+| [`architecture/PHASE_1_SCALABILITY_FIXES.md`](architecture/PHASE_1_SCALABILITY_FIXES.md) | Completed Phase 1 soft-delete, list caps, SignalR fixes |
+
+---
+
+## Backlog
+
+Deferred work from the architecture review (not an active phase roadmap).
+
+| Document | Description |
+|----------|-------------|
+| [`BACKLOG/README.md`](BACKLOG/README.md) | Backlog index and how to use it |
+| [`BACKLOG/SCALABILITY_AND_ARCHITECTURE.md`](BACKLOG/SCALABILITY_AND_ARCHITECTURE.md) | Remaining multi-instance, pagination, reliability, and structural debt |
 
 ---
 
