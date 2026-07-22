@@ -454,7 +454,7 @@ Here's your daily briefing for **{DateTime.Now:dddd, MMMM d}**:
 
 ## Your Dashboard
 • **{stats.PendingTasks}** pending tasks ({stats.DueToday} due today)
-• **{stats.ActiveMatters}** active matters
+• **{stats.ActiveMatters}** active events
 • **{stats.UnreadMessages}** unread messages
 • **{stats.RecentDocuments}** new documents (last 7 days)
 

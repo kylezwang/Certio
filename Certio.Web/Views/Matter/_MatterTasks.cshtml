@@ -197,7 +197,7 @@
             <div class="matter-selector-container">
                 <button class="matter-selector-btn" id="topMatterSelectorBtn">
                     <i class="fas fa-folder"></i>
-                    <span class="matter-selector-text" id="topMatterSelectorText">Select Matter</span>
+                    <span class="matter-selector-text" id="topMatterSelectorText">Select Event</span>
                     <i class="fas fa-chevron-down matter-selector-arrow"></i>
                 </button>
             </div>
@@ -1212,7 +1212,7 @@
                             <div class="task-matter-selector-container">
                                 <button class="task-matter-selector-btn" id="taskMatterSelectorBtn">
                                     <i class="fas fa-folder"></i>
-                                    <span class="task-matter-selector-text" id="taskMatterSelectorText">Select Matter</span>
+                                    <span class="task-matter-selector-text" id="taskMatterSelectorText">Select Event</span>
                                     <i class="fas fa-chevron-down task-matter-selector-arrow"></i>
                                 </button>
                             </div>
@@ -1548,12 +1548,12 @@
     <!-- Matter Selector Popup (minimal) -->
     <div class="matter-popup" id="matterPopup" style="display: none;">
         <div class="matter-popup-inner">
-            <div class="matter-popup-title">Select Matter</div>
+            <div class="matter-popup-title">Select Event</div>
             <div class="matter-popup-list">
-                <!-- View All Matters Option -->
-                <button type="button" class="matter-item matter-item-all" data-matter-id="all" title="View All Matters">
+                <!-- View All Events Option -->
+                <button type="button" class="matter-item matter-item-all" data-matter-id="all" title="View All Events">
                     <i class="fas fa-globe"></i>
-                    <span class="matter-item-text">View All Matters</span>
+                    <span class="matter-item-text">View All Events</span>
                 </button>
                 
                 @if (Model.Matters.Any())
@@ -1568,7 +1568,7 @@
                 }
                 else
                 {
-                    <div class="text-center text-muted py-2">No matters available</div>
+                    <div class="text-center text-muted py-2">No events available</div>
                 }
             </div>
         </div>
@@ -1577,12 +1577,12 @@
     <!-- Task Matter Selector Popup (for task details modal) -->
     <div class="task-matter-popup" id="taskMatterPopup" style="display: none;">
         <div class="task-matter-popup-inner">
-            <div class="task-matter-popup-title">Select Matter</div>
+            <div class="task-matter-popup-title">Select Event</div>
             <div class="task-matter-popup-list" id="taskMatterPopupList">
-                <!-- "Select a Matter" Option -->
-                <button type="button" class="task-matter-item" data-matter-id="" title="Select a Matter">
+                <!-- "Select an Event" Option -->
+                <button type="button" class="task-matter-item" data-matter-id="" title="Select an Event">
                     <i class="fas fa-folder-open"></i>
-                    <span class="task-matter-item-text">Select a Matter</span>
+                    <span class="task-matter-item-text">Select an Event</span>
                 </button>
                 <!-- Matters will be populated dynamically -->
                 @if (Model.Matters.Any())
@@ -2169,7 +2169,7 @@
                 // Update top matter selector text
                 const topMatterSelectorText = document.getElementById('topMatterSelectorText');
                 if (topMatterSelectorText) {
-                    topMatterSelectorText.textContent = 'Viewing All Matters';
+                    topMatterSelectorText.textContent = 'Viewing All Events';
                 }
                 
                 // Show all tasks

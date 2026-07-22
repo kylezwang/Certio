@@ -963,8 +963,8 @@ public class AIAgentService : IAIAgentService
         
         if (messageLower.Contains("contract") || messageLower.Contains("agreement"))
             contextHint = "I understand you're asking about contracts. ";
-        else if (messageLower.Contains("legal") || messageLower.Contains("law"))
-            contextHint = "I see you need legal guidance. ";
+        else if (messageLower.Contains("event") || messageLower.Contains("vendor"))
+            contextHint = "I see you need help with an event. ";
         
         return $"<strong>⚠️ AI Services Temporarily Unavailable</strong><br><br>" +
                $"{contextHint}Our AI services are being updated. You can continue other services normally, " +

@@ -115,7 +115,7 @@ public class ChatService : IChatService
             return new DashboardTaskSummary(
                 t.Id,
                 t.Title,
-                t.Matter?.Title ?? "Unspecified Matter",
+                t.Matter?.Title ?? "Unspecified Event",
                 t.Priority,
                 t.Status,
                 dueDate,
@@ -153,12 +153,12 @@ public class ChatService : IChatService
             })
             .ToListAsync();
 
-        var staleMatters = mattersRaw
+        var staleEvents = mattersRaw
             .Select(m =>
             {
                 var lastActivity = m.LastActivity; // Already non-nullable due to ?? m.CreatedAt fallback
                 var daysInactive = (now - lastActivity).TotalDays;
-                return new DashboardMatterSummary(
+                return new DashboardStaleEventSummary(
                     m.Id,
                     m.Title,
                     m.Status,
@@ -185,7 +185,7 @@ public class ChatService : IChatService
             return new DashboardActivitySummary(
                 t.Id,
                 t.Title,
-                t.Matter?.Title ?? "Unspecified Matter",
+                t.Matter?.Title ?? "Unspecified Event",
                 activityType,
                 activityDate);
         }).ToList();
@@ -193,7 +193,7 @@ public class ChatService : IChatService
         var stats = new DashboardStats(
             overdueTasks.Count,
             upcomingEvents.Count(e => e.EventType.Equals("Call", StringComparison.OrdinalIgnoreCase) || e.EventType.Equals("Meeting", StringComparison.OrdinalIgnoreCase)),
-            staleMatters.Count(m => m.DaysSinceActivity >= 7));
+            staleEvents.Count(m => m.DaysSinceActivity >= 7));
 
         var context = new DashboardCardContext(
             organizationId,
@@ -201,7 +201,7 @@ public class ChatService : IChatService
             stats,
             overdueTasks,
             upcomingEvents,
-            staleMatters,
+            staleEvents,
             recentActivity);
 
         return JsonSerializer.Serialize(context, new JsonSerializerOptions
@@ -876,9 +876,9 @@ INSTRUCTIONS:
 Rules:
 1. Match counts, dates, and names exactly as provided in the dataset.
 2. When referencing people, use the role/title specified in the data (do not assume new titles).
-3. When listing overdue items, include the task title, matter, due date, and priority as given.
+3. When listing overdue items, include the task title, event, due date, and priority as given.
 4. If a section has zero items, explicitly state that there are none.
-5. Never invent matters, tasks, or people not present in DATA_CONTEXT_JSON.
+5. Never invent events, tasks, or people not present in DATA_CONTEXT_JSON.
 """;
 
         // Generate streaming response using the contextualized prompt
@@ -1028,8 +1028,8 @@ Rules:
         
         if (messageLower.Contains("contract") || messageLower.Contains("agreement"))
             contextualResponse = "I understand you have questions about contracts. ";
-        else if (messageLower.Contains("legal") || messageLower.Contains("law"))
-            contextualResponse = "I see you need legal assistance. ";
+        else if (messageLower.Contains("event") || messageLower.Contains("vendor"))
+            contextualResponse = "I see you need help with an event. ";
         else if (messageLower.Contains("business") || messageLower.Contains("company"))
             contextualResponse = "I understand you have business-related questions. ";
         
@@ -1044,18 +1044,18 @@ Rules:
         DashboardStats Stats,
         List<DashboardTaskSummary> OverdueTasks,
         List<DashboardEventSummary> UpcomingEvents,
-        List<DashboardMatterSummary> StaleMatters,
+        List<DashboardStaleEventSummary> StaleEvents,
         List<DashboardActivitySummary> RecentActivity);
 
     private sealed record DashboardStats(
         int TotalOverdueTasks,
         int UpcomingCallsOrMeetings,
-        int StaleMatterCount);
+        int StaleEventCount);
 
     private sealed record DashboardTaskSummary(
         int TaskId,
         string Title,
-        string Matter,
+        string Event,
         string Priority,
         string Status,
         DateTime? DueDate,
@@ -1064,27 +1064,29 @@ Rules:
 
     private sealed record DashboardAssignee(string Name, string Role);
 
+    // Note: represents a calendar occurrence; ParentEvent is the title of the broader
+    // event/project (domain entity Matter) it is scheduled under, if any.
     private sealed record DashboardEventSummary(
         int EventId,
         string Title,
         string EventType,
         DateTime StartDateTime,
         DateTime EndDateTime,
-        string? Matter,
+        string? ParentEvent,
         string? Location);
 
-    private sealed record DashboardMatterSummary(
-        int MatterId,
+    private sealed record DashboardStaleEventSummary(
+        int EventId,
         string Title,
         string Status,
-        string PracticeArea,
+        string EventType,
         DateTime? LastActivity,
         double DaysSinceActivity);
 
     private sealed record DashboardActivitySummary(
         int ItemId,
         string Title,
-        string Matter,
+        string Event,
         string ActivityType,
         DateTime ActivityDate);
 

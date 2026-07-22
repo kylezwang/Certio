@@ -851,7 +851,7 @@ class ChatSummarizer(BaseAgent):
         rag_context = get_relevant_context("ChatSummarizer", conversation_text, conversation_context)
         
         base_prompt = f"""
-        As an expert legal conversation analyst for the Notal platform, provide a comprehensive analysis of this legal services conversation:
+        As an expert conversation analyst for the Notal event planning platform, provide a comprehensive analysis of this event planning conversation:
         
         Conversation Context:
         - Total messages: {len(messages)}
@@ -863,23 +863,23 @@ class ChatSummarizer(BaseAgent):
         {conversation_text}
         
         Analysis Requirements:
-        1. Provide a detailed summary highlighting legal issues, client needs, and key decisions
-        2. Extract critical legal and business points that require attention
+        1. Provide a detailed summary highlighting event planning issues, client needs, and key decisions
+        2. Extract critical planning and business points that require attention
         3. Assess emotional tone and client satisfaction level
-        4. Determine urgency based on legal deadlines, client stress, and business impact
-        5. Suggest specific, actionable next steps for legal professionals
+        4. Determine urgency based on event deadlines, client stress, and business impact
+        5. Suggest specific, actionable next steps for the event planning team
         
         Consider these factors:
-        - Legal complexity and risk level
+        - Planning complexity and risk level
         - Client urgency and emotional state
         - Business impact and timeline constraints
-        - Required legal expertise and documentation
+        - Required vendor coordination and documentation
         - Potential follow-up actions
         
         Format your response as JSON:
         {{
-            "summary": "Comprehensive summary of legal discussion and client needs",
-            "key_points": ["Critical legal point 1", "Business requirement 2", "Timeline concern 3"],
+            "summary": "Comprehensive summary of the discussion and client needs",
+            "key_points": ["Critical point 1", "Business requirement 2", "Timeline concern 3"],
             "sentiment": "Positive/Negative/Neutral/Concerned/Urgent",
             "urgency": "Low/Medium/High/Urgent/Critical",
             "suggested_actions": ["Specific action 1", "Document review needed", "Client follow-up required"]
@@ -925,12 +925,11 @@ class ChatSummarizer(BaseAgent):
         return patterns
     
     def _count_legal_terms(self, messages: List[ChatMessage]) -> int:
-        """Count legal terminology in messages"""
+        """Count contract and vendor terminology in messages"""
         legal_terms = [
-            "contract", "agreement", "liability", "breach", "damages", "litigation",
-            "compliance", "regulation", "intellectual property", "patent", "trademark",
-            "copyright", "employment", "discrimination", "harassment", "termination",
-            "severance", "non-disclosure", "confidentiality", "merger", "acquisition"
+            "contract", "agreement", "liability", "cancellation", "deposit",
+            "compliance", "permit", "insurance", "vendor", "venue", "catering",
+            "confidentiality", "warranty", "indemnification"
         ]
         count = 0
         for message in messages:
@@ -975,9 +974,8 @@ class ClientGoalExtractor(BaseAgent):
     def __init__(self):
         super().__init__("ClientGoalExtractor")
         self.legal_areas = [
-            "Corporate Law", "Contract Law", "Employment Law", "Intellectual Property",
-            "Real Estate Law", "Litigation", "Tax Law", "Immigration Law",
-            "Family Law", "Criminal Law", "Estate Planning", "Business Formation"
+            "Weddings", "Corporate Events", "Galas and Fundraisers", "Conferences and Conventions",
+            "Vendor and Venue Management", "Compliance and Permits", "Social Events", "Private Parties"
         ]
     
     async def process(self, messages) -> ClientGoal:
@@ -1008,12 +1006,12 @@ class ClientGoalExtractor(BaseAgent):
         rag_context = get_relevant_context("ClientGoalExtractor", conversation_text, business_context_text)
         
         base_prompt = f"""
-        As a legal business analyst for the Notal platform, extract comprehensive client goals and requirements from this legal services conversation:
+        As a business analyst for the Notal event planning platform, extract comprehensive client goals and requirements from this event planning conversation:
         
         Business Context Analysis:
         - Client message count: {len(client_messages)}
         - Business indicators: {business_context}
-        - Legal terminology detected: {legal_indicators['legal_terms']}
+        - Planning terminology detected: {legal_indicators['legal_terms']}
         - Urgency signals: {legal_indicators['urgency_signals']}
         - Financial mentions: {legal_indicators['financial_mentions']}
         
@@ -1021,18 +1019,18 @@ class ClientGoalExtractor(BaseAgent):
         {conversation_text}
         
         Analysis Requirements:
-        1. Identify the PRIMARY business/legal objective with specific details
+        1. Identify the PRIMARY business/event planning objective with specific details
         2. Extract ALL secondary goals and requirements mentioned
         3. Determine business type and industry sector
-        4. Classify legal practice area (from: {', '.join(self.legal_areas)})
+        4. Classify event category (from: {', '.join(self.legal_areas)})
         5. Extract timeline expectations and deadlines
         6. Identify budget range and financial constraints
         7. List all required documents and evidence
         8. Assess complexity level and risk factors
         
         Consider these business factors:
-        - Industry-specific legal requirements
-        - Regulatory compliance needs
+        - Industry-specific compliance requirements
+        - Regulatory and permit needs
         - Risk management objectives
         - Growth and expansion goals
         - Operational efficiency improvements
@@ -1040,10 +1038,10 @@ class ClientGoalExtractor(BaseAgent):
         
         Format your response as JSON:
         {{
-            "primary_goal": "Detailed primary business/legal objective",
+            "primary_goal": "Detailed primary business/event planning objective",
             "secondary_goals": ["Specific secondary goal 1", "Secondary goal 2", "etc."],
             "business_type": "Specific industry/business type",
-            "legal_area": "Primary legal practice area",
+            "legal_area": "Primary event category",
             "timeline": "Specific timeline with deadlines",
             "budget": "Budget range and financial constraints",
             "required_documents": ["Document 1", "Document 2", "Evidence needed"]
@@ -1118,15 +1116,13 @@ class ClientGoalExtractor(BaseAgent):
         return context
     
     def _identify_legal_indicators(self, conversation_text: str) -> dict:
-        """Identify legal indicators in conversation"""
+        """Identify event planning and contract indicators in conversation"""
         text_lower = conversation_text.lower()
         
         legal_terms = [
-            "contract", "agreement", "liability", "breach", "damages", "litigation",
-            "compliance", "regulation", "intellectual property", "patent", "trademark",
-            "copyright", "employment", "discrimination", "harassment", "termination",
-            "severance", "non-disclosure", "confidentiality", "merger", "acquisition",
-            "due diligence", "warranty", "indemnification", "force majeure"
+            "contract", "agreement", "liability", "cancellation", "deposit",
+            "compliance", "permit", "insurance", "vendor", "venue", "catering",
+            "confidentiality", "warranty", "indemnification", "force majeure"
         ]
         
         urgency_signals = [
@@ -1203,12 +1199,12 @@ class ReplySuggester(BaseAgent):
         2. Address the client's specific concerns and needs
         3. Use appropriate tone based on urgency and complexity
         4. Include specific next steps or actions
-        5. Maintain legal professionalism while being approachable
-        6. Consider the client's business goals and legal requirements
+        5. Maintain professionalism while being approachable
+        6. Consider the client's business goals and event requirements
         
         Tone Guidelines:
         - Urgent matters: Professional but empathetic
-        - Complex legal issues: Formal and precise
+        - Complex contract issues: Formal and precise
         - Business development: Friendly and consultative
         - Complaints: Apologetic and solution-focused
         - General inquiries: Helpful and informative
@@ -1278,10 +1274,10 @@ class ReplySuggester(BaseAgent):
         topic_keywords = {
             "contracts": ["contract", "agreement", "terms", "clause"],
             "compliance": ["compliance", "regulation", "audit", "certification"],
-            "employment": ["employment", "hiring", "termination", "discrimination"],
-            "intellectual_property": ["patent", "trademark", "copyright", "intellectual property"],
-            "litigation": ["lawsuit", "litigation", "dispute", "court"],
-            "business_formation": ["incorporation", "llc", "corporation", "partnership"]
+            "staffing": ["staffing", "hiring", "coordinator", "volunteer"],
+            "venue_and_logistics": ["venue", "location", "layout", "load-in"],
+            "vendor_management": ["vendor", "supplier", "caterer", "florist"],
+            "budgeting": ["budget", "cost", "deposit", "payment"]
         }
         
         for topic, keywords in topic_keywords.items():
@@ -1333,24 +1329,20 @@ class ClarityAgent(BaseAgent):
     def __init__(self):
         super().__init__("ClarityAgent")
         self.legal_glossary = {
-            "liability": "Legal responsibility for something, especially costs or damages",
+            "liability": "Responsibility for something, especially costs or damages",
             "breach": "Breaking or failing to follow a contract or agreement",
             "damages": "Money awarded to compensate for loss or injury",
-            "litigation": "The process of taking legal action through the court system",
-            "jurisdiction": "The authority of a court to hear and decide cases",
-            "precedent": "A previous court decision that serves as a guide for future cases",
-            "statute of limitations": "The time limit for bringing a legal action",
             "due diligence": "Thorough investigation before making a business decision",
-            "indemnification": "Protection against legal liability or loss",
+            "indemnification": "Protection against liability or loss",
             "force majeure": "Unforeseeable circumstances that prevent fulfilling a contract",
-            "arbitration": "Settling disputes outside of court with a neutral third party",
             "confidentiality": "Keeping information private and not sharing it",
-            "non-compete": "Agreement preventing someone from working for competitors",
-            "intellectual property": "Creations of the mind like inventions, designs, or artistic works"
+            "cancellation policy": "The terms describing refunds or fees if an event is cancelled or rescheduled",
+            "deposit": "An upfront payment that secures a vendor or venue booking",
+            "warranty": "A guarantee about the quality or condition of goods or services"
         }
     
     async def process(self, text: str, user_type: str) -> ClarityExplanation:
-        """Enhanced legal language explanation with user-specific context"""
+        """Enhanced contract and vendor language explanation with user-specific context"""
         if not text or not text.strip():
             return ClarityExplanation(
                 original_text=text,
@@ -1361,7 +1353,7 @@ class ClarityAgent(BaseAgent):
                 recommended_actions=["Provide text for analysis"]
             )
         
-        # Analyze the text for legal complexity and context
+        # Analyze the text for contract complexity and context
         complexity_analysis = self._analyze_legal_complexity(text)
         risk_assessment = self._assess_legal_risk(text)
         user_context = self._get_user_context(user_type)
@@ -1371,9 +1363,9 @@ class ClarityAgent(BaseAgent):
         rag_context = get_relevant_context("ClarityAgent", text, clarity_context)
         
         base_prompt = f"""
-        As a legal communication expert for the Notal platform, explain this legal text in clear, accessible terms for a {user_type}:
+        As a contract communication expert for the Notal event planning platform, explain this text in clear, accessible terms for a {user_type}:
         
-        Original Legal Text: {text}
+        Original Text: {text}
         
         User Context:
         - User Type: {user_type}
@@ -1382,14 +1374,14 @@ class ClarityAgent(BaseAgent):
         - Communication Style: {user_context['communication_style']}
         
         Text Analysis:
-        - Legal Complexity: {complexity_analysis['complexity_level']}
-        - Legal Terms Found: {', '.join(complexity_analysis['legal_terms'])}
+        - Complexity: {complexity_analysis['complexity_level']}
+        - Contract Terms Found: {', '.join(complexity_analysis['legal_terms'])}
         - Risk Indicators: {', '.join(risk_assessment['risk_indicators'])}
         - Document Type: {complexity_analysis['document_type']}
         
         Explanation Requirements:
         1. Provide a clear, simple explanation that a {user_type} can understand
-        2. Define all legal terms in plain language
+        2. Define all contract and vendor terms in plain language
         3. Explain potential implications and consequences
         4. Assess risk level with specific reasoning
         5. Provide actionable recommendations
@@ -1426,29 +1418,29 @@ class ClarityAgent(BaseAgent):
             logger.error(f"Error in ClarityAgent: {e}")
             return ClarityExplanation(
                 original_text=text,
-                simplified_explanation="I apologize, but I'm having trouble processing this text right now. Please try again or contact our legal team for assistance.",
+                simplified_explanation="I apologize, but I'm having trouble processing this text right now. Please try again or contact our planning team for assistance.",
                 key_terms=[],
                 implications=[],
                 risk_level="Unknown",
-                recommended_actions=["Contact legal team for assistance"]
+                recommended_actions=["Contact planning team for assistance"]
             )
     
     def _analyze_legal_complexity(self, text: str) -> dict:
-        """Analyze the legal complexity of the text"""
+        """Analyze the contract complexity of the text"""
         text_lower = text.lower()
         
-        # Count legal terms
+        # Count contract terms
         legal_terms_found = [term for term in self.legal_glossary.keys() if term in text_lower]
         
         # Determine document type
         document_indicators = {
             "contract": ["agreement", "contract", "terms", "clause", "party"],
-            "legal_notice": ["notice", "demand", "cease", "desist", "violation"],
-            "court_document": ["plaintiff", "defendant", "court", "judge", "motion"],
+            "cancellation_notice": ["notice", "cancellation", "reschedule", "refund"],
+            "vendor_document": ["vendor", "supplier", "caterer", "venue"],
             "policy": ["policy", "procedure", "guidelines", "standards", "compliance"]
         }
         
-        document_type = "General Legal Text"
+        document_type = "General Document"
         for doc_type, indicators in document_indicators.items():
             if any(indicator in text_lower for indicator in indicators):
                 document_type = doc_type.title()
@@ -1504,18 +1496,18 @@ class ClarityAgent(BaseAgent):
         """Get user-specific context for explanation"""
         context_map = {
             "Client": {
-                "knowledge_level": "Basic legal knowledge",
+                "knowledge_level": "Basic contract knowledge",
                 "primary_concerns": ["Understanding obligations", "Risk assessment", "Cost implications"],
                 "communication_style": "Simple, practical, with examples"
             },
             "Business": {
-                "knowledge_level": "Business-focused legal understanding",
+                "knowledge_level": "Business-focused contract understanding",
                 "primary_concerns": ["Business impact", "Compliance requirements", "Operational implications"],
                 "communication_style": "Professional, business-oriented, strategic"
             },
-            "Lawyer": {
-                "knowledge_level": "Expert legal knowledge",
-                "primary_concerns": ["Legal precision", "Case strategy", "Client representation"],
+            "Director": {
+                "knowledge_level": "Expert event planning knowledge",
+                "primary_concerns": ["Contract precision", "Event strategy", "Client representation"],
                 "communication_style": "Technical, precise, comprehensive"
             }
         }
@@ -2304,7 +2296,7 @@ async def suggest_reply(request: AIAgentRequest, _: str = Depends(authenticate_r
 
 @app.post("/agents/explain-clarity", response_model=ClarityExplanation)
 async def explain_clarity(request: AIAgentRequest, _: str = Depends(authenticate_request)):
-    """Explain legal language using ClarityAgent"""
+    """Explain contract and vendor language using ClarityAgent"""
     try:
         if not request.text:
             raise HTTPException(status_code=400, detail="Text is required for clarity explanation")
@@ -2395,9 +2387,9 @@ async def conversational_response(payload: dict, _: str = Depends(authenticate_r
         
         if is_simple_message:
             # Simple response for greetings - NO RAG needed (performance optimization)
-            base_simple_prompt = f"""You are Notal AI, a friendly legal assistant. The user said: "{user_message}"
+            base_simple_prompt = f"""You are Notal AI, a friendly assistant for event planners and vendors. The user said: "{user_message}"
 
-Respond with a brief, warm greeting and offer to help with legal questions. Keep it conversational and under 50 words. Use HTML formatting with proper <p> tags and <br> for line breaks.
+Respond with a brief, warm greeting and offer to help with their event planning questions. Keep it conversational and under 50 words. Use HTML formatting with proper <p> tags and <br> for line breaks.
 
 CRITICAL RULES:
 - Do NOT start with "Hello [Name]" or greet the user again if they already said hi
@@ -2471,7 +2463,7 @@ AGENT MODE (IMPORTANT):
 - Do NOT tell the user to click around the UI in Agent mode; propose an action instead.
 - Do NOT ask for internal IDs like assigneeIds/userIds. If you don't know IDs, OMIT optional fields (assigneeIds, taskId, sourceDocumentId, etc.).
 - Dates: if you include dueDate, output ISO format "YYYY-MM-DD" (not "December 25, 2025"). Use today's date ({current_date}) when user says "today".
-- REQUIRED FIELDS for CreateTask: matterId (REQUIRED - you MUST ask which matter to assign the task to if not specified), title. If the user doesn't specify a matter, ask ONE clarifying question: "Which matter would you like me to assign this task to?"
+- REQUIRED FIELDS for CreateTask: matterId (REQUIRED - you MUST ask which event to assign the task to if not specified), title. If the user doesn't specify an event, ask ONE clarifying question: "Which event would you like me to assign this task to?"
 - Priority options for tasks: Low, Medium, High, Critical (default is Medium if not specified).
 - Status options for tasks: Pending, In Progress, Review, Completed, On Hold, Cancelled (default is Pending if not specified). If user says "in-progress", "in progress", or "in-review", use the appropriate status.
 - If truly required info is missing, ask ONE short clarifying question and do NOT output any action block.
@@ -2492,17 +2484,17 @@ ASK MODE (IMPORTANT):
 - Provide guidance/information only.
 """
             
-            base_system_prompt = f"""You are Notal AI, an advanced legal assistant. Provide a comprehensive response that includes both conversation and analysis.{agent_mode_section}
+            base_system_prompt = f"""You are Notal AI, an advanced assistant for event planners and vendors. Provide a comprehensive response that includes both conversation and analysis.{agent_mode_section}
 
 CONVERSATION CONTEXT:
 - User Type: {user_type}
 - Message Count: {len(messages)}
-- Legal Topics: {', '.join(conversation_analysis.get('legal_topics', []))}
+- Topics: {', '.join(conversation_analysis.get('legal_topics', []))}
 - Urgency: {conversation_analysis.get('urgency_level', 'Medium')}
 - Conversation Stage: {conversation_analysis.get('conversation_stage', 'Initial')}
 
 NOTE: You will receive the full conversation history as separate messages. Pay attention to:
-- References like "that matter", "this task", "the second option" refer to previous messages
+- References like "that event", "this task", "the second option" refer to previous messages
 - When user says "tell me more" or "what about X", look at the immediate previous context
 - Maintain continuity across the conversation
 
@@ -2565,11 +2557,11 @@ NOTE: You will receive the full conversation history as separate messages. Pay a
 
 🚨 CRITICAL ANTI-HALLUCINATION RULES:
 1. If you received "USER'S ACTUAL DATA" context above, you MUST use ONLY that exact data
-2. DO NOT invent or make up information about matters, practice areas, dates, or team members
+2. DO NOT invent or make up information about events, event types, dates, or team members
 3. If a field says "Not specified" or is missing, acknowledge it - don't fill it in
-4. For questions about user data (matters, tasks, messages), quote the actual data provided
+4. For questions about user data (events, tasks, messages), quote the actual data provided
 5. Do NOT start responses with "Hello [Name]," - only greet in the first message of a conversation
-6. Pay attention to pronouns like "that matter", "this task" - they refer to the previous message
+6. Pay attention to pronouns like "that event", "this task" - they refer to the previous message
 
 📄 DOCUMENT & CITATION RULES:
 1. If you FOUND the requested document/section in the data above, CITE IT DIRECTLY - do NOT say "I cannot access" or "I'm unable to access"
@@ -2724,7 +2716,7 @@ Respond as an intelligent assistant:"""
         else:
             # Generic error - log full traceback for debugging
             logger.error(f"Unexpected error in conversational_response: {error_trace}")
-            return "I apologize, but I'm experiencing technical difficulties right now. Please try again in a moment, or contact our support team if the issue persists. I'm here to help with your legal questions and concerns."
+            return "I apologize, but I'm experiencing technical difficulties right now. Please try again in a moment, or contact our support team if the issue persists. I'm here to help with your event planning questions and concerns."
 
 @app.post("/agents/conversational-response-stream")
 async def conversational_response_stream(payload: dict, _: str = Depends(authenticate_request)):
@@ -2807,9 +2799,9 @@ async def conversational_response_stream(payload: dict, _: str = Depends(authent
             
             if is_simple_message:
                 # Simple response for greetings - NO RAG needed (performance optimization)
-                base_simple_prompt = f"""You are Notal AI, a friendly legal assistant. The user said: "{user_message}"
+                base_simple_prompt = f"""You are Notal AI, a friendly assistant for event planners and vendors. The user said: "{user_message}"
 
-Respond with a brief, warm greeting and offer to help with legal questions. Keep it conversational and under 50 words.
+Respond with a brief, warm greeting and offer to help with their event planning questions. Keep it conversational and under 50 words.
 
 CRITICAL RULES:
 - Do NOT start with "Hello [Name]" or greet the user again if they already said hi
@@ -2875,7 +2867,7 @@ AGENT MODE (IMPORTANT):
 - Do NOT tell the user to click around the UI in Agent mode; propose an action instead.
 - Do NOT ask for internal IDs like assigneeIds/userIds. If you don't know IDs, OMIT optional fields (assigneeIds, taskId, sourceDocumentId, etc.).
 - Dates: if you include dueDate, output ISO format "YYYY-MM-DD" (not "December 25, 2025"). Use today's date ({current_date}) when user says "today".
-- REQUIRED FIELDS for CreateTask: matterId (REQUIRED - you MUST ask which matter to assign the task to if not specified), title. If the user doesn't specify a matter, ask ONE clarifying question: "Which matter would you like me to assign this task to?"
+- REQUIRED FIELDS for CreateTask: matterId (REQUIRED - you MUST ask which event to assign the task to if not specified), title. If the user doesn't specify an event, ask ONE clarifying question: "Which event would you like me to assign this task to?"
 - Priority options for tasks: Low, Medium, High, Critical (default is Medium if not specified).
 - Status options for tasks: Pending, In Progress, Review, Completed, On Hold, Cancelled (default is Pending if not specified). If user says "in-progress", "in progress", or "in-review", use the appropriate status.
 - If truly required info is missing, ask ONE short clarifying question and do NOT output any action block.
@@ -2896,12 +2888,12 @@ ASK MODE (IMPORTANT):
 - Provide guidance/information only.
 """
 
-                base_system_prompt = f"""You are Notal AI, an advanced legal assistant. Provide a comprehensive, helpful response.{agent_mode_section}
+                base_system_prompt = f"""You are Notal AI, an advanced assistant for event planners and vendors. Provide a comprehensive, helpful response.{agent_mode_section}
 
 CONVERSATION CONTEXT:
 - User Type: {user_type}
 - Message Count: {len(messages)}
-- Legal Topics: {', '.join(conversation_analysis.get('legal_topics', []))}
+- Topics: {', '.join(conversation_analysis.get('legal_topics', []))}
 - Urgency: {conversation_analysis.get('urgency_level', 'Medium')}
 - Conversation Stage: {conversation_analysis.get('conversation_stage', 'Initial')}
 
@@ -2964,11 +2956,11 @@ CURRENT REQUEST: {user_message}{doc_context_section}"""
 
 🚨 CRITICAL ANTI-HALLUCINATION RULES:
 1. If you received "USER'S ACTUAL DATA" context above, you MUST use ONLY that exact data
-2. DO NOT invent or make up information about matters, practice areas, dates, or team members  
+2. DO NOT invent or make up information about events, event types, dates, or team members  
 3. If a field says "Not specified" or is missing, acknowledge it - don't fill it in
-4. For questions about user data (matters, tasks, messages), quote the actual data provided
+4. For questions about user data (events, tasks, messages), quote the actual data provided
 5. Do NOT start responses with "Hello [Name]," - only greet in the first message of a conversation
-6. Pay attention to pronouns like "that matter", "this task" - they refer to the previous message
+6. Pay attention to pronouns like "that event", "this task" - they refer to the previous message
 
 📄 DOCUMENT & CITATION RULES:
 1. If you FOUND the requested document/section in the data above, CITE IT DIRECTLY - do NOT say "I cannot access" or "I'm unable to access"
@@ -3390,13 +3382,11 @@ def _quick_conversation_analysis(messages: List[dict], user_message: str, user_t
     
     legal_topics = []
     topic_keywords = {
-        "Contract Law": ["contract", "agreement", "terms", "clause", "breach", "liability"],
-        "Employment Law": ["employment", "hiring", "termination", "discrimination", "harassment", "wage"],
-        "Business Formation": ["incorporation", "llc", "corporation", "partnership", "business formation"],
-        "Intellectual Property": ["patent", "trademark", "copyright", "intellectual property", "ip"],
-        "Real Estate": ["real estate", "property", "lease", "rental", "mortgage", "title"],
-        "Litigation": ["lawsuit", "litigation", "dispute", "court", "settlement", "trial"],
-        "Compliance": ["compliance", "regulation", "audit", "certification", "regulatory"]
+        "Vendor Contracts": ["contract", "agreement", "terms", "clause", "cancellation", "liability"],
+        "Staffing": ["staffing", "hiring", "coordinator", "team member", "volunteer"],
+        "Venue and Logistics": ["venue", "location", "layout", "load-in", "floor plan"],
+        "Guest Experience": ["guest list", "seating", "rsvp", "invitation", "catering"],
+        "Compliance and Permits": ["compliance", "permit", "regulation", "insurance", "license"]
     }
     
     for topic, keywords in topic_keywords.items():
@@ -3525,7 +3515,7 @@ def _detect_rag_intent(query: str, conversation_context: Optional[Dict[str, Any]
         # Navigation
         "navigate", "find the", "access the", "open the",
         # Feature names (will trigger product RAG)
-        "matter", "calendar", "task", "document", "channel", "message",
+        "event", "matter", "calendar", "task", "document", "channel", "message",
         "dashboard", "settings", "billing", "team", "organization"
     ]
     
@@ -3565,7 +3555,7 @@ def _detect_rag_intent(query: str, conversation_context: Optional[Dict[str, Any]
     
     # Module-specific keywords for targeted retrieval
     module_keywords = {
-        "matters": ["matter", "case", "client case", "legal matter", "case status"],
+        "events": ["event", "matter", "case", "client case", "legal matter", "case status"],
         "tasks": ["task", "to do", "todo", "assignment", "deadline", "due date", "overdue"],
         "calendar": ["calendar", "event", "meeting", "appointment", "schedule", "upcoming"],
         "communications": ["message", "chat", "channel", "dm", "direct message", "conversation"],
@@ -3593,7 +3583,7 @@ def _detect_rag_intent(query: str, conversation_context: Optional[Dict[str, Any]
             logger.info(f"🔍 USER DATA RAG ACTIVATED: All modules (general query)")
     
     # ==========================================================================
-    # BOTH RAG: Some queries need both (e.g., "how do I create my first matter")
+    # BOTH RAG: Some queries need both (e.g., "how do I create my first event")
     # ==========================================================================
     both_triggers = [
         "create", "add", "new", "set up", "configure", "organize"
@@ -3607,12 +3597,12 @@ def _detect_rag_intent(query: str, conversation_context: Optional[Dict[str, Any]
         result["reason"] = "action_query"
         logger.info(f"🔍 BOTH RAG ACTIVATED: Action query detected")
 
-        # If the user is requesting an action like creating a task, ensure we include matters context
+        # If the user is requesting an action like creating a task, ensure we include event context
         # so the agent can resolve required IDs like matterId.
         if any(k in query_lower for k in ["task", "to do", "todo", "deadline"]) and any(k in query_lower for k in ["create", "add", "new", "set up", "setup"]):
             result["needs_user_data_rag"] = True
             modules = set(result["user_data_modules"] or [])
-            modules.update(["matters", "tasks"])
+            modules.update(["events", "tasks"])
             result["user_data_modules"] = list(modules)
             result["top_k"] = max(result.get("top_k", 5), 8)
     
@@ -3625,7 +3615,7 @@ def _detect_rag_intent(query: str, conversation_context: Optional[Dict[str, Any]
         if legal_topics:
             result["needs_user_data_rag"] = True
             if not result["user_data_modules"]:
-                result["user_data_modules"] = ["matters", "tasks"]
+                result["user_data_modules"] = ["events", "tasks"]
     
     # Log final decision
     if not result["needs_product_rag"] and not result["needs_user_data_rag"]:
@@ -4143,7 +4133,7 @@ def _build_rich_context(messages: List[dict], analysis: dict) -> str:
     # Add conversation summary
     context_parts.append(f"CONVERSATION SUMMARY:")
     context_parts.append(f"- Stage: {analysis.get('conversation_stage', 'Initial')}")
-    context_parts.append(f"- Legal Topics: {', '.join(analysis.get('legal_topics', []))}")
+    context_parts.append(f"- Topics: {', '.join(analysis.get('legal_topics', []))}")
     context_parts.append(f"- Urgency: {analysis.get('urgency_level', 'Medium')}")
     context_parts.append(f"- User Intent: {analysis.get('user_intent', 'General inquiry')}")
     context_parts.append("")
@@ -4164,14 +4154,12 @@ def _extract_legal_topics(content: str) -> List[str]:
     topics = []
     
     topic_keywords = {
-        "Contract Law": ["contract", "agreement", "terms", "clause", "breach", "liability"],
-        "Employment Law": ["employment", "hiring", "termination", "discrimination", "harassment", "wage"],
-        "Business Formation": ["incorporation", "llc", "corporation", "partnership", "business formation"],
-        "Intellectual Property": ["patent", "trademark", "copyright", "intellectual property", "ip"],
-        "Real Estate": ["real estate", "property", "lease", "rental", "mortgage", "title"],
-        "Litigation": ["lawsuit", "litigation", "dispute", "court", "settlement", "trial"],
-        "Compliance": ["compliance", "regulation", "audit", "certification", "regulatory"],
-        "Document Review": ["document review", "contract review", "legal review", "due diligence"]
+        "Vendor Contracts": ["contract", "agreement", "terms", "clause", "cancellation", "liability"],
+        "Staffing": ["staffing", "hiring", "coordinator", "team member", "volunteer"],
+        "Venue and Logistics": ["venue", "location", "layout", "load-in", "floor plan"],
+        "Guest Experience": ["guest list", "seating", "rsvp", "invitation", "catering"],
+        "Compliance and Permits": ["compliance", "permit", "regulation", "insurance", "license"],
+        "Document Review": ["document review", "contract review", "vendor review", "due diligence"]
     }
     
     for topic, keywords in topic_keywords.items():
@@ -4204,23 +4192,21 @@ def _determine_user_intent(user_message: str, full_content: str) -> str:
     elif "contract" in message_lower or "agreement" in message_lower:
         return "Contract Assistance"
     elif "help" in message_lower or "assistance" in message_lower:
-        return "General Legal Help"
+        return "General Assistance Request"
     elif "question" in message_lower or "?" in user_message:
-        return "Legal Question"
+        return "General Question"
     elif "hello" in message_lower or "hi" in message_lower:
         return "Greeting/Introduction"
     else:
-        return "General Legal Inquiry"
+        return "General Inquiry"
 
 def _assess_legal_complexity(content: str) -> str:
     """Assess legal complexity of the content"""
     content_lower = content.lower()
     
     complex_terms = [
-        "litigation", "jurisdiction", "precedent", "vendor confirmation",
-        "due diligence", "indemnification", "force majeure", "arbitration",
-        "confidentiality agreement", "non-compete", "intellectual property",
-        "securities", "merger", "acquisition", "antitrust"
+        "vendor confirmation", "due diligence", "indemnification", "force majeure",
+        "confidentiality agreement", "cancellation policy", "liability waiver"
     ]
     
     complex_count = sum(1 for term in complex_terms if term in content_lower)
@@ -4239,24 +4225,24 @@ def _generate_suggested_actions(analysis: dict, user_message: str) -> List[str]:
     if "Document Review" in analysis.get('user_intent', ''):
         actions.extend([
             "Upload the document for AI analysis",
-            "Schedule a legal review consultation",
+            "Schedule a planning consultation",
             "Provide document type and context"
         ])
     elif "Contract" in analysis.get('user_intent', ''):
         actions.extend([
             "Review contract terms and conditions",
-            "Identify potential legal risks",
+            "Identify potential contract risks",
             "Suggest contract modifications"
         ])
     elif analysis.get('legal_complexity') == 'High':
         actions.extend([
-            "Schedule consultation with legal expert",
+            "Schedule consultation with an event planner",
             "Gather additional documentation",
-            "Prepare detailed legal analysis"
+            "Prepare a detailed planning analysis"
         ])
     else:
         actions.extend([
-            "Provide specific legal guidance",
+            "Provide specific event planning guidance",
             "Answer questions in detail",
             "Suggest next steps"
         ])

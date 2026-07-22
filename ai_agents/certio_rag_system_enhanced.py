@@ -142,7 +142,7 @@ class EnhancedNotalRAGSystem:
         
         # Feature keywords for specific feature detection
         self.feature_keywords = {
-            "matters": ["matter", "case", "client case", "legal matter"],
+            "events": ["event", "matter", "case", "client case", "legal matter"],
             "tasks": ["task", "assignment", "work item", "to do", "todo"],
             "calendar": ["calendar", "event", "meeting", "appointment", "schedule"],
             "communications": ["message", "chat", "communicate", "conversation", "dm", "direct message", "channel"],
@@ -227,7 +227,7 @@ class EnhancedNotalRAGSystem:
                 metadata={
                     "feature_name": feature_name,
                     "user_types": feature.user_types,
-                    "legal_areas": feature.legal_areas,
+                    "event_categories": feature.legal_areas,
                     "api_endpoints": feature.api_endpoints
                 },
                 priority=3
@@ -245,7 +245,7 @@ class EnhancedNotalRAGSystem:
                 metadata={
                     "workflow_name": workflow_name,
                     "participants": workflow.participants,
-                    "legal_requirements": workflow.legal_requirements,
+                    "requirements": workflow.legal_requirements,
                     "ai_agents": workflow.ai_agents_involved
                 },
                 priority=3
@@ -351,13 +351,13 @@ class EnhancedNotalRAGSystem:
             chunks.append(chunk)
             chunk_id += 1
         
-        # 9. Add legal domain knowledge (PRIORITY: 2)
+        # 9. Add event category knowledge (PRIORITY: 2)
         for domain, info in notal_kb.legal_domains.items():
             chunk = KnowledgeChunk(
-                id=f"legal_{domain}_{chunk_id}",
+                id=f"event_category_{domain}_{chunk_id}",
                 content=f"{domain.replace('_', ' ').title()}: {info['description']}. Common documents: {', '.join(info['common_documents'])}. Key terms: {', '.join(info['key_terms'])}",
                 source="knowledge_base",
-                category="legal_domain",
+                category="event_category",
                 metadata={
                     "domain": domain,
                     "common_documents": info['common_documents'],

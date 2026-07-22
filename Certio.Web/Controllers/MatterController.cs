@@ -515,7 +515,7 @@ namespace Certio.Web.Controllers
             {
                 _logger.LogWarning("Matter/Create GET - Redirecting to Home/Index because user={UserId}, resolvedOrgId={ResolvedOrgId}", 
                     user?.Id, resolvedOrgId);
-                TempData["ErrorMessage"] = "We couldn't determine which organization to use for the new matter. Please select an organization and try again.";
+                TempData["ErrorMessage"] = "We couldn't determine which organization to use for the new event. Please select an organization and try again.";
                 return RedirectToAction("Index", "Home");
             }
 
@@ -653,7 +653,7 @@ namespace Certio.Web.Controllers
                 if (!ValidateAllSteps(model))
                 {
                     _logger.LogWarning($"Matter creation validation failed. Errors: {string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage))}");
-                    TempData["ErrorMessage"] = "Please fix validation errors before creating the matter.";
+                    TempData["ErrorMessage"] = "Please fix validation errors before creating the event.";
                     return View(model);
                 }
 
@@ -691,7 +691,7 @@ namespace Certio.Web.Controllers
 
                 if (!result.Success)
                 {
-                    ModelState.AddModelError("", result.ErrorMessage ?? "Failed to create matter");
+                    ModelState.AddModelError("", result.ErrorMessage ?? "Failed to create event");
                     return View(model);
                 }
 
@@ -745,11 +745,11 @@ namespace Certio.Web.Controllers
 
                 if (assignmentErrors.Any())
                 {
-                    TempData["WarningMessage"] = $"Matter created successfully, but some assignments failed: {string.Join("; ", assignmentErrors)}";
+                    TempData["WarningMessage"] = $"Event created successfully, but some assignments failed: {string.Join("; ", assignmentErrors)}";
                 }
                 else
                 {
-                TempData["SuccessMessage"] = "Matter created successfully!";
+                TempData["SuccessMessage"] = "Event created successfully!";
                 }
                 
                 return RedirectToAction(nameof(Index));
@@ -1250,7 +1250,7 @@ namespace Certio.Web.Controllers
 
             if (!result.Success)
             {
-                ModelState.AddModelError("", result.ErrorMessage ?? "Failed to update matter");
+                ModelState.AddModelError("", result.ErrorMessage ?? "Failed to update event");
                 return View(model);
             }
 
@@ -1308,7 +1308,7 @@ namespace Certio.Web.Controllers
                     GetUserAgent());
             }
 
-            TempData["SuccessMessage"] = "Matter updated successfully!";
+            TempData["SuccessMessage"] = "Event updated successfully!";
             _logger.LogInformation("User {UserId} updated matter {MatterId} in org {OrgId}", user.Id, id, orgId);
             
             return RedirectToAction(nameof(Index));
@@ -1391,11 +1391,11 @@ namespace Certio.Web.Controllers
             {
                 _logger.LogWarning("Failed to delete matter {MatterId} for user {UserId}: {Error}", 
                     id, user.Id, result.ErrorMessage);
-                TempData["ErrorMessage"] = result.ErrorMessage ?? "An error occurred while deleting the matter.";
+                TempData["ErrorMessage"] = result.ErrorMessage ?? "An error occurred while deleting the event.";
                 return RedirectToAction(nameof(Index));
             }
 
-            TempData["SuccessMessage"] = "Matter deleted successfully!";
+            TempData["SuccessMessage"] = "Event deleted successfully!";
             _logger.LogInformation("User {UserId} deleted matter {MatterId}", user.Id, id);
             
             return RedirectToAction(nameof(Index));

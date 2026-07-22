@@ -17,8 +17,14 @@ namespace Certio.Application.Services;
 
 /// <summary>
 /// Comprehensive user data context service that builds RAG context from ALL user-scoped data
-/// across Matters, Tasks, Calendar, Communications, Teams, and other modules
+/// across Events, Tasks, Calendar, Communications, Teams, and other modules
 /// </summary>
+/// <remarks>
+/// Terminology note: the underlying domain entity is still <see cref="Certio.Domain.Matters.Matter"/>
+/// (see docs/architecture backlog for the full rename scope), but everything this service emits to the
+/// AI/RAG pipeline (module keys, entity type labels, summary keys, and chunk text) uses "Event"
+/// terminology so the LLM's language matches what users actually see in the product.
+/// </remarks>
 public class UserDataContextService : IUserDataContextService
 {
     private readonly ApplicationDbContext _dbContext;
@@ -47,7 +53,7 @@ public class UserDataContextService : IUserDataContextService
         var moduleData = new Dictionary<string, UserModuleData>();
         var modules = request.IncludeModules ?? new List<string> 
         { 
-            "matters", "tasks", "calendar", "communications", "clients", "teams", "documents"
+            "events", "tasks", "calendar", "communications", "clients", "teams", "documents"
         };
 
         // Build context from each module based on user permissions
@@ -57,7 +63,7 @@ public class UserDataContextService : IUserDataContextService
             {
                 var data = module switch
                 {
-                    "matters" => await BuildMattersContextAsync(request, cancellationToken),
+                    "events" => await BuildMattersContextAsync(request, cancellationToken),
                     "tasks" => await BuildTasksContextAsync(request, cancellationToken),
                     "calendar" => await BuildCalendarContextAsync(request, cancellationToken),
                     "communications" => await BuildCommunicationsContextAsync(request, cancellationToken),
@@ -181,7 +187,7 @@ public class UserDataContextService : IUserDataContextService
         if (!userHasAccess)
         {
             _logger.LogWarning("User {UserId} does NOT have access to org {OrgId} matters", request.UserId, request.OrganizationId);
-            return new UserModuleData("matters", 0, new List<UserDataChunk>(), new Dictionary<string, object?>());
+            return new UserModuleData("events", 0, new List<UserDataChunk>(), new Dictionary<string, object?>());
         }
 
         // Get accessible organization IDs (current org + client orgs if law firm)
@@ -226,18 +232,18 @@ public class UserDataContextService : IUserDataContextService
             var content = BuildMatterContent(matter);
             chunks.Add(new UserDataChunk(
                 Id: Guid.NewGuid(),
-                ModuleName: "matters",
-                EntityType: "Matter",
+                ModuleName: "events",
+                EntityType: "Event",
                 EntityId: matter.Id,
                 Title: matter.Title,
                 Content: content,
                 Metadata: new Dictionary<string, object?>
                 {
-                    ["matterId"] = matter.Id,
+                    ["eventId"] = matter.Id,
                     ["organizationId"] = matter.OrganizationId,
                     ["organizationName"] = matter.Organization?.Name,
                     ["status"] = matter.Status,
-                    ["practiceArea"] = matter.PracticeArea,
+                    ["eventType"] = matter.PracticeArea,
                     ["dueDate"] = matter.DueDate,
                     ["tasksCompleted"] = matter.TasksCompleted,
                     ["totalTasks"] = matter.TotalTasks,
@@ -252,13 +258,13 @@ public class UserDataContextService : IUserDataContextService
 
         var summary = new Dictionary<string, object?>
         {
-            ["totalMatters"] = matters.Count,
-            ["activeMatters"] = matters.Count(m => m.Status == "InProgress" || m.Status == "Planning"),
-            ["completedMatters"] = matters.Count(m => m.Status == "Completed"),
-            ["practiceAreas"] = matters.Select(m => m.PracticeArea).Distinct().ToList()
+            ["totalEvents"] = matters.Count,
+            ["activeEvents"] = matters.Count(m => m.Status == "InProgress" || m.Status == "Planning"),
+            ["completedEvents"] = matters.Count(m => m.Status == "Completed"),
+            ["eventTypes"] = matters.Select(m => m.PracticeArea).Distinct().ToList()
         };
 
-        return new UserModuleData("matters", matters.Count, chunks, summary);
+        return new UserModuleData("events", matters.Count, chunks, summary);
     }
 
     private async Task<UserModuleData> BuildTasksContextAsync(
@@ -775,8 +781,8 @@ public class UserDataContextService : IUserDataContextService
     private string BuildMatterContent(Certio.Domain.Matters.Matter matter)
     {
         var sb = new StringBuilder();
-        sb.AppendLine($"=== MATTER: {matter.Title} ===");
-        sb.AppendLine($"Matter ID: {matter.Id}");
+        sb.AppendLine($"=== EVENT: {matter.Title} ===");
+        sb.AppendLine($"Event ID: {matter.Id}");
         
         // Show organization name if available (important for client matters)
         if (matter.Organization != null)
@@ -797,7 +803,7 @@ public class UserDataContextService : IUserDataContextService
             sb.AppendLine($"Client Goals: {matter.ClientGoals}");
         
         if (!string.IsNullOrEmpty(matter.LegalRequirements))
-            sb.AppendLine($"Legal Requirements: {matter.LegalRequirements}");
+            sb.AppendLine($"Requirements: {matter.LegalRequirements}");
         
         if (matter.StartDate.HasValue)
             sb.AppendLine($"Start Date: {matter.StartDate.Value:yyyy-MM-dd}");
@@ -848,7 +854,7 @@ public class UserDataContextService : IUserDataContextService
             sb.AppendLine($"Description: {task.Description}");
         
         if (task.Matter != null)
-            sb.AppendLine($"Related Matter: {task.Matter.Title}");
+            sb.AppendLine($"Related Event: {task.Matter.Title}");
         
         if (task.DueDate.HasValue)
             sb.AppendLine($"Event Date: {task.DueDate.Value:yyyy-MM-dd}");

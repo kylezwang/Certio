@@ -176,8 +176,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Matter preview updates
     function updateMatterPreview() {
-        const title = document.querySelector('input[name="Title"]')?.value || 'Matter Title';
-        const description = document.querySelector('textarea[name="Description"]')?.value || 'Matter description will appear here...';
+        const title = document.querySelector('input[name="Title"]')?.value || 'Event Title';
+        const description = document.querySelector('textarea[name="Description"]')?.value || 'Event description will appear here...';
         const category = document.querySelector('select[name="Category"]')?.value || 'Category';
         const status = document.querySelector('select[name="Status"]')?.value || 'Status';
         const priority = document.querySelector('select[name="Priority"]')?.value || 'Priority';

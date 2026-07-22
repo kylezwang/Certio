@@ -128,7 +128,7 @@ namespace Certio.Web.Controllers
                 var mattersResult = await _matterService.ListMattersAsync(user.Id, organizationId);
                 if (!mattersResult.Success)
                 {
-                    TempData["Error"] = mattersResult.ErrorMessage ?? "Failed to load matters";
+                    TempData["Error"] = mattersResult.ErrorMessage ?? "Failed to load events";
                     return View(new TasksViewModel());
                 }
                 
@@ -214,7 +214,7 @@ namespace Certio.Web.Controllers
             var matterResult = await _matterService.GetMatterAsync(user.Id, matterId);
             if (!matterResult.Success)
             {
-                TempData["Error"] = matterResult.ErrorMessage ?? "Matter not found";
+                TempData["Error"] = matterResult.ErrorMessage ?? "Event not found";
                 return RedirectToAction("Index", "Matter");
             }
 
@@ -361,7 +361,7 @@ namespace Certio.Web.Controllers
             var matterResult = await _matterService.GetMatterAsync(user.Id, matterId);
             if (!matterResult.Success)
             {
-                TempData["Error"] = matterResult.ErrorMessage ?? "Matter not found";
+                TempData["Error"] = matterResult.ErrorMessage ?? "Event not found";
                 return RedirectToAction("Index", "Matter");
             }
 

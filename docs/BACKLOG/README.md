@@ -10,6 +10,7 @@ Deferred work from the July 2026 architecture review. These items are **known li
 | Document | Description |
 |----------|-------------|
 | [`SCALABILITY_AND_ARCHITECTURE.md`](SCALABILITY_AND_ARCHITECTURE.md) | Remaining scalability, multi-instance, pagination, and structural cleanup items |
+| [`AI_TERMINOLOGY_CLEANUP_AND_RUNTIME_ISSUES.md`](AI_TERMINOLOGY_CLEANUP_AND_RUNTIME_ISSUES.md) | Record of the "Matter"/legal AI-terminology cleanup, plus dashboard-card latency, streaming-timeout, and Google Drive retry issues found in server logs |
 
 ## How to use this folder
 

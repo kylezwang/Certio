@@ -3191,15 +3191,15 @@
                 await streamBriefingCard('daily-briefing', 
                     'dailyBriefingContent',
                     `Generate a concise daily briefing for today. Include:
-                    - Number of filings due today with case names
+                    - Number of events happening today with event names
                     - Scheduled client calls with times and names
                     - Any overdue items (invoices, tasks, deadlines)
                     Format as brief bullet points. Be specific and actionable.
                     IMPORTANT: Do NOT use emojis. Use Unicode symbols like •, ▸, ►, ✓, ✔, ✗, ✘, →, ‣ instead.
                     Example format:
                     Today
-                    2 filings due
-                    Smith v. Jones, ABC Corp
+                    2 events today
+                    Smith-Jones Wedding, ABC Corp Gala
                     
                     1 client call
                     4:30 PM with Johnson
@@ -3215,19 +3215,19 @@
                 await streamBriefingCard('notal-suggestions',
                     'notalSuggestionsContent',
                     `Generate 3-4 actionable suggestions based on current workload. Include:
-                    - Inactive matters needing follow-up
+                    - Inactive events needing follow-up
                     - Overdue invoices or billings
                     - Resource allocation issues (overloaded team members)
                     Format as brief items with action arrows.
                     IMPORTANT: Do NOT use emojis. Use Unicode symbols like •, ▸, ►, ✓, ✔, ✗, ✘, →, ‣ instead.
                     Example format:
-                    Matter Z inactive 12 days
+                    Event Z inactive 12 days
                     -> follow up
                     
                     3 overdue invoices
                     -> send reminders
                     
-                    Paralegal C overloaded
+                    Team member C overloaded
                     -> consider reassigning`
                 );
 
