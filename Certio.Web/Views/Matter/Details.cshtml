@@ -17,6 +17,49 @@
 <meta name="organization-id" content="@ViewBag.OrganizationId" />
 <meta name="matter-id" content="@Model.Matter.Id" />
 
+<script>
+    // Track this event/matter as "recently viewed" for the client dashboard's Recent Events card.
+    (function () {
+        try {
+            var STORAGE_KEY = 'certio_recent_events';
+            var MAX_ENTRIES = 15;
+
+            var entry = {
+                id: @Model.Matter.Id,
+                orgId: @ViewBag.OrganizationId,
+                title: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Matter.Title ?? "")),
+                status: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Matter.Status ?? "")),
+                practiceArea: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Matter.PracticeArea ?? "")),
+                dueDate: @Html.Raw(Model.Matter.DueDate.HasValue ? System.Text.Json.JsonSerializer.Serialize(Model.Matter.DueDate.Value.ToString("o")) : "null"),
+                viewedAt: Date.now()
+            };
+
+            var existingRaw = window.localStorage.getItem(STORAGE_KEY);
+            var list = [];
+            if (existingRaw) {
+                try {
+                    var parsed = JSON.parse(existingRaw);
+                    if (Array.isArray(parsed)) {
+                        list = parsed;
+                    }
+                } catch (parseErr) {
+                    list = [];
+                }
+            }
+
+            list = list.filter(function (item) { return item && item.id !== entry.id; });
+            list.unshift(entry);
+            if (list.length > MAX_ENTRIES) {
+                list = list.slice(0, MAX_ENTRIES);
+            }
+
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+        } catch (e) {
+            // localStorage may be unavailable (private browsing, etc.) - fail silently.
+        }
+    })();
+</script>
+
 <style>
     /* Override the tasks.css padding reset when loaded in matter details context */
     /* This ensures the 1rem padding is maintained for the ENTIRE page (header, tabs, and content) */

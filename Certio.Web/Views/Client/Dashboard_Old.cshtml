@@ -1,0 +1,3469 @@
+@*
+    ARCHIVED - NOT IN USE.
+    This is the pre-redesign Client Dashboard (AI ask box + Daily Briefing + Notal Suggestions layout),
+    kept for reference/rollback only. No controller action returns this view.
+    The active dashboard is Views/Client/Dashboard.cshtml.
+    See docs/BACKLOG/AI_TERMINOLOGY_CLEANUP_AND_RUNTIME_ISSUES.md (Part 2, P0) for why this was replaced
+    (GenerateDashboardCardStream latency/timeout issues tied to the Daily Briefing / Notal Suggestions cards below).
+*@
+@model Certio.Web.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard (Archived)";
+    Layout = "_ClientLayout";
+    var orgType = ViewBag.OrganizationType != null 
+        ? (Certio.Domain.Organizations.OrganizationType)ViewBag.OrganizationType 
+        : Certio.Domain.Organizations.OrganizationType.LawFirm;
+    var orgEntity = ViewBag.OrganizationEntity as Certio.Domain.Organizations.Organization;
+    // Use custom terminology if available, otherwise fall back to type-based default
+    var mattersLabel = orgEntity != null 
+        ? Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgEntity) 
+        : Certio.Web.Helpers.RoleDisplayHelper.GetMattersTerminology(orgType);
+    var matterLabel = orgEntity != null 
+        ? Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgEntity) 
+        : Certio.Web.Helpers.RoleDisplayHelper.GetMatterTerminology(orgType);
+}
+
+<div class="global-dashboard-main">
+    <div class="row h-100">
+        <!-- Full Width Content -->
+        <div class="col-12 main-column">
+    <!-- AI Chat Section -->
+    <div class="card mb-4 mt-3 border-0 ai-chat-card gd-card" id="aiChatCard">
+        <div class="card-body p-0 ai-chat-card-body">
+            <button class="btn btn-link text-muted p-0 ai-close-btn" id="aiCloseBtn" title="Close conversation" style="display: none;">
+                <i class="fas fa-times"></i>
+            </button>
+            <button class="btn btn-link text-muted p-0 ai-fullscreen-btn" id="aiFullscreenBtn" title="Toggle fullscreen">
+                <i class="fas fa-expand"></i>
+            </button>
+            <div class="row g-0 h-100">
+                <!-- Conversations Column -->
+                <div class="col-md-3 conversations-column" id="conversationsColumn">
+                    <!-- Sticky Header with Search and New Note -->
+                    <div class="conversations-header">
+                        <!-- Search Bar Container with New Note -->
+                        <div class="conversations-search-container">
+                            <i class="fas fa-search conversations-search-icon"></i>
+                            <input type="text" class="conversations-search-input" placeholder="Search Notes" id="conversationsSearchInput" />
+                            <button class="conversations-filter-btn" title="Filter">
+                                <i class="fas fa-filter"></i>
+                            </button>
+                            <!-- New Note Button -->
+                            <div class="conversations-new-note-container">
+                                <a href="#" id="newNoteBtn" class="text-decoration-none" style="display: block;">
+                                    <div class="card border-0 conversations-new-note-btn">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="fas fa-plus" style="color: #3d1019; font-size: 0.875rem;"></i>
+                                            <div style="min-width: 0; flex: 1; margin-top: 0;">
+                                                <h6 class="mb-0 fw-bold text-dark" style="font-size: 0.875rem;">
+                                                    New Note
+                                                </h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="conversations-list" id="conversationsList">
+                        <div class="conversations-loading">Loading conversations...</div>
+                    </div>
+                </div>
+                <!-- Main Chat Content -->
+                <div class="col-12 ai-chat-main-content" id="aiChatMainContent">
+                    <!-- Default Landing View (shown when no conversation selected) -->
+                    <div class="p-4 dashboard-landing-view" id="dashboardLandingView">
+                        <div class="text-center mb-3">
+                            <img src="~/images/Notal_Banner_Logo_Large_Text.png" alt="Notal AI" style="height: 45px; object-fit: contain;" />
+                        </div>
+                        <h2 class="text-center mb-4 fs-2 fw-semibold text-dark">What can I help with?</h2>
+                        
+                        <!-- Attachment Preview for Landing View (hidden by default) -->
+                        <div class="attachment-preview landing-attachment-preview" id="landingAttachmentPreview" style="display: none; max-width: 600px; margin: 0 auto 1rem auto;">
+                            <i class="fas fa-paperclip attachment-preview-icon"></i>
+                            <div class="attachment-preview-info">
+                                <div class="attachment-preview-name" id="landingAttachmentName">Document.pdf</div>
+                                <div class="attachment-preview-size" id="landingAttachmentSize">2.4 MB</div>
+                            </div>
+                            <button class="attachment-preview-remove" id="landingRemoveAttachment" title="Remove attachment">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="search-container-large" id="searchContainer">
+                            <div class="search-plus-container">
+                                <button class="btn btn-link text-muted" id="dashboardPlusBtn" type="button" title="Add attachment">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            <input type="text" class="form-control form-control-lg" id="dashboardSearchInput" placeholder="Ask anything" />
+                            <div class="search-actions">
+                                <button class="btn btn-link text-muted">
+                                    <i class="fas fa-microphone"></i>
+                                </button>
+                                <button class="btn btn-link text-muted" id="dashboardSendBtn">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Conversation View (shown when conversation is selected) -->
+                    <div class="dashboard-conversation-view" id="dashboardConversationView" style="display: none;">
+                        <!-- Messages Container -->
+                        <div class="dashboard-chat-messages" id="dashboardChatMessages">
+                            <!-- Notal AI Conversation Header -->
+                            <div class="notal-conversation-header" id="dashboardNotalHeader" style="display: none;">
+                                <div class="ai-message-bubble">
+                                    <div class="message-content">
+                                        <div class="message-header">
+                                            <img src="/images/Notal_Banner_Logo.png" alt="Notal AI" class="ai-message-logo" />
+                                            <span class="timestamp">Just now</span>
+                                        </div>
+                                        <div class="message-text">
+                                            Hi! I'm Notal, your AI assistant. How can I help you today?
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Messages will be loaded here -->
+                        </div>
+                        
+                        <!-- Chat Input -->
+                        <div class="dashboard-chat-input">
+                            <div class="input-container">
+                                <!-- Attachment Preview (hidden by default) -->
+                                <div class="attachment-preview" id="dashboardAttachmentPreview" style="display: none;">
+                                    <i class="fas fa-paperclip attachment-preview-icon"></i>
+                                    <div class="attachment-preview-info">
+                                        <div class="attachment-preview-name" id="dashboardAttachmentName">Document.pdf</div>
+                                        <div class="attachment-preview-size" id="dashboardAttachmentSize">2.4 MB</div>
+                                    </div>
+                                    <button class="attachment-preview-remove" id="dashboardRemoveAttachment" title="Remove attachment">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- Main Input Row -->
+                                <div class="message-input-wrapper">
+                                    <textarea class="message-input" 
+                                              id="dashboardMessageInput" 
+                                              placeholder="Message Notal..." 
+                                              rows="1"
+                                              maxlength="2000"></textarea>
+                                    <button class="send-button" id="dashboardSendButton" title="Send message">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- Action Buttons Row -->
+                                <div class="input-actions-row">
+                                    <div class="input-actions-left">
+                                    <button class="input-action-btn" id="dashboardAttachFileBtn" title="Attach file">
+                                        <i class="fas fa-paperclip"></i>
+                                    </button>
+                                    <button class="input-action-btn" id="dashboardEmojiBtn" title="Add emoji">
+                                        <i class="fas fa-smile"></i>
+                                    </button>
+                                    <button class="input-action-btn" id="dashboardMicBtn" title="Voice message">
+                                        <i class="fas fa-microphone"></i>
+                                    </button>
+                                        
+                                        <!-- Agent/Ask Mode Selector -->
+                                        <div class="ai-mode-selector" id="dashboardAiModeSelector" title="Select AI mode">
+                                            <i class="fas fa-infinity mode-icon"></i>
+                                            <span class="mode-label" id="dashboardCurrentModeLabel">Agent</span>
+                                            <i class="fas fa-chevron-down mode-chevron"></i>
+                                            <span class="agent-mode-badge" id="dashboardAgentModeBadge"></span>
+                                            
+                                            <!-- Mode Dropdown -->
+                                            <div class="ai-mode-dropdown" id="dashboardAiModeDropdown">
+                                                <div class="ai-mode-option selected" data-mode="agent">
+                                                    <span class="option-icon"><i class="fas fa-infinity"></i></span>
+                                                    <span class="option-text">Agent</span>
+                                                    <span class="option-check"><i class="fas fa-check"></i></span>
+                                                </div>
+                                                <div class="ai-mode-option" data-mode="ask">
+                                                    <span class="option-icon"><i class="fas fa-comment-dots"></i></span>
+                                                    <span class="option-text">Ask</span>
+                                                    <span class="option-check"><i class="fas fa-check"></i></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Model Tier Selector (syncs with AI Settings) -->
+                                        <div class="model-selector" id="dashboardModelSelector" title="Select AI model tier">
+                                            <span id="dashboardCurrentModelLabel">Auto</span>
+                                            <i class="fas fa-chevron-down model-chevron"></i>
+                                            
+                                            <!-- Model Tier Dropdown -->
+                                            <div class="model-dropdown" id="dashboardModelDropdown">
+                                                <div class="model-option selected" data-model="Auto">Auto (Recommended)</div>
+                                                <div class="model-option" data-model="GPT4oMini">Azure GPT-4o-mini</div>
+                                                <div class="model-option" data-model="GPT4o">Azure GPT-4o</div>
+                                                <div class="model-option" data-model="GPT5">Azure GPT-5</div>
+                                                <div class="model-option" data-model="GPT51">Azure GPT-5.1</div>
+                                                <div class="model-option" data-model="GPT52">Azure GPT-5.2</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="input-actions-right">
+                                        <button class="input-action-btn" id="dashboardCodeBtn" title="Character Count">
+                                            <i class="fas fa-code"></i>
+                                        </button>
+                                        <div class="char-counter" id="dashboardCharCounter">0 / 2000</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Hidden file input for attachments -->
+                            <input type="file" id="dashboardFileInput" style="display: none;" accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Access Section -->
+    <div class="card mb-4 border-0 gd-card">
+        <div class="card-body p-4">
+            <h5 class="card-title fw-bold mb-3">Quick Access</h5>
+            
+            <div class="row gx-4 gy-3">
+                <div class="col-md-3">
+                    <a href="/Client/@ViewBag.OrganizationId/Matter" class="quick-access-item qa-card">
+                        <div class="d-flex flex-column align-items-center text-center p-3">
+                            <div class="quick-access-icon mb-2">
+                                <i class="fas fa-briefcase" style="color: #0b365e;"></i>
+                            </div>
+                            <span class="fw-medium">@mattersLabel</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="/Client/@ViewBag.OrganizationId/Tasks" class="quick-access-item qa-card">
+                        <div class="d-flex flex-column align-items-center text-center p-3">
+                            <div class="quick-access-icon mb-2">
+                                <i class="fa-solid fa-bars-progress" style="color: #9bc0ec;"></i>
+                            </div>
+                            <span class="fw-medium">Tasks</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="/Client/@ViewBag.OrganizationId/Communications" class="quick-access-item qa-card">
+                        <div class="d-flex flex-column align-items-center text-center p-3">
+                            <div class="quick-access-icon mb-2">
+                                <i class="far fa-comments text-danger"></i>
+                            </div>
+                            <span class="fw-medium">Communications</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="/Client/@ViewBag.OrganizationId/Documents" class="quick-access-item qa-card">
+                        <div class="d-flex flex-column align-items-center text-center p-3">
+                            <div class="quick-access-icon mb-2">
+                                <i class="far fa-file-alt text-primary"></i>
+                            </div>
+                            <span class="fw-medium">Files</span>
+                        </div>
+                    </a>
+                </div>
+                @if (Model.OrganizationType == Certio.Domain.Organizations.OrganizationType.LawFirm)
+                {
+                    <div class="col-md-3">
+                        <a href="#" class="quick-access-item qa-card" data-action="open-global-clients">
+                            <div class="d-flex flex-column align-items-center text-center p-3">
+                                <div class="quick-access-icon mb-2">
+                                    <i class="fas fa-users text-purple"></i>
+                                </div>
+                                <span class="fw-medium">Contacts</span>
+                            </div>
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="col-md-3">
+                        <a href="/Client/@ViewBag.OrganizationId/Teams" class="quick-access-item qa-card">
+                            <div class="d-flex flex-column align-items-center text-center p-3">
+                                <div class="quick-access-icon mb-2">
+                                    <i class="fa-solid fa-user-group text-purple"></i>
+                                </div>
+                                <span class="fw-medium">Teams</span>
+                            </div>
+                        </a>
+                    </div>
+                }
+                <div class="col-md-3">
+                    <a href="/Client/@ViewBag.OrganizationId/Calendar" class="quick-access-item qa-card">
+                        <div class="d-flex flex-column align-items-center text-center p-3">
+                            <div class="quick-access-icon mb-2">
+                                <i class="far fa-calendar text-success"></i>
+                            </div>
+                            <span class="fw-medium">Calendar</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="/Client/@ViewBag.OrganizationId/Billing" class="quick-access-item qa-card">
+                        <div class="d-flex flex-column align-items-center text-center p-3">
+                            <div class="quick-access-icon mb-2">
+                                <i class="fa-regular fa-credit-card text-warning"></i>
+                            </div>
+                            <span class="fw-medium">Billing</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="/Client/@ViewBag.OrganizationId/History" class="quick-access-item qa-card">
+                        <div class="d-flex flex-column align-items-center text-center p-3">
+                            <div class="quick-access-icon mb-2">
+                                <i class="fas fa-clock text-info"></i>
+                            </div>
+                            <span class="fw-medium">History</span>
+                        </div>
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Row: Upcoming Deadlines, Daily Briefing, Notal Suggestions -->
+    <div class="row gx-4">
+        <!-- Upcoming Deadlines -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 h-100 gd-card">
+                <div class="card-body p-4">
+                    <h5 class="card-title fw-bold mb-3"><i class="fa-solid fa-calendar-day me-2 text-muted" style="font-size: 0.75em;"></i>Upcoming Deadlines</h5>
+                    
+                    <div id="dashboardUpcomingDeadlinesList">
+                        <p class="text-muted small mb-2">Loading deadlines...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Briefing - AI Streaming -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 h-100 daily-briefing-card gd-card" id="dailyBriefingCard">
+                <div class="card-body p-4">
+                    <button class="btn btn-link text-muted p-0 briefing-fullscreen-btn" id="dailyBriefingFullscreenBtn" title="Toggle fullscreen">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fa-solid fa-chart-pie text-muted me-2" style="font-size: 0.9em;"></i>
+                        <h5 class="card-title fw-bold mb-0">Daily Briefing</h5>
+                    </div>
+                    
+                    <!-- Summary Grid View (shown when not fullscreen) -->
+                    <div id="dailyBriefingSummary">
+                        <div class="briefing-loading">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <span class="ms-2 text-muted small">Generating briefing...</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Full Content View (shown when fullscreen) -->
+                    <div id="dailyBriefingContent" class="briefing-content" style="display: none;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notal Suggestions - AI Streaming -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 h-100 notal-suggestions-card gd-card" id="notalSuggestionsCard">
+                <div class="card-body p-4">
+                    <button class="btn btn-link text-muted p-0 suggestions-fullscreen-btn" id="notalSuggestionsFullscreenBtn" title="Toggle fullscreen">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                    <h5 class="card-title fw-bold mb-3"><img src="~/images/Notal_Banner_Logo_Large_Text.png" alt="Notal AI" style="height: 1.3rem; object-fit: contain; display: inline-block; margin-right: 0.25rem; margin-bottom: 0.2rem;" />Suggestions</h5>
+                    
+                    <!-- Summary View (shown when not fullscreen) -->
+                    <div id="notalSuggestionsSummary" class="suggestions-summary">
+                        <div class="briefing-loading">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <span class="ms-2 text-muted small">Generating suggestions...</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Full Content View (shown when fullscreen) -->
+                    <div id="notalSuggestionsContent" class="suggestions-content" style="display: none;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+
+<style>
+    .global-dashboard-main {
+        padding: 0 0.75rem;
+        max-width: 1400px; /* Constrain max width */
+        margin: 0 auto; /* Center the dashboard content */
+    }
+
+    /* Force 4x2 grid layout for quick access */
+    .global-dashboard-main .row > [class^="col-"] {
+    }
+    .global-dashboard-main .row .col-md-3 .quick-access-item {
+        width: 100%;
+    }
+
+    .card {
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+
+    .ai-chat-card {
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    .ai-chat-card.activated {
+        min-height: calc(100vh - 300px);
+    }
+
+    .ai-chat-card-body {
+        padding: 1rem 0; /* Minimal padding for default state */
+        transition: all 0.3s ease-in-out;
+        position: relative; /* For absolute positioning of conversations column */
+    }
+
+    /* Expand height when activated to fill remaining space */
+    .ai-chat-card.activated .ai-chat-card-body {
+        height: calc(100vh - 300px); /* Fill remaining viewport height */
+        min-height: calc(100vh - 300px);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .ai-chat-card.activated .ai-chat-card-body .row {
+        flex: 1;
+        min-height: 0;
+        height: 100%;
+        display: flex;
+        align-items: stretch;
+    }
+
+    .ai-chat-card.fullscreen .ai-chat-card-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .ai-chat-card.fullscreen .ai-chat-card-body .row {
+        flex: 1;
+        min-height: 0;
+        height: 100%;
+        display: flex;
+        align-items: stretch;
+    }
+
+    .ai-fullscreen-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 1.25rem;
+        color: #6c757d !important;
+        background: white !important;
+        border: none !important;
+        border-radius: 50% !important;
+        width: 2rem;
+        height: 2rem;
+        padding: 0 !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10;
+        transition: color 0.2s ease, right 0.2s ease, background-color 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        text-decoration: none !important;
+    }
+
+    .ai-fullscreen-btn:hover {
+        color: #495057 !important;
+        background-color: #f3f4f6 !important;
+        text-decoration: none !important;
+    }
+
+    .ai-fullscreen-btn.has-close-btn {
+        right: 3.5rem;
+    }
+
+    .ai-close-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 1.25rem;
+        color: #6c757d !important;
+        background: white !important;
+        border: none !important;
+        border-radius: 50% !important;
+        width: 2rem;
+        height: 2rem;
+        padding: 0 !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10;
+        transition: color 0.2s ease, background-color 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        text-decoration: none !important;
+    }
+
+    .ai-close-btn:hover {
+        color: #495057 !important;
+        background-color: #f3f4f6 !important;
+        text-decoration: none !important;
+    }
+
+    .ai-chat-card.fullscreen {
+        /* Position set via JavaScript based on main-content dimensions */
+        max-width: none !important;
+        margin: 0 !important;
+        z-index: 1000 !important;
+        border-radius: 12px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        background: white !important;
+    }
+
+    .ai-chat-card.fullscreen .card-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .ai-chat-card.fullscreen .conversations-column {
+        max-height: 100%;
+    }
+
+
+    /* Conversations Column - Hidden by default */
+    .conversations-column {
+        background-color: transparent; /* Remove background - scrollbar will show through */
+        border-right: none;
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 0;
+        min-width: 0;
+        padding: 0;
+        margin: 0;
+        visibility: hidden;
+        opacity: 0;
+        transform: translateX(-100%);
+        transition: width 0.3s ease-in-out, transform 0.3s ease-in-out, opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        overflow: hidden;
+        z-index: 1;
+        flex: none !important;
+        max-width: none !important;
+    }
+
+    .ai-chat-card.activated .conversations-column,
+    .ai-chat-card.fullscreen .conversations-column {
+        border-right: 1px solid #ddd;
+    }
+
+    /* Show conversations column when activated */
+    .ai-chat-card.activated .conversations-column {
+        width: 25%;
+        visibility: visible;
+        opacity: 1;
+        transform: translateX(0);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .ai-chat-card.activated .conversations-column .conversations-list {
+        padding: 0.75rem;
+    }
+
+    /* Always show in fullscreen mode */
+    .ai-chat-card.fullscreen .conversations-column {
+        width: 25% !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        transform: translateX(0) !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .ai-chat-card.fullscreen .conversations-column .conversations-list {
+        padding: 1rem !important;
+    }
+
+    /* Adjust main content when activated - use margin instead of flex to prevent shift */
+    .ai-chat-main-content {
+        transition: margin-left 0.3s ease-in-out;
+        margin-left: 0;
+        position: relative;
+        z-index: 0;
+    }
+
+    /* Center content vertically and horizontally when activated */
+    .ai-chat-card.activated .ai-chat-main-content {
+        margin-left: 25%;
+        height: 100%;
+        min-height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        align-self: stretch;
+    }
+
+    .ai-chat-card.activated .ai-chat-main-content > div {
+        width: 100%;
+    }
+
+    .ai-chat-card.fullscreen .ai-chat-main-content {
+        margin-left: 25% !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex: 1 !important;
+    }
+
+    .ai-chat-card.fullscreen .ai-chat-main-content > div {
+        width: 100% !important;
+    }
+
+    /* Scrollbar styling for conversations list only */
+    .conversations-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .conversations-list::-webkit-scrollbar-track {
+        background: transparent; /* Remove track background */
+    }
+
+    .conversations-list::-webkit-scrollbar-thumb {
+        background: #ececec; /* Use the lighter gray color for the scrollbar */
+        border-radius: 3px;
+        border: 1px solid rgba(0, 0, 0, 0.05); /* Very subtle border for definition */
+    }
+
+    .conversations-list::-webkit-scrollbar-thumb:hover {
+        background: #d5d5d5; /* Slightly darker on hover for feedback */
+    }
+
+    /* Conversations Header - Sticky container for search and new note */
+    .conversations-header {
+        flex-shrink: 0;
+        z-index: 10;
+        background: #ffffff;
+        border-top-left-radius: 12px;
+    }
+
+    /* Conversations Search Bar - Match Communications Sidebar Styling */
+    .conversations-search-container {
+        position: relative;
+        padding: 1rem 0.75rem;
+        background: #ffffff;
+        border-bottom: 1px solid rgba(11, 54, 94, 0.1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+        border-top-left-radius: 12px;
+    }
+
+    .conversations-search-icon {
+        position: absolute;
+        left: 1.75rem;
+        top: 1.75rem;
+        color: #6b7280;
+        font-size: 0.875rem;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .conversations-filter-btn {
+        position: absolute;
+        right: 1.5rem;
+        top: 1.35rem;
+        background: none;
+        border: none;
+        color: #6b7280;
+        font-size: 0.875rem;
+        cursor: pointer;
+        padding: 0.375rem;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+    }
+
+    .conversations-filter-btn:hover {
+        background: rgba(0, 0, 0, 0.05);
+        color: #374151;
+    }
+
+    .conversations-filter-btn:focus {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    .conversations-search-input {
+        width: 100%;
+        padding: 0.5rem 2.5rem 0.5rem 2.5rem;
+        border: transparent;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        color: #1f2937;
+        background: #f9fafb;
+        transition: all 0.2s ease;
+        outline: none;
+        box-sizing: border-box;
+        margin-bottom: 0.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
+
+    .conversations-search-input:focus {
+        background: #ffffff;
+        border-color: #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        outline: none !important;
+    }
+
+    .conversations-search-input::placeholder {
+        color: #9ca3af;
+    }
+
+    /* New Note Button - Match View All Clients & Contacts Styling */
+    .conversations-new-note-container {
+        padding-top: 0.5rem;
+        padding-bottom: 0;
+    }
+
+    .conversations-new-note-btn {
+        background-color: #f8f9fa;
+        padding: 0.75rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .conversations-new-note-btn:hover {
+        background-color: #e9ecef;
+    }
+
+    .conversations-new-note-btn:focus,
+    #newNoteBtn,
+    #newNoteBtn:focus {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    /* Firefox scrollbar styling for conversations list */
+    .conversations-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem;
+        min-height: 0;
+        scrollbar-width: thin;
+        scrollbar-color: #ececec transparent;
+    }
+
+    .conversations-loading {
+        text-align: center;
+        color: #6c757d;
+        font-size: 0.875rem;
+        padding: 1rem;
+    }
+
+    .conversation-item {
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        background-color: rgba(255, 255, 255, 0.7);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+    }
+
+    .conversation-item:hover {
+        background-color: rgba(255, 255, 255, 0.9);
+        border-color: rgba(61, 16, 25, 0.2);
+    }
+
+    .conversation-item.active {
+        background-color: #3d1019;
+        color: white;
+        border-color: #3d1019;
+    }
+
+    .conversation-item .conversation-title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        margin: 0;
+    }
+
+    .conversation-item.active .conversation-title {
+        color: white;
+    }
+
+    .ai-chat-main-content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .search-container-large {
+        position: relative;
+        max-width: 600px;
+        width: 100%;
+        margin: 0 auto;
+    }
+
+    .search-container-large input {
+        padding: 0.75rem 3rem 0.75rem 3rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 24px;
+        background-color: #f9fafb;
+        font-size: 1rem;
+    }
+
+    /* Match placeholder to Matters subtitle (lead text) */
+    .search-container-large input::placeholder {
+        font-size: 1.1rem;
+        font-weight: 300;
+        color: #6c757d;
+    }
+
+    .search-plus-container {
+        position: absolute;
+        left: 0.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        align-items: center;
+        z-index: 10;
+    }
+
+    .search-plus-container .btn {
+        padding: 0;
+        border: none;
+        background: transparent;
+        transition: all 0.2s ease;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none !important;
+    }
+
+    .search-plus-container .btn:hover,
+    .search-plus-container .btn:focus {
+        background-color: rgba(0, 0, 0, 0.05);
+        text-decoration: none !important;
+    }
+
+    .search-plus-container .btn i {
+        font-size: 1.1rem;
+        color: #6b7280;
+    }
+
+    .search-plus-container .btn:hover i {
+        color: #9d5252;
+    }
+
+    .search-actions {
+        position: absolute;
+        right: 0.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        gap: 0.25rem;
+    }
+
+    .search-actions .btn {
+        padding: 0.25rem 0.5rem;
+        border: none;
+    }
+
+    .quick-access-item {
+        display: block;
+        text-decoration: none;
+        color: inherit;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    /* Add shadow and spacing on the card itself so gutters show between tiles */
+    .qa-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        display: block;
+        transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+
+    /* Single hover effect for qa-card buttons */
+    .qa-card:hover {
+        background-color: #eef1f3;
+        color: inherit;
+        text-decoration: none;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    .quick-access-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    .text-purple {
+        color: #8b5cf6 !important;
+    }
+
+    /* Match Matters card styling */
+    .gd-card {
+        transition: all 0.3s ease;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+
+    .gd-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 1px 12px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    /* Firm Summary styles */
+    .firm-stat {
+        padding: 0.5rem 0;
+    }
+
+    /* Daily Briefing styles */
+    .daily-briefing-card .card-body {
+        background: white;
+        border-radius: 12px;
+    }
+
+    .briefing-item {
+        padding: 0.5rem 0;
+    }
+
+    .briefing-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .briefing-content, .suggestions-content {
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    .briefing-content p, .suggestions-content p {
+        margin-bottom: 0.75rem;
+    }
+
+    .briefing-content strong, .suggestions-content strong {
+        color: #2563eb;
+        font-weight: 600;
+    }
+
+    .briefing-content ul, .suggestions-content ul {
+        margin: 0.5rem 0;
+        padding-left: 1.25rem;
+    }
+
+    .briefing-content li, .suggestions-content li {
+        margin-bottom: 0.5rem;
+    }
+
+    /* Suggestion styles */
+    .suggestion-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .suggestion-item:last-child {
+        border-bottom: none;
+    }
+
+    /* Main column styling */
+    .main-column {
+        padding: 0 0.75rem;
+    }
+
+    /* Override main content padding for Client Dashboard only */
+    .main-content.client-main-content {
+        padding: 0 !important;
+    }
+
+    /* Dashboard Chat Styles */
+    .dashboard-conversation-view {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 0;
+    }
+
+    .dashboard-chat-messages {
+        flex: 1;
+        padding: 1rem;
+        overflow-y: auto;
+        background-color: #ffffff;
+        scroll-behavior: smooth;
+        min-height: 0;
+    }
+
+    .dashboard-chat-messages::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .dashboard-chat-messages::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .dashboard-chat-messages::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 3px;
+    }
+
+    .dashboard-chat-messages::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 0, 0, 0.35);
+    }
+
+    .dashboard-chat-input {
+        padding: 1rem;
+        border-top: 1px solid #e5e7eb;
+        background-color: #ffffff;
+    }
+
+    /* Ensure conversation view takes full height when activated */
+    .ai-chat-card.activated .dashboard-conversation-view {
+        height: 100%;
+    }
+
+    .ai-chat-card.fullscreen .dashboard-conversation-view {
+        height: 100%;
+    }
+
+    /* Daily Briefing and Notal Suggestions Fullscreen Styles */
+    .briefing-fullscreen-btn,
+    .suggestions-fullscreen-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 1.25rem;
+        color: #6c757d !important;
+        background: white !important;
+        border: none !important;
+        border-radius: 50% !important;
+        width: 2rem;
+        height: 2rem;
+        padding: 0 !important;
+        display: none; /* Hidden by default */
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10;
+        transition: color 0.2s ease, background-color 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        text-decoration: none !important;
+    }
+
+    /* Show fullscreen button on card hover and when fullscreen */
+    .daily-briefing-card:hover .briefing-fullscreen-btn,
+    .notal-suggestions-card:hover .suggestions-fullscreen-btn,
+    .daily-briefing-card.fullscreen .briefing-fullscreen-btn,
+    .notal-suggestions-card.fullscreen .suggestions-fullscreen-btn {
+        display: flex;
+    }
+
+    .briefing-fullscreen-btn:hover,
+    .suggestions-fullscreen-btn:hover {
+        color: #495057 !important;
+        background-color: #f3f4f6 !important;
+        text-decoration: none !important;
+    }
+
+    .daily-briefing-card,
+    .notal-suggestions-card {
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    .daily-briefing-card .card-body,
+    .notal-suggestions-card .card-body {
+        position: relative;
+    }
+
+    .daily-briefing-card.fullscreen,
+    .notal-suggestions-card.fullscreen {
+        /* Position, dimensions set via JavaScript based on main-content */
+        max-width: none !important;
+        margin: 0 !important;
+        z-index: 1000 !important;
+        border-radius: 12px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        background: white !important;
+    }
+
+    .daily-briefing-card.fullscreen .card-body,
+    .notal-suggestions-card.fullscreen .card-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        padding: 1.5rem 1.5rem 2.5rem 1.5rem !important;
+    }
+
+    .daily-briefing-card.fullscreen .briefing-content,
+    .notal-suggestions-card.fullscreen .suggestions-content {
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0;
+        padding-bottom: 2rem;
+    }
+    
+    /* Custom scrollbar for fullscreen briefing and suggestions content */
+    .daily-briefing-card.fullscreen .briefing-content::-webkit-scrollbar,
+    .notal-suggestions-card.fullscreen .suggestions-content::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .daily-briefing-card.fullscreen .briefing-content::-webkit-scrollbar-track,
+    .notal-suggestions-card.fullscreen .suggestions-content::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .daily-briefing-card.fullscreen .briefing-content::-webkit-scrollbar-thumb,
+    .notal-suggestions-card.fullscreen .suggestions-content::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 3px;
+    }
+
+    .daily-briefing-card.fullscreen .briefing-content::-webkit-scrollbar-thumb:hover,
+    .notal-suggestions-card.fullscreen .suggestions-content::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 0, 0, 0.35);
+    }
+
+    /* Notal Suggestions Summary */
+    .suggestions-summary {
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    .suggestions-summary ul {
+        padding-left: 1.5rem;
+        margin-left: 0;
+        margin-bottom: 0;
+        list-style-position: outside;
+    }
+
+    .suggestions-summary li {
+        margin-bottom: 0.5rem;
+        margin-left: 1.5rem;
+    }
+
+    .suggestions-summary p {
+        margin-bottom: 0.5rem;
+        padding-left: 0;
+        margin-left: 0;
+    }
+
+    .suggestions-more-link-container {
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid #e5e7eb;
+        text-align: center;
+    }
+
+    .suggestions-more-link {
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: color 0.2s ease;
+    }
+
+    .suggestions-more-link:hover {
+        color: #1e40af !important;
+        text-decoration: underline !important;
+    }
+
+    .notal-suggestions-card.fullscreen .suggestions-summary {
+        display: none !important;
+    }
+
+    .notal-suggestions-card.fullscreen .suggestions-content {
+        display: block !important;
+    }
+
+    .notal-suggestions-card:not(.fullscreen) .suggestions-content {
+        display: none !important;
+    }
+
+    .notal-suggestions-card:not(.fullscreen) .suggestions-summary {
+        display: block !important;
+    }
+
+    /* Daily Briefing Summary Grid */
+    .briefing-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        padding: 0.5rem 0;
+    }
+
+
+    .briefing-summary-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0.875rem 0.5rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        text-align: center;
+        transition: background-color 0.2s ease;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .briefing-summary-item:hover {
+        background: #e9ecef;
+    }
+
+    .briefing-summary-count {
+        font-size: clamp(1.5rem, 4vw, 2rem);
+        font-weight: 700;
+        color: #3d1019;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+        width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .briefing-summary-label {
+        font-size: clamp(0.625rem, 1.5vw, 0.75rem);
+        color: #6c757d;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        width: 100%;
+        word-wrap: break-word;
+        hyphens: auto;
+        line-height: 1.2;
+    }
+
+    /* Responsive adjustments for smaller screens */
+    @@media (max-width: 1400px) {
+        .briefing-summary-item {
+            padding: 0.75rem 0.375rem;
+        }
+    }
+
+    @@media (max-width: 1200px) {
+        .briefing-summary-grid {
+            gap: 0.5rem;
+        }
+        
+        .briefing-summary-item {
+            padding: 0.625rem 0.25rem;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .briefing-summary-grid {
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+        
+        .briefing-summary-item {
+            padding: 1rem;
+        }
+        
+        .briefing-summary-count {
+            font-size: 2rem;
+        }
+        
+        .briefing-summary-label {
+            font-size: 0.75rem;
+        }
+    }
+
+    .daily-briefing-card.fullscreen .briefing-summary-grid {
+        display: none !important;
+    }
+
+    .daily-briefing-card.fullscreen .briefing-content {
+        display: block !important;
+    }
+
+    .daily-briefing-card:not(.fullscreen) .briefing-content {
+        display: none !important;
+    }
+
+    .daily-briefing-card:not(.fullscreen) .briefing-summary-grid {
+        display: grid !important;
+    }
+
+</style>
+
+@section Scripts {
+    @if (Model.OrganizationType == Certio.Domain.Organizations.OrganizationType.LawFirm)
+    {
+        <script>
+            // For LawFirm organizations, trigger the clients popup from _Layout.cshtml
+            document.addEventListener('DOMContentLoaded', function () {
+                document.querySelectorAll('[data-action="open-global-clients"]').forEach(function (el) {
+                    el.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        e.stopPropagation(); // prevent the global outside-click handler from immediately closing it
+                        const btn = document.getElementById('clientsButton');
+                        if (!btn) return;
+                        // Trigger the same handler without bubbling to document
+                        btn.dispatchEvent(new MouseEvent('click', { bubbles: false }));
+                    });
+                });
+            });
+        </script>
+    }
+    
+    <script>
+        // Pending attachment state for dashboard
+        let dashboardPendingAttachment = null;
+        window._dashboardUploadingAttachment = false;
+
+        // Load upcoming deadlines for dashboard
+        document.addEventListener('DOMContentLoaded', async function () {
+            await loadDashboardUpcomingDeadlines();
+            initializeAiFullscreen();
+            initializeBriefingFullscreen();
+            initializeSuggestionsFullscreen();
+            initializeAiChatActivation();
+            initializeAiClose();
+            initializeNewNoteButton();
+            initializeDashboardPlusButton();
+            initializeDashboardFileUpload();
+            await loadDashboardConversations();
+            await streamDashboardBriefingCards();
+        });
+
+        function initializeAiChatActivation() {
+            const aiCard = document.getElementById('aiChatCard');
+            const searchContainer = document.getElementById('searchContainer');
+            
+            if (!aiCard || !searchContainer) return;
+
+            // Handle click on search container to activate
+            searchContainer.addEventListener('click', function(e) {
+                // Don't activate if clicking on action buttons or plus button
+                if (e.target.closest('.search-actions') || e.target.closest('.search-plus-container')) {
+                    return;
+                }
+                
+                // Focus the input if clicking on container
+                const input = searchContainer.querySelector('input');
+                if (input && e.target === searchContainer) {
+                    input.focus();
+                }
+                
+                // Activate if not already activated (unless fullscreen)
+                if (!aiCard.classList.contains('activated') && !aiCard.classList.contains('fullscreen')) {
+                    aiCard.classList.add('activated');
+                }
+            });
+
+            // Handle input focus to activate
+            const input = searchContainer.querySelector('input');
+            if (input) {
+                input.addEventListener('focus', function() {
+                    if (!aiCard.classList.contains('activated') && !aiCard.classList.contains('fullscreen')) {
+                        aiCard.classList.add('activated');
+                    }
+                });
+            }
+        }
+
+        function initializeDashboardPlusButton() {
+            const plusBtn = document.getElementById('dashboardPlusBtn');
+            if (plusBtn) {
+                plusBtn.addEventListener('click', showDashboardAttachmentMenu);
+            }
+        }
+
+        // Initialize dashboard file upload functionality
+        function initializeDashboardFileUpload() {
+            const fileInput = document.getElementById('dashboardFileInput');
+            const attachFileBtn = document.getElementById('dashboardAttachFileBtn');
+            const attachmentPreview = document.getElementById('dashboardAttachmentPreview');
+            const removeAttachment = document.getElementById('dashboardRemoveAttachment');
+            const landingAttachmentPreview = document.getElementById('landingAttachmentPreview');
+            const landingRemoveAttachment = document.getElementById('landingRemoveAttachment');
+
+            // Attach file button click handler
+            if (attachFileBtn && fileInput) {
+                attachFileBtn.addEventListener('click', function() {
+                    fileInput.click();
+                });
+            }
+
+            // File input change handler
+            if (fileInput) {
+                fileInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        // Show attachment preview
+                        const fileName = file.name;
+                        const fileSize = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+
+                        // Determine which view is active
+                        const landingView = document.getElementById('dashboardLandingView');
+                        const conversationView = document.getElementById('dashboardConversationView');
+                        const isLandingView = landingView && landingView.style.display !== 'none';
+
+                        if (isLandingView && landingAttachmentPreview) {
+                            // Show in landing view
+                            const landingAttachmentName = document.getElementById('landingAttachmentName');
+                            const landingAttachmentSize = document.getElementById('landingAttachmentSize');
+
+                            if (landingAttachmentName) landingAttachmentName.textContent = fileName;
+                            if (landingAttachmentSize) landingAttachmentSize.textContent = fileSize;
+
+                            landingAttachmentPreview.style.display = 'flex';
+                        } else if (attachmentPreview) {
+                            // Show in conversation view
+                            const attachmentName = document.getElementById('dashboardAttachmentName');
+                            const attachmentSize = document.getElementById('dashboardAttachmentSize');
+
+                            if (attachmentName) attachmentName.textContent = fileName;
+                            if (attachmentSize) attachmentSize.textContent = fileSize;
+
+                            attachmentPreview.style.display = 'flex';
+                            if (attachFileBtn) {
+                                attachFileBtn.classList.add('active');
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Remove attachment handler for conversation view
+            if (removeAttachment && fileInput && attachmentPreview) {
+                removeAttachment.addEventListener('click', function() {
+                    fileInput.value = '';
+                    attachmentPreview.style.display = 'none';
+                    dashboardPendingAttachment = null;
+                    if (attachFileBtn) {
+                        attachFileBtn.classList.remove('active');
+                    }
+                });
+            }
+
+            // Remove attachment handler for landing view
+            if (landingRemoveAttachment && fileInput && landingAttachmentPreview) {
+                landingRemoveAttachment.addEventListener('click', function() {
+                    fileInput.value = '';
+                    landingAttachmentPreview.style.display = 'none';
+                    dashboardPendingAttachment = null;
+                });
+            }
+        }
+
+        // Upload and extract content from attachment (dashboard version)
+        async function uploadDashboardAttachment(file) {
+            const orgId = @ViewBag.OrganizationId;
+            if (!orgId) {
+                console.error('Organization ID not found');
+                return null;
+            }
+
+            // Set uploading flag
+            window._dashboardUploadingAttachment = true;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch(`/Client/${orgId}/Chat/UploadAttachment`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    console.log(`Dashboard attachment processed: ${data.fileName} (${data.contentLength} chars extracted)`);
+                    window._dashboardUploadingAttachment = false;
+                    return {
+                        fileName: data.fileName,
+                        fileSize: data.fileSize,
+                        extractedContent: data.extractedContent
+                    };
+                } else {
+                    console.error('Failed to process attachment:', data.error);
+                    window._dashboardUploadingAttachment = false;
+                    alert('Failed to process attachment: ' + data.error);
+                    return null;
+                }
+            } catch (error) {
+                console.error('Error uploading attachment:', error);
+                window._dashboardUploadingAttachment = false;
+                alert('Error uploading attachment. Please try again.');
+                return null;
+            }
+        }
+
+        // Dashboard conversation context menu
+        function showDashboardConversationContextMenu(event, conversationItem) {
+            // Remove existing context menu if any
+            const existingMenu = document.getElementById('conversationContextMenu');
+            if (existingMenu) {
+                existingMenu.remove();
+            }
+
+            const conversationId = conversationItem.dataset.conversationId;
+            const conversationTitle = conversationItem.querySelector('.conversation-title')?.textContent || 'Untitled Note';
+
+            // Create context menu
+            const contextMenu = document.createElement('div');
+            contextMenu.id = 'conversationContextMenu';
+            contextMenu.className = 'conversation-context-menu';
+            contextMenu.innerHTML = `
+                <div class="context-menu-item" onclick="renameDashboardConversation('${conversationId}', '${conversationTitle.replace(/'/g, "\\'")}')">
+                    <i class="fas fa-edit"></i> Rename Note
+                </div>
+                <div class="context-menu-item delete-item" onclick="deleteDashboardConversation('${conversationId}')">
+                    <i class="fas fa-trash"></i> Delete Note
+                </div>
+            `;
+
+            // Position the menu
+            contextMenu.style.left = event.pageX + 'px';
+            contextMenu.style.top = event.pageY + 'px';
+
+            document.body.appendChild(contextMenu);
+        }
+
+        // Show attachment menu popup for dashboard plus button
+        function showDashboardAttachmentMenu(event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            // Remove existing attachment menu if any
+            const existingMenu = document.getElementById('dashboardAttachmentMenu');
+            if (existingMenu) {
+                existingMenu.remove();
+                return;
+            }
+
+            const plusBtn = document.getElementById('dashboardPlusBtn');
+            if (!plusBtn) return;
+
+            // Get button position
+            const rect = plusBtn.getBoundingClientRect();
+            const menuWidth = 220; // Approximate menu width
+            const menuHeight = 120; // Approximate menu height (3 items)
+
+            // Create attachment menu
+            const attachmentMenu = document.createElement('div');
+            attachmentMenu.id = 'dashboardAttachmentMenu';
+            attachmentMenu.className = 'conversation-context-menu';
+            attachmentMenu.innerHTML = `
+                <div class="context-menu-item" onclick="handleAddPhotosFiles()">
+                    <i class="fas fa-paperclip"></i> Add photos & files
+                </div>
+                <div class="context-menu-item" onclick="handleAddFromGoogleDrive()">
+                    <i class="fab fa-google" style="color: #4285f4; width: auto; font-size: 14px;"></i> Add from Google Drive
+                </div>
+                <div class="context-menu-item" onclick="handleAddFromOneDrive()">
+                    <i class="fab fa-windows" style="color: #0078d4; width: auto; font-size: 14px;"></i> Add from Microsoft OneDrive
+                </div>
+            `;
+
+            document.body.appendChild(attachmentMenu);
+
+            // Get actual menu dimensions after rendering
+            const menuRect = attachmentMenu.getBoundingClientRect();
+            const actualMenuWidth = menuRect.width;
+            const actualMenuHeight = menuRect.height;
+
+            // Position the menu above the button, left-aligned with button's left edge
+            const leftPosition = rect.left;
+            const topPosition = rect.top - actualMenuHeight - 8; // 8px gap above button
+
+            attachmentMenu.style.left = leftPosition + 'px';
+            attachmentMenu.style.top = topPosition + 'px';
+
+            // Close menu when clicking outside
+            setTimeout(() => {
+                document.addEventListener('click', function closeMenu(e) {
+                    if (!attachmentMenu.contains(e.target) && e.target !== plusBtn && !plusBtn.contains(e.target)) {
+                        attachmentMenu.remove();
+                        document.removeEventListener('click', closeMenu);
+                    }
+                });
+            }, 0);
+        }
+
+        // Handle Add photos & files
+        function handleAddPhotosFiles() {
+            const fileInput = document.getElementById('dashboardFileInput');
+            if (fileInput) {
+                fileInput.click();
+            }
+            const menu = document.getElementById('dashboardAttachmentMenu');
+            if (menu) {
+                menu.remove();
+            }
+        }
+
+        // Handle Add from Google Drive
+        function handleAddFromGoogleDrive() {
+            // TODO: Implement Google Drive integration
+            console.log('Add from Google Drive');
+            const menu = document.getElementById('dashboardAttachmentMenu');
+            if (menu) {
+                menu.remove();
+            }
+        }
+
+        // Handle Add from Microsoft OneDrive
+        function handleAddFromOneDrive() {
+            // TODO: Implement OneDrive integration
+            console.log('Add from Microsoft OneDrive');
+            const menu = document.getElementById('dashboardAttachmentMenu');
+            if (menu) {
+                menu.remove();
+            }
+        }
+
+        // Dashboard rename conversation
+        function renameDashboardConversation(conversationId, currentTitle) {
+            const newTitle = prompt('Enter new note name:', currentTitle);
+            if (newTitle && newTitle.trim() !== '' && newTitle !== currentTitle) {
+                const orgId = @ViewBag.OrganizationId;
+                if (!orgId) {
+                    console.error('Organization ID not found');
+                    return;
+                }
+                
+                fetch(`/Client/${orgId}/Chat/RenameConversation`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        conversationId: parseInt(conversationId),
+                        newTitle: newTitle.trim()
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update the conversation title in the UI
+                        const conversationElement = document.querySelector(`.conversation-item[data-conversation-id="${conversationId}"] .conversation-title`);
+                        if (conversationElement) {
+                            conversationElement.textContent = newTitle.trim();
+                        }
+                        // Also update in sidebar if it exists
+                        const sidebarElement = document.querySelector(`.conversation-tab[data-conversation-id="${conversationId}"] .tab-title`);
+                        if (sidebarElement) {
+                            sidebarElement.textContent = newTitle.trim();
+                        }
+                    } else {
+                        alert('Failed to rename note: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error renaming conversation:', error);
+                    alert('Failed to rename note');
+                });
+            }
+            
+            // Remove context menu
+            const contextMenu = document.getElementById('conversationContextMenu');
+            if (contextMenu) {
+                contextMenu.remove();
+            }
+        }
+
+        // Dashboard delete conversation
+        function deleteDashboardConversation(conversationId) {
+            if (!confirm('Are you sure you want to delete this note? This action cannot be undone.')) {
+                return;
+            }
+            
+            const orgId = @ViewBag.OrganizationId;
+            if (!orgId) {
+                console.error('Organization ID not found');
+                return;
+            }
+            
+            const convId = parseInt(conversationId);
+            const convIdStr = String(conversationId);
+            
+            fetch(`/Client/${orgId}/Chat/DeleteConversation`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    conversationId: convId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove the conversation from the dashboard UI
+                    const conversationElement = document.querySelector(`.conversation-item[data-conversation-id="${convIdStr}"]`);
+                    if (conversationElement) {
+                        conversationElement.remove();
+                    }
+                    
+                    // Also remove from sidebar if it exists
+                    const sidebarElement = document.querySelector(`.conversation-tab[data-conversation-id="${convIdStr}"]`);
+                    if (sidebarElement) {
+                        sidebarElement.remove();
+                    }
+                    
+                    // If this was the active conversation, reset the dashboard chat card
+                    if (window.dashboardCurrentConversationId === convIdStr || window.dashboardCurrentConversationId === convId) {
+                        resetDashboardChatCard(true); // Keep conversations column visible
+                    }
+                    
+                    // Remove from localStorage if it was saved
+                    const savedConversationId = localStorage.getItem('dashboardSelectedConversation');
+                    if (savedConversationId === convIdStr || savedConversationId === String(convId)) {
+                        localStorage.removeItem('dashboardSelectedConversation');
+                    }
+                } else {
+                    alert('Failed to delete note: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting conversation:', error);
+                alert('Failed to delete note');
+            });
+            
+            // Remove context menu
+            const contextMenu = document.getElementById('conversationContextMenu');
+            if (contextMenu) {
+                contextMenu.remove();
+            }
+        }
+
+        async function loadDashboardConversations() {
+            const conversationsList = document.getElementById('conversationsList');
+            if (!conversationsList) return;
+
+            try {
+                const orgId = @ViewBag.OrganizationId;
+                if (!orgId) {
+                    conversationsList.innerHTML = '<div class="conversations-loading">No organization selected</div>';
+                    return;
+                }
+
+                const response = await fetch(`/Client/${orgId}/Chat/GetAIConversations`, {
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    conversationsList.innerHTML = '<div class="conversations-loading">No AI conversations yet</div>';
+                    return;
+                }
+
+                const conversations = await response.json();
+
+                if (!conversations || conversations.length === 0) {
+                    conversationsList.innerHTML = '<div class="conversations-loading">No AI conversations yet</div>';
+                    return;
+                }
+
+                // Render conversations vertically
+                conversationsList.innerHTML = conversations.map(conversation => {
+                    return `
+                        <div class="conversation-item" data-conversation-id="${conversation.id}">
+                            <div class="conversation-title">${conversation.title || 'Untitled Conversation'}</div>
+                        </div>
+                    `;
+                }).join('');
+
+                // Add click handlers - scoped to dashboard conversations only
+                conversationsList.querySelectorAll('.conversation-item').forEach(item => {
+                    item.addEventListener('click', function(e) {
+                        e.stopPropagation(); // Prevent event from bubbling to sidebar handlers
+                        
+                        // Scope selection to dashboard conversations list only
+                        const dashboardConversationsList = document.getElementById('conversationsList');
+                        if (!dashboardConversationsList) return;
+                        
+                        // Remove active class from all dashboard items only
+                        dashboardConversationsList.querySelectorAll('.conversation-item').forEach(i => {
+                            i.classList.remove('active');
+                        });
+                        
+                        // Add active class to clicked item
+                        this.classList.add('active');
+                        
+                        // Save to localStorage with dashboard-specific key
+                        const conversationId = this.dataset.conversationId;
+                        localStorage.setItem('dashboardSelectedConversation', conversationId);
+                        
+                        // Activate the card if not already activated
+                        const aiCard = document.getElementById('aiChatCard');
+                        if (aiCard && !aiCard.classList.contains('fullscreen')) {
+                            aiCard.classList.add('activated');
+                        }
+                        
+                        // Load conversation messages and show conversation view
+                        loadDashboardConversation(conversationId);
+                    });
+                    
+                    // Add right-click context menu handler
+                    item.addEventListener('contextmenu', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        showDashboardConversationContextMenu(e, this);
+                    });
+                });
+
+                // Restore previously selected conversation - scoped to dashboard only
+                const savedConversationId = localStorage.getItem('dashboardSelectedConversation');
+                if (savedConversationId) {
+                    // Only look within the dashboard conversations list
+                    const savedItem = conversationsList.querySelector(`.conversation-item[data-conversation-id="${savedConversationId}"]`);
+                    if (savedItem) {
+                        // Remove active class from all dashboard items only
+                        conversationsList.querySelectorAll('.conversation-item').forEach(i => {
+                            i.classList.remove('active');
+                        });
+                        
+                        // Add active class to saved item
+                        savedItem.classList.add('active');
+                        
+                        // Activate the card
+                        const aiCard = document.getElementById('aiChatCard');
+                        if (aiCard && !aiCard.classList.contains('fullscreen')) {
+                            aiCard.classList.add('activated');
+                        }
+                        
+                        // Load conversation messages
+                        loadDashboardConversation(savedConversationId);
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error loading conversations:', error);
+                conversationsList.innerHTML = '<div class="conversations-loading">Failed to load conversations</div>';
+            }
+        }
+
+        function initializeAiFullscreen() {
+            const aiCard = document.getElementById('aiChatCard');
+            const fullscreenBtn = document.getElementById('aiFullscreenBtn');
+            const mainContent = document.querySelector('.main-content.client-main-content');
+            
+            if (!aiCard || !fullscreenBtn) return;
+
+            function toggleFullscreen(isFullscreen) {
+                if (isFullscreen) {
+                    aiCard.classList.add('fullscreen', 'activated'); // Always activate conversations in fullscreen
+                    
+                    // Get main content dimensions and position
+                    if (mainContent) {
+                        const rect = mainContent.getBoundingClientRect();
+                        aiCard.style.position = 'fixed';
+                        aiCard.style.top = rect.top + 'px';
+                        aiCard.style.left = rect.left + 'px';
+                        aiCard.style.width = rect.width + 'px';
+                        aiCard.style.height = rect.height + 'px';
+                    }
+                    
+                    const icon = fullscreenBtn.querySelector('i');
+                    icon.classList.remove('fa-expand');
+                    icon.classList.add('fa-compress');
+                } else {
+                    aiCard.classList.remove('fullscreen');
+                    
+                    // Reset inline styles
+                    aiCard.style.position = '';
+                    aiCard.style.top = '';
+                    aiCard.style.left = '';
+                    aiCard.style.width = '';
+                    aiCard.style.height = '';
+                    
+                    const icon = fullscreenBtn.querySelector('i');
+                    icon.classList.remove('fa-compress');
+                    icon.classList.add('fa-expand');
+                }
+            }
+
+            fullscreenBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const isFullscreen = aiCard.classList.contains('fullscreen');
+                toggleFullscreen(!isFullscreen);
+            });
+
+            // Allow ESC key to exit fullscreen
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && aiCard.classList.contains('fullscreen')) {
+                    toggleFullscreen(false);
+                }
+            });
+        }
+
+        function initializeBriefingFullscreen() {
+            const briefingCard = document.getElementById('dailyBriefingCard');
+            const fullscreenBtn = document.getElementById('dailyBriefingFullscreenBtn');
+            const mainContent = document.querySelector('.main-content.client-main-content');
+            const summaryView = document.getElementById('dailyBriefingSummary');
+            const contentView = document.getElementById('dailyBriefingContent');
+            
+            if (!briefingCard || !fullscreenBtn) return;
+
+            function toggleFullscreen(isFullscreen) {
+                if (isFullscreen) {
+                    briefingCard.classList.add('fullscreen');
+                    
+                    // Get main content dimensions and position
+                    if (mainContent) {
+                        const rect = mainContent.getBoundingClientRect();
+                        briefingCard.style.position = 'fixed';
+                        briefingCard.style.top = rect.top + 'px';
+                        briefingCard.style.left = rect.left + 'px';
+                        briefingCard.style.width = rect.width + 'px';
+                        briefingCard.style.height = rect.height + 'px';
+                    }
+                    
+                    // Show full content, hide summary
+                    if (summaryView) summaryView.style.display = 'none';
+                    if (contentView) contentView.style.display = 'block';
+                    const icon = fullscreenBtn.querySelector('i');
+                    icon.classList.remove('fa-expand');
+                    icon.classList.add('fa-compress');
+                } else {
+                    briefingCard.classList.remove('fullscreen');
+                    
+                    // Reset inline styles
+                    briefingCard.style.position = '';
+                    briefingCard.style.top = '';
+                    briefingCard.style.left = '';
+                    briefingCard.style.width = '';
+                    briefingCard.style.height = '';
+                    
+                    // Show summary, hide full content
+                    if (summaryView) {
+                        summaryView.style.display = summaryView.classList.contains('briefing-summary-grid') ? 'grid' : 'block';
+                    }
+                    if (contentView) contentView.style.display = 'none';
+                    const icon = fullscreenBtn.querySelector('i');
+                    icon.classList.remove('fa-compress');
+                    icon.classList.add('fa-expand');
+                }
+            }
+
+            fullscreenBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const isFullscreen = briefingCard.classList.contains('fullscreen');
+                toggleFullscreen(!isFullscreen);
+            });
+
+            // Allow ESC key to exit fullscreen
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && briefingCard.classList.contains('fullscreen')) {
+                    toggleFullscreen(false);
+                }
+            });
+        }
+
+        // Parse briefing content and extract counts for summary grid
+        function parseBriefingContent(content) {
+            // Remove HTML tags and normalize whitespace
+            const text = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').toLowerCase();
+            
+            // Extract counts for different categories
+            let filingsDue = 0;
+            let clientCalls = 0;
+            let overdueItems = 0;
+            
+            // Look for filings due patterns - most specific first
+            const filingsMatch = text.match(/(\d+)\s*(filings?|filing)\s*(due|today)/i);
+            if (filingsMatch) {
+                filingsDue = parseInt(filingsMatch[1]) || 0;
+            } else {
+                // Try alternative pattern
+                const filingsAlt = text.match(/(\d+)\s*(filings?)/i);
+                if (filingsAlt) {
+                    filingsDue = parseInt(filingsAlt[1]) || 0;
+                }
+            }
+            
+            // Look for client calls - MUST include "client" to avoid false matches
+            const clientCallsMatch = text.match(/(\d+)\s*(client\s*)?calls?/i);
+            if (clientCallsMatch) {
+                clientCalls = parseInt(clientCallsMatch[1]) || 0;
+            } else {
+                // Try pattern with "client call" explicitly
+                const clientCallsAlt = text.match(/client\s*calls?.*?(\d+)/i);
+                if (clientCallsAlt) {
+                    clientCalls = parseInt(clientCallsAlt[1]) || 0;
+                }
+            }
+            
+            // Look for overdue items - check for "overdue" keyword specifically
+            const overdueMatch = text.match(/(\d+)\s*overdue\s*(tasks?|items?|invoices?|deadlines?)/i);
+            if (overdueMatch) {
+                overdueItems = parseInt(overdueMatch[1]) || 0;
+            } else {
+                // Try alternative patterns
+                const overdueAlt1 = text.match(/(\d+)\s*(overdue|past\s*due)/i);
+                if (overdueAlt1) {
+                    overdueItems = parseInt(overdueAlt1[1]) || 0;
+                } else {
+                    const overdueAlt2 = text.match(/overdue.*?(\d+)/i);
+                    if (overdueAlt2) {
+                        overdueItems = parseInt(overdueAlt2[1]) || 0;
+                    }
+                }
+            }
+            
+            return {
+                filingsDue: filingsDue,
+                clientCalls: clientCalls,
+                overdueItems: overdueItems
+            };
+        }
+
+        // Create summary grid HTML
+        function createBriefingSummaryGrid(counts) {
+            return `
+                <div class="briefing-summary-item">
+                    <div class="briefing-summary-count">${counts.filingsDue}</div>
+                    <div class="briefing-summary-label">Vendor Inquiries</div>
+                </div>
+                <div class="briefing-summary-item">
+                    <div class="briefing-summary-count">${counts.clientCalls}</div>
+                    <div class="briefing-summary-label">Client Calls</div>
+                </div>
+                <div class="briefing-summary-item">
+                    <div class="briefing-summary-count">${counts.overdueItems}</div>
+                    <div class="briefing-summary-label">Overdue Items</div>
+                </div>
+            `;
+        }
+
+        // Update summary grid with counts
+        function updateBriefingSummary(counts) {
+            const summaryElement = document.getElementById('dailyBriefingSummary');
+            if (!summaryElement) return;
+            
+            summaryElement.innerHTML = createBriefingSummaryGrid(counts);
+            summaryElement.classList.add('briefing-summary-grid');
+        }
+
+        function initializeSuggestionsFullscreen() {
+            const suggestionsCard = document.getElementById('notalSuggestionsCard');
+            const fullscreenBtn = document.getElementById('notalSuggestionsFullscreenBtn');
+            const mainContent = document.querySelector('.main-content.client-main-content');
+            const summaryView = document.getElementById('notalSuggestionsSummary');
+            const contentView = document.getElementById('notalSuggestionsContent');
+            
+            if (!suggestionsCard || !fullscreenBtn) return;
+
+            function toggleFullscreen(isFullscreen) {
+                if (isFullscreen) {
+                    suggestionsCard.classList.add('fullscreen');
+                    
+                    // Get main content dimensions and position
+                    if (mainContent) {
+                        const rect = mainContent.getBoundingClientRect();
+                        suggestionsCard.style.position = 'fixed';
+                        suggestionsCard.style.top = rect.top + 'px';
+                        suggestionsCard.style.left = rect.left + 'px';
+                        suggestionsCard.style.width = rect.width + 'px';
+                        suggestionsCard.style.height = rect.height + 'px';
+                    }
+                    
+                    // Show full content, hide summary
+                    if (summaryView) summaryView.style.display = 'none';
+                    if (contentView) contentView.style.display = 'block';
+                    const icon = fullscreenBtn.querySelector('i');
+                    icon.classList.remove('fa-expand');
+                    icon.classList.add('fa-compress');
+                } else {
+                    suggestionsCard.classList.remove('fullscreen');
+                    
+                    // Reset inline styles
+                    suggestionsCard.style.position = '';
+                    suggestionsCard.style.top = '';
+                    suggestionsCard.style.left = '';
+                    suggestionsCard.style.width = '';
+                    suggestionsCard.style.height = '';
+                    
+                    // Show summary, hide full content
+                    if (summaryView) summaryView.style.display = 'block';
+                    if (contentView) contentView.style.display = 'none';
+                    const icon = fullscreenBtn.querySelector('i');
+                    icon.classList.remove('fa-compress');
+                    icon.classList.add('fa-expand');
+                }
+            }
+
+            // Handle fullscreen toggle from button
+            fullscreenBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const isFullscreen = suggestionsCard.classList.contains('fullscreen');
+                toggleFullscreen(!isFullscreen);
+            });
+
+            // Handle "+X more suggestions" link click
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.suggestions-more-link')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!suggestionsCard.classList.contains('fullscreen')) {
+                        toggleFullscreen(true);
+                    }
+                }
+            });
+
+            // Allow ESC key to exit fullscreen
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && suggestionsCard.classList.contains('fullscreen')) {
+                    toggleFullscreen(false);
+                }
+            });
+        }
+
+        // Update fullscreen card positions based on main-content dimensions
+        function updateFullscreenCardPositions() {
+            const mainContent = document.querySelector('.main-content.client-main-content');
+            if (!mainContent) return;
+            
+            const rect = mainContent.getBoundingClientRect();
+            
+            // Update AI Chat card position if fullscreen
+            const aiCard = document.getElementById('aiChatCard');
+            if (aiCard && aiCard.classList.contains('fullscreen')) {
+                aiCard.style.top = rect.top + 'px';
+                aiCard.style.left = rect.left + 'px';
+                aiCard.style.width = rect.width + 'px';
+                aiCard.style.height = rect.height + 'px';
+            }
+            
+            // Update Daily Briefing card position if fullscreen
+            const briefingCard = document.getElementById('dailyBriefingCard');
+            if (briefingCard && briefingCard.classList.contains('fullscreen')) {
+                briefingCard.style.top = rect.top + 'px';
+                briefingCard.style.left = rect.left + 'px';
+                briefingCard.style.width = rect.width + 'px';
+                briefingCard.style.height = rect.height + 'px';
+            }
+            
+            // Update Notal Suggestions card position if fullscreen
+            const suggestionsCard = document.getElementById('notalSuggestionsCard');
+            if (suggestionsCard && suggestionsCard.classList.contains('fullscreen')) {
+                suggestionsCard.style.top = rect.top + 'px';
+                suggestionsCard.style.left = rect.left + 'px';
+                suggestionsCard.style.width = rect.width + 'px';
+                suggestionsCard.style.height = rect.height + 'px';
+            }
+        }
+
+        // Handle window resize to update fullscreen card positions
+        window.addEventListener('resize', updateFullscreenCardPositions);
+        
+        // Handle scroll on window to update positions if main-content moves
+        window.addEventListener('scroll', updateFullscreenCardPositions, { passive: true });
+
+        // Parse suggestions content and create truncated summary view
+        function createSuggestionsSummary(fullContent, maxItems = 3) {
+            // Create a temporary DOM element to parse HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = fullContent;
+            
+            let items = [];
+            
+            // Try to find list items first (most common format)
+            const listItems = tempDiv.querySelectorAll('li');
+            if (listItems.length > 0) {
+                listItems.forEach(item => {
+                    const itemText = item.textContent.trim();
+                    if (itemText && itemText.length > 0 && !itemText.match(/^(here are|suggestions?|based on)/i)) {
+                        items.push(item.outerHTML);
+                    }
+                });
+            }
+            
+            // If no list items, try paragraphs
+            if (items.length === 0) {
+                const paragraphs = tempDiv.querySelectorAll('p');
+                paragraphs.forEach(p => {
+                    const itemText = p.textContent.trim();
+                    if (itemText && itemText.length > 0 && !itemText.match(/^(here are|suggestions?|based on)/i)) {
+                        items.push(p.outerHTML);
+                    }
+                });
+            }
+            
+            // If still no items, try splitting by line breaks
+            if (items.length === 0) {
+                const text = tempDiv.textContent || tempDiv.innerText || '';
+                const lines = text.split(/\n+/).filter(line => {
+                    const trimmed = line.trim();
+                    return trimmed.length > 0 && 
+                           !trimmed.match(/^(here are|suggestions?|based on|today)/i) &&
+                           trimmed.length > 10; // Only substantial lines
+                });
+                lines.forEach(line => {
+                    items.push(`<p>${line.trim()}</p>`);
+                });
+            }
+            
+            // Filter out empty or very short items
+            items = items.filter(item => {
+                const temp = document.createElement('div');
+                temp.innerHTML = item;
+                const text = temp.textContent.trim();
+                return text.length > 10;
+            });
+            
+            // Limit to maxItems
+            const visibleItems = items.slice(0, maxItems);
+            const remainingCount = items.length - maxItems;
+            
+            let summaryHTML = visibleItems.join('');
+            
+            // Add "+X more suggestions" link if there are more items
+            if (remainingCount > 0) {
+                summaryHTML += `<div class="suggestions-more-link-container"><a href="#" class="suggestions-more-link text-primary text-decoration-none">+${remainingCount} more suggestion${remainingCount !== 1 ? 's' : ''}</a></div>`;
+            }
+            
+            return summaryHTML || fullContent; // Fallback to full content if parsing fails
+        }
+
+        function initializeAiClose() {
+            const closeBtn = document.getElementById('aiCloseBtn');
+            if (!closeBtn) return;
+
+            closeBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                resetDashboardChatCard();
+            });
+        }
+
+        function initializeNewNoteButton() {
+            const newNoteBtn = document.getElementById('newNoteBtn');
+            if (!newNoteBtn) return;
+
+            newNoteBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const aiCard = document.getElementById('aiChatCard');
+                // Ensure card is activated to show conversations column
+                if (aiCard && !aiCard.classList.contains('fullscreen')) {
+                    aiCard.classList.add('activated');
+                }
+                resetDashboardChatCard(true); // Keep conversations column visible
+            });
+        }
+
+        function resetDashboardChatCard(keepActivated = false) {
+            const aiCard = document.getElementById('aiChatCard');
+            const closeBtn = document.getElementById('aiCloseBtn');
+            const fullscreenBtn = document.getElementById('aiFullscreenBtn');
+            const landingView = document.getElementById('dashboardLandingView');
+            const conversationView = document.getElementById('dashboardConversationView');
+            const conversationsList = document.getElementById('conversationsList');
+            
+            // Reset conversation state
+            window.dashboardCurrentConversationId = null;
+            localStorage.removeItem('dashboardSelectedConversation');
+            
+            // Remove active class from all conversation items
+            if (conversationsList) {
+                conversationsList.querySelectorAll('.conversation-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+            }
+            
+            // Hide conversation view, show landing view
+            if (conversationView) conversationView.style.display = 'none';
+            if (landingView) landingView.style.display = 'block';
+            
+            // Hide close button and adjust fullscreen button position
+            if (closeBtn) closeBtn.style.display = 'none';
+            if (fullscreenBtn) fullscreenBtn.classList.remove('has-close-btn');
+            
+            // Remove activated class only if not in fullscreen mode and not keeping activated
+            if (aiCard && !aiCard.classList.contains('fullscreen') && !keepActivated) {
+                aiCard.classList.remove('activated');
+            }
+        }
+
+        // Dashboard conversation state
+        window.dashboardCurrentConversationId = null;
+
+        // Load conversation messages for dashboard
+        async function loadDashboardConversation(conversationId) {
+            window.dashboardCurrentConversationId = conversationId;
+            
+            // Show close button and adjust fullscreen button position
+            const closeBtn = document.getElementById('aiCloseBtn');
+            const fullscreenBtn = document.getElementById('aiFullscreenBtn');
+            if (closeBtn) closeBtn.style.display = 'block';
+            if (fullscreenBtn) fullscreenBtn.classList.add('has-close-btn');
+            
+            // Show conversation view, hide landing view
+            const landingView = document.getElementById('dashboardLandingView');
+            const conversationView = document.getElementById('dashboardConversationView');
+            
+            if (landingView) landingView.style.display = 'none';
+            if (conversationView) {
+                conversationView.style.display = 'flex';
+                // Ensure it takes full height
+                conversationView.style.height = '100%';
+            }
+            
+            // Show conversation header
+            const notalHeader = document.getElementById('dashboardNotalHeader');
+            if (notalHeader) notalHeader.style.display = 'block';
+            
+            // Load messages
+            await loadDashboardConversationMessages(conversationId);
+            
+            // Initialize dashboard chat input handlers
+            initializeDashboardChatInput();
+        }
+
+        // Load messages for a conversation
+        async function loadDashboardConversationMessages(conversationId) {
+            const chatMessages = document.getElementById('dashboardChatMessages');
+            if (!chatMessages) return;
+            
+            try {
+                const orgId = @ViewBag.OrganizationId;
+                if (!orgId) {
+                    console.error('Organization ID not found');
+                    return;
+                }
+                
+                const response = await fetch(`/Client/${orgId}/Chat/GetMessages/${conversationId}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const messages = await response.json();
+                
+                // Clear existing messages (except header)
+                const messagesToRemove = chatMessages.querySelectorAll('.ai-message-bubble:not(.notal-conversation-header .ai-message-bubble), .user-message-bubble');
+                messagesToRemove.forEach(msg => msg.remove());
+                
+                // Display messages
+                messages.forEach(message => {
+                    addDashboardMessageToChat(message);
+                });
+                
+                // Scroll to bottom
+                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'instant' });
+                
+            } catch (error) {
+                console.error('Error loading messages:', error);
+                chatMessages.innerHTML += '<div class="text-danger p-2">Failed to load messages</div>';
+            }
+        }
+
+        // Add message to dashboard chat (with optional attachment indicator)
+        function addDashboardMessageToChat(message, attachmentInfo = null) {
+            const chatMessages = document.getElementById('dashboardChatMessages');
+            if (!chatMessages) return;
+            
+            const messageDiv = document.createElement('div');
+            const isAI = message.isFromAI || false;
+            messageDiv.className = isAI ? 'ai-message-bubble' : 'user-message-bubble';
+            
+            const timestamp = new Date(message.createdAt || Date.now()).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            
+            // Use content directly as HTML (like sidebar does) - AI returns HTML-formatted content.
+            // Also: never show raw [ACTION:...] blocks in dashboard chat (match sidebar behavior).
+            let formattedContent = message.content || '';
+            if (isAI) {
+                try {
+                    if (typeof window.AgentActions !== 'undefined' && window.AgentActions.replaceWithCards) {
+                        formattedContent = window.AgentActions.replaceWithCards(formattedContent);
+                    } else {
+                        formattedContent = formattedContent.replace(/\[ACTION:\w+\][\s\S]*?\[\/ACTION\]/g, '');
+                    }
+                    formattedContent = formattedContent.replace(/\[ACTION:[\s\S]*$/g, '').trim();
+                } catch (e) {
+                    // ignore
+                }
+            }
+            
+            // Parse attachment info from message metadata if not provided directly (check both camelCase and PascalCase)
+            const metadataStr = message.metadata || message.Metadata;
+            if (!attachmentInfo && metadataStr) {
+                try {
+                    const metadata = JSON.parse(metadataStr);
+                    if (metadata.attachmentFileName && metadata.attachmentFileSize) {
+                        attachmentInfo = {
+                            fileName: metadata.attachmentFileName,
+                            fileSize: metadata.attachmentFileSize
+                        };
+                    }
+                } catch (e) {
+                    // Ignore JSON parse errors
+                }
+            }
+            
+            // Build attachment HTML if present
+            let attachmentHtml = '';
+            if (attachmentInfo) {
+                const fileSizeKb = (attachmentInfo.fileSize / 1024).toFixed(1);
+                attachmentHtml = `
+                    <div class="message-attachment" style="
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        padding: 0.5rem 0.75rem;
+                        background: rgba(61, 16, 25, 0.05);
+                        border-radius: 8px;
+                        margin-bottom: 0.5rem;
+                        border: 1px solid rgba(61, 16, 25, 0.1);
+                    ">
+                        <i class="fas fa-paperclip" style="color: #3d1019; font-size: 0.875rem;"></i>
+                        <div style="flex: 1; min-width: 0; overflow: hidden;">
+                            <div style="font-weight: 500; font-size: 0.875rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">${attachmentInfo.fileName}</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">${fileSizeKb} KB</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (isAI) {
+                messageDiv.innerHTML = `
+                    <div class="message-content">
+                        <div class="message-header">
+                            <img src="/images/Notal_Banner_Logo.png" alt="Notal AI" class="ai-message-logo" />
+                            <span class="timestamp">${timestamp}</span>
+                        </div>
+                        <div class="message-text">${formattedContent}</div>
+                    </div>
+                `;
+            } else {
+                // For user messages, escape HTML for security
+                formattedContent = formattedContent
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/\\n/g, '\n')
+                    .replace(/\n/g, '<br>');
+                
+                messageDiv.innerHTML = `
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="timestamp">${timestamp}</span>
+                        </div>
+                        ${attachmentHtml}
+                        <div class="message-text">${formattedContent}</div>
+                    </div>
+                `;
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'instant' });
+        }
+
+        // Initialize dashboard chat input handlers
+        function initializeDashboardChatInput() {
+            const messageInput = document.getElementById('dashboardMessageInput');
+            const sendButton = document.getElementById('dashboardSendButton');
+            
+            if (!messageInput || !sendButton) return;
+            
+            // Check if already initialized to avoid duplicate listeners
+            if (messageInput.dataset.initialized === 'true') return;
+            messageInput.dataset.initialized = 'true';
+            
+            // Send message handler
+            const sendMessage = async () => {
+                const input = document.getElementById('dashboardMessageInput');
+                const fileInput = document.getElementById('dashboardFileInput');
+                const attachmentPreview = document.getElementById('dashboardAttachmentPreview');
+                const attachFileBtn = document.getElementById('dashboardAttachFileBtn');
+                const message = input.value.trim();
+                
+                // Check if there's a file attached
+                const hasAttachment = fileInput && fileInput.files && fileInput.files.length > 0;
+                
+                if (!message && !hasAttachment) return;
+                if (!window.dashboardCurrentConversationId) return;
+                
+                // Capture file and file info before clearing
+                let capturedFile = null;
+                let fileInfo = null;
+                if (hasAttachment) {
+                    capturedFile = fileInput.files[0];
+                    fileInfo = {
+                        name: capturedFile.name,
+                        size: capturedFile.size
+                    };
+                }
+                
+                // Clear input
+                input.value = '';
+                updateDashboardCharCounter();
+                
+                // Clear attachment preview immediately
+                if (attachmentPreview) {
+                    attachmentPreview.style.display = 'none';
+                }
+                if (attachFileBtn) {
+                    attachFileBtn.classList.remove('active');
+                }
+                
+                // Clear the file input immediately
+                if (fileInput) {
+                    fileInput.value = '';
+                }
+                
+                // Build attachment info for display
+                const attachmentInfo = dashboardPendingAttachment ? {
+                    fileName: dashboardPendingAttachment.fileName,
+                    fileSize: dashboardPendingAttachment.fileSize
+                } : (fileInfo ? { fileName: fileInfo.name, fileSize: fileInfo.size } : null);
+                
+                // Add user message immediately (with attachment indicator if present)
+                addDashboardMessageToChat({
+                    content: message || 'Please analyze this document.',
+                    isFromAI: false,
+                    createdAt: new Date().toISOString()
+                }, attachmentInfo);
+                
+                // Show intelligent AI thinking indicator
+                showDashboardAIThinkingIndicator(message || 'Analyzing attached document...');
+                
+                // If we have a file but haven't uploaded yet, upload it now
+                if (capturedFile && !dashboardPendingAttachment) {
+                    console.log('Processing attachment in background:', capturedFile.name);
+                    const uploadedAttachment = await uploadDashboardAttachment(capturedFile);
+                    if (uploadedAttachment) {
+                        dashboardPendingAttachment = uploadedAttachment;
+                    }
+                }
+                
+                // Send to server
+                try {
+                    const orgId = @ViewBag.OrganizationId;
+                    
+                    // Build request body with attachment metadata if present
+                    let requestBody = `conversationId=${window.dashboardCurrentConversationId}&content=${encodeURIComponent(message || 'Please analyze this document.')}&messageType=Text`;
+                    
+                    if (fileInfo) {
+                        requestBody += `&attachmentFileName=${encodeURIComponent(fileInfo.name)}&attachmentFileSize=${fileInfo.size}`;
+                    }
+                    
+                    const response = await fetch(`/Client/${orgId}/Chat/SendMessage`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: requestBody
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Generate streaming AI response (will include attachment content if dashboardPendingAttachment is set)
+                        await generateDashboardAIResponse(message || 'Please analyze this document.');
+                    } else {
+                        console.error('Failed to send message:', data.error);
+                        hideDashboardAIThinkingIndicator();
+                    }
+                } catch (error) {
+                    console.error('Error sending message:', error);
+                    hideDashboardAIThinkingIndicator();
+                }
+            };
+            
+            // Event listeners
+            sendButton.addEventListener('click', sendMessage);
+            messageInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            // Character counter
+            messageInput.addEventListener('input', updateDashboardCharCounter);
+            
+            // Auto-resize textarea
+            messageInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            });
+        }
+
+        // Update character counter
+        function updateDashboardCharCounter() {
+            const input = document.getElementById('dashboardMessageInput');
+            const counter = document.getElementById('dashboardCharCounter');
+            if (input && counter) {
+                const length = input.value.length;
+                counter.textContent = `${length} / 2000`;
+            }
+        }
+
+        // Show intelligent AI thinking indicator (dashboard version)
+        function showDashboardAIThinkingIndicator(userMessage) {
+            const chatMessages = document.getElementById('dashboardChatMessages');
+            if (!chatMessages) return;
+            
+            // Determine thinking message based on user input
+            let thinkingMessage = "AI is thinking...";
+            const messageLower = userMessage.toLowerCase();
+            
+            // Check if there's a pending attachment - show document analysis message
+            if (dashboardPendingAttachment || messageLower.includes("analyze this document") || 
+                messageLower.includes("pdf") || messageLower.includes("attachment")) {
+                thinkingMessage = "Analyzing document content...";
+            } else if (messageLower.includes("document review") || messageLower.includes("review")) {
+                thinkingMessage = "Analyzing document requirements...";
+            } else if (messageLower.includes("contract") || messageLower.includes("agreement")) {
+                thinkingMessage = "Reviewing contract details...";
+            } else if (messageLower.includes("hello") || messageLower.includes("hi")) {
+                thinkingMessage = "Preparing personalized greeting...";
+            } else if (messageLower.includes("help") || messageLower.includes("assistance")) {
+                thinkingMessage = "Identifying best assistance approach...";
+            } else if (messageLower.includes("legal") || messageLower.includes("law")) {
+                thinkingMessage = "Processing legal inquiry...";
+            } else if (messageLower.includes("question") || messageLower.includes("?")) {
+                thinkingMessage = "Formulating detailed response...";
+            }
+            
+            const thinkingDiv = document.createElement('div');
+            thinkingDiv.id = 'dashboard-ai-thinking-indicator';
+            thinkingDiv.className = 'message ai-message';
+            thinkingDiv.innerHTML = `
+                <div class="message-header">
+                    <img src="/images/Notal_Banner_Logo.png" alt="Notal AI" class="ai-message-logo" />
+                    <span class="timestamp">${new Date().toLocaleTimeString()}</span>
+                </div>
+                <div class="message-content">
+                    <div class="ai-thinking">
+                        <div class="thinking-spinner">
+                            <div class="spinner-border spinner-border-sm" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                        </div>
+                        <span class="thinking-text" id="dashboardThinkingText">${thinkingMessage}</span>
+                    </div>
+                </div>
+            `;
+            
+            chatMessages.appendChild(thinkingDiv);
+            chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'instant' });
+            
+            // Apply wave animation to thinking text
+            const thinkingTextElement = thinkingDiv.querySelector('#dashboardThinkingText');
+            if (thinkingTextElement) {
+                const text = thinkingTextElement.textContent;
+                thinkingTextElement.innerHTML = text.split('').map((char, index) => {
+                    const delay = index * 0.05; // 50ms delay between each character
+                    return `<span style="animation-delay: ${delay}s;">${char === ' ' ? '&nbsp;' : char}</span>`;
+                }).join('');
+            }
+        }
+
+        // Hide AI thinking indicator (dashboard version)
+        function hideDashboardAIThinkingIndicator() {
+            const thinkingDiv = document.getElementById('dashboard-ai-thinking-indicator');
+            if (thinkingDiv) {
+                thinkingDiv.remove();
+            }
+        }
+
+        // Create streaming AI message placeholder (dashboard version)
+        function createDashboardStreamingAIMessagePlaceholder() {
+            const chatMessages = document.getElementById('dashboardChatMessages');
+            if (!chatMessages) return null;
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ai-message ai-message-bubble streaming';
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    <div class="message-header">
+                        <img src="/images/Notal_Banner_Logo.png" alt="Notal AI" class="ai-message-logo" />
+                        <span class="timestamp">${new Date().toLocaleTimeString()}</span>
+                    </div>
+                    <div class="message-text"></div>
+                </div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            return messageDiv;
+        }
+
+        // Generate AI response with streaming (dashboard version)
+        async function generateDashboardAIResponse(userMessage) {
+            try {
+                const orgId = @ViewBag.OrganizationId;
+                if (!orgId) {
+                    console.error('Organization ID not found');
+                    return;
+                }
+                
+                // Keep "AI is thinking..." visible until first chunk arrives
+                let aiMessageDiv = null;
+                let messageTextDiv = null;
+                let isFirstChunk = true;
+                
+                let fullContent = '';
+                
+                // Track if user has manually scrolled up
+                let userHasScrolledUp = false;
+                let lastScrollHeight = 0;
+                
+                const chatMessages = document.getElementById('dashboardChatMessages');
+                
+                // Detect manual scroll by user
+                const handleScroll = () => {
+                    if (!chatMessages) return;
+                    
+                    const isAtBottom = chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight < 50;
+                    
+                    // If user scrolls back to bottom, re-enable auto-scroll
+                    if (isAtBottom) {
+                        userHasScrolledUp = false;
+                    } 
+                    // If scroll position changed and we're not at bottom, user scrolled up
+                    else if (chatMessages.scrollHeight === lastScrollHeight) {
+                        userHasScrolledUp = true;
+                    }
+                    
+                    lastScrollHeight = chatMessages.scrollHeight;
+                };
+                
+                // Add scroll listener
+                if (chatMessages) {
+                    chatMessages.addEventListener('scroll', handleScroll);
+                }
+                
+                // Build request body with optional attachment content
+                const requestBody = {
+                    conversationId: parseInt(window.dashboardCurrentConversationId),
+                    userMessage: userMessage
+                };
+                
+                // Include AI mode and model if AgentActions is available
+                if (typeof window.AgentActions !== 'undefined') {
+                    requestBody.aiMode = window.AgentActions.getMode();
+                    requestBody.aiModel = window.AgentActions.getModel();
+                    console.log('[AgentActions] Dashboard sending with mode:', requestBody.aiMode, 'model:', requestBody.aiModel);
+                }
+
+                // Wait for attachment upload to complete if still uploading
+                if (window._dashboardUploadingAttachment) {
+                    console.log('Waiting for attachment upload to complete...');
+                    while (window._dashboardUploadingAttachment) {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                }
+
+                // Include attachment content if present
+                if (dashboardPendingAttachment) {
+                    requestBody.attachmentContent = dashboardPendingAttachment.extractedContent;
+                    requestBody.attachmentFileName = dashboardPendingAttachment.fileName;
+                    console.log(`Including attachment in dashboard AI request: ${dashboardPendingAttachment.fileName}`);
+                    // Clear pending attachment after including it
+                    dashboardPendingAttachment = null;
+                }
+
+                const response = await fetch(`/Client/${orgId}/Chat/GenerateAIResponseStream`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                // Handle Server-Sent Events stream
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                
+                while (true) {
+                    const { done, value } = await reader.read();
+                    
+                    if (done) {
+                        break;
+                    }
+                    
+                    // Decode the chunk and add to buffer
+                    buffer += decoder.decode(value, { stream: true });
+                    
+                    // Process complete SSE messages (separated by \n\n)
+                    const messages = buffer.split('\n\n');
+                    buffer = messages.pop() || ''; // Keep incomplete message in buffer
+                    
+                    for (const message of messages) {
+                        if (message.startsWith('data: ')) {
+                            const jsonData = message.substring(6);
+                            
+                            try {
+                                const eventData = JSON.parse(jsonData);
+                                
+                                // Add delay between chunks for smooth visual streaming (30ms per chunk)
+                                await new Promise(resolve => setTimeout(resolve, 30));
+                                
+                                if (eventData.error) {
+                                    // Error occurred
+                                    hideDashboardAIThinkingIndicator();
+                                    if (messageTextDiv) {
+                                        messageTextDiv.innerHTML = eventData.content || 'An error occurred while generating the response.';
+                                    }
+                                    // Remove streaming class
+                                    if (aiMessageDiv) {
+                                        aiMessageDiv.classList.remove('streaming');
+                                    }
+                                    if (chatMessages) {
+                                        chatMessages.removeEventListener('scroll', handleScroll);
+                                    }
+                                    return;
+                                }
+                                
+                                if (eventData.done) {
+                                    // Stream complete - remove streaming class
+                                    hideDashboardAIThinkingIndicator();
+                                    if (aiMessageDiv) {
+                                        aiMessageDiv.classList.remove('streaming');
+                                    }
+                                    if (messageTextDiv) {
+                                        // Clean the content for display - replace action commands with nice action cards
+                                        let displayContent = fullContent;
+                                        if (typeof window.AgentActions !== 'undefined') {
+                                            // Use replaceWithCards to show animated action cards
+                                            if (window.AgentActions.replaceWithCards) {
+                                                displayContent = window.AgentActions.replaceWithCards(fullContent);
+                                            } else if (window.AgentActions.stripActionCommands) {
+                                                // Fallback: strip if replaceWithCards not available
+                                                displayContent = window.AgentActions.stripActionCommands(fullContent);
+                                            }
+                                        }
+                                        // Use content directly as HTML - AI returns HTML-formatted content
+                                        messageTextDiv.innerHTML = displayContent || 'No response generated.';
+                                    }
+                                    
+                                    // 🤖 Agent Actions: Check for action commands in AI response
+                                    if (typeof window.AgentActions !== 'undefined') {
+                                        try {
+                                            const detectedActions = window.AgentActions.parseResponse(fullContent);
+                                            if (detectedActions && detectedActions.length > 0) {
+                                                console.log('[AgentActions] Detected actions in dashboard AI response:', detectedActions);
+                                                window.AgentActions.processActions(detectedActions, window.dashboardCurrentConversationId);
+                                            }
+                                        } catch (agentError) {
+                                            console.error('[AgentActions] Error processing dashboard actions:', agentError);
+                                        }
+                                    }
+                                    
+                                    // Remove scroll listener
+                                    if (chatMessages) {
+                                        chatMessages.removeEventListener('scroll', handleScroll);
+                                    }
+                                    
+                                    return;
+                                }
+                                
+                                if (eventData.content) {
+                                    // Safety net: skip suspected duplicate full-response chunk
+                                    if (fullContent.length > 100 && eventData.content.length >= fullContent.length * 0.9) {
+                                        console.warn('⚠️ Dashboard: Skipping suspected duplicate full-response chunk');
+                                        continue;
+                                    }
+                                    
+                                    // On first chunk: hide thinking indicator and create streaming placeholder
+                                    if (isFirstChunk) {
+                                        hideDashboardAIThinkingIndicator();
+                                        aiMessageDiv = createDashboardStreamingAIMessagePlaceholder();
+                                        messageTextDiv = aiMessageDiv.querySelector('.message-text');
+                                        
+                                        // Initialize empty message text
+                                        messageTextDiv.textContent = '';
+                                        
+                                        isFirstChunk = false;
+                                    }
+                                    
+                                    try {
+                                        // Append chunk to full content
+                                        fullContent += eventData.content;
+                                        
+                                        // During streaming: keep HTML structure, only remove incomplete tags (like sidebar)
+                                        let displayText = fullContent
+                                            .replace(/<[^>]*$/g, '')  // Remove incomplete tag at the end (e.g., "<p" or "<stro")
+                                            .trim();
+
+                                        // Match sidebar streaming behavior: replace complete action blocks with action cards,
+                                        // and hide any in-progress trailing action block (no raw [ACTION] text).
+                                        if (typeof window.AgentActions !== 'undefined') {
+                                            if (window.AgentActions.replaceWithCardsStreaming) {
+                                                displayText = window.AgentActions.replaceWithCardsStreaming(displayText);
+                                            } else if (window.AgentActions.replaceWithCards) {
+                                                displayText = window.AgentActions.replaceWithCards(displayText);
+                                                displayText = displayText.replace(/\[ACTION:[\s\S]*$/g, '').trim();
+                                            } else if (window.AgentActions.stripActionCommands) {
+                                                displayText = window.AgentActions.stripActionCommands(displayText);
+                                                displayText = displayText.replace(/\[ACTION:[\s\S]*$/g, '').trim();
+                                            }
+                                        } else {
+                                            displayText = displayText.replace(/\[ACTION:[\s\S]*$/g, '').trim();
+                                        }
+                                        
+                                        // Update using innerHTML to preserve HTML formatting during streaming (like sidebar)
+                                        const tempDiv = document.createElement('div');
+                                        tempDiv.innerHTML = displayText;
+                                        
+                                        // Clear messageTextDiv and rebuild with formatted content
+                                        messageTextDiv.innerHTML = '';
+                                        while (tempDiv.firstChild) {
+                                            messageTextDiv.appendChild(tempDiv.firstChild);
+                                        }
+                                        
+                                        // Auto-scroll only if user hasn't manually scrolled up
+                                        if (chatMessages && !userHasScrolledUp) {
+                                            chatMessages.scrollTop = chatMessages.scrollHeight;
+                                            lastScrollHeight = chatMessages.scrollHeight;
+                                        }
+                                    } catch (domError) {
+                                        console.error('Error in DOM update:', domError);
+                                    }
+                                }
+                            } catch (e) {
+                                console.error('Error parsing SSE:', e);
+                            }
+                        }
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error generating streaming AI response:', error);
+                hideDashboardAIThinkingIndicator();
+                
+                // Show error message in chat
+                const chatMessages = document.getElementById('dashboardChatMessages');
+                if (chatMessages) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'ai-message-bubble error-message';
+                    errorDiv.innerHTML = `
+                        <div class="message-content">
+                            <div class="message-header">
+                                <img src="/images/Notal_Banner_Logo.png" alt="Notal AI" class="ai-message-logo" />
+                                <span class="timestamp">${new Date().toLocaleTimeString()}</span>
+                            </div>
+                            <div class="message-text">
+                                I apologize, but I'm having trouble generating a response right now. Please try again in a moment.
+                            </div>
+                        </div>
+                    `;
+                    chatMessages.appendChild(errorDiv);
+                    chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+                }
+            }
+        }
+
+        // Handle search input send (for landing view)
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchSendBtn = document.getElementById('dashboardSendBtn');
+            const searchInput = document.getElementById('dashboardSearchInput');
+            
+            if (searchSendBtn && searchInput) {
+                searchSendBtn.addEventListener('click', async function() {
+                    const message = searchInput.value.trim();
+                    const fileInput = document.getElementById('dashboardFileInput');
+                    const hasAttachment = fileInput && fileInput.files && fileInput.files.length > 0;
+                    
+                    if (!message && !hasAttachment) return;
+                    
+                    // Check if we have a conversation selected
+                    const savedConversationId = localStorage.getItem('dashboardSelectedConversation');
+                    
+                    // Use default message if only attachment is present
+                    const effectiveMessage = message || (hasAttachment ? 'Please analyze this document.' : '');
+                    
+                    // Clear the search input
+                    searchInput.value = '';
+                    
+                    // Clear the landing attachment preview
+                    const landingAttachmentPreview = document.getElementById('landingAttachmentPreview');
+                    if (landingAttachmentPreview) {
+                        landingAttachmentPreview.style.display = 'none';
+                    }
+                    
+                    if (savedConversationId) {
+                        // Use existing conversation
+                        window.dashboardCurrentConversationId = savedConversationId;
+                        loadDashboardConversation(savedConversationId);
+                        
+                        // Wait a bit for view to switch, then send message
+                        setTimeout(() => {
+                            const dashboardInput = document.getElementById('dashboardMessageInput');
+                            if (dashboardInput) {
+                                dashboardInput.value = effectiveMessage;
+                                document.getElementById('dashboardSendButton').click();
+                            }
+                        }, 100);
+                    } else {
+                        // Create new conversation
+                        try {
+                            const orgId = @ViewBag.OrganizationId;
+                            const conversationTitle = hasAttachment ? 'Document Analysis' : 'New Chat';
+                            const response = await fetch(`/Client/${orgId}/Chat/CreateConversation`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                },
+                                body: `title=${encodeURIComponent(conversationTitle)}&description=${encodeURIComponent(effectiveMessage)}`
+                            });
+                            
+                            const data = await response.json();
+                            
+                            if (data.success && data.conversationId) {
+                                // Set as current conversation
+                                window.dashboardCurrentConversationId = data.conversationId;
+                                localStorage.setItem('dashboardSelectedConversation', data.conversationId);
+                                
+                                // Load the conversation and send the message
+                                await loadDashboardConversation(data.conversationId);
+                                
+                                // Wait for view to switch, then send message
+                                setTimeout(() => {
+                                    const dashboardInput = document.getElementById('dashboardMessageInput');
+                                    if (dashboardInput) {
+                                        dashboardInput.value = effectiveMessage;
+                                        document.getElementById('dashboardSendButton').click();
+                                    }
+                                }, 200);
+                                
+                                // Reload conversations list
+                                loadDashboardConversations();
+                            } else {
+                                console.error('Failed to create conversation:', data.error);
+                            }
+                        } catch (error) {
+                            console.error('Error creating conversation:', error);
+                        }
+                    }
+                });
+                
+                searchInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        searchSendBtn.click();
+                    }
+                });
+            }
+        });
+
+        // Stream AI-powered briefing and suggestions (once per day)
+        function getTodayKey() {
+            const now = new Date();
+            return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+        }
+        function cleanOldBriefingCache() {
+            const todayKey = getTodayKey();
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.startsWith('briefingCardsShown_') || key.startsWith('briefingContent_') || key.startsWith('suggestionsContent_'))) {
+                    if (!key.endsWith('_' + todayKey)) {
+                        keysToRemove.push(key);
+                    }
+                }
+            }
+            keysToRemove.forEach(k => localStorage.removeItem(k));
+        }
+        async function streamDashboardBriefingCards() {
+            const todayKey = getTodayKey();
+            cleanOldBriefingCache();
+
+            // Check if already generated today
+            const briefingShown = localStorage.getItem('briefingCardsShown_' + todayKey);
+            if (briefingShown === 'true') {
+                // Load cached content if available
+                const cachedBriefing = localStorage.getItem('briefingContent_' + todayKey);
+                const cachedSuggestions = localStorage.getItem('suggestionsContent_' + todayKey);
+                
+                if (cachedBriefing) {
+                    const contentElement = document.getElementById('dailyBriefingContent');
+                    const summaryElement = document.getElementById('dailyBriefingSummary');
+                    
+                    // Parse and create summary grid
+                    const counts = parseBriefingContent(cachedBriefing);
+                    if (summaryElement) {
+                        updateBriefingSummary(counts);
+                    }
+                    
+                    // Format and store full content
+                    let displayText = cachedBriefing
+                        .replace(/<[^>]*$/g, '')
+                        .trim();
+                    
+                    if (typeof formatIntelligentResponse === 'function') {
+                        displayText = formatIntelligentResponse(displayText);
+                    } else {
+                        displayText = displayText
+                            .replace(/\n/g, '<br>')
+                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                            .replace(/→/g, '→');
+                    }
+                    
+                    if (contentElement) {
+                        contentElement.innerHTML = displayText;
+                    }
+                }
+                if (cachedSuggestions) {
+                    const suggestionsContentElement = document.getElementById('notalSuggestionsContent');
+                    const suggestionsSummaryElement = document.getElementById('notalSuggestionsSummary');
+                    
+                    // Format cached content
+                    let displayText = cachedSuggestions
+                        .replace(/<[^>]*$/g, '')
+                        .trim();
+                    
+                    if (typeof formatIntelligentResponse === 'function') {
+                        displayText = formatIntelligentResponse(displayText);
+                    } else {
+                        displayText = displayText
+                            .replace(/\n/g, '<br>')
+                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                            .replace(/→/g, '→');
+                    }
+                    
+                    // Create truncated summary view
+                    if (suggestionsSummaryElement) {
+                        const summaryHTML = createSuggestionsSummary(displayText, 3);
+                        suggestionsSummaryElement.innerHTML = summaryHTML;
+                    }
+                    
+                    // Store full content for fullscreen view
+                    if (suggestionsContentElement) {
+                        suggestionsContentElement.innerHTML = displayText;
+                    }
+                }
+                return;
+            }
+
+            try {
+                const orgId = @ViewBag.OrganizationId;
+                if (!orgId) return;
+
+                // Stream Daily Briefing
+                await streamBriefingCard('daily-briefing', 
+                    'dailyBriefingContent',
+                    `Generate a concise daily briefing for today. Include:
+                    - Number of events happening today with event names
+                    - Scheduled client calls with times and names
+                    - Any overdue items (invoices, tasks, deadlines)
+                    Format as brief bullet points. Be specific and actionable.
+                    IMPORTANT: Do NOT use emojis. Use Unicode symbols like •, ▸, ►, ✓, ✔, ✗, ✘, →, ‣ instead.
+                    Example format:
+                    Today
+                    2 events today
+                    Smith-Jones Wedding, ABC Corp Gala
+                    
+                    1 client call
+                    4:30 PM with Johnson
+                    
+                    1 overdue invoice
+                    follow-up needed`
+                );
+
+                // Wait a moment before streaming suggestions
+                await new Promise(resolve => setTimeout(resolve, 800));
+
+                // Stream Notal Suggestions
+                await streamBriefingCard('notal-suggestions',
+                    'notalSuggestionsContent',
+                    `Generate 3-4 actionable suggestions based on current workload. Include:
+                    - Inactive events needing follow-up
+                    - Overdue invoices or billings
+                    - Resource allocation issues (overloaded team members)
+                    Format as brief items with action arrows.
+                    IMPORTANT: Do NOT use emojis. Use Unicode symbols like •, ▸, ►, ✓, ✔, ✗, ✘, →, ‣ instead.
+                    Example format:
+                    Event Z inactive 12 days
+                    -> follow up
+                    
+                    3 overdue invoices
+                    -> send reminders
+                    
+                    Team member C overloaded
+                    -> consider reassigning`
+                );
+
+                // Mark as shown for today (won't regenerate until tomorrow)
+                localStorage.setItem('briefingCardsShown_' + todayKey, 'true');
+            } catch (error) {
+                console.error('Error streaming briefing cards:', error);
+            }
+        }
+
+        // Stream individual briefing card with AI (using C# backend like chat sidebar)
+        async function streamBriefingCard(cardType, contentElementId, promptTemplate) {
+            const contentElement = document.getElementById(contentElementId);
+            if (!contentElement) return;
+
+            // For Daily Briefing and Suggestions, we need to handle both summary and full content views
+            const isDailyBriefing = contentElementId === 'dailyBriefingContent';
+            const isSuggestions = contentElementId === 'notalSuggestionsContent';
+            const summaryElement = isDailyBriefing ? document.getElementById('dailyBriefingSummary') : 
+                                   isSuggestions ? document.getElementById('notalSuggestionsSummary') : null;
+
+            try {
+                const orgId = @ViewBag.OrganizationId;
+                const response = await fetch(`/Client/${orgId}/Chat/GenerateDashboardCardStream`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userMessage: promptTemplate,
+                        cardType: cardType
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                // Clear loading state
+                if ((isDailyBriefing || isSuggestions) && summaryElement) {
+                    summaryElement.innerHTML = '';
+                } else {
+                    contentElement.innerHTML = '';
+                }
+
+                // Handle SSE streaming (same format as chat sidebar)
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let fullContent = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    
+                    if (done) break;
+                    
+                    buffer += decoder.decode(value, { stream: true });
+                    const messages = buffer.split('\n\n');
+                    buffer = messages.pop() || '';
+                    
+                    for (const message of messages) {
+                        if (message.startsWith('data: ')) {
+                            const jsonData = message.substring(6);
+                            
+                            try {
+                                const eventData = JSON.parse(jsonData);
+                                
+                                if (eventData.error) {
+                                    if ((isDailyBriefing || isSuggestions) && summaryElement) {
+                                        summaryElement.innerHTML = '<p class="text-muted small">Unable to generate content</p>';
+                                    } else {
+                                        contentElement.innerHTML = '<p class="text-muted small">Unable to generate content</p>';
+                                    }
+                                    return;
+                                }
+                                
+                                if (eventData.done) {
+                                    // Cache the final content for the day (persists across sessions)
+                                    const cacheKey = contentElementId === 'dailyBriefingContent' ? 'briefingContent_' : 'suggestionsContent_';
+                                    localStorage.setItem(cacheKey + getTodayKey(), fullContent);
+                                    
+                                    // Format full content for display
+                                    let displayText = fullContent
+                                        .replace(/<[^>]*$/g, '')
+                                        .trim();
+                                    
+                                    if (typeof formatIntelligentResponse === 'function') {
+                                        displayText = formatIntelligentResponse(displayText);
+                                    } else {
+                                        displayText = displayText
+                                            .replace(/\n/g, '<br>')
+                                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                            .replace(/→/g, '→');
+                                    }
+                                    
+                                    // For Daily Briefing, parse content and create summary grid
+                                    if (isDailyBriefing && summaryElement) {
+                                        const counts = parseBriefingContent(fullContent);
+                                        updateBriefingSummary(counts);
+                                        contentElement.innerHTML = displayText;
+                                    }
+                                    // For Suggestions, create truncated summary view
+                                    else if (isSuggestions && summaryElement) {
+                                        const summaryHTML = createSuggestionsSummary(displayText, 3);
+                                        summaryElement.innerHTML = summaryHTML;
+                                        contentElement.innerHTML = displayText;
+                                    }
+                                    // For other cards, update normally
+                                    else {
+                                        contentElement.innerHTML = displayText;
+                                    }
+                                    return;
+                                }
+                                
+                                if (eventData.content) {
+                                    fullContent += eventData.content;
+                                    
+                                    // Format content for display
+                                    let displayText = fullContent
+                                        .replace(/<[^>]*$/g, '')
+                                        .trim();
+                                    
+                                    if (typeof formatIntelligentResponse === 'function') {
+                                        displayText = formatIntelligentResponse(displayText);
+                                    } else {
+                                        displayText = displayText
+                                            .replace(/\n/g, '<br>')
+                                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                            .replace(/→/g, '→');
+                                    }
+                                    
+                                    // For Daily Briefing, update summary grid as content streams
+                                    if (isDailyBriefing && summaryElement) {
+                                        const counts = parseBriefingContent(fullContent);
+                                        updateBriefingSummary(counts);
+                                        contentElement.innerHTML = displayText;
+                                    }
+                                    // For Suggestions, update truncated summary view as content streams
+                                    else if (isSuggestions && summaryElement) {
+                                        const summaryHTML = createSuggestionsSummary(displayText, 3);
+                                        summaryElement.innerHTML = summaryHTML;
+                                        contentElement.innerHTML = displayText;
+                                    }
+                                    // For other cards, update normally
+                                    else {
+                                        contentElement.innerHTML = displayText;
+                                    }
+                                }
+                            } catch (e) {
+                                console.error('Error parsing SSE:', e);
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error(`Error streaming ${cardType}:`, error);
+                if (isDailyBriefing && summaryElement) {
+                    summaryElement.innerHTML = '<p class="text-muted small">Unable to load content</p>';
+                } else {
+                    contentElement.innerHTML = '<p class="text-muted small">Unable to load content</p>';
+                }
+            }
+        }
+
+        async function loadDashboardUpcomingDeadlines() {
+            const deadlinesList = document.getElementById('dashboardUpcomingDeadlinesList');
+            if (!deadlinesList) return;
+            
+            try {
+                const orgId = @ViewBag.OrganizationId;
+                if (!orgId) {
+                    deadlinesList.innerHTML = '<p class="text-muted small">Unable to load deadlines.</p>';
+                    return;
+                }
+                
+                // Fetch upcoming calendar events (deadlines)
+                const endDate = new Date();
+                endDate.setDate(endDate.getDate() + 30); // Next 30 days
+                
+                const response = await fetch(`/Client/${orgId}/Calendar/Events?start=${new Date().toISOString()}&end=${endDate.toISOString()}`, {
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch deadlines');
+                }
+                
+                const result = await response.json();
+                
+                if (!result.success || !result.events || result.events.length === 0) {
+                    deadlinesList.innerHTML = '<p class="text-muted small">No upcoming deadlines.</p>';
+                    return;
+                }
+                
+                // Filter and sort events as deadlines
+                const deadlines = result.events
+                    .filter(e => new Date(e.startDateTime) > new Date())
+                    .sort((a, b) => new Date(a.startDateTime) - new Date(b.startDateTime))
+                    .slice(0, 5); // Show top 5
+                
+                if (deadlines.length === 0) {
+                    deadlinesList.innerHTML = '<p class="text-muted small">No upcoming deadlines.</p>';
+                    return;
+                }
+                
+                // Render deadlines
+                deadlinesList.innerHTML = deadlines.map(deadline => {
+                    const date = new Date(deadline.startDateTime);
+                    const isToday = date.toDateString() === new Date().toDateString();
+                    const daysDiff = Math.ceil((date - new Date()) / (1000 * 60 * 60 * 24));
+                    const urgencyClass = daysDiff <= 1 ? 'border-danger' : daysDiff <= 3 ? 'border-warning' : 'border-primary';
+                    
+                    return `
+                        <div class="deadline-item ${urgencyClass} border-start border-3 ps-2 mb-2">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div style="flex: 1; min-width: 0;">
+                                    <div class="fw-semibold text-truncate" style="font-size: 0.85rem;">${deadline.title}</div>
+                                    <div class="text-muted small">${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}${isToday ? ' (Today)' : ''}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                console.error('Error loading deadlines:', error);
+                deadlinesList.innerHTML = '<p class="text-muted small">Error loading deadlines.</p>';
+            }
+        }
+    </script>
+}
