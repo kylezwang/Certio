@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -13,6 +11,7 @@ using Certio.Application.DTOs;
 using Certio.Application.Interfaces;
 using Certio.Application.Services.Documents;
 using Certio.Domain.Documents;
+using Certio.Domain.Identity;
 using Certio.Domain.Matters;
 using Certio.Infrastructure.Data;
 using Certio.Web.Security;
@@ -142,7 +141,7 @@ public class DocumentsApiController : ControllerBase
                 var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 currentUserId = (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out var claimUserId)) ? claimUserId : 0;
             }
-            var documentUserId = CreateDeterministicGuid("certio:user", currentUserId);
+            var documentUserId = DeterministicGuid.ForUser(currentUserId);
             await _documentAuditService.LogAsync(
                 new DocumentAuditEvent(
                     request.OrgId,
@@ -276,7 +275,7 @@ public class DocumentsApiController : ControllerBase
         // Check organization access
         var accessibleOrganizations = await _authorizationHelper.GetAccessibleOrganizationIdsAsync(currentUserId);
         var hasOrganizationAccess = accessibleOrganizations
-            .Select(id => CreateDeterministicGuid("certio:organization", id))
+            .Select(id => DeterministicGuid.ForOrganization(id))
             .Contains(document.OrgId);
 
         if (!hasOrganizationAccess)
@@ -346,7 +345,7 @@ public class DocumentsApiController : ControllerBase
         try
         {
             int currentUserId = HttpContext.Items.TryGetValue("CustomUserId", out var customUserId) && customUserId is int u ? u : (int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var c) ? c : 0);
-            var documentUserId = CreateDeterministicGuid("certio:user", currentUserId);
+            var documentUserId = DeterministicGuid.ForUser(currentUserId);
             await _documentAuditService.LogAsync(
                 new DocumentAuditEvent(
                     orgId,
@@ -426,7 +425,7 @@ public class DocumentsApiController : ControllerBase
 
         if (orgId.HasValue)
         {
-            var expectedOrgGuid = CreateDeterministicGuid("certio:organization", orgId.Value);
+            var expectedOrgGuid = DeterministicGuid.ForOrganization(orgId.Value);
             if (document.OrgId != expectedOrgGuid)
             {
                 _logger.LogWarning("SECURITY: User {UserId} attempted to access document {DocumentId} with mismatched orgId {OrgId}", currentUserId, documentId, orgId.Value);
@@ -436,7 +435,7 @@ public class DocumentsApiController : ControllerBase
 
         var accessibleOrganizations = await _authorizationHelper.GetAccessibleOrganizationIdsAsync(currentUserId);
         var hasOrganizationAccess = accessibleOrganizations
-            .Select(id => CreateDeterministicGuid("certio:organization", id))
+            .Select(id => DeterministicGuid.ForOrganization(id))
             .Contains(document.OrgId);
 
         if (!hasOrganizationAccess)
@@ -504,7 +503,7 @@ public class DocumentsApiController : ControllerBase
                             // Audit: embed URL fetched (non-blocking)
                             try
                             {
-                                var documentUserIdAudit = CreateDeterministicGuid("certio:user", currentUserId);
+                                var documentUserIdAudit = DeterministicGuid.ForUser(currentUserId);
                                 await _documentAuditService.LogAsync(
                                     new DocumentAuditEvent(
                                         document.OrgId,
@@ -558,7 +557,7 @@ public class DocumentsApiController : ControllerBase
         // Audit: fallback embed URL (non-blocking)
         try
         {
-            var documentUserIdAudit = CreateDeterministicGuid("certio:user", currentUserId);
+            var documentUserIdAudit = DeterministicGuid.ForUser(currentUserId);
             await _documentAuditService.LogAsync(
                 new DocumentAuditEvent(
                     document.OrgId,
@@ -635,7 +634,7 @@ public class DocumentsApiController : ControllerBase
         try
         {
             // Convert int orgId to Guid (same as DocumentsController)
-            var documentOrgId = CreateDeterministicGuid("certio:organization", orgId);
+            var documentOrgId = DeterministicGuid.ForOrganization(orgId);
             
             var query = _dbContext.Documents
                 .AsNoTracking()
@@ -720,7 +719,7 @@ public class DocumentsApiController : ControllerBase
             try
             {
                 int currentUserId = HttpContext.Items.TryGetValue("CustomUserId", out var customUserId) && customUserId is int u ? u : (int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var c) ? c : 0);
-                var documentUserId = CreateDeterministicGuid("certio:user", currentUserId);
+                var documentUserId = DeterministicGuid.ForUser(currentUserId);
                 await _documentAuditService.LogAsync(
                     new DocumentAuditEvent(
                         documentOrgId,
@@ -767,7 +766,7 @@ public class DocumentsApiController : ControllerBase
         try
         {
             var documentOrgId = orgId.HasValue 
-                ? CreateDeterministicGuid("certio:organization", orgId.Value)
+                ? DeterministicGuid.ForOrganization(orgId.Value)
                 : (Guid?)null;
 
             var document = await _dbContext.Documents
@@ -874,7 +873,7 @@ public class DocumentsApiController : ControllerBase
                 }
             }
             
-            var documentUserId = CreateDeterministicGuid("certio:user", currentUserId);
+            var documentUserId = DeterministicGuid.ForUser(currentUserId);
             
             await _documentAuditService.LogAsync(
                 new DocumentAuditEvent(
@@ -921,7 +920,7 @@ public class DocumentsApiController : ControllerBase
         try
         {
             var documentOrgId = orgId.HasValue 
-                ? CreateDeterministicGuid("certio:organization", orgId.Value)
+                ? DeterministicGuid.ForOrganization(orgId.Value)
                 : (Guid?)null;
 
             var document = await _dbContext.Documents
@@ -956,7 +955,7 @@ public class DocumentsApiController : ControllerBase
             }
 
             // Verify Matter belongs to the same organization as the document
-            var matterOrgId = CreateDeterministicGuid("certio:organization", matter.OrganizationId);
+            var matterOrgId = DeterministicGuid.ForOrganization(matter.OrganizationId);
             if (matterOrgId != document.OrgId)
             {
                 return BadRequest(new { success = false, error = "Matter does not belong to the same organization as the document" });
@@ -1013,7 +1012,7 @@ public class DocumentsApiController : ControllerBase
             }
 
             // Update document MatterId and metadata
-            document.MatterId = CreateDeterministicGuid("certio:matter", request.MatterId);
+            document.MatterId = DeterministicGuid.ForMatter(request.MatterId);
             document.ModifiedAt = DateTime.UtcNow;
             
             if (document.Metadata == null)
@@ -1038,7 +1037,7 @@ public class DocumentsApiController : ControllerBase
             try
             {
                 int currentUserId = HttpContext.Items.TryGetValue("CustomUserId", out var customUserId) && customUserId is int u ? u : (int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var c) ? c : 0);
-                var documentUserId = CreateDeterministicGuid("certio:user", currentUserId);
+                var documentUserId = DeterministicGuid.ForUser(currentUserId);
                 await _documentAuditService.LogAsync(
                     new DocumentAuditEvent(
                         document.OrgId,
@@ -1247,16 +1246,6 @@ public class DocumentsApiController : ControllerBase
         }
     }
 
-    private static Guid CreateDeterministicGuid(string namespacePrefix, int value)
-    {
-        using var sha256 = SHA256.Create();
-        var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes($"{namespacePrefix}:{value.ToString(System.Globalization.CultureInfo.InvariantCulture)}"));
-        Span<byte> guidBytes = stackalloc byte[16];
-        hash.AsSpan(0, 16).CopyTo(guidBytes);
-        guidBytes[6] = (byte)((guidBytes[6] & 0x0F) | 0x40); // Version 4
-        guidBytes[8] = (byte)((guidBytes[8] & 0x3F) | 0x80); // Variant RFC 4122
-        return new Guid(guidBytes);
-    }
 }
 
 public class MoveToMatterRequest

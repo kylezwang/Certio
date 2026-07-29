@@ -11,6 +11,8 @@ using Certio.Application.Services.Documents;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Azure;
 using Azure.AI.DocumentIntelligence;
@@ -638,6 +640,23 @@ else
     builder.Services.AddDistributedMemoryCache();
 }
 
+// Record the resolved backend so the readiness probe can report it and distinguish
+// "Redis is down" from "Redis was never configured".
+builder.Services.AddSingleton(new Certio.Web.HealthChecks.CacheBackendInfo(
+    redisEnabled
+        ? Certio.Web.HealthChecks.CacheBackendInfo.Redis
+        : Certio.Web.HealthChecks.CacheBackendInfo.InMemory));
+
+// Readiness checks. These back /healthz, which the production deploy workflow uses as its final gate.
+// Timeouts are deliberately shorter than that workflow's 15s HTTP timeout: without them an unreachable
+// SQL server takes ~18s to report, so the probe would time out client-side instead of returning a
+// diagnosable ok=false body.
+builder.Services.AddHealthChecks()
+    .AddCheck<Certio.Web.HealthChecks.DatabaseHealthCheck>(
+        "database", failureStatus: HealthStatus.Unhealthy, tags: new[] { "ready" }, timeout: TimeSpan.FromSeconds(5))
+    .AddCheck<Certio.Web.HealthChecks.DistributedCacheHealthCheck>(
+        "distributed-cache", failureStatus: HealthStatus.Unhealthy, tags: new[] { "ready" }, timeout: TimeSpan.FromSeconds(3));
+
 // Register performance monitoring services
 builder.Services.AddSingleton<Certio.Web.Services.CacheMetricsService>();
 builder.Services.AddHostedService<Certio.Web.Services.MetricsReportingService>();
@@ -902,6 +921,10 @@ builder.Services.Configure<AIServiceOptions>(builder.Configuration.GetSection("A
 
 var app = builder.Build();
 
+// First in the pipeline so the headers apply to every response, including static files and the
+// exception handler's output.
+app.UseSecurityHeaders();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
@@ -963,7 +986,43 @@ app.MapHub<UpdatesHub>("/hubs/updates");
 app.MapHub<Certio.Web.Hubs.ChatHub>("/hubs/chat");
 app.MapHub<Certio.Web.Hubs.DirectHub>("/hubs/direct");
 app.MapHub<Certio.Web.Hubs.NotificationHub>("/hubs/notifications");
-app.MapGet("/healthz", () => Results.Ok(new { ok = true }));
+// Readiness: probes SQL and the distributed cache. Returns 200 with ok=true only when every dependency
+// answers, and 503 with ok=false otherwise. The production deploy workflow gates on the `ok` field, so a
+// broken deployment now fails the gate instead of sailing through.
+app.MapHealthChecks("/healthz", new HealthCheckOptions
+{
+    ResponseWriter = WriteHealthResponse
+}).AllowAnonymous();
+
+// Liveness: is the process up and serving? Intentionally has no dependency checks, so a transient SQL or
+// Redis outage does not get the container killed and restarted while it is still able to recover.
+app.MapHealthChecks("/livez", new HealthCheckOptions
+{
+    Predicate = _ => false,
+    ResponseWriter = WriteHealthResponse
+}).AllowAnonymous();
+
+static Task WriteHealthResponse(HttpContext context, HealthReport report)
+{
+    context.Response.ContentType = "application/json";
+
+    // Deliberately terse: this endpoint is unauthenticated, so it must not leak connection strings,
+    // server names, or exception detail. Names and states only.
+    var payload = new
+    {
+        ok = report.Status == HealthStatus.Healthy,
+        status = report.Status.ToString(),
+        durationMs = (int)report.TotalDuration.TotalMilliseconds,
+        checks = report.Entries.Select(e => new
+        {
+            name = e.Key,
+            status = e.Value.Status.ToString(),
+            durationMs = (int)e.Value.Duration.TotalMilliseconds
+        })
+    };
+
+    return context.Response.WriteAsJsonAsync(payload);
+}
 
 app.Run();
 

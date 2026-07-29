@@ -42,10 +42,22 @@ namespace Certio.Application.Services
         {
             try
             {
-                // Idempotency check
-                var existingAction = await GetActionByRunIdAsync(runId);
+                // Idempotency check. RunId is globally unique (ApplicationDbContext.cs:1598-1600), so this
+                // lookup must not be organization-scoped or a cross-tenant collision would surface as a
+                // unique-constraint violation on insert instead of a handled duplicate.
+                var existingAction = await FindByRunIdUnscopedAsync(runId);
                 if (existingAction != null)
                 {
+                    if (existingAction.OrganizationId != organizationId)
+                    {
+                        // RunId is caller-supplied (x-run-id). Returning the existing action here would
+                        // disclose another tenant's action to whoever guessed or replayed the key.
+                        _logger.LogWarning(
+                            "RunId {RunId} collided across organizations: existing action {ActionId} belongs to org {OwnerOrgId}, proposal came from org {CallerOrgId}",
+                            runId, existingAction.Id, existingAction.OrganizationId, organizationId);
+                        return AgentActionResult.Fail("Run ID is already in use", "RUNID_CONFLICT");
+                    }
+
                     _logger.LogInformation("Duplicate action request with RunId {RunId}, returning existing action {ActionId}", 
                         runId, existingAction.Id);
                     return AgentActionResult.Duplicate(existingAction);
@@ -234,11 +246,11 @@ namespace Certio.Application.Services
 
         #region Approval Operations
 
-        public async Task<AgentActionResult> ApproveActionAsync(int actionId, int approvedByUserId, string? notes = null)
+        public async Task<AgentActionResult> ApproveActionAsync(int organizationId, int actionId, int approvedByUserId, string? notes = null)
         {
             try
             {
-                var action = await GetActionAsync(actionId);
+                var action = await GetActionAsync(organizationId, actionId);
                 if (action == null)
                 {
                     return AgentActionResult.Fail("Action not found", "NOT_FOUND");
@@ -268,11 +280,11 @@ namespace Certio.Application.Services
             }
         }
 
-        public async Task<AgentActionResult> RejectActionAsync(int actionId, int rejectedByUserId, string? reason = null)
+        public async Task<AgentActionResult> RejectActionAsync(int organizationId, int actionId, int rejectedByUserId, string? reason = null)
         {
             try
             {
-                var action = await GetActionAsync(actionId);
+                var action = await GetActionAsync(organizationId, actionId);
                 if (action == null)
                 {
                     return AgentActionResult.Fail("Action not found", "NOT_FOUND");
@@ -301,13 +313,13 @@ namespace Certio.Application.Services
             }
         }
 
-        public async Task<AgentActionBulkResult> BulkApproveActionsAsync(IEnumerable<int> actionIds, int approvedByUserId, string? notes = null)
+        public async Task<AgentActionBulkResult> BulkApproveActionsAsync(int organizationId, IEnumerable<int> actionIds, int approvedByUserId, string? notes = null)
         {
             var result = new AgentActionBulkResult { Success = true };
 
             foreach (var actionId in actionIds)
             {
-                var actionResult = await ApproveActionAsync(actionId, approvedByUserId, notes);
+                var actionResult = await ApproveActionAsync(organizationId, actionId, approvedByUserId, notes);
                 result.Results.Add(actionResult);
                 if (actionResult.Success)
                     result.SuccessCount++;
@@ -319,13 +331,13 @@ namespace Certio.Application.Services
             return result;
         }
 
-        public async Task<AgentActionBulkResult> BulkRejectActionsAsync(IEnumerable<int> actionIds, int rejectedByUserId, string? reason = null)
+        public async Task<AgentActionBulkResult> BulkRejectActionsAsync(int organizationId, IEnumerable<int> actionIds, int rejectedByUserId, string? reason = null)
         {
             var result = new AgentActionBulkResult { Success = true };
 
             foreach (var actionId in actionIds)
             {
-                var actionResult = await RejectActionAsync(actionId, rejectedByUserId, reason);
+                var actionResult = await RejectActionAsync(organizationId, actionId, rejectedByUserId, reason);
                 result.Results.Add(actionResult);
                 if (actionResult.Success)
                     result.SuccessCount++;
@@ -341,9 +353,9 @@ namespace Certio.Application.Services
 
         #region Execution Operations
 
-        public async Task<AgentActionResult> ExecuteActionAsync(int actionId)
+        public async Task<AgentActionResult> ExecuteActionAsync(int organizationId, int actionId)
         {
-            var action = await GetActionAsync(actionId);
+            var action = await GetActionAsync(organizationId, actionId);
             if (action == null)
             {
                 return AgentActionResult.Fail("Action not found", "NOT_FOUND");
@@ -428,7 +440,7 @@ namespace Certio.Application.Services
 
             foreach (var action in approvedActions)
             {
-                var actionResult = await ExecuteActionAsync(action.Id);
+                var actionResult = await ExecuteActionAsync(organizationId, action.Id);
                 result.Results.Add(actionResult);
                 if (actionResult.Success)
                     result.SuccessCount++;
@@ -440,11 +452,11 @@ namespace Certio.Application.Services
             return result;
         }
 
-        public async Task<AgentActionResult> RollbackActionAsync(int actionId, int rolledBackByUserId, string? reason = null)
+        public async Task<AgentActionResult> RollbackActionAsync(int organizationId, int actionId, int rolledBackByUserId, string? reason = null)
         {
             try
             {
-                var action = await GetActionAsync(actionId);
+                var action = await GetActionAsync(organizationId, actionId);
                 if (action == null)
                 {
                     return AgentActionResult.Fail("Action not found", "NOT_FOUND");
@@ -494,15 +506,26 @@ namespace Certio.Application.Services
 
         #region Query Operations
 
-        public async Task<AgentAction?> GetActionAsync(int actionId)
+        public async Task<AgentAction?> GetActionAsync(int organizationId, int actionId)
         {
             return await _context.AgentActions
                 .Include(a => a.ProposedBy)
                 .Include(a => a.ApprovedBy)
-                .FirstOrDefaultAsync(a => a.Id == actionId);
+                .FirstOrDefaultAsync(a => a.Id == actionId && a.OrganizationId == organizationId);
         }
 
-        public async Task<AgentAction?> GetActionByRunIdAsync(string runId)
+        public async Task<AgentAction?> GetActionByRunIdAsync(int organizationId, string runId)
+        {
+            return await _context.AgentActions
+                .FirstOrDefaultAsync(a => a.RunId == runId && a.OrganizationId == organizationId);
+        }
+
+        /// <summary>
+        /// Looks up an action by RunId across all organizations. Used only by the idempotency check in
+        /// ProposeActionAsync, which must see global collisions because RunId is globally unique.
+        /// Never return the result of this to a caller without an organization check.
+        /// </summary>
+        private async Task<AgentAction?> FindByRunIdUnscopedAsync(string runId)
         {
             return await _context.AgentActions
                 .FirstOrDefaultAsync(a => a.RunId == runId);
@@ -553,10 +576,10 @@ namespace Certio.Application.Services
                 .ToListAsync();
         }
 
-        public async Task<List<AgentAction>> GetMatterActionsAsync(int matterId, string? status = null, int? limit = 50)
+        public async Task<List<AgentAction>> GetMatterActionsAsync(int organizationId, int matterId, string? status = null, int? limit = 50)
         {
             var query = _context.AgentActions
-                .Where(a => a.MatterId == matterId);
+                .Where(a => a.MatterId == matterId && a.OrganizationId == organizationId);
 
             if (!string.IsNullOrEmpty(status))
                 query = query.Where(a => a.Status == status);

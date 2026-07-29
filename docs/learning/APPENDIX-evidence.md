@@ -213,6 +213,20 @@ Not present in any existing document, ordered by severity. Each is covered in th
 | N21 | **Two terminology sources disagree.** `Organization.GetMatterTerminology()` defaults to "Event" for every organization (`Organization.cs:208-216`); `RoleDisplayHelper.GetMatterTerminology(OrganizationType)` returns "Matter" unless the type is `EventPlanner`. Wording depends on which overload a view calls. | 00 |
 | N22 | **No external role fits an events deployment.** `OpposingCounsel`, `ExpertWitness`, `CourtPersonnel`, `RegulatoryBody`, `Other` (`UserOrganization.cs:52-56`) — vendors, venues, and photographers have only `Other`. | 03 |
 
+**Fixed since this appendix was written: N1, N2, N3, N5.** The entries are left as written, with their
+original line references, so the verification commands below still make sense against the git history and
+so the reasoning stays readable. What changed in each case is summarized in
+[module 14](14-design-critique.md#what-has-changed-since-this-critique-was-written). Two notes worth
+carrying forward:
+
+- **N1 was incomplete as written.** Fixing it exposed a second cross-tenant leak in the same service:
+  `RunId` is globally unique, so the idempotency check in `ProposeActionAsync` could confirm the existence
+  of another organization's action. A finding that names four methods can still be understating the
+  problem.
+- **N5's fix carried the same risk as the defect.** These GUIDs are already persisted, so consolidating
+  the copies could itself have orphaned documents silently. The golden-value tests in
+  `Certio.Tests/Domain/DeterministicGuidTests.cs` are what make the extraction safe to repeat.
+
 ---
 
 ## How to re-verify everything
