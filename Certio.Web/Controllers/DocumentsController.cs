@@ -9,9 +9,8 @@ using Certio.Domain.Matters;
 using Certio.Web.Services;
 using Certio.Application.Interfaces;
 using Certio.Application.DTOs;
-using System.Security.Cryptography;
-using System.Text;
 using Certio.Domain.Documents;
+using Certio.Domain.Identity;
 using Certio.Application.Services.Documents;
 using Certio.Web.Attributes;
 using System.Net.Http.Headers;
@@ -77,8 +76,8 @@ namespace Certio.Web.Controllers
             ViewBag.OrganizationEntity = org; // For custom terminology
             
             // Get the document orgId (convert from int to Guid)
-            var documentOrgId = CreateDeterministicGuid("certio:organization", orgId);
-            var documentUserId = CreateDeterministicGuid("certio:user", customUser.Id);
+            var documentOrgId = DeterministicGuid.ForOrganization(orgId);
+            var documentUserId = DeterministicGuid.ForUser(customUser.Id);
 
             // Don't load all documents upfront - use lazy loading instead
             // Just get counts for the sidebar
@@ -333,8 +332,8 @@ namespace Certio.Web.Controllers
             ViewBag.OrganizationEntity = org; // For custom terminology
 
             // Get the document orgId (convert from int to Guid)
-            var documentOrgId = CreateDeterministicGuid("certio:organization", orgId);
-            var documentUserId = CreateDeterministicGuid("certio:user", customUser.Id);
+            var documentOrgId = DeterministicGuid.ForOrganization(orgId);
+            var documentUserId = DeterministicGuid.ForUser(customUser.Id);
 
             // Load document from database
             var document = await _db.Documents
@@ -806,16 +805,6 @@ namespace Certio.Web.Controllers
             }
         }
 
-        private static Guid CreateDeterministicGuid(string namespacePrefix, int value)
-        {
-            using var sha256 = SHA256.Create();
-            var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes($"{namespacePrefix}:{value.ToString(System.Globalization.CultureInfo.InvariantCulture)}"));
-            Span<byte> guidBytes = stackalloc byte[16];
-            hash.AsSpan(0, 16).CopyTo(guidBytes);
-            guidBytes[6] = (byte)((guidBytes[6] & 0x0F) | 0x40); // Version 4
-            guidBytes[8] = (byte)((guidBytes[8] & 0x3F) | 0x80); // Variant RFC 4122
-            return new Guid(guidBytes);
-        }
     }
 }
 

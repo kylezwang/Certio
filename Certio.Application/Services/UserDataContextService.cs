@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Certio.Application.DTOs;
 using Certio.Application.Interfaces;
+using Certio.Domain.Identity;
 using Certio.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -621,7 +621,7 @@ public class UserDataContextService : IUserDataContextService
         
         // Convert int org IDs to Guid format used by Documents
         var accessibleOrgGuids = accessibleOrgIds
-            .Select(id => CreateDeterministicGuid("certio:organization", id))
+            .Select(DeterministicGuid.ForOrganization)
             .ToList();
         
         _logger.LogInformation("BuildDocumentsContextAsync: Searching for documents with OrgIds: {OrgGuids}", string.Join(", ", accessibleOrgGuids.Take(5)));
@@ -654,7 +654,7 @@ public class UserDataContextService : IUserDataContextService
         // If matter-specific request, also get documents linked to that matter
         if (request.MatterId.HasValue)
         {
-            var matterGuid = CreateDeterministicGuid("certio:matter", request.MatterId.Value);
+            var matterGuid = DeterministicGuid.ForMatter(request.MatterId.Value);
             var matterDocs = await _dbContext.Documents
                 .AsNoTracking()
                 .Include(d => d.Versions)
@@ -756,18 +756,6 @@ public class UserDataContextService : IUserDataContextService
         }
         
         return null;
-    }
-
-    private static Guid CreateDeterministicGuid(string prefix, int id)
-    {
-        var input = $"{prefix}:{id}";
-        using var sha256 = SHA256.Create();
-        var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
-        Span<byte> guidBytes = stackalloc byte[16];
-        hash.AsSpan(0, 16).CopyTo(guidBytes);
-        guidBytes[6] = (byte)((guidBytes[6] & 0x0F) | 0x40); // version 4
-        guidBytes[8] = (byte)((guidBytes[8] & 0x3F) | 0x80); // RFC 4122 variant
-        return new Guid(guidBytes);
     }
 
     private class DocumentComparer : IEqualityComparer<Certio.Domain.Documents.Document>

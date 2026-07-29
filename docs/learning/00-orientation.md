@@ -247,7 +247,7 @@ searching for the old name. When you pivot, inventory the places where the old d
 - **Build output is committed to git.** `git status` shows dozens of modified `bin/` and `obj/`
   artifacts because `.gitignore` does not exclude them consistently. Expect noisy diffs and do not
   be alarmed; do not add more.
-- **`Certio.Web` targets net9.0 while the other three target net8.0** (`Certio.Application.csproj:17`).
+- **`Certio.Web` targets net9.0 while the other three target net8.0** (`Certio.Application/Certio.Application.csproj:17`).
   This works, but it means EF Core versions differ between projects (9.0.8 in Web, 8.0.8 in
   Application) and you should be careful when reading NuGet-related errors.
 - **Loose files at the repo root** include `commit_comm.cshtml` (77 KB), `discovery.xml` (219 KB, the

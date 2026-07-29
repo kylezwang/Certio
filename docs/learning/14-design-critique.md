@@ -226,16 +226,20 @@ This outranks everything below it, and step 1 takes ten minutes.
 
 ### Tier 1 — do this week
 
-| # | Change | Why | Effort |
-|---|---|---|---|
-| 1 | **Add org validation to `AgentActionService` mutations** | Known IDOR, module 09. Any authenticated user can approve another organization's action. | hours |
-| 2 | **Add a test for #1**, then for tenant isolation generally | Proves the fix and catches the next one | hours |
-| 3 | **Make `/healthz` probe SQL and Redis** via `AddHealthChecks` | Module 13: the final production deploy gate currently cannot fail | hours |
-| 4 | **Add security headers middleware** (`nosniff`, `X-Frame-Options`, `Referrer-Policy`) | Module 11: five lines, zero risk, no refactor | hours |
-| 5 | **Extract `CreateDeterministicGuid` to one shared class** | Module 10: six copies that must agree forever | hours |
-| 6 | **Implement `CachedPermissionService` invalidation** | Module 04: it is a stub, so revoked permissions persist up to the TTL | day |
-| 7 | **Add SRI to the SignalR CDN tag, or serve it locally** | Module 11: unauthenticated script execution on an authenticated page | hour |
-| 8 | **Fix or delete `HasLegalContent`** | Module 08: a 46-keyword legal allowlist silently disables AI processing for event-planning conversations | hour |
+| # | Change | Why | Effort | Status |
+|---|---|---|---|---|
+| 1 | **Add org validation to `AgentActionService` mutations** | Known IDOR, module 09. Any authenticated user can approve another organization's action. | hours | done |
+| 2 | **Add a test for #1**, then for tenant isolation generally | Proves the fix and catches the next one | hours | done |
+| 3 | **Make `/healthz` probe SQL and Redis** via `AddHealthChecks` | Module 13: the final production deploy gate currently cannot fail | hours | done |
+| 4 | **Add security headers middleware** (`nosniff`, `X-Frame-Options`, `Referrer-Policy`) | Module 11: five lines, zero risk, no refactor | hours | done |
+| 5 | **Extract `CreateDeterministicGuid` to one shared class** | Module 10: six copies that must agree forever | hours | done |
+| 6 | **Implement `CachedPermissionService` invalidation** | Module 04: it is a stub, so revoked permissions persist up to the TTL | day | open |
+| 7 | **Add SRI to the SignalR CDN tag, or serve it locally** | Module 11: unauthenticated script execution on an authenticated page | hour | open |
+| 8 | **Fix or delete `HasLegalContent`** | Module 08: a 46-keyword legal allowlist silently disables AI processing for event-planning conversations | hour | open |
+
+Items 1–5 have been implemented; see "What has changed since this critique was written" at the end of this
+module. The findings above are kept in their original form so the reasoning stays legible, and because the
+root causes they came from are still present.
 
 ### Tier 2 — this quarter
 
@@ -307,6 +311,43 @@ fallback, make it emit something a human will actually see.
 5. Every mechanically-checked rule is followed; every human-checked rule has drifted. Which three checks
    would you add first, and which rule in `.cursorrules` is not worth enforcing at all?
 6. You have one week and one engineer. Write the plan, and say explicitly what you are choosing not to do.
+
+---
+
+## What has changed since this critique was written
+
+Tier 1 items 1–5 have been implemented. If you are reading a module that describes one of these as a live
+defect, the module is describing the code as it was found, which is still the more useful thing to study —
+the reasoning is the lesson, not the patch.
+
+**1 and 2 — the `AgentActionService` IDOR.** Every mutating and reading method on the service now takes
+`organizationId` as a required first parameter and filters on it, so a caller cannot express a
+cross-organization request. Pushing the check into the service rather than the controller means the
+compiler enforces it: a new controller cannot forget the parameter. Fixing it surfaced a second leak
+that the original critique missed — `RunId` is globally unique, so the idempotency lookup in
+`ProposeActionAsync` could confirm the existence of another tenant's action. It now looks up unscoped,
+compares the organization, and returns `RUNID_CONFLICT` without echoing the other tenant's data. Tenant
+isolation tests in `Certio.Tests` cover both.
+
+**3 — health checks.** `/healthz` is now a readiness probe that verifies SQL connectivity and a
+distributed-cache round trip; `/livez` is a separate liveness probe that only reports that the process is
+up. Conflating the two is why a Redis outage would otherwise take instances out of rotation instead of
+degrading them. The checks carry 5s and 3s timeouts because the deploy workflow gives up after 15s — an
+unhealthy check that answers too slowly is reported as a timeout, which looks like a different problem.
+
+**4 — security headers.** `SecurityHeadersMiddleware` sets `nosniff`, `X-Frame-Options: SAMEORIGIN`,
+`Referrer-Policy: strict-origin-when-cross-origin`, and `X-Permitted-Cross-Domain-Policies: none`. CSP is
+deliberately excluded: the inline scripts and CDN references in the views mean any useful policy would
+either break pages or be permissive enough to be theater.
+
+**5 — the deterministic GUID.** All six copies are gone, replaced by
+`Certio.Domain.Identity.DeterministicGuid` with named helpers (`ForOrganization`, `ForUser`, `ForMatter`)
+so the namespace prefix cannot be mistyped. The delicate part was proving equivalence: this function's
+output is already persisted in the Documents tables, and a changed algorithm does not throw — it returns
+GUIDs that match no rows, so documents quietly vanish. `DeterministicGuidTests` pins seven known outputs
+whose expected values were derived independently of the C# implementation, so the test constrains the
+storage format rather than restating the code. Note that this consolidation removes the *divergence*
+risk, not root cause 2: the `int`/`Guid` seam itself is still there, and remains Tier 3 item 20.
 
 ---
 

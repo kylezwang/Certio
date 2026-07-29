@@ -86,33 +86,43 @@ namespace Certio.Application.Interfaces
         #region Approval Operations
         
         /// <summary>
-        /// Approve a pending action (moves to APPROVED state)
+        /// Approve a pending action (moves to APPROVED state).
+        /// Actions outside <paramref name="organizationId"/> are reported as NOT_FOUND.
         /// </summary>
-        Task<AgentActionResult> ApproveActionAsync(int actionId, int approvedByUserId, string? notes = null);
+        /// <param name="organizationId">Organization the caller is acting in. Required for tenant isolation.</param>
+        Task<AgentActionResult> ApproveActionAsync(int organizationId, int actionId, int approvedByUserId, string? notes = null);
         
         /// <summary>
-        /// Reject a pending action (moves to REJECTED state)
+        /// Reject a pending action (moves to REJECTED state).
+        /// Actions outside <paramref name="organizationId"/> are reported as NOT_FOUND.
         /// </summary>
-        Task<AgentActionResult> RejectActionAsync(int actionId, int rejectedByUserId, string? reason = null);
+        /// <param name="organizationId">Organization the caller is acting in. Required for tenant isolation.</param>
+        Task<AgentActionResult> RejectActionAsync(int organizationId, int actionId, int rejectedByUserId, string? reason = null);
         
         /// <summary>
-        /// Bulk approve multiple pending actions
+        /// Bulk approve multiple pending actions. Actions outside the organization fail individually
+        /// rather than aborting the batch.
         /// </summary>
-        Task<AgentActionBulkResult> BulkApproveActionsAsync(IEnumerable<int> actionIds, int approvedByUserId, string? notes = null);
+        /// <param name="organizationId">Organization the caller is acting in. Required for tenant isolation.</param>
+        Task<AgentActionBulkResult> BulkApproveActionsAsync(int organizationId, IEnumerable<int> actionIds, int approvedByUserId, string? notes = null);
         
         /// <summary>
-        /// Bulk reject multiple pending actions
+        /// Bulk reject multiple pending actions. Actions outside the organization fail individually
+        /// rather than aborting the batch.
         /// </summary>
-        Task<AgentActionBulkResult> BulkRejectActionsAsync(IEnumerable<int> actionIds, int rejectedByUserId, string? reason = null);
+        /// <param name="organizationId">Organization the caller is acting in. Required for tenant isolation.</param>
+        Task<AgentActionBulkResult> BulkRejectActionsAsync(int organizationId, IEnumerable<int> actionIds, int rejectedByUserId, string? reason = null);
         
         #endregion
         
         #region Execution Operations
         
         /// <summary>
-        /// Execute an approved action (APPROVED → RUNNING → DONE/FAILED)
+        /// Execute an approved action (APPROVED → RUNNING → DONE/FAILED).
+        /// Actions outside <paramref name="organizationId"/> are reported as NOT_FOUND.
         /// </summary>
-        Task<AgentActionResult> ExecuteActionAsync(int actionId);
+        /// <param name="organizationId">Organization the caller is acting in. Required for tenant isolation.</param>
+        Task<AgentActionResult> ExecuteActionAsync(int organizationId, int actionId);
         
         /// <summary>
         /// Execute all approved actions for an organization (batch processing)
@@ -120,23 +130,25 @@ namespace Certio.Application.Interfaces
         Task<AgentActionBulkResult> ExecutePendingActionsAsync(int organizationId, int? limit = 10);
         
         /// <summary>
-        /// Rollback a completed action (if reversible)
+        /// Rollback a completed action (if reversible).
+        /// Actions outside <paramref name="organizationId"/> are reported as NOT_FOUND.
         /// </summary>
-        Task<AgentActionResult> RollbackActionAsync(int actionId, int rolledBackByUserId, string? reason = null);
+        /// <param name="organizationId">Organization the caller is acting in. Required for tenant isolation.</param>
+        Task<AgentActionResult> RollbackActionAsync(int organizationId, int actionId, int rolledBackByUserId, string? reason = null);
         
         #endregion
         
         #region Query Operations
         
         /// <summary>
-        /// Get an action by ID
+        /// Get an action by ID, scoped to an organization. Returns null if the action belongs to another tenant.
         /// </summary>
-        Task<AgentAction?> GetActionAsync(int actionId);
+        Task<AgentAction?> GetActionAsync(int organizationId, int actionId);
         
         /// <summary>
-        /// Get an action by run ID (idempotency key)
+        /// Get an action by run ID (idempotency key), scoped to an organization.
         /// </summary>
-        Task<AgentAction?> GetActionByRunIdAsync(string runId);
+        Task<AgentAction?> GetActionByRunIdAsync(int organizationId, string runId);
         
         /// <summary>
         /// Get pending actions for an organization
@@ -154,9 +166,10 @@ namespace Certio.Application.Interfaces
         Task<List<AgentAction>> GetActionHistoryAsync(int organizationId, DateTime? startDate = null, DateTime? endDate = null, int? limit = 100);
         
         /// <summary>
-        /// Get actions for a specific matter
+        /// Get actions for a specific matter within an organization
         /// </summary>
-        Task<List<AgentAction>> GetMatterActionsAsync(int matterId, string? status = null, int? limit = 50);
+        /// <param name="organizationId">Organization the caller is acting in. Required for tenant isolation.</param>
+        Task<List<AgentAction>> GetMatterActionsAsync(int organizationId, int matterId, string? status = null, int? limit = 50);
         
         /// <summary>
         /// Get actions proposed by a specific user

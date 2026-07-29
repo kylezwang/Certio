@@ -90,8 +90,8 @@ namespace Certio.Web.Controllers.Api
         [RequireAgentPermission(Permission.ViewAgentActions)]
         public async Task<IActionResult> GetAction(int id)
         {
-            var action = await _actionService.GetActionAsync(id);
-            if (action == null || action.OrganizationId != OrgId)
+            var action = await _actionService.GetActionAsync(OrgId, id);
+            if (action == null)
                 return NotFound();
 
             return Ok(action);
@@ -104,8 +104,8 @@ namespace Certio.Web.Controllers.Api
         [RequireAgentPermission(Permission.ViewAgentActions)]
         public async Task<IActionResult> GetActionByRunId(string runId)
         {
-            var action = await _actionService.GetActionByRunIdAsync(runId);
-            if (action == null || action.OrganizationId != OrgId)
+            var action = await _actionService.GetActionByRunIdAsync(OrgId, runId);
+            if (action == null)
                 return NotFound();
 
             return Ok(action);
@@ -118,7 +118,7 @@ namespace Certio.Web.Controllers.Api
         [RequireAgentPermission(Permission.ViewAgentActions)]
         public async Task<IActionResult> GetMatterActions(int matterId, [FromQuery] string? status = null, [FromQuery] int? limit = 50)
         {
-            var actions = await _actionService.GetMatterActionsAsync(matterId, status, limit);
+            var actions = await _actionService.GetMatterActionsAsync(OrgId, matterId, status, limit);
             return Ok(new { actions, count = actions.Count });
         }
 
@@ -264,7 +264,7 @@ namespace Certio.Web.Controllers.Api
         [RequireAgentPermission(Permission.ApproveAgentActions)]
         public async Task<IActionResult> ApproveAction(int id, [FromBody] ApprovalRequest? request = null)
         {
-            var result = await _actionService.ApproveActionAsync(id, UserId, request?.Notes);
+            var result = await _actionService.ApproveActionAsync(OrgId, id, UserId, request?.Notes);
 
             if (!result.Success)
             {
@@ -283,7 +283,7 @@ namespace Certio.Web.Controllers.Api
         [RequireAgentPermission(Permission.ApproveAgentActions)]
         public async Task<IActionResult> RejectAction(int id, [FromBody] ApprovalRequest? request = null)
         {
-            var result = await _actionService.RejectActionAsync(id, UserId, request?.Notes);
+            var result = await _actionService.RejectActionAsync(OrgId, id, UserId, request?.Notes);
 
             if (!result.Success)
             {
@@ -302,7 +302,7 @@ namespace Certio.Web.Controllers.Api
         [RequireAgentPermission(Permission.ApproveAgentActions)]
         public async Task<IActionResult> BulkApprove([FromBody] BulkApprovalRequest request)
         {
-            var result = await _actionService.BulkApproveActionsAsync(request.ActionIds, UserId, request.Notes);
+            var result = await _actionService.BulkApproveActionsAsync(OrgId, request.ActionIds, UserId, request.Notes);
             return Ok(new { 
                 success = result.Success, 
                 successCount = result.SuccessCount, 
@@ -317,7 +317,7 @@ namespace Certio.Web.Controllers.Api
         [RequireAgentPermission(Permission.ApproveAgentActions)]
         public async Task<IActionResult> BulkReject([FromBody] BulkApprovalRequest request)
         {
-            var result = await _actionService.BulkRejectActionsAsync(request.ActionIds, UserId, request.Notes);
+            var result = await _actionService.BulkRejectActionsAsync(OrgId, request.ActionIds, UserId, request.Notes);
             return Ok(new { 
                 success = result.Success, 
                 successCount = result.SuccessCount, 
@@ -336,7 +336,7 @@ namespace Certio.Web.Controllers.Api
         [RequireAgentPermission(Permission.ApproveAgentActions)]
         public async Task<IActionResult> ExecuteAction(int id)
         {
-            var result = await _actionService.ExecuteActionAsync(id);
+            var result = await _actionService.ExecuteActionAsync(OrgId, id);
 
             if (!result.Success)
             {
@@ -370,7 +370,7 @@ namespace Certio.Web.Controllers.Api
         [RequireAgentPermission(Permission.RollbackAgentActions)]
         public async Task<IActionResult> RollbackAction(int id, [FromBody] ApprovalRequest? request = null)
         {
-            var result = await _actionService.RollbackActionAsync(id, UserId, request?.Notes);
+            var result = await _actionService.RollbackActionAsync(OrgId, id, UserId, request?.Notes);
 
             if (!result.Success)
             {

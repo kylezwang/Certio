@@ -1,7 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text;
-using System.Security.Cryptography;
 using System.Globalization;
 using System.Linq;
 using System.Collections.Concurrent;
@@ -9,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Certio.Domain.Services;
 using Certio.Domain.Documents;
+using Certio.Domain.Identity;
 using Certio.Application.Interfaces;
 using Certio.Application.DTOs;
 using Certio.Infrastructure.Data;
@@ -526,11 +526,11 @@ public class AIAgentService : IAIAgentService
                 initiatingMessage.UserId.Value);
 
             var ragRequest = new RagContextRequest(
-                CreateDeterministicGuid("certio:organization", conversation.OrganizationId),
-                CreateDeterministicGuid("certio:user", initiatingMessage.UserId.Value),
+                DeterministicGuid.ForOrganization(conversation.OrganizationId),
+                DeterministicGuid.ForUser(initiatingMessage.UserId.Value),
                 userMessage,
                 TopK: 5,
-                conversation.MatterId.HasValue ? CreateDeterministicGuid("certio:matter", conversation.MatterId.Value) : null,
+                conversation.MatterId.HasValue ? DeterministicGuid.ForMatter(conversation.MatterId.Value) : null,
                 RestrictToDocumentIds: null);
 
             var ragResult = await _ragContextService.BuildContextAsync(ragRequest);
@@ -971,14 +971,4 @@ public class AIAgentService : IAIAgentService
                "and I'll be back online shortly to provide assistance!";
     }
 
-    private static Guid CreateDeterministicGuid(string namespacePrefix, int value)
-    {
-        using var sha256 = SHA256.Create();
-        var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes($"{namespacePrefix}:{value.ToString(CultureInfo.InvariantCulture)}"));
-        Span<byte> guidBytes = stackalloc byte[16];
-        hash.AsSpan(0, 16).CopyTo(guidBytes);
-        guidBytes[6] = (byte)((guidBytes[6] & 0x0F) | 0x40); // Version 4
-        guidBytes[8] = (byte)((guidBytes[8] & 0x3F) | 0x80); // Variant RFC 4122
-        return new Guid(guidBytes);
-    }
 }

@@ -4,12 +4,12 @@ using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Certio.Application.DTOs;
 using Certio.Application.Interfaces;
 using Certio.Domain.Documents;
+using Certio.Domain.Identity;
 using Certio.Infrastructure.Data;
 using Certio.Web.Security;
 using Certio.Web.Services;
@@ -156,7 +156,7 @@ public class DriveOAuthController : Controller
             var clientId = GetRequiredConfigurationValue("DocumentIntegration:GoogleDrive:ClientId", "Google Drive client ID is not configured");
             var clientSecret = GetRequiredConfigurationValue("DocumentIntegration:GoogleDrive:ClientSecret", "Google Drive client secret is not configured");
             var scopes = ResolveScopes("DocumentIntegration:GoogleDrive:Scopes", DefaultGoogleScopes);
-            var documentUserId = CreateDeterministicGuid("certio:user", statePayload.UserId);
+            var documentUserId = DeterministicGuid.ForUser(statePayload.UserId);
 
             var tokenResponse = await ExchangeCodeForTokensAsync(
                 tokenEndpoint: "https://oauth2.googleapis.com/token",
@@ -302,7 +302,7 @@ public class DriveOAuthController : Controller
             var clientId = GetRequiredConfigurationValue("DocumentIntegration:OneDrive:ClientId", "Microsoft client ID is not configured");
             var clientSecret = GetRequiredConfigurationValue("DocumentIntegration:OneDrive:ClientSecret", "Microsoft client secret is not configured");
             var scopes = ResolveScopes("DocumentIntegration:OneDrive:Scopes", DefaultMicrosoftScopes);
-            var documentUserId = CreateDeterministicGuid("certio:user", statePayload.UserId);
+            var documentUserId = DeterministicGuid.ForUser(statePayload.UserId);
 
             var tokenResponse = await ExchangeCodeForTokensAsync(
                 tokenEndpoint: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
@@ -418,7 +418,7 @@ public class DriveOAuthController : Controller
                 throw new UnauthorizedAccessException("User is not authorized for the requested organization.");
             }
 
-            return CreateDeterministicGuid("certio:organization", resolvedOrgId.Value);
+            return DeterministicGuid.ForOrganization(resolvedOrgId.Value);
         }
 
         _logger.LogError("Unable to resolve organization ID. ProvidedOrgId: {ProvidedOrgId}, CurrentOrganizationId in Items: {HasCurrentOrgId}, ClientContext OrgId: {ClientContextOrgId}",
@@ -429,18 +429,7 @@ public class DriveOAuthController : Controller
     private Guid GetDocumentUserId()
     {
         var currentUserId = GetCurrentUserId();
-        return CreateDeterministicGuid("certio:user", currentUserId);
-    }
-
-    private static Guid CreateDeterministicGuid(string namespacePrefix, int value)
-    {
-        using var sha256 = SHA256.Create();
-        var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes($"{namespacePrefix}:{value.ToString(CultureInfo.InvariantCulture)}"));
-        Span<byte> guidBytes = stackalloc byte[16];
-        hash.AsSpan(0, 16).CopyTo(guidBytes);
-        guidBytes[6] = (byte)((guidBytes[6] & 0x0F) | 0x40); // Version 4
-        guidBytes[8] = (byte)((guidBytes[8] & 0x3F) | 0x80); // Variant RFC 4122
-        return new Guid(guidBytes);
+        return DeterministicGuid.ForUser(currentUserId);
     }
 
     private string NormalizeGoogleRedirectUri(string? provided)

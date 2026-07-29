@@ -17,7 +17,7 @@ By the end you can:
 2. `Certio.Application/Services/Documents/DocumentContentService.cs:1-120` — provider dispatch and rate limiting
 3. `Certio.Application/Services/Documents/DocumentIndexerService.cs` — all 207 lines
 4. `Certio.Application/Services/Documents/WopiAccessTokenService.cs` — all 128 lines
-5. `Certio.Application/Services/AIAgentService.cs:974-983` — `CreateDeterministicGuid`
+5. `Certio.Domain/Identity/DeterministicGuid.cs` — the `int`/`Guid` bridge, all 52 lines
 6. `Certio.Web/Controllers/WopiController.cs` — `[AllowAnonymous]`, and why that is correct
 
 ---
@@ -158,8 +158,8 @@ eighteen months later.
 ## The `int` to `Guid` seam
 
 `Document.OrgId` and `Document.MatterId` are `Guid`. `Organization.Id` and `Matter.Id` are `int`. There
-is no foreign key. The bridge is `AIAgentService.CreateDeterministicGuid`
-(`AIAgentService.cs:974-983`):
+is no foreign key. The bridge is a deterministic hash. As found, it was
+`AIAgentService.CreateDeterministicGuid` (since moved — see the update at the end of this section):
 
 ```csharp
 private static Guid CreateDeterministicGuid(string namespacePrefix, int value)
@@ -190,28 +190,51 @@ The costs are permanent as long as the seam exists:
 - **No referential integrity.** Nothing prevents a `Document` with an `OrgId` matching no organization.
 - **The function is not invertible.** Given a document you cannot recover its integer org id, so you
   cannot join documents to organizations in SQL, in a report, or in a debugging session.
-- **It lives in the wrong class, and has already been copy-pasted six times.** A cross-cutting identity
-  mapping is a `private static` method on the AI service, so every other caller reimplemented it. Verify
-  for yourself:
+- **It lived in the wrong class, and had been copy-pasted six times.** *(Fixed — see below.)* A
+  cross-cutting identity mapping was a `private static` method on the AI service, so every other caller
+  reimplemented it. Line numbers are the pre-consolidation locations, so use git history to see them:
 
-  | File | Line |
+  | File | Line (before the fix) |
   |---|---|
-  | `Certio.Application/Services/AIAgentService.cs` | 974 |
-  | `Certio.Application/Services/UserDataContextService.cs` | 761 |
-  | `Certio.Web/Controllers/ClientController.cs` | 2034 |
-  | `Certio.Web/Controllers/DocumentsController.cs` | 809 |
-  | `Certio.Web/Controllers/DocumentsApiController.cs` | 1250 |
-  | `Certio.Web/Controllers/Api/DriveOAuthController.cs` | 435 |
+  | Certio.Application/Services/AIAgentService.cs | 974 |
+  | Certio.Application/Services/UserDataContextService.cs | 761 |
+  | Certio.Web/Controllers/ClientController.cs | 2034 |
+  | Certio.Web/Controllers/DocumentsController.cs | 809 |
+  | Certio.Web/Controllers/DocumentsApiController.cs | 1250 |
+  | Certio.Web/Controllers/Api/DriveOAuthController.cs | 435 |
 
-  Six copies of a hash function that must agree **byte for byte** across the whole system, because if any
-  one of them changes its namespace string, its hash algorithm, or its byte-slicing, that call site
+  Six copies of a hash function that had to agree **byte for byte** across the whole system, because if
+  any one of them changed its namespace string, its hash algorithm, or its byte-slicing, that call site
   silently starts producing different GUIDs — and the symptom is not an exception, it is documents
-  quietly disappearing from search results for one tenant. This is the highest-risk duplication in the
-  repository, and the fix is a twenty-minute extraction to a single shared static class.
+  quietly disappearing from search results for one tenant.
 - **It quietly dropped a feature** (the audit call above).
 
 If you fix one schema thing, this is the one. The mapping is a *bridge over* the problem, not a solution
 to it.
+
+### Update: the duplication has been removed
+
+The six copies are now one class, `Certio.Domain.Identity.DeterministicGuid`, with named helpers
+(`ForOrganization`, `ForUser`, `ForMatter`) so a caller cannot mistype a namespace prefix and get a GUID
+that matches nothing. Study the original state above anyway, because the interesting part is not the
+extraction — it is what made the extraction risky.
+
+This function's output is already sitting in the `Documents` tables. That makes it part of the storage
+format, not an implementation detail, and it changes what "equivalent" has to mean: not "produces
+well-formed GUIDs" but "produces *these exact* GUIDs". A wrong answer does not throw. It returns a GUID
+that matches no rows, so a tenant's documents silently disappear — the same failure mode the duplication
+threatened, arriving instead through the cleanup meant to prevent it.
+
+So the copies had to be compared for byte-level equivalence before consolidating, not just read for
+intent. They differed cosmetically — some called `value.ToString(CultureInfo.InvariantCulture)`, others
+interpolated the int directly — which for an invariant-culture integer is the same string, but that is a
+fact you have to establish rather than assume. `DeterministicGuidTests` then pins seven known outputs
+whose expected values were computed independently of the C# code, so the test constrains the format
+instead of restating the implementation.
+
+Two things this did **not** fix: there is still no referential integrity, and the mapping is still not
+invertible. Consolidation removed the risk of the copies *diverging*; the seam itself is Tier 3 item 20 in
+[module 14](14-design-critique.md), and closing it means migrating production rows.
 
 ---
 

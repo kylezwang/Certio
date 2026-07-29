@@ -47,7 +47,7 @@ graph TD
     style INF fill:#f8d7da,stroke:#721c24
 ```
 
-The red-edged relationship is `Certio.Application.csproj:5`:
+The red-edged relationship is `Certio.Application/Certio.Application.csproj:5`:
 
 ```xml
 <ProjectReference Include="..\Certio.Infrastructure\Certio.Infrastructure.csproj" />

@@ -2031,16 +2031,6 @@ namespace Certio.Web.Controllers
             return externalUsers.OrderBy(u => u.Name).ThenBy(u => u.Email).ToList();
         }
 
-        private static Guid CreateDeterministicGuid(string namespacePrefix, int value)
-        {
-            using var sha256 = System.Security.Cryptography.SHA256.Create();
-            var hash = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes($"{namespacePrefix}:{value.ToString(System.Globalization.CultureInfo.InvariantCulture)}"));
-            Span<byte> guidBytes = stackalloc byte[16];
-            hash.AsSpan(0, 16).CopyTo(guidBytes);
-            guidBytes[6] = (byte)((guidBytes[6] & 0x0F) | 0x40); // Version 4
-            guidBytes[8] = (byte)((guidBytes[8] & 0x3F) | 0x80); // Variant RFC 4122
-            return new Guid(guidBytes);
-        }
     }
     
     // Request models for account settings
