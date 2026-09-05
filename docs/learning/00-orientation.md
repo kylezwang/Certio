@@ -253,9 +253,10 @@ searching for the old name. When you pivot, inventory the places where the old d
 - **Loose files at the repo root** include `commit_comm.cshtml` (77 KB), `discovery.xml` (219 KB, the
   real WOPI discovery document used by `WopiDiscoveryService`), `modal-extract-temp.txt`, and a file
   literally named `how HEAD --name-only`. Only `discovery.xml` is load-bearing.
-- **The `.env` file is committed.** It is at the repo root and tracked. Treat any credential in it as
-  compromised, and see `docs/operations/MAKE_REPO_PUBLIC_SAFELY.md` before doing anything with
-  repository visibility.
+- **`.env` and local `*.db` must stay local.** Root / `ai_agents/.env` and SQLite / `.vs` DB files were
+  once tracked (gitignore does not untrack files already in the index). History was purged September
+  2026; keep them untracked, never commit real keys or databases, and follow
+  `docs/operations/MAKE_REPO_PUBLIC_SAFELY.md` before changing repository visibility.
 
 ---
 

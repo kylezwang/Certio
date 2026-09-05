@@ -339,8 +339,10 @@ on a codebase this size is a large first commit — decide whether to ratchet or
 through 13 into causes. **Done when** you can defend your grouping — and note where it differs from mine,
 because the grouping is a judgment call.
 
-**14.2 [M] Do the Tier 0 items.** **Done when** each is complete and you can explain why it ranked above
-everything else.
+**14.2 [M] Do the Tier 0 items.** Env / appsettings / SQLite history rewrite is already done (Sep 2026);
+complete any remaining Tier 0 items (secret scanning, public-visibility checklist) and explain why
+Tier 0 ranked above everything else. **Done when** you can verify `git ls-files` shows no `.env` or
+`*.db` and you can defend the priority ordering.
 
 **14.3 [R] Argue against three roadmap items.** Pick three and make the strongest case for not doing them.
 **Done when** you have changed your mind about at least one. Recognizing which textbook violations are

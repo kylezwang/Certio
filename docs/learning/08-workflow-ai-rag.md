@@ -369,13 +369,16 @@ designed as a trusted internal component: authorization is .NET's job, and re-im
 permission model in Python would duplicate the most security-critical code in the product across two
 languages and two deployments. That is a sound argument. It is sound *only if the service is never
 reachable from outside the trust boundary*, and today nothing in the repository enforces that. There is
-no VNet integration, no IP allowlist, and both Azure Web Apps are internet-facing by default. The key
-lives in `.env`, which is committed to the repository.
+no VNet integration, no IP allowlist, and both Azure Web Apps are internet-facing by default. The shared
+secret is `AI_API_KEY` (Certio.Web → `ai_agents` `X-API-Key`), loaded from environment / App Settings —
+not an OpenAI provider key. Env files that once held live keys were purged from git history in
+September 2026; production still depends on that one shared secret remaining unguessable and the service
+remaining unreachable to untrusted clients.
 
-So the honest statement is: **the security of all AI-cached client data rests on one shared secret in a
-committed file.** The fix does not require reimplementing permissions — network isolation plus rotating
-the key out of source control closes most of it. Note also that `GET /health` is unauthenticated and
-reports the agent list and rate-limiter state.
+So the honest statement is: **the security of all AI-cached client data rests on one shared secret plus
+network reachability.** The fix does not require reimplementing permissions — network isolation, rotating
+`AI_API_KEY` when leaked, and keeping secrets out of git close most of it. Note also that `GET /health`
+is unauthenticated and reports the agent list and rate-limiter state.
 
 ---
 

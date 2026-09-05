@@ -31,38 +31,23 @@
 
 ---
 
-### 2. SQLite Databases in Git Repository (CRITICAL - Data Breach Risk)
+### 2. SQLite Databases in Git Repository — **RESOLVED (history, Sep 2026)**
 
-**Risk Level:** CRITICAL - Potential data breach and credential exposure
+**Risk Level:** Was CRITICAL — Potential data breach and credential exposure
 
-**Current State:**
-- Files tracked in git: `Certio.Web/app.db`, `Certio.Web/app.db-wal`, `Certio.Web/app.db-shm`
-- Files in build directories: `bin/Debug/net8.0/app.db`, `bin/Debug/net9.0/app.db`, `bin/Release/net9.0/app.db`
-- These may contain production data, user credentials, session tokens, or sensitive information
+**Status:** Purged from git history with `python -m git_filter_repo` and force-pushed (see
+`docs/operations/MAKE_REPO_PUBLIC_SAFELY.md`). Paths removed included `Certio.Web/app.db`,
+`bin/Debug/**/app.db`, and `.vs/slnx.sqlite`. Verify with `git ls-files | Select-String "\.(db|sqlite)$"`
+(expect empty).
 
-**Required Actions:**
-1. **Immediately purge from git history:**
-   ```bash
-   git filter-branch --force --index-filter 'git rm --cached --ignore-unmatch Certio.Web/app.db* Certio.Web/bin/**/app.db*' --prune-empty --tag-name-filter cat -- --all
-   # Or use BFG Repo-Cleaner for better performance
-   ```
-2. **Rotate ALL potentially exposed credentials:**
-   - SQL Server passwords
-   - AI API keys (OpenAI, etc.)
-   - Webhook tokens (Gmail, Outlook)
-   - OAuth tokens
-   - Redis passwords
-   - Any other secrets in configuration
-3. **Add prevention measures:**
-   - Pre-commit hooks to block `.db*` files
-   - CI/CD checks to fail builds if database files are committed
-   - Update `.gitignore` to explicitly exclude all database patterns
-4. **Incident response:**
-   - Document if repository was ever public or shared
-   - Assess potential data exposure
-   - Notify affected users if production data was exposed
+**Still recommended:** Keep `.gitignore` / pre-commit / CI guards so DBs are not re-added; treat any
+pre-rewrite clone as having seen DB contents.
 
-**Impact:** If repository was public or shared, all data in SQLite databases is potentially exposed, including user credentials, session tokens, and sensitive business data.
+**Historical notes (for context):**
+- Files had been tracked: `Certio.Web/app.db`, copies under `bin/Debug/`, etc.
+- May have contained Identity password hashes or local data
+
+**Impact if reintroduced:** Same as before — do not commit local databases.
 
 ---
 
@@ -221,7 +206,7 @@
 **Critical blockers for production:**
 1. ✅ MFA enforcement (completed, needs production delivery)
 2. ❌ AI service perimeter (30+ unauthenticated endpoints)
-3. ❌ SQLite databases in git (data breach risk)
+3. ✅ SQLite databases purged from git history (Sep 2026)
 4. ❌ Webhook validation (optional secrets)
 
 **Estimated effort to reach production-ready security:**
