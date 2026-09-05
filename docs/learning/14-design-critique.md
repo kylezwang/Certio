@@ -190,39 +190,36 @@ modules 03 and 08 do.
 Ordered by value divided by effort. The first tier is a few days total and eliminates the known
 exploitable defects.
 
-### Tier 0 — do today
+### Tier 0 — secrets and tracked artifacts
 
-**`ai_agents/.env` is tracked in git and contains live API keys.** Verify it yourself:
+**Status (September 2026): history rewrite is done** for env files, secret appsettings / `bin` copies,
+`Certio.Web/app.db` (+ `bin` copies), and `.vs/slnx.sqlite`. Paths were stripped with
+`python -m git_filter_repo` and force-pushed to `main`, `production`, `mac-development`, and
+`desktop-development` (see `docs/operations/MAKE_REPO_PUBLIC_SAFELY.md`). Rotation/revocation of keys
+that had been in those files remains mandatory for anyone who cloned before the rewrite.
+
+**Why this was Tier 0.** The files had been tracked despite `.gitignore` (ignore rules do not untrack
+files already in the index). Publishing without a history purge would have made API keys and possible
+Identity hashes permanently public.
+
+Verify the purge yourself:
 
 ```powershell
 git ls-files | Select-String "\.env$"
-git log --oneline --diff-filter=A -- ai_agents/.env
+git ls-files | Select-String "\.(db|sqlite)$"
+git log --all --oneline -- .env
+git log --all --oneline -- ai_agents/.env
+git log --all --oneline -- Certio.Web/app.db
 ```
 
-The file has been tracked since the **initial commit** and was last modified 2025-09-28. It contains an
-`OPENAI_API_KEY` beginning `sk-proj-` (164 characters — a real project key shape) and an
-`AZURE_OPENAI_API_KEY` (84 characters). `.gitignore` lists `ai_agents/.env`, `*.env`, and `.env` — but
-**`.gitignore` has no effect on files already tracked**, which is precisely why this survived.
+Expect no hits. On Windows use `python -m git_filter_repo` (underscores); `git filter-repo` often is not
+on PATH, and each run removes `origin` until you re-add it.
 
-The repository is currently private, so the exposure is contained. Two things make it urgent anyway:
-anyone who has ever cloned the repo has the keys, and `docs/operations/MAKE_REPO_PUBLIC_SAFELY.md`
-documents an intent to publish — at which point the keys are public and permanent, because they live in
-history rather than only in the working tree.
+**Still open under Tier 0:**
 
-**The team already wrote the correct runbook.** `MAKE_REPO_PUBLIC_SAFELY.md` names `ai_agents/.env`
-explicitly, says to assume anything ever committed is compromised, and gives the `git filter-repo`
-commands. It has simply not been executed. Do these in order:
-
-1. **Rotate both keys now** (OpenAI dashboard, Azure Portal → Azure OpenAI → Keys). Rotation is the only
-   step that actually revokes access; everything after it is cleanup.
-2. `git rm --cached ai_agents/.env` and commit, so it stops being tracked going forward.
-3. Purge it from history with `git filter-repo --path ai_agents/.env --invert-paths`, per the runbook.
-4. Do the same for the three tracked SQLite files — `Certio.Web/app.db`,
-   `Certio.Web/bin/Debug/net8.0/app.db`, `Certio.Web/bin/Debug/net9.0/app.db` — which may contain
-   Identity password hashes.
-5. Add secret scanning to CI so the next one is caught automatically rather than by a code review.
-
-This outranks everything below it, and step 1 takes ten minutes.
+1. Add secret scanning to CI / enable GitHub secret scanning so the next leak is caught automatically.
+2. Only then change repository visibility to public (runbook step 5), after a final GitHub tree + code
+   search check.
 
 ### Tier 1 — do this week
 

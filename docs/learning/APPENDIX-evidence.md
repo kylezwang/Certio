@@ -18,38 +18,48 @@ curriculum cites them rather than repeating them:
 | Document | Assessment |
 |---|---|
 | `docs/BACKLOG/SCALABILITY_AND_ARCHITECTURE.md` | Accurate and well-prioritized. Correctly identifies static state as P0, the `int`/`Guid` seam, the `Application → Infrastructure` inversion, sync-over-async in exactly the three files where it exists, and TF-IDF as a scale limit. The P0–P3 framing is genuinely good. |
-| `docs/operations/MAKE_REPO_PUBLIC_SAFELY.md` | Correct runbook for the tracked-secrets problem, naming `ai_agents/.env` specifically. Not yet executed. |
+| `docs/operations/MAKE_REPO_PUBLIC_SAFELY.md` | Correct runbook for the tracked-secrets problem. History rewrite executed September 2026 (env, appsettings, SQLite / `.vs`); doc includes status + Windows `python -m git_filter_repo` notes. |
 | `docs/archive/AJAX_NAVIGATION_STATUS.md` | Accurately documents that AJAX navigation is disabled and why — **more accurate than the code's own comment.** |
-| `docs/security/SECURITY_REMAINING_ISSUES.md` | Correctly flags the AI service perimeter, tracked SQLite databases, and webhook secret validation. |
+| `docs/security/SECURITY_REMAINING_ISSUES.md` | Correctly flagged the AI service perimeter, tracked SQLite databases, and webhook secret validation. SQLite tracking resolved via history rewrite (Sep 2026); other items may still apply. |
 
 ---
 
-## Live issues that documentation flagged and are still open
+## Live issues that documentation flagged
 
-These are not drift — the docs are right, the work is outstanding. Listed first because they matter most.
+These are not drift — the docs matched the code. Some items below are resolved; others remain open.
 
 <a id="e1"></a>
 
-### E1. `ai_agents/.env` is tracked in git with live API keys
+### E1. `ai_agents/.env` was tracked in git with live API keys — **resolved (history, Sep 2026)**
 
 ```powershell
 git ls-files | Select-String "\.env$"
-git log --oneline --diff-filter=A -- ai_agents/.env
+git log --all --oneline -- .env
+git log --all --oneline -- ai_agents/.env
 ```
 
-Tracked since the initial commit. Contains `OPENAI_API_KEY` (164 chars, `sk-proj-` prefix) and
-`AZURE_OPENAI_API_KEY` (84 chars). `.gitignore` lists the path, which has no effect on an already-tracked
-file. Repository is currently private, so exposure is contained but permanent in history.
-`MAKE_REPO_PUBLIC_SAFELY.md` documents the fix. See module 14, Tier 0.
+**Was:** Tracked since the initial commit with `OPENAI_API_KEY` (`sk-proj-` shape) and
+`AZURE_OPENAI_API_KEY`. `.gitignore` listed the paths but did not untrack them.
 
-### E2. Three SQLite databases are tracked
+**Now:** Paths purged from history via `python -m git_filter_repo` and force-pushed per
+`MAKE_REPO_PUBLIC_SAFELY.md`. Expect empty output from the commands above. Pre-rewrite clones and
+any unrevoked keys are still a compromise story — rotation is separate from the rewrite. See module 14,
+Tier 0, for secret-scanning / public-visibility follow-ups.
+
+<a id="e2"></a>
+
+### E2. SQLite / IDE database files were tracked — **resolved (history, Sep 2026)**
 
 ```powershell
 git ls-files | Select-String "\.(db|sqlite)$"
+git log --all --oneline -- Certio.Web/app.db
 ```
 
-`Certio.Web/app.db` plus two copies under `bin/Debug/`. Flagged as CRITICAL in
-`SECURITY_REMAINING_ISSUES.md`. May contain ASP.NET Identity password hashes.
+**Was:** `Certio.Web/app.db` plus copies under `bin/Debug/`, and `.vs/slnx.sqlite`. Flagged as CRITICAL in
+`SECURITY_REMAINING_ISSUES.md` (possible ASP.NET Identity password hashes).
+
+**Now:** Stripped from history and force-pushed. Expect empty output from the commands above. Local
+`.db` files may still exist on disk; they must stay untracked.
 
 ### E3. Static process-local state is broader than documented
 

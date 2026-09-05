@@ -26,23 +26,24 @@ Three examples of why that matters:
 To be clear about the other direction: **several existing documents are accurate and are cited as
 sources.** `docs/BACKLOG/SCALABILITY_AND_ARCHITECTURE.md` correctly identifies most of the structural
 debt and prioritizes it well; `docs/operations/MAKE_REPO_PUBLIC_SAFELY.md` is a correct runbook for a
-real problem. The appendix credits them and explains where this curriculum adds to them rather than
-repeating them.
+real problem (history rewrite executed September 2026). The appendix credits them and explains where
+this curriculum adds to them rather than repeating them.
 
 The habit embedded here — **read the code, verify the summary** — is the most transferable thing in the
 curriculum.
 
 ---
 
-## Before you start: one thing needs attention today
+## Before you start: secrets hygiene (updated September 2026)
 
-`ai_agents/.env` is **tracked in git** and contains a live `OPENAI_API_KEY` and `AZURE_OPENAI_API_KEY`. It
-has been tracked since the initial commit. `.gitignore` lists the path, which has no effect on an
-already-tracked file. The repository is private, so exposure is contained — but the keys are in history
-permanently, and there is a documented intent to publish the repo.
+`ai_agents/.env`, related appsettings paths, and local SQLite / `.vs` DB files **were** tracked despite
+`.gitignore`. That history was purged with `git filter-repo` and force-pushed per
+`docs/operations/MAKE_REPO_PUBLIC_SAFELY.md`. Keys that lived in those commits must still be treated as
+compromised and rotated/revoked for anyone who cloned before the rewrite.
 
-Rotate both keys, then follow `docs/operations/MAKE_REPO_PUBLIC_SAFELY.md`. Details in
-[module 14, Tier 0](14-design-critique.md) and [`APPENDIX-evidence.md`](APPENDIX-evidence.md#e1).
+Verify locally (`git ls-files` / `git log --all --` on `.env` and `*.db`) — expect empty. Remaining
+follow-ups (secret scanning in CI, flipping visibility) are in [module 14](14-design-critique.md) and
+[`APPENDIX-evidence.md`](APPENDIX-evidence.md#e1).
 
 ---
 

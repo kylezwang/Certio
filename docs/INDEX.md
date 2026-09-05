@@ -163,7 +163,7 @@ Deferred work from the architecture review (not an active phase roadmap).
 | [`operations/PERFORMANCE_MONITORING_IMPLEMENTATION_SUMMARY.md`](operations/PERFORMANCE_MONITORING_IMPLEMENTATION_SUMMARY.md) | Performance monitoring setup |
 | [`operations/PERFORMANCE_METRICS_QUICK_REFERENCE.md`](operations/PERFORMANCE_METRICS_QUICK_REFERENCE.md) | Key performance metrics |
 | [`operations/CURSOR_COST_OPTIMIZATION.md`](operations/CURSOR_COST_OPTIMIZATION.md) | AI cost optimization strategies |
-| [`operations/MAKE_REPO_PUBLIC_SAFELY.md`](operations/MAKE_REPO_PUBLIC_SAFELY.md) | Steps to safely open-source the repo |
+| [`operations/MAKE_REPO_PUBLIC_SAFELY.md`](operations/MAKE_REPO_PUBLIC_SAFELY.md) | History rewrite status + steps to safely open-source the repo |
 
 ---
 
