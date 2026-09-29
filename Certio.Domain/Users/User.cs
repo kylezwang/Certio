@@ -45,7 +45,7 @@ namespace Certio.Domain.Users
         public List<int> MatterIds { get; set; } = new();
         
         // Removed single OrganizationId - now using many-to-many relationship
-        // public int OrganizationId { get; set; }  // DELETED
+        // public int OrganizationId { get; set; } // DELETED
         
         public bool IsPersonalOrganization { get; set; } = false;
 
@@ -345,7 +345,7 @@ public enum Permission
     ManageSystemSettings,
     AccessAdminPanel,
     
-    // Agent action permissions (Phase 1)
+    // Agent action permissions
     ViewAgentActions,
     ProposeAgentActions,
     ApproveAgentActions,

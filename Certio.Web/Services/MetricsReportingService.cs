@@ -19,7 +19,7 @@ public class MetricsReportingService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("📊 Metrics Reporting Service started. Reporting every {Interval} minutes.", 
+        _logger.LogInformation("Metrics Reporting Service started. Reporting every {Interval} minutes.", 
             _reportingInterval.TotalMinutes);
 
         while (!stoppingToken.IsCancellationRequested)
@@ -29,7 +29,7 @@ public class MetricsReportingService : BackgroundService
                 await Task.Delay(_reportingInterval, stoppingToken);
                 
                 _logger.LogInformation("========================================");
-                _logger.LogInformation("📊 PERFORMANCE METRICS REPORT");
+                _logger.LogInformation("PERFORMANCE METRICS REPORT");
                 _logger.LogInformation("========================================");
                 
                 // Log cache metrics
@@ -48,7 +48,7 @@ public class MetricsReportingService : BackgroundService
             }
         }
         
-        _logger.LogInformation("📊 Metrics Reporting Service stopped.");
+        _logger.LogInformation("Metrics Reporting Service stopped.");
     }
 }
 

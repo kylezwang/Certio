@@ -765,7 +765,7 @@ namespace Certio.Web.Controllers
                     assigneeInitials = x.AssigneeInitials,
                     description = x.Description,
                     amount = x.Amount,
-                    amountDisplay = x.Amount.HasValue ? x.Amount.Value.ToString("C0") : "—",
+                    amountDisplay = x.Amount.HasValue ? x.Amount.Value.ToString("C0") : "-",
                     hours = x.Hours,
                     rate = x.Rate,
                     isBillable = x.IsBillable,

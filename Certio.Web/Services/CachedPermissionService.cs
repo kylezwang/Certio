@@ -60,7 +60,7 @@ namespace Certio.Web.Services
             if (cached != null)
             {
                 sw.Stop();
-                _logger.LogDebug("🔒 Permission check CACHED for user {UserId} in {ElapsedMs}ms (Result: {Result})", 
+                _logger.LogDebug("Permission check CACHED for user {UserId} in {ElapsedMs}ms (Result: {Result})", 
                     userId, sw.ElapsedMilliseconds, cached.Value);
                 return cached.Value;
             }
@@ -68,7 +68,7 @@ namespace Certio.Web.Services
             var result = await _permissionService.HasPermissionAsync(userId, organizationId, permission);
             sw.Stop();
             
-            _logger.LogInformation("🔒 Permission check COMPUTED for user {UserId}, permission {Permission} in {ElapsedMs}ms (Result: {Result})", 
+            _logger.LogInformation("Permission check COMPUTED for user {UserId}, permission {Permission} in {ElapsedMs}ms (Result: {Result})", 
                 userId, permission, sw.ElapsedMilliseconds, result);
             
             await _cacheService.SetAsync(cacheKey, new BooleanCacheWrapper(result), PermissionCacheExpiration);

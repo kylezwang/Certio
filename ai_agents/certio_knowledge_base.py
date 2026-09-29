@@ -29,7 +29,7 @@ class NotalWorkflow:
     ai_agents_involved: List[str]
 
 class NotalKnowledgeBase:
-    """Comprehensive knowledge base for Notal project understanding"""
+    """Full knowledge base for Notal project understanding"""
     
     def __init__(self):
         self.features = self._initialize_features()
@@ -399,12 +399,12 @@ class NotalKnowledgeBase:
         }
     
     def get_project_context(self) -> str:
-        """Get comprehensive project context for LLM training"""
+        """Get full project context for LLM training"""
         context = f"""
-# Notal Event Planning Platform - Comprehensive Overview
+# Notal Event Planning Platform - Full Overview
 
 ## Project Purpose
-Notal is an AI-powered event planning platform that streamlines event management by integrating advanced AI capabilities throughout the entire workflow. The platform combines event management, task tracking, team communications, document management, calendar scheduling, and intelligent AI assistance to provide a comprehensive solution for event planning companies and vendors.
+Notal is an AI-powered event planning platform that streamlines event management by integrating advanced AI capabilities throughout the entire workflow. The platform combines event management, task tracking, team communications, document management, calendar scheduling, and intelligent AI assistance to provide a full solution for event planning companies and vendors.
 
 ## Brand Identity
 - **Name**: Notal (formerly Certio)
@@ -454,7 +454,7 @@ Notal is an AI-powered event planning platform that streamlines event management
         
         for domain, info in self.legal_domains.items():
             context += f"""
-### {domain.replace('_', ' ').title()}
+### {domain.replace('_', ' ').title}
 - **Description**: {info['description']}
 - **Common Documents**: {', '.join(info['common_documents'])}
 - **Key Terms**: {', '.join(info['key_terms'])}
@@ -467,7 +467,7 @@ Notal is an AI-powered event planning platform that streamlines event management
         
         for user_type, info in self.user_types.items():
             context += f"""
-### {user_type.title()}
+### {user_type.title}
 - **Description**: {info['description']}
 - **Permissions**: {', '.join(info['permissions'])}
 - **AI Interactions**: {', '.join(info['ai_interactions'])}
@@ -536,7 +536,7 @@ Notal is an AI-powered event planning platform that streamlines event management
         
         info = self.legal_domains[domain]
         return f"""
-# {domain.replace('_', ' ').title()} - Event Category Context
+# {domain.replace('_', ' ').title} - Event Category Context
 
 ## Description
 {info['description']}

@@ -199,12 +199,12 @@ class UserDataRAGSystem:
         index = self.user_indices[key]
         chunks = index.chunks
         
-        logger.info(f"🔍 Searching user data: {len(chunks)} total chunks available for User {user_id}")
+        logger.info(f"Searching user data: {len(chunks)} total chunks available for User {user_id}")
         
         # Apply module filter if specified
         if module_filter:
             chunks = [c for c in chunks if c.module_name in module_filter]
-            logger.info(f"📊 After module filter: {len(chunks)} chunks")
+            logger.info(f"After module filter: {len(chunks)} chunks")
         
         if not chunks:
             logger.warning(f"No chunks available after filtering")
@@ -219,14 +219,14 @@ class UserDataRAGSystem:
         # Perform search
         if self.vector_available and chunks[0].embedding is not None:
             ranked_chunks, scores = await self._vector_search(chunks, query, top_k)
-            logger.info(f"📈 Vector search returned {len(ranked_chunks)} chunks, top score: {scores[0] if scores else 0:.3f}")
+            logger.info(f"Vector search returned {len(ranked_chunks)} chunks, top score: {scores[0] if scores else 0:.3f}")
         else:
             ranked_chunks, scores = await self._keyword_search(chunks, query, top_k)
-            logger.info(f"📈 Keyword search returned {len(ranked_chunks)} chunks, top score: {scores[0] if scores else 0:.3f}")
+            logger.info(f"Keyword search returned {len(ranked_chunks)} chunks, top score: {scores[0] if scores else 0:.3f}")
         
         # Log what we found
         if ranked_chunks:
-            logger.info(f"✅ Top result: {ranked_chunks[0].module_name} - {ranked_chunks[0].title}")
+            logger.info(f"Top result: {ranked_chunks[0].module_name} - {ranked_chunks[0].title}")
         
         # Build module breakdown
         module_breakdown = defaultdict(int)
@@ -273,7 +273,7 @@ class UserDataRAGSystem:
     
     async def _keyword_search(self, chunks: List[UserDataChunk], query: str, 
                              top_k: int) -> tuple[List[UserDataChunk], List[float]]:
-        """Keyword-based search with enhanced exact matching for numbered documents"""
+        """Keyword-based search with extra exact matching for numbered documents"""
         import re
         
         query_lower = query.lower()
@@ -352,9 +352,9 @@ class UserDataRAGSystem:
         scored_chunks.sort(key=lambda x: x[1], reverse=True)
         
         # Log top results for debugging
-        logger.info(f"🔍 Top 3 search results for query '{query}':")
+        logger.info(f"Top 3 search results for query '{query}':")
         for i, (chunk, score) in enumerate(scored_chunks[:3], 1):
-            logger.info(f"  {i}. [{score:.3f}] {chunk.module_name} - {chunk.title}")
+            logger.info(f"{i}. [{score:.3f}] {chunk.module_name} - {chunk.title}")
         
         # Get top-k
         top_chunks = scored_chunks[:top_k]
@@ -414,7 +414,7 @@ class UserDataRAGSystem:
         
         index = self.user_indices[key]
         
-        # Build comprehensive context based on query intent
+        # Build full context based on query intent
         chunks_to_include = []
         
         # If asking about specific module, include ALL chunks from that module
@@ -425,13 +425,13 @@ class UserDataRAGSystem:
             # Set base relevance score for all events
             event_chunks_with_score = [replace(c, relevance_score=1.0) for c in event_chunks[:15]]
             chunks_to_include.extend(event_chunks_with_score)
-            logger.info(f"📋 Including ALL events: {len(event_chunks)} event chunks")
+            logger.info(f"Including ALL events: {len(event_chunks)} event chunks")
         
         if include_all_comms:
             comm_chunks = [c for c in index.chunks if c.module_name == 'communications']
             comm_chunks_with_score = [replace(c, relevance_score=1.0) for c in comm_chunks[:20]]
             chunks_to_include.extend(comm_chunks_with_score)
-            logger.info(f"💬 Including ALL communications: {len(comm_chunks)} comm chunks")
+            logger.info(f"Including ALL communications: {len(comm_chunks)} comm chunks")
             
             # When including communications, also include related events for context
             # Extract event names from channel names and find corresponding events
@@ -443,14 +443,14 @@ class UserDataRAGSystem:
                     if any(word in comm_chunk.title.lower() for word in event_title_lower.split()):
                         if event_chunk.id not in [c.id for c in chunks_to_include]:
                             chunks_to_include.append(replace(event_chunk, relevance_score=0.9))
-                            logger.info(f"📋 Auto-including event '{event_chunk.title}' (related to communications)")
+                            logger.info(f"Auto-including event '{event_chunk.title}' (related to communications)")
                             break
         
         if include_all_tasks:
             task_chunks = [c for c in index.chunks if c.module_name == 'tasks']
             task_chunks_with_score = [replace(c, relevance_score=1.0) for c in task_chunks[:15]]
             chunks_to_include.extend(task_chunks_with_score)
-            logger.info(f"✅ Including ALL tasks: {len(task_chunks)} task chunks")
+            logger.info(f"Including ALL tasks: {len(task_chunks)} task chunks")
         
         # Also do semantic search for the most relevant items
         search_module_filter = module_filter
@@ -493,10 +493,10 @@ class UserDataRAGSystem:
                 focused_chunks = [c for c in chunks_to_include if c.module_name == "events"][:max_chunks]
             
             if focused_chunks:
-                logger.info(f"🎯 Filtering context to module '{primary_focus_module}' ({len(focused_chunks)} chunks)")
+                logger.info(f"Filtering context to module '{primary_focus_module}' ({len(focused_chunks)} chunks)")
                 final_chunks = focused_chunks
             else:
-                logger.info(f"⚠️ No chunks found for primary module '{primary_focus_module}', keeping combined context")
+                logger.info(f"No chunks found for primary module '{primary_focus_module}', keeping combined context")
         
         # Build context string
         context_parts = []
@@ -509,7 +509,7 @@ class UserDataRAGSystem:
         context_parts.append(f"Query: {query}")
         context_parts.append(f"Total Data Items Available: {len(final_chunks)}")
         context_parts.append("")
-        context_parts.append("⚠️ CRITICAL INSTRUCTIONS:")
+        context_parts.append("CRITICAL INSTRUCTIONS:")
         context_parts.append(f"1. The CURRENT USER is {index.user_name} - address them by this name, NOT by client names")
         context_parts.append("2. The data below is the user's ACTUAL data from the Notal database")
         context_parts.append("3. You MUST use ONLY this exact data when answering questions")
@@ -517,7 +517,7 @@ class UserDataRAGSystem:
         context_parts.append("5. If data is missing or 'Not specified', say so - don't invent it")
         context_parts.append("6. When showing event/task details, ONLY show what was explicitly asked for")
         context_parts.append("")
-        context_parts.append("📄 DOCUMENT CITATION RULES:")
+        context_parts.append("DOCUMENT CITATION RULES:")
         context_parts.append("1. When you FIND the requested document in the data below, CITE IT DIRECTLY")
         context_parts.append("2. DO NOT say 'I cannot access' or 'I'm unable to access' if you found the content")
         context_parts.append("3. Quote the exact text from the document when asked to cite or reference it")
@@ -552,11 +552,11 @@ class UserDataRAGSystem:
         if include_all_events:
             event_titles = [c.title for c in final_chunks if c.module_name == 'events']
             if event_titles:
-                context_parts.append("📋 COMPLETE LIST OF ALL EVENTS (for reference):")
+                context_parts.append("COMPLETE LIST OF ALL EVENTS (for reference):")
                 for title in event_titles:
                     context_parts.append(f"  • {title}")
                 context_parts.append("")
-                context_parts.append("⚠️ If the user asks about an event not in this list, it does NOT exist.")
+                context_parts.append("If the user asks about an event not in this list, it does NOT exist.")
                 context_parts.append("Tell them it's not in their current data and list what IS available.")
                 context_parts.append("")
         
@@ -583,7 +583,7 @@ class UserDataRAGSystem:
         context_parts.append("END OF USER'S ACTUAL DATA")
         context_parts.append("=" * 80)
         context_parts.append("")
-        context_parts.append("⚠️ REMINDER:")
+        context_parts.append("REMINDER:")
         context_parts.append("- Use ONLY the information above - do NOT make up or hallucinate data")
         context_parts.append("- If you FOUND the document/content above, CITE IT DIRECTLY and confidently")
         context_parts.append("- Do NOT say 'I cannot access' if the content is in the data above")
@@ -600,7 +600,7 @@ class UserDataRAGSystem:
 {'=' * 80}
 User ID: {user_id} | Organization ID: {organization_id}
 
-⚠️ NO USER DATA FOUND
+ NO USER DATA FOUND
 
 This could mean:
 - The user is new and hasn't created any data yet

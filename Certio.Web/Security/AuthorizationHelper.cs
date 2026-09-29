@@ -11,23 +11,23 @@ namespace Certio.Web.Security
     /// <summary>
     /// Helper class for validating user authorization and resource ownership
     /// Centralizes security checks to prevent IDOR vulnerabilities
-    /// 
+    ///
     /// SECURITY MODEL:
     /// ===============
-    /// 
+    ///
     /// MATTERS:
     /// - Users see matters where:
-    ///   1. Matter.AccessLevel = "Everyone" (all org members)
-    ///   2. User has MatterPermission (for "Specific" access level)
-    ///   3. User has MatterAssignment (assigned to matter)
-    /// 
+    /// 1. Matter.AccessLevel = "Everyone" (all org members)
+    /// 2. User has MatterPermission (for "Specific" access level)
+    /// 3. User has MatterAssignment (assigned to matter)
+    ///
     /// TASKS:
     /// - Users see tasks where:
-    ///   1. User has TaskAssignment (assigned to task)
-    ///   2. User has MatterAssignment (assigned to parent matter)
-    ///   3. Parent matter has AccessLevel = "Everyone"
-    ///   4. User has MatterPermission for parent matter
-    /// 
+    /// 1. User has TaskAssignment (assigned to task)
+    /// 2. User has MatterAssignment (assigned to parent matter)
+    /// 3. Parent matter has AccessLevel = "Everyone"
+    /// 4. User has MatterPermission for parent matter
+    ///
     /// FILTERING:
     /// - List-level filtering is done in Controllers (Index actions)
     /// - Item-level authorization is done here (Get/Edit/Delete actions)

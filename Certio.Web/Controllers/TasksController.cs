@@ -1192,9 +1192,7 @@ namespace Certio.Web.Controllers
             return date.ToString("MMM dd, yyyy");
         }
 
-        // ============================================================
-        // HELPER METHODS (Added during Phase 2 refactoring)
-        // ============================================================
+        // HELPER METHODS (Added during
 
         /// <summary>
         /// Extracts current user and organization context from HttpContext

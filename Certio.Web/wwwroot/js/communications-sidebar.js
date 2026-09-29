@@ -179,7 +179,7 @@ function setupCommsSidebarEventListeners() {
 // Toggle Sidebar Open/Close (handled by _ClientLayout.cshtml)
 function toggleCommsSidebar() {
     // This is now handled by the header button logic
-    // which calls showCommsSidebar() from _ClientLayout
+    // which calls showCommsSidebar from _ClientLayout
 }
 
 // Open Sidebar - Called when switching to comms sidebar
@@ -670,7 +670,7 @@ async function openCommsDM(otherUserId, otherUserName) {
                 try {
                     await commsSidebarState.directSignalRConnection.invoke("JoinThread", threadIdOriginal);
                 } catch (err) {
-                    console.error('❌ Error joining thread group:', err);
+                    console.error('Error joining thread group:', err);
                 }
             }
             
@@ -1021,7 +1021,7 @@ function renderMessageItem(message, isGrouped, isCurrentUser) {
         // Only apply inline color for non-current-user messages
         avatarStyle = `background: ${senderColor} !important;`;
     }
-    // For current user, CSS will apply the gradient via .comms-message-item.current-user-message .comms-message-avatar
+    // For current user, CSS will apply the gradient via.comms-message-item.current-user-message.comms-message-avatar
     
     const currentUserClass = isCurrentUser ? 'current-user-message' : '';
     const groupedClass = isGrouped ? 'grouped-message' : '';
@@ -1516,11 +1516,11 @@ function initializeDirectSignalR() {
             // Join current thread if one is selected
             if (commsSidebarState.currentChannelId && commsSidebarState.currentChannelType === 'dm') {
                 commsSidebarState.directSignalRConnection.invoke("JoinThread", commsSidebarState.currentChannelId.toString())
-                    .catch(err => console.error('❌ Error joining thread:', err));
+                    .catch(err => console.error('Error joining thread:', err));
             }
         })
         .catch(function(err) {
-            console.error('❌ DirectHub SignalR connection error:', err);
+            console.error('DirectHub SignalR connection error:', err);
         });
 }
 

@@ -1,6 +1,6 @@
 # PR Validation Pipeline
 # Runs on every pull request to catch issues before merge.
-# No deployment — only build, test, and migration safety checks.
+# No deployment - only build, test, and migration safety checks.
 
 name: PR Validation
 
@@ -79,6 +79,11 @@ jobs:
         run: dotnet ef migrations script --idempotent --project Certio.Infrastructure/Certio.Infrastructure.csproj --startup-project Certio.Web/Certio.Web.csproj --output migrations-check.sql
         env:
           DOTNET_ENVIRONMENT: Production
+          USE_AZURE_SQL: "true"
+          SQL_PASSWORD: ci-placeholder
+          ConnectionStrings__DefaultConnection: "Server=tcp:127.0.0.1,1433;Initial Catalog=CertioLocal;User ID=sa;Password=ci-placeholder;Encrypt=False;TrustServerCertificate=True;"
+          EmailIntegration__GmailVerificationToken: ci-placeholder
+          EmailIntegration__WebhookSecret: ci-placeholder
 
       - name: Report migration script size
         run: |
@@ -130,4 +135,25 @@ jobs:
         env:
           AI_API_KEY: test-secret
           AI_API_RATE_LIMIT_PER_MINUTE: '60'
+          OPENAI_API_KEY: sk-test-placeholder
         run: python -m pytest tests/ -v --tb=short
+
+  # ─────────────────────────────────────────────
+  # Text hygiene: no emoji, em dashes, or en dashes
+  # ─────────────────────────────────────────────
+  text-hygiene:
+    name: Text hygiene
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Check tracked text
+        run: python scripts/check_text_hygiene.py

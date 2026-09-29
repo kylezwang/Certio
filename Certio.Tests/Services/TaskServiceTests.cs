@@ -5,7 +5,7 @@ namespace Certio.Tests.Services
 {
     public class TaskServiceTests
     {
-        // TODO: Implement comprehensive tests for TaskService
+        // TODO: Implement full tests for TaskService
         // Test coverage needed (20-25 tests):
         // - CreateTaskAsync
         // - UpdateTaskAsync

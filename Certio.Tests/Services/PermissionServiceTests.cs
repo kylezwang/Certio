@@ -13,7 +13,7 @@ using Certio.Domain.Exceptions;
 namespace Certio.Tests.Services
 {
     /// <summary>
-    /// Comprehensive permission service tests
+    /// Full permission service tests
     /// Tests all permission combinations and scenarios
     /// </summary>
     public class PermissionServiceTests : IDisposable

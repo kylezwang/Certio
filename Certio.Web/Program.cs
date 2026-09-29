@@ -21,11 +21,11 @@ using System.Text.RegularExpressions;
 // Set up environment variables for Windows development
 static void SetupEnvironmentVariables()
 {
-    // Load from .env file if it exists
+    // Load from.env file if it exists
     var envFile = Path.Combine(Directory.GetCurrentDirectory(), ".env");
     if (File.Exists(envFile))
     {
-        Console.WriteLine("📁 Loading environment variables from .env file...");
+        Console.WriteLine("Loading environment variables from .env file...");
         var lines = File.ReadAllLines(envFile);
         foreach (var line in lines)
         {
@@ -38,18 +38,18 @@ static void SetupEnvironmentVariables()
                 var key = parts[0].Trim();
                 var value = parts[1].Trim();
                 Environment.SetEnvironmentVariable(key, value, EnvironmentVariableTarget.Process);
-                Console.WriteLine($"🔧 Loaded {key} from .env");
+                Console.WriteLine($"Loaded {key} from .env");
             }
         }
     }
     else
     {
-        // .env file not found, using system environment variables
+        //.env file not found, using system environment variables
     }
 
     if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SQL_PASSWORD")))
     {
-        Console.WriteLine("❌ SQL_PASSWORD environment variable is not set. Add it to your environment or .env file.");
+        Console.WriteLine("SQL_PASSWORD environment variable is not set. Add it to your environment or .env file.");
     }
 }
 
@@ -85,10 +85,10 @@ static void ValidateProductionConfiguration(IConfiguration configuration, IWebHo
     if (errors.Any())
     {
         Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine("\n🚨 PRODUCTION CONFIGURATION ERRORS:");
+        Console.WriteLine("\n PRODUCTION CONFIGURATION ERRORS:");
         foreach (var error in errors)
         {
-            Console.WriteLine($"   ❌ {error}");
+            Console.WriteLine($"{error}");
         }
         Console.ResetColor();
         Console.WriteLine("\nApplication cannot start in production without required configuration.\n");
@@ -120,11 +120,11 @@ static async Task<string> GetConnectionStringAsync(IConfiguration configuration,
             if (!string.IsNullOrWhiteSpace(dbPassword) && connectionString.Contains("${DB_PASSWORD}"))
     {
                 connectionString = connectionString.Replace("${DB_PASSWORD}", dbPassword);
-                Console.WriteLine("🔧 Replaced ${DB_PASSWORD} placeholder in connection string");
+                Console.WriteLine("Replaced ${DB_PASSWORD} placeholder in connection string");
             }
             else if (connectionString.Contains("${DB_PASSWORD}"))
             {
-                Console.WriteLine("❌ ERROR: DB_PASSWORD environment variable is not set but connection string contains ${DB_PASSWORD}");
+                Console.WriteLine("ERROR: DB_PASSWORD environment variable is not set but connection string contains ${DB_PASSWORD}");
                 throw new InvalidOperationException("DB_PASSWORD environment variable is required when connection string contains ${DB_PASSWORD} placeholder");
             }
             
@@ -134,8 +134,8 @@ static async Task<string> GetConnectionStringAsync(IConfiguration configuration,
                 @"Password=([^;]+)", 
                 "Password=***MASKED***", 
                 System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-            Console.WriteLine($"🌐 Using Azure SQL Database (production)");
-            Console.WriteLine($"📋 Connection string (masked): {maskedConnectionString}");
+            Console.WriteLine($"Using Azure SQL Database (production)");
+            Console.WriteLine($"Connection string (masked): {maskedConnectionString}");
             
             return connectionString;
         }
@@ -156,12 +156,12 @@ static async Task<string> GetConnectionStringAsync(IConfiguration configuration,
                 devConnectionString = devConnectionString.Replace("${DB_PASSWORD}", dbPassword);
             }
             
-            Console.WriteLine("🌐 Using Azure SQL Database (explicitly requested)");
+            Console.WriteLine("Using Azure SQL Database (explicitly requested)");
             return devConnectionString;
     }
     else
     {
-            Console.WriteLine("⚠️ Azure SQL connectivity check failed, falling back to local SQL Server");
+            Console.WriteLine("Azure SQL connectivity check failed, falling back to local SQL Server");
         }
     }
     
@@ -171,7 +171,7 @@ static async Task<string> GetConnectionStringAsync(IConfiguration configuration,
         throw new InvalidOperationException("USE_AZURE_SQL must be set to 'true' in production. Local SQL Server is not available in Azure.");
     }
     
-        Console.WriteLine("📱 Using local SQL Server (default)");
+        Console.WriteLine("Using local SQL Server (default)");
         // Start local SQL Server if not running
         await EnsureLocalSqlServerRunningAsync();
         var localPassword = Environment.GetEnvironmentVariable("SQL_PASSWORD");
@@ -258,7 +258,7 @@ static async Task EnsureLocalSqlServerRunningAsync()
         
         if (!output.Contains("Up"))
         {
-            Console.WriteLine("🚀 Starting local SQL Server...");
+            Console.WriteLine("Starting local SQL Server...");
             var startProcess = new System.Diagnostics.Process
             {
                 StartInfo = new System.Diagnostics.ProcessStartInfo
@@ -280,7 +280,7 @@ static async Task EnsureLocalSqlServerRunningAsync()
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"⚠️ Could not start local SQL Server: {ex.Message}");
+        Console.WriteLine($"Could not start local SQL Server: {ex.Message}");
         Console.WriteLine("Please run: docker-compose up -d sqlserver");
     }
 }
@@ -291,7 +291,7 @@ builder.Configuration.AddEnvironmentVariables();
 
 var isDevelopment = builder.Environment.IsDevelopment();
 
-// Map flat env vars to hierarchical configuration keys (so .env or shell vars override appsettings)
+// Map flat env vars to hierarchical configuration keys (so.env or shell vars override appsettings)
 var googleMapsEnvKey = Environment.GetEnvironmentVariable("GOOGLE_MAPS_API_KEY");
 if (!string.IsNullOrWhiteSpace(googleMapsEnvKey))
 {
@@ -678,16 +678,16 @@ builder.Services.AddScoped<IFirmRelationshipCacheService, FirmRelationshipCacheS
 builder.Services.AddScoped<ILawFirmRoleResolutionService, LawFirmRoleResolutionService>();
 builder.Services.AddScoped<IFirmAccessAuditService, FirmAccessAuditService>();
 
-// PHASE 1 SECURITY SERVICES
+//
 builder.Services.AddScoped<Certio.Application.Interfaces.IAuditService, Certio.Application.Services.AuditService>();
 builder.Services.AddScoped<Certio.Application.Interfaces.INotificationService, Certio.Web.Services.NotificationService>();
 builder.Services.AddScoped<Certio.Web.Services.IBriefingMessageService, Certio.Web.Services.BriefingMessageService>();
 builder.Services.AddScoped<Certio.Web.Security.AuthorizationHelper>();
 
-// PHASE 2 SERVICE LAYER
+//
 // Register base PermissionService (without caching)
 builder.Services.AddScoped<Certio.Application.Services.PermissionService>();
-// Register CachedPermissionService as the IPermissionService implementation (PHASE 3)
+// Register CachedPermissionService as the IPermissionService implementation
 builder.Services.AddScoped<Certio.Application.Interfaces.IPermissionService, Certio.Web.Services.CachedPermissionService>();
 builder.Services.AddScoped<Certio.Application.Interfaces.IOrganizationContextService, Certio.Application.Services.OrganizationContextService>();
 builder.Services.AddScoped<Certio.Application.Interfaces.IMatterService, Certio.Application.Services.MatterService>();
@@ -698,7 +698,7 @@ builder.Services.AddScoped<Certio.Application.Interfaces.IOrganizationService, C
 builder.Services.AddScoped<Certio.Application.Interfaces.ITeamService, Certio.Application.Services.TeamService>();
 builder.Services.AddScoped<Certio.Application.Interfaces.IOrganizationRelationshipService, Certio.Application.Services.OrganizationRelationshipService>();
 
-// AGENT ACTIONS AND UNIFIED INBOX (Phase 1 Agentic AI Workflows)
+// AGENT ACTIONS AND UNIFIED INBOX
 builder.Services.AddScoped<Certio.Application.Interfaces.IAgentActionService, Certio.Application.Services.AgentActionService>();
 builder.Services.AddScoped<Certio.Application.Interfaces.IUnifiedInboxService, Certio.Application.Services.UnifiedInboxService>();
 
@@ -773,7 +773,7 @@ builder.Services.AddScoped<Certio.Web.Services.IAIUsageService, Certio.Web.Servi
 // Direct Message Services
 builder.Services.AddScoped<Certio.Application.Interfaces.IDirectMessageService, Certio.Web.Services.DirectMessageService>();
 
-// User Data Context Service for comprehensive AI RAG across all modules
+// User Data Context Service for full AI RAG across all modules
 builder.Services.AddScoped<Certio.Application.Interfaces.IUserDataContextService, Certio.Application.Services.UserDataContextService>();
 
 // Email Integration Services

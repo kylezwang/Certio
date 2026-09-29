@@ -72,8 +72,8 @@
             {
                 foreach (var retainer in Model)
                 {
-                    var clientName = retainer.Client?.Name ?? "—";
-                    var matterTitle = retainer.Matter?.Title ?? "—";
+                    var clientName = retainer.Client?.Name ?? "-";
+                    var matterTitle = retainer.Matter?.Title ?? "-";
 
                     var total = retainer.TotalDeposited > 0 ? retainer.TotalDeposited : retainer.InitialAmount;
                     if (total <= 0) total = 0;
@@ -133,10 +133,10 @@
                             <span style="color: #1e293b; font-weight: 500;">@retainer.CurrentBalance.ToString("C0")</span>
                         </div>
                         <div class="billing-deposit-column">
-                            <span style="color: #64748b; font-size: 0.85rem;">@(lastDeposit.HasValue ? lastDeposit.Value.ToString("MMM dd, yyyy") : "—")</span>
+                            <span style="color: #64748b; font-size: 0.85rem;">@(lastDeposit.HasValue ? lastDeposit.Value.ToString("MMM dd, yyyy") : "-")</span>
                         </div>
                         <div class="billing-withdrawal-column">
-                            <span style="color: #64748b; font-size: 0.85rem;">@(lastWithdrawal.HasValue ? lastWithdrawal.Value.ToString("MMM dd, yyyy") : "—")</span>
+                            <span style="color: #64748b; font-size: 0.85rem;">@(lastWithdrawal.HasValue ? lastWithdrawal.Value.ToString("MMM dd, yyyy") : "-")</span>
                         </div>
                         <div class="billing-status-column">
                             <span class="billing-status-badge @statusClass">@statusText</span>
