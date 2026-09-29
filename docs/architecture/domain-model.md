@@ -6,13 +6,15 @@ Almost every row is owned by an organization. Queries that forget `OrganizationI
 
 `Organization.Type` is one of `Client`, `LawFirm`, `EventPlanner`, `Government`, or `NonProfit`. A user joins an org through `UserOrganization`, which also carries the role used for permissions.
 
-`OrganizationRelationship` links two orgs (a firm and a client, co-counsel, a referral). Direct messages and some channel access use that link so a person in the firm org can reach a person in the client org without being a member of both.
+Notal started as a product for law firms, which is why `LawFirm` is still in that list. The product now is for event teams.
 
-The product started as legal matter management and later added event planning. You will still see `Matter` in the code. In the UI that entity is usually called an event.
+`OrganizationRelationship` links two orgs, such as an event team and a client. Direct messages and some channel access use that link so a person in one org can reach a person in the other without being a member of both.
+
+You will still see `Matter` in the code. In the UI that entity is usually called an event.
 
 ## Work
 
-- `Matter` is the case or event. Assignments and an access level (`Everyone` or specific people) decide who can see it.
+- `Matter` is the event. Assignments and an access level (`Everyone` or specific people) decide who can see it.
 - `TaskItem` hangs off a matter. Tasks have assignments, comments, and comment reactions. A reaction is stored as a short key such as `like`, not as an emoji character.
 - `CalendarEvent` is the schedule, with optional Google and Outlook sync.
 - Billing types (`TimeEntry`, expense, invoice, retainer) live under `Certio.Domain/Billing`.

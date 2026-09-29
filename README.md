@@ -1,18 +1,18 @@
 # Notal
 
-Notal is a multi-tenant workspace for event teams and the firms that work with them. It covers events, tasks, documents, billing, mail, calendar, and a chat assistant that can propose changes but cannot apply them until a person approves.
+Notal is a multi-tenant workspace for event teams. It covers events, tasks, documents, billing, mail, calendar, and a chat assistant that can propose changes but cannot apply them until a person approves.
 
-The code uses the codename `Certio`. Project names, namespaces, and the Python modules were not renamed. Azure resources are still `Notal-app` and `notal-ai`.
+Notal started as a product for law firms. That is why the code still has a `LawFirm` organization type and calls an event a `Matter`. The code uses the codename `Certio`. Project names, namespaces, and the Python modules were not renamed. Azure resources are still `Notal-app` and `notal-ai`.
 
 [![PR validation](https://github.com/kylezwang/Certio/actions/workflows/pr-validation.yml/badge.svg)](https://github.com/kylezwang/Certio/actions/workflows/pr-validation.yml)
 
 ## What it does
 
-- Organizations of several types (client, law firm, event planner, government, nonprofit) with relationships between them
+- Organizations of several types (client, event planner, government, nonprofit) with relationships between them
 - Events (the `Matter` type), tasks, comments, and a calendar with Google and Outlook sync
 - Documents from upload, Google Drive, and OneDrive, including Office Online editing through WOPI
 - Team channels, direct messages, and an inbox over synced mail
-- Billing records: time, expenses, invoices, and trust
+- Billing records: time, expenses, and invoices
 - An AI service that retrieves product docs and the current user's data, then files a proposed action for approval
 
 ## Architecture
