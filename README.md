@@ -1,329 +1,118 @@
-# Certio - AI-Powered Legal Management Platform
+# Notal
 
-**Version:** 5.0.0  
-**Last Updated:** February 11, 2026  
-**Status:** Production
+Notal is a multi-tenant workspace for event teams and the firms that work with them. It covers events, tasks, documents, billing, mail, calendar, and a chat assistant that can propose changes but cannot apply them until a person approves.
 
----
+The code uses the codename `Certio`. Project names, namespaces, and the Python modules were not renamed. Azure resources are still `Notal-app` and `notal-ai`.
 
-## Overview
+[![PR validation](https://github.com/kylezwang/Certio/actions/workflows/pr-validation.yml/badge.svg)](https://github.com/kylezwang/Certio/actions/workflows/pr-validation.yml)
 
-Certio is an enterprise-grade, AI-powered legal management platform built on ASP.NET Core 9.0 with Clean Architecture principles. It provides comprehensive matter management, task tracking, document handling, billing, real-time communications, and AI-powered workflow automation for law firms and their clients.
+## What it does
 
-### Key Capabilities
-
-- **Matter Management** - Full lifecycle management with assignments, permissions, and status tracking
-- **Task Management** - Hierarchical tasks with subtasks, dependencies, comments, and reactions
-- **Document Management** - Integration with Google Drive, OneDrive, and local uploads with vector search (RAG)
-- **Real-time Communications** - Team channels, direct messaging, and AI-powered chat via SignalR
-- **Billing** - Time entries, expenses, invoices, and trust/retainer accounting
-- **Calendar** - Integrated calendar with Google Calendar and Outlook sync
-- **AI Agents** - Python FastAPI microservice with specialized agents for legal workflows
-- **Unified Inbox** - Aggregated inbox across email, direct messages, and chat
-- **Change Control** - Change notice management with acknowledgement workflows
-- **Multi-Tenancy** - Organization-scoped with law firm-client relationship support
-
----
+- Organizations of several types (client, law firm, event planner, government, nonprofit) with relationships between them
+- Events (the `Matter` type), tasks, comments, and a calendar with Google and Outlook sync
+- Documents from upload, Google Drive, and OneDrive, including Office Online editing through WOPI
+- Team channels, direct messages, and an inbox over synced mail
+- Billing records: time, expenses, invoices, and trust
+- An AI service that retrieves product docs and the current user's data, then files a proposed action for approval
 
 ## Architecture
 
 ```
-Certio.Web (Presentation - .NET 9.0)
-    Controllers, Views, SignalR Hubs, Middleware
-        |
-Certio.Application (Business Logic - .NET 8.0)
-    Services, Interfaces, DTOs, Configuration
-        |
-Certio.Domain (Core Models - .NET 8.0)
-    Entities, Enums, Permissions, Domain Logic
-        |
-Certio.Infrastructure (Data Access - .NET 8.0)
-    ApplicationDbContext, Migrations, Interceptors
+Browser
+  |
+  v
+Certio.Web (.NET 9)          controllers, Razor, SignalR
+  |
+  v
+Certio.Application           services, DTOs, ServiceResult
+  |
+  v
+Certio.Domain                entities and permissions
+  |
+  v
+Certio.Infrastructure        EF Core, migrations, audit interceptor
+  |
+  +--> SQL Server
+  +--> Redis, when USE_REDIS is set
+
+Certio.Web -- HTTP --> ai_agents (FastAPI, Python 3.11)
 ```
 
-**External Services:**
-- Python FastAPI AI microservice (`ai_agents/`)
-- SQL Server (Azure SQL for production, Docker for local development)
-- Redis (optional distributed caching)
+A longer map is in [docs/architecture/overview.md](docs/architecture/overview.md). Short notes on the main choices are in [docs/decisions](docs/decisions/001-clean-architecture.md).
 
----
+## Worth reading
 
-## Quick Start
+| Topic | Where |
+|-------|--------|
+| Permission checks cached in memory, then Redis | `Certio.Web/Services/CachedPermissionService.cs`, `RedisCacheService.cs` |
+| Audit rows written in the same save as the change | `Certio.Infrastructure/Interceptors/AuditInterceptor.cs` |
+| SignalR backplane only when Redis is on | `Certio.Web/Program.cs` |
+| Model output cannot write rows until someone approves | `Certio.Domain/AgentActions/AgentAction.cs` |
+| Retrieval falls back if a heavier module will not import | `ai_agents/main.py` |
+| Org membership is a policy, finer rights are a permission enum | `docs/architecture/multi-tenancy-and-permissions.md` |
 
-### Prerequisites
+## Stack
 
-| Software | Version | Required |
-|----------|---------|----------|
-| .NET SDK | 9.0+ | Yes |
-| Python | 3.11+ | Yes (for AI agents) |
-| Docker Desktop | Latest | Yes (for local SQL Server) |
-| Git | Latest | Yes |
-| Visual Studio 2022 / VS Code | Latest | Recommended |
+| Area | Choice |
+|------|--------|
+| Web | ASP.NET Core 9, Razor, Bootstrap 5, SignalR |
+| Libraries | .NET 8 class libraries |
+| Data | EF Core, SQL Server 2022 |
+| Cache | In-memory, plus Redis when configured |
+| Auth | ASP.NET Core Identity, Google and Microsoft sign-in |
+| AI | FastAPI, OpenAI or Azure OpenAI or Anthropic |
+| CI | GitHub Actions, deploy to Azure App Service |
 
-### Setup
+## Run it
 
-1. **Clone the repository:**
-   ```bash
-   git clone <repository-url>
-   cd Certio
-   ```
-
-2. **Run the Windows setup script:**
-   ```cmd
-   setup_windows.bat
-   ```
-
-3. **Configure environment variables** - Edit `.env` in the project root:
-   ```env
-   SQL_PASSWORD=YourStrong@Passw0rd
-   USE_AZURE_SQL=false
-   OPENAI_API_KEY=your_key_here
-   ANTHROPIC_API_KEY=your_key_here
-   ```
-
-4. **Start all services:**
-   ```cmd
-   start_services.bat
-   ```
-
-5. **Access the application** at `http://localhost:5092`
-
-### Manual Setup (Alternative)
-
-```bash
-# Start SQL Server via Docker
-docker-compose up -d sqlserver
-
-# Restore and build .NET solution
-dotnet restore
-dotnet build
-
-# Apply database migrations
-dotnet ef database update --project Certio.Web
-
-# Set up Python AI agents
-cd ai_agents
-python -m venv venv
-venv\Scripts\activate.bat    # Windows
-pip install -r requirements.txt
-
-# Run the web application
-cd Certio.Web
-dotnet run
-```
-
----
-
-## Project Structure
+Install the .NET 9 SDK, Python 3.11, and Docker Desktop.
 
 ```
-Certio/
-├── Certio.sln                    # Visual Studio 2022 solution
-├── Certio.Web/                   # ASP.NET Core 9.0 Web Application
-│   ├── Controllers/              # 34 controllers (MVC + API)
-│   ├── Views/                    # 57 Razor views (.cshtml)
-│   ├── Hubs/                     # SignalR hubs (Chat, Direct, Notifications, Updates)
-│   ├── Services/                 # Web-layer services
-│   ├── Middleware/               # Custom middleware pipeline
-│   ├── Security/                 # Authorization handlers and attributes
-│   ├── Migrations/               # 42 EF Core migrations
-│   ├── wwwroot/                  # Static assets (CSS, JS, images, libraries)
-│   └── Program.cs               # Application entry point
-├── Certio.Application/           # Application services layer (.NET 8.0)
-│   ├── Services/                 # Business logic services
-│   ├── Interfaces/               # Service contracts
-│   ├── DTOs/                     # Data Transfer Objects
-│   └── Configuration/            # Configuration classes
-├── Certio.Domain/                # Domain layer (.NET 8.0)
-│   ├── Users/                    # User, UserOrganization, TrustedDevice
-│   ├── Organizations/            # Organization, OrganizationRelationship
-│   ├── Matters/                  # Matter, MatterAssignment, MatterPermission
-│   ├── Tasks/                    # TaskItem, SubTaskItem, TaskAssignment
-│   ├── Documents/                # Document, DocumentVector, ExternalConnection
-│   ├── Services/                 # ChatMessage, Conversation, DirectMessage
-│   ├── Billing/                  # TimeEntry, Expense, Invoice, Retainer
-│   ├── Calendar/                 # CalendarEvent, CalendarIntegration
-│   ├── AIAgents/                 # AIAgent, AIUsage, ChatSummary
-│   ├── AgentActions/             # AgentAction
-│   ├── UnifiedInbox/             # InboxItem, InboxMessage
-│   ├── ChangeControl/            # ChangeNotice, ChangeNoticeRecipient
-│   ├── Audit/                    # AuditLog, AuditableEntity, IAuditable
-│   ├── Notifications/            # Notification, NotificationTemplate
-│   └── Workflows/                # Workflow, WorkflowInstance
-├── Certio.Infrastructure/        # Infrastructure layer (.NET 8.0)
-│   ├── Data/                     # ApplicationDbContext
-│   ├── Migrations/               # (Shared with Web project)
-│   └── Interceptors/             # AuditInterceptor
-├── Certio.Tests/                 # Unit tests (.NET 9.0, xUnit + Moq)
-│   ├── Services/                 # Service tests
-│   ├── Controllers/              # Controller tests
-│   ├── Hubs/                     # SignalR hub tests
-│   └── Security/                 # Authorization tests
-├── ai_agents/                    # Python FastAPI AI microservice
-│   ├── main.py                   # FastAPI application entry
-│   ├── Dockerfile                # Docker build for AI service
-│   └── requirements.txt          # Python dependencies
-├── .github/workflows/            # GitHub Actions CI/CD
-├── scripts/                      # Setup and utility scripts
-├── docker-compose.yml            # Docker Compose (SQL Server)
-├── setup_windows.bat             # Windows setup script
-├── start_services.bat            # Start all services
-├── stop_services.bat             # Stop all services
-└── .env                          # Environment variables (not committed)
+git clone https://github.com/kylezwang/Certio.git
+cd Certio
+copy .env.example .env
+scripts\setup_windows.bat
+scripts\start_services.bat
 ```
 
----
+On macOS, use `scripts/setup_mac.sh` and `scripts/start_services.sh`.
 
-## Technology Stack
+| Service | URL |
+|---------|-----|
+| Web | http://localhost:5092 |
+| AI | http://localhost:8000 |
+| SQL Server | localhost:1433 |
 
-### Backend
+Details, including what each environment variable does, are in [docs/setup/local-development.md](docs/setup/local-development.md).
 
-| Component | Technology | Version |
-|-----------|-----------|---------|
-| Framework | ASP.NET Core | 9.0 |
-| Language | C# | 12 |
-| ORM | Entity Framework Core | 9.0.8 / 8.0.8 |
-| Database | SQL Server | 2022 |
-| Cache | Redis + In-Memory | 2.8.16 |
-| Real-time | SignalR | 9.0.9 |
-| Authentication | ASP.NET Core Identity | 9.0.8 |
-| Email | MailKit | 4.14.1 |
-| API Docs | Swagger/OpenAPI | 9.0.4 |
-| AI/ML | Semantic Kernel | 1.4.0 |
-| Graph API | Microsoft Graph | 5.49.0 |
-| Gmail API | Google.Apis.Gmail.v1 | 1.68.0 |
+## Tests
 
-### AI/ML Stack (Python)
-
-| Component | Technology |
-|-----------|-----------|
-| API Framework | FastAPI |
-| LLM Providers | OpenAI, Anthropic |
-| Vector Search | LangChain |
-| Web Server | Uvicorn |
-
-### Frontend
-
-| Component | Technology |
-|-----------|-----------|
-| View Engine | Razor (server-side) |
-| CSS Framework | Bootstrap 5 |
-| JavaScript | jQuery 3.x + Vanilla JS |
-| Icons | Font Awesome 6.7.2, Bootstrap Icons 1.11.0 |
-| Fonts | Katibeh (headings), Figtree (body) |
-| Real-time | SignalR JavaScript client |
-
-### Infrastructure
-
-| Component | Technology |
-|-----------|-----------|
-| Cloud | Azure (App Service, SQL, AI) |
-| CI/CD | GitHub Actions |
-| Containers | Docker + Docker Compose |
-| Version Control | Git |
-
----
-
-## Key Features
-
-### Multi-Tenancy & Organizations
-- 5 organization types: Client, LawFirm, EventPlanner, Government, NonProfit
-- Organization relationships (law firm-client, referral, co-counsel, consultant)
-- Join code invitation system
-- Per-organization settings and terminology customization
-
-### Security & Authorization
-- ASP.NET Core Identity with OAuth (Google, Microsoft)
-- Two-factor authentication (email-based)
-- 23 fine-grained permissions across 6 categories
-- 17 permission sets across 4 user types (Client, LawFirm, External, Certio)
-- Organization membership policy enforcement
-- IDOR protection on all endpoints
-- Comprehensive audit logging via EF Core interceptor
-
-### Real-time Communication
-- 4 SignalR hubs: Chat, Direct Messages, Notifications, Updates
-- Team channels with matter-scoped conversations
-- AI-powered chat with streaming responses
-- User presence tracking
-
-### AI Integration
-- Python FastAPI microservice with specialized agents
-- RAG (Retrieval-Augmented Generation) with document vector search
-- AI-generated matters and tasks with approval workflows
-- Agent actions system (propose, approve, execute, rollback)
-- AI usage tracking and cost analytics
-
----
-
-## Development
-
-### Running Tests
-```bash
+```
 dotnet test
 ```
 
-### Database Migrations
-```bash
-# Add a new migration
-dotnet ef migrations add MigrationName --project Certio.Web
+Python tests need a placeholder key so the app module can import:
 
-# Apply migrations
-dotnet ef database update --project Certio.Web
+```
+set OPENAI_API_KEY=sk-test-placeholder
+set AI_API_KEY=test-secret
+python -m pytest ai_agents/tests -q
 ```
 
-### Ports
+## Size
 
-| Service | Port |
-|---------|------|
-| .NET Web App | 5092 |
-| AI Agents (Python) | 8000 |
-| SQL Server (Docker) | 1433 |
-| Redis | 6379 |
+Counted from source, excluding `bin`, `obj`, `wwwroot/lib`, migrations, and virtualenvs:
 
----
+| | Lines | Files |
+|--|------:|------:|
+| C# | 66,081 | 265 |
+| Razor | 61,985 | 65 |
+| JavaScript | 17,655 | 16 |
+| CSS | 14,023 | 10 |
+| Python | 11,247 | 15 |
 
-## Deployment
+34 controllers, 4 SignalR hubs, 11 test classes. The view and script files are larger than they should be. That is called out in [docs/known-limitations.md](docs/known-limitations.md).
 
-The project uses GitHub Actions for CI/CD:
+## License
 
-- **Main App** (`production_notal-app.yml`): Builds on Windows, deploys to Azure Web App `Notal-app`
-- **AI Service** (`production_notal-ai.yml`): Builds on Ubuntu (Python 3.11), deploys to Azure Web App `notal-ai`
-
-Both workflows trigger on push to the `production` branch or manual dispatch.
-
----
-
-## Documentation
-
-Comprehensive documentation is available in the following files:
-
-| Document | Description |
-|----------|-------------|
-| `CERTIO_TECHNICAL_ARCHITECTURE_DOCUMENT.md` | Full technical architecture reference |
-| `WINDOWS_SETUP_GUIDE.md` | Windows development environment setup |
-| `SMART_DATABASE_GUIDE.md` | Database configuration (local vs Azure) |
-| `REDIS_SETUP.md` | Redis caching setup guide |
-| `TESTING_QUICK_START.md` | Testing quick start guide |
-| `PHASE_3_PERMISSION_SYSTEM_GUIDE.md` | Permission system reference |
-| `WOPI_IMPLEMENTATION_GUIDE.md` | WOPI/Office Online integration |
-| `ai_agents/LLM_TRAINING_GUIDE.md` | AI agent training guide |
-| `ai_agents/QUICK_START.md` | AI agents quick start |
-
----
-
-## Codebase Statistics
-
-| Metric | Count |
-|--------|-------|
-| Total Lines of Code (excl. migrations, libs) | ~159,000 |
-| C# Code Lines (excl. migrations) | ~58,500 |
-| Domain Entities | 62+ |
-| Controllers | 34 |
-| Razor Views | 57 |
-| Application Services | 50+ |
-| EF Core Migrations | 42 |
-| Unit Test Files | 17 |
-| SignalR Hubs | 4 |
-| API Endpoint Groups | 15+ |
-| Documentation Files | 190+ (.md) |
+Source is public so it can be read. It is not licensed for reuse. See [LICENSE](LICENSE).

@@ -222,7 +222,7 @@ class SimplifiedModelSelector:
         return hashlib.md5(json.dumps(key_data, sort_keys=True).encode()).hexdigest()
 
 class TaskComplexityAnalyzer:
-    """Enhanced task complexity analyzer for better model selection"""
+    """Task complexity analyzer for better model selection"""
     
     def analyze_task(self, prompt: str, context_length: int = 0, user_type: str = "Client", force_mini: bool = False) -> TaskComplexity:
         """Analyze task complexity with improved logic
@@ -234,7 +234,7 @@ class TaskComplexityAnalyzer:
             force_mini: If True, force complexity score < 0.5 to use gpt-4o-mini
         """
         
-        # Enhanced complexity indicators
+        # Complexity indicators
         complexity_indicators = {
             "reasoning_indicators": [
                 "analyze", "compare", "evaluate", "assess", "determine", "conclude",
@@ -269,7 +269,7 @@ class TaskComplexityAnalyzer:
         
         prompt_lower = prompt.lower()
         
-        # Calculate complexity score with enhanced logic
+        # Calculate complexity score with extra logic
         reasoning_count = sum(1 for indicator in complexity_indicators["reasoning_indicators"] 
                              if indicator in prompt_lower)
         creativity_count = sum(1 for indicator in complexity_indicators["creativity_indicators"] 

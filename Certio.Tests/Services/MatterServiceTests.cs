@@ -12,7 +12,7 @@ namespace Certio.Tests.Services
 {
     public class MatterServiceTests
     {
-        // TODO: Implement comprehensive tests for MatterService
+        // TODO: Implement full tests for MatterService
         // Test coverage needed:
         // - CreateMatterAsync (with/without permission)
         // - UpdateMatterAsync (with/without permission)

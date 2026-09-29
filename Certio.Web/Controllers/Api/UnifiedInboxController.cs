@@ -8,7 +8,7 @@ using Certio.Web.Services;
 namespace Certio.Web.Controllers.Api
 {
     /// <summary>
-    /// API controller for unified inbox (read-only in Phase 1).
+    /// API controller for unified inbox (read-only in.
     /// Aggregates communications from Email, DirectMessage, Chat, and external sources.
     /// </summary>
     [ApiController]

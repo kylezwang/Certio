@@ -707,7 +707,7 @@ class CertioTrainingPipeline:
         }
     
     def get_training_stats(self) -> Dict[str, Any]:
-        """Get comprehensive training statistics"""
+        """Get full training statistics"""
         stats = {
             "total_examples": len(self.training_examples),
             "examples_by_agent": Counter(ex.agent_type for ex in self.training_examples),

@@ -7,7 +7,7 @@ Write-Host "Checking for database files in repository..." -ForegroundColor Cyan
 $dbFiles = git ls-files | Select-String -Pattern '\.(db|db-shm|db-wal)$'
 
 if ($dbFiles) {
-    Write-Host "❌ ERROR: Database files found in git repository!" -ForegroundColor Red
+    Write-Host " ERROR: Database files found in git repository!" -ForegroundColor Red
     Write-Host "The following database files are tracked in git:" -ForegroundColor Red
     $dbFiles | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
     Write-Host ""
@@ -17,6 +17,6 @@ if ($dbFiles) {
     exit 1
 }
 
-Write-Host "✅ No database files found in repository" -ForegroundColor Green
+Write-Host " No database files found in repository" -ForegroundColor Green
 exit 0
 

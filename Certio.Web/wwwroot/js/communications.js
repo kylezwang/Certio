@@ -357,7 +357,7 @@ function appendMessage(message, animate = true, previousMessage = null) {
     }
     
     // Find the messages container - ONLY target the main chat area (Communications page)
-    // The Communications page uses .main-chat .messages-list, sidebar uses #commsMessagesList
+    // The Communications page uses.main-chat.messages-list, sidebar uses #commsMessagesList
     // We want to avoid appending to sidebar accidentally
     const messagesContainer = document.querySelector('.main-chat .messages-list');
     
@@ -680,7 +680,7 @@ function updateOnlineCount() {
     // Update the header count
     const teamTitle = document.querySelector('.team-title');
     if (teamTitle) {
-        teamTitle.textContent = `Direct Messages — ${onlineCount} Online`;
+        teamTitle.textContent = `Direct Messages - ${onlineCount} Online`;
     }
 }
 

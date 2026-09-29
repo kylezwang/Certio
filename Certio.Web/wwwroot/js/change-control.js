@@ -589,7 +589,7 @@
                     <div class="activity-text">${i.textHtml}</div>
                     ${i.time ? `<div class="activity-time">${escapeHtml(i.time)}</div>` : ``}
                     <div class="comment-actions">
-                        <button class="icon-btn" title="Like" data-react="like">👍</button>
+                        <button class="icon-btn" title="Like" data-react="like"><i class="fas fa-thumbs-up" aria-hidden="true"></i></button>
                         <button class="icon-btn activity-reply-btn" title="Reply" data-user-id="${i.userId || ''}" data-user-name="${escapeHtml(i.userName || '')}" data-user-email="${escapeHtml(i.email || '')}"><i class="fas fa-reply"></i></button>
                         <button class="icon-btn" title="More" data-action="more"><i class="fas fa-ellipsis-h"></i></button>
                     </div>
@@ -664,7 +664,7 @@
         recipientEmails = [];
     }
 
-    // Render summary (list view) — updates ALL instances of the change control card on the page
+    // Render summary (list view) - updates ALL instances of the change control card on the page
     function renderSummary(summary) {
         // Update all summary JSON holders
         document.querySelectorAll('.change-control-summary-json').forEach(el => {

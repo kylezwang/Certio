@@ -605,7 +605,7 @@ public sealed class ChangeNoticeService : IChangeNoticeService
             return new PublicChangeNoticeResponseResult
             {
                 Success = true,
-                Message = "Thanks — your clarification request was sent.",
+                Message = "Thanks - your clarification request was sent.",
                 ChangeNoticeId = notice.Id,
                 RecipientId = recipient.Id,
                 RecipientEmail = recipient.Email,
@@ -625,7 +625,7 @@ public sealed class ChangeNoticeService : IChangeNoticeService
                 Success = false,
                 Message = "We couldn't save your clarification note. Please try again later.",
                 ClarificationNoteSaved = false,
-                ClarificationNoteMessage = "Not sent — please try again."
+                ClarificationNoteMessage = "Not sent - please try again."
             };
         }
     }

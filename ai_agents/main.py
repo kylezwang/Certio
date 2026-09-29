@@ -47,10 +47,10 @@ try:
         enhanced_notal_rag,
         get_knowledge_stats
     )
-    logger.info("✅ Using Enhanced RAG System with onboarding knowledge and intent detection")
+    logger.info("Using the RAG system with onboarding knowledge and intent detection")
     RAG_SYSTEM = "enhanced"
 except ImportError as e:
-    logger.warning(f"Enhanced RAG system not available ({e}), trying standard RAG")
+    logger.warning(f"Primary RAG system not available ({e}), trying standard RAG")
     try:
         from certio_rag_system import enhance_agent_prompt, get_relevant_context, search_project_knowledge, notal_rag
         enhanced_notal_rag = notal_rag  # Alias for compatibility
@@ -69,7 +69,7 @@ except ImportError as e:
 # Import user data RAG system
 try:
     from user_data_rag_system import user_data_rag, get_user_data_context
-    logger.info("✅ User Data RAG System loaded successfully")
+    logger.info("User Data RAG System loaded successfully")
     USER_DATA_RAG_AVAILABLE = True
 except ImportError as e:
     logger.warning(f"User Data RAG system not available: {e}")
@@ -90,7 +90,7 @@ def create_openai_client():
     if azure_endpoint and azure_api_key:
         # Use Azure OpenAI
         from openai import AzureOpenAI
-        logger.info("🔵 Using Azure OpenAI")
+        logger.info("Using Azure OpenAI")
         return AzureOpenAI(
             azure_endpoint=azure_endpoint,
             api_key=azure_api_key,
@@ -99,7 +99,7 @@ def create_openai_client():
         )
     else:
         # Fallback to regular OpenAI
-        logger.info("🟢 Using regular OpenAI (Azure not configured)")
+        logger.info("Using regular OpenAI (Azure not configured)")
         return OpenAI(
             api_key=os.getenv("OPENAI_API_KEY"),
             max_retries=0
@@ -112,7 +112,7 @@ def create_openai_client_gpt5x():
     
     if azure_endpoint and azure_api_key:
         from openai import AzureOpenAI
-        logger.info("🔵 Secondary Azure OpenAI client created for GPT-5.1/5.2")
+        logger.info("Secondary Azure OpenAI client created for GPT-5.1/5.2")
         return AzureOpenAI(
             azure_endpoint=azure_endpoint,
             api_key=azure_api_key,
@@ -136,7 +136,7 @@ def get_client_for_model(model_name: str):
         
         # If the model matches GPT-5.1 or GPT-5.2 deployment, use secondary client
         if model_name and (model_name == gpt5_1_deployment or model_name == gpt5_2_deployment):
-            logger.info(f"🔄 Using secondary Azure client for model: {model_name}")
+            logger.info(f"Using secondary Azure client for model: {model_name}")
             return client_gpt5x
     
     return client
@@ -215,8 +215,8 @@ async def call_responses_api_streaming(
         "api-version": api_version
     }
     
-    logger.info(f"📡 Calling Responses API: {url} with model {model_name}")
-    logger.debug(f"📡 Responses API request body: {json.dumps(request_body, indent=2)}")
+    logger.info(f"Calling Responses API: {url} with model {model_name}")
+    logger.debug(f"Responses API request body: {json.dumps(request_body, indent=2)}")
     
     async with httpx.AsyncClient(timeout=300.0) as http_client:
         async with http_client.stream(
@@ -229,25 +229,25 @@ async def call_responses_api_streaming(
             if response.status_code != 200:
                 error_text = await response.aread()
                 error_msg = error_text.decode() if error_text else "Unknown error"
-                logger.error(f"❌ Responses API error {response.status_code}: {error_msg}")
+                logger.error(f"Responses API error {response.status_code}: {error_msg}")
                 raise Exception(f"Responses API error {response.status_code}: {error_msg}")
             
-            logger.info(f"✅ Responses API stream started (status: {response.status_code})")
+            logger.info(f"Responses API stream started (status: {response.status_code})")
             async for line in response.aiter_lines():
                 if line:
                     if line.startswith("data: "):
                         data_str = line[6:]  # Remove "data: " prefix
                         if data_str.strip() == "[DONE]":
-                            logger.info("✅ Responses API stream completed")
+                            logger.info("Responses API stream completed")
                             break
                         try:
                             event_data = json.loads(data_str)
                             yield event_data
                         except json.JSONDecodeError as e:
-                            logger.warning(f"⚠️ Failed to parse Responses API chunk: {line[:100]}... Error: {e}")
+                            logger.warning(f"Failed to parse Responses API chunk: {line[:100]}... Error: {e}")
                             continue
                     elif line.strip():  # Non-empty line that's not SSE format
-                        logger.debug(f"📨 Responses API raw line: {line[:100]}")
+                        logger.debug(f"Responses API raw line: {line[:100]}")
 
 async def call_chat_completions_api_streaming(
     messages: List[Dict[str, str]],
@@ -283,7 +283,7 @@ async def call_chat_completions_api_streaming(
     }
     params = {"api-version": api_version}
 
-    logger.info(f"📡 Calling Chat Completions (raw): {url} (api-version={api_version})")
+    logger.info(f"Calling Chat Completions (raw): {url} (api-version={api_version})")
 
     async with httpx.AsyncClient(timeout=300.0) as http_client:
         async with http_client.stream(
@@ -296,7 +296,7 @@ async def call_chat_completions_api_streaming(
             if response.status_code != 200:
                 error_text = await response.aread()
                 error_msg = error_text.decode() if error_text else "Unknown error"
-                logger.error(f"❌ Chat Completions API error {response.status_code}: {error_msg}")
+                logger.error(f"Chat Completions API error {response.status_code}: {error_msg}")
                 raise Exception(f"Chat Completions API error {response.status_code}: {error_msg}")
 
             async for line in response.aiter_lines():
@@ -310,7 +310,7 @@ async def call_chat_completions_api_streaming(
                         event_data = json.loads(data_str)
                         yield event_data
                     except json.JSONDecodeError as e:
-                        logger.warning(f"⚠️ Failed to parse Chat Completions chunk: {line[:120]}... Error: {e}")
+                        logger.warning(f"Failed to parse Chat Completions chunk: {line[:120]}... Error: {e}")
                         continue
 
 async def call_responses_api(
@@ -372,7 +372,7 @@ async def call_responses_api(
         "api-version": api_version
     }
     
-    logger.info(f"📡 Calling Responses API (non-streaming): {url} with model {model_name}")
+    logger.info(f"Calling Responses API (non-streaming): {url} with model {model_name}")
     
     async with httpx.AsyncClient(timeout=300.0) as http_client:
         response = await http_client.post(url, headers=headers, params=params, json=request_body)
@@ -662,7 +662,7 @@ def prepare_vision_message(text: str, image_urls: List[str]) -> List[Dict[str, A
     
     return content
 
-# Enhanced AI Agent Classes with Agentic Capabilities
+# AI agent classes
 class BaseAgent:
     """Base class for all AI agents with common functionality"""
     
@@ -696,7 +696,7 @@ class BaseAgent:
         return messages
     
     async def _call_openai(self, prompt: str, model: str = "gpt-3.5-turbo", max_tokens: int = 1000, temperature: float = 0.3, user_type: str = "Client", image_urls: Optional[List[str]] = None) -> str:
-        """Enhanced OpenAI API call with intelligent model selection, cost optimization, and vision support"""
+        """OpenAI API call with intelligent model selection, cost optimization, and vision support"""
         # If images are provided, use vision model
         if image_urls:
             return await self._call_openai_vision(prompt, image_urls, max_tokens, temperature)
@@ -830,7 +830,7 @@ class ChatSummarizer(BaseAgent):
         self.analysis_depth = "comprehensive"
     
     async def process(self, messages) -> ConversationSummary:
-        """Enhanced conversation summarization with deeper analysis"""
+        """Conversation summarization with deeper analysis"""
         messages = self._convert_messages(messages)
         
         if not messages:
@@ -851,7 +851,7 @@ class ChatSummarizer(BaseAgent):
         rag_context = get_relevant_context("ChatSummarizer", conversation_text, conversation_context)
         
         base_prompt = f"""
-        As an expert conversation analyst for the Notal event planning platform, provide a comprehensive analysis of this event planning conversation:
+        As an expert conversation analyst for the Notal event planning platform, provide a full analysis of this event planning conversation:
         
         Conversation Context:
         - Total messages: {len(messages)}
@@ -979,7 +979,7 @@ class ClientGoalExtractor(BaseAgent):
         ]
     
     async def process(self, messages) -> ClientGoal:
-        """Enhanced client goal extraction with business intelligence"""
+        """Client goal extraction with business intelligence"""
         messages = self._convert_messages(messages)
         
         if not messages:
@@ -1153,7 +1153,7 @@ class ReplySuggester(BaseAgent):
         }
     
     async def process(self, messages, user_type: str) -> ReplySuggestion:
-        """Enhanced reply suggestion with context-aware intelligence"""
+        """Reply suggestion with context-aware intelligence"""
         messages = self._convert_messages(messages)
         
         if not messages:
@@ -1342,7 +1342,7 @@ class ClarityAgent(BaseAgent):
         }
     
     async def process(self, text: str, user_type: str) -> ClarityExplanation:
-        """Enhanced contract and vendor language explanation with user-specific context"""
+        """Contract and vendor language explanation with user-specific context"""
         if not text or not text.strip():
             return ClarityExplanation(
                 original_text=text,
@@ -1520,7 +1520,7 @@ class ClarityAgent(BaseAgent):
 
 # Agent Orchestration System
 class AgentOrchestrator:
-    """Orchestrates multiple AI agents for comprehensive conversation analysis"""
+    """Orchestrates multiple AI agents for full conversation analysis"""
     
     def __init__(self):
         self.agents = {
@@ -1649,7 +1649,7 @@ async def health_check():
 
 @app.get("/analytics/usage")
 async def get_usage_analytics(_: str = Depends(authenticate_request)):
-    """Get comprehensive usage analytics for cost optimization"""
+    """Get full usage analytics for cost optimization"""
     try:
         analytics = usage_tracker.get_usage_analytics()
         return {
@@ -2016,9 +2016,7 @@ async def add_custom_knowledge(request: dict, _: str = Depends(authenticate_requ
         logger.error(f"Error adding custom knowledge: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# ============================================
 # USER DATA RAG ENDPOINTS
-# ============================================
 
 @app.post("/data-context/sync")
 async def sync_user_data_context(payload: dict, _: str = Depends(authenticate_request)):
@@ -2168,7 +2166,7 @@ async def get_training_recommendations_endpoint(_: str = Depends(authenticate_re
 
 @app.get("/training/stats")
 async def get_training_stats_endpoint(_: str = Depends(authenticate_request)):
-    """Get comprehensive training statistics"""
+    """Get full training statistics"""
     try:
         from certio_training_pipeline import certio_training
         stats = certio_training.get_training_stats()
@@ -2198,7 +2196,7 @@ async def should_retrain_agent_endpoint(agent_type: str, _: str = Depends(authen
 
 @app.get("/analytics/optimization-summary")
 async def get_optimization_summary(_: str = Depends(authenticate_request)):
-    """Get comprehensive optimization summary"""
+    """Get full optimization summary"""
     try:
         # Get all analytics
         usage_analytics = usage_tracker.get_usage_analytics()
@@ -2398,9 +2396,9 @@ CRITICAL RULES:
 - Be friendly but don't waste words on repeated greetings
 Format your response as proper HTML with <p> tags."""
             
-            # ⚡ SKIP RAG for simple greetings - major performance improvement
+            # SKIP RAG for simple greetings - major performance improvement
             system_prompt = base_simple_prompt
-            logger.info("⚡ RAG SKIPPED for simple greeting (non-streaming)")
+            logger.info("RAG SKIPPED for simple greeting (non-streaming)")
             
             # For simple messages, include recent history (last 3-5 messages) so AI knows if this is a follow-up
             history_messages = []
@@ -2417,7 +2415,7 @@ Format your response as proper HTML with <p> tags."""
             max_tokens = 200
             temperature = 0.3
         else:
-            # Comprehensive response with integrated analysis for complex queries
+            # Full response with integrated analysis for complex queries
             # Check if this is an onboarding/getting started query - needs more tokens
             user_message_lower = user_message.lower()
             is_onboarding_query = any(phrase in user_message_lower for phrase in [
@@ -2484,7 +2482,7 @@ ASK MODE (IMPORTANT):
 - Provide guidance/information only.
 """
             
-            base_system_prompt = f"""You are Notal AI, an advanced assistant for event planners and vendors. Provide a comprehensive response that includes both conversation and analysis.{agent_mode_section}
+            base_system_prompt = f"""You are Notal AI, an advanced assistant for event planners and vendors. Provide a full response that includes both conversation and analysis.{agent_mode_section}
 
 CONVERSATION CONTEXT:
 - User Type: {user_type}
@@ -2500,9 +2498,7 @@ NOTE: You will receive the full conversation history as separate messages. Pay a
 
 {doc_context_section if doc_context_section else ''}"""
 
-            # ====================================================================
             # DYNAMIC RAG ACTIVATION - Only trigger when necessary (performance)
-            # ====================================================================
             conversation_context_payload = {
                 "user_type": user_type,
                 "message_count": len(messages),
@@ -2517,22 +2513,22 @@ NOTE: You will receive the full conversation history as separate messages. Pay a
             
             # PRODUCT RAG: Only for Notal feature/help questions
             if rag_intent["needs_product_rag"]:
-                logger.info(f"🔍 PRODUCT RAG: Activating (reason: {rag_intent['reason']})")
+                logger.info(f"PRODUCT RAG: Activating (reason: {rag_intent['reason']})")
                 if RAG_SYSTEM == "enhanced":
                     enhanced_prompt = enhance_agent_prompt("ConversationalAI", base_system_prompt, user_message, 
                                                           user_type=user_type, conversation_context=conversation_context_payload)
                 else:
                     enhanced_prompt = enhance_agent_prompt("ConversationalAI", base_system_prompt, user_message, conversation_context_payload)
-                logger.info(f"✅ Product RAG completed")
+                logger.info(f"Product RAG completed")
             else:
-                logger.info(f"⚡ PRODUCT RAG SKIPPED: {rag_intent['reason']}")
+                logger.info(f"PRODUCT RAG SKIPPED: {rag_intent['reason']}")
 
             # USER DATA RAG: Only for queries about user's own data
             user_id = payload.get("user_id")
             organization_id = payload.get("organization_id")
             
             if rag_intent["needs_user_data_rag"] and USER_DATA_RAG_AVAILABLE and user_id and organization_id:
-                logger.info(f"🔍 USER DATA RAG: Activating (modules: {rag_intent['user_data_modules']})")
+                logger.info(f"USER DATA RAG: Activating (modules: {rag_intent['user_data_modules']})")
                 try:
                     # Use module filter for targeted, faster retrieval
                     user_data_context = await get_user_data_context(
@@ -2543,19 +2539,19 @@ NOTE: You will receive the full conversation history as separate messages. Pay a
                     )
                     if user_data_context and len(user_data_context) > 50:
                         enhanced_prompt = enhanced_prompt + f"\n\n{user_data_context}"
-                        logger.info(f"✅ User Data RAG completed ({len(user_data_context)} chars)")
+                        logger.info(f"User Data RAG completed ({len(user_data_context)} chars)")
                     else:
-                        logger.info("ℹ️ User Data RAG returned no relevant results")
+                        logger.info("ℹ User Data RAG returned no relevant results")
                 except Exception as e:
                     logger.warning(f"User Data RAG failed: {e}")
             else:
                 if not rag_intent["needs_user_data_rag"]:
-                    logger.info(f"⚡ USER DATA RAG SKIPPED: {rag_intent['reason']}")
+                    logger.info(f"USER DATA RAG SKIPPED: {rag_intent['reason']}")
             
-            # Add the response requirements to the enhanced prompt
+            # Add the response requirements to the extra prompt
             system_prompt = enhanced_prompt + f"""
 
-🚨 CRITICAL ANTI-HALLUCINATION RULES:
+ CRITICAL ANTI-HALLUCINATION RULES:
 1. If you received "USER'S ACTUAL DATA" context above, you MUST use ONLY that exact data
 2. DO NOT invent or make up information about events, event types, dates, or team members
 3. If a field says "Not specified" or is missing, acknowledge it - don't fill it in
@@ -2563,7 +2559,7 @@ NOTE: You will receive the full conversation history as separate messages. Pay a
 5. Do NOT start responses with "Hello [Name]," - only greet in the first message of a conversation
 6. Pay attention to pronouns like "that event", "this task" - they refer to the previous message
 
-📄 DOCUMENT & CITATION RULES:
+ DOCUMENT & CITATION RULES:
 1. If you FOUND the requested document/section in the data above, CITE IT DIRECTLY - do NOT say "I cannot access" or "I'm unable to access"
 2. When asked to "cite" something, extract and present the EXACT text from the document
 3. Always specify which document you're citing from (e.g., "From EECS 170LA Post-Lab 7:")
@@ -2571,7 +2567,7 @@ NOTE: You will receive the full conversation history as separate messages. Pay a
 5. ONLY say "I don't have that document" if the document literally does not appear in the data above
 6. When you have the content, be CONFIDENT - present it directly without hedging
 
-🎯 TEMPORAL & CONTEXTUAL UNDERSTANDING:
+ TEMPORAL & CONTEXTUAL UNDERSTANDING:
 1. When user says "most recent", "recent", "latest", "last" - LOOK AT THE DATA and find the actual most recent items by date
 2. When user asks to "analyze" something specific - READ THE ACTUAL CONTENT and provide SPECIFIC analysis, NOT generic instructions
 3. When user says "tell me about X" - EXTRACT AND PRESENT the actual data about X, don't explain how they could look it up
@@ -2740,7 +2736,7 @@ async def conversational_response_stream(payload: dict, _: str = Depends(authent
                 if not USER_DATA_RAG_AVAILABLE or not user_id or not organization_id:
                     return ""
                 try:
-                    logger.info(f"🔍 Fetching user data context (stream) for User {user_id} Org {organization_id}")
+                    logger.info(f"Fetching user data context (stream) for User {user_id} Org {organization_id}")
                     context_text = await get_user_data_context(
                         user_id,
                         organization_id,
@@ -2749,9 +2745,9 @@ async def conversational_response_stream(payload: dict, _: str = Depends(authent
                         top_k=8
                     )
                     if context_text and len(context_text) > 50:
-                        logger.info(f"✅ Added streaming user data context ({len(context_text)} chars)")
+                        logger.info(f"Added streaming user data context ({len(context_text)} chars)")
                         return f"\n\n{context_text}"
-                    logger.info("ℹ️ No streaming user data context available")
+                    logger.info("ℹ No streaming user data context available")
                 except Exception as exc:
                     logger.warning(f"Streaming user data context unavailable: {exc}")
                 return ""
@@ -2810,9 +2806,9 @@ CRITICAL RULES:
 - Be friendly but don't waste words on repeated greetings
 IMPORTANT: Return ONLY the HTML content with <p> tags and <br> for line breaks. Do NOT wrap your response in ```html code blocks or any other markdown formatting. Return the raw HTML directly."""
                 
-                # ⚡ SKIP RAG for simple greetings - major performance improvement
+                # SKIP RAG for simple greetings - major performance improvement
                 system_prompt = base_simple_prompt
-                logger.info("⚡ RAG SKIPPED for simple greeting (streaming)")
+                logger.info("RAG SKIPPED for simple greeting (streaming)")
                 
                 # Use GPT-4o-mini for simple responses (unless tier forces different model)
                 if force_model_type:
@@ -2822,7 +2818,7 @@ IMPORTANT: Return ONLY the HTML content with <p> tags and <br> for line breaks. 
                 max_tokens = 200
                 temperature = 0.3
             else:
-                # Comprehensive response with integrated analysis for complex queries
+                # Full response with integrated analysis for complex queries
                 # Check if this is an onboarding/getting started query - needs more tokens
                 user_message_lower = user_message.lower()
                 is_onboarding_query = any(phrase in user_message_lower for phrase in [
@@ -2888,7 +2884,7 @@ ASK MODE (IMPORTANT):
 - Provide guidance/information only.
 """
 
-                base_system_prompt = f"""You are Notal AI, an advanced assistant for event planners and vendors. Provide a comprehensive, helpful response.{agent_mode_section}
+                base_system_prompt = f"""You are Notal AI, an advanced assistant for event planners and vendors. Provide a full, helpful response.{agent_mode_section}
 
 CONVERSATION CONTEXT:
 - User Type: {user_type}
@@ -2902,9 +2898,7 @@ OPTIMIZED CONVERSATION HISTORY ({context_metadata.get('history_strategy', 'full'
 
 CURRENT REQUEST: {user_message}{doc_context_section}"""
 
-                # ====================================================================
                 # DYNAMIC RAG ACTIVATION - Only trigger when necessary (performance)
-                # ====================================================================
                 conversation_context_payload = {
                     "user_type": user_type,
                     "message_count": len(messages),
@@ -2919,19 +2913,19 @@ CURRENT REQUEST: {user_message}{doc_context_section}"""
                 
                 # PRODUCT RAG: Only for Notal feature/help questions
                 if rag_intent["needs_product_rag"]:
-                    logger.info(f"🔍 PRODUCT RAG: Activating for streaming (reason: {rag_intent['reason']})")
+                    logger.info(f"PRODUCT RAG: Activating for streaming (reason: {rag_intent['reason']})")
                     if RAG_SYSTEM == "enhanced":
                         enhanced_prompt = enhance_agent_prompt("ConversationalAI", base_system_prompt, user_message, 
                                                               user_type=user_type, conversation_context=conversation_context_payload)
                     else:
                         enhanced_prompt = enhance_agent_prompt("ConversationalAI", base_system_prompt, user_message, conversation_context_payload)
-                    logger.info(f"✅ Product RAG completed for streaming")
+                    logger.info(f"Product RAG completed for streaming")
                 else:
-                    logger.info(f"⚡ PRODUCT RAG SKIPPED (streaming): {rag_intent['reason']}")
+                    logger.info(f"PRODUCT RAG SKIPPED (streaming): {rag_intent['reason']}")
 
                 # USER DATA RAG: Only for queries about user's own data
                 if rag_intent["needs_user_data_rag"] and USER_DATA_RAG_AVAILABLE and user_id and organization_id:
-                    logger.info(f"🔍 USER DATA RAG: Activating (modules: {rag_intent['user_data_modules']})")
+                    logger.info(f"USER DATA RAG: Activating (modules: {rag_intent['user_data_modules']})")
                     try:
                         # Use module filter for targeted, faster retrieval
                         user_data_context = await get_user_data_context(
@@ -2942,19 +2936,19 @@ CURRENT REQUEST: {user_message}{doc_context_section}"""
                         )
                         if user_data_context and len(user_data_context) > 50:
                             enhanced_prompt = enhanced_prompt + f"\n\n{user_data_context}"
-                            logger.info(f"✅ User Data RAG completed ({len(user_data_context)} chars)")
+                            logger.info(f"User Data RAG completed ({len(user_data_context)} chars)")
                         else:
-                            logger.info("ℹ️ User Data RAG returned no relevant results")
+                            logger.info("ℹ User Data RAG returned no relevant results")
                     except Exception as e:
                         logger.warning(f"User Data RAG failed: {e}")
                 else:
                     if not rag_intent["needs_user_data_rag"]:
-                        logger.info(f"⚡ USER DATA RAG SKIPPED (streaming): {rag_intent['reason']}")
+                        logger.info(f"USER DATA RAG SKIPPED (streaming): {rag_intent['reason']}")
                 
-                # Add the response requirements to the enhanced prompt
+                # Add the response requirements to the extra prompt
                 system_prompt = enhanced_prompt + """
 
-🚨 CRITICAL ANTI-HALLUCINATION RULES:
+ CRITICAL ANTI-HALLUCINATION RULES:
 1. If you received "USER'S ACTUAL DATA" context above, you MUST use ONLY that exact data
 2. DO NOT invent or make up information about events, event types, dates, or team members  
 3. If a field says "Not specified" or is missing, acknowledge it - don't fill it in
@@ -2962,7 +2956,7 @@ CURRENT REQUEST: {user_message}{doc_context_section}"""
 5. Do NOT start responses with "Hello [Name]," - only greet in the first message of a conversation
 6. Pay attention to pronouns like "that event", "this task" - they refer to the previous message
 
-📄 DOCUMENT & CITATION RULES:
+ DOCUMENT & CITATION RULES:
 1. If you FOUND the requested document/section in the data above, CITE IT DIRECTLY - do NOT say "I cannot access" or "I'm unable to access"
 2. When asked to "cite" something, extract and present the EXACT text from the document
 3. Always specify which document you're citing from (e.g., "From EECS 170LA Post-Lab 7:")
@@ -2970,7 +2964,7 @@ CURRENT REQUEST: {user_message}{doc_context_section}"""
 5. ONLY say "I don't have that document" if the document literally does not appear in the data above
 6. When you have the content, be CONFIDENT - present it directly without hedging
 
-🎯 TEMPORAL & CONTEXTUAL UNDERSTANDING:
+ TEMPORAL & CONTEXTUAL UNDERSTANDING:
 1. When user says "most recent", "recent", "latest", "last" - LOOK AT THE DATA and find the actual most recent items by date
 2. When user asks to "analyze" something specific - READ THE ACTUAL CONTENT and provide SPECIFIC analysis, NOT generic instructions
 3. When user says "tell me about X" - EXTRACT AND PRESENT the actual data about X, don't explain how they could look it up
@@ -3050,7 +3044,7 @@ Respond as an intelligent assistant:"""
             
             # Check if we need to use Responses API (GPT-5.1/5.2)
             if uses_responses:
-                logger.info(f"📡 Using Responses API for model: {selected_model}")
+                logger.info(f"Using Responses API for model: {selected_model}")
                 # Prepare messages for Responses API (includes system prompt)
                 api_messages = [
                     {"role": "system", "content": system_prompt}
@@ -3075,7 +3069,7 @@ Respond as an intelligent assistant:"""
                 if user_message and user_message.strip():
                     api_messages.append({"role": "user", "content": user_message})
                 
-                logger.info(f"📡 Responses API message count: {len(api_messages)}")
+                logger.info(f"Responses API message count: {len(api_messages)}")
                 
                 # Stream from Responses API
                 stream_response = call_responses_api_streaming(
@@ -3151,21 +3145,21 @@ Respond as an intelligent assistant:"""
             if uses_responses:
                 # Handle Responses API streaming (async generator)
                 async for event_data in stream_response:
-                    logger.debug(f"📨 Responses API event: {json.dumps(event_data)[:200]}")
+                    logger.debug(f"Responses API event: {json.dumps(event_data)[:200]}")
                     
                     # Check for completion signals first
                     if event_data.get("done") or event_data.get("finish_reason"):
                         break
                     
                     # Azure Responses API sends different event types:
-                    #   - "response.output_text.delta" → incremental text (the NEW chunk)
-                    #   - "response.output_text.done"  → contains the FULL completed text (NOT a delta!)
-                    #   - "response.output_item.done"  → output item completed
-                    #   - "response.completed"          → entire response completed with full output
+                    # - "response.output_text.delta" → incremental text (the NEW chunk)
+                    # - "response.output_text.done" → contains the FULL completed text (NOT a delta!)
+                    # - "response.output_item.done" → output item completed
+                    # - "response.completed" → entire response completed with full output
                     # We MUST skip "done"/"completed" events to avoid re-sending the full text.
                     event_type = event_data.get("type", "")
                     if event_type and (".done" in event_type or ".completed" in event_type):
-                        logger.debug(f"⏭️ Skipping non-delta event type: {event_type}")
+                        logger.debug(f"Skipping non-delta event type: {event_type}")
                         continue
                     
                     # Azure Responses API can return content in various formats
@@ -3181,7 +3175,7 @@ Respond as an intelligent assistant:"""
                     # Format 2: Direct content field
                     elif "content" in event_data and event_data["content"]:
                         content = event_data["content"]
-                    # Format 3: Text field (only from delta events — done events are filtered above)
+                    # Format 3: Text field (only from delta events - done events are filtered above)
                     elif "text" in event_data and event_data["text"]:
                         content = event_data["text"]
                     # Format 4: Choices array (like Chat Completions)
@@ -3246,7 +3240,7 @@ Respond as an intelligent assistant:"""
                 # If we got 0 chars, do a single non-streaming call as a fallback so the UI doesn't hang.
                 if not full_content.strip():
                     logger.warning(
-                        f"⚠️ Chat Completions stream produced 0 chars for model '{selected_model}'. "
+                        f" Chat Completions stream produced 0 chars for model '{selected_model}'. "
                         f"Falling back to non-streaming call."
                     )
 
@@ -3269,7 +3263,7 @@ Respond as an intelligent assistant:"""
                         if getattr(fallback_resp, "choices", None) and len(fallback_resp.choices) > 0:
                             choice0 = fallback_resp.choices[0]
                             finish_reason = getattr(choice0, "finish_reason", None)
-                            logger.warning(f"⚠️ GPT fallback finish_reason for '{selected_model}': {finish_reason}")
+                            logger.warning(f"GPT fallback finish_reason for '{selected_model}': {finish_reason}")
 
                             msg = getattr(choice0, "message", None)
                             if msg is not None:
@@ -3293,9 +3287,9 @@ Respond as an intelligent assistant:"""
                                 tool_calls = getattr(msg, "tool_calls", None)
                                 refusal = getattr(msg, "refusal", None)
                                 if tool_calls:
-                                    logger.warning(f"⚠️ GPT fallback returned tool_calls for '{selected_model}' (no text).")
+                                    logger.warning(f"GPT fallback returned tool_calls for '{selected_model}' (no text).")
                                 if refusal:
-                                    logger.warning(f"⚠️ GPT fallback returned refusal for '{selected_model}': {refusal}")
+                                    logger.warning(f"GPT fallback returned refusal for '{selected_model}': {refusal}")
 
                             if (not fallback_content) and hasattr(choice0, "text"):
                                 fallback_content = getattr(choice0, "text", None)
@@ -3305,22 +3299,22 @@ Respond as an intelligent assistant:"""
                             yield f"data: {json.dumps({'content': fallback_content, 'done': False})}\n\n"
                         else:
                             logger.error(
-                                f"❌ Fallback non-streaming call returned no content for model '{selected_model}'."
+                                f" Fallback non-streaming call returned no content for model '{selected_model}'."
                             )
                     except Exception as fallback_err:
                         logger.error(
-                            f"❌ GPT fallback failed for model '{selected_model}': {fallback_err}"
+                            f" GPT fallback failed for model '{selected_model}': {fallback_err}"
                         )
             
             # For complex messages, extract only the response part
-            logger.info(f"✅ Streaming complete - {len(full_content)} chars generated")
+            logger.info(f"Streaming complete - {len(full_content)} chars generated")
             if not is_simple_message and "<response>" in full_content and "</response>" in full_content:
                 # We've already streamed it, just signal completion
-                logger.info("📤 Sending done signal (complex response)")
+                logger.info("Sending done signal (complex response)")
                 yield f"data: {json.dumps({'content': '', 'done': True})}\n\n"
             else:
                 # Signal completion
-                logger.info("📤 Sending done signal")
+                logger.info("Sending done signal")
                 yield f"data: {json.dumps({'content': '', 'done': True})}\n\n"
                 
         except Exception as e:
@@ -3412,7 +3406,7 @@ def _is_simple_message(user_message: str, conversation_analysis: dict) -> bool:
     if not message_lower:
         return True
     
-    # NEVER treat "get started" queries as simple - they need comprehensive guidance
+    # NEVER treat "get started" queries as simple - they need full guidance
     getting_started_phrases = [
         "get started", "getting started", "let's get started", "lets get started",
         "how do i get started", "how to get started", "how can i get started",
@@ -3464,9 +3458,7 @@ def _is_simple_message(user_message: str, conversation_analysis: dict) -> bool:
     return False
 
 
-# =============================================================================
 # RAG INTENT DETECTION - Dynamic activation for performance optimization
-# =============================================================================
 
 def _detect_rag_intent(query: str, conversation_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
@@ -3494,12 +3486,10 @@ def _detect_rag_intent(query: str, conversation_context: Optional[Dict[str, Any]
     ]
     if query_lower in simple_patterns or len(query_lower) <= 3:
         result["reason"] = "simple_greeting"
-        logger.info(f"⚡ RAG SKIPPED: Simple greeting/acknowledgement")
+        logger.info(f"RAG SKIPPED: Simple greeting/acknowledgement")
         return result
     
-    # ==========================================================================
     # PRODUCT RAG: Detect queries about Notal features, help, how-to
-    # ==========================================================================
     product_rag_triggers = [
         # Onboarding / Getting started
         "get started", "getting started", "new to notal", "new user", "first time",
@@ -3531,11 +3521,9 @@ def _detect_rag_intent(query: str, conversation_context: Optional[Dict[str, Any]
             # Increase chunks for onboarding queries
             if any(p in query_lower for p in ["get started", "getting started", "new to notal"]):
                 result["top_k"] = 10
-            logger.info(f"🔍 PRODUCT RAG ACTIVATED: Feature/help query detected")
+            logger.info(f"PRODUCT RAG ACTIVATED: Feature/help query detected")
     
-    # ==========================================================================
     # USER DATA RAG: Detect queries about user's own data
-    # ==========================================================================
     
     # Explicit user data queries (possession words)
     user_data_triggers = [
@@ -3576,15 +3564,13 @@ def _detect_rag_intent(query: str, conversation_context: Optional[Dict[str, Any]
         
         if detected_modules:
             result["user_data_modules"] = detected_modules
-            logger.info(f"🔍 USER DATA RAG ACTIVATED: Modules={detected_modules}")
+            logger.info(f"USER DATA RAG ACTIVATED: Modules={detected_modules}")
         else:
             # General user data query - search all modules but limit results
             result["top_k"] = 8
-            logger.info(f"🔍 USER DATA RAG ACTIVATED: All modules (general query)")
+            logger.info(f"USER DATA RAG ACTIVATED: All modules (general query)")
     
-    # ==========================================================================
     # BOTH RAG: Some queries need both (e.g., "how do I create my first event")
-    # ==========================================================================
     both_triggers = [
         "create", "add", "new", "set up", "configure", "organize"
     ]
@@ -3595,7 +3581,7 @@ def _detect_rag_intent(query: str, conversation_context: Optional[Dict[str, Any]
             result["needs_user_data_rag"] = True
         result["needs_product_rag"] = True
         result["reason"] = "action_query"
-        logger.info(f"🔍 BOTH RAG ACTIVATED: Action query detected")
+        logger.info(f"BOTH RAG ACTIVATED: Action query detected")
 
         # If the user is requesting an action like creating a task, ensure we include event context
         # so the agent can resolve required IDs like matterId.
@@ -3606,9 +3592,7 @@ def _detect_rag_intent(query: str, conversation_context: Optional[Dict[str, Any]
             result["user_data_modules"] = list(modules)
             result["top_k"] = max(result.get("top_k", 5), 8)
     
-    # ==========================================================================
     # CONTEXT-BASED ACTIVATION: Use conversation context
-    # ==========================================================================
     if conversation_context:
         # If conversation has legal topics, enable user data RAG
         legal_topics = conversation_context.get("legal_topics", [])
@@ -3619,7 +3603,7 @@ def _detect_rag_intent(query: str, conversation_context: Optional[Dict[str, Any]
     
     # Log final decision
     if not result["needs_product_rag"] and not result["needs_user_data_rag"]:
-        logger.info(f"⚡ RAG SKIPPED: No RAG triggers detected for query")
+        logger.info(f"RAG SKIPPED: No RAG triggers detected for query")
     
     return result
 

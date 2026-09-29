@@ -72,8 +72,8 @@
             {
                 foreach (var invoice in Model)
                 {
-                    var clientName = invoice.Client?.Name ?? "—";
-                    var matterTitle = invoice.Matter?.Title ?? "—";
+                    var clientName = invoice.Client?.Name ?? "-";
+                    var matterTitle = invoice.Matter?.Title ?? "-";
                     var isOverdue = invoice.Status != Certio.Domain.Billing.InvoiceStatus.Paid &&
                                     invoice.Status != Certio.Domain.Billing.InvoiceStatus.Cancelled &&
                                     invoice.DueDate < DateTime.UtcNow.Date;

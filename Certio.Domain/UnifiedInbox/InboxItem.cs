@@ -7,7 +7,7 @@ namespace Certio.Domain.UnifiedInbox
 {
     /// <summary>
     /// Represents a unified inbox item aggregating communications from various sources.
-    /// Phase 1: Read-only ingestion and display. Phase 2: Sending capabilities.
+    ///
     /// </summary>
     public class InboxItem
     {

@@ -74,7 +74,7 @@
     <div class="container @(success ? "success" : "error")">
         @if (success)
         {
-            <div class="icon">✓</div>
+            <div class="icon"></div>
             <h1>Integration Connected</h1>
             <p>Your @provider connection is ready for unified document processing.</p>
             @if (!string.IsNullOrWhiteSpace(connectedAccount))
@@ -87,7 +87,7 @@
         }
         else
         {
-            <div class="icon">✗</div>
+            <div class="icon"></div>
             <h1>Connection Failed</h1>
             <p>We couldn't connect @provider.</p>
             @if (!string.IsNullOrWhiteSpace(errorDescription))

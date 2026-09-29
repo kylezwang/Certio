@@ -373,7 +373,7 @@
                                                       data-date-only="@(showDateOnly ? "1" : "0")"
                                                       title="Click to edit dates">
                                                     <i class="fa-solid fa-calendar-day"></i>
-                                                    <span class="task-card-schedule-text">—</span>
+                                                    <span class="task-card-schedule-text">-</span>
                                                     <div class="task-card-schedule-subtext text-muted" style="font-size: 0.65em; font-weight: 500; line-height: 1; margin-left: 1.05rem; display: none;">All day</div>
                                                 </span>
                                             </div>
@@ -528,7 +528,7 @@
                                                       data-date-only="@(showDateOnly ? "1" : "0")"
                                                       title="Click to edit dates">
                                                     <i class="fa-solid fa-calendar-day"></i>
-                                                    <span class="task-card-schedule-text">—</span>
+                                                    <span class="task-card-schedule-text">-</span>
                                                     <div class="task-card-schedule-subtext text-muted" style="font-size: 0.65em; font-weight: 500; line-height: 1; margin-left: 1.05rem; display: none;">All day</div>
                                                 </span>
                                             </div>
@@ -683,7 +683,7 @@
                                                       data-date-only="@(showDateOnly ? "1" : "0")"
                                                       title="Click to edit dates">
                                                     <i class="fa-solid fa-calendar-day"></i>
-                                                    <span class="task-card-schedule-text">—</span>
+                                                    <span class="task-card-schedule-text">-</span>
                                                     <div class="task-card-schedule-subtext text-muted" style="font-size: 0.65em; font-weight: 500; line-height: 1; margin-left: 1.05rem; display: none;">All day</div>
                                                 </span>
                                             </div>
@@ -838,7 +838,7 @@
                                                       data-date-only="@(showDateOnly ? "1" : "0")"
                                                       title="Click to edit dates">
                                                     <i class="fa-solid fa-calendar-day"></i>
-                                                    <span class="task-card-schedule-text">—</span>
+                                                    <span class="task-card-schedule-text">-</span>
                                                     <div class="task-card-schedule-subtext text-muted" style="font-size: 0.65em; font-weight: 500; line-height: 1; margin-left: 1.05rem; display: none;">All day</div>
                                                 </span>
                                             </div>
@@ -4607,7 +4607,7 @@
 
             // 1) No start set (and no end either)
             if (!validStart && !validEnd) {
-                return { main: '—', sub: '' };
+                return { main: '-', sub: '' };
             }
 
             // 2) Date only (deadline / all-day)
@@ -4644,7 +4644,7 @@
                 return { main: `${dateFmt.format(end)} \u2022 ${formatTime(end)}`, sub: '' };
             }
 
-            return { main: '—', sub: '' };
+            return { main: '-', sub: '' };
         }
 
         function applyTaskScheduleFormatting() {
@@ -4735,7 +4735,7 @@
                             <strong>${c.userName}</strong>
                             <span class="comment-time">${c.timeAgo}</span>
                             <div class="comment-actions">
-                                <button class="icon-btn" title="Like" data-react="like">👍 <span class="count">${like}</span></button>
+                                <button class="icon-btn" title="Like" data-react="like"><i class="fas fa-thumbs-up" aria-hidden="true"></i> <span class="count">${like}</span></button>
                                 <button class="icon-btn" title="Forward" data-action="forward"><i class="fas fa-share"></i></button>
                                 <button class="icon-btn" title="Edit" data-action="edit"><i class="fas fa-pen"></i></button>
                                 <button class="icon-btn" title="More" data-action="more"><i class="fas fa-ellipsis-h"></i></button>

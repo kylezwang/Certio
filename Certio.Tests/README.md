@@ -70,11 +70,11 @@ public async Task CreateMatter_WithoutPermission_ReturnsFailure()
 
 ## Current Status
 
-✅ Test project created  
-✅ Dependencies added (xUnit, Moq)  
-✅ Project references added  
-✅ SignalR Hub Security Tests implemented
-⏳ Service layer tests pending
+ Test project created  
+ Dependencies added (xUnit, Moq)  
+ Project references added  
+ SignalR Hub Security Tests implemented
+ Service layer tests pending
 
 **Estimated effort**: 8-10 hours for full coverage
 

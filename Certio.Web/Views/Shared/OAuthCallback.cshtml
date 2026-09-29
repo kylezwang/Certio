@@ -87,7 +87,7 @@
     <div class="container @(success ? "success" : "error")">
         @if (success)
         {
-            <div class="icon">✓</div>
+            <div class="icon"></div>
             <h1>Email Connected!</h1>
             <p>Your @provider account has been successfully connected.</p>
             @if (!string.IsNullOrEmpty(emailAddress))
@@ -102,7 +102,7 @@
         }
         else
         {
-            <div class="icon">✗</div>
+            <div class="icon"></div>
             <h1>Connection Failed</h1>
             <p>We couldn't connect your @provider account.</p>
             @if (!string.IsNullOrEmpty(errorDescription))

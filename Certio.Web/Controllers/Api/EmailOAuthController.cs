@@ -435,7 +435,7 @@ public class EmailOAuthController : Controller
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             var syncVersion = emailAccount.LastSyncAt?.Ticks ?? 0L;
             
-            // FIXED: Cache user account IDs (queried every time, rarely changes)
+            // Cache user account IDs (queried every time, rarely changes)
             var accountIdsCacheKey = $"user_email_accounts:{userId}";
             var userAccountIds = await _cacheService.GetAsync<List<int>>(accountIdsCacheKey);
             
@@ -536,7 +536,7 @@ public class EmailOAuthController : Controller
 
             if (isSearching)
             {
-                // FIXED: Cache search results for 5 minutes (balance freshness vs speed)
+                // Cache search results for 5 minutes (balance freshness vs speed)
                 var trimmed = search!.Trim();
                 var searchCacheKey = CreateCacheKey("email_search", trimmed);
                 
@@ -587,7 +587,7 @@ public class EmailOAuthController : Controller
             }
             else
             {
-                // FIXED: Cache inbox listing for 2 minutes (shorter TTL since new emails come in)
+                // Cache inbox listing for 2 minutes (shorter TTL since new emails come in)
                 var inboxCacheKey = CreateCacheKey("email_inbox", null, skip, pageSize);
                 
                 var cachedInboxResult = await _cacheService.GetAsync<object>(inboxCacheKey);

@@ -1,6 +1,6 @@
 # PR Validation Pipeline
 # Runs on every pull request to catch issues before merge.
-# No deployment — only build, test, and migration safety checks.
+# No deployment - only build, test, and migration safety checks.
 
 name: PR Validation
 
@@ -130,4 +130,25 @@ jobs:
         env:
           AI_API_KEY: test-secret
           AI_API_RATE_LIMIT_PER_MINUTE: '60'
+          OPENAI_API_KEY: sk-test-placeholder
         run: python -m pytest tests/ -v --tb=short
+
+  # ─────────────────────────────────────────────
+  # Text hygiene: no emoji, em dashes, or en dashes
+  # ─────────────────────────────────────────────
+  text-hygiene:
+    name: Text hygiene
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Check tracked text
+        run: python scripts/check_text_hygiene.py

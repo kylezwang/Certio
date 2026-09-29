@@ -81,8 +81,8 @@
                     var assigneeInitials = entry.Assignee != null
                         ? $"{entry.Assignee.FirstName?.FirstOrDefault()}{entry.Assignee.LastName?.FirstOrDefault()}".ToUpperInvariant()
                         : "--";
-                    var clientName = entry.Client?.Name ?? "—";
-                    var matterTitle = entry.Matter?.Title ?? "—";
+                    var clientName = entry.Client?.Name ?? "-";
+                    var matterTitle = entry.Matter?.Title ?? "-";
                     var statusText = Regex.Replace(entry.Status.ToString(), "([a-z])([A-Z])", "$1 $2");
                     var statusClass = entry.Status switch
                     {

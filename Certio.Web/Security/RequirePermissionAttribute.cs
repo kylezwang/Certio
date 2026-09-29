@@ -44,13 +44,13 @@ namespace Certio.Web.Security
 
         public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
         {
-            _logger.LogInformation("🔒 RequirePermissionFilter executing for permission: {Permission}, Path: {Path}", 
+            _logger.LogInformation("RequirePermissionFilter executing for permission: {Permission}, Path: {Path}", 
                 _requiredPermission, context.HttpContext.Request.Path);
             
             // Check if user is authenticated
             if (!context.HttpContext.User.Identity?.IsAuthenticated ?? true)
             {
-                _logger.LogWarning("❌ User not authenticated");
+                _logger.LogWarning("User not authenticated");
                 context.Result = new UnauthorizedResult();
                 return;
             }
@@ -59,7 +59,7 @@ namespace Certio.Web.Security
             var customUser = context.HttpContext.Items["CustomUser"] as User;
             if (customUser == null)
             {
-                _logger.LogWarning("❌ CustomUser not found in HttpContext.Items for permission: {Permission}", 
+                _logger.LogWarning("CustomUser not found in HttpContext.Items for permission: {Permission}", 
                     _requiredPermission);
                 context.Result = new UnauthorizedResult();
                 return;
@@ -123,7 +123,7 @@ namespace Certio.Web.Security
 
             if (!organizationId.HasValue)
             {
-                _logger.LogWarning("❌ PERMISSION CHECK FAILED: Could not determine organization ID for permission check. User: {UserId}, Permission: {Permission}",
+                _logger.LogWarning("PERMISSION CHECK FAILED: Could not determine organization ID for permission check. User: {UserId}, Permission: {Permission}",
                     userId, _requiredPermission);
                 context.Result = new ForbidResult();
                 return;
@@ -140,13 +140,13 @@ namespace Certio.Web.Security
             
             if (!hasPermission)
             {
-                _logger.LogWarning("❌ PERMISSION DENIED: User {UserId} does not have permission {Permission} in organization {OrgId}",
+                _logger.LogWarning("PERMISSION DENIED: User {UserId} does not have permission {Permission} in organization {OrgId}",
                     userId, _requiredPermission, organizationId.Value);
                 context.Result = new ForbidResult();
                 return;
             }
 
-            _logger.LogInformation("✅ PERMISSION GRANTED: User={UserId}, Org={OrgId}, Permission={Permission}",
+            _logger.LogInformation("PERMISSION GRANTED: User={UserId}, Org={OrgId}, Permission={Permission}",
                 userId, organizationId.Value, _requiredPermission);
         }
     }

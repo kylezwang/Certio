@@ -9,7 +9,7 @@ namespace Certio.Tests.Domain
     /// These GUIDs are already persisted in the Documents tables, so this function is part of the
     /// storage format rather than an implementation detail. The expected values below were derived
     /// independently from the algorithm (SHA-256 over "prefix:id", first 16 bytes, v4 version/variant
-    /// bits, .NET's little-endian Guid layout) rather than by running the code under test, so they pin
+    /// bits,.NET's little-endian Guid layout) rather than by running the code under test, so they pin
     /// the format instead of merely restating the implementation.
     ///
     /// If one of these fails, the change is a breaking data migration, not a refactor. A different GUID

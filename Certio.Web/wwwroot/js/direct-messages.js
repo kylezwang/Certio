@@ -435,7 +435,7 @@ function appendDirectMessage(message, previousMessage = null) {
     }
     
     // Find the messages container - ONLY target the main chat area (Communications page)
-    // The Communications page uses .main-chat .messages-list, sidebar uses #commsMessagesList
+    // The Communications page uses.main-chat.messages-list, sidebar uses #commsMessagesList
     // We want to avoid appending to sidebar accidentally
     const messagesContainer = document.querySelector('.main-chat .messages-list');
     
@@ -522,7 +522,7 @@ function appendDirectMessage(message, previousMessage = null) {
         // Only apply inline color for non-current-user messages
         avatarStyle = `background: ${senderColor} !important;`;
     }
-    // For current user, CSS will apply the gradient via .message-item.current-user-message .message-avatar
+    // For current user, CSS will apply the gradient via.message-item.current-user-message.message-avatar
 
     const { dateStr, timeStr } = formatTimestamp(message.createdAt);
 

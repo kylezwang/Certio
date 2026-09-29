@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 namespace Certio.Application.Services;
 
 /// <summary>
-/// Comprehensive user data context service that builds RAG context from ALL user-scoped data
+/// Full user data context service that builds RAG context from ALL user-scoped data
 /// across Events, Tasks, Calendar, Communications, Teams, and other modules
 /// </summary>
 /// <remarks>
@@ -157,7 +157,7 @@ public class UserDataContextService : IUserDataContextService
         
         // ONE-WAY RELATIONSHIP: Only if this org is the SOURCE (law firm) do we include targets (clients)
         // If this org is a TARGET (client), we do NOT include the source (law firm)
-        // This ensures: Law Firm → Client ✅, Client → Law Firm ❌
+        // This ensures: Law Firm → Client, Client → Law Firm
         var clientOrgRelationships = await _dbContext.OrganizationRelationships
             .AsNoTracking()
             .Where(r => r.SourceOrganizationId == organizationId &&  // CRITICAL: Only when we are the SOURCE

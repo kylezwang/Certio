@@ -133,14 +133,14 @@ public sealed class DocumentIndexerService : IDocumentIndexerService
         // Skip audit logging - Guid UserId doesn't match int-based Users table FK constraint
         // Embedding operations are tracked via Document.LastEmbeddedAt timestamp
         // await _documentAuditService.LogAsync(new DocumentAuditEvent(
-        //     document?.OrgId ?? request.OrgId,
-        //     document?.MatterId,
-        //     request.DocumentId,
-        //     request.VersionId,
-        //     document?.OwnerUserId,
-        //     "EmbeddingGenerated",
-        //     "Document embeddings refreshed",
-        //     DateTime.UtcNow), cancellationToken);
+        // document?.OrgId ?? request.OrgId,
+        // document?.MatterId,
+        // request.DocumentId,
+        // request.VersionId,
+        // document?.OwnerUserId,
+        // "EmbeddingGenerated",
+        // "Document embeddings refreshed",
+        // DateTime.UtcNow), cancellationToken);
 
         _logger.LogDebug("Processed embedding request for document {DocumentId}", request.DocumentId);
     }
@@ -182,7 +182,7 @@ public sealed class DocumentIndexerService : IDocumentIndexerService
         }
         else
         {
-            builder.AppendLine("[Content unavailable – secure extraction returned no body]");
+            builder.AppendLine("[Content unavailable - secure extraction returned no body]");
         }
 
         return builder.ToString();

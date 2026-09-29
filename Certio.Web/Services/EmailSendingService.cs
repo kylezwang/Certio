@@ -200,8 +200,7 @@ public class EmailSendingService : IEmailSendingService
                         new { type = "text/plain", value = StripHtmlToText(bodyHtml) },
                         new { type = "text/html", value = bodyHtml }
                     },
-                    // IMPORTANT: disable click tracking so security-sensitive links (e.g. Change Notice actions)
-                    // don't get rewritten to a tracking domain that may have invalid SSL.
+                    // Click tracking rewrites action links onto a domain that may not have a valid certificate.
                     ["tracking_settings"] = trackingSettings
                 };
 
@@ -539,7 +538,7 @@ public class EmailSendingService : IEmailSendingService
 
     /// <summary>
     /// Formats an email address with optional display name in RFC 5322 format.
-    /// Example: "John Marshall <johnm123@gmail.com>" or just "johnm123@gmail.com" if no name
+    /// Example: "Alex Rivera <alex@example.com>" or "alex@example.com" when there is no name.
     /// </summary>
     private string FormatEmailAddress(string emailAddress, string? displayName)
     {
