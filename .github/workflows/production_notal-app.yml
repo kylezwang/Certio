@@ -115,6 +115,11 @@ jobs:
         run: dotnet ef migrations script --idempotent --project Certio.Infrastructure/Certio.Infrastructure.csproj --startup-project Certio.Web/Certio.Web.csproj --output migrations.sql
         env:
           DOTNET_ENVIRONMENT: Production
+          USE_AZURE_SQL: "true"
+          SQL_PASSWORD: ci-placeholder
+          ConnectionStrings__DefaultConnection: "Server=tcp:127.0.0.1,1433;Initial Catalog=CertioLocal;User ID=sa;Password=ci-placeholder;Encrypt=False;TrustServerCertificate=True;"
+          EmailIntegration__GmailVerificationToken: ci-placeholder
+          EmailIntegration__WebhookSecret: ci-placeholder
 
       - name: Upload migration script
         uses: actions/upload-artifact@v4

@@ -1503,7 +1503,7 @@
     }
 
     function formatStatusLabel(value) {
-        if (value == null) return '—';
+        if (value == null) return '-';
         const s = String(value);
         return s
             .replace(/([a-z])([A-Z])/g, '$1 $2')
@@ -1711,20 +1711,20 @@
                          data-notes="${(item.notes || '').replace(/"/g, '&quot;')}"
                          data-terms="${(item.terms || '').replace(/"/g, '&quot;')}"
                          data-initial-amount="${item.initialAmount ?? ''}">
-                        <div class="billing-date-column">${item.dateDisplay || '—'}</div>
-                        <div class="billing-type-column">${item.typeDisplay || '—'}</div>
-                        <div class="billing-client-column"><span style="color: #1e293b;">${item.clientName || '—'}</span></div>
-                        <div class="billing-matter-column"><span style="color: #1e293b;">${item.matterTitle || '—'}</span></div>
+                        <div class="billing-date-column">${item.dateDisplay || '-'}</div>
+                        <div class="billing-type-column">${item.typeDisplay || '-'}</div>
+                        <div class="billing-client-column"><span style="color: #1e293b;">${item.clientName || '-'}</span></div>
+                        <div class="billing-matter-column"><span style="color: #1e293b;">${item.matterTitle || '-'}</span></div>
                         <div class="billing-attorney-column">
-                            <div class="billing-user-avatar">${item.assigneeInitials || '—'}</div>
-                            <span class="billing-user-name">${item.assigneeName || '—'}</span>
+                            <div class="billing-user-avatar">${item.assigneeInitials || '-'}</div>
+                            <span class="billing-user-name">${item.assigneeName || '-'}</span>
                         </div>
                         <div class="billing-description-column-overview">
                             <button class="billing-description-btn-overview" title="${(item.description || '').replace(/"/g, '&quot;')}" onclick="event.stopPropagation();">
                                 <i class="fa-solid fa-align-left" style="transform: scaleY(-1);"></i>
                             </button>
                         </div>
-                        <div class="billing-amount-column">${item.amountDisplay || '—'}</div>
+                        <div class="billing-amount-column">${item.amountDisplay || '-'}</div>
                         <div class="billing-status-column">
                             <span class="billing-status-badge ${statusClass}">${statusText}</span>
                         </div>

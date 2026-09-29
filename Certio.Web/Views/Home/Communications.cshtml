@@ -160,7 +160,7 @@
                 }
 
                 <!-- Direct Messages -->
-                <h3 class="team-title">Direct Messages — @Model.OnlineMembersCount Online</h3>
+                <h3 class="team-title">Direct Messages - @Model.OnlineMembersCount Online</h3>
                 <div class="team-members">
                     @* Show current user first *@
                     @foreach (var member in Model.TeamMembers.Where(m => m.UserId == ViewBag.CurrentUserId))
@@ -442,7 +442,15 @@
                                         @foreach (var reaction in message.Reactions)
                                         {
                                             <button class="reaction-btn">
-                                                @reaction.Emoji @reaction.Count
+                                                @if (reaction.IconClass != null)
+                                                {
+                                                    <i class="fas @reaction.IconClass" aria-hidden="true"></i>
+                                                }
+                                                else
+                                                {
+                                                    @reaction.Emoji
+                                                }
+                                                @reaction.Count
                                             </button>
                                         }
                                         <button class="add-reaction-btn">

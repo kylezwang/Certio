@@ -53,7 +53,7 @@ public sealed class PublicChangeNoticeController : Controller
                 NewRecipientStatus = initial.NewRecipientStatus,
                 NewNoticeStatus = initial.NewNoticeStatus,
                 ClarificationNoteSaved = false,
-                ClarificationNoteMessage = "Not sent — please type what you need clarified, then press send."
+                ClarificationNoteMessage = "Not sent - please type what you need clarified, then press send."
             });
         }
 

@@ -24,7 +24,7 @@ public class EmailSyncService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("📧 Email Token Refresh Service started. Interval: {Interval} minutes", _tokenRefreshInterval.TotalMinutes);
+        _logger.LogInformation("Email Token Refresh Service started. Interval: {Interval} minutes", _tokenRefreshInterval.TotalMinutes);
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -43,7 +43,7 @@ public class EmailSyncService : BackgroundService
             }
         }
 
-        _logger.LogInformation("📧 Email Token Refresh Service stopped.");
+        _logger.LogInformation("Email Token Refresh Service stopped.");
     }
 
     private async Task RefreshExpiringTokensAsync(CancellationToken ct)

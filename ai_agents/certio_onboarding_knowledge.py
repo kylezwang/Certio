@@ -27,7 +27,7 @@ class FAQ:
     related_features: List[str]
 
 class NotalOnboardingKnowledgeBase:
-    """Comprehensive onboarding knowledge for new users"""
+    """Full onboarding knowledge for new users"""
     
     def __init__(self):
         self.getting_started_guides = self._initialize_getting_started_guides()
@@ -43,7 +43,7 @@ class NotalOnboardingKnowledgeBase:
             "first_login_planner": OnboardingGuide(
                 title="Getting Started as an Event Planner",
                 user_types=["Director", "Planner", "Coordinator"],
-                content="""Welcome to Notal! As an event planner, you'll use Notal to manage events, track tasks, collaborate with clients and team members, and leverage AI assistance for your event work. The platform streamlines your daily workflow with an intuitive interface and powerful automation. Start by connecting your own email account through Communications, then you can Notalize client emails to bring them into the platform.""",
+                content="""Welcome to Notal! As an event planner, you'll use Notal to manage events, track tasks, collaborate with clients and team members, and use AI assistance for your event work. The platform streamlines your daily workflow with an intuitive interface and powerful automation. Start by connecting your own email account through Communications, then you can Notalize client emails to bring them into the platform.""",
                 steps=[
                     "Log in and explore the Dashboard - Your central hub showing upcoming deadlines, calendar, recent activity, and quick access to all features",
                     "Review the left sidebar navigation - Access Dashboard, Events, Tasks, Calendar, Communications, Documents, Teams, and Settings",
@@ -140,7 +140,7 @@ class NotalOnboardingKnowledgeBase:
             "platform_overview": OnboardingGuide(
                 title="Notal Platform Overview - Complete Feature Guide",
                 user_types=["All"],
-                content="""Notal is a comprehensive event planning management platform with AI-powered assistance. This guide explains what each feature does and when to use it.""",
+                content="""Notal is a full event planning management platform with AI-powered assistance. This guide explains what each feature does and when to use it.""",
                 steps=[
                     "Dashboard: Your daily starting point with AI chat, deadlines, calendar, and quick access to everything",
                     "Events: Create and manage events with team assignments, status tracking, and progress monitoring",

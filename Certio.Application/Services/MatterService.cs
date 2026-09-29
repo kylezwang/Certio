@@ -993,9 +993,9 @@ namespace Certio.Application.Services
         private async Task<MatterDto> MapToMatterDto(Matter matter)
         {
             // TaskItems must be loaded for the computed TasksCompleted/TotalTasks
-            // properties below. Calling Collection().LoadAsync() unconditionally
+            // properties below. Calling Collection.LoadAsync unconditionally
             // issues a fresh query even when TaskItems was already eager-loaded via
-            // .Include() (explicit Load ignores IsLoaded), which turned every matter
+            //.Include (explicit Load ignores IsLoaded), which turned every matter
             // list page into N+1 extra round trips. Only fall back to an explicit
             // load when the caller didn't already include the collection.
             if (!_context.Entry(matter).Collection(m => m.TaskItems).IsLoaded)

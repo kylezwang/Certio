@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Certio.Application.DTOs;
 
 /// <summary>
-/// Request to build comprehensive user data context for AI RAG
+/// Request to build full user data context for AI RAG
 /// </summary>
 public record UserDataContextRequest(
     int UserId,

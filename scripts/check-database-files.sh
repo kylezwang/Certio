@@ -6,7 +6,7 @@ echo "Checking for database files in repository..."
 
 # Check for database files in git
 if git ls-files | grep -E '\.(db|db-shm|db-wal)$'; then
-    echo "❌ ERROR: Database files found in git repository!"
+    echo " ERROR: Database files found in git repository!"
     echo "The following database files are tracked in git:"
     git ls-files | grep -E '\.(db|db-shm|db-wal)$'
     echo ""
@@ -16,6 +16,6 @@ if git ls-files | grep -E '\.(db|db-shm|db-wal)$'; then
     exit 1
 fi
 
-echo "✅ No database files found in repository"
+echo " No database files found in repository"
 exit 0
 

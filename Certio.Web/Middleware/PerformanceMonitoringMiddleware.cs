@@ -22,7 +22,7 @@ public class PerformanceMonitoringMiddleware
         // Always log Matter/Create requests for debugging
         if (requestPath.Contains("/Matter/Create", StringComparison.OrdinalIgnoreCase))
         {
-            _logger.LogWarning("🔍 Matter/Create REQUEST DETECTED: {Method} {Path}", requestMethod, requestPath);
+            _logger.LogWarning("Matter/Create REQUEST DETECTED: {Method} {Path}", requestMethod, requestPath);
         }
 
         try
@@ -39,21 +39,21 @@ public class PerformanceMonitoringMiddleware
             if (elapsedMs > 100)
             {
                 _logger.LogWarning(
-                    "⚠️ SLOW REQUEST: {Method} {Path} completed in {ElapsedMs}ms with status {StatusCode}",
+                    " SLOW REQUEST: {Method} {Path} completed in {ElapsedMs}ms with status {StatusCode}",
                     requestMethod, requestPath, elapsedMs, statusCode);
             }
             // Log very fast requests at debug level
             else if (elapsedMs < 10)
             {
                 _logger.LogDebug(
-                    "⚡ Fast request: {Method} {Path} completed in {ElapsedMs}ms with status {StatusCode}",
+                    " Fast request: {Method} {Path} completed in {ElapsedMs}ms with status {StatusCode}",
                     requestMethod, requestPath, elapsedMs, statusCode);
             }
             // Normal requests at information level
             else
             {
                 _logger.LogInformation(
-                    "✓ Request: {Method} {Path} completed in {ElapsedMs}ms with status {StatusCode}",
+                    " Request: {Method} {Path} completed in {ElapsedMs}ms with status {StatusCode}",
                     requestMethod, requestPath, elapsedMs, statusCode);
             }
 

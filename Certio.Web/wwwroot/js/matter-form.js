@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Enhanced progress indicator animation
+    // progress indicator animation
     function updateProgressIndicator(currentStep) {
         progressSteps.forEach((step, index) => {
             if (index + 1 <= currentStep) {

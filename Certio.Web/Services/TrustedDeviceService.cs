@@ -294,7 +294,7 @@ public class TrustedDeviceService : ITrustedDeviceService
     private static string NormalizeIp(string ip)
     {
         // Avoid duplicate "sessions" caused by loopback presenting as IPv6 vs IPv4 on localhost
-        // (e.g. ::1 vs 127.0.0.1).
+        // (e.g.::1 vs 127.0.0.1).
         if (string.Equals(ip, "::1", StringComparison.OrdinalIgnoreCase))
             return "127.0.0.1";
 

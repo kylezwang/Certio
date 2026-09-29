@@ -5,13 +5,13 @@ using Certio.Application.DTOs;
 namespace Certio.Application.Interfaces;
 
 /// <summary>
-/// Service for building comprehensive user data context for AI RAG system
+/// Service for building full user data context for AI RAG system
 /// Provides AI with access to all user-scoped data across all modules
 /// </summary>
 public interface IUserDataContextService
 {
     /// <summary>
-    /// Build comprehensive context from all available user data
+    /// Build full context from all available user data
     /// </summary>
     Task<UserDataContextResult> BuildUserDataContextAsync(
         UserDataContextRequest request, 

@@ -48,7 +48,7 @@ namespace Certio.Domain.Users
         public const string Member = "Member";
         public const string Lawyer = "Lawyer";
         
-        // External roles  
+        // External roles
         public const string OpposingCounsel = "OpposingCounsel";
         public const string ExpertWitness = "ExpertWitness";
         public const string CourtPersonnel = "CourtPersonnel";

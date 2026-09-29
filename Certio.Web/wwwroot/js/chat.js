@@ -747,7 +747,7 @@ async function generateAIResponse(userMessage) {
                             // Reinitialize sticky message after streaming is complete
                             initializeStickyMessage();
                             
-                            // 🤖 Agent Actions: Check for action commands in AI response
+                            // Agent Actions: Check for action commands in AI response
                             if (typeof window.AgentActions !== 'undefined') {
                                 try {
                                     const detectedActions = window.AgentActions.parseResponse(fullContent);
@@ -838,11 +838,11 @@ async function generateAIResponse(userMessage) {
                                     lastScrollHeight = chatMessages.scrollHeight;
                                 }
                             } catch (domError) {
-                                console.error('💥 ERROR in DOM update:', domError);
+                                console.error('ERROR in DOM update:', domError);
                             }
                         }
                     } catch (e) {
-                        console.error('💥 ERROR parsing SSE:', e);
+                        console.error('ERROR parsing SSE:', e);
                     }
                 }
             }
@@ -1413,7 +1413,7 @@ function formatAIMessage(message) {
     }
     
     // IMPORTANT: Regardless of message type, AI content may contain [ACTION:...] blocks.
-    // We always route through formatIntelligentResponse() so action blocks are replaced/stripped
+    // We always route through formatIntelligentResponse so action blocks are replaced/stripped
     // during history render and after navigation.
     if (!messageType.startsWith('AI_')) {
         return formatIntelligentResponse(rawContent);
@@ -2123,7 +2123,7 @@ function getUrgencyColor(urgency) {
     }
 }
 
-// Enhanced AI thinking indicator with intelligent messages
+// AI thinking indicator with intelligent messages
 function showIntelligentAIThinkingIndicator(userMessage) {
     const chatMessages = document.getElementById('chatMessages');
     if (!chatMessages) return;
@@ -2186,7 +2186,7 @@ function showIntelligentAIThinkingIndicator(userMessage) {
     }
 }
 
-// Enhanced message display for intelligent AI responses
+// Message display for intelligent AI responses
 function addIntelligentMessageToChat(message) {
     const chatMessages = document.getElementById('chatMessages');
     if (!chatMessages) return;
@@ -2595,7 +2595,7 @@ function initializeResizeHandle() {
                 window.adjustEmailModalPosition();
             }
             
-            // Update floating timer overlay position (see note in initializeChatLayout()).
+            // Update floating timer overlay position (see note in initializeChatLayout).
             const floatingTimerOverlay = document.getElementById('floatingTimerOverlay');
             if (floatingTimerOverlay) {
                 const hasSavedManualPosition = !!localStorage.getItem('timerPosition');

@@ -19,7 +19,7 @@ namespace Certio.Web.Security
                 if (path.StartsWith("/Client/", StringComparison.OrdinalIgnoreCase))
                 {
                     var logger = context.RequestServices.GetRequiredService<ILogger<AuthorizationNotFoundMiddleware>>();
-                    logger.LogError("🚨🚨🚨 AuthorizationNotFoundMiddleware: Authorization FAILED for path: {Path}, Returning 404", path);
+                    logger.LogError("AuthorizationNotFoundMiddleware: Authorization FAILED for path: {Path}, Returning 404", path);
                     context.Response.StatusCode = StatusCodes.Status404NotFound;
                     return;
                 }
