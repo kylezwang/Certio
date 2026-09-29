@@ -118,19 +118,6 @@ namespace Certio.Web.Controllers
             return View();
         }
 
-        [HttpGet]
-        public IActionResult DebugAuth()
-        {
-            var debugInfo = new
-            {
-                IsAuthenticated = User.Identity?.IsAuthenticated ?? false,
-                UserName = User.Identity?.Name ?? "null",
-                AuthenticationType = User.Identity?.AuthenticationType ?? "null",
-                Claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList()
-            };
-            return Json(debugInfo);
-        }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(string email, string password, bool remember)
@@ -681,7 +668,7 @@ namespace Certio.Web.Controllers
                 ct: ct);
 
             // Output to debug terminal
-            Console.WriteLine($"✅ Generated Join Code for {model.Email} → {join.Code}");
+            Console.WriteLine($"Generated Join Code for {model.Email} → {join.Code}");
 
             ViewBag.JoinCode = join.Code;
             TempData["Success"] = "Join code generated.";
@@ -712,7 +699,7 @@ namespace Certio.Web.Controllers
                 return View("Register");
             }
 
-            // Store registration data in TempData with Keep() to persist across redirects
+            // Store registration data in TempData with Keep to persist across redirects
             TempData["RegistrationEmail"] = email;
             TempData.Keep("RegistrationEmail");
 
@@ -1009,7 +996,7 @@ namespace Certio.Web.Controllers
                 return RedirectToAction("Register", new { step = 3 });
             }
 
-            // Store verified data for next step with Keep() to persist across redirects
+            // Store verified data for next step with Keep to persist across redirects
             TempData["RegistrationEmail"] = storedEmail;
             TempData["RegistrationPhone"] = phoneNumber;
             TempData["IsVerified"] = "true";
@@ -1749,9 +1736,9 @@ namespace Certio.Web.Controllers
                 new TeamMember
                 {
                     Id = "7",
-                    Name = "Kyle Wang",
-                    Initials = "KW",
-                    Role = "Certio Team",
+                    Name = "Alex Rivera",
+                    Initials = "AR",
+                    Role = "Coordinator",
                     Department = "Research",
                     Location = "Boston",
                     Team = TeamType.Legal,
@@ -2009,8 +1996,8 @@ namespace Certio.Web.Controllers
                     Content = "The contract review for Morrison Industries is complete. Found 3 high-priority items that need attention.",
                     Reactions = new List<Reaction>
                     {
-                        new Reaction { Emoji = "✅", Count = 2 },
-                        new Reaction { Emoji = "👍", Count = 1 }
+                        new Reaction { Emoji = "check", Count = 2 },
+                        new Reaction { Emoji = "like", Count = 1 }
                     }
                 },
                 new Message
@@ -2035,7 +2022,7 @@ namespace Certio.Web.Controllers
                     Content = "New client onboarding documents uploaded to the secure portal. All stakeholders have been notified.",
                     Reactions = new List<Reaction>
                     {
-                        new Reaction { Emoji = "🎉", Count = 3 }
+                        new Reaction { Emoji = "star", Count = 3 }
                     }
                 },
                 new Message
@@ -2047,7 +2034,7 @@ namespace Certio.Web.Controllers
                     Content = "Compliance audit scheduled for next week. I've prepared the preliminary documentation checklist.",
                     Reactions = new List<Reaction>
                     {
-                        new Reaction { Emoji = "📋", Count = 1 }
+                        new Reaction { Emoji = "list", Count = 1 }
                     }
                 },
                 new Message
@@ -2059,8 +2046,8 @@ namespace Certio.Web.Controllers
                     Content = "I've uploaded the Morrison contract summary to the shared drive. All high-priority items are highlighted in red.",
                     Reactions = new List<Reaction>
                     {
-                        new Reaction { Emoji = "📄", Count = 2 },
-                        new Reaction { Emoji = "👀", Count = 1 }
+                        new Reaction { Emoji = "file", Count = 2 },
+                        new Reaction { Emoji = "eye", Count = 1 }
                     }
                 },
                 new Message
@@ -2081,8 +2068,8 @@ namespace Certio.Web.Controllers
                     Content = "The compliance meeting went well. We're on track for the Q1 audit. I'll send the updated timeline shortly.",
                     Reactions = new List<Reaction>
                     {
-                        new Reaction { Emoji = "✅", Count = 3 },
-                        new Reaction { Emoji = "📅", Count = 1 }
+                        new Reaction { Emoji = "check", Count = 3 },
+                        new Reaction { Emoji = "calendar", Count = 1 }
                     }
                 },
                 new Message
@@ -2094,7 +2081,7 @@ namespace Certio.Web.Controllers
                     Content = "Client onboarding for TechStart Inc. is complete. All documentation has been processed and filed.",
                     Reactions = new List<Reaction>
                     {
-                        new Reaction { Emoji = "🎉", Count = 2 }
+                        new Reaction { Emoji = "star", Count = 2 }
                     }
                 },
                 new Message
@@ -2106,8 +2093,8 @@ namespace Certio.Web.Controllers
                     Content = "Reminder: The quarterly legal review meeting is tomorrow at 2 PM. Please prepare your department updates.",
                     Reactions = new List<Reaction>
                     {
-                        new Reaction { Emoji = "⏰", Count = 1 },
-                        new Reaction { Emoji = "📊", Count = 1 }
+                        new Reaction { Emoji = "clock", Count = 1 },
+                        new Reaction { Emoji = "chart", Count = 1 }
                     }
                 },
                 new Message
@@ -2119,8 +2106,8 @@ namespace Certio.Web.Controllers
                     Content = "I've completed the system updates for case tracking. The new features are now live in the staging environment.",
                     Reactions = new List<Reaction>
                     {
-                        new Reaction { Emoji = "🚀", Count = 2 },
-                        new Reaction { Emoji = "💻", Count = 1 }
+                        new Reaction { Emoji = "rocket", Count = 2 },
+                        new Reaction { Emoji = "code", Count = 1 }
                     }
                 },
                 new Message
@@ -2132,8 +2119,8 @@ namespace Certio.Web.Controllers
                     Content = "The regulatory changes for data privacy are now in effect. I've updated our compliance checklist accordingly.",
                     Reactions = new List<Reaction>
                     {
-                        new Reaction { Emoji = "🔒", Count = 3 },
-                        new Reaction { Emoji = "📝", Count = 1 }
+                        new Reaction { Emoji = "lock", Count = 3 },
+                        new Reaction { Emoji = "pen", Count = 1 }
                     }
                 },
                 new Message
@@ -2145,8 +2132,8 @@ namespace Certio.Web.Controllers
                     Content = "Lunch break! Back at 1:30 PM. The client files are ready for the afternoon review session.",
                     Reactions = new List<Reaction>
                     {
-                        new Reaction { Emoji = "🍽️", Count = 1 },
-                        new Reaction { Emoji = "👋", Count = 2 }
+                        new Reaction { Emoji = "utensils", Count = 1 },
+                        new Reaction { Emoji = "hand", Count = 2 }
                     }
                 },
                 new Message
@@ -2158,8 +2145,8 @@ namespace Certio.Web.Controllers
                     Content = "I've scheduled a follow-up call with Morrison Industries for next Tuesday. They want to discuss the contract amendments.",
                     Reactions = new List<Reaction>
                     {
-                        new Reaction { Emoji = "📞", Count = 1 },
-                        new Reaction { Emoji = "📋", Count = 1 }
+                        new Reaction { Emoji = "phone", Count = 1 },
+                        new Reaction { Emoji = "list", Count = 1 }
                     }
                 },
                 new Message
@@ -2171,8 +2158,8 @@ namespace Certio.Web.Controllers
                     Content = "The new document management system is working great! Upload times have improved by 40%.",
                     Reactions = new List<Reaction>
                     {
-                        new Reaction { Emoji = "⚡", Count = 2 },
-                        new Reaction { Emoji = "📈", Count = 1 }
+                        new Reaction { Emoji = "bolt", Count = 2 },
+                        new Reaction { Emoji = "trend", Count = 1 }
                     }
                 }
             };

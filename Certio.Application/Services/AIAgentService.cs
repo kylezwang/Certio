@@ -966,7 +966,7 @@ public class AIAgentService : IAIAgentService
         else if (messageLower.Contains("event") || messageLower.Contains("vendor"))
             contextHint = "I see you need help with an event. ";
         
-        return $"<strong>⚠️ AI Services Temporarily Unavailable</strong><br><br>" +
+        return $"<strong> AI Services Temporarily Unavailable</strong><br><br>" +
                $"{contextHint}Our AI services are being updated. You can continue other services normally, " +
                "and I'll be back online shortly to provide assistance!";
     }

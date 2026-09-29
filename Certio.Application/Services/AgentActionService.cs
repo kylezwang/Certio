@@ -748,7 +748,7 @@ namespace Certio.Application.Services
                     break;
 
                 case AgentActionTypes.SendTemplateMessage:
-                    // Stub for phase 2 - always return valid
+                    // Stub for
                     break;
 
                 default:
@@ -928,7 +928,7 @@ namespace Certio.Application.Services
 
         private async Task<ActionResultPayload> ExecuteSendTemplateMessageAsync(AgentAction action)
         {
-            // Stub for phase 2 - sending is not implemented yet
+            // Stub for
             return new ActionResultPayload
             {
                 Success = false,
@@ -1037,7 +1037,7 @@ namespace Certio.Application.Services
                     SourceConversationId = action.SourceConversationId,
                     SourceMessageId = action.SourceMessageId,
                     // Prevent SQL truncation errors (AuditLogs.Description is nvarchar(500)).
-                    // If this overflows, EF keeps the entity tracked as Added and later SaveChanges()
+                    // If this overflows, EF keeps the entity tracked as Added and later SaveChanges
                     // calls can repeatedly fail (breaking Keep/Execute).
                     Description = Truncate(description, MaxAuditDescriptionLength),
                     NewValues = JsonSerializer.Serialize(new

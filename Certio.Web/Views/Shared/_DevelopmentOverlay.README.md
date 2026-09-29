@@ -4,12 +4,12 @@ A reusable component to indicate features that are still in development with a c
 
 ## Features
 
-- ⏳ **Visual Indicator**: White hourglass icon with "Development in Progress" message
-- 🖱️ **Click to Dismiss**: Users can click anywhere on the overlay to proceed
-- 💾 **Session Persistence**: Dismissal is remembered for the current browser session
-- 🎨 **Backdrop Blur**: Professional glass-morphism effect
-- ⚡ **Smooth Animations**: Fade in/out transitions
-- 🎯 **Flexible Positioning**: Can be applied to specific elements or full-screen
+-  **Visual Indicator**: White hourglass icon with "Development in Progress" message
+-  **Click to Dismiss**: Users can click anywhere on the overlay to proceed
+-  **Session Persistence**: Dismissal is remembered for the current browser session
+-  **Backdrop Blur**: Professional glass-morphism effect
+-  **Smooth Animations**: Fade in/out transitions
+-  **Flexible Positioning**: Can be applied to specific elements or full-screen
 
 ## Usage
 
@@ -126,10 +126,10 @@ dev-overlay-dismissed-{overlayId}
 ```
 
 This means:
-- ✅ Dismissal persists across page navigations in the same tab
-- ✅ Each overlay instance is tracked separately
-- ❌ Dismissal resets when browser tab is closed
-- ❌ Dismissal is not shared across browser tabs
+-  Dismissal persists across page navigations in the same tab
+-  Each overlay instance is tracked separately
+-  Dismissal resets when browser tab is closed
+-  Dismissal is not shared across browser tabs
 
 ## Customization
 

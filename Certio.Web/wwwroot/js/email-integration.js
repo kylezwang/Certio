@@ -1508,7 +1508,7 @@ function addDirectMessageThreadToList(userId, userName, isExternalUser = false, 
         `;
         
         // No need for explicit click handler - event delegation in Communications.cshtml handles it
-        // The .dm-user-item class and data attributes match the existing pattern
+        // The.dm-user-item class and data attributes match the existing pattern
         
         // Insert after current user (if exists), otherwise at the beginning
         const currentUserItem = teamMembersContainer.querySelector('.current-user-avatar')?.closest('.team-member');
@@ -1601,7 +1601,7 @@ async function reloadCommunicationsDirectMessagesList() {
             }
         }
         
-        // Try to find current user by looking for .current-user-avatar within .team-member
+        // Try to find current user by looking for.current-user-avatar within.team-member
         if (!currentUserId) {
             const currentUserElement = document.querySelector('.current-user-avatar')?.closest('.team-member');
             if (currentUserElement) {
@@ -1729,7 +1729,7 @@ function updateDirectMessagesOnlineCount() {
         const teamMembers = directMessagesTitle.nextElementSibling;
         if (teamMembers && teamMembers.classList.contains('team-members')) {
             const onlineCount = teamMembers.querySelectorAll('.status-indicator.online').length;
-            directMessagesTitle.textContent = `Direct Messages — ${onlineCount} Online`;
+            directMessagesTitle.textContent = `Direct Messages - ${onlineCount} Online`;
         }
     }
 }

@@ -59,7 +59,7 @@ public class RedisCacheService : ICacheService
             {
                 sw.Stop();
                 _metricsService.RecordHit("L1_Memory", key, sw.ElapsedMilliseconds);
-                _logger.LogDebug("⚡ L1 cache HIT for {Key} in {ElapsedMs}ms", key, sw.ElapsedMilliseconds);
+                _logger.LogDebug("L1 cache HIT for {Key} in {ElapsedMs}ms", key, sw.ElapsedMilliseconds);
                 return cachedValue;
             }
             
@@ -70,7 +70,7 @@ public class RedisCacheService : ICacheService
             {
                 sw.Stop();
                 _metricsService.RecordMiss("L2_Redis", key, sw.ElapsedMilliseconds);
-                _logger.LogDebug("❌ Cache MISS for {Key} (checked in {ElapsedMs}ms)", key, sw.ElapsedMilliseconds);
+                _logger.LogDebug("Cache MISS for {Key} (checked in {ElapsedMs}ms)", key, sw.ElapsedMilliseconds);
                 return null;
             }
 
@@ -79,7 +79,7 @@ public class RedisCacheService : ICacheService
             
             // Record L2 hit
             _metricsService.RecordHit("L2_Redis", key, sw.ElapsedMilliseconds);
-            _logger.LogDebug("✓ L2 cache HIT for {Key} in {ElapsedMs}ms", key, sw.ElapsedMilliseconds);
+            _logger.LogDebug("L2 cache HIT for {Key} in {ElapsedMs}ms", key, sw.ElapsedMilliseconds);
             
             // Populate memory cache for next time (cache warming)
             if (value != null)

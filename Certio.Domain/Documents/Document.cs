@@ -163,7 +163,7 @@ public enum ExternalConnectionProvider
     {
         if (size <= 0)
         {
-            return "—";
+            return "-";
         }
 
         string[] suffixes = { "B", "KB", "MB", "GB", "TB" };

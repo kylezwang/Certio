@@ -62,7 +62,7 @@ public class MetricsController : ControllerBase
         try
         {
             _metricsService.Reset();
-            _logger.LogInformation("📊 Metrics manually reset by user");
+            _logger.LogInformation("Metrics manually reset by user");
             
             return Ok(new
             {
@@ -87,7 +87,7 @@ public class MetricsController : ControllerBase
         try
         {
             _logger.LogInformation("========================================");
-            _logger.LogInformation("📊 MANUAL PERFORMANCE METRICS REPORT");
+            _logger.LogInformation("MANUAL PERFORMANCE METRICS REPORT");
             _logger.LogInformation("========================================");
             
             _metricsService.LogMetrics();

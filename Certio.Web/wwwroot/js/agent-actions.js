@@ -146,9 +146,7 @@ function initializeModeSelectorUI() {
     syncModeToUI();
 }
 
-// ==========================
 // Dropdown "portal" rendering
-// ==========================
 // The dashboard + sidebar composer rows use overflow clipping, so absolute-position dropdowns can be hidden.
 // We "portal" dropdowns to <body> and position them with position:fixed near the trigger.
 const _dropdownPortalState = new WeakMap();

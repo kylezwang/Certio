@@ -46,7 +46,7 @@ public class AIBackgroundService : BackgroundService
                 return;
             }
 
-            // Use intelligent processing for comprehensive analysis
+            // Use intelligent processing for full analysis
             var intelligentResults = await aiAgentService.ProcessConversationIntelligentlyAsync(conversationId, messages, "Client");
             
             // Process results and create appropriate AI messages

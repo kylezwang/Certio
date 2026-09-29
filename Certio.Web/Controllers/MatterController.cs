@@ -489,14 +489,6 @@ namespace Certio.Web.Controllers
             return PartialView("~/Views/Matter/_MatterContacts.cshtml", viewModel);
         }
 
-        // TEST: Simple endpoint to verify routing works
-        [HttpGet("/Client/{orgId:int}/Matter/Create/Test")]
-        public IActionResult CreateTest(int orgId)
-        {
-            _logger.LogWarning("✅ TEST ENDPOINT HIT: /Client/{OrgId}/Matter/Create/Test", orgId);
-            return Content($"Test endpoint works! OrgId: {orgId}");
-        }
-
         // GET: Matter/Create
         [RequirePermission(Permission.CreateMatters)]
         [HttpGet("/Client/{orgId:int}/Matter/Create")]
@@ -1401,9 +1393,7 @@ namespace Certio.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // ============================================================
         // HELPER METHODS
-        // ============================================================
 
         private void SetViewContext(User? user, int organizationId, string? organizationName = null, Certio.Domain.Organizations.Organization? organization = null)
         {

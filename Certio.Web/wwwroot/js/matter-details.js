@@ -257,26 +257,26 @@
                 
                 // Call the Matter Tasks initialization function
                 if (typeof window.initializeMatterTasks === 'function') {
-                    console.log('✓ Found initializeMatterTasks, calling it...');
+                    console.log('Found initializeMatterTasks, calling it...');
                     try {
                         window.initializeMatterTasks();
-                        console.log('✓ initializeMatterTasks completed successfully');
+                        console.log('initializeMatterTasks completed successfully');
                     } catch (error) {
-                        console.error('✗ Error calling initializeMatterTasks:', error);
+                        console.error('Error calling initializeMatterTasks:', error);
                     }
                 } else {
-                    console.error('✗ window.initializeMatterTasks function not available');
+                    console.error('window.initializeMatterTasks function not available');
                     console.log('Available window functions:', Object.keys(window).filter(k => k.includes('initialize')));
                 }
                 
                 // Also try the generic initialization if available
                 if (typeof window.initializeTasks === 'function') {
-                    console.log('✓ Found initializeTasks, calling it...');
+                    console.log('Found initializeTasks, calling it...');
                     try {
                         window.initializeTasks();
-                        console.log('✓ initializeTasks completed successfully');
+                        console.log('initializeTasks completed successfully');
                     } catch (error) {
-                        console.error('✗ Error calling initializeTasks:', error);
+                        console.error('Error calling initializeTasks:', error);
                     }
                 }
                 
@@ -302,9 +302,9 @@
                 // The communications scripts are already loaded and initialized via inline scripts in the partial view
                 // Just verify they loaded correctly
                 if (typeof window.initializeCommunicationsChat === 'function') {
-                    console.log('✓ Communications chat functions are available');
+                    console.log('Communications chat functions are available');
                 } else {
-                    console.warn('⚠ Communications chat functions may not be fully loaded yet');
+                    console.warn('Communications chat functions may not be fully loaded yet');
                 }
                 
                 console.log('=== Communications scripts initialization complete ===');
@@ -321,9 +321,9 @@
                 // The calendar scripts are already loaded and initialized via inline scripts in the partial view
                 // Just verify they loaded correctly
                 if (typeof window.initializeEventLocationSearch === 'function') {
-                    console.log('✓ Calendar functions are available');
+                    console.log('Calendar functions are available');
                 } else {
-                    console.warn('⚠ Calendar functions may not be fully loaded yet');
+                    console.warn('Calendar functions may not be fully loaded yet');
                 }
                 
                 // Dispatch event to notify calendar that tab is active
@@ -331,7 +331,7 @@
                     detail: { tabName: 'calendar' } 
                 });
                 document.dispatchEvent(calendarTabEvent);
-                console.log('✓ Dispatched matterTabChanged event for calendar');
+                console.log('Dispatched matterTabChanged event for calendar');
                 
                 console.log('=== Calendar scripts initialization complete ===');
                 break;
@@ -345,16 +345,16 @@
                     detail: { tabName: 'timeline' } 
                 });
                 document.dispatchEvent(timelineTabEvent);
-                console.log('✓ Dispatched matterTabChanged event for timeline');
+                console.log('Dispatched matterTabChanged event for timeline');
                 
                 // Check if timeline initialization function exists and call it
                 if (typeof window.initializeTimeline === 'function') {
-                    console.log('✓ Found initializeTimeline, calling it...');
+                    console.log('Found initializeTimeline, calling it...');
                     try {
                         window.initializeTimeline();
-                        console.log('✓ initializeTimeline completed successfully');
+                        console.log('initializeTimeline completed successfully');
                     } catch (error) {
-                        console.error('✗ Error calling initializeTimeline:', error);
+                        console.error('Error calling initializeTimeline:', error);
                     }
                 } else {
                     console.log('Timeline will be initialized by its own observer');
@@ -373,7 +373,7 @@
                     detail: { tabName: 'contacts' } 
                 });
                 document.dispatchEvent(contactsTabEvent);
-                console.log('✓ Dispatched matterTabChanged event for contacts');
+                console.log('Dispatched matterTabChanged event for contacts');
                 
                 console.log('=== Contacts scripts initialization complete ===');
                 break;

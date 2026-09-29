@@ -971,11 +971,11 @@ namespace Certio.Web.Controllers
                 {
                     Id = 1,
                     UserId = userId,
-                    User = "Kyle Wang",
-                    Avatar = "KW",
+                    User = "Alex Rivera",
+                    Avatar = "AR",
                     Time = "4:42 PM",
                     CreatedAt = DateTime.Now.AddMinutes(-30),
-                    Content = "Starting the conversation for the SLA II Matter Details Communications module here",
+                    Content = "Starting the conversation for this event.",
                     Reactions = new List<Reaction>()
                 });
             }
@@ -1254,8 +1254,8 @@ namespace Certio.Web.Controllers
                 messages.Add(new
                 {
                     userId = userId.ToString(),
-                    userName = "Kyle Wang",
-                    userAvatar = "KW",
+                    userName = "Alex Rivera",
+                    userAvatar = "AR",
                     content = $"Starting discussion for this event in #{channelName}",
                     createdAt = DateTime.UtcNow.AddHours(-2)
                 });

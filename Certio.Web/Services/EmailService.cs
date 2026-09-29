@@ -691,7 +691,7 @@ public class EmailService : IEmailService
             ? DateTime.SpecifyKind(emailAccount.LastSyncAt.Value, DateTimeKind.Utc)
             : (DateTime?)null;
 
-        // FIXED: Use incremental sync - only fetch since last sync (not always 7 days)
+        // Use incremental sync - only fetch since last sync (not always 7 days)
         var syncStart = baseline;
         string query;
         var isInitialOrStaleSync = false;
@@ -713,7 +713,7 @@ public class EmailService : IEmailService
             _logger.LogInformation("Performing incremental sync for account {AccountId} - fetching last {Hours}h", emailAccount.Id, hoursAgo);
         }
 
-        // FIXED: Use two-tier cache for existing email IDs
+        // Use two-tier cache for existing email IDs
         var cacheKey = $"email_ids:{emailAccount.Id}";
         var existingExternalIds = await _cacheService.GetAsync<HashSet<string>>(cacheKey);
         
@@ -737,7 +737,7 @@ public class EmailService : IEmailService
         var processedCount = 0;
         var processedInBatch = new HashSet<string>(); // Track IDs processed in this batch to avoid duplicates
         string? nextPageToken = null;
-        // FIXED: Use fewer pages for incremental syncs (more efficient)
+        // Use fewer pages for incremental syncs (more efficient)
         var maxPages = isInitialOrStaleSync ? 50 : 10; // 50 pages (5000 emails) for initial, 10 pages (1000 emails) for incremental
         var pageCount = 0;
 
@@ -851,7 +851,7 @@ public class EmailService : IEmailService
             ? DateTime.SpecifyKind(emailAccount.LastSyncAt.Value, DateTimeKind.Utc)
             : (DateTime?)null;
 
-        // FIXED: Use incremental sync - only fetch since last sync (not always 7 days)
+        // Use incremental sync - only fetch since last sync (not always 7 days)
         DateTime syncStart;
         var isInitialOrStaleSync = false;
         
@@ -897,7 +897,7 @@ public class EmailService : IEmailService
 
         var processedCount = 0;
         
-        // FIXED: Use two-tier cache for existing email IDs
+        // Use two-tier cache for existing email IDs
         var cacheKey = $"email_ids:{emailAccount.Id}";
         var existingExternalIds = await _cacheService.GetAsync<HashSet<string>>(cacheKey);
         
@@ -1038,7 +1038,7 @@ public class EmailService : IEmailService
                 receivedAt = parsedDate.ToUniversalTime();
             }
 
-            // Extract body — only keep a short plaintext preview (no HTML storage)
+            // Extract body - only keep a short plaintext preview (no HTML storage)
             var (body, bodyText) = ExtractGmailBody(message.Payload);
 
             // If we have HTML but no plain text, extract plain text from HTML
@@ -1142,7 +1142,7 @@ public class EmailService : IEmailService
             var isRead = messageData.ContainsKey("isRead") && 
                         messageData["isRead"] is bool read && read;
 
-            // Build plaintext preview — no HTML storage
+            // Build plaintext preview - no HTML storage
             var plainTextForPreview = bodyContentType == "Text" ? bodyContent : (plainText ?? StripHtmlToPlainText(bodyContent ?? ""));
             var preview = TruncatePreview(plainTextForPreview, 500);
 

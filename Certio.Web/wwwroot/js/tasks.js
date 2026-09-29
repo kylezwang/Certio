@@ -922,7 +922,7 @@
             });
         }
 
-        // Initialize location action button in toolbar (avoid :contains selector)
+        // Initialize location action button in toolbar (avoid:contains selector)
         (function() {
             const candidates = document.querySelectorAll('.task-action-buttons button, .task-action-btn');
             for (const btn of candidates) {
@@ -1156,7 +1156,7 @@
         });
         
         if (!navItems.length || !viewContainers.length || !tasksContent) {
-            console.warn('✗ Bottom navbar elements not found, skipping initialization');
+            console.warn('Bottom navbar elements not found, skipping initialization');
             console.warn('Missing:', {
                 navItems: !navItems.length,
                 viewContainers: !viewContainers.length,
@@ -1165,7 +1165,7 @@
             return;
         }
         
-        console.log('✓ All required elements found, setting up view switching...');
+        console.log('All required elements found, setting up view switching...');
         
         // Track active views
         let activeViews = new Set(['inbox']); // Default to inbox only
@@ -1203,7 +1203,7 @@
             });
         });
         
-        console.log('✓ Bottom navbar initialization complete, active views:', Array.from(activeViews));
+        console.log('Bottom navbar initialization complete, active views:', Array.from(activeViews));
 
         // Update the view layout based on active views
         function updateViewLayout() {
@@ -1310,7 +1310,7 @@
     // Expose bottom navbar initialization globally
     console.log('*** Exposing initializeBottomNavbar globally from tasks.js ***');
     window.initializeBottomNavbar = initializeBottomNavbar;
-    console.log('✓ window.initializeBottomNavbar =', typeof window.initializeBottomNavbar);
+    console.log('window.initializeBottomNavbar =', typeof window.initializeBottomNavbar);
 
 })();
 

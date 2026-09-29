@@ -1,48 +1,87 @@
-ai_agents/venv/
-ai_agents/__pycache__/
-ai_agents/*.pyc
-ai_agents/.env
-ai_agents/**/__pycache__/
+# Build output
+[Bb]in/
+[Oo]bj/
+[Pp]ublish/
+[Aa]rtifacts/
+[Dd]ebug/
+[Rr]elease/
+TestResults/
+*.trx
+coverage*.xml
+*.coverage
+*.coveragexml
 
-# Environment files
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.rsuser
+*.userprefs
+*.pidb
+*.svclog
+*.pdb
+*.cache
+project.lock.json
+*.nupkg
+*.snupkg
+
+# Rider / VS Code local state
+.idea/
+*.sln.iml
+
+# Environment and secrets
 *.env
 .env
+.env.*
+!.env.example
 .env.local
 .env.development
 .env.production
-appsettings.Development.json
-appsettings.Production.json
 appsettings.json
+appsettings.*.json
+!appsettings.json.example
 secrets.json
+*.pfx
+*.publishsettings
+*.pubxml
+*.pubxml.user
 
-# Sensitive config files
-# *.secrets.json
-# bin/Debug/net9.0/appsettings.json
-# bin/Debug/net9.0/appsettings.Development.json
-# bin/Release/net9.0/appsettings.json
-# bin/Release/net9.0/appsettings.Development.json
-
-# Database files
+# Databases and caches
 *.db
 *.db-shm
 *.db-wal
 dump.rdb
-# Explicitly exclude SQLite files in all directories
 **/app.db
-**/app.db-shm
-**/app.db-wal
-**/bin/**/*.db
-**/bin/**/*.db-shm
-**/bin/**/*.db-wal
+ai_agents/data/
 
-# Python cache
+# Python
 __pycache__/
-*.pyc
-*.pyo
-
-# Virtual environments
+*.py[cod]
+*$py.class
+.Python
 venv/
 .venv/
+ai_agents/venv/
+ai_agents/antenv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.eggs/
 
-# Temporary files
+# Editor and agent local config
+.cursor/
+.claude/
+.cursorrules
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local scratch
 temp_fix.txt
+*.tmp
+*.log

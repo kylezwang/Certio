@@ -34,7 +34,7 @@ public class CacheMetricsService
                 : 0;
 
             _logger.LogInformation(
-                "📊 Cache Metrics [{CacheLevel}]: Hits={Hits}, Misses={Misses}, HitRate={HitRate:F2}%, AvgHitTime={AvgHitMs:F2}ms, AvgMissTime={AvgMissMs:F2}ms",
+                " Cache Metrics [{CacheLevel}]: Hits={Hits}, Misses={Misses}, HitRate={HitRate:F2}%, AvgHitTime={AvgHitMs:F2}ms, AvgMissTime={AvgMissMs:F2}ms",
                 kvp.Key,
                 metric.Hits,
                 metric.Misses,
@@ -73,7 +73,7 @@ public class CacheMetricsService
     public void Reset()
     {
         _metrics.Clear();
-        _logger.LogInformation("📊 Cache metrics reset");
+        _logger.LogInformation("Cache metrics reset");
     }
 }
 

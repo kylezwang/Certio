@@ -197,7 +197,7 @@ namespace Certio.Domain.AgentActions
     }
     
     /// <summary>
-    /// Payload for SendTemplateMessage action (stub for phase 2)
+    /// Payload for SendTemplateMessage action (stub for
     /// </summary>
     public class SendTemplateMessagePayload : ActionPayloadBase
     {

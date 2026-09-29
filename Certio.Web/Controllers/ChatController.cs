@@ -328,34 +328,21 @@ public class ChatController : Controller
         try
         {
             var userId = GetCurrentUserId();
-            
-            _logger.LogInformation("🔍 DEBUG GetMessages: User {UserId} requesting messages for Conversation {ConvId} in Org {OrgId}", 
-                userId, id, orgId);
-            
-            // Security: Verify user has access to this conversation
             var hasAccess = await _chatService.CanUserAccessConversationAsync(id, userId, orgId);
-            
-            _logger.LogInformation("🔐 DEBUG GetMessages: Access check result for User {UserId} Conversation {ConvId} Org {OrgId}: {HasAccess}", 
-                userId, id, orgId, hasAccess);
-            
             if (!hasAccess)
             {
-                _logger.LogWarning("⛔ SECURITY: User {UserId} DENIED access to conversation {ConversationId} in org {OrgId}", 
-                    userId, id, orgId);
-                _logger.LogWarning("🔍 DEBUG: User may be in a client org trying to access law firm conversation, or conversation doesn't exist");
+                _logger.LogWarning("User {UserId} denied conversation {ConversationId} in org {OrgId}", userId, id, orgId);
                 return Json(new { success = false, error = "Access denied." });
             }
-            
-            _logger.LogInformation("✅ DEBUG GetMessages: Access granted, fetching messages...");
+
             var safeLimit = limit.HasValue && limit.Value > 0 ? Math.Min(limit.Value, 500) : (int?)null;
             var messages = await _chatService.GetConversationMessagesAsync(id, safeLimit);
-            _logger.LogInformation("✅ DEBUG GetMessages: Retrieved {Count} messages for conversation {ConvId}", messages.Count, id);
             
             return Json(messages);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ ERROR retrieving messages for conversation {ConversationId} in org {OrgId}", id, orgId);
+            _logger.LogError(ex, " ERROR retrieving messages for conversation {ConversationId} in org {OrgId}", id, orgId);
             return Json(new { success = false, error = "An error occurred while retrieving messages." });
         }
     }
@@ -593,9 +580,8 @@ public class ChatController : Controller
             var aiModelTier = request.AiModel ?? "Auto"; // This is now the tier, not specific model
             _logger.LogInformation("AI Request - Mode: {Mode}, ModelTier: {ModelTier}, Conversation: {ConversationId}", aiMode, aiModelTier, request.ConversationId);
             
-            // IMPORTANT:
-            // Do NOT prepend agent instructions to user_message. It breaks intent detection (e.g., "Hi" looks complex)
-            // and can cause the model to echo action syntax. We pass aiMode separately down to the AI service.
+            // Pass aiMode separately. Prepending it to the user message breaks short greetings
+            // and can make the model echo action syntax.
             await foreach (var chunk in _chatService.GenerateAIResponseStreamAsync(request.ConversationId, messageWithContext, aiMode))
             {
                 var data = $"data: {System.Text.Json.JsonSerializer.Serialize(new { content = chunk, done = false })}\n\n";

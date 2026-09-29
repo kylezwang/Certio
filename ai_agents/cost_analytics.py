@@ -44,7 +44,7 @@ class OptimizationRecommendation:
     confidence: float
 
 class CostAnalytics:
-    """Comprehensive cost analytics and optimization system"""
+    """Full cost analytics and optimization system"""
     
     def __init__(self):
         self.cost_history = deque(maxlen=10000)  # Keep last 10k entries
@@ -151,7 +151,7 @@ class CostAnalytics:
         self.cost_history.append(event)
     
     def get_cost_metrics(self, time_period: str = "24h") -> CostMetrics:
-        """Get comprehensive cost metrics for a time period"""
+        """Get full cost metrics for a time period"""
         cutoff_time = self._get_cutoff_time(time_period)
         recent_events = [e for e in self.cost_history if e["timestamp"] >= cutoff_time]
         
@@ -300,7 +300,7 @@ class CostAnalytics:
             return 0.5  # Default confidence
     
     def generate_cost_report(self, time_period: str = "24h") -> Dict[str, Any]:
-        """Generate comprehensive cost report"""
+        """Generate full cost report"""
         metrics = self.get_cost_metrics(time_period)
         recommendations = self.get_optimization_recommendations()
         analysis_data = self._analyze_usage_patterns()

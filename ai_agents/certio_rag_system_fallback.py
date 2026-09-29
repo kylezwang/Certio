@@ -85,7 +85,7 @@ class NotalRAGSystemFallback:
         for domain, info in notal_kb.legal_domains.items():
             chunk = KnowledgeChunk(
                 id=f"event_category_{domain}",
-                content=f"{domain.replace('_', ' ').title()}: {info['description']}. Common documents: {', '.join(info['common_documents'])}. Key terms: {', '.join(info['key_terms'])}",
+                content=f"{domain.replace('_', ' ').title}: {info['description']}. Common documents: {', '.join(info['common_documents'])}. Key terms: {', '.join(info['key_terms'])}",
                 source="certio_knowledge_base",
                 category="event_category",
                 metadata={
@@ -101,7 +101,7 @@ class NotalRAGSystemFallback:
         for user_type, info in notal_kb.user_types.items():
             chunk = KnowledgeChunk(
                 id=f"user_{user_type}",
-                content=f"{user_type.title()}: {info['description']}. Permissions: {', '.join(info['permissions'])}. AI interactions: {', '.join(info['ai_interactions'])}",
+                content=f"{user_type.title}: {info['description']}. Permissions: {', '.join(info['permissions'])}. AI interactions: {', '.join(info['ai_interactions'])}",
                 source="certio_knowledge_base",
                 category="user_type",
                 metadata={
@@ -118,7 +118,7 @@ class NotalRAGSystemFallback:
         for component, details in tech_arch.items():
             chunk = KnowledgeChunk(
                 id=f"tech_{component}",
-                content=f"{component.title()}: {json.dumps(details, indent=2)}",
+                content=f"{component.title}: {json.dumps(details, indent=2)}",
                 source="certio_knowledge_base",
                 category="technical",
                 metadata={

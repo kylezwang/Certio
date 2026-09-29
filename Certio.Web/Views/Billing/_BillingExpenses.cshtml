@@ -86,8 +86,8 @@
                     var assigneeInitials = expense.Assignee != null
                         ? $"{expense.Assignee.FirstName?.FirstOrDefault()}{expense.Assignee.LastName?.FirstOrDefault()}".ToUpperInvariant()
                         : "--";
-                    var clientName = expense.Client?.Name ?? "—";
-                    var matterTitle = expense.Matter?.Title ?? "—";
+                    var clientName = expense.Client?.Name ?? "-";
+                    var matterTitle = expense.Matter?.Title ?? "-";
                     var billableText = expense.IsBillable ? "Yes" : "No";
                     var billableClass = expense.IsBillable ? "billable-yes" : "billable-no";
                     var statusText = Regex.Replace(expense.Status.ToString(), "([a-z])([A-Z])", "$1 $2");

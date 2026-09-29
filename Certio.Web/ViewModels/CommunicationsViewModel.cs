@@ -61,6 +61,29 @@ namespace Certio.Web.ViewModels
     {
         public string Emoji { get; set; } = string.Empty;
         public int Count { get; set; }
+
+        public string? IconClass => Emoji switch
+        {
+            "check" => "fa-check",
+            "like" => "fa-thumbs-up",
+            "star" => "fa-star",
+            "list" => "fa-list",
+            "file" => "fa-file",
+            "eye" => "fa-eye",
+            "calendar" => "fa-calendar",
+            "clock" => "fa-clock",
+            "chart" => "fa-chart-column",
+            "rocket" => "fa-rocket",
+            "code" => "fa-code",
+            "lock" => "fa-lock",
+            "pen" => "fa-pen",
+            "utensils" => "fa-utensils",
+            "hand" => "fa-hand",
+            "phone" => "fa-phone",
+            "bolt" => "fa-bolt",
+            "trend" => "fa-arrow-trend-up",
+            _ => null
+        };
     }
 
     public class CommunicationsTeamMember

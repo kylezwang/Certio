@@ -3,7 +3,7 @@ using Certio.Domain.UnifiedInbox;
 namespace Certio.Application.Interfaces
 {
     /// <summary>
-    /// Service for managing the unified inbox (read-only in Phase 1).
+    /// Service for managing the unified inbox (read-only in.
     /// Aggregates communications from Email, DirectMessage, Chat, and external sources.
     /// </summary>
     public interface IUnifiedInboxService

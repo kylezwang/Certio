@@ -55,7 +55,7 @@ class RAGResult:
     intent: Optional[QueryIntent] = None
 
 class EnhancedNotalRAGSystem:
-    """Enhanced Retrieval-Augmented Generation system with onboarding knowledge and intent detection"""
+    """Retrieval-augmented generation system with onboarding knowledge and intent detection"""
     
     def __init__(self):
         self.knowledge_chunks: List[KnowledgeChunk] = []
@@ -312,7 +312,7 @@ class EnhancedNotalRAGSystem:
         for nav_name, nav_content in notal_onboarding_kb.navigation_guides.items():
             chunk = KnowledgeChunk(
                 id=f"navigation_{nav_name}_{chunk_id}",
-                content=f"Navigation Guide - {nav_name.replace('_', ' ').title()}: {nav_content}",
+                content=f"Navigation Guide - {nav_name.replace('_', ' ').title}: {nav_content}",
                 source="navigation_guide",
                 category="navigation",
                 metadata={"guide_name": nav_name},
@@ -355,7 +355,7 @@ class EnhancedNotalRAGSystem:
         for domain, info in notal_kb.legal_domains.items():
             chunk = KnowledgeChunk(
                 id=f"event_category_{domain}_{chunk_id}",
-                content=f"{domain.replace('_', ' ').title()}: {info['description']}. Common documents: {', '.join(info['common_documents'])}. Key terms: {', '.join(info['key_terms'])}",
+                content=f"{domain.replace('_', ' ').title}: {info['description']}. Common documents: {', '.join(info['common_documents'])}. Key terms: {', '.join(info['key_terms'])}",
                 source="knowledge_base",
                 category="event_category",
                 metadata={
@@ -373,7 +373,7 @@ class EnhancedNotalRAGSystem:
         for user_type, info in notal_kb.user_types.items():
             chunk = KnowledgeChunk(
                 id=f"user_{user_type}_{chunk_id}",
-                content=f"{user_type.title()}: {info['description']}. Permissions: {', '.join(info['permissions'])}. AI interactions: {', '.join(info['ai_interactions'])}",
+                content=f"{user_type.title}: {info['description']}. Permissions: {', '.join(info['permissions'])}. AI interactions: {', '.join(info['ai_interactions'])}",
                 source="knowledge_base",
                 category="user_type",
                 metadata={
@@ -392,7 +392,7 @@ class EnhancedNotalRAGSystem:
         for component, details in tech_arch.items():
             chunk = KnowledgeChunk(
                 id=f"tech_{component}_{chunk_id}",
-                content=f"Technical Architecture - {component.title()}: {json.dumps(details, indent=2)}",
+                content=f"Technical Architecture - {component.title}: {json.dumps(details, indent=2)}",
                 source="knowledge_base",
                 category="technical",
                 metadata={"component": component, "details": details},
@@ -541,12 +541,12 @@ class EnhancedNotalRAGSystem:
     def get_context_for_agent(self, agent_type: str, query: str, 
                              user_type: Optional[str] = None,
                              conversation_context: Optional[Dict[str, Any]] = None) -> str:
-        """Get relevant context for a specific AI agent with enhanced retrieval"""
+        """Get relevant context for a specific AI agent with extra retrieval"""
         
         # Detect intent first to determine how many chunks to retrieve
         intent = self._detect_query_intent(query)
         
-        # For onboarding/getting started queries, retrieve more chunks for comprehensive guidance
+        # For onboarding/getting started queries, retrieve more chunks for full guidance
         if intent.intent_type == "onboarding" or "get started" in query.lower() or "let's get started" in query.lower():
             top_k = 10  # Get more comprehensive knowledge for onboarding
         elif intent.intent_type == "how_to":
@@ -616,7 +616,7 @@ class EnhancedNotalRAGSystem:
     def enhance_prompt_with_context(self, base_prompt: str, agent_type: str, 
                                    query: str, user_type: Optional[str] = None,
                                    conversation_context: Optional[Dict[str, Any]] = None) -> str:
-        """Enhance a base prompt with relevant context from enhanced RAG system"""
+        """Enhance a base prompt with relevant context from extra RAG system"""
         
         # Get relevant context
         context = self.get_context_for_agent(agent_type, query, user_type, conversation_context)
@@ -625,7 +625,7 @@ class EnhancedNotalRAGSystem:
         intent = self._detect_query_intent(query)
         is_onboarding = intent.intent_type == "onboarding" or "get started" in query.lower() or "let's get started" in query.lower()
         
-        # Build enhanced prompt with context-specific instructions
+        # Build extra prompt with context-specific instructions
         onboarding_instructions = ""
         if is_onboarding:
             onboarding_instructions = """
@@ -687,7 +687,7 @@ class EnhancedNotalRAGSystem:
         return results
     
     def get_knowledge_stats(self) -> Dict[str, Any]:
-        """Get statistics about the enhanced knowledge base"""
+        """Get statistics about the extra knowledge base"""
         stats = {
             "total_chunks": len(self.knowledge_chunks),
             "vector_mode": self.vector_available,
@@ -703,14 +703,14 @@ class EnhancedNotalRAGSystem:
         
         return dict(stats)
 
-# Global enhanced RAG system instance
+# Global extra RAG system instance
 enhanced_notal_rag = EnhancedNotalRAGSystem()
 
 # Utility functions for easy integration
 def enhance_agent_prompt(agent_type: str, base_prompt: str, query: str, 
                         user_type: Optional[str] = None,
                         conversation_context: Optional[Dict[str, Any]] = None) -> str:
-    """Enhance an agent prompt with enhanced RAG context"""
+    """Enhance an agent prompt with extra RAG context"""
     return enhanced_notal_rag.enhance_prompt_with_context(
         base_prompt, agent_type, query, user_type, conversation_context
     )
@@ -718,15 +718,15 @@ def enhance_agent_prompt(agent_type: str, base_prompt: str, query: str,
 def get_relevant_context(agent_type: str, query: str,
                         user_type: Optional[str] = None,
                         conversation_context: Optional[Dict[str, Any]] = None) -> str:
-    """Get relevant context for an agent with enhanced retrieval"""
+    """Get relevant context for an agent with extra retrieval"""
     return enhanced_notal_rag.get_context_for_agent(agent_type, query, user_type, conversation_context)
 
 def search_project_knowledge(query: str, user_type: Optional[str] = None,
                             category: Optional[str] = None) -> List[Dict[str, Any]]:
-    """Search the enhanced project knowledge base"""
+    """Search the extra project knowledge base"""
     return enhanced_notal_rag.search_knowledge(query, user_type, category)
 
 def get_knowledge_stats() -> Dict[str, Any]:
-    """Get enhanced knowledge base statistics"""
+    """Get extra knowledge base statistics"""
     return enhanced_notal_rag.get_knowledge_stats()
 
