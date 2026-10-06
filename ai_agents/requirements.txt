@@ -28,7 +28,7 @@ torch==2.1.0
 langchain==0.0.350
 langchain-openai==0.0.2
 langchain-anthropic==0.1.0
-langchain-google-genai==0.0.5
+langchain-google-genai==4.4.0
 
 # Caching and storage
 redis==5.0.1
