@@ -1,6 +1,6 @@
 # Essential dependencies for Certio AI Training System
 # Core FastAPI and web framework
-fastapi==0.104.1
+fastapi==0.142.2
 uvicorn==0.24.0
 pydantic==2.5.0
 python-dotenv==1.0.0
