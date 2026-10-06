@@ -6,7 +6,7 @@ pydantic==2.5.0
 python-dotenv==1.0.0
 
 # AI Provider APIs
-openai==1.3.7
+openai==3.24.0
 
 # Data processing and analytics (required for RAG system)
 # Updated for Python 3.12 compatibility
